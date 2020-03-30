@@ -1,0 +1,12 @@
+# idea
+.idea
+
+# node_modules
+node_modules
+
+# dist
+/dist
+
+# config
+/config/*
+!/config/default.js

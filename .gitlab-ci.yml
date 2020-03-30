@@ -1,0 +1,45 @@
+variables:
+  IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+stages:
+  - build
+  - assemble
+  - deploy
+
+webpack_build:
+  stage: build
+  image: node:carbon
+  tags:
+    - docker
+    - gfw
+  cache:
+    paths:
+      - .npm_cache
+      - .cache
+  script:
+    - PWD=`pwd`
+    - npm config set cache $PWD/.npm_cache --global
+    - npm ci
+    - mv .cache ./node_modules || true
+    - npm run build
+    - mv ./node_modules/.cache ./ || true
+    - npm prune --production
+  artifacts:
+    paths:
+      - package.json
+      - config/default.js
+      - dist/
+      - node_modules/
+
+docker_build:
+  stage: assemble
+  tags:
+    - shell
+    - linux
+    - knrt
+  script:
+    - docker build -t $IMAGE_NAME ./
+    - docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker push $IMAGE_NAME
+  dependencies:
+    - webpack_build
