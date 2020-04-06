@@ -102,5 +102,16 @@
     "source-map-support": "^0.5.16",
     "uuid": "^7.0.2",
     "xlsx": "^0.15.6"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js, vue, ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }
