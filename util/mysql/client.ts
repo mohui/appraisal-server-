@@ -1,7 +1,7 @@
-import {createPool, Pool, PoolOptions} from "mysql2/promise";
-import {MySQLConnection, MySQLResult} from "./connection";
-import {Transaction} from "./transaction";
-import Decimal from 'decimal.js'
+import {createPool, Pool, PoolOptions} from 'mysql2/promise';
+import {MySQLConnection, MySQLResult} from './connection';
+import {Transaction} from './transaction';
+import Decimal from 'decimal.js';
 
 //MySQL连接池
 export class MySQL {
@@ -12,7 +12,7 @@ export class MySQL {
   }
 
   async getConnection() {
-    return new MySQLConnection(await this.pool.getConnection())
+    return new MySQLConnection(await this.pool.getConnection());
   }
 
   //直接获取连接,并执行语句,然后返回结果
@@ -28,8 +28,7 @@ export class MySQL {
   //分页助手方法
   async count(sql: string, ...params) {
     sql = sql.trim();
-    if (sql[sql.length - 1] === ';')
-      sql = sql.substring(0, sql.length - 1);
+    if (sql[sql.length - 1] === ';') sql = sql.substring(0, sql.length - 1);
 
     //优化sql中可能带order的情况
     const lastOrderByIndex = sql.toLowerCase().lastIndexOf('order by');
@@ -39,7 +38,9 @@ export class MySQL {
       const orderByStatement = sql.substring(lastOrderByIndex);
       //通过括号匹配来判断这个order by片段是不是最后一个独立的order by
       const chars = orderByStatement.split('');
-      const isValid = chars.filter(c => c === '(').length === chars.filter(c => c === ')').length;
+      const isValid =
+        chars.filter(c => c === '(').length ===
+        chars.filter(c => c === ')').length;
       //如果是,则把这个order by从sql中去掉
       if (isValid) {
         sql = sql.replace(orderByStatement, '');
@@ -59,19 +60,21 @@ export class MySQL {
 
   //分页助手方法
   async page(sql: string, pageNo: number, pageSize: number, ...params) {
-    if (typeof pageNo !== "number" || !/^[1-9]\d*/.test(pageNo.toString())) {
+    if (typeof pageNo !== 'number' || !/^[1-9]\d*/.test(pageNo.toString())) {
       throw new Error('pageNo：必须是大于0的整数！');
     }
-    if (typeof pageSize !== "number" || !/^[1-9]\d*/.test(pageSize.toString())) {
+    if (
+      typeof pageSize !== 'number' ||
+      !/^[1-9]\d*/.test(pageSize.toString())
+    ) {
       throw new Error('pageSize：必须是大于0的整数！');
     }
 
     sql = sql.trim();
-    if (sql[sql.length - 1] === ';')
-      sql = sql.substring(0, sql.length - 1);
+    if (sql[sql.length - 1] === ';') sql = sql.substring(0, sql.length - 1);
 
     //拿到数据的总行数
-    let rows = await this.count(sql, ...params);
+    const rows = await this.count(sql, ...params);
 
     let pageResult: MySQLResult = [];
     let pages = 0;
@@ -80,14 +83,16 @@ export class MySQL {
     if (rows > 0) {
       const pageSql = `${sql} limit ${(pageNo - 1) * pageSize},${pageSize}`;
       pageResult = await this.execute(pageSql, ...params);
-      pages = Math.ceil((new Decimal(rows)).div(new Decimal(pageSize)).toNumber());
+      pages = Math.ceil(
+        new Decimal(rows).div(new Decimal(pageSize)).toNumber()
+      );
     }
 
     return {
       data: pageResult,
       rows,
       pages
-    }
+    };
   }
 
   //新建一个事务,然后执行actions函数,最后做事务的提交和回滚
