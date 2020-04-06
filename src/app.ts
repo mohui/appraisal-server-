@@ -19,7 +19,7 @@ export class Application {
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
-    (<ExtendedProcess>process).app = this;
+    (process as ExtendedProcess).app = this;
     //获取服务器监听的地址
     this.server.once('listening', () => {
       const address = this.server.address();
