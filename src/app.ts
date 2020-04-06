@@ -4,6 +4,7 @@ import * as config from 'config';
 import * as http from 'http';
 import * as cookieParser from 'cookie-parser';
 import * as fallback from 'connect-history-api-fallback';
+import {KatoUI} from 'kato-ui';
 import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
 
 import {MySQL} from '../util/mysql';
@@ -24,8 +25,8 @@ export class Application {
     this.server.once('listening', () => {
       const address = this.server.address();
       if (typeof address !== 'string') {
-        (<ExtendedProcess>process).host = address.address;
-        (<ExtendedProcess>process).port = address.port;
+        (process as ExtendedProcess).host = address.address;
+        (process as ExtendedProcess).port = address.port;
       }
     });
   }
@@ -34,8 +35,6 @@ export class Application {
     // 设置服务器连接的超时时间
     this.server.setTimeout(0);
 
-    //初始化数据库
-    await this.initDB();
     //初始化express
     await this.initExpress();
     //初始化kato
@@ -47,7 +46,10 @@ export class Application {
 
     return new Promise(resolve => {
       this.server.listen(config.get('port'), config.get('host'), () => {
-        if (_DEV_) require('killable')(this.server);
+        if (_DEV_) {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          require('killable')(this.server);
+        }
         console.log(
           `Server on http://${config.get('host')}:${config.get('port')}`
         );
@@ -59,11 +61,11 @@ export class Application {
   async shutdown() {
     //关闭http服务器
     return new Promise(resolve => {
-      this.server[(<any>this.server).kill ? 'kill' : 'close'](() => resolve());
+      this.server[(this.server as any).kill ? 'kill' : 'close'](() =>
+        resolve()
+      );
     });
   }
-
-  async initDB() {}
 
   async initExpress() {
     //解析cookie
@@ -97,10 +99,10 @@ export class Application {
     };
     const kato = new Kato(katoOptions);
     //动态加载kato模块
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('./kato-loader!./api/kato.config')(kato);
     //如果需要启动KatoUI的话,仅仅在开发环境下启用
-    if (_DEV_) {
-      const {KatoUI} = require('kato-ui');
+    if (process.env.NODE_ENV === 'development') {
       console.log(
         `Kato UI http://${config.get('host')}:${config.get('port')}/api/ui/`
       );
