@@ -12,8 +12,8 @@ export async function devServer(req, res, next) {
       hot: true
     });
     await new Promise((resolve, reject) => {
-      devMiddleware.waitUntilValid((_, err) => err ? reject(err) : resolve())
-    })
+      devMiddleware.waitUntilValid((_, err) => (err ? reject(err) : resolve()));
+    });
   }
   if (!hotMiddleware)
     hotMiddleware = require('webpack-hot-middleware')(compiler);

@@ -1,4 +1,4 @@
-import {Context as KatoContext} from 'kato-server'
+import {Context as KatoContext} from 'kato-server';
 import {Request, Response} from 'express';
 
 //用于该项目的特定context,项目中任何使用kato context的地方都应该使用该context类
@@ -11,15 +11,15 @@ export class Context extends KatoContext {
   user: any;
 
   static get current() {
-    return KatoContext.current as Context
+    return KatoContext.current as Context;
   }
 
   //下面是短链接方法
   static get req(): Request {
-    return this.current.req
+    return this.current.req;
   }
 
   static get res(): Response {
-    return this.current.res
+    return this.current.res;
   }
 }
