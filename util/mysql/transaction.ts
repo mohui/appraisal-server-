@@ -1,9 +1,9 @@
 import getLogger from 'debug';
-import {createContext} from "conctx";
-import {v4 as uuid} from 'uuid'
+import {createContext} from 'conctx';
+import {v4 as uuid} from 'uuid';
 
-import {MySQLConnection} from "./connection";
-import {MySQL} from "./client";
+import {MySQLConnection} from './connection';
+import {MySQL} from './client';
 
 //事务的上下文
 const context = createContext();
@@ -13,7 +13,7 @@ const txSymbol = Symbol('context:tx');
 
 //事务类
 export class Transaction {
-  public txId = uuid().replace(/\-/g, '');
+  public txId = uuid().replace(/-/g, '');
 
   private simpleTxId = this.txId.substring(0, 4);
   private parent?: Transaction;
@@ -21,10 +21,9 @@ export class Transaction {
   private savePoint = `sp${this.txId}`;
   private isTopLevelTx = false;
   private txStack: string[];
-  private log = getLogger(`knrt:mysql:tx:${this.simpleTxId}`);
+  private log = getLogger(`spd:mysql:tx:${this.simpleTxId}`);
 
-  constructor(private mysql: MySQL, private join = true) {
-  }
+  constructor(private mysql: MySQL, private join = true) {}
 
   public async do(actions: (MySQLConnection) => Promise<any>): Promise<any> {
     //初始化
@@ -35,7 +34,11 @@ export class Transaction {
       console.log(`tx:同一个异步节点出现两次异步事件`);
     }
     context.current[txSymbol] = this;
-    this.log(`当前事务上下文 ROOT->${this.txContextPath().map(it => it.toString()).join('->')}`);
+    this.log(
+      `当前事务上下文 ROOT->${this.txContextPath()
+        .map(it => it.toString())
+        .join('->')}`
+    );
 
     //添加开始事务堆栈
     this.topTx.txStack.push(`+${this.toString()}`);
@@ -68,13 +71,16 @@ export class Transaction {
       //防止过早清除不属于自己的上下文节点,尤其是顶级事务节点
       if (!context[txSymbol].isTopLevelTx || this.isTopLevelTx)
         context[txSymbol] = undefined;
-      else
-        console.error('tx:非顶级节点企图删除顶级节点上下文');
+      else console.error('tx:非顶级节点企图删除顶级节点上下文');
 
       //添加完成事务堆栈
       this.topTx.txStack.push(`-${this.toString()}`);
       this.log(`当前事务堆栈: [${this.topTx.txStack.join(',')}]`);
-      this.log(`事务完成,剩余事务上下文 ROOT->${this.txContextPath().map(it => it.toString()).join('->')}`);
+      this.log(
+        `事务完成,剩余事务上下文 ROOT->${this.txContextPath()
+          .map(it => it.toString())
+          .join('->')}`
+      );
     }
   }
 
@@ -90,7 +96,9 @@ export class Transaction {
       this.isTopLevelTx = true;
       this.txStack = [];
       this.connection = await this.mysql.getConnection();
-      this.log(`事务初始化完成${this.join ? ',没有找到上层事务,该事务是新建的' : ''}`);
+      this.log(
+        `事务初始化完成${this.join ? ',没有找到上层事务,该事务是新建的' : ''}`
+      );
     }
   }
 
@@ -99,8 +107,7 @@ export class Transaction {
       await this.connection.beginTransaction();
     } else {
       // language=MySQL
-      // @ts-ignore
-      await this.connection.query(`savepoint ${this.savePoint}`)
+      await this.connection.query(`savepoint ${this.savePoint}`);
     }
   }
 
@@ -121,18 +128,19 @@ export class Transaction {
       });
       if (tempStack.length > 0) {
         if (tempStack.length > 1 || tempStack[0] !== `+${this.toString()}`)
-          throw new Error('事务嵌套错误,还有嵌套事务没有退出,请不要并行传递事务,以免出现堆叠嵌套');
+          throw new Error(
+            '事务嵌套错误,还有嵌套事务没有退出,请不要并行传递事务,以免出现堆叠嵌套'
+          );
       }
 
       await this.connection.commit();
     } else {
       try {
         // language=MySQL
-        // @ts-ignore
         await this.connection.query(`release
-          savepoint ${this.savePoint}`)
+          savepoint ${this.savePoint}`);
       } catch (e) {
-        console.error('提交嵌套事务时出现错误,', e.message)
+        console.error('提交嵌套事务时出现错误,', e.message);
       }
     }
   }
@@ -143,17 +151,17 @@ export class Transaction {
     } else {
       try {
         // language=MySQL
-        // @ts-ignore
         await this.connection.query(`rollback
-          to ${this.savePoint}`)
+          to ${this.savePoint}`);
       } catch (e) {
-        console.error('回滚嵌套事务时出现错误,', e.message)
+        console.error('回滚嵌套事务时出现错误,', e.message);
       }
     }
   }
 
   get topTx() {
-    let current: Transaction = this;
+    let current: Transaction;
+    current = this;
     while (current.parent) {
       current = current.parent;
     }
@@ -161,7 +169,7 @@ export class Transaction {
   }
 
   public toString() {
-    return `TX:${this.simpleTxId}`
+    return `TX:${this.simpleTxId}`;
   }
 
   public txContextPath() {
