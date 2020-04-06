@@ -8,10 +8,7 @@ module.exports = merge(base, {
   mode: 'development',
   devtool: 'cheap-module-eval-source-map',
   entry: {
-    front: [
-      "webpack-hot-middleware/client",
-      "./web/main.js"
-    ],
+    front: ['webpack-hot-middleware/client', './web/main.js']
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
@@ -19,8 +16,8 @@ module.exports = merge(base, {
       _DEV_: true
     }),
     new HtmlWebpackPlugin({
-      filename: "index.html",
-      template: "./web/index.html",
+      filename: 'index.html',
+      template: './web/index.html',
       chunks: ['front']
     }),
     new FriendlyErrorsWebpackPlugin()

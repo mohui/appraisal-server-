@@ -11,17 +11,6 @@ module.exports = merge(base, {
     chunkFilename: 'js/[name].[contenthash:8].js'
   },
   entry: './web/main.js',
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        "web-vendors": {
-          name: 'web-vendors',
-          test: /[\\\/]node_modules[\\\/]/,
-          chunks: chunk => chunk.name === 'web'
-        },
-      }
-    }
-  },
   plugins: [
     new webpack.DefinePlugin({
       _DEV_: false
@@ -29,16 +18,19 @@ module.exports = merge(base, {
     new OptimizeCssnanoPlugin({
       sourceMap: false,
       cssnanoOptions: {
-        preset: ['default', {
-          mergeLonghand: false,
-          cssDeclarationSorter: false
-        }]
+        preset: [
+          'default',
+          {
+            mergeLonghand: false,
+            cssDeclarationSorter: false
+          }
+        ]
       }
     }),
     new HtmlWebpackPlugin({
-      filename: "index.html",
-      template: "./web/index.html",
-      chunks: ['web', 'web-vendors'],
-    }),
+      filename: 'index.html',
+      template: './web/index.html',
+      chunks: ['web', 'web-vendors']
+    })
   ]
 });

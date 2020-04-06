@@ -29,9 +29,12 @@
     "@types/mysql2": "github:types/mysql2",
     "@types/node": "^13.9.5",
     "@types/uuid": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
     "@vue/cli-plugin-babel": "^4.2.3",
     "awesome-typescript-loader": "^5.2.1",
     "axios": "^0.19.2",
+    "babel-eslint": "^10.1.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-import": "^1.13.0",
     "clean-webpack-plugin": "^3.0.0",
@@ -40,15 +43,21 @@
     "css-loader": "^3.4.2",
     "decimal.js.macro": "^1.0.1",
     "element-ui": "^2.13.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-vue": "^6.2.2",
     "file-loader": "^6.0.0",
     "friendly-errors-webpack-plugin": "^1.7.0",
     "fs-extra": "^9.0.0",
     "html-webpack-plugin": "^4.0.3",
     "http-proxy-middleware": "^1.0.3",
+    "husky": "^4.2.3",
     "kato-client": "0.0.5",
     "killable": "^1.0.1",
     "less": "^3.11.1",
     "less-loader": "^5.0.0",
+    "lint-staged": "^10.1.2",
     "mini-css-extract-plugin": "^0.9.0",
     "node-html-parser": "^1.2.13",
     "node-sass": "^4.13.1",
@@ -56,6 +65,7 @@
     "portfinder": "^1.0.25",
     "sass-loader": "^8.0.2",
     "start-server-webpack-plugin": "^2.2.5",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.8.3",
     "upath": "^1.2.0",
     "url-loader": "^4.0.0",
@@ -83,7 +93,7 @@
     "debug": "^4.1.1",
     "decimal.js": "^10.2.0",
     "express": "^4.17.1",
-    "handlebars": "^4.7.3",
+    "handlebars": "^4.7.6",
     "handlebars-helpers": "^0.10.0",
     "kato-server": "^2.1.1",
     "kato-ui": "^2.0.1",
@@ -92,5 +102,16 @@
     "source-map-support": "^0.5.16",
     "uuid": "^7.0.2",
     "xlsx": "^0.15.6"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,vue,ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

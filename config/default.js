@@ -9,7 +9,7 @@ module.exports = {
     password: 'root',
     database: 'data_34_2016',
     decimalNumbers: true,
-    multipleStatements: true,
+    multipleStatements: true
   },
   root: {
     host: 'localhost',
@@ -18,7 +18,7 @@ module.exports = {
     password: 'root',
     database: 'knrt',
     decimalNumbers: true,
-    multipleStatements: true,
+    multipleStatements: true
   },
   intl: {
     host: 'localhost',
@@ -27,7 +27,7 @@ module.exports = {
     password: 'root',
     database: 'ht_intl',
     decimalNumbers: true,
-    multipleStatements: true,
+    multipleStatements: true
   },
   publicHealth: {
     host: 'localhost',
@@ -36,6 +36,6 @@ module.exports = {
     password: 'root',
     database: 'publichealth',
     decimalNumbers: true,
-    multipleStatements: true,
-  },
+    multipleStatements: true
+  }
 };

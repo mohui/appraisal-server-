@@ -1,11 +1,10 @@
-const path = require('upath');
 const nodeExternals = require('webpack-node-externals');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const {CheckerPlugin: TSCheckerPlugin} = require('awesome-typescript-loader');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 
 module.exports = {
-  target: "node",
+  target: 'node',
   devtool: 'source-map',
   optimization: {
     minimize: false,
@@ -29,17 +28,18 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              ['@babel/preset-env', {targets: {node: '8'}}],
-            ],
+            presets: [['@babel/preset-env', {targets: {node: '8'}}]],
             plugins: [
-              "babel-plugin-macros",
-              ['@babel/plugin-proposal-decorators', {
-                legacy: true
-              }],
+              'babel-plugin-macros',
+              [
+                '@babel/plugin-proposal-decorators',
+                {
+                  legacy: true
+                }
+              ],
               '@babel/plugin-proposal-class-properties',
               '@babel/plugin-proposal-optional-chaining',
-              '@babel/plugin-proposal-nullish-coalescing-operator',
+              '@babel/plugin-proposal-nullish-coalescing-operator'
             ]
           }
         }
@@ -47,13 +47,15 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        use: [{
-          loader: 'awesome-typescript-loader',
-          options: {
-            useTranspileModule: true
+        use: [
+          {
+            loader: 'awesome-typescript-loader',
+            options: {
+              useTranspileModule: true
+            }
           }
-        }]
-      },
+        ]
+      }
       // {
       //   test: /\.sql.hbs$/,
       //   exclude: /node_modules/,

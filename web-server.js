@@ -1,6 +1,5 @@
 const config = require('config');
 const express = require('express');
-const fallback = require('connect-history-api-fallback');
 const devServer = require('./src/dev-server').devServer;
 const proxy = require('http-proxy-middleware');
 const portFinder = require('portfinder');
@@ -16,11 +15,20 @@ const portFinder = require('portfinder');
 
     const app = express();
     app.use(devServer);
-    app.use(proxy.createProxyMiddleware("/api", {target: apiServer, changeOrigin: true, logLevel: "warn", ws: true}));
+    app.use(
+      proxy.createProxyMiddleware('/api', {
+        target: apiServer,
+        changeOrigin: true,
+        logLevel: 'warn',
+        ws: true
+      })
+    );
 
     let port = await portFinder.getPortPromise({port: 8080, stopPort: 8090});
-    app.listen(port, "0.0.0.0", () => console.log(`Server on http://0.0.0.0:${port}`));
+    app.listen(port, '0.0.0.0', () =>
+      console.log(`Server on http://0.0.0.0:${port}`)
+    );
   } catch (e) {
-    console.error("服务启动失败: ", e.message)
+    console.error('服务启动失败: ', e.message);
   }
 })();

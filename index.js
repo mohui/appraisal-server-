@@ -22,7 +22,7 @@ let {app} = require('./src/app');
     if (module.hot) {
       let isReloading = false;
       let pendingReload = false;
-      module.hot.accept('./src/app', async function () {
+      module.hot.accept('./src/app', async function() {
         //重载函数
         const reload = async () => {
           //进入重载流程
@@ -35,7 +35,7 @@ let {app} = require('./src/app');
             app = require('./src/app').app;
             console.log('[HMR] 启动新的应用程序\n');
             await app.start();
-            console.log('\n[HMR] 新应用程序启动完成\n')
+            console.log('\n[HMR] 新应用程序启动完成\n');
           } catch (e) {
             console.error(e);
             await app.shutdown();
@@ -53,12 +53,12 @@ let {app} = require('./src/app');
         };
 
         if (isReloading) {
-          console.warn("\n[HMR] 上一个重载正在进行,等待它完成...\n");
+          console.warn('\n[HMR] 上一个重载正在进行,等待它完成...\n');
           pendingReload = true;
         } else {
           await reload();
         }
-      })
+      });
     }
   }
 })();

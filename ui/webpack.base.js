@@ -30,11 +30,7 @@ module.exports = {
       //scss
       {
         test: /\.(sc|c)ss$/,
-        use: [
-          styleLoader,
-          'css-loader',
-          'sass-loader'
-        ],
+        use: [styleLoader, 'css-loader', 'sass-loader']
       },
       //less
       {
@@ -73,7 +69,7 @@ module.exports = {
         options: {
           limit: 10000,
           name: 'fonts/[name].[hash:8].[ext]',
-          publicPath:  isDev ? '/':'../'
+          publicPath: isDev ? '/' : '../'
         }
       }
     ]
@@ -95,6 +91,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: 'css/[name].[contenthash:8].css',
       chunkFilename: 'css/[name].[contenthash:8].css'
-    }),
+    })
   ]
 };
