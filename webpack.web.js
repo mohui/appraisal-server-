@@ -10,16 +10,16 @@ module.exports = merge(base, {
       'source-map-support/register',
       'webpack/hot/poll?1000',
       './web-server.js'
-    ],
+    ]
   },
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
-      _DEV_: true,
+      _DEV_: true
     }),
     new StartServerPlugin({
-      name: 'main.js',
-    }),
+      name: 'main.js'
+    })
   ]
 });

@@ -2,21 +2,28 @@ const glob = require('glob');
 
 async function fileMatch(pattern, options) {
   return new Promise((resolve, reject) => {
-    glob(pattern, options, (err, matches) => err ? reject(err) : resolve(matches))
-  })
+    glob(pattern, options, (err, matches) =>
+      err ? reject(err) : resolve(matches)
+    );
+  });
 }
 
-module.exports = function (config) {
+module.exports = function(config) {
   const callback = this.async();
   config = JSON.parse(config);
 
   (async () => {
     const files = (
-      await Promise.all(config.include.map(i => fileMatch(i, {
-        ignore: config.exclude,
-        cwd: this.context,
-        nodir: true
-      }))))
+      await Promise.all(
+        config.include.map(i =>
+          fileMatch(i, {
+            ignore: config.exclude,
+            cwd: this.context,
+            nodir: true
+          })
+        )
+      )
+    )
       .reduce((p, n) => [...p, ...n], [])
       .filter((file, index, array) => array.indexOf(file) === index)
       .map(file => './' + file);
@@ -27,7 +34,9 @@ module.exports = function (config) {
     return `
     module.exports = function(kato) {
       console.log('[kato-loader] 获取到 ${files.length} 个需要加载的模块文件');
-      ${files.map(file => `
+      ${files
+        .map(
+          file => `
       //kato类加载
       {
         let katoClass = require('${file}');
@@ -50,7 +59,9 @@ module.exports = function (config) {
               console.warn('[kato-loader] => 文件 ${file} 中找不到可加载类');
           });
         }
-      }`).join('\n')}
+      }`
+        )
+        .join('\n')}
       console.log('[kato-loader] 所有模块加载完毕!');
     }`;
   })()
