@@ -11,7 +11,7 @@ module.exports = {
     decimalNumbers: true,
     multipleStatements: true
   },
-  root: {
+  knrt: {
     host: 'localhost',
     port: '3306',
     user: 'root',
