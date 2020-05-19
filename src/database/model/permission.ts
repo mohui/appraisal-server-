@@ -10,6 +10,7 @@ import {
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 import {Role} from './role';
+import {RolePermission} from './role_permission';
 
 @Table({tableName: 'permission'})
 export class Permission extends Model<Permission> {
@@ -19,17 +20,17 @@ export class Permission extends Model<Permission> {
   @Column(DataType.UUID)
   id: string;
 
-  @Column(DataType.STRING)
   @Comment('权限名')
+  @Column(DataType.STRING)
   name: string;
 
-  @Column(DataType.STRING)
   @Comment('权限类型')
+  @Column(DataType.STRING)
   type: string;
 
   @BelongsToMany(
     () => Role,
-    () => Permission
+    () => RolePermission
   )
   roles: Role[];
 }

@@ -12,6 +12,8 @@ import {
 import {UUIDV4} from 'sequelize';
 import {User} from './user';
 import {UserRole} from './user_role';
+import {Permission} from './permission';
+import {RolePermission} from './role_permission';
 
 @Table({tableName: 'role'})
 export class Role extends Model<Role> {
@@ -31,4 +33,10 @@ export class Role extends Model<Role> {
     () => UserRole
   )
   users: User[];
+
+  @BelongsToMany(
+    () => Permission,
+    () => RolePermission
+  )
+  permissions: Permission[];
 }
