@@ -1,42 +1,40 @@
 import * as path from 'upath';
 import * as express from 'express';
 import * as config from 'config';
-import * as http from "http";
+import * as http from 'http';
 import * as cookieParser from 'cookie-parser';
 import * as fallback from 'connect-history-api-fallback';
+import {KatoUI} from 'kato-ui';
 import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
 
-import {MySQL} from "../util/mysql";
-import {UserMiddleware} from "./api/middleware/user";
+import {MySQL} from '../util/mysql';
+import {UserMiddleware} from './api/middleware/user';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
 export class Application {
   express = express();
   server = http.createServer(this.express);
-  dataDB = new MySQL(config.get("data"));
-  knrtDB = new MySQL(config.get("knrt"));
-
+  dataDB = new MySQL(config.get('data'));
+  knrtDB = new MySQL(config.get('knrt'));
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
-    (<ExtendedProcess>process).app = this;
+    (process as ExtendedProcess).app = this;
     //获取服务器监听的地址
-    this.server.once("listening", () => {
+    this.server.once('listening', () => {
       const address = this.server.address();
-      if (typeof address !== "string") {
-        (<ExtendedProcess>process).host = address.address;
-        (<ExtendedProcess>process).port = address.port;
+      if (typeof address !== 'string') {
+        (process as ExtendedProcess).host = address.address;
+        (process as ExtendedProcess).port = address.port;
       }
-    })
+    });
   }
 
   async start() {
     // 设置服务器连接的超时时间
     this.server.setTimeout(0);
 
-    //初始化数据库
-    await this.initDB();
     //初始化express
     await this.initExpress();
     //初始化kato
@@ -47,23 +45,26 @@ export class Application {
     this.express.on('error', err => console.error(err));
 
     return new Promise(resolve => {
-      this.server.listen(config.get("port"), config.get("host"), () => {
-        if (_DEV_)
+      this.server.listen(config.get('port'), config.get('host'), () => {
+        if (_DEV_) {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
           require('killable')(this.server);
-        console.log(`Server on http://${config.get("host")}:${config.get("port")}`);
+        }
+        console.log(
+          `Server on http://${config.get('host')}:${config.get('port')}`
+        );
         resolve();
       });
-    })
+    });
   }
 
   async shutdown() {
     //关闭http服务器
     return new Promise(resolve => {
-      this.server[(<any>this.server).kill ? 'kill' : 'close'](() => resolve());
-    })
-  }
-
-  async initDB() {
+      this.server[(this.server as any).kill ? 'kill' : 'close'](() =>
+        resolve()
+      );
+    });
   }
 
   async initExpress() {
@@ -73,12 +74,12 @@ export class Application {
 
   async initWebResource() {
     //fallback页面资源,处理vue路由
-    this.express.use(fallback({
-      htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
-      rewrites: [
-        {from: /^\/admin.*$/, to: '/admin.html'},
-      ]
-    }));
+    this.express.use(
+      fallback({
+        htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
+        rewrites: [{from: /^\/admin.*$/, to: '/admin.html'}]
+      })
+    );
 
     //页面资源挂载
     if (_DEV_) {
@@ -98,11 +99,13 @@ export class Application {
     };
     const kato = new Kato(katoOptions);
     //动态加载kato模块
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('./kato-loader!./api/kato.config')(kato);
     //如果需要启动KatoUI的话,仅仅在开发环境下启用
-    if (_DEV_) {
-      const {KatoUI} = require('kato-ui');
-      console.log(`Kato UI http://${config.get("host")}:${config.get("port")}/api/ui/`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `Kato UI http://${config.get('host')}:${config.get('port')}/api/ui/`
+      );
       kato.use(KatoUI);
     }
     //添加用户中间件,在验证中间件之前
