@@ -6,6 +6,7 @@ module.exports = [
     icon: 'el-icon-s-home'
   },
   {
+    index: 'test',
     label: '测试页',
     icon: 'el-icon-edit',
     children: [

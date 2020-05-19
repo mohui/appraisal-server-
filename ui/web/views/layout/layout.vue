@@ -22,7 +22,7 @@
     </el-header>
     <el-container>
       <el-aside width="200px">
-        <el-menu class="layout-side-menu" router>
+        <el-menu class="layout-side-menu" default-active="home" router>
           <multi-menu
             v-for="menu of menus"
             :key="menu.router"
