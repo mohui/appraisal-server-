@@ -97,7 +97,7 @@ export class Application {
     this.pgDB.addModels(Object.values(models));
     const migrate = new Migrater(this.pgDB);
     migrations.forEach(m => migrate.addMigration(m));
-    await migrate.migrate(0);
+    await migrate.migrate(1);
   }
 
   async initExpress() {
