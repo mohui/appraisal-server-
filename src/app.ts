@@ -20,7 +20,7 @@ export class Application {
   server = http.createServer(this.express);
   dataDB = new MySQL(config.get('data'));
   knrtDB = new MySQL(config.get('knrt'));
-  appraisalDB = createExtendedSequelize(
+  appDB = createExtendedSequelize(
     new Sequelize({
       dialect: 'postgres',
       host: config.get('postgres.host'),
@@ -84,7 +84,7 @@ export class Application {
 
   async shutdown() {
     //关闭数据库
-    this.appraisalDB && (await this.appraisalDB.close());
+    this.appDB && (await this.appDB.close());
     //关闭http服务器
     return new Promise(resolve => {
       this.server[(this.server as any).kill ? 'kill' : 'close'](() =>
@@ -94,8 +94,8 @@ export class Application {
   }
 
   async initDB() {
-    this.appraisalDB.addModels(Object.values(models));
-    const migrate = new Migrater(this.appraisalDB);
+    this.appDB.addModels(Object.values(models));
+    const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     await migrate.migrate(1);
   }
@@ -154,4 +154,4 @@ export const app = new Application();
 //导出各种便捷属性
 export const dataDB = app.dataDB;
 export const knrtDB = app.knrtDB;
-export const appraisalDB = app.appraisalDB;
+export const appDB = app.appDB;
