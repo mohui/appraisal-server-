@@ -17,5 +17,18 @@ module.exports = [
         icon: 'el-icon-user'
       }
     ]
+  },
+  {
+    index: 'userManage',
+    label: '用户管理',
+    icon: 'el-icon-user',
+    children: [
+      {
+        index: 'role',
+        router: '/role',
+        label: '角色管理',
+        icon: 'el-icon-user'
+      }
+    ]
   }
 ];
