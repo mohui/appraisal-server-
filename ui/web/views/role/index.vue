@@ -182,6 +182,12 @@ export default {
   methods: {
     handleAddRole(scope) {
       console.log(scope);
+      this.role = Object.assign({}, defaultRole);
+      this.dialogType = 'new';
+      this.dialogVisible = true;
+      if (this.$refs.tree) {
+        this.$refs.tree.setCheckedNodes([]);
+      }
     },
     handleEdit(scope) {
       console.log(scope);
