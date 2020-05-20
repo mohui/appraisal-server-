@@ -238,6 +238,21 @@ export default {
     },
     handleDelete({$index, row}) {
       console.log($index, row);
+      this.$confirm('Confirm to remove the role?', 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      })
+        .then(async () => {
+          this.rolesList.splice($index, 1);
+          this.$message({
+            type: 'success',
+            message: 'Delete succed!'
+          });
+        })
+        .catch(err => {
+          console.error(err);
+        });
     },
     confirmRole() {
       console.log('confirmRole');
