@@ -187,6 +187,20 @@ export default {
       console.log(scope);
       this.dialogType = 'edit';
       this.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.tree.setCheckedNodes([
+          {
+            id: 21,
+            label: '二级 2-1'
+          },
+          {
+            id: 311,
+            label: '三级 1-1-1'
+          }
+        ]);
+        // set checked state of a node not affects its father and child nodes
+        this.checkStrictly = false;
+      });
     },
     handleDelete({$index, row}) {
       console.log($index, row);
