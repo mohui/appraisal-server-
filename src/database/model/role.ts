@@ -33,6 +33,7 @@ export class Role extends Model<Role> {
   users: User[];
 
   @Comment('权限数组')
+  @Default([])
   @Column({type: DataType.ARRAY(DataType.STRING)})
   permissions: string[];
 }
