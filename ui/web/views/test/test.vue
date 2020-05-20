@@ -1,9 +1,11 @@
 <template>
-  <router-view />
+  <div>Test View</div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'Test'
 };
 </script>
+
+<style scoped></style>

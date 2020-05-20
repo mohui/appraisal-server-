@@ -1,0 +1,75 @@
+//后台主样式文件
+
+//引入变量
+@import "./vars";
+//主题颜色
+$--color-primary: $color-primary;
+//字体路径
+$--font-path: '~element-ui/lib/theme-chalk/fonts';
+//引入element-ui的样式
+@import "~element-ui/packages/theme-chalk/src/index";
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+hr {
+  height: 1px;
+  background-color: #888;
+  opacity: 0.3;
+  border: none;
+}
+
+//字体
+* {
+  font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "ff-tisa-web-pro-1", "ff-tisa-web-pro-2", "Lucida Grande", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "Hiragino Sans GB W3", "WenQuanYi Micro Hei", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, p, a {
+  font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "ff-tisa-web-pro-1", "ff-tisa-web-pro-2", "Lucida Grande", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "Hiragino Sans GB W3", "WenQuanYi Micro Hei", sans-serif;
+}
+
+//菜单自定义样式
+.layout-side-menu {
+  height: 100%;
+  .el-submenu__title {
+    padding-left: 20px !important;
+    height: $header-height !important;
+    line-height: $header-height !important;
+  }
+
+  .el-menu-item {
+    height: $header-height !important;
+    line-height: $header-height !important;
+  }
+}
+
+//动画
+.fade-enter,
+.fade-leave-to {
+  transform: translateX(-10px);
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave {
+  opacity: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all .3s;
+}
+
+//用来计算宽度的span的样式
+.span-compute-container {
+  position: fixed;
+  top: -10000px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 23px;
+  padding: 0 15px;
+  display: inline-block;
+}
