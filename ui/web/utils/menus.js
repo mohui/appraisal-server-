@@ -24,8 +24,8 @@ module.exports = [
     icon: 'el-icon-user',
     children: [
       {
-        index: 'users',
-        router: '/users',
+        index: 'user',
+        router: '/user',
         label: '用户列表',
         icon: 'el-icon-user-solid'
       },
