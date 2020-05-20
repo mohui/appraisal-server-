@@ -1,8 +1,8 @@
 import crypts from 'crypts';
-import {KatoLogicError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
 import * as dayjs from 'dayjs';
-import {dataDB, knrtDB} from '../app';
-import {UserModel} from '../database/model';
+import {dataDB, knrtDB, appDB} from '../app';
+import {RoleModel, UserModel, UserRoleModel} from '../database/model';
 import {Op} from 'sequelize';
 
 export default class User {
@@ -143,6 +143,70 @@ export default class User {
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
+    });
+  }
+
+  @validate(
+    should.object({
+      account: should
+        .string()
+        .required()
+        .description('账户名'),
+      name: should
+        .string()
+        .required()
+        .description('用户名'),
+      password: should
+        .string()
+        .required()
+        .description('密码')
+    })
+  )
+  async addUser(user) {
+    const result = await UserModel.findOne({where: {account: user.account}});
+    if (result) throw new KatoCommonError('该账户已存在');
+    return UserModel.create(user);
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('用户id'),
+    should
+      .string()
+      .required()
+      .description('角色id')
+  )
+  async setRole(userId, roleId) {
+    const role = await RoleModel.findOne({where: {id: roleId}});
+    if (!role) throw new KatoCommonError('该角色不存在');
+
+    const user = await UserModel.findOne({where: {id: userId}});
+    if (!user) throw new KatoCommonError('该用户不存在');
+
+    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
+    if (user_role) throw new KatoCommonError('重复设置');
+
+    return await UserRoleModel.create({userId, roleId});
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('角色id'),
+    should
+      .array()
+      .allow([])
+      .required()
+      .description('权限数组')
+  )
+  async setPermission(roleId, permissions) {
+    return appDB.transaction(async () => {
+      const role = await RoleModel.findOne({where: {id: roleId}, lock: true});
+      if (!role) throw new KatoCommonError('该角色不存在');
+      return RoleModel.update({permissions}, {where: {id: roleId}});
     });
   }
 }
