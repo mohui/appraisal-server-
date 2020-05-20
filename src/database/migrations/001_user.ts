@@ -37,7 +37,7 @@ export class UserMigration implements IMigration {
       COMMENT ON COLUMN "role"."name" IS '角色名';
       COMMENT ON COLUMN "role"."permissions" IS '权限数组';
 
-      CREATE TABLE IF NOT EXISTS "user_role"
+      CREATE TABLE IF NOT EXISTS "user_role_mapping"
       (
         "user_id"    UUID                     NOT NULL REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
         "role_id"    UUID                     NOT NULL REFERENCES "role" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -52,7 +52,7 @@ export class UserMigration implements IMigration {
 
   async down(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
-      DROP TABLE IF EXISTS "user_role";
+      DROP TABLE IF EXISTS "user_role_mapping";
       DROP TABLE IF EXISTS "role";
       DROP TABLE IF EXISTS "user";
     `);
