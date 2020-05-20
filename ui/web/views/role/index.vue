@@ -164,18 +164,40 @@ export default {
       {
         description: 'Super Administrator. Have access to view all pages.',
         key: 'admin',
-        name: '管理员'
+        name: '管理员',
+        routes: [
+          {
+            id: 21,
+            label: '二级 2-1'
+          },
+          {
+            id: 311,
+            label: '三级 1-1-1'
+          }
+        ]
       },
       {
         description: 'Normal Editor. Can see all pages except permission page',
         key: 'editor',
-        name: '编辑'
+        name: '编辑',
+        routes: [
+          {
+            id: 21,
+            label: '二级 2-1'
+          }
+        ]
       },
       {
         description:
           'Just a visitor. Can only see the home page and the document page',
         key: 'visitor',
-        name: '游客'
+        name: '游客',
+        routes: [
+          {
+            id: 311,
+            label: '三级 1-1-1'
+          }
+        ]
       }
     ];
   },
@@ -194,16 +216,7 @@ export default {
       this.dialogType = 'edit';
       this.dialogVisible = true;
       this.$nextTick(() => {
-        this.$refs.tree.setCheckedNodes([
-          {
-            id: 21,
-            label: '二级 2-1'
-          },
-          {
-            id: 311,
-            label: '三级 1-1-1'
-          }
-        ]);
+        this.$refs.tree.setCheckedNodes(scope.row.routes);
         // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
       });
