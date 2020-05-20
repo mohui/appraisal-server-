@@ -25,8 +25,9 @@ export class UserMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "role"
       (
-        "id"         UUID,
-        "name"       VARCHAR(255) UNIQUE,
+        "id"          UUID,
+        "name"        VARCHAR(255) UNIQUE,
+        "permissions" VARCHAR(255)[],
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "deleted_at" TIMESTAMP WITH TIME ZONE,
@@ -34,6 +35,7 @@ export class UserMigration implements IMigration {
       );
       COMMENT ON COLUMN "role"."id" IS '主键id';
       COMMENT ON COLUMN "role"."name" IS '角色名';
+      COMMENT ON COLUMN "role"."permissions" IS '权限数组';
 
       CREATE TABLE IF NOT EXISTS "user_role"
       (
@@ -45,41 +47,14 @@ export class UserMigration implements IMigration {
         UNIQUE ("user_id", "role_id"),
         PRIMARY KEY ("user_id", "role_id")
       );
-
-       CREATE TABLE IF NOT EXISTS "permission"
-      (
-        "id"         UUID,
-        "type"       VARCHAR(255) UNIQUE,
-        "name"       VARCHAR(255) UNIQUE,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "deleted_at" TIMESTAMP WITH TIME ZONE,
-        PRIMARY KEY ("id")
-      );
-      COMMENT ON COLUMN "permission"."id" IS '主键id';
-      COMMENT ON COLUMN "permission"."type" IS '权限类型';
-      COMMENT ON COLUMN "permission"."name" IS '权限名';
-
-      CREATE TABLE IF NOT EXISTS "role_permission"
-      (
-        "role_id"          UUID                     NOT NULL REFERENCES "role" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "permission_id"    UUID                     NOT NULL REFERENCES "permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "deleted_at" TIMESTAMP WITH TIME ZONE,
-        UNIQUE ("role_id", "permission_id"),
-        PRIMARY KEY ("role_id", "permission_id")
-      );
     `);
   }
 
   async down(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
       DROP TABLE IF EXISTS "user_role";
-      DROP TABLE IF EXISTS "role_permission";
       DROP TABLE IF EXISTS "role";
       DROP TABLE IF EXISTS "user";
-      DROP TABLE IF EXISTS "permission";
     `);
   }
 }
