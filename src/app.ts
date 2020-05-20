@@ -9,6 +9,9 @@ import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
 
 import {MySQL} from '../util/mysql';
 import {UserMiddleware} from './api/middleware/user';
+import {Sequelize} from 'sequelize-typescript';
+import {createExtendedSequelize, Migrater, migrations} from './database';
+import * as models from './database/model';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -17,6 +20,25 @@ export class Application {
   server = http.createServer(this.express);
   dataDB = new MySQL(config.get('data'));
   knrtDB = new MySQL(config.get('knrt'));
+  appDB = createExtendedSequelize(
+    new Sequelize({
+      dialect: 'postgres',
+      host: config.get('postgres.host'),
+      port: config.get('postgres.port'),
+      username: config.get('postgres.username'),
+      password: config.get('postgres.password'),
+      database: config.get('postgres.database'),
+      timezone: '+8:00',
+      define: {
+        underscored: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        deletedAt: 'deleted_at',
+        paranoid: true
+      },
+      logging: console.log
+    })
+  );
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -35,6 +57,8 @@ export class Application {
     // 设置服务器连接的超时时间
     this.server.setTimeout(0);
 
+    //初始化数据库
+    await this.initDB();
     //初始化express
     await this.initExpress();
     //初始化kato
@@ -59,12 +83,21 @@ export class Application {
   }
 
   async shutdown() {
+    //关闭数据库
+    this.appDB && (await this.appDB.close());
     //关闭http服务器
     return new Promise(resolve => {
       this.server[(this.server as any).kill ? 'kill' : 'close'](() =>
         resolve()
       );
     });
+  }
+
+  async initDB() {
+    this.appDB.addModels(Object.values(models));
+    const migrate = new Migrater(this.appDB);
+    migrations.forEach(m => migrate.addMigration(m));
+    await migrate.migrate(1);
   }
 
   async initExpress() {
@@ -121,3 +154,4 @@ export const app = new Application();
 //导出各种便捷属性
 export const dataDB = app.dataDB;
 export const knrtDB = app.knrtDB;
+export const appDB = app.appDB;
