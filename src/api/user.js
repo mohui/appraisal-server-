@@ -2,6 +2,8 @@ import crypts from 'crypts';
 import {KatoLogicError, should, validate} from 'kato-server';
 import * as dayjs from 'dayjs';
 import {dataDB, knrtDB} from '../app';
+import {UserModel} from '../database/model';
+import {Op} from 'sequelize';
 
 export default class User {
   @validate(
@@ -123,5 +125,24 @@ export default class User {
     user['subTitle'] = areaCodeArray.filter(it => it.code);
 
     return user;
+  }
+
+  @validate(
+    should.object({
+      account: should.string().allow('', null),
+      pageSize: should.number(),
+      pageNo: should.number()
+    })
+  )
+  async list(params) {
+    const {pageNo = 1, pageSize = 20, account = ''} = params;
+    let whereOption = {};
+    if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
+    return await UserModel.findAll({
+      where: whereOption,
+      attributes: {exclude: ['password']},
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize
+    });
   }
 }
