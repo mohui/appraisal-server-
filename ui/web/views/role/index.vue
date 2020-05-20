@@ -202,6 +202,20 @@ export default {
     ];
   },
   methods: {
+    deepClone(source) {
+      if (!source && typeof source !== 'object') {
+        throw new Error('error arguments', 'deepClone');
+      }
+      const targetObj = source.constructor === Array ? [] : {};
+      Object.keys(source).forEach(keys => {
+        if (source[keys] && typeof source[keys] === 'object') {
+          targetObj[keys] = this.deepClone(source[keys]);
+        } else {
+          targetObj[keys] = source[keys];
+        }
+      });
+      return targetObj;
+    },
     handleAddRole(scope) {
       console.log(scope);
       this.role = Object.assign({}, defaultRole);
@@ -215,6 +229,7 @@ export default {
       console.log(scope);
       this.dialogType = 'edit';
       this.dialogVisible = true;
+      this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
         this.$refs.tree.setCheckedNodes(scope.row.routes);
         // set checked state of a node not affects its father and child nodes
@@ -226,6 +241,24 @@ export default {
     },
     confirmRole() {
       console.log('confirmRole');
+      console.log(this.role);
+      console.log(this.rolesList);
+
+      const isEdit = this.dialogType === 'edit';
+      const checkedNodes = this.$refs.tree.getCheckedNodes(true);
+      console.log(checkedNodes);
+      if (isEdit) {
+        for (let index = 0; index < this.rolesList.length; index++) {
+          console.log(this.rolesList[index].key);
+          console.log(this.role.key);
+          if (this.rolesList[index].key === this.role.key) {
+            this.rolesList[index].routes = checkedNodes;
+            break;
+          }
+        }
+      } else {
+        //TODO: 新增角色
+      }
     }
   }
 };
