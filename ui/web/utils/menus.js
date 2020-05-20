@@ -24,6 +24,12 @@ module.exports = [
     icon: 'el-icon-user',
     children: [
       {
+        index: 'users',
+        router: '/users',
+        label: '用户列表',
+        icon: 'el-icon-user-solid'
+      },
+      {
         index: 'role',
         router: '/role',
         label: '角色管理',
