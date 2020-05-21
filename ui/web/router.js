@@ -26,6 +26,11 @@ const router = new Router({
           path: 'role',
           name: 'role',
           component: () => import('./views/role/index')
+        },
+        {
+          path: 'user',
+          name: 'user',
+          component: () => import('./views/user/index')
         }
       ]
     },
