@@ -254,4 +254,13 @@ export default class User {
     }));
     return result;
   }
+
+  @validate(should.string().required(), should.string().required())
+  async updatePassword(userId, password) {
+    return appDB.transaction(async () => {
+      const user = await UserModel.findOne({where: {id: userId}});
+      if (!user) throw new KatoCommonError('该用户不存在');
+      return UserModel.update({password}, {where: {id: userId}});
+    });
+  }
 }
