@@ -22,7 +22,7 @@
     </el-header>
     <el-container>
       <el-aside width="200px">
-        <el-menu class="layout-side-menu" default-active="home" router>
+        <el-menu class="layout-side-menu" :default-active="activeMenu" router>
           <multi-menu
             v-for="menu of menus"
             :key="menu.router"
@@ -52,6 +52,13 @@ export default {
       menus: require('../../utils/menus'),
       dropdownVisible: false
     };
+  },
+  computed: {
+    activeMenu() {
+      const {meta} = this.$route.meta;
+      //返回router配置里指定的菜单激活项,若没有默认使用路由名
+      return meta?.activeMenu || this.$route.name;
+    }
   },
   methods: {
     handCommand(command) {
