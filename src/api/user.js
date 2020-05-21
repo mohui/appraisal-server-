@@ -4,6 +4,7 @@ import * as dayjs from 'dayjs';
 import {dataDB, knrtDB, appDB} from '../app';
 import {RoleModel, UserModel, UserRoleModel} from '../database/model';
 import {Op} from 'sequelize';
+import {Permission} from '../../common/permission';
 
 export default class User {
   @validate(
@@ -138,7 +139,7 @@ export default class User {
     const {pageNo = 1, pageSize = 20, account = ''} = params;
     let whereOption = {};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
-    return await UserModel.findAll({
+    return await UserModel.findAndCountAll({
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
@@ -208,5 +209,37 @@ export default class User {
       if (!role) throw new KatoCommonError('该角色不存在');
       return RoleModel.update({permissions}, {where: {id: roleId}});
     });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('权限名')
+  )
+  async addRole(name) {
+    return await RoleModel.create({name});
+  }
+
+  @validate(
+    should.object({
+      pageSize: should.number(),
+      pageNo: should.number()
+    })
+  )
+  async listRole(params) {
+    const {pageNo = 1, pageSize = 20} = params;
+    let result = await RoleModel.findAndCountAll({
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize,
+      include: [{model: UserModel, attributes: {exclude: ['password']}}]
+    });
+    result.rows = result.rows.map(it => ({
+      ...it.toJSON(),
+      permissions: it.permissions.map(key =>
+        Permission.find(p => p.key === key)
+      )
+    }));
+    return result;
   }
 }
