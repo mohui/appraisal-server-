@@ -199,6 +199,7 @@ export default class User {
       .description('角色id'),
     should
       .array()
+      .items(should.string())
       .allow([])
       .required()
       .description('权限数组')
