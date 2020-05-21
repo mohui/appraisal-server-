@@ -1,8 +1,8 @@
 <template>
   <div>
-    <el-button type="primary" @click="handleAddRole">New Role</el-button>
+    <el-button type="primary" @click="handleAddRole">新增角色</el-button>
     <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
-      <el-table-column align="center" label="Role Name" width="220">
+      <el-table-column align="center" label="角色名称" width="220">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
@@ -17,13 +17,13 @@
           {{ scope.row.permissions.length }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Operations">
+      <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope)"
-            >Edit
+            >编辑
           </el-button>
           <el-button type="danger" size="small" @click="handleDelete(scope)"
-            >Delete
+            >删除
           </el-button>
         </template>
       </el-table-column>
