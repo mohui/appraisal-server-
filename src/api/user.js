@@ -232,7 +232,13 @@ export default class User {
     let result = await RoleModel.findAndCountAll({
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
-      include: [{model: UserModel, attributes: {exclude: ['password']}}]
+      include: [
+        {
+          model: UserModel,
+          attributes: {exclude: ['password']},
+          through: {attributes: []}
+        }
+      ]
     });
     result.rows = result.rows.map(it => ({
       ...it.toJSON(),
