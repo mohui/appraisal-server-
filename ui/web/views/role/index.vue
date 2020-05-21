@@ -12,9 +12,14 @@
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column align="header-center" label="Updated Date">
+      <el-table-column align="center" label="用户数量">
         <template slot-scope="scope">
-          {{ scope.row.updated_at }}
+          {{ scope.row.users.length }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="权限数量">
+        <template slot-scope="scope">
+          {{ scope.row.permissions.length }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Operations">
