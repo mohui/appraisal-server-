@@ -146,6 +146,7 @@ export default class User {
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
+      distinct: true,
       include: {model: RoleModel, through: {attributes: []}}
     });
   }
@@ -238,6 +239,7 @@ export default class User {
     let result = await RoleModel.findAndCountAll({
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
+      distinct: true,
       include: [
         {
           model: UserModel,
