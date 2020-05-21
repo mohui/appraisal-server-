@@ -258,12 +258,13 @@ export default {
     },
     confirmRole() {
       console.log('confirmRole');
-      console.log(this.role);
-      console.log(this.rolesList);
+      // console.log(this.role);
+      // console.log(this.rolesList);
 
       const isEdit = this.dialogType === 'edit';
+      //被选中的节点所组成的数组, 只含叶子节点
       const checkedNodes = this.$refs.tree.getCheckedNodes(true);
-      console.log(checkedNodes);
+      // console.log(checkedNodes);
       if (isEdit) {
         for (let index = 0; index < this.rolesList.length; index++) {
           console.log(this.rolesList[index].key);
@@ -275,6 +276,13 @@ export default {
         }
       } else {
         //TODO: 新增角色
+        console.log(this.role);
+        console.log(checkedNodes);
+        const role = this.role;
+        role.routes.push(checkedNodes);
+        console.log(role);
+        //添加的角色数组中
+        this.rolesList.push(role);
       }
       this.dialogVisible = false;
     }
