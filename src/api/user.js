@@ -145,7 +145,8 @@ export default class User {
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
-      limit: pageSize
+      limit: pageSize,
+      include: {model: RoleModel, through: {attributes: []}}
     });
   }
 
