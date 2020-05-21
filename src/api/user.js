@@ -4,7 +4,7 @@ import * as dayjs from 'dayjs';
 import {dataDB, knrtDB, appDB} from '../app';
 import {RoleModel, UserModel, UserRoleModel} from '../database/model';
 import {Op} from 'sequelize';
-import {Permission} from '../../common/permission';
+import {PermissionArray} from '../../common/permission';
 
 export default class User {
   @validate(
@@ -264,7 +264,7 @@ export default class User {
     result.rows = result.rows.map(it => ({
       ...it.toJSON(),
       permissions: it.permissions.map(key =>
-        Permission.find(p => p.key === key)
+        PermissionArray.find(p => p.key === key)
       )
     }));
     return result;
