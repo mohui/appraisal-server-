@@ -129,14 +129,16 @@ export default class User {
   }
 
   @validate(
-    should.object({
-      account: should.string().allow('', null),
-      pageSize: should.number(),
-      pageNo: should.number()
-    })
+    should
+      .object({
+        account: should.string().allow('', null),
+        pageSize: should.number(),
+        pageNo: should.number()
+      })
+      .allow(null)
   )
   async list(params) {
-    const {pageNo = 1, pageSize = 20, account = ''} = params;
+    const {pageNo = 1, pageSize = 20, account = ''} = params || {};
     let whereOption = {};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
     return await UserModel.findAndCountAll({
@@ -223,13 +225,15 @@ export default class User {
   }
 
   @validate(
-    should.object({
-      pageSize: should.number(),
-      pageNo: should.number()
-    })
+    should
+      .object({
+        pageSize: should.number(),
+        pageNo: should.number()
+      })
+      .allow(null)
   )
   async listRole(params) {
-    const {pageNo = 1, pageSize = 20} = params;
+    const {pageNo = 1, pageSize = 20} = params || {};
     let result = await RoleModel.findAndCountAll({
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
