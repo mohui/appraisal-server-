@@ -1,7 +1,10 @@
 import crypts from 'crypts';
-import {KatoLogicError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
 import * as dayjs from 'dayjs';
-import {dataDB, knrtDB} from '../app';
+import {dataDB, knrtDB, appDB} from '../app';
+import {RoleModel, UserModel, UserRoleModel} from '../database/model';
+import {Op} from 'sequelize';
+import {Permission} from '../../common/permission';
 
 export default class User {
   @validate(
@@ -123,5 +126,156 @@ export default class User {
     user['subTitle'] = areaCodeArray.filter(it => it.code);
 
     return user;
+  }
+
+  @validate(
+    should
+      .object({
+        account: should.string().allow('', null),
+        pageSize: should.number(),
+        pageNo: should.number()
+      })
+      .allow(null)
+  )
+  async list(params) {
+    const {pageNo = 1, pageSize = 20, account = ''} = params || {};
+    let whereOption = {};
+    if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
+    return await UserModel.findAndCountAll({
+      where: whereOption,
+      attributes: {exclude: ['password']},
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize,
+      distinct: true,
+      include: {model: RoleModel, through: {attributes: []}}
+    });
+  }
+
+  @validate(
+    should.object({
+      account: should
+        .string()
+        .required()
+        .description('账户名'),
+      name: should
+        .string()
+        .required()
+        .description('用户名'),
+      password: should
+        .string()
+        .required()
+        .description('密码')
+    })
+  )
+  async addUser(user) {
+    const result = await UserModel.findOne({where: {account: user.account}});
+    if (result) throw new KatoCommonError('该账户已存在');
+    return UserModel.create(user);
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('用户id'),
+    should
+      .string()
+      .required()
+      .description('角色id')
+  )
+  async setRole(userId, roleId) {
+    const role = await RoleModel.findOne({where: {id: roleId}});
+    if (!role) throw new KatoCommonError('该角色不存在');
+
+    const user = await UserModel.findOne({where: {id: userId}});
+    if (!user) throw new KatoCommonError('该用户不存在');
+
+    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
+    if (user_role) throw new KatoCommonError('重复设置');
+
+    return await UserRoleModel.create({userId, roleId});
+  }
+
+  async cancelRole(userId, roleId) {
+    const role = await RoleModel.findOne({where: {id: roleId}});
+    if (!role) throw new KatoCommonError('该角色不存在');
+
+    const user = await UserModel.findOne({where: {id: userId}});
+    if (!user) throw new KatoCommonError('该用户不存在');
+
+    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
+    if (!user_role) throw new KatoCommonError('未绑定该角色');
+
+    return await user_role.destroy();
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('角色id'),
+    should
+      .array()
+      .items(should.string())
+      .allow([])
+      .required()
+      .description('权限数组')
+  )
+  async setPermission(roleId, permissions) {
+    return appDB.transaction(async () => {
+      const role = await RoleModel.findOne({where: {id: roleId}, lock: true});
+      if (!role) throw new KatoCommonError('该角色不存在');
+      return RoleModel.update({permissions}, {where: {id: roleId}});
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('权限名')
+  )
+  async addRole(name) {
+    return await RoleModel.create({name});
+  }
+
+  @validate(
+    should
+      .object({
+        pageSize: should.number(),
+        pageNo: should.number()
+      })
+      .allow(null)
+  )
+  async listRole(params) {
+    const {pageNo = 1, pageSize = 20} = params || {};
+    let result = await RoleModel.findAndCountAll({
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize,
+      distinct: true,
+      include: [
+        {
+          model: UserModel,
+          attributes: {exclude: ['password']},
+          through: {attributes: []}
+        }
+      ]
+    });
+    result.rows = result.rows.map(it => ({
+      ...it.toJSON(),
+      permissions: it.permissions.map(key =>
+        Permission.find(p => p.key === key)
+      )
+    }));
+    return result;
+  }
+
+  @validate(should.string().required(), should.string().required())
+  async updatePassword(userId, password) {
+    return appDB.transaction(async () => {
+      const user = await UserModel.findOne({where: {id: userId}});
+      if (!user) throw new KatoCommonError('该用户不存在');
+      return UserModel.update({password}, {where: {id: userId}});
+    });
   }
 }
