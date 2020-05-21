@@ -244,6 +244,8 @@ export default {
         type: 'warning'
       })
         .then(async () => {
+          //TODO: 调用服务器方法，删除数据
+
           this.rolesList.splice($index, 1);
           this.$message({
             type: 'success',
@@ -274,6 +276,7 @@ export default {
       } else {
         //TODO: 新增角色
       }
+      this.dialogVisible = false;
     }
   }
 };
