@@ -205,13 +205,20 @@ export default {
       const isEdit = this.dialogType === 'edit';
       //被选中的节点所组成的数组, 只含叶子节点
       const checkedNodes = this.$refs.tree.getCheckedNodes(true);
+      const permissionsKey = this.$refs.tree.getCheckedKeys(true);
       console.log(checkedNodes);
       if (isEdit) {
         for (let index = 0; index < this.roleList.length; index++) {
           console.log(this.roleList[index].id);
-          console.log(this.role);
           if (this.roleList[index].id === this.role.id) {
-            this.roleList[index].permissions = checkedNodes;
+            console.log('this role', this.role);
+            console.log('this.roleList[index]', this.roleList[index]);
+            const updateRole = {
+              id: this.role.id,
+              name: this.role.name,
+              permissions: permissionsKey
+            };
+            await this.$api.User.updateRole(updateRole);
             break;
           }
         }
