@@ -196,6 +196,19 @@ export default class User {
     return await UserRoleModel.create({userId, roleId});
   }
 
+  async cancelRole(userId, roleId) {
+    const role = await RoleModel.findOne({where: {id: roleId}});
+    if (!role) throw new KatoCommonError('该角色不存在');
+
+    const user = await UserModel.findOne({where: {id: userId}});
+    if (!user) throw new KatoCommonError('该用户不存在');
+
+    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
+    if (!user_role) throw new KatoCommonError('未绑定该角色');
+
+    return await user_role.destroy();
+  }
+
   @validate(
     should
       .string()
