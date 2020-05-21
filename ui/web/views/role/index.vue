@@ -2,11 +2,6 @@
   <div>
     <el-button type="primary" @click="handleAddRole">New Role</el-button>
     <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
-      <el-table-column align="center" label="Role Id" width="220">
-        <template slot-scope="scope">
-          {{ scope.row.id }}
-        </template>
-      </el-table-column>
       <el-table-column align="center" label="Role Name" width="220">
         <template slot-scope="scope">
           {{ scope.row.name }}
