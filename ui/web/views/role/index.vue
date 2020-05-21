@@ -69,7 +69,6 @@
 
 <script>
 const defaultRole = {
-  id: '',
   name: '',
   description: '',
   permissions: []
@@ -198,7 +197,7 @@ export default {
           console.error(err);
         });
     },
-    confirmRole() {
+    async confirmRole() {
       console.log('confirmRole');
       console.log(this.role);
       console.log(this.roleList);
@@ -222,8 +221,12 @@ export default {
         role.permissions = checkedNodes;
         //添加的角色数组中
         this.roleList.push(role);
+        console.log('add role', role);
         console.log('add role list', this.roleList);
+        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        await this.$api.User.addRole(role.name, permissionsKey);
       }
+      this.$asyncComputed.listRole.update();
       this.dialogVisible = false;
     }
   }
