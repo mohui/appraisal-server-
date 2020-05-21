@@ -63,7 +63,6 @@
         <el-button type="primary" @click="confirmRole">Confirm</el-button>
       </div>
     </el-dialog>
-    {{ roleList }}
   </div>
 </template>
 
@@ -116,10 +115,6 @@ export default {
       ]
     };
   },
-  async created() {
-    const serverData = await this.$api.User.listRole();
-    console.log(serverData);
-  },
   computed: {
     roleList() {
       return this.listRole.rows.map(it => ({
@@ -157,8 +152,7 @@ export default {
       });
       return targetObj;
     },
-    handleAddRole(scope) {
-      console.log(scope);
+    handleAddRole() {
       this.role = Object.assign({}, defaultRole);
       this.dialogType = 'new';
       this.dialogVisible = true;
@@ -171,7 +165,6 @@ export default {
       this.dialogVisible = true;
       this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
-        console.log('per', scope.row.permissions);
         this.$refs.tree.setCheckedNodes(scope.row.permissions);
         // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
@@ -198,21 +191,13 @@ export default {
         });
     },
     async confirmRole() {
-      console.log('confirmRole');
-      console.log(this.role);
-      console.log(this.roleList);
-
       const isEdit = this.dialogType === 'edit';
       //被选中的节点所组成的数组, 只含叶子节点
       const checkedNodes = this.$refs.tree.getCheckedNodes(true);
       const permissionsKey = this.$refs.tree.getCheckedKeys(true);
-      console.log(checkedNodes);
       if (isEdit) {
         for (let index = 0; index < this.roleList.length; index++) {
-          console.log(this.roleList[index].id);
           if (this.roleList[index].id === this.role.id) {
-            console.log('this role', this.role);
-            console.log('this.roleList[index]', this.roleList[index]);
             const updateRole = {
               id: this.role.id,
               name: this.role.name,
@@ -228,8 +213,6 @@ export default {
         role.permissions = checkedNodes;
         //添加的角色数组中
         this.roleList.push(role);
-        console.log('add role', role);
-        console.log('add role list', this.roleList);
         const permissionsKey = this.$refs.tree.getCheckedKeys(true);
         await this.$api.User.addRole(role.name, permissionsKey);
       }
