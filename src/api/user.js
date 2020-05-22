@@ -213,21 +213,18 @@ export default class User {
         where: {userId: user.id},
         lock: true
       });
-
-      //需要解除的角色
-      const destroyRoles = roleList.filter(
-        it => !user.roles.includes(it.roleId)
-      );
-      //需要新增的角色
-      const insertRoles = user.roles
-        .filter(id => !roleList.find(role => role.roleId === id))
-        .map(roleId => ({userId: user.id, roleId: roleId}));
       //删除解除的角色关系
       await Promise.all(
-        destroyRoles.map(async item => await item.destroy({force: true}))
+        roleList
+          .filter(it => !user.roles.includes(it.roleId)) //筛选出需要解除的role
+          .map(async item => await item.destroy({force: true}))
       );
       //添加新的角色关系
-      await UserRoleModel.bulkCreate(insertRoles);
+      await UserRoleModel.bulkCreate(
+        user.roles
+          .filter(id => !roleList.find(role => role.roleId === id)) //筛选出需要新增的role
+          .map(roleId => ({userId: user.id, roleId: roleId}))
+      );
 
       //修改名字
       await UserModel.update({name: user.name}, {where: {id: user.id}});
