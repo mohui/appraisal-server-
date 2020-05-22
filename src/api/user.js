@@ -164,13 +164,30 @@ export default class User {
       password: should
         .string()
         .required()
-        .description('密码')
+        .description('密码'),
+      roles: should
+        .array()
+        .items(should.string())
+        .required()
+        .allow([])
+        .description('角色数组')
     })
   )
   async addUser(user) {
-    const result = await UserModel.findOne({where: {account: user.account}});
-    if (result) throw new KatoCommonError('该账户已存在');
-    return UserModel.create(user);
+    return appDB.transaction(async () => {
+      //查询该账户是否存在
+      const result = await UserModel.findOne({where: {account: user.account}});
+      if (result) throw new KatoCommonError('该账户已存在');
+      const newUser = await UserModel.create(user);
+      //绑定角色关系
+      const roleUser = user.roles.map(roleId => ({
+        userId: newUser.id,
+        roleId: roleId
+      }));
+      //批量设置用户角色关系
+      await UserRoleModel.bulkCreate(roleUser);
+      return newUser;
+    });
   }
 
   @validate(
