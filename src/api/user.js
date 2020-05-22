@@ -206,7 +206,7 @@ export default class User {
   update(user) {
     return appDB.transaction(async () => {
       //查询用户,并锁定
-      let result = await UserModel.findOne({where: {id: user.id}});
+      let result = await UserModel.findOne({where: {id: user.id}, lock: true});
       if (!result) throw new KatoCommonError('该用户不存在');
       //查询该用户所有的角色
       const roleList = await UserRoleModel.findAll({
