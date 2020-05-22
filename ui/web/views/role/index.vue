@@ -218,29 +218,19 @@ export default {
     },
     async confirmRole() {
       const isEdit = this.dialogType === 'edit';
-      //被选中的节点所组成的数组, 只含叶子节点
-      const checkedNodes = this.$refs.tree.getCheckedNodes(true);
+      //被选中的节点的 key 所组成的数组
       const permissionsKey = this.$refs.tree.getCheckedKeys(true);
       if (isEdit) {
-        for (let index = 0; index < this.tableData.length; index++) {
-          if (this.tableData[index].id === this.role.id) {
-            const updateRole = {
-              id: this.role.id,
-              name: this.role.name,
-              permissions: permissionsKey
-            };
-            await this.$api.User.updateRole(updateRole);
-            break;
-          }
-        }
+        //更新角色
+        const updateRole = {
+          id: this.role.id,
+          name: this.role.name,
+          permissions: permissionsKey
+        };
+        await this.$api.User.updateRole(updateRole);
       } else {
-        //TODO: 新增角色
-        const role = this.role;
-        role.permissions = checkedNodes;
-        //添加的角色数组中
-        this.tableData.push(role);
-        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
-        await this.$api.User.addRole(role.name, permissionsKey);
+        //新增角色
+        await this.$api.User.addRole(this.role.name, permissionsKey);
       }
       this.$asyncComputed.serverData.update();
       this.dialogVisible = false;
