@@ -1,29 +1,29 @@
 <template>
   <div>
-    <el-button type="primary" @click="handleAddRole">New Role</el-button>
-    <el-table :data="rolesList" style="width: 100%;margin-top:30px;" border>
-      <el-table-column align="center" label="Role Key" width="220">
-        <template slot-scope="scope">
-          {{ scope.row.key }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="Role Name" width="220">
+    <el-button type="primary" @click="handleAddRole">新增角色</el-button>
+    <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
+      <el-table-column align="center" label="角色名称" width="220">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column align="header-center" label="Description">
+      <el-table-column align="center" label="用户数量">
         <template slot-scope="scope">
-          {{ scope.row.description }}
+          {{ scope.row.users.length }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Operations">
+      <el-table-column align="center" label="权限数量">
+        <template slot-scope="scope">
+          {{ scope.row.permissions.length }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope)"
-            >Edit
+            >编辑
           </el-button>
           <el-button type="danger" size="small" @click="handleDelete(scope)"
-            >Delete
+            >删除
           </el-button>
         </template>
       </el-table-column>
@@ -49,10 +49,10 @@
           <el-tree
             ref="tree"
             :check-strictly="checkStrictly"
-            :data="routesData"
+            :data="permissionsList"
             :props="defaultProps"
             show-checkbox
-            node-key="id"
+            node-key="key"
           />
         </el-form-item>
       </el-form>
@@ -68,17 +68,15 @@
 
 <script>
 const defaultRole = {
-  key: '',
   name: '',
   description: '',
-  routes: []
+  permissions: []
 };
 
 export default {
   name: 'role',
   data() {
     return {
-      rolesList: [],
       role: Object.assign({}, defaultRole),
       dialogVisible: false,
       dialogType: 'new',
@@ -87,101 +85,74 @@ export default {
         children: 'children',
         label: 'label'
       },
-      routesData: [
+      permissionsList: [
         {
-          id: 1,
-          label: '一级 1',
+          key: 'home',
+          label: '首页'
+        },
+        {
+          key: 'user-index',
+          label: '用户管理',
           children: [
             {
-              id: 11,
-              label: '二级 1-1',
-              children: [
-                {
-                  id: 111,
-                  label: '三级 1-1-1'
-                }
-              ]
+              key: 'user-add',
+              label: '用户添加'
+            },
+            {
+              key: 'user-update',
+              label: '用户更新'
+            },
+            {
+              key: 'user-remove',
+              label: '用户删除'
             }
           ]
         },
         {
-          id: 2,
-          label: '一级 2',
-          children: [
-            {
-              id: 21,
-              label: '二级 2-1',
-              children: [
-                {
-                  id: 211,
-                  label: '三级 2-1-1'
-                }
-              ]
-            },
-            {
-              id: 22,
-              label: '二级 2-2',
-              children: [
-                {
-                  id: 221,
-                  label: '三级 2-2-1'
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: 3,
-          label: '一级 3',
-          children: [
-            {
-              id: 31,
-              label: '二级 3-1',
-              children: [
-                {
-                  id: 311,
-                  label: '三级 3-1-1'
-                }
-              ]
-            },
-            {
-              id: 32,
-              label: '二级 3-2',
-              children: [
-                {
-                  id: 321,
-                  label: '三级 3-2-1'
-                }
-              ]
-            }
-          ]
+          key: 'role-index',
+          label: '角色管理'
         }
       ]
     };
   },
-  created() {
-    this.rolesList = [
-      {
-        description: 'Super Administrator. Have access to view all pages.',
-        key: 'admin',
-        name: '管理员'
+  computed: {
+    roleList() {
+      return this.listRole.rows.map(it => ({
+        ...it,
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    }
+  },
+  asyncComputed: {
+    listRole: {
+      async get() {
+        return await this.$api.User.listRole();
       },
-      {
-        description: 'Normal Editor. Can see all pages except permission page',
-        key: 'editor',
-        name: '编辑'
-      },
-      {
-        description:
-          'Just a visitor. Can only see the home page and the document page',
-        key: 'visitor',
-        name: '游客'
+      default() {
+        return {
+          count: 0,
+          rows: []
+        };
       }
-    ];
+    }
   },
   methods: {
-    handleAddRole(scope) {
-      console.log(scope);
+    deepClone(source) {
+      if (!source && typeof source !== 'object') {
+        throw new Error('error arguments', 'deepClone');
+      }
+      const targetObj = source.constructor === Array ? [] : {};
+      Object.keys(source).forEach(keys => {
+        if (source[keys] && typeof source[keys] === 'object') {
+          targetObj[keys] = this.deepClone(source[keys]);
+        } else {
+          targetObj[keys] = source[keys];
+        }
+      });
+      return targetObj;
+    },
+    handleAddRole() {
       this.role = Object.assign({}, defaultRole);
       this.dialogType = 'new';
       this.dialogVisible = true;
@@ -190,29 +161,63 @@ export default {
       }
     },
     handleEdit(scope) {
-      console.log(scope);
       this.dialogType = 'edit';
       this.dialogVisible = true;
+      this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
-        this.$refs.tree.setCheckedNodes([
-          {
-            id: 21,
-            label: '二级 2-1'
-          },
-          {
-            id: 311,
-            label: '三级 1-1-1'
-          }
-        ]);
+        this.$refs.tree.setCheckedNodes(scope.row.permissions);
         // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
       });
     },
     handleDelete({$index, row}) {
       console.log($index, row);
+      this.$confirm('Confirm to remove the role?', 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      })
+        .then(async () => {
+          //TODO: 调用服务器方法，删除数据
+
+          this.roleList.splice($index, 1);
+          this.$message({
+            type: 'success',
+            message: 'Delete succed!'
+          });
+        })
+        .catch(err => {
+          console.error(err);
+        });
     },
-    confirmRole() {
-      console.log('confirmRole');
+    async confirmRole() {
+      const isEdit = this.dialogType === 'edit';
+      //被选中的节点所组成的数组, 只含叶子节点
+      const checkedNodes = this.$refs.tree.getCheckedNodes(true);
+      const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+      if (isEdit) {
+        for (let index = 0; index < this.roleList.length; index++) {
+          if (this.roleList[index].id === this.role.id) {
+            const updateRole = {
+              id: this.role.id,
+              name: this.role.name,
+              permissions: permissionsKey
+            };
+            await this.$api.User.updateRole(updateRole);
+            break;
+          }
+        }
+      } else {
+        //TODO: 新增角色
+        const role = this.role;
+        role.permissions = checkedNodes;
+        //添加的角色数组中
+        this.roleList.push(role);
+        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        await this.$api.User.addRole(role.name, permissionsKey);
+      }
+      this.$asyncComputed.listRole.update();
+      this.dialogVisible = false;
     }
   }
 };
