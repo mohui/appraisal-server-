@@ -210,22 +210,29 @@ export default class User {
   }
 
   @validate(
-    should
-      .string()
-      .required()
-      .description('角色id'),
-    should
-      .array()
-      .items(should.string())
-      .allow([])
-      .required()
-      .description('权限数组')
+    should.object({
+      id: should
+        .string()
+        .required()
+        .description('角色id'),
+      name: should.string().description('角色名'),
+      permissions: should
+        .array()
+        .items(should.string())
+        .allow([])
+        .description('权限数组')
+    })
   )
-  async setPermission(roleId, permissions) {
+  async updateRole(role) {
     return appDB.transaction(async () => {
-      const role = await RoleModel.findOne({where: {id: roleId}, lock: true});
-      if (!role) throw new KatoCommonError('该角色不存在');
-      return RoleModel.update({permissions}, {where: {id: roleId}});
+      //查询是否有该角色,并锁定
+      const result = await RoleModel.findOne({
+        where: {id: role.id},
+        lock: true
+      });
+      if (!result) throw new KatoCommonError('该角色不存在');
+      //进行角色更新操作
+      return RoleModel.update(role, {where: {id: role.id}});
     });
   }
 
@@ -233,10 +240,20 @@ export default class User {
     should
       .string()
       .required()
-      .description('权限名')
+      .description('权限名'),
+    should
+      .array()
+      .items(should.string())
+      .allow([])
+      .required()
+      .description('权限数组')
   )
-  async addRole(name) {
-    return await RoleModel.create({name});
+  async addRole(name, permissions) {
+    //查询是否存在该角色
+    const role = await RoleModel.findOne({where: {name}});
+    if (role) throw new KatoCommonError('该角色已存在');
+    //角色新增操作
+    return await RoleModel.create({name, permissions});
   }
 
   @validate(
