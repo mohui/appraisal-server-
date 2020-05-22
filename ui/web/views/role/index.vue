@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-button type="primary" @click="handleAddRole">新增角色</el-button>
-    <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
+    <el-table :data="tableData" style="width: 100%;margin-top:30px;" border>
       <el-table-column align="center" fixed width="80" label="序号">
         <template slot-scope="scope">
           {{ scope.$index + 1 }}
@@ -130,8 +130,8 @@ export default {
     };
   },
   computed: {
-    roleList() {
-      return this.listRole.rows.map(it => ({
+    tableData() {
+      return this.serverData.rows.map(it => ({
         ...it,
         created_at: it.created_at.$format('YYYY-MM-DD'),
         updated_at: it.updated_at.$format('YYYY-MM-DD')
@@ -145,13 +145,13 @@ export default {
             ? 50
             : this.$widthCompute([
                 it.label,
-                ...this.roleList.map(data => data[it.prop])
+                ...this.tableData.map(data => data[it.prop])
               ])
       }));
     }
   },
   asyncComputed: {
-    listRole: {
+    serverData: {
       async get() {
         return await this.$api.User.listRole();
       },
@@ -206,7 +206,7 @@ export default {
         .then(async () => {
           //TODO: 调用服务器方法，删除数据
 
-          this.roleList.splice($index, 1);
+          this.tableData.splice($index, 1);
           this.$message({
             type: 'success',
             message: 'Delete succed!'
@@ -222,8 +222,8 @@ export default {
       const checkedNodes = this.$refs.tree.getCheckedNodes(true);
       const permissionsKey = this.$refs.tree.getCheckedKeys(true);
       if (isEdit) {
-        for (let index = 0; index < this.roleList.length; index++) {
-          if (this.roleList[index].id === this.role.id) {
+        for (let index = 0; index < this.tableData.length; index++) {
+          if (this.tableData[index].id === this.role.id) {
             const updateRole = {
               id: this.role.id,
               name: this.role.name,
@@ -238,11 +238,11 @@ export default {
         const role = this.role;
         role.permissions = checkedNodes;
         //添加的角色数组中
-        this.roleList.push(role);
+        this.tableData.push(role);
         const permissionsKey = this.$refs.tree.getCheckedKeys(true);
         await this.$api.User.addRole(role.name, permissionsKey);
       }
-      this.$asyncComputed.listRole.update();
+      this.$asyncComputed.serverData.update();
       this.dialogVisible = false;
     }
   }
