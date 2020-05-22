@@ -132,23 +132,49 @@ export default class User {
     should
       .object({
         account: should.string().allow('', null),
+        name: should.string().allow('', null),
+        roleId: should.string().allow('', null),
         pageSize: should.number(),
         pageNo: should.number()
       })
       .allow(null)
   )
   async list(params) {
-    const {pageNo = 1, pageSize = 20, account = ''} = params || {};
+    const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
+      params || {};
     let whereOption = {};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
-    return await UserModel.findAndCountAll({
+    if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
+
+    //查询符合条件的用户
+    let rows = await UserModel.findAll({
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
-      distinct: true,
-      include: {model: RoleModel, through: {attributes: []}}
+      include: {
+        model: RoleModel,
+        through: {attributes: []}
+      }
     });
+
+    //计算符合条件的用户总数
+    let whereCount = {};
+    if (roleId) whereCount = {id: roleId};
+    const count = await UserModel.count({
+      where: whereOption,
+      distinct: true,
+      include: {
+        model: RoleModel,
+        where: whereCount,
+        through: {attributes: []}
+      }
+    });
+    //过滤掉不属于该角色的用户
+    rows = rows.filter(user =>
+      user.roles.find(role => !roleId || role.id === roleId)
+    );
+    return {count, rows};
   }
 
   @validate(
