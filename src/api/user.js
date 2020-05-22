@@ -191,39 +191,47 @@ export default class User {
   }
 
   @validate(
-    should
-      .string()
-      .required()
-      .description('用户id'),
-    should
-      .string()
-      .required()
-      .description('角色id')
+    should.object({
+      id: should
+        .string()
+        .required()
+        .description('用户id'),
+      name: should.string(),
+      roles: should
+        .array()
+        .items(should.string())
+        .allow([])
+    })
   )
-  async setRole(userId, roleId) {
-    const role = await RoleModel.findOne({where: {id: roleId}});
-    if (!role) throw new KatoCommonError('该角色不存在');
+  update(user) {
+    return appDB.transaction(async () => {
+      //查询用户,并锁定
+      let result = await UserModel.findOne({where: {id: user.id}});
+      if (!result) throw new KatoCommonError('该用户不存在');
+      //查询该用户所有的角色
+      const roleList = await UserRoleModel.findAll({
+        where: {userId: user.id},
+        lock: true
+      });
 
-    const user = await UserModel.findOne({where: {id: userId}});
-    if (!user) throw new KatoCommonError('该用户不存在');
+      //需要解除的角色
+      const destroyRoles = roleList.filter(
+        it => !user.roles.includes(it.roleId)
+      );
+      //需要新增的角色
+      const insertRoles = user.roles
+        .filter(id => !roleList.find(role => role.roleId === id))
+        .map(roleId => ({userId: user.id, roleId: roleId}));
+      //删除解除的角色关系
+      await Promise.all(
+        destroyRoles.map(async item => await item.destroy({force: true}))
+      );
+      //添加新的角色关系
+      await UserRoleModel.bulkCreate(insertRoles);
 
-    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
-    if (user_role) throw new KatoCommonError('重复设置');
-
-    return await UserRoleModel.create({userId, roleId});
-  }
-
-  async cancelRole(userId, roleId) {
-    const role = await RoleModel.findOne({where: {id: roleId}});
-    if (!role) throw new KatoCommonError('该角色不存在');
-
-    const user = await UserModel.findOne({where: {id: userId}});
-    if (!user) throw new KatoCommonError('该用户不存在');
-
-    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
-    if (!user_role) throw new KatoCommonError('未绑定该角色');
-
-    return await user_role.destroy();
+      //修改名字
+      await UserModel.update({name: user.name}, {where: {id: user.id}});
+    });
   }
 
   @validate(
