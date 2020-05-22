@@ -16,9 +16,9 @@
         align="center"
       >
         <template slot-scope="scope">
-          <a v-if="scope.column.property === 'users'">
+          <div v-if="scope.column.property === 'users'">
             {{ scope.row[it.prop].length }}
-          </a>
+          </div>
           <a
             v-else-if="scope.column.property === 'permissions'"
             @click="
