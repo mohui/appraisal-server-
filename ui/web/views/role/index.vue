@@ -2,6 +2,11 @@
   <div>
     <el-button type="primary" @click="handleAddRole">新增角色</el-button>
     <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
+      <el-table-column align="center" fixed width="80" label="序号">
+        <template slot-scope="scope">
+          {{ scope.$index + 1 }}
+        </template>
+      </el-table-column>
       <el-table-column
         v-for="(it, index) of tableFields"
         :key="index"
