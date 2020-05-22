@@ -82,9 +82,11 @@
       </el-form>
       <div style="text-align:right;">
         <el-button type="danger" @click="dialogVisible = false"
-          >Cancel
+          >取消
         </el-button>
-        <el-button type="primary" @click="confirmRole">Confirm</el-button>
+        <el-button type="primary" @click="confirmRole" :loading="submitting">
+          {{ submitting ? '提交' : '确定' }}
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -112,6 +114,7 @@ export default {
       dialogPermissionsListTableViewVisible: false,
       dialogType: 'new',
       checkStrictly: false,
+      submitting: false,
       defaultProps: {
         children: 'children',
         label: 'label'
@@ -235,6 +238,7 @@ export default {
     },
     async confirmRole() {
       const isEdit = this.dialogType === 'edit';
+      this.submitting = true;
       //被选中的节点的 key 所组成的数组
       const permissionsKey = this.$refs.tree.getCheckedKeys(true);
       if (isEdit) {
@@ -251,6 +255,7 @@ export default {
       }
       this.$asyncComputed.serverData.update();
       this.dialogVisible = false;
+      this.submitting = false;
     }
   }
 };
