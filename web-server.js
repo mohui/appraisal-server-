@@ -3,7 +3,7 @@ const express = require('express');
 const devServer = require('./src/dev-server').devServer;
 const proxy = require('http-proxy-middleware');
 const portFinder = require('portfinder');
-
+const fallback = require('connect-history-api-fallback');
 (async () => {
   try {
     // 判断web是否配置
@@ -14,6 +14,7 @@ const portFinder = require('portfinder');
     }
 
     const app = express();
+    app.use(fallback());
     app.use(devServer);
     app.use(
       proxy.createProxyMiddleware('/api', {
