@@ -317,4 +317,50 @@ export default class User {
       return UserModel.update({password}, {where: {id: userId}});
     });
   }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('用户id')
+  )
+  async remove(id) {
+    return appDB.transaction(async () => {
+      //查询用户是否存在,并锁定
+      const result = await UserModel.findOne({
+        where: {id: id},
+        lock: {of: UserModel},
+        include: [{model: RoleModel}]
+      });
+      if (!result) throw new KatoCommonError('该用户不存在');
+      //删除角色关系
+      await Promise.all(
+        result.roles.map(
+          async role => await role.UserRole.destroy({force: true})
+        )
+      );
+      //删除该用户
+      await result.destroy({force: true});
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('角色id')
+  )
+  async removeRole(id) {
+    return appDB.transaction(async () => {
+      //查询该角色,并锁定
+      const result = await RoleModel.findOne({
+        where: {id},
+        include: [UserModel],
+        lock: {of: RoleModel}
+      });
+      if (result.users.length > 0)
+        throw new KatoCommonError('该角色下绑定了用户,无法删除');
+      result.destroy({force: true});
+    });
+  }
 }
