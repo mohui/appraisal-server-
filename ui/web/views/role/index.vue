@@ -2,22 +2,25 @@
   <div>
     <el-button type="primary" @click="handleAddRole">新增角色</el-button>
     <el-table :data="roleList" style="width: 100%;margin-top:30px;" border>
-      <el-table-column align="center" label="角色名称" width="220">
+      <el-table-column
+        v-for="(it, index) of tableFields"
+        :key="index"
+        :prop="it.prop"
+        :label="it.label"
+        :min-width="it.width"
+        align="center"
+      >
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          <a v-if="scope.column.property === 'users'">
+            {{ scope.row[it.prop].length }}
+          </a>
+          <a v-else-if="scope.column.property === 'permissions'">
+            {{ scope.row[it.prop].length }}
+          </a>
+          <div v-else>{{ scope.row[it.prop] }}</div>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="用户数量">
-        <template slot-scope="scope">
-          {{ scope.row.users.length }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="权限数量">
-        <template slot-scope="scope">
-          {{ scope.row.permissions.length }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="操作">
+      <el-table-column align="center" width="250" label="操作">
         <template slot-scope="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope)"
             >编辑
@@ -73,6 +76,12 @@ const defaultRole = {
   permissions: []
 };
 
+const fieldsMapping = [
+  {prop: 'name', label: '角色名称'},
+  {prop: 'permissions', label: '权限数量'},
+  {prop: 'users', label: '用户数量'}
+];
+
 export default {
   name: 'role',
   data() {
@@ -121,6 +130,18 @@ export default {
         ...it,
         created_at: it.created_at.$format('YYYY-MM-DD'),
         updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    },
+    tableFields() {
+      return fieldsMapping.map(it => ({
+        ...it,
+        width:
+          it.prop === 'users' || it.prop === 'permissions'
+            ? 50
+            : this.$widthCompute([
+                it.label,
+                ...this.roleList.map(data => data[it.prop])
+              ])
       }));
     }
   },
@@ -223,4 +244,9 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.el-table .el-table__row .cell a {
+  color: #409eff;
+  cursor: pointer;
+}
+</style>
