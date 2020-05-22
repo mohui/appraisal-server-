@@ -5,7 +5,7 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 100px)',
+        height: 'calc(100% - 110px)',
         display: 'flex',
         'flex-direction': 'column'
       }"
@@ -15,9 +15,9 @@
         <el-button
           style="float: right;margin: -9px;"
           type="primary"
-          @click="dialogFormAddUsersVisible = true"
-          >新建用户</el-button
-        >
+          @click="openAddUserDialog"
+          >新建用户
+        </el-button>
       </div>
       <el-form
         ref="ruleForm"
@@ -27,8 +27,13 @@
       >
         <el-row>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="登录名：">
+              <el-input v-model="searchForm.account" size="mini"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="用户名：">
-              <el-input v-model="searchForm.userName" size="mini"></el-input>
+              <el-input v-model="searchForm.name" size="mini"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
@@ -42,8 +47,9 @@
       <el-table
         stripe
         size="small"
-        :data="tableData"
-        style="flex-grow: 1; height: 100%;"
+        :data="userList"
+        height="100%"
+        style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
         <el-table-column align="center" width="50" label="序号">
@@ -51,85 +57,128 @@
             {{ scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="user_id" label="用户Id"></el-table-column>
-        <el-table-column label="头像">
+        <el-table-column prop="account" label="登录名"></el-table-column>
+        <el-table-column prop="name" label="用户名"></el-table-column>
+        <el-table-column label="角色">
           <template slot-scope="scope">
-            <img :src="scope.row.avatar" />
+            <el-tag
+              :key="role"
+              v-for="role in scope.row.rolesName"
+              style="margin-right: 10px;"
+            >
+              {{ role }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="user_name" label="用户名"></el-table-column>
-        <el-table-column prop="real_name" label="姓名"></el-table-column>
-        <el-table-column prop="mobile" label="手机号"></el-table-column>
-        <el-table-column prop="location" label="所在地区"></el-table-column>
+        <el-table-column prop="created_at" label="创建时间"></el-table-column>
+        <el-table-column prop="updated_at" label="更新时间"></el-table-column>
         <el-table-column label="操作">
-          <el-button
-            type="primary"
-            size="small"
-            @click="dialogFormEditUsersVisible = true"
-            >修改</el-button
-          >
-          <el-button type="danger" size="small" @click="delUser"
-            >删除</el-button
-          >
+          <template slot-scope="scope">
+            <el-button type="primary" size="small" @click="editUser(scope)">
+              修改
+            </el-button>
+            <el-button type="danger" size="small" @click="delUser(scope)">
+              删除
+            </el-button>
+          </template>
         </el-table-column>
       </el-table>
-      <el-pagination background layout="prev, pager, next" :total="100">
+      <el-pagination
+        background
+        @size-change="
+          size => {
+            searchForm.pageSize = size;
+            searchForm.pageNo = 1;
+          }
+        "
+        @current-change="
+          no => {
+            searchForm.pageNo = no;
+          }
+        "
+        :current-page="searchForm.pageNo"
+        :page-size="searchForm.pageSize"
+        layout="total, sizes, prev, pager, next"
+        style="margin:10px 0 -20px;"
+        :total="listUser.count"
+      >
       </el-pagination>
     </el-card>
     <el-dialog title="新建用户" :visible.sync="dialogFormAddUsersVisible">
-      <el-form :model="userForm">
-        <el-form-item label="用户名" :label-width="formLabelWidth">
+      <el-form ref="userFormAdd" :model="userForm" :rules="rulesAdd">
+        <el-form-item
+          label="登录名"
+          prop="account"
+          :label-width="formLabelWidth"
+        >
+          <el-input v-model="userForm.account" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item
+          label="密码"
+          prop="password"
+          :label-width="formLabelWidth"
+        >
+          <el-input v-model="userForm.password" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="昵称" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="性别" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="真实姓名" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话号码" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地区" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
+        <el-form-item label="角色" prop="roles" :label-width="formLabelWidth">
+          <el-select
+            v-model="userForm.roles"
+            multiple
+            placeholder="请选择"
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            >
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormAddUsersVisible = false">
+        <el-button type="primary" @click="addUser">
           确 定
         </el-button>
       </div>
     </el-dialog>
     <el-dialog title="修改用户" :visible.sync="dialogFormEditUsersVisible">
-      <el-form :model="userForm">
-        <el-form-item label="用户名" :label-width="formLabelWidth">
+      <el-form ref="userFormEdit" :model="userForm" :rules="rulesEdit">
+        <el-form-item label="登录名" :label-width="formLabelWidth">
+          <el-input
+            v-model="userForm.account"
+            autocomplete="off"
+            disabled
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="昵称" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="性别" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="真实姓名" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话号码" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地区" :label-width="formLabelWidth">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
+        <el-form-item label="角色" prop="roles" :label-width="formLabelWidth">
+          <el-select
+            v-model="userForm.roles"
+            multiple
+            placeholder="请选择"
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            >
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormEditUsersVisible = false"
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="updateUser">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -144,56 +193,136 @@ export default {
       dialogFormEditUsersVisible: false,
       formLabelWidth: '100px',
       userForm: {
-        name: ''
+        account: '',
+        password: '',
+        name: '',
+        roles: []
       },
       searchForm: {
-        userName: ''
+        account: '',
+        name: '',
+        pageSize: 20,
+        pageNo: 1
       },
-      tableData: [
-        {
-          user_id: '5d62946590250a0d49ee4003',
-          nick_name: '超级管理员',
-          mobile: '13900000001',
-          email: '123456@qq.com',
-          avatar:
-            'http://hosfs.helloreact.cn/avatar/2020-04/02/0507/dog.jpg?x-oss-process=image/resize,m_fill,w_50,limit_1/format,png/circle,r_50',
-          location: '芜湖市',
-          real_name: 'Jack Zhang',
-          user_name: 'admin'
-        },
-        {
-          user_id: '5d62946590250a0d49ee4003',
-          nick_name: '超级管理员',
-          mobile: '13900000001',
-          email: '123456@qq.com',
-          avatar:
-            'http://hosfs.helloreact.cn/avatar/2020-04/02/0507/dog.jpg?x-oss-process=image/resize,m_fill,w_50,limit_1/format,png/circle,r_50',
-          location: '芜湖市',
-          real_name: 'Jack Zhang',
-          user_name: 'admin'
-        },
-        {
-          user_id: '5d62946590250a0d49ee4003',
-          nick_name: '超级管理员',
-          mobile: '13900000001',
-          email: '123456@qq.com',
-          avatar:
-            'http://hosfs.helloreact.cn/avatar/2020-04/02/0507/dog.jpg?x-oss-process=image/resize,m_fill,w_50,limit_1/format,png/circle,r_50',
-          location: '芜湖市',
-          real_name: 'Jack Zhang',
-          user_name: 'admin'
-        }
-      ]
+      rulesAdd: {
+        account: [{required: true, message: '请输入登录名', trigger: 'blur'}],
+        name: [{required: true, message: '请输入用户名', trigger: 'blur'}],
+        password: [{required: true, message: '请输入密码', trigger: 'blur'}],
+        roles: [{required: true, message: '请输入角色', trigger: 'change'}]
+      },
+      rulesEdit: {
+        name: [{required: true, message: '请输入用户名', trigger: 'blur'}],
+        roles: [{required: true, message: '请输入角色', trigger: 'change'}]
+      }
     };
   },
+  watch: {
+    ['searchForm.account']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    }
+  },
+  computed: {
+    userList() {
+      return this.listUser.rows.map(it => ({
+        ...it,
+        roles: it.roles.map(it => it.id),
+        rolesName: it.roles.map(it => it.name),
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    },
+    roleList() {
+      return this.listRole.rows.map(it => ({
+        ...it,
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    }
+  },
+  asyncComputed: {
+    listUser: {
+      async get() {
+        const {account, pageSize, pageNo} = this.searchForm;
+        return await this.$api.User.list({account, pageSize, pageNo});
+      },
+      default() {
+        return {
+          count: 0,
+          rows: []
+        };
+      }
+    },
+    listRole: {
+      async get() {
+        return await this.$api.User.listRole();
+      },
+      default() {
+        return {
+          count: 0,
+          rows: []
+        };
+      }
+    }
+  },
   methods: {
-    delUser() {
+    openAddUserDialog() {
+      this.dialogFormAddUsersVisible = true;
+      this.userForm = {
+        account: '',
+        password: '',
+        name: '',
+        roles: []
+      };
+    },
+    async addUser() {
+      this.$refs.userFormAdd.validate(async valid => {
+        if (valid) {
+          try {
+            await this.$api.User.addUser(this.userForm);
+            this.$asyncComputed.listUser.update();
+          } catch (e) {
+            this.$message.error(e.message);
+          } finally {
+            this.dialogFormAddUsersVisible = false;
+          }
+        } else {
+          return false;
+        }
+      });
+    },
+    editUser(item) {
+      this.userForm = Object.assign({}, item.row);
+      this.dialogFormEditUsersVisible = true;
+    },
+    updateUser() {
+      this.$refs.userFormEdit.validate(async valid => {
+        if (valid) {
+          try {
+            let {id, name, roles} = this.userForm;
+            await this.$api.User.update({id, name, roles});
+            this.$asyncComputed.listUser.update();
+          } catch (e) {
+            this.$message.error(e.message);
+          } finally {
+            this.dialogFormEditUsersVisible = false;
+          }
+        } else {
+          return false;
+        }
+      });
+    },
+    delUser({$index, row}) {
+      console.log($index, row);
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
+          this.userList.splice($index, 1);
           this.$message({
             type: 'success',
             message: '删除成功!'
