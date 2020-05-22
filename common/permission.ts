@@ -1,4 +1,4 @@
-export const Permission = [
+export const PermissionDetail = [
   {
     key: 'home',
     name: '首页'
@@ -25,7 +25,7 @@ export const Permission = [
   }
 ];
 
-export const PermissionMapping = {
+export const Permission = {
   HOME: 'home',
   USER_INDEX: 'user-index',
   USER_ADD: 'user-add',
@@ -33,3 +33,7 @@ export const PermissionMapping = {
   USER_REMOVE: 'user-remove',
   ROLE_INDEX: 'role-index'
 };
+
+export function getPermission(key) {
+  return PermissionDetail.find(p => p.key === key);
+}
