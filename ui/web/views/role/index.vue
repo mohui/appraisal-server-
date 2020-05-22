@@ -19,7 +19,12 @@
           <a v-if="scope.column.property === 'users'">
             {{ scope.row[it.prop].length }}
           </a>
-          <a v-else-if="scope.column.property === 'permissions'">
+          <a
+            v-else-if="scope.column.property === 'permissions'"
+            @click="
+              (dialogPermissionsListTableViewVisible = true), (role = scope.row)
+            "
+          >
             {{ scope.row[it.prop].length }}
           </a>
           <div v-else>{{ scope.row[it.prop] }}</div>
@@ -36,7 +41,18 @@
         </template>
       </el-table-column>
     </el-table>
-
+    <el-dialog
+      title="拥有的权限"
+      :visible.sync="dialogPermissionsListTableViewVisible"
+    >
+      <div
+        style="margin-bottom: 5px"
+        v-for="item of role.permissions"
+        :key="item.key"
+      >
+        {{ item.name }}
+      </div>
+    </el-dialog>
     <el-dialog
       :visible.sync="dialogVisible"
       :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
@@ -93,6 +109,7 @@ export default {
     return {
       role: Object.assign({}, defaultRole),
       dialogVisible: false,
+      dialogPermissionsListTableViewVisible: false,
       dialogType: 'new',
       checkStrictly: false,
       defaultProps: {
