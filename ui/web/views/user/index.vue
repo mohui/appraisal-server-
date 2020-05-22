@@ -36,6 +36,24 @@
               <el-input v-model="searchForm.name" size="mini"></el-input>
             </el-form-item>
           </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="角色：">
+              <el-select
+                clearable
+                v-model="searchForm.roleId"
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in roleList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
             <el-form-item label="">
               <el-button type="primary" size="mini">查询</el-button>
@@ -201,6 +219,7 @@ export default {
       searchForm: {
         account: '',
         name: '',
+        roleId: '',
         pageSize: 20,
         pageNo: 1
       },
@@ -218,6 +237,18 @@ export default {
   },
   watch: {
     ['searchForm.account']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.name']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.roleId']: {
       handler() {
         this.searchForm.pageNo = 1;
       },
@@ -245,8 +276,14 @@ export default {
   asyncComputed: {
     listUser: {
       async get() {
-        const {account, pageSize, pageNo} = this.searchForm;
-        return await this.$api.User.list({account, pageSize, pageNo});
+        const {account, name, roleId, pageSize, pageNo} = this.searchForm;
+        return await this.$api.User.list({
+          account,
+          name,
+          roleId,
+          pageSize,
+          pageNo
+        });
       },
       default() {
         return {
@@ -315,18 +352,22 @@ export default {
       });
     },
     delUser({$index, row}) {
-      console.log($index, row);
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
-        .then(() => {
-          this.userList.splice($index, 1);
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+        .then(async () => {
+          try {
+            await this.$api.User.remove(row.id);
+            this.userList.splice($index, 1);
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+          } catch (e) {
+            this.$message.error(e.message);
+          }
         })
         .catch(() => {
           this.$message({
