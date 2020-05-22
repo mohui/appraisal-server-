@@ -35,7 +35,10 @@
           <el-button type="primary" size="small" @click="handleEdit(scope)"
             >编辑
           </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope)"
+          <el-button
+            type="danger"
+            size="small"
+            @click="handleDelete(scope.row.id)"
             >删除
           </el-button>
         </template>
@@ -216,24 +219,26 @@ export default {
         this.checkStrictly = false;
       });
     },
-    handleDelete({$index, row}) {
-      console.log($index, row);
-      this.$confirm('Confirm to remove the role?', 'Warning', {
-        confirmButtonText: 'Confirm',
-        cancelButtonText: 'Cancel',
+    handleDelete(id) {
+      this.$confirm('确定要删除该角色吗', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
         type: 'warning'
       })
         .then(async () => {
-          //TODO: 调用服务器方法，删除数据
-
-          this.tableData.splice($index, 1);
+          await this.$api.User.removeRole(id);
           this.$message({
             type: 'success',
             message: 'Delete succed!'
           });
         })
         .catch(err => {
-          console.error(err);
+          if (err.message) {
+            this.$message({
+              type: 'error',
+              message: err.message
+            });
+          }
         });
     },
     async confirmRole() {
