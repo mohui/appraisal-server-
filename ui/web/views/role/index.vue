@@ -1,7 +1,14 @@
 <template>
-  <div>
-    <el-button type="primary" @click="handleAddRole">新增角色</el-button>
-    <el-table :data="tableData" style="width: 100%;margin-top:30px;" border>
+  <div style="height: 100%; display: flex; flex-direction: column">
+    <el-button style="width: 100px" type="primary" @click="handleAddRole"
+      >新增角色</el-button
+    >
+    <el-table
+      :data="tableData"
+      style="width: 100%; margin-top:30px; flex-grow: 1 "
+      height="100%"
+      border
+    >
       <el-table-column align="center" fixed width="80" label="序号">
         <template slot-scope="scope">
           {{ scope.$index + 1 }}
