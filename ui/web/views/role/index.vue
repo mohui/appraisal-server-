@@ -263,6 +263,7 @@ export default {
             type: 'success',
             message: 'Delete succed!'
           });
+          this.$asyncComputed.serverData.update();
         })
         .catch(err => {
           if (err.message) {
