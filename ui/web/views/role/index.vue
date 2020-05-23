@@ -55,7 +55,7 @@
     <el-pagination
       background
       :current-page="pageNo"
-      :page-sizes="[2, 10, 20, 30, 50]"
+      :page-sizes="[10, 20, 30, 50, 100]"
       :page-size="pageSize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="serverData.count"
@@ -155,15 +155,15 @@ export default {
       role: Object.assign({}, defaultRole),
       dialogVisible: false,
       dialogPermissionsListTableViewVisible: false,
-      dialogType: 'new',
       checkStrictly: false,
       submitting: false,
+      pageSize: 20, // 每页数量
+      pageNo: 1, // 当前第几页
+      dialogType: 'new',
       defaultProps: {
         children: 'children',
         label: 'label'
       },
-      pageSize: 2, // 每页数量
-      pageNo: 1, // 当前第几页
       rules: {
         name: [{required: true, message: '请输入角色名称', trigger: 'blur'}]
       },
