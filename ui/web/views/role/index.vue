@@ -5,6 +5,7 @@
     >
     <el-table
       :data="tableData"
+      v-loading="$asyncComputed.serverData.updating"
       style="width: 100%; margin-top:30px; flex-grow: 1 "
       height="100%"
       border
