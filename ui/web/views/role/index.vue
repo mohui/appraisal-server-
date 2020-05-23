@@ -116,7 +116,7 @@
           >取消
         </el-button>
         <el-button type="primary" @click="confirmRole" :loading="submitting">
-          {{ submitting ? '提交' : '确定' }}
+          {{ submitting ? '提交中...' : '确定' }}
         </el-button>
       </div>
     </el-dialog>
