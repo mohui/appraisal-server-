@@ -54,6 +54,11 @@
     </el-table>
     <el-pagination
       background
+      :current-page="pageNo"
+      :page-sizes="[2, 10, 20, 30, 50]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="serverData.count"
       @size-change="
         size => {
           pageSize = size;
@@ -65,11 +70,6 @@
           pageNo = no;
         }
       "
-      :current-page="pageNo"
-      :page-sizes="[2, 10, 20, 30, 50]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="serverData.count"
     >
     </el-pagination>
     <el-dialog
@@ -77,9 +77,9 @@
       :visible.sync="dialogPermissionsListTableViewVisible"
     >
       <div
-        style="margin-bottom: 5px"
         v-for="item of role.permissions"
         :key="item.key"
+        style="margin-bottom: 5px"
       >
         {{ item.name }}
       </div>
@@ -88,11 +88,17 @@
       :visible.sync="dialogVisible"
       :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
     >
-      <el-form :model="role" label-width="80px" label-position="left">
-        <el-form-item label="Name">
+      <el-form
+        ref="ruleForm"
+        :model="role"
+        :rules="rules"
+        label-width="80px"
+        label-position="left"
+      >
+        <el-form-item label="名称" prop="name">
           <el-input v-model="role.name" placeholder="角色名称" />
         </el-form-item>
-        <el-form-item label="Desc">
+        <el-form-item label="描述">
           <el-input
             v-model="role.description"
             :autosize="{minRows: 2, maxRows: 4}"
@@ -100,7 +106,7 @@
             placeholder="角色描述"
           />
         </el-form-item>
-        <el-form-item label="Menus">
+        <el-form-item label="权限">
           <el-tree
             ref="tree"
             :check-strictly="checkStrictly"
@@ -110,15 +116,21 @@
             node-key="key"
           />
         </el-form-item>
+        <el-form-item>
+          <div style="text-align:right;">
+            <el-button type="danger" @click="dialogVisible = false"
+              >取消
+            </el-button>
+            <el-button
+              type="primary"
+              :loading="submitting"
+              @click="submitForm('ruleForm')"
+            >
+              {{ submitting ? '提交中...' : '确定' }}
+            </el-button>
+          </div>
+        </el-form-item>
       </el-form>
-      <div style="text-align:right;">
-        <el-button type="danger" @click="dialogVisible = false"
-          >取消
-        </el-button>
-        <el-button type="primary" @click="confirmRole" :loading="submitting">
-          {{ submitting ? '提交中...' : '确定' }}
-        </el-button>
-      </div>
     </el-dialog>
   </div>
 </template>
@@ -152,6 +164,9 @@ export default {
       },
       pageSize: 2, // 每页数量
       pageNo: 1, // 当前第几页
+      rules: {
+        name: [{required: true, message: '请输入角色名称', trigger: 'blur'}]
+      },
       permissionsList: [
         {
           key: 'home',
@@ -275,30 +290,40 @@ export default {
           }
         });
     },
-    async confirmRole() {
-      const isEdit = this.dialogType === 'edit';
-      this.submitting = true;
-      //被选中的节点的 key 所组成的数组
-      const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+    async submitForm(formName) {
+      console.log(formName);
       try {
-        if (isEdit) {
-          //更新角色
-          const updateRole = {
-            id: this.role.id,
-            name: this.role.name,
-            permissions: permissionsKey
-          };
-          await this.$api.User.updateRole(updateRole);
-        } else {
-          //新增角色
-          await this.$api.User.addRole(this.role.name, permissionsKey);
+        //校验表单是否通过
+        await this.$refs[formName].validate();
+        //表单校验通过之后执行以下代码
+        const isEdit = this.dialogType === 'edit';
+        this.submitting = true;
+        //被选中的节点的 key 所组成的数组
+        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        try {
+          if (isEdit) {
+            //更新角色
+            const updateRole = {
+              id: this.role.id,
+              name: this.role.name,
+              permissions: permissionsKey
+            };
+            await this.$api.User.updateRole(updateRole);
+            this.$message.success('更新角色成功');
+          } else {
+            //新增角色
+            await this.$api.User.addRole(this.role.name, permissionsKey);
+            this.$message.success('新增角色成功');
+          }
+          this.$asyncComputed.serverData.update();
+          this.dialogVisible = false;
+        } catch (e) {
+          this.$message.error(e.message);
+        } finally {
+          this.submitting = false;
         }
-        this.$asyncComputed.serverData.update();
-        this.dialogVisible = false;
       } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        this.submitting = false;
+        console.log(e);
       }
     }
   }
