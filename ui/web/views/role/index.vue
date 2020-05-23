@@ -280,21 +280,26 @@ export default {
       this.submitting = true;
       //被选中的节点的 key 所组成的数组
       const permissionsKey = this.$refs.tree.getCheckedKeys(true);
-      if (isEdit) {
-        //更新角色
-        const updateRole = {
-          id: this.role.id,
-          name: this.role.name,
-          permissions: permissionsKey
-        };
-        await this.$api.User.updateRole(updateRole);
-      } else {
-        //新增角色
-        await this.$api.User.addRole(this.role.name, permissionsKey);
+      try {
+        if (isEdit) {
+          //更新角色
+          const updateRole = {
+            id: this.role.id,
+            name: this.role.name,
+            permissions: permissionsKey
+          };
+          await this.$api.User.updateRole(updateRole);
+        } else {
+          //新增角色
+          await this.$api.User.addRole(this.role.name, permissionsKey);
+        }
+        this.$asyncComputed.serverData.update();
+        this.dialogVisible = false;
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.submitting = false;
       }
-      this.$asyncComputed.serverData.update();
-      this.dialogVisible = false;
-      this.submitting = false;
     }
   }
 };
