@@ -53,11 +53,20 @@
     </el-table>
     <el-pagination
       background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="currentPage"
+      @size-change="
+        size => {
+          pageSize = size;
+          pageNo = 1;
+        }
+      "
+      @current-change="
+        no => {
+          pageNo = no;
+        }
+      "
+      :current-page="pageNo"
       :page-sizes="[2, 10, 20, 30, 50]"
-      :page-size="2"
+      :page-size="pageSize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="serverData.count"
     >
@@ -140,7 +149,8 @@ export default {
         children: 'children',
         label: 'label'
       },
-      currentPage: 1,
+      pageSize: 2, // 每页数量
+      pageNo: 1, // 当前第几页
       permissionsList: [
         {
           key: 'home',
@@ -195,7 +205,10 @@ export default {
   asyncComputed: {
     serverData: {
       async get() {
-        return await this.$api.User.listRole();
+        return await this.$api.User.listRole({
+          pageNo: this.pageNo,
+          pageSize: this.pageSize
+        });
       },
       default() {
         return {
@@ -206,12 +219,6 @@ export default {
     }
   },
   methods: {
-    handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
-    },
-    handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
-    },
     deepClone(source) {
       if (!source && typeof source !== 'object') {
         throw new Error('error arguments', 'deepClone');
