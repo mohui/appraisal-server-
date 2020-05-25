@@ -9,6 +9,8 @@ import {getApiClient} from './plugins/api';
 import WidthCompute from './plugins/width-compute';
 import dayjs from './plugins/dayjs';
 import {settingPlugin} from './plugins/setting';
+import echarts from 'echarts';
+
 (async () => {
   Vue.config.productionTip = false;
   Vue.use(Element);
@@ -17,6 +19,8 @@ import {settingPlugin} from './plugins/setting';
   Vue.use(settingPlugin);
   Vue.use(WidthCompute);
   Vue.use(dayjs);
+  Vue.prototype.$echarts = echarts;
+
   new Vue({
     router,
     render: h => h(App)
