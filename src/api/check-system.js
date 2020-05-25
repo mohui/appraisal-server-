@@ -121,8 +121,24 @@ export default class CheckSystem {
     });
   }
 
-  async listRule() {
-    return await CheckRuleModel.findAndCountAll({include: CheckSystemModel});
+  @validate(
+    should
+      .object({
+        checkId: should
+          .string()
+          .allow(null, '')
+          .description('考核体系id')
+      })
+      .allow(null)
+  )
+  async listRule(params) {
+    const {checkId} = params || {};
+    let whereOptions = {};
+    if (checkId) whereOptions.checkId = checkId;
+    return await CheckRuleModel.findAndCountAll({
+      where: whereOptions,
+      include: CheckSystemModel
+    });
   }
 
   async list() {
