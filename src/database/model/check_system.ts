@@ -18,16 +18,16 @@ export class CheckSystem extends Model<CheckSystem> {
   @Default(UUIDV4)
   @Comment('主键id')
   @Column(DataType.UUID)
-  check_id: string;
+  checkId: string;
 
   //一对多个考核规则
   @HasMany(() => CheckRule)
-  check_rule: CheckRule;
+  checkRules: CheckRule[];
 
   @Comment('考核名称')
   @AllowNull(false)
   @Column
-  check_name: string;
+  checkName: string;
 
   @Comment('得分')
   @AllowNull(false)
@@ -36,27 +36,27 @@ export class CheckSystem extends Model<CheckSystem> {
 
   @Comment('省编码')
   @Column
-  province_code: string;
+  provinceCode: string;
 
   @Comment('省名称')
   @Column
-  province_name: string;
+  provinceName: string;
 
   @Comment('市编码')
   @Column
-  city_code: string;
+  cityCode: string;
 
   @Comment('市名称')
   @Column
-  city_name: string;
+  cityName: string;
 
   @Comment('区编码')
   @Column
-  district_code: string;
+  districtCode: string;
 
   @Comment('区名称')
   @Column
-  district_name: string;
+  districtName: string;
 
   @Comment('创建人')
   @Column
@@ -68,7 +68,7 @@ export class CheckSystem extends Model<CheckSystem> {
 
   @Comment('考核年度')
   @Column
-  check_year: string;
+  checkYear: string;
 
   @Comment('状态:')
   @Column

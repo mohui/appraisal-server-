@@ -19,40 +19,41 @@ export class CheckRule extends Model<CheckRule> {
   @Default(UUIDV4)
   @Comment('主键id')
   @Column(DataType.UUID)
-  rule_id: string;
+  ruleId: string;
 
   @Comment('规则名称')
   @AllowNull(false)
   @Column
-  rule_name: string;
+  ruleName: string;
 
   @Comment('父规则id')
   @Column
-  parent_rule_id: string;
+  parentRuleId: string;
 
   @ForeignKey(() => CheckSystem)
+  @AllowNull(false)
   @Column
-  check_id: string;
+  checkId: string;
 
   //多对一个考核系统
   @BelongsTo(() => CheckSystem)
-  check_system: CheckSystem;
+  checkSystem: CheckSystem;
 
   @Comment('得分')
   @Column
-  rule_score: string;
+  ruleScore: string;
 
   @Comment('考核标准')
   @Column
-  check_standard: string;
+  checkStandard: string;
 
   @Comment('考核方法')
   @Column
-  check_method: string;
+  checkMethod: string;
 
   @Comment('评分标准')
   @Column
-  evaluate_standard: string;
+  evaluateStandard: string;
 
   @Comment('创建人')
   @Column
@@ -69,10 +70,10 @@ export class CheckRule extends Model<CheckRule> {
   @Comment('关联指标id')
   @Default([])
   @Column({type: DataType.ARRAY(DataType.STRING)})
-  standard_ids: string[];
+  standardIds: string[];
 
   @Comment('关联的指标名称')
   @Default([])
   @Column({type: DataType.ARRAY(DataType.STRING)})
-  standard_names: string[];
+  standardNames: string[];
 }
