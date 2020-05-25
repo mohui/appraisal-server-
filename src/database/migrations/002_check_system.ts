@@ -46,7 +46,7 @@ export class CheckSystemMigration implements IMigration {
       CREATE TABLE IF NOT EXISTS "check_rule"
       (
         "rule_id"           UUID,
-        "check_id"          VARCHAR(50),
+        "check_id"          UUID REFERENCES "check_system" ("check_id") ON DELETE SET NULL ON UPDATE CASCADE,
         "parent_rule_id"    VARCHAR(50),
         "rule_name"         VARCHAR(255),
         "rule_score"        INTEGER,
