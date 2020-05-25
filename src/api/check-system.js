@@ -157,11 +157,15 @@ export default class CheckSystem {
     if (checkId) whereOptions.checkId = checkId;
     return await CheckRuleModel.findAndCountAll({
       where: whereOptions,
+      distinct: true,
       include: CheckSystemModel
     });
   }
 
   async list() {
-    return await CheckSystemModel.findAndCountAll({include: CheckRuleModel});
+    return await CheckSystemModel.findAndCountAll({
+      distinct: true,
+      include: CheckRuleModel
+    });
   }
 }
