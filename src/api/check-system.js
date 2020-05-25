@@ -25,12 +25,32 @@ export default class CheckSystem {
       ruleName: should
         .string()
         .required()
-        .description('规则名称')
+        .description('规则名称'),
+      ruleScore: should
+        .number()
+        .required()
+        .description('得分'),
+      checkStandard: should
+        .string()
+        .required()
+        .description('考核标准'),
+      checkMethod: should
+        .string()
+        .required()
+        .description('考核方法'),
+      status: should
+        .string()
+        .required()
+        .description('状态'),
+      standardIds: should
+        .array()
+        .items(should.string())
+        .allow([])
+        .description('关联指标id')
     })
   )
   async addRule(params) {
-    const {checkId, ruleName} = params;
-    return await CheckRuleModel.create({ruleName, checkId: checkId});
+    return await CheckRuleModel.create(params);
   }
 
   @validate(
