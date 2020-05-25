@@ -102,10 +102,10 @@ export default class CheckSystem {
   }
 
   async listRule() {
-    return await CheckRuleModel.findAll({include: CheckSystemModel});
+    return await CheckRuleModel.findAndCountAll({include: CheckSystemModel});
   }
 
   async list() {
-    return await CheckSystemModel.findAll({include: CheckRuleModel});
+    return await CheckSystemModel.findAndCountAll({include: CheckRuleModel});
   }
 }
