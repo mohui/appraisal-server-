@@ -132,23 +132,49 @@ export default class User {
     should
       .object({
         account: should.string().allow('', null),
+        name: should.string().allow('', null),
+        roleId: should.string().allow('', null),
         pageSize: should.number(),
         pageNo: should.number()
       })
       .allow(null)
   )
   async list(params) {
-    const {pageNo = 1, pageSize = 20, account = ''} = params || {};
+    const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
+      params || {};
     let whereOption = {};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
-    return await UserModel.findAndCountAll({
+    if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
+
+    //查询符合条件的用户
+    let rows = await UserModel.findAll({
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
-      distinct: true,
-      include: {model: RoleModel, through: {attributes: []}}
+      include: {
+        model: RoleModel,
+        through: {attributes: []}
+      }
     });
+
+    //计算符合条件的用户总数
+    let whereCount = {};
+    if (roleId) whereCount = {id: roleId};
+    const count = await UserModel.count({
+      where: whereOption,
+      distinct: true,
+      include: {
+        model: RoleModel,
+        where: whereCount,
+        through: {attributes: []}
+      }
+    });
+    //过滤掉不属于该角色的用户
+    rows = rows.filter(user =>
+      user.roles.find(role => !roleId || role.id === roleId)
+    );
+    return {count, rows};
   }
 
   @validate(
@@ -164,68 +190,97 @@ export default class User {
       password: should
         .string()
         .required()
-        .description('密码')
+        .description('密码'),
+      roles: should
+        .array()
+        .items(should.string())
+        .required()
+        .allow([])
+        .description('角色数组')
     })
   )
   async addUser(user) {
-    const result = await UserModel.findOne({where: {account: user.account}});
-    if (result) throw new KatoCommonError('该账户已存在');
-    return UserModel.create(user);
-  }
-
-  @validate(
-    should
-      .string()
-      .required()
-      .description('用户id'),
-    should
-      .string()
-      .required()
-      .description('角色id')
-  )
-  async setRole(userId, roleId) {
-    const role = await RoleModel.findOne({where: {id: roleId}});
-    if (!role) throw new KatoCommonError('该角色不存在');
-
-    const user = await UserModel.findOne({where: {id: userId}});
-    if (!user) throw new KatoCommonError('该用户不存在');
-
-    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
-    if (user_role) throw new KatoCommonError('重复设置');
-
-    return await UserRoleModel.create({userId, roleId});
-  }
-
-  async cancelRole(userId, roleId) {
-    const role = await RoleModel.findOne({where: {id: roleId}});
-    if (!role) throw new KatoCommonError('该角色不存在');
-
-    const user = await UserModel.findOne({where: {id: userId}});
-    if (!user) throw new KatoCommonError('该用户不存在');
-
-    const user_role = await UserRoleModel.findOne({where: {userId, roleId}});
-    if (!user_role) throw new KatoCommonError('未绑定该角色');
-
-    return await user_role.destroy();
-  }
-
-  @validate(
-    should
-      .string()
-      .required()
-      .description('角色id'),
-    should
-      .array()
-      .items(should.string())
-      .allow([])
-      .required()
-      .description('权限数组')
-  )
-  async setPermission(roleId, permissions) {
     return appDB.transaction(async () => {
-      const role = await RoleModel.findOne({where: {id: roleId}, lock: true});
-      if (!role) throw new KatoCommonError('该角色不存在');
-      return RoleModel.update({permissions}, {where: {id: roleId}});
+      //查询该账户是否存在
+      const result = await UserModel.findOne({where: {account: user.account}});
+      if (result) throw new KatoCommonError('该账户已存在');
+      const newUser = await UserModel.create(user);
+      //绑定角色关系
+      const roleUser = user.roles.map(roleId => ({
+        userId: newUser.id,
+        roleId: roleId
+      }));
+      //批量设置用户角色关系
+      await UserRoleModel.bulkCreate(roleUser);
+      return newUser;
+    });
+  }
+
+  @validate(
+    should.object({
+      id: should
+        .string()
+        .required()
+        .description('用户id'),
+      name: should.string(),
+      roles: should
+        .array()
+        .items(should.string())
+        .allow([])
+    })
+  )
+  update(user) {
+    return appDB.transaction(async () => {
+      //查询用户,并锁定
+      let result = await UserModel.findOne({where: {id: user.id}, lock: true});
+      if (!result) throw new KatoCommonError('该用户不存在');
+      //查询该用户所有的角色
+      const roleList = await UserRoleModel.findAll({
+        where: {userId: user.id},
+        lock: true
+      });
+      //删除解除的角色关系
+      await Promise.all(
+        roleList
+          .filter(it => !user.roles.includes(it.roleId)) //筛选出需要解除的role
+          .map(async item => await item.destroy({force: true}))
+      );
+      //添加新的角色关系
+      await UserRoleModel.bulkCreate(
+        user.roles
+          .filter(id => !roleList.find(role => role.roleId === id)) //筛选出需要新增的role
+          .map(roleId => ({userId: user.id, roleId: roleId}))
+      );
+
+      //修改名字
+      await UserModel.update({name: user.name}, {where: {id: user.id}});
+    });
+  }
+
+  @validate(
+    should.object({
+      id: should
+        .string()
+        .required()
+        .description('角色id'),
+      name: should.string().description('角色名'),
+      permissions: should
+        .array()
+        .items(should.string())
+        .allow([])
+        .description('权限数组')
+    })
+  )
+  async updateRole(role) {
+    return appDB.transaction(async () => {
+      //查询是否有该角色,并锁定
+      const result = await RoleModel.findOne({
+        where: {id: role.id},
+        lock: true
+      });
+      if (!result) throw new KatoCommonError('该角色不存在');
+      //进行角色更新操作
+      return RoleModel.update(role, {where: {id: role.id}});
     });
   }
 
@@ -233,10 +288,20 @@ export default class User {
     should
       .string()
       .required()
-      .description('权限名')
+      .description('权限名'),
+    should
+      .array()
+      .items(should.string())
+      .allow([])
+      .required()
+      .description('权限数组')
   )
-  async addRole(name) {
-    return await RoleModel.create({name});
+  async addRole(name, permissions) {
+    //查询是否存在该角色
+    const role = await RoleModel.findOne({where: {name}});
+    if (role) throw new KatoCommonError('该角色已存在');
+    //角色新增操作
+    return await RoleModel.create({name, permissions});
   }
 
   @validate(
@@ -274,6 +339,52 @@ export default class User {
       const user = await UserModel.findOne({where: {id: userId}});
       if (!user) throw new KatoCommonError('该用户不存在');
       return UserModel.update({password}, {where: {id: userId}});
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('用户id')
+  )
+  async remove(id) {
+    return appDB.transaction(async () => {
+      //查询用户是否存在,并锁定
+      const result = await UserModel.findOne({
+        where: {id: id},
+        lock: {of: UserModel},
+        include: [{model: RoleModel}]
+      });
+      if (!result) throw new KatoCommonError('该用户不存在');
+      //删除角色关系
+      await Promise.all(
+        result.roles.map(
+          async role => await role.UserRole.destroy({force: true})
+        )
+      );
+      //删除该用户
+      await result.destroy({force: true});
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('角色id')
+  )
+  async removeRole(id) {
+    return appDB.transaction(async () => {
+      //查询该角色,并锁定
+      const result = await RoleModel.findOne({
+        where: {id},
+        include: [UserModel],
+        lock: {of: RoleModel}
+      });
+      if (result.users.length > 0)
+        throw new KatoCommonError('该角色下绑定了用户,无法删除');
+      result.destroy({force: true});
     });
   }
 }
