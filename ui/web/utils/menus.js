@@ -36,5 +36,17 @@ module.exports = [
         icon: 'el-icon-user'
       }
     ]
+  },
+  {
+    index: 'performance-appraisal',
+    label: '绩效考核',
+    icon: 'el-icon-data-analysis',
+    children: [
+      {
+        index: 'assessment-indicators',
+        router: '/appraisal-indicators',
+        label: '考核指标'
+      }
+    ]
   }
 ];
