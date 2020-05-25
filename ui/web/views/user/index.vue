@@ -204,7 +204,7 @@
 
 <script>
 export default {
-  name: 'User',
+  name: 'user',
   data() {
     return {
       dialogFormAddUsersVisible: false,
