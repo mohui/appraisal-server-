@@ -18,6 +18,26 @@ export default class CheckSystem {
 
   @validate(
     should.object({
+      checkId: should.string().required(),
+      checkName: should.string().required()
+    })
+  )
+  updateName(params) {
+    return appDB.transaction(async () => {
+      const sys = await CheckSystemModel.findOne({
+        where: {checkId: params.checkId},
+        lock: true
+      });
+      if (!sys) throw new KatoCommonError('该考核不存在');
+      return await CheckSystemModel.update(
+        {checkName: params.checkName},
+        {where: {checkId: params.checkId}}
+      );
+    });
+  }
+
+  @validate(
+    should.object({
       checkId: should
         .string()
         .required()
