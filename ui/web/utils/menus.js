@@ -43,7 +43,7 @@ module.exports = [
     icon: 'el-icon-data-analysis',
     children: [
       {
-        index: 'assessment-indicators',
+        index: 'appraisal-indicators',
         router: '/appraisal-indicators',
         label: '考核指标'
       }
