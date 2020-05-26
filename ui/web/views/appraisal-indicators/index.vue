@@ -1689,6 +1689,11 @@ export default {
 </script>
 
 <style>
+.header-title {
+  font: bold 24px/2 Arial;
+  color: #0090dc;
+}
+
 .table-responsive {
   background: #fbfcfd;
 }
