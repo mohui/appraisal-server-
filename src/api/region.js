@@ -10,16 +10,18 @@ export default class Region {
         pageNo: should.number(),
         level: should.number(),
         parent: should.string(),
-        name: should.string()
+        name: should.string(),
+        code: should.string()
       })
       .allow(null)
   )
   async list(params) {
-    const {pageSize = 20, pageNo = 1, level, parent, name} = params || {};
+    const {pageSize = 20, pageNo = 1, level, parent, name, code} = params || {};
     let whereOptions = {};
     if (level) whereOptions['level'] = level;
     if (parent) whereOptions['parent'] = parent;
     if (name) whereOptions['name'] = {[Op.like]: `%${name}%`};
+    if (code) whereOptions['code'] = code;
     return await RegionModel.findAndCountAll({
       attributes: {
         exclude: ['deleted_at']
@@ -46,16 +48,18 @@ export default class Region {
         pageNo: should.number(),
         region: should.string(),
         parent: should.string(),
-        name: should.string()
+        name: should.string(),
+        id: should.string()
       })
       .allow(null)
   )
   async listHospital(params) {
-    const {pageSize = 20, pageNo = 1, region, parent, name} = params || {};
+    const {pageSize = 20, pageNo = 1, region, parent, name, id} = params || {};
     let whereOptions = {};
     if (region) whereOptions['region'] = region;
     if (parent) whereOptions['parent'] = parent;
     if (name) whereOptions['name'] = {[Op.like]: `%${name}%`};
+    if (id) whereOptions['id'] = id;
     return await HospitalModel.findAndCountAll({
       attributes: {
         exclude: ['deleted_at']
