@@ -1061,7 +1061,7 @@ export default {
   methods: {
     async scores() {
       try {
-        return await this.$api.Export.scores(
+        return await this.$phApi.Export.scores(
           this.$route.query.id,
           dayjs(this.downDate).toDate()
         );
@@ -1210,8 +1210,8 @@ export default {
       this.dialogSearchScore = '';
       this.dialogScore = true;
       this.dialogScoreLoading = true;
-      this.scoreSort = await this.$api.physicianScore.cateList();
-      this.areaList = await this.$api.Search.hospitalList();
+      this.scoreSort = await this.$phApi.physicianScore.cateList();
+      this.areaList = await this.$phApi.Search.hospitalList();
       this.dialogScoreLoading = false;
     },
 
@@ -1235,7 +1235,7 @@ export default {
             message: '请选择查询地区'
           });
         }
-        let result = await this.$api.physicianScore.list(
+        let result = await this.$phApi.physicianScore.list(
           startDate,
           endDate,
           this.areaSyscode[this.areaSyscode.length - 1],
@@ -1326,7 +1326,7 @@ export default {
     //考核细则开关
     async changeStatus(row) {
       try {
-        await this.$api.System.lockScore(
+        await this.$phApi.System.lockScore(
           row.isLock,
           row.hospitalCode,
           row.checkId,
@@ -1349,12 +1349,12 @@ export default {
       this.loading = true;
       try {
         let checkId = this.tableData[0].children[0].checkId;
-        await this.$api.System.oneKeyLockScore(
+        await this.$phApi.System.oneKeyLockScore(
           checkId,
           this.$route.query.id,
           'N'
         );
-        await this.$api.System.oneKeyScore(this.$route.query.id);
+        await this.$phApi.System.oneKeyScore(this.$route.query.id);
         this.$message({
           type: 'success',
           message: '开启成功'
@@ -1377,7 +1377,7 @@ export default {
       this.tableData[0].isLock = isLock;
 
       try {
-        await this.$api.System.lockScore(
+        await this.$phApi.System.lockScore(
           isLock,
           this.$route.query.id,
           checkId,
@@ -1393,7 +1393,7 @@ export default {
 
     // 质量系数历史趋势
     async twoCardQualityLine(id) {
-      let arr = await this.$api.SystemList.areaTrend(id);
+      let arr = await this.$phApi.SystemList.areaTrend(id);
       if (arr.length) {
         this.xAxisData = arr.map(it => {
           let date = new Date(it.date);
@@ -1418,7 +1418,7 @@ export default {
 
     //查看工分值柱状图
     async twoCardScoreBar(id) {
-      let arr = await this.$api.SystemPoint.doctorPoint(id);
+      let arr = await this.$phApi.SystemPoint.doctorPoint(id);
       if (arr.length) {
         this.barxAxisData = arr.map(it => it.doctorName);
         this.baryAxisData = arr.map(it => it.workScore);
@@ -1430,14 +1430,14 @@ export default {
 
     //人脸采集数
     async faceNumber(id) {
-      let result = await this.$api.SystemPoint.faceNumber(id);
+      let result = await this.$phApi.SystemPoint.faceNumber(id);
       this.faceNum = result.faceNum;
       this.faceRate = `${result.rate * 100}%`;
     },
 
     //质量系数
     async areaPoint(id) {
-      let ret = await this.$api.SystemList.areaPoint(id);
+      let ret = await this.$phApi.SystemList.areaPoint(id);
       if (ret) {
         let d = new Date(ret.date);
         let dat =
@@ -1453,7 +1453,7 @@ export default {
 
     //机构排行
     async getHospitalList() {
-      let result = await this.$api.SystemList.hospitalList();
+      let result = await this.$phApi.SystemList.hospitalList();
       if (result.length) {
         this.rankData = result.map(it => ({
           ...it,
@@ -1513,13 +1513,13 @@ export default {
 
     //医生详情
     async hospitalDoctorPoint(id) {
-      this.doctorList = await this.$api.SystemList.hospitalDoctorPoint(id);
-      this.ruleList = await this.$api.SystemList.hospitalPointInfo(id);
+      this.doctorList = await this.$phApi.SystemList.hospitalDoctorPoint(id);
+      this.ruleList = await this.$phApi.SystemList.hospitalPointInfo(id);
     },
 
     //机构详情
     async hospitalQualityFactor(id) {
-      let result = await this.$api.SystemList.hospitalQualityFactoor(id);
+      let result = await this.$phApi.SystemList.hospitalQualityFactoor(id);
       if (result.length) {
         this.tableData = result.map(it => ({
           ...it,
@@ -1592,7 +1592,7 @@ export default {
         let hospitalCode = row.hospitalCode; // hospitalCode	string	必填	机构code
         let hospitalName = row.hospitalName; // hospitalName	string	必填	机构名称
         let score = Number(row.checkScore); // score	number	必填	分数
-        await this.$api.System.addScore(
+        await this.$phApi.System.addScore(
           checkId,
           ruleId,
           hospitalCode,
@@ -1648,7 +1648,10 @@ export default {
     },
     async standardInfo(tag, sysCode) {
       try {
-        return await this.$api.PhysicianStandardExt.standardInfo(tag, sysCode);
+        return await this.$phApi.PhysicianStandardExt.standardInfo(
+          tag,
+          sysCode
+        );
       } catch (e) {
         return [
           {
@@ -1665,7 +1668,10 @@ export default {
     async excelExport(tag) {
       this.downLoading = true;
       try {
-        return await this.$api.Standard.excelExport(tag, this.$route.query.id);
+        return await this.$phApi.Standard.excelExport(
+          tag,
+          this.$route.query.id
+        );
       } catch (e) {
         this.$message({
           type: 'error',
