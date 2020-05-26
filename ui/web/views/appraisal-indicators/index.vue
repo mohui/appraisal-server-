@@ -828,7 +828,7 @@ import twoCardBar from './components/twocardBar';
 import Accordion from './components/twocardAccordion';
 import progressTest from './components/progressScore';
 import {getToken} from '../../utils/cache';
-
+const sysCode = '340203';
 export default {
   name: 'appraisal-indicators',
   components: {
@@ -939,25 +939,17 @@ export default {
       if (this.params.listFlag === 'score') {
         //查看工分值柱状图
         this.twoCardScoreBar(
-          this.$route.query.id
-            ? this.$route.query.id
-            : localStorage.getItem('sysCode')
+          this.$route.query.id ? this.$route.query.id : sysCode
         );
         //查看工分值人脸信息
-        this.faceNumber(
-          this.$route.query.id
-            ? this.$route.query.id
-            : localStorage.getItem('sysCode')
-        );
+        this.faceNumber(this.$route.query.id ? this.$route.query.id : sysCode);
         if (this.$route.query.id) {
           //医生工分--工分项目
           this.hospitalDoctorPoint(this.$route.query.id);
         }
       } else if (this.params.listFlag === 'quality') {
         this.twoCardQualityLine(
-          this.$route.query.id
-            ? this.$route.query.id
-            : localStorage.getItem('sysCode')
+          this.$route.query.id ? this.$route.query.id : sysCode
         );
         if (this.$route.query.id) {
           this.hospitalQualityFactor(this.$route.query.id);
@@ -967,21 +959,21 @@ export default {
     if (localStorage.getItem('level') === '5') {
       this.params.showRank = false;
       this.showBack = true;
-      this.areaPoint(localStorage.getItem('sysCode'));
+      this.areaPoint(sysCode);
       //查看工分值柱状图
       if (this.params.listFlag === 'score') {
-        this.twoCardScoreBar(localStorage.getItem('sysCode'));
-        this.faceNumber(localStorage.getItem('sysCode'));
-        this.hospitalDoctorPoint(localStorage.getItem('sysCode'));
+        this.twoCardScoreBar(sysCode);
+        this.faceNumber(sysCode);
+        this.hospitalDoctorPoint(sysCode);
       } else if (this.params.listFlag === 'quality') {
-        this.twoCardQualityLine(localStorage.getItem('sysCode'));
-        this.hospitalQualityFactor(localStorage.getItem('sysCode'));
+        this.twoCardQualityLine(sysCode);
+        this.hospitalQualityFactor(sysCode);
       }
       this.$router.push({
         query: {
           showRank: false,
           listFlag: this.params.listFlag,
-          id: localStorage.getItem('sysCode')
+          id: sysCode
         }
       });
     }
@@ -999,15 +991,11 @@ export default {
         this.areaPoint(this.$route.query.id); //质量系数
         this.twoCardQualityLine(this.$route.query.id);
         this.twoCardScoreBar(
-          this.$route.query.id
-            ? this.$route.query.id
-            : localStorage.getItem('sysCode')
+          this.$route.query.id ? this.$route.query.id : sysCode
         );
         if (this.params.listFlag === 'score') {
           this.faceNumber(
-            this.$route.query.id
-              ? this.$route.query.id
-              : localStorage.getItem('sysCode')
+            this.$route.query.id ? this.$route.query.id : sysCode
           );
         }
         if (this.$route.query.id && this.params.listFlag === 'score') {
@@ -1024,17 +1012,17 @@ export default {
         this.params.listFlag === 'score' &&
         this.params.showRank === false
       ) {
-        this.twoCardScoreBar(localStorage.getItem('sysCode'));
-        this.faceNumber(localStorage.getItem('sysCode'));
-        this.hospitalDoctorPoint(localStorage.getItem('sysCode'));
+        this.twoCardScoreBar(sysCode);
+        this.faceNumber(sysCode);
+        this.hospitalDoctorPoint(sysCode);
       } else if (
         Object.keys(from.query).length !== 0 &&
         localStorage.getItem('level') === '5' &&
         this.params.listFlag === 'quality' &&
         this.params.showRank === false
       ) {
-        this.twoCardQualityLine(localStorage.getItem('sysCode'));
-        this.hospitalQualityFactor(localStorage.getItem('sysCode'));
+        this.twoCardQualityLine(sysCode);
+        this.hospitalQualityFactor(sysCode);
       }
     },
     listOne() {
@@ -1258,8 +1246,8 @@ export default {
       this.totalLongContent = true;
       this.areaPoint();
       this.twoCardQualityLine();
-      this.twoCardScoreBar(localStorage.getItem('sysCode'));
-      this.faceNumber(localStorage.getItem('sysCode'));
+      this.twoCardScoreBar(sysCode);
+      this.faceNumber(sysCode);
       this.getHospitalList();
       if (this.params.listFlag === 'score') {
         this.$router.push({
