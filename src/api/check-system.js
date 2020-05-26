@@ -3,6 +3,7 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 
 export default class CheckSystem {
+  //添加考核系统
   @validate(
     should.object({
       checkName: should
@@ -16,6 +17,7 @@ export default class CheckSystem {
     return await CheckSystemModel.create({checkName, total: 0});
   }
 
+  //更新考核系统名称
   @validate(
     should.object({
       checkId: should
@@ -42,6 +44,7 @@ export default class CheckSystem {
     });
   }
 
+  //添加考核规则
   @validate(
     should.object({
       checkId: should
@@ -67,18 +70,14 @@ export default class CheckSystem {
       status: should
         .string()
         .required()
-        .description('状态'),
-      standardIds: should
-        .array()
-        .items(should.string())
-        .allow([])
-        .description('关联指标id')
+        .description('状态')
     })
   )
   async addRule(params) {
     return await CheckRuleModel.create(params);
   }
 
+  //删除考核系统
   @validate(
     should
       .string()
@@ -104,9 +103,13 @@ export default class CheckSystem {
     });
   }
 
+  //更新规则
   @validate(
     should.object({
-      ruleId: should.string().required(),
+      ruleId: should
+        .string()
+        .required()
+        .description('规则id'),
       ruleName: should
         .string()
         .required()
@@ -132,11 +135,10 @@ export default class CheckSystem {
         .string()
         .required()
         .description('状态'),
-      standardIds: should
-        .array()
-        .items(should.string())
-        .allow([])
-        .description('关联指标id')
+      evaluateStandard: should
+        .string()
+        .required()
+        .description('评分标准')
     })
   )
   async updateRule(params) {
@@ -144,12 +146,11 @@ export default class CheckSystem {
       ruleId,
       ruleName,
       parentRuleId = '',
-      checkId = '',
+      evaluateStandard = '',
       ruleScore = '',
       checkStandard = '',
       checkMethod = '',
-      status = '',
-      standardIds = []
+      status = ''
     } = params;
     return appDB.transaction(async () => {
       //查询规则,并锁定
@@ -160,18 +161,18 @@ export default class CheckSystem {
         {
           ruleName,
           parentRuleId,
-          checkId,
           ruleScore,
           checkMethod,
           checkStandard,
-          status,
-          standardIds
+          evaluateStandard,
+          status
         },
         {where: {ruleId}}
       );
     });
   }
 
+  //删除规则
   @validate(
     should
       .string()
@@ -190,6 +191,7 @@ export default class CheckSystem {
     });
   }
 
+  //查询规则
   @validate(
     should
       .object({
@@ -211,10 +213,26 @@ export default class CheckSystem {
     });
   }
 
-  async list() {
+  //查询考核系统
+  @validate(
+    should
+      .object({
+        pageSize: should.number(),
+        pageNo: should.number(),
+        checkId: should.string()
+      })
+      .allow(null)
+  )
+  async list(params) {
+    const {pageSize = 20, pageNo = 1, checkId} = params || {};
+    let whereOptions = {};
+    if (checkId) whereOptions['checkId'] = checkId;
     return await CheckSystemModel.findAndCountAll({
+      where: whereOptions,
       distinct: true,
-      include: CheckRuleModel
+      include: CheckRuleModel,
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize
     });
   }
 }
