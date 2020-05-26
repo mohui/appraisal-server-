@@ -11,7 +11,6 @@ export class CheckSystemMigration implements IMigration {
       (
         "check_id"      UUID,
         "check_name"    VARCHAR(255),
-        "region"        VARCHAR(50),
         "create_by"     VARCHAR(50),
         "update_by"     VARCHAR(50),
         "check_year"    VARCHAR(50),
@@ -24,7 +23,6 @@ export class CheckSystemMigration implements IMigration {
       );
       COMMENT ON COLUMN "check_system"."check_id" IS '主键id';
       COMMENT ON COLUMN "check_system"."check_name" IS '考核体系名称';
-      COMMENT ON COLUMN "check_system"."region" IS '所属行政编码';
       COMMENT ON COLUMN "check_system"."create_by" IS '创建人';
       COMMENT ON COLUMN "check_system"."update_by" IS '修改人';
       COMMENT ON COLUMN "check_system"."check_year" IS '考核年度';
