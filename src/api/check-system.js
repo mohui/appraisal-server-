@@ -70,7 +70,11 @@ export default class CheckSystem {
       status: should
         .string()
         .required()
-        .description('状态')
+        .description('状态'),
+      evaluateStandard: should
+        .string()
+        .required()
+        .description('评分标准')
     })
   )
   async addRule(params) {
