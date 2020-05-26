@@ -66,14 +66,4 @@ export class CheckRule extends Model<CheckRule> {
   @Comment('状态')
   @Column
   status: string;
-
-  @Comment('关联指标id')
-  @Default([])
-  @Column({type: DataType.ARRAY(DataType.STRING)})
-  standardIds: string[];
-
-  @Comment('关联的指标名称')
-  @Default([])
-  @Column({type: DataType.ARRAY(DataType.STRING)})
-  standardNames: string[];
 }

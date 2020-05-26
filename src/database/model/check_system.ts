@@ -29,35 +29,6 @@ export class CheckSystem extends Model<CheckSystem> {
   @Column
   checkName: string;
 
-  @Comment('得分')
-  @AllowNull(false)
-  @Column
-  total: number;
-
-  @Comment('省编码')
-  @Column
-  provinceCode: string;
-
-  @Comment('省名称')
-  @Column
-  provinceName: string;
-
-  @Comment('市编码')
-  @Column
-  cityCode: string;
-
-  @Comment('市名称')
-  @Column
-  cityName: string;
-
-  @Comment('区编码')
-  @Column
-  districtCode: string;
-
-  @Comment('区名称')
-  @Column
-  districtName: string;
-
   @Comment('创建人')
   @Column
   create_by: string;
