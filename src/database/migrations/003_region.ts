@@ -35,7 +35,6 @@ export class RegionIMigration implements IMigration {
     await client.execute(`
       DROP TABLE IF EXISTS "region";
       DROP TABLE IF EXISTS "hospital";
-      DROP TABLE IF EXISTS "hospital_mapping";
     `);
   }
 }
