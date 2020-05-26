@@ -18,8 +18,14 @@ export default class CheckSystem {
 
   @validate(
     should.object({
-      checkId: should.string().required(),
-      checkName: should.string().required()
+      checkId: should
+        .string()
+        .required()
+        .description('考核体系id'),
+      checkName: should
+        .string()
+        .required()
+        .description('考核系统名称')
     })
   )
   updateName(params) {
@@ -71,6 +77,31 @@ export default class CheckSystem {
   )
   async addRule(params) {
     return await CheckRuleModel.create(params);
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核体系id')
+  )
+  remove(id) {
+    return appDB.transaction(async () => {
+      //查询考核系统,并锁定
+      const sys = await CheckSystemModel.findOne({
+        where: {checkId: id},
+        paranoid: false,
+        lock: {of: CheckSystemModel},
+        include: [CheckRuleModel]
+      });
+      if (!sys) throw new KatoCommonError('该考核系统不存在');
+      //删除该考核系统下的所有规则
+      await Promise.all(
+        sys.checkRules.map(async rule => await rule.destroy({force: true}))
+      );
+      //删除该考核系统
+      return await sys.destroy({force: true});
+    });
   }
 
   @validate(
@@ -138,6 +169,24 @@ export default class CheckSystem {
         },
         {where: {ruleId}}
       );
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('规则id')
+  )
+  async removeRule(id) {
+    return appDB.transaction(async () => {
+      //查询并锁定
+      const rule = await CheckRuleModel.findOne({
+        where: {ruleId: id},
+        lock: true
+      });
+      if (!rule) throw new KatoCommonError('该规则不存在');
+      return await rule.destroy({force: true});
     });
   }
 
