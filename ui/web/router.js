@@ -31,6 +31,11 @@ const router = new Router({
           path: 'user',
           name: 'user',
           component: () => import('./views/user/index')
+        },
+        {
+          path: 'appraisal-indicators',
+          name: 'appraisal-indicators',
+          component: () => import('./views/appraisal-indicators/index')
         }
       ]
     },
