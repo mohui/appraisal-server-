@@ -1251,7 +1251,7 @@ export default {
       this.getHospitalList();
       if (this.params.listFlag === 'score') {
         this.$router.push({
-          name: 'twocard',
+          name: 'appraisal-indicators',
           query: {
             listFlag: 'score',
             showRank: true
@@ -1259,7 +1259,7 @@ export default {
         });
       } else if (this.params.listFlag === 'quality') {
         this.$router.push({
-          name: 'twocard',
+          name: 'appraisal-indicators',
           query: {
             listFlag: 'quality',
             showRank: true
