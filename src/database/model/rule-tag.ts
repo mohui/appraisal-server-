@@ -45,6 +45,7 @@ export class RuleTag extends Model<RuleTag> {
   baseline: number;
 
   @Comment('分值')
+  @AllowNull(false)
   @Column(DataType.FLOAT)
   score: number;
 }
