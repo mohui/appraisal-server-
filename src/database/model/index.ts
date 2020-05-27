@@ -8,3 +8,4 @@ export {CheckRule as CheckRuleModel} from './check_rule';
 export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
 export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
+export {RuleHospitalScore as RuleHospitalScoreModel} from './rule-hospital-score';
