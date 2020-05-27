@@ -12,7 +12,7 @@ import {
 import {CheckRule} from './check_rule';
 import {Hospital} from './hospital';
 
-@Table({tableName: 'rule_hospital_mapping'})
+@Table({tableName: 'rule_hospital'})
 export class RuleHospital extends Model<RuleHospital> {
   @Comment('考核细则id')
   @AllowNull(false)

@@ -10,7 +10,7 @@ import {
 } from 'sequelize-typescript';
 import {CheckRule} from './check_rule';
 
-@Table({tableName: 'rule_tag_mapping'})
+@Table({tableName: 'rule_tag'})
 export class RuleTag extends Model<RuleTag> {
   @Comment('考核细则id')
   @AllowNull(false)

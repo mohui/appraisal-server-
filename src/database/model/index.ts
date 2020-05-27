@@ -6,5 +6,5 @@ export {Hospital as HospitalModel} from './hospital';
 export {CheckSystem as CheckSystemModel} from './check_system';
 export {CheckRule as CheckRuleModel} from './check_rule';
 export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
-export {RuleHospital as RuleHospitalModel} from './rule_hospital';
+export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
