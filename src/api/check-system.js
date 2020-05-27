@@ -55,7 +55,7 @@ export default class CheckSystem {
         .string()
         .required()
         .description('规则名称'),
-      parent: should
+      parentRuleId: should
         .string()
         .required()
         .description('所属分组id'),
@@ -82,7 +82,26 @@ export default class CheckSystem {
     })
   )
   async addRule(params) {
-    return await CheckRuleModel.create(params);
+    return appDB.transaction(async () => {
+      //添加该rule
+      await CheckRuleModel.create(params);
+
+      //查询与该rule同一个parent的rules
+      const rules = await CheckRuleModel.findAll({
+        where: {parentRuleId: params.parent}
+      });
+      //计算该父级rule的得分
+      const parentRule = await CheckRuleModel.findOne({
+        where: {ruleId: params.parent}
+      });
+      parentRule.ruleScore = rules.reduce(
+        (total, next) => total + next.ruleScore,
+        0
+      );
+      console.log(parentRule.toJSON());
+      //更新parentRule得分
+      return await parentRule.save();
+    });
   }
 
   //添加规则组
@@ -254,16 +273,17 @@ export default class CheckSystem {
     let whereOptions = {};
     if (checkId) whereOptions.checkId = checkId;
     //查询该体系下所有rules
-    let allRules = await CheckRuleModel.findAndCountAll({
+    let allRules = await CheckRuleModel.findAll({
       where: whereOptions,
       distinct: true
     });
 
     //rule进行分组
-    const ruleGroup = allRules.rows.filter(row => !row.parentRuleId);
-    allRules.rows = ruleGroup.map(group => ({
+    const ruleGroup = allRules.filter(row => !row.parentRuleId);
+    allRules.count = ruleGroup.length;
+    allRules = ruleGroup.map(group => ({
       ...group.toJSON(),
-      group: allRules.rows
+      group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())
     }));
