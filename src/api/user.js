@@ -413,8 +413,7 @@ export default class User {
     const result = await UserModel.findOne({
       where: {id: params.id},
       paranoid: false,
-      attributes: {exclude: ['deleted_at']},
-      lock: {of: UserModel}
+      attributes: {exclude: ['deleted_at']}
     });
     if (!result) throw new KatoCommonError('该用户不存在');
     //查询该用户原有的机构关系
