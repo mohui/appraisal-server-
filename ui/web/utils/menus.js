@@ -46,6 +46,12 @@ module.exports = [
         index: 'appraisal-indicators',
         router: '/appraisal-indicators',
         label: '考核指标'
+      },
+      {
+        index: 'check',
+        router: '/check',
+        label: '配置管理',
+        icon: 'el-icon-setting'
       }
     ]
   }
