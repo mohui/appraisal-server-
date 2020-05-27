@@ -12,24 +12,31 @@ export default class Region {
     });
   }
 
-  @validate(
-    should
-      .object({
-        code: should.string().description('通过code查询区域下的机构'),
-        parent: should.string().description('通过上级机构查询其名下的机构')
-      })
-      .allow(null)
-  )
-  async listHospital(params) {
-    const {code, parent} = params || {};
-    let whereOptions = {};
-    if (code) whereOptions['region'] = code;
-    if (parent) whereOptions['parent'] = parent;
+  @validate(should.string().description('通过code查询区域下的机构'))
+  async listHospitalByCode(code) {
     return await HospitalModel.findAll({
       attributes: {
         exclude: ['deleted_at']
       },
-      where: whereOptions,
+      where: {region: code},
+      paranoid: false,
+      include: {
+        model: RegionModel,
+        paranoid: false,
+        attributes: {
+          exclude: ['deleted_at']
+        }
+      }
+    });
+  }
+
+  @validate(should.string().description('通过上级机构查询其下的机构'))
+  async listHospital(parent) {
+    return await HospitalModel.findAll({
+      attributes: {
+        exclude: ['deleted_at']
+      },
+      where: {parent},
       paranoid: false,
       include: {
         model: RegionModel,
