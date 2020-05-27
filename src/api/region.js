@@ -3,7 +3,7 @@ import {should, validate} from 'kato-server';
 
 export default class Region {
   //通过code查询下一级行政区域
-  @validate(should.string().required())
+  @validate(should.string().allow(null))
   async list(code) {
     return await RegionModel.findAll({
       paranoid: false,
