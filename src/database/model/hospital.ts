@@ -1,6 +1,6 @@
 import {
-  AllowNull,
   BelongsTo,
+  BelongsToMany,
   Column,
   Comment,
   DataType,
@@ -12,6 +12,8 @@ import {
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 import {Region} from './region';
+import {User} from './user';
+import {UserHospital} from './user_hospital';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -36,4 +38,11 @@ export class Hospital extends Model<Hospital> {
   //多对一个行政地区
   @BelongsTo(() => Region)
   region: Region;
+
+  //多对多用户
+  @BelongsToMany(
+    () => User,
+    () => UserHospital
+  )
+  users: User[];
 }

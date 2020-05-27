@@ -12,6 +12,8 @@ import {
 import {UUIDV4} from 'sequelize';
 import {Role} from './role';
 import {UserRole} from './user_role';
+import {Hospital} from './hospital';
+import {UserHospital} from './user_hospital';
 
 @Table({tableName: 'user'})
 export class User extends Model<User> {
@@ -39,4 +41,11 @@ export class User extends Model<User> {
     () => UserRole
   )
   roles: Role[];
+
+  //多对多机构
+  @BelongsToMany(
+    () => Hospital,
+    () => UserHospital
+  )
+  hospitals: Hospital[];
 }
