@@ -17,7 +17,7 @@ export class RuleHospital extends Model<RuleHospital> {
   @Comment('考核细则id')
   @AllowNull(false)
   @ForeignKey(() => CheckRule)
-  @Column({field: 'rule_id', type: DataType.UUID})
+  @Column({field: 'rule', type: DataType.UUID})
   ruleId: string;
 
   @BelongsTo(() => CheckRule)
