@@ -36,6 +36,17 @@ const router = new Router({
           path: 'appraisal-indicators',
           name: 'appraisal-indicators',
           component: () => import('./views/appraisal-indicators/index')
+        },
+        {
+          path: 'check',
+          name: 'check',
+          component: () => import('./views/check/index')
+        },
+        {
+          path: 'rule',
+          name: 'rule',
+          meta: {activeMenu: 'check'},
+          component: () => import('./views/check/rule')
         }
       ]
     },
