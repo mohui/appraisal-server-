@@ -7,7 +7,7 @@ export class UserRegionMigration implements IMigration {
 
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
-        ALTER TABLE "user" ADD column IF NOT EXISTS region varchar(255)  NOT NULL REFERENCES "region" ("code") ON DELETE NO ACTION ON UPDATE CASCADE;
+        ALTER TABLE "user" ADD column IF NOT EXISTS region varchar(255) REFERENCES "region" ("code") ON DELETE NO ACTION ON UPDATE CASCADE;
     `);
   }
 
