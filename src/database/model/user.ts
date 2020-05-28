@@ -36,6 +36,10 @@ export class User extends Model<User> {
   @Column
   password: string;
 
+  @Comment('地区code')
+  @Column
+  region: string;
+
   @BelongsToMany(
     () => Role,
     () => UserRole
