@@ -9,7 +9,7 @@ export default class Hospital {
       .description('父级机构的id')
   )
   async list(parent) {
-    HospitalModel.findAll({
+    return HospitalModel.findAll({
       attributes: {
         exclude: ['deleted_at']
       },
