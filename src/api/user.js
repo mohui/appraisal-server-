@@ -4,6 +4,7 @@ import * as dayjs from 'dayjs';
 import {dataDB, knrtDB, appDB} from '../app';
 import {
   HospitalModel,
+  RegionModel,
   RoleModel,
   UserHospitalModel,
   UserModel,
@@ -158,10 +159,10 @@ export default class User {
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
-      include: {
-        model: RoleModel,
-        through: {attributes: []}
-      }
+      include: [
+        {model: RoleModel, through: {attributes: []}, required: true},
+        {model: RegionModel, required: true}
+      ]
     });
 
     //计算符合条件的用户总数
@@ -202,7 +203,11 @@ export default class User {
         .items(should.string())
         .required()
         .allow([])
-        .description('角色数组')
+        .description('角色数组'),
+      regionId: should
+        .string()
+        .required()
+        .description('地区code')
     })
   )
   async addUser(user) {
@@ -233,6 +238,11 @@ export default class User {
         .array()
         .items(should.string())
         .allow([])
+        .description('角色数组'),
+      regionId: should
+        .string()
+        .required()
+        .description('地区code')
     })
   )
   update(user) {
@@ -257,9 +267,8 @@ export default class User {
           .filter(id => !roleList.find(role => role.roleId === id)) //筛选出需要新增的role
           .map(roleId => ({userId: user.id, roleId: roleId}))
       );
-
-      //修改名字
-      await UserModel.update({name: user.name}, {where: {id: user.id}});
+      //修改操作
+      await UserModel.update(user, {where: {id: user.id}});
     });
   }
 

@@ -1,9 +1,11 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   Comment,
   DataType,
   Default,
+  ForeignKey,
   Model,
   PrimaryKey,
   Table,
@@ -14,6 +16,7 @@ import {Role} from './role';
 import {UserRole} from './user_role';
 import {Hospital} from './hospital';
 import {UserHospital} from './user_hospital';
+import {Region} from './region';
 
 @Table({tableName: 'user'})
 export class User extends Model<User> {
@@ -35,6 +38,15 @@ export class User extends Model<User> {
   @Comment('密码')
   @Column
   password: string;
+
+  //多对一个地区
+  @ForeignKey(() => Region)
+  @Comment('地区code')
+  @Column({field: 'region'})
+  regionId: string;
+
+  @BelongsTo(() => Region)
+  region: Region;
 
   @BelongsToMany(
     () => Role,
