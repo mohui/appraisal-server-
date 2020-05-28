@@ -41,7 +41,7 @@ export class RuleTag extends Model<RuleTag> {
   algorithm: string;
 
   @Comment('参考值; 个别计算方式, 需要参考值')
-  @Column
+  @Column(DataType.FLOAT)
   baseline: number;
 
   @Comment('分值')

@@ -27,7 +27,7 @@ export class RuleScoreMigration implements IMigration {
         "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
         "tag"        VARCHAR(255)             NOT NULL,                                                                           -- 考核指标
         "algorithm"  VARCHAR(255)             NOT NULL,                                                                           -- 计算方式
-        "baseline"   INTEGER,                                                                                                     -- 参考值; 个别计算方式, 需要参考值
+        "baseline"   FLOAT,                                                                                                       -- 参考值; 个别计算方式, 需要参考值
         "score"      FLOAT                    NOT NULL,                                                                           -- 分值
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
