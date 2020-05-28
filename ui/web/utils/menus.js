@@ -52,6 +52,12 @@ module.exports = [
         router: '/check',
         label: '配置管理',
         icon: 'el-icon-setting'
+      },
+      {
+        index: 'basic-data',
+        router: '/basic-data',
+        label: '基础数据',
+        icon: 'el-icon-coin'
       }
     ]
   }
