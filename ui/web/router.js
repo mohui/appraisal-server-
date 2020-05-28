@@ -47,6 +47,17 @@ const router = new Router({
           name: 'rule',
           meta: {activeMenu: 'check'},
           component: () => import('./views/check/rule')
+        },
+        {
+          path: 'basic-data',
+          name: 'basic-data',
+          component: () => import('./views/check/basic-data')
+        },
+        {
+          path: 'basic-data-detail',
+          name: 'basic-data-detail',
+          meta: {activeMenu: 'basic-data'},
+          component: () => import('./views/check/basic-data-detail')
         }
       ]
     },
