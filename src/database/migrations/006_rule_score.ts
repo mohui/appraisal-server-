@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class RuleScoreMigration implements IMigration {
   name = '考核得分表结构初始化';
-  version = 5;
+  version = 6;
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
