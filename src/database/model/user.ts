@@ -42,11 +42,11 @@ export class User extends Model<User> {
   //多对一个地区
   @ForeignKey(() => Region)
   @Comment('地区code')
-  @Column
-  region: string;
+  @Column({field: 'region'})
+  regionId: string;
 
   @BelongsTo(() => Region)
-  belong: Region;
+  region: Region;
 
   @BelongsToMany(
     () => Role,
