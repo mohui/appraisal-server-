@@ -6,6 +6,7 @@ import {
   DataType,
   Default,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table
@@ -14,6 +15,7 @@ import {UUIDV4} from 'sequelize';
 import {Region} from './region';
 import {User} from './user';
 import {UserHospital} from './user_hospital';
+import {BasicTagData} from './basic-tag-data';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -45,4 +47,8 @@ export class Hospital extends Model<Hospital> {
     () => UserHospital
   )
   users: User[];
+
+  //多个基础数据
+  @HasMany(() => BasicTagData)
+  basicTagData: BasicTagData[];
 }
