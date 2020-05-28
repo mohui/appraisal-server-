@@ -7,10 +7,11 @@ export class UserRegionMigration implements IMigration {
 
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
-        ALTER TABLE "user" ADD column IF NOT EXISTS region VARCHAR(255);
+        ALTER TABLE "user" ADD column IF NOT EXISTS region varchar(255)  NOT NULL REFERENCES "region" ("code") ON DELETE NO ACTION ON UPDATE CASCADE;
     `);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async down(client: ExtendedSequelize, err?: Error): Promise<void> {}
+  async down(client: ExtendedSequelize, err?: Error): Promise<void> {
+    return;
+  }
 }
