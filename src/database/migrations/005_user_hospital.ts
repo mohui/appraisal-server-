@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class UserHospitalIMigration implements IMigration {
   name = '用户与机构关联';
-  version = 4;
+  version = 5;
 
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
