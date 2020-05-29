@@ -36,39 +36,41 @@ export default class BasicTag {
       .description('大类指标的code')
   )
   async list(tagCode) {
-    //获取大类指标下的所有的小类
-    const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
-
-    //取出所有的机构
+    //当前用户地区权限下所直属的机构
     const centerHospitals = await HospitalModel.findAll({
+      //TODO:暂时提供一个region code
       where: {region: '340203'}
     });
 
+    //获取大类指标下的所有的小类
+    const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
+
     return await Promise.all(
       centerHospitals.map(async h => {
-        let childrenHospital = await HospitalModel.findAll({
-          where: {parent: h.id}
-        });
         //以机构和小类code进行查询
-        childrenHospital = await Promise.all(
-          childrenHospital.map(async child => {
+        const childrenHospital = await Promise.all(
+          await HospitalModel.findAll({
+            where: {parent: h.id}
+          }).map(async child => {
             child = child.toJSON();
-            let tags = await Promise.all(
+            const tags = await Promise.all(
               childrenTag.map(async tag => {
-                //查询某个机构在某个指标的数据
+                //查询某个机构下某个指标的数据
                 const basicData = await BasicTagDataModel.findOne({
                   where: {code: tag.code, hospitalId: child.id}
                 });
-                return basicData
-                  ? basicData
-                  : {
-                      hospitalId: child.id,
-                      code: tag.code,
-                      value: 0,
-                      year: dayjs().year()
-                    };
+                //数据存在则返回该数据,不存在则构造一个新数据
+                return (
+                  basicData || {
+                    hospitalId: child.id,
+                    code: tag.code,
+                    value: 0,
+                    year: dayjs().year()
+                  }
+                );
               })
             );
+            //给每个子机构添加相关指标的属性
             tags.forEach(tag => (child[tag.code] = tag));
             return child;
           })
