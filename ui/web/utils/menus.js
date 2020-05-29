@@ -46,6 +46,11 @@ module.exports = [
         index: 'appraisal-indicators',
         router: '/appraisal-indicators',
         label: '考核指标'
+      },
+      {
+        index: 'new-appraisal-indicators',
+        router: '/new-appraisal-indicators',
+        label: 'New考核指标'
       }
     ]
   }
