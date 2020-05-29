@@ -80,8 +80,8 @@
         <el-table-column label="角色">
           <template slot-scope="scope">
             <el-tag
-              :key="role"
               v-for="role in scope.row.rolesName"
+              :key="role"
               style="margin-right: 10px;"
             >
               {{ role }}
@@ -103,6 +103,11 @@
       </el-table>
       <el-pagination
         background
+        :current-page="searchForm.pageNo"
+        :page-size="searchForm.pageSize"
+        layout="total, sizes, prev, pager, next"
+        style="margin:10px 0 -20px;"
+        :total="listUser.count"
         @size-change="
           size => {
             searchForm.pageSize = size;
@@ -114,11 +119,6 @@
             searchForm.pageNo = no;
           }
         "
-        :current-page="searchForm.pageNo"
-        :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, pager, next"
-        style="margin:10px 0 -20px;"
-        :total="listUser.count"
       >
       </el-pagination>
     </el-card>
@@ -157,6 +157,40 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="所属地区"
+          prop="regionId"
+          :label-width="formLabelWidth"
+        >
+          <el-cascader
+            v-model="userForm.regionId"
+            :placeholder="userForm.region.name || '请选择地区'"
+            style="width: 100%"
+            :props="regionList"
+            collapse-tags
+            filterable
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item
+          label="管理机构"
+          prop="hospitals"
+          :label-width="formLabelWidth"
+        >
+          <el-cascader
+            ref="hospital"
+            v-model="userForm.hospitals"
+            placeholder="请选择机构"
+            style="width: 100%"
+            :props="{
+              lazy: true,
+              multiple: true,
+              checkStrictly: true,
+              lazyLoad: hospitalResolver
+            }"
+            collapse-tags
+            filterable
+          ></el-cascader>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
@@ -193,6 +227,40 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="所属地区"
+          prop="regionId"
+          :label-width="formLabelWidth"
+        >
+          <el-cascader
+            v-model="userForm.regionId"
+            :placeholder="userForm.region.name || '请选择地区'"
+            style="width: 100%"
+            :props="regionList"
+            collapse-tags
+            filterable
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item
+          label="管理机构"
+          prop="hospitals"
+          :label-width="formLabelWidth"
+        >
+          <el-cascader
+            ref="hospital"
+            v-model="userForm.hospitals"
+            placeholder="请选择机构"
+            style="width: 100%"
+            :props="{
+              lazy: true,
+              multiple: true,
+              checkStrictly: true,
+              lazyLoad: hospitalResolver
+            }"
+            collapse-tags
+            filterable
+          ></el-cascader>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
@@ -206,6 +274,7 @@
 export default {
   name: 'user',
   data() {
+    const that = this;
     return {
       dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
@@ -214,7 +283,10 @@ export default {
         account: '',
         password: '',
         name: '',
-        roles: []
+        roles: [],
+        region: {name: ''},
+        regionId: '',
+        hospitals: []
       },
       searchForm: {
         account: '',
@@ -226,14 +298,43 @@ export default {
       rulesAdd: {
         account: [{required: true, message: '请输入登录名', trigger: 'blur'}],
         name: [{required: true, message: '请输入用户名', trigger: 'blur'}],
-        password: [{required: true, message: '请输入密码', trigger: 'blur'}],
-        roles: [{required: true, message: '请输入角色', trigger: 'change'}]
+        password: [{required: true, message: '请输入密码', trigger: 'blur'}]
       },
       rulesEdit: {
-        name: [{required: true, message: '请输入用户名', trigger: 'blur'}],
-        roles: [{required: true, message: '请输入角色', trigger: 'change'}]
+        name: [{required: true, message: '请输入用户名', trigger: 'blur'}]
+      },
+      regionList: {
+        lazy: true,
+        checkStrictly: true,
+        async lazyLoad(node, resolve) {
+          const {level, value = null} = node;
+          const region = (await that.region(value)).map(it => ({
+            value: it.code,
+            label: it.name,
+            leaf: level >= 4
+          }));
+          resolve(region);
+        }
       }
     };
+  },
+  computed: {
+    userList() {
+      return this.listUser.rows.map(it => ({
+        ...it,
+        roles: it.roles.map(it => it.id),
+        rolesName: it.roles.map(it => it.name),
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    },
+    roleList() {
+      return this.listRole.rows.map(it => ({
+        ...it,
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD')
+      }));
+    }
   },
   watch: {
     ['searchForm.account']: {
@@ -253,24 +354,12 @@ export default {
         this.searchForm.pageNo = 1;
       },
       deep: true
-    }
-  },
-  computed: {
-    userList() {
-      return this.listUser.rows.map(it => ({
-        ...it,
-        roles: it.roles.map(it => it.id),
-        rolesName: it.roles.map(it => it.name),
-        created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
-      }));
     },
-    roleList() {
-      return this.listRole.rows.map(it => ({
-        ...it,
-        created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
-      }));
+    ['userForm.regionId']: {
+      handler() {
+        this.$refs.hospital?.panel?.lazyLoad();
+      },
+      deep: true
     }
   },
   asyncComputed: {
@@ -305,20 +394,79 @@ export default {
     }
   },
   methods: {
+    //异步加载机构列表
+    async hospitalResolver(node, resolve) {
+      const regionId = Array.isArray(this.userForm.regionId)
+        ? this.userForm.regionId[this.userForm.regionId.length - 1]
+        : this.userForm.regionId || null;
+      try {
+        let {level, value = regionId} = node;
+        const region = (level === 0
+          ? await this.$api.Region.listHospital(value)
+          : await this.$api.Hospital.list(value)
+        ).map(it => ({
+          value: it.code || it.id,
+          label: it.name,
+          leaf: level >= 2
+        }));
+        resolve(region);
+      } catch (e) {
+        console.log(e);
+        resolve([
+          {value: 'err', label: '请先选择所属地区', disabled: true, leaf: true}
+        ]);
+      }
+    },
+    //异步加载地区列表
+    async region(code) {
+      return await this.$api.Region.list(code);
+    },
+    //打开新建用户对话框
     openAddUserDialog() {
       this.dialogFormAddUsersVisible = true;
       this.userForm = {
         account: '',
         password: '',
         name: '',
-        roles: []
+        roles: [],
+        region: {name: ''},
+        regionId: '',
+        hospitals: []
       };
     },
+    //保存新建用户
     async addUser() {
       this.$refs.userFormAdd.validate(async valid => {
         if (valid) {
+          let {
+            account,
+            password,
+            name,
+            roles,
+            regionId,
+            hospitals
+          } = this.userForm;
+          regionId = Array.isArray(regionId)
+            ? regionId[regionId.length - 1]
+            : regionId;
           try {
-            await this.$api.User.addUser(this.userForm);
+            let result = await this.$api.User.addUser({
+              account,
+              password,
+              name,
+              roles,
+              regionId
+            });
+            if (hospitals.length) {
+              await this.$api.User.setHospitals({
+                id: result.id,
+                hospitals: hospitals.map(it => it[it.length - 1])
+              });
+            }
+            this.$message({
+              type: 'success',
+              message: '新建用户成功!'
+            });
             this.$asyncComputed.listUser.update();
           } catch (e) {
             this.$message.error(e.message);
@@ -330,16 +478,31 @@ export default {
         }
       });
     },
+    //设置用户编辑状态，并打开对话框
     editUser(item) {
       this.userForm = Object.assign({}, item.row);
       this.dialogFormEditUsersVisible = true;
     },
+    //更新保存用户信息
     updateUser() {
       this.$refs.userFormEdit.validate(async valid => {
         if (valid) {
           try {
-            let {id, name, roles} = this.userForm;
-            await this.$api.User.update({id, name, roles});
+            let {id, name, roles, regionId, hospitals} = this.userForm;
+            regionId = Array.isArray(regionId)
+              ? regionId[regionId.length - 1]
+              : regionId;
+            await this.$api.User.update({id, name, roles, regionId});
+            if (hospitals.length) {
+              await this.$api.User.setHospitals({
+                id,
+                hospitals: hospitals.map(it => it[it.length - 1])
+              });
+            }
+            this.$message({
+              type: 'success',
+              message: '保存成功!'
+            });
             this.$asyncComputed.listUser.update();
           } catch (e) {
             this.$message.error(e.message);
@@ -351,6 +514,7 @@ export default {
         }
       });
     },
+    //删除用户
     delUser({$index, row}) {
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         confirmButtonText: '确定',
