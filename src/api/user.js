@@ -152,36 +152,29 @@ export default class User {
     let whereOption = {};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
     if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
-
-    //查询符合条件的用户
-    let rows = await UserModel.findAll({
+    //如果传递roleId则从用户角色关系表中查询该角色的用户id
+    if (roleId)
+      //构成条件
+      whereOption['id'] = {
+        [Op.in]: await UserRoleModel.findAll({where: {roleId}}).map(
+          r => r.userId
+        )
+      };
+    return UserModel.findAndCountAll({
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
+      order: [['created_at', 'DESC']],
       include: [
-        {model: RoleModel, through: {attributes: []}, required: true},
+        {
+          model: RoleModel,
+          through: {attributes: []},
+          required: false
+        },
         {model: RegionModel, required: true}
       ]
     });
-
-    //计算符合条件的用户总数
-    let whereCount = {};
-    if (roleId) whereCount = {id: roleId};
-    const count = await UserModel.count({
-      where: whereOption,
-      distinct: true,
-      include: {
-        model: RoleModel,
-        where: whereCount,
-        through: {attributes: []}
-      }
-    });
-    //过滤掉不属于该角色的用户
-    rows = rows.filter(user =>
-      user.roles.find(role => !roleId || role.id === roleId)
-    );
-    return {count, rows};
   }
 
   @validate(
