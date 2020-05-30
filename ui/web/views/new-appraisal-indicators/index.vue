@@ -1,12 +1,48 @@
 <template>
   <div>
-    New Appraisal Indicators
+    <el-card class="box-card">
+      <div class="header-title" style="float: left">
+        {{ subtitle }}两卡制管理
+      </div>
+      <div class="kpiSum-select">
+        <span style="margin-left:20px; font-size: 17px">纬度：</span>
+        <el-button-group style="">
+          <el-button @click="latTypeChanged('quality')"> 质量系数 </el-button>
+          <el-button @click="latTypeChanged('score')"> 工分值 </el-button>
+        </el-button-group>
+      </div>
+    </el-card>
   </div>
 </template>
 <script>
 export default {
-  name: 'index'
+  name: 'index',
+  data() {
+    return {
+      subtitle: '芜湖市-弋江区'
+    };
+  },
+  methods: {
+    latTypeChanged(type) {
+      console.log('latTypeChanged', type);
+    }
+  }
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.header-title {
+  font: bold 20px/2 Arial;
+  color: #0090dc;
+}
+
+.kpiSum-select {
+  width: 100%;
+  height: 35px;
+  line-height: 40px;
+}
+
+.box-card {
+  width: auto;
+}
+</style>
