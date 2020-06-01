@@ -7,8 +7,18 @@
       <div class="kpiSum-select">
         <span style="margin-left:20px; font-size: 17px">纬度：</span>
         <el-button-group style="">
-          <el-button @click="latTypeChanged('quality')"> 质量系数 </el-button>
-          <el-button @click="latTypeChanged('score')"> 工分值 </el-button>
+          <el-button
+            :class="{'el-button--primary': params.listFlag === 'quality'}"
+            @click="latTypeChanged('quality')"
+          >
+            质量系数
+          </el-button>
+          <el-button
+            :class="{'el-button--primary': params.listFlag === 'score'}"
+            @click="latTypeChanged('score')"
+          >
+            工分值
+          </el-button>
         </el-button-group>
       </div>
     </el-card>
@@ -19,12 +29,16 @@ export default {
   name: 'index',
   data() {
     return {
-      subtitle: '芜湖市-弋江区'
+      subtitle: '芜湖市-弋江区',
+      params: {
+        listFlag: 'score'
+      }
     };
   },
   methods: {
     latTypeChanged(type) {
       console.log('latTypeChanged', type);
+      this.params.listFlag = type;
     }
   }
 };
