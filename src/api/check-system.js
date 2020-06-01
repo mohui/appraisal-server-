@@ -234,6 +234,14 @@ export default class CheckSystem {
         lock: true
       });
       if (!rule) throw new KatoCommonError('该规则不存在');
+      //如果是规则组,则删除其下的细则
+      if (rule.parentRuleId)
+        await Promise.all(
+          CheckRuleModel.findAll({
+            where: {parentRuleId: rule.ruleId}
+          }).map(async it => await it.destroy())
+        );
+
       return await rule.destroy({force: true});
     });
   }
