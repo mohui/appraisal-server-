@@ -63,7 +63,6 @@ export default class BasicTag {
     for (let i = 0; i < childrenTag.length; i++) {
       for (let j = 0; j < hospitals.length; j++) {
         hospitalTags.push({
-          id: '', //预留字段id
           name: hospitals[j].name,
           regionId: hospitals[j].regionId,
           parent: hospitals[j].parent,
@@ -81,11 +80,7 @@ export default class BasicTag {
           where: {code: it.code, hospitalId: it.hospitalId}
         });
         //该数据存在则赋值相关字段
-        if (basicData) {
-          it.value = basicData.value;
-          it.id = basicData.id;
-        }
-        return it;
+        return basicData ? {...basicData.toJSON(), ...it} : it;
       })
     );
   }
