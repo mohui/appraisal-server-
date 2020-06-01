@@ -255,20 +255,18 @@ export default class CheckSystem {
     if (checkId) whereOptions.checkId = checkId;
     //查询该体系下所有rules
     let allRules = await CheckRuleModel.findAll({
-      where: whereOptions,
-      distinct: true
+      where: whereOptions
     });
 
     //rule进行分组
     const ruleGroup = allRules.filter(row => !row.parentRuleId);
-    allRules.count = ruleGroup.length;
     allRules = ruleGroup.map(group => ({
       ...group.toJSON(),
       group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())
     }));
-    return allRules;
+    return {count: ruleGroup.length, rows: allRules};
   }
 
   //查询考核系统
