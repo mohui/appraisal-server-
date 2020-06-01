@@ -25,7 +25,7 @@ export default class User {
   async login(account, password) {
     let user = await UserModel.findOne({
       where: {account, password},
-      include: [{model: RoleModel}, {model: RegionModel}]
+      include: [RoleModel, RegionModel]
     });
     //是否查询出结果
     if (!user) throw new KatoLogicError('账户密码有误', 1002);
