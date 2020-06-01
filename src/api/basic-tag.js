@@ -1,9 +1,14 @@
-import {BasicTagDataModel, HospitalModel} from '../database/model';
+import {
+  BasicTagDataModel,
+  HospitalModel,
+  UserHospitalModel
+} from '../database/model';
 import {appDB} from '../app';
 import {should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
+import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -38,44 +43,49 @@ export default class BasicTag {
   )
   async list(tagCode) {
     //当前用户地区权限下所直属的机构
-    const centerHospitals = await HospitalModel.findAll({
-      where: {region: Context.current.user.regionId}
+    const hospitals = await HospitalModel.findAll({
+      where: {
+        id: {
+          [Op.in]: (
+            await UserHospitalModel.findAll({
+              where: {userId: Context.req.headers.token}
+            })
+          ).map(h => h.hospitalId)
+        }
+      }
     });
 
     //获取大类指标下的所有的小类
     const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
 
-    return await Promise.all(
-      centerHospitals.map(async h => {
-        //以机构和小类code进行查询
-        const childrenHospital = await Promise.all(
-          await HospitalModel.findAll({
-            where: {parent: h.id}
-          }).map(async child => {
-            child = child.toJSON();
-            const tags = await Promise.all(
-              childrenTag.map(async tag => {
-                //查询某个机构下某个指标的数据
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {code: tag.code, hospitalId: child.id}
-                });
-                //数据存在则返回该数据,不存在则构造一个新数据
-                return (
-                  basicData || {
-                    hospitalId: child.id,
-                    code: tag.code,
-                    value: 0,
-                    year: dayjs().year()
-                  }
-                );
-              })
-            );
-            //给每个子机构添加相关指标的属性
-            tags.forEach(tag => (child[tag.code] = tag));
-            return child;
-          })
-        );
-        return {...h.toJSON(), children: childrenHospital};
+    //机构和指标对应数组
+    let hospitalTags = [];
+    for (let i = 0; i < childrenTag.length; i++) {
+      for (let j = 0; j < hospitals.length; j++) {
+        hospitalTags.push({
+          id: '', //预留字段id
+          name: hospitals[j].name,
+          regionId: hospitals[j].regionId,
+          parent: hospitals[j].parent,
+          hospitalId: hospitals[j].id,
+          code: childrenTag[i].code,
+          value: 0,
+          year: dayjs().year()
+        });
+      }
+    }
+    return Promise.all(
+      hospitalTags.map(async it => {
+        //查询某个机构下某个指标的数据
+        const basicData = await BasicTagDataModel.findOne({
+          where: {code: it.code, hospitalId: it.hospitalId}
+        });
+        //该数据存在则赋值相关字段
+        if (basicData) {
+          it.value = basicData.value;
+          it.id = basicData.id;
+        }
+        return it;
       })
     );
   }
