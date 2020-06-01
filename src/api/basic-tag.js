@@ -3,6 +3,7 @@ import {appDB} from '../app';
 import {should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
+import {Context} from './context';
 
 export default class BasicTag {
   //设置基础数据
@@ -38,8 +39,7 @@ export default class BasicTag {
   async list(tagCode) {
     //当前用户地区权限下所直属的机构
     const centerHospitals = await HospitalModel.findAll({
-      //TODO:暂时提供一个region code
-      where: {region: '340203'}
+      where: {region: Context.current.user.regionId}
     });
 
     //获取大类指标下的所有的小类
