@@ -72,7 +72,7 @@ export default class CheckSystem {
         .required()
         .description('考核方法'),
       status: should
-        .string()
+        .boolean()
         .required()
         .description('状态'),
       evaluateStandard: should
@@ -179,7 +179,7 @@ export default class CheckSystem {
         .required()
         .description('考核方法'),
       status: should
-        .string()
+        .boolean()
         .required()
         .description('状态'),
       evaluateStandard: should
@@ -197,7 +197,7 @@ export default class CheckSystem {
       ruleScore = '',
       checkStandard = '',
       checkMethod = '',
-      status = ''
+      status
     } = params;
     return appDB.transaction(async () => {
       //查询规则,并锁定

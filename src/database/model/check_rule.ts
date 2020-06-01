@@ -65,5 +65,5 @@ export class CheckRule extends Model<CheckRule> {
 
   @Comment('状态')
   @Column
-  status: string;
+  status: boolean;
 }
