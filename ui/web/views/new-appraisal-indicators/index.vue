@@ -31,18 +31,28 @@
       </el-col>
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
+          <div class="score-detail">
+            fff
+          </div>
           <div v-for="item of 10" :key="item">{{ item }}</div>
         </el-card>
       </el-col>
       <div v-else>
         <el-col :span="10">
           <el-card shadow="hover">
-            <div v-for="item of 10" :key="item">{{ item }}</div>
+            <div class="score-detail">
+              <two-card-bar
+                :barxAxisData="barxAxisData"
+                :baryAxisData="baryAxisData"
+              ></two-card-bar>
+            </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card shadow="hover">
-            <div v-for="item of 10" :key="item">{{ item }}</div>
+            <div class="score-detail">
+              fff
+            </div>
           </el-card>
         </el-col>
       </div>
@@ -50,14 +60,21 @@
   </div>
 </template>
 <script>
+import twoCardBar from '../appraisal-indicators/components/twocardBar';
+
 export default {
   name: 'index',
+  components: {
+    twoCardBar
+  },
   data() {
     return {
       subtitle: '芜湖市-弋江区',
       params: {
         listFlag: 'score'
-      }
+      },
+      barxAxisData: [],
+      baryAxisData: []
     };
   },
   methods: {
@@ -80,14 +97,16 @@ export default {
   height: 35px;
   line-height: 40px;
 }
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-}
-.bg-purple-dark {
-  background: #99a9bf;
-}
+
 .box-card {
   width: auto;
+}
+
+.score-detail {
+  position: relative;
+  height: 300px;
+  text-align: center;
+  box-sizing: border-box;
+  color: #1096d0;
 }
 </style>
