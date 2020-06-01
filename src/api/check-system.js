@@ -82,26 +82,7 @@ export default class CheckSystem {
     })
   )
   async addRule(params) {
-    return appDB.transaction(async () => {
-      //添加该rule
-      await CheckRuleModel.create(params);
-
-      //查询与该rule同一个parent的rules
-      const rules = await CheckRuleModel.findAll({
-        where: {parentRuleId: params.parent}
-      });
-      //计算该父级rule的得分
-      const parentRule = await CheckRuleModel.findOne({
-        where: {ruleId: params.parent}
-      });
-      parentRule.ruleScore = rules.reduce(
-        (total, next) => total + next.ruleScore,
-        0
-      );
-      console.log(parentRule.toJSON());
-      //更新parentRule得分
-      return await parentRule.save();
-    });
+    return await CheckRuleModel.create(params);
   }
 
   //添加规则组
