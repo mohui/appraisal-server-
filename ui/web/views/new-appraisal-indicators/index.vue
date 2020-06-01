@@ -26,7 +26,15 @@
     <el-row :gutter="20" style="margin: 5px 10px">
       <el-col :span="8">
         <el-card shadow="hover">
-          <div v-for="item of 10" :key="item">{{ item }}</div>
+          <div class="score-detail">
+            <p style="font-size:22px; margin:0; text-align:left;">
+              工分值
+              <el-button plain style="float: right" size="small" type="primary"
+                >查询工分
+              </el-button>
+            </p>
+            fff
+          </div>
         </el-card>
       </el-col>
       <el-col :span="16" v-if="params.listFlag === 'quality'">
@@ -34,7 +42,6 @@
           <div class="score-detail">
             fff
           </div>
-          <div v-for="item of 10" :key="item">{{ item }}</div>
         </el-card>
       </el-col>
       <div v-else>
