@@ -112,13 +112,13 @@ export default class CheckSystem {
   async updateRuleGroup(params) {
     return appDB.transaction(async () => {
       const group = await CheckRuleModel.findOne({
-        where: {checkId: params.ruleId},
+        where: {ruleId: params.ruleId},
         lock: true
       });
       if (!group) throw new KatoCommonError('该规则组不存在');
       //修改规则组
       return await CheckRuleModel.update(
-        {checkName: params.checkName},
+        {ruleName: params.ruleName},
         {where: {ruleId: params.ruleId}}
       );
     });
