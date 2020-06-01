@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card class="box-card">
+    <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
         {{ subtitle }}两卡制管理
       </div>
