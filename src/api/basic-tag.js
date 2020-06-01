@@ -73,15 +73,34 @@ export default class BasicTag {
         });
       }
     }
-    return Promise.all(
+
+    const queryResult = await Promise.all(
       hospitalTags.map(async it => {
         //查询某个机构下某个指标的数据
         const basicData = await BasicTagDataModel.findOne({
           where: {code: it.code, hospitalId: it.hospitalId}
         });
         //该数据存在则赋值相关字段
-        return basicData ? {...basicData.toJSON(), ...it} : it;
+        return basicData ? {...it, ...basicData.toJSON()} : it;
       })
     );
+
+    //组织返回结果
+    return hospitals.map(h => {
+      h = h.toJSON();
+      //该机构的所有相关指标数据
+      const tags = queryResult.filter(q => q.hospitalId === h.id);
+      //给该机构对象添加相应的指标字段
+      tags.forEach(
+        tag =>
+          (h[tag.code] = {
+            id: tag.id,
+            code: tag.code,
+            year: tag.year,
+            value: tag.value
+          })
+      );
+      return h;
+    });
   }
 }
