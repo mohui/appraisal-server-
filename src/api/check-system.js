@@ -44,7 +44,7 @@ export default class CheckSystem {
     });
   }
 
-  //添加考核规则
+  //添加考核细则
   @validate(
     should.object({
       checkId: should
@@ -55,6 +55,10 @@ export default class CheckSystem {
         .string()
         .required()
         .description('规则名称'),
+      parentRuleId: should
+        .string()
+        .required()
+        .description('所属分组id'),
       ruleScore: should
         .number()
         .required()
@@ -68,7 +72,7 @@ export default class CheckSystem {
         .required()
         .description('考核方法'),
       status: should
-        .string()
+        .boolean()
         .required()
         .description('状态'),
       evaluateStandard: should
@@ -79,6 +83,45 @@ export default class CheckSystem {
   )
   async addRule(params) {
     return await CheckRuleModel.create(params);
+  }
+
+  //添加规则组
+  @validate(
+    should.object({
+      checkId: should
+        .string()
+        .required()
+        .description('所属的考核系统id'),
+      ruleName: should
+        .string()
+        .required()
+        .description('规则组的名称')
+    })
+  )
+  async addRuleGroup(params) {
+    return await CheckRuleModel.create(params);
+  }
+
+  //更新规则组
+  @validate(
+    should.object({
+      ruleId: should.string().required(),
+      ruleName: should.string()
+    })
+  )
+  async updateRuleGroup(params) {
+    return appDB.transaction(async () => {
+      const group = await CheckRuleModel.findOne({
+        where: {ruleId: params.ruleId},
+        lock: true
+      });
+      if (!group) throw new KatoCommonError('该规则组不存在');
+      //修改规则组
+      return await CheckRuleModel.update(
+        {ruleName: params.ruleName},
+        {where: {ruleId: params.ruleId}}
+      );
+    });
   }
 
   //删除考核系统
@@ -136,7 +179,7 @@ export default class CheckSystem {
         .required()
         .description('考核方法'),
       status: should
-        .string()
+        .boolean()
         .required()
         .description('状态'),
       evaluateStandard: should
@@ -154,7 +197,7 @@ export default class CheckSystem {
       ruleScore = '',
       checkStandard = '',
       checkMethod = '',
-      status = ''
+      status
     } = params;
     return appDB.transaction(async () => {
       //查询规则,并锁定
@@ -191,6 +234,14 @@ export default class CheckSystem {
         lock: true
       });
       if (!rule) throw new KatoCommonError('该规则不存在');
+      //如果是规则组,则删除其下的细则
+      if (rule.parentRuleId)
+        await Promise.all(
+          CheckRuleModel.findAll({
+            where: {parentRuleId: rule.ruleId}
+          }).map(async it => await it.destroy())
+        );
+
       return await rule.destroy({force: true});
     });
   }
@@ -210,11 +261,20 @@ export default class CheckSystem {
     const {checkId} = params || {};
     let whereOptions = {};
     if (checkId) whereOptions.checkId = checkId;
-    return await CheckRuleModel.findAndCountAll({
-      where: whereOptions,
-      distinct: true,
-      include: CheckSystemModel
+    //查询该体系下所有rules
+    let allRules = await CheckRuleModel.findAll({
+      where: whereOptions
     });
+
+    //rule进行分组
+    const ruleGroup = allRules.filter(row => !row.parentRuleId);
+    allRules = ruleGroup.map(group => ({
+      ...group.toJSON(),
+      group: allRules
+        .filter(rule => rule.parentRuleId === group.ruleId)
+        .map(it => it.toJSON())
+    }));
+    return {count: ruleGroup.length, rows: allRules};
   }
 
   //查询考核系统
@@ -234,7 +294,6 @@ export default class CheckSystem {
     return await CheckSystemModel.findAndCountAll({
       where: whereOptions,
       distinct: true,
-      include: CheckRuleModel,
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });

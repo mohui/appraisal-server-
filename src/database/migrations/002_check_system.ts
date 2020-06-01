@@ -41,7 +41,7 @@ export class CheckSystemMigration implements IMigration {
         "evaluate_standard" VARCHAR(50),
         "create_by"         VARCHAR(50),
         "update_by"         VARCHAR(50),
-        "status"            VARCHAR(50),
+        "status"            BOOLEAN DEFAULT true,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "deleted_at" TIMESTAMP WITH TIME ZONE,
