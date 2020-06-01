@@ -18,7 +18,7 @@ export default class BasicTag {
     return appDB.transaction(async () => {
       //自动设置当前的年份
       params.year = dayjs().year();
-      const {id = '', value = '0'} = params;
+      const {id = '', value = 0} = params;
       //id不存在则插入新数据
       if (!id) return await BasicTagDataModel.create(params);
 
