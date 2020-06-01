@@ -91,20 +91,18 @@ export default {
       this.$refs.loginForm.validate(async valid => {
         if (valid) {
           try {
-            // const result = await this.$api.Admin.login(this.loginForm.account, this.loginForm.pass);
-            if (
-              this.loginForm.account === 'admin' &&
-              this.loginForm.pass === 'admin'
-            ) {
-              this.$message({
-                message: '登录成功',
-                type: 'success',
-                duration: 1000
-              });
-              setToken(1);
-              this.btnLoading = false;
-              await this.$router.push('/');
-            } else throw new Error('账户密码错误');
+            const result = await this.$api.User.login(
+              this.loginForm.account,
+              this.loginForm.pass
+            );
+            this.$message({
+              message: '登录成功',
+              type: 'success',
+              duration: 1000
+            });
+            setToken(result.id);
+            this.btnLoading = false;
+            await this.$router.push('/');
           } catch (e) {
             this.btnLoading = false;
             this.$message.error({
