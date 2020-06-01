@@ -34,6 +34,23 @@ export class Application {
       logging: console.log
     })
   );
+  etlDB = createExtendedSequelize(
+    new Sequelize({
+      dialect: 'postgres',
+      host: config.get('etl.host'),
+      port: config.get('etl.port'),
+      username: config.get('etl.username'),
+      password: config.get('etl.password'),
+      database: config.get('etl.database'),
+      timezone: '+8:00',
+      define: {
+        underscored: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+      },
+      logging: console.log
+    })
+  );
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -148,3 +165,4 @@ export const app = new Application();
 
 //导出各种便捷属性
 export const appDB = app.appDB;
+export const etlDB = app.etlDB;
