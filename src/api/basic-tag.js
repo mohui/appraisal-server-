@@ -96,9 +96,7 @@ export default class BasicTag {
       const tags = queryResult.filter(q => q.hospitalId === h.id);
       //对更新时间进行排序,目的取出最新的更新时间和最后的修改人
       const sortTags =
-        tags
-          .map(tag => tag)
-          .sort((p, n) => dayjs(n?.updated_at).isAfter(p?.updated_at)) || [];
+        tags.sort((p, n) => dayjs(n?.updated_at).isAfter(p?.updated_at)) || [];
       h['updated_at'] = sortTags[0]?.updated_at || null;
       h['editor'] = sortTags[0]?.editor || null;
       //给该机构对象添加相应的指标字段
