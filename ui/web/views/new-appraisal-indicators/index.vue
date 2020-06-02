@@ -104,7 +104,6 @@ export default {
   },
   computed: {
     doctorWorkpointData() {
-      console.log('dd', this.doctorWorkpointServerData);
       return {
         xAxisData: this.doctorWorkpointServerData.map(it => it.doctorName),
         yAxisData: this.doctorWorkpointServerData.map(it => it.workScore)
