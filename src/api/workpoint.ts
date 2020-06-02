@@ -36,6 +36,7 @@ export default class WorkPoint {
           )
         )[0]?.score ?? 0;
       return {
+        id: code,
         name: regionModel.name,
         score: Number(score)
       };
@@ -61,6 +62,7 @@ export default class WorkPoint {
           )
         )[0]?.score ?? 0;
       return {
+        id: code,
         name: hospitalModel.name,
         score: Number(score)
       };
