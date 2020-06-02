@@ -7,7 +7,7 @@ export class TagEditorMigration implements IMigration {
 
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
-        ALTER TABLE "basic_tag_data" ADD column IF NOT EXISTS editor varchar(50);
+        ALTER TABLE "basic_tag_data" ADD column IF NOT EXISTS editor varchar(255);
     `);
   }
 
