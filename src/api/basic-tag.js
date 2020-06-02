@@ -22,15 +22,19 @@ export default class BasicTag {
   )
   async upsert(params) {
     return appDB.transaction(async () => {
-      //自动设置当前的年份
-      params.year = dayjs().year();
       const {id = '', value = 0} = params;
       //id不存在则插入新数据
-      if (!id) return await BasicTagDataModel.create(params);
-
-      //修改已有的数据
+      if (!id) {
+        //自动设置当前的年份
+        params.year = dayjs().year();
+        //自动设置修改人姓名
+        params.editor = Context.current.user.name;
+        return await BasicTagDataModel.create(params);
+      }
+      //否则修改已有的数据
       const tag = await BasicTagDataModel.findOne({where: {id}, lock: true});
       tag.value = value;
+      tag.editor = Context.current.user.name;
       return await tag.save();
     });
   }
