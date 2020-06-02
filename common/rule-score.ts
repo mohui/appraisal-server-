@@ -97,3 +97,12 @@ export const TagAlgorithm = [
     name: '根据件打分（仅输出结果）'
   }
 ];
+
+export const TagAlgorithmUsages = {
+  empty: 'empty',
+  Y01: 'Y01',
+  N01: 'N01',
+  egt: 'egt',
+  elt: 'elt',
+  attach: 'attach'
+};
