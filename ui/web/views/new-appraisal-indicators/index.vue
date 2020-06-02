@@ -49,8 +49,8 @@
           <el-card shadow="hover">
             <div class="score-detail">
               <two-card-bar
-                :barxAxisData="barxAxisData"
-                :baryAxisData="baryAxisData"
+                :barxAxisData="doctorWorkpointData.xAxisData"
+                :baryAxisData="doctorWorkpointData.yAxisData"
               ></two-card-bar>
             </div>
           </el-card>
@@ -69,6 +69,8 @@
 <script>
 import twoCardBar from '../appraisal-indicators/components/twocardBar';
 
+const sysCode = '340203';
+
 export default {
   name: 'index',
   components: {
@@ -79,15 +81,34 @@ export default {
       subtitle: '芜湖市-弋江区',
       params: {
         listFlag: 'score'
-      },
-      barxAxisData: [],
-      baryAxisData: []
+      }
     };
   },
   methods: {
     latTypeChanged(type) {
       console.log('latTypeChanged', type);
       this.params.listFlag = type;
+    }
+  },
+  computed: {
+    doctorWorkpointData() {
+      return {
+        xAxisData: this.doctorWorkpointServerData.map(it => it.doctorName),
+        yAxisData: this.doctorWorkpointServerData.map(it => it.workScore)
+      };
+    }
+  },
+  asyncComputed: {
+    doctorWorkpointServerData: {
+      async get() {
+        return await this.$phApi.SystemPoint.doctorPoint(sysCode);
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'score';
+      },
+      default() {
+        return [];
+      }
     }
   }
 };
