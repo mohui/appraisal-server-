@@ -29,8 +29,7 @@ module.exports = merge(base, {
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: './web/index.html',
-      chunks: ['web', 'web-vendors']
+      template: './web/index.html'
     })
   ]
 });

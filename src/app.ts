@@ -119,12 +119,7 @@ export class Application {
 
   async initWebResource() {
     //fallback页面资源,处理vue路由
-    this.express.use(
-      fallback({
-        htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
-        rewrites: [{from: /^\/admin.*$/, to: '/admin.html'}]
-      })
-    );
+    this.express.use(fallback());
 
     //页面资源挂载
     if (_DEV_) {
