@@ -1,5 +1,5 @@
-import {HospitalModel, RegionModel} from '../database/model';
-import {should, validate} from 'kato-server';
+import {HospitalModel, RegionModel, RuleHospitalModel} from '../database/model';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
 
@@ -25,6 +25,27 @@ export default class Hospital {
         }
       }
     });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('机构id'),
+    should.string().description('规则id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分')
+  )
+  async setRuleAuto(hospitalId, ruleId, isAuto) {
+    //此关联是否存在
+    const result = await RuleHospitalModel.findAll({
+      where: {rule: ruleId, hospital: hospitalId}
+    });
+    if (!result) throw new KatoCommonError('机构与规则未关联');
+    result.auto = isAuto;
+    await result.save();
   }
 
   async workpoints(code) {
