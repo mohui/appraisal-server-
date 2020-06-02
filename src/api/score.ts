@@ -108,7 +108,7 @@ export default class Score {
    *
    * @param ruleId 细则id
    * @param hospitalId 机构id
-   * @param score 得分
+   * @param score 分数
    */
   async score(ruleId, hospitalId, score) {
     const rule = await CheckRuleModel.findOne({where: {ruleId: ruleId}});
