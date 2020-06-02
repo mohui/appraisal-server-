@@ -26,7 +26,7 @@ export default class WorkPoint {
    * @param code 地区或机构的code
    * @param startOptional 开始时间, 可选, 默认值为当前年的开始
    * @param endOptional 结束时间, 可选, 默认值为当前下一年的开始
-   * @return { id: id, name: '名称', score: '工分值'}
+   * @return { id: id, name: '名称', score: '工分值', rate: '质量系数'}
    */
   async total(code, startOptional, endOptional) {
     const {start, end} = prepareStartAndEnd(startOptional, endOptional);
@@ -53,7 +53,8 @@ export default class WorkPoint {
       return {
         id: code,
         name: regionModel.name,
-        score: Number(score)
+        score: Number(score),
+        rate: 0.789
       };
     }
     const hospitalModel = await HospitalModel.findOne({where: {id: code}});
@@ -79,7 +80,8 @@ export default class WorkPoint {
       return {
         id: code,
         name: hospitalModel.name,
-        score: Number(score)
+        score: Number(score),
+        rate: 0.789
       };
     }
 
