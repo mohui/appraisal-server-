@@ -6,12 +6,14 @@ import {
   DataType,
   Default,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 import {CheckSystem} from './check_system';
+import {RuleTag} from './rule-tag';
 
 @Table({tableName: 'check_rule'})
 export class CheckRule extends Model<CheckRule> {
@@ -66,4 +68,7 @@ export class CheckRule extends Model<CheckRule> {
   @Comment('状态')
   @Column
   status: boolean;
+
+  @HasMany(() => RuleTag)
+  ruleTags: RuleTag[];
 }
