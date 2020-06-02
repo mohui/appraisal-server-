@@ -11,8 +11,9 @@ export default class WorkPoint {
    * @param code 地区或机构的code
    * @param start 开始时间
    * @param end 结束时间
+   * @return { id: id, name: '名称', score: '工分值'}
    */
-  async total(code, start, end): Promise<{name: string; score: number}> {
+  async total(code, start, end) {
     start = start ?? dayjs().startOf('y');
     end = start.add(1, 'y');
     const regionModel = await RegionModel.findOne({where: {code}});
@@ -22,13 +23,13 @@ export default class WorkPoint {
         (
           await etlDB.query(
             `
-            select sum(vws.score) as score
-            from view_workscoretotal vws
-                   left join view_hospital vh on vws.operateorganization = vh.hospid
-            where vh.regioncode like ?
-              and vws.missiontime >= ?
-              and vws.missiontime < ?
-          `,
+              select sum(vws.score) as score
+              from view_workscoretotal vws
+                     left join view_hospital vh on vws.operateorganization = vh.hospid
+              where vh.regioncode like ?
+                and vws.missiontime >= ?
+                and vws.missiontime < ?
+            `,
             {
               replacements: [`${code}%`, start.toDate(), end.toDate()],
               type: QueryTypes.SELECT
@@ -48,13 +49,13 @@ export default class WorkPoint {
         (
           await etlDB.query(
             `
-            select sum(vws.score) as score
-            from view_workscoretotal vws
-                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
-            where hm.h_id = ?
-              and vws.missiontime >= ?
-              and vws.missiontime < ?
-          `,
+              select sum(vws.score) as score
+              from view_workscoretotal vws
+                     left join hospital_mapping hm on vws.operateorganization = hm.hishospid
+              where hm.h_id = ?
+                and vws.missiontime >= ?
+                and vws.missiontime < ?
+            `,
             {
               replacements: [code, start.toDate(), end.toDate()],
               type: QueryTypes.SELECT
