@@ -53,7 +53,7 @@ export default class Score {
       let score = 0;
       for (const tagModel of tagModels) {
         // 建档率
-        if (tagModel.tag === MarkTagUsages.S01) {
+        if (tagModel.tag === MarkTagUsages.S01.code) {
           // 查询服务总人口数
           const basicData = await BasicTagData.findOne({
             where: {
@@ -68,13 +68,13 @@ export default class Score {
           if (!basicData.value) continue;
 
           // 根据指标算法, 计算得分
-          if (tagModel.algorithm === TagAlgorithmUsages.Y01 && mark.S01) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark.S01) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.N01 && !mark.S01) {
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark.S01) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.egt && mark.S01) {
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark.S01) {
             const rate = mark.S03 / mark.S01;
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
