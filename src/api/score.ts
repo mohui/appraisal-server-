@@ -1,4 +1,5 @@
 import {
+  CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
   RuleHospitalModel,
@@ -100,5 +101,34 @@ export default class Score {
       }
     }
     return RuleHospitalScoreModel.findAll({where: {hospitalId: id}});
+  }
+
+  /**
+   * 手动打分
+   *
+   * @param ruleId 细则id
+   * @param hospitalId 机构id
+   * @param score 得分
+   */
+  async score(ruleId, hospitalId, score) {
+    const rule = await CheckRuleModel.findOne({where: {ruleId: ruleId}});
+    if (!rule) throw new KatoCommonError('规则不存在');
+    const hospital = await HospitalModel.findOne({where: {id: hospitalId}});
+    if (!hospital) throw new KatoCommonError('机构不存在');
+
+    let model = await RuleHospitalScoreModel.findOne({
+      where: {ruleId, hospitalId}
+    });
+    if (!model) {
+      model = new RuleHospitalScoreModel({
+        ruleId: ruleId,
+        hospitalId: hospitalId,
+        score
+      });
+    } else {
+      model.score = score;
+    }
+
+    return model.save();
   }
 }
