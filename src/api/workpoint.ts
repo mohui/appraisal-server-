@@ -4,18 +4,32 @@ import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
 
+function prepareStartAndEnd(start?, end?) {
+  start =
+    start ??
+    dayjs()
+      .startOf('y')
+      .toDate();
+  end =
+    end ??
+    dayjs(start)
+      .add(1, 'y')
+      .toDate();
+
+  return {start, end};
+}
+
 export default class WorkPoint {
   /**
    * 获取考核地区/机构对应的总体情况
    *
    * @param code 地区或机构的code
-   * @param start 开始时间
-   * @param end 结束时间
+   * @param startOptional 开始时间, 可选, 默认值为当前年的开始
+   * @param endOptional 结束时间, 可选, 默认值为当前下一年的开始
    * @return { id: id, name: '名称', score: '工分值'}
    */
-  async total(code, start, end) {
-    start = start ?? dayjs().startOf('y');
-    end = start.add(1, 'y');
+  async total(code, startOptional, endOptional) {
+    const {start, end} = prepareStartAndEnd(startOptional, endOptional);
     const regionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
       // language=PostgreSQL
@@ -31,7 +45,7 @@ export default class WorkPoint {
                 and vws.missiontime < ?
             `,
             {
-              replacements: [`${code}%`, start.toDate(), end.toDate()],
+              replacements: [`${code}%`, start, end],
               type: QueryTypes.SELECT
             }
           )
@@ -57,7 +71,7 @@ export default class WorkPoint {
                 and vws.missiontime < ?
             `,
             {
-              replacements: [code, start.toDate(), end.toDate()],
+              replacements: [code, start, end],
               type: QueryTypes.SELECT
             }
           )
