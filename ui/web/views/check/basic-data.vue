@@ -16,8 +16,7 @@
       <el-table
         stripe
         size="mini"
-        :data="serverData"
-        v-loading="$asyncComputed.serverData.updating"
+        :data="tagList"
         border
         height="100%"
         style="flex-grow: 1;"
@@ -27,15 +26,7 @@
             {{ scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column
-          v-for="(field, index) of fields"
-          :key="index"
-          :label="field.name"
-          :prop="field.prop"
-          :min-width="field.width"
-          align="center"
-        >
-        </el-table-column>
+        <el-table-column label="公共卫生服务" prop="name"> </el-table-column>
         <el-table-column align="center" width="220" fixed="right" label="操作">
           <template slot-scope="scope">
             <el-button
@@ -60,7 +51,7 @@
 </template>
 
 <script>
-const fieldsMapping = [{name: '公共卫生服务', prop: 'name'}];
+import {BasicTags} from '../../../../common/rule-score.ts';
 export default {
   name: 'basicData',
   data() {
@@ -74,36 +65,13 @@ export default {
       headers: {token: "getCookie('account')"},
       maxSize: 2,
       progress: 0,
-      curCode: ''
+      curCode: '',
+      tagList: BasicTags
     };
   },
   computed: {
-    fields() {
-      if (this.serverData === null) return [];
-      if (this.serverData === undefined) return [];
-      return fieldsMapping.map((map, index) => {
-        return {
-          name: map.name,
-          prop: map.prop,
-          width: this.$widthCompute([
-            map.name,
-            ...this.serverData.map(data => data[index])
-          ])
-        };
-      });
-    },
     uploadLoading() {
       return this.progress > 0 && this.progress < 100;
-    }
-  },
-  asyncComputed: {
-    serverData: {
-      async get() {
-        return await this.$phApi.Task.getTask();
-      },
-      default() {
-        return [];
-      }
     }
   },
   methods: {
@@ -111,7 +79,7 @@ export default {
     async edit(row) {
       await this.$router.push({
         path: 'basic-data-detail',
-        query: {code: row.code, id: row.id, name: row.name}
+        query: {code: row.code, name: row.name}
       });
     },
     //导入
