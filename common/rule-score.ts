@@ -34,6 +34,10 @@ export const BasicTags = [
   }
 ];
 
+export const BasicTagUsages = {
+  DocPeople: 'doc-people'
+};
+
 /**
  * 考核指标
  */
@@ -57,6 +61,21 @@ export const MarkTags = [
     ]
   }
 ];
+
+export const MarkTagUsages = {
+  S01: {
+    code: 'S01',
+    name: '建档率'
+  },
+  S23: {
+    code: 'S23',
+    name: '电子档案规范率'
+  },
+  S03: {
+    code: 'S03',
+    name: '健康档案使用率'
+  }
+};
 
 /**
  * 指标计算方式
@@ -87,3 +106,30 @@ export const TagAlgorithm = [
     name: '根据件打分（仅输出结果）'
   }
 ];
+
+export const TagAlgorithmUsages = {
+  empty: {
+    code: 'empty',
+    name: '无自动打分关系（仅输出结果）'
+  },
+  Y01: {
+    code: 'Y01',
+    name: '结果为”是“时，得满分'
+  },
+  N01: {
+    code: 'N01',
+    name: '结果为“否”时，得满分'
+  },
+  egt: {
+    code: 'egt',
+    name: '“≥”时得满分，不足按比例得分'
+  },
+  elt: {
+    code: 'elt',
+    name: '“≤”时得满分，超过按比例得分'
+  },
+  attach: {
+    code: 'attach',
+    name: '根据件打分（仅输出结果）'
+  }
+};
