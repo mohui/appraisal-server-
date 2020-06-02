@@ -63,9 +63,18 @@ export const MarkTags = [
 ];
 
 export const MarkTagUsages = {
-  S01: 'S01',
-  S23: 'S23',
-  S03: 'S03'
+  S01: {
+    code: 'S01',
+    name: '建档率'
+  },
+  S23: {
+    code: 'S23',
+    name: '电子档案规范率'
+  },
+  S03: {
+    code: 'S03',
+    name: '健康档案使用率'
+  }
 };
 
 /**
@@ -99,10 +108,28 @@ export const TagAlgorithm = [
 ];
 
 export const TagAlgorithmUsages = {
-  empty: 'empty',
-  Y01: 'Y01',
-  N01: 'N01',
-  egt: 'egt',
-  elt: 'elt',
-  attach: 'attach'
+  empty: {
+    code: 'empty',
+    name: '无自动打分关系（仅输出结果）'
+  },
+  Y01: {
+    code: 'Y01',
+    name: '结果为”是“时，得满分'
+  },
+  N01: {
+    code: 'N01',
+    name: '结果为“否”时，得满分'
+  },
+  egt: {
+    code: 'egt',
+    name: '“≥”时得满分，不足按比例得分'
+  },
+  elt: {
+    code: 'elt',
+    name: '“≤”时得满分，超过按比例得分'
+  },
+  attach: {
+    code: 'attach',
+    name: '根据件打分（仅输出结果）'
+  }
 };
