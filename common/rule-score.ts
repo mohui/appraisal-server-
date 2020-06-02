@@ -34,6 +34,10 @@ export const BasicTags = [
   }
 ];
 
+export const BasicTagUsages = {
+  DocPeople: 'doc-people'
+};
+
 /**
  * 考核指标
  */
@@ -57,6 +61,12 @@ export const MarkTags = [
     ]
   }
 ];
+
+export const MarkTagUsages = {
+  S01: 'S01',
+  S23: 'S23',
+  S03: 'S03'
+};
 
 /**
  * 指标计算方式
