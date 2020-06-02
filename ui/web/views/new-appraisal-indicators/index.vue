@@ -33,7 +33,16 @@
                 >查询工分
               </el-button>
             </p>
-            fff
+            <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
+            <h3 style="font-size: 30px; margin:0; display:inline-block">
+              {{ afterCorrectionScore }}
+            </h3>
+            <span>分</span>
+            <p style="margin:10px 0;">{{ date }}</p>
+            <p style="font-size:13px;">{{ subtitle }}</p>
+            <div style="padding-top: 40px">
+              <p>校正前 {{ workpointTotalData.score }}分</p>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -81,7 +90,10 @@ export default {
       subtitle: '芜湖市-弋江区',
       params: {
         listFlag: 'score'
-      }
+      },
+      //TODO:两个临时写死的变量
+      afterCorrectionScore: 24234,
+      date: '2020-06-02'
     };
   },
   methods: {
@@ -92,9 +104,15 @@ export default {
   },
   computed: {
     doctorWorkpointData() {
+      console.log('dd', this.doctorWorkpointServerData);
       return {
         xAxisData: this.doctorWorkpointServerData.map(it => it.doctorName),
         yAxisData: this.doctorWorkpointServerData.map(it => it.workScore)
+      };
+    },
+    workpointTotalData() {
+      return {
+        score: Math.round(this.workpointTotalServerData.score)
       };
     }
   },
@@ -108,6 +126,18 @@ export default {
       },
       default() {
         return [];
+      }
+    },
+    workpointTotalServerData: {
+      async get() {
+        return await this.$api.WorkPoint.total(sysCode);
+      },
+      default() {
+        return {
+          id: '',
+          name: '',
+          score: 0
+        };
       }
     }
   }
