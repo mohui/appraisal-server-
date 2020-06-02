@@ -90,6 +90,13 @@ export default class BasicTag {
       h = h.toJSON();
       //该机构的所有相关指标数据
       const tags = queryResult.filter(q => q.hospitalId === h.id);
+      //对更新时间进行排序,取出最新的更新时间
+      h['updated_at'] =
+        tags
+          .map(tag => tag.updated_at)
+          .sort((p, n) => {
+            return dayjs(n).isAfter(p);
+          })[0] || null;
       //给该机构对象添加相应的指标字段
       tags.forEach(
         tag =>
