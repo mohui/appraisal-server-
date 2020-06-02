@@ -5,18 +5,23 @@ import {QueryTypes} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
 
 export default class WorkPoint {
-  async total(code, start, end) {
+  /**
+   * 获取考核地区/机构对应的总体情况
+   *
+   * @param code 地区或机构的code
+   * @param start 开始时间
+   * @param end 结束时间
+   */
+  async total(code, start, end): Promise<{name: string; score: number}> {
     start = start ?? dayjs().startOf('y');
     end = start.add(1, 'y');
-    const returnValue = {
-      score: 0
-    };
     const regionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
       // language=PostgreSQL
-      returnValue.score = (
-        await etlDB.query(
-          `
+      const score =
+        (
+          await etlDB.query(
+            `
             select sum(vws.score) as score
             from view_workscoretotal vws
                    left join view_hospital vh on vws.operateorganization = vh.hospid
@@ -24,19 +29,24 @@ export default class WorkPoint {
               and vws.missiontime >= ?
               and vws.missiontime < ?
           `,
-          {
-            replacements: [`${code}%`, start.toDate(), end.toDate()],
-            type: QueryTypes.SELECT
-          }
-        )
-      )[0]?.score;
+            {
+              replacements: [`${code}%`, start.toDate(), end.toDate()],
+              type: QueryTypes.SELECT
+            }
+          )
+        )[0]?.score ?? 0;
+      return {
+        name: regionModel.name,
+        score: Number(score)
+      };
     }
     const hospitalModel = await HospitalModel.findOne({where: {id: code}});
     if (hospitalModel) {
       // language=PostgreSQL
-      returnValue.score = (
-        await etlDB.query(
-          `
+      const score =
+        (
+          await etlDB.query(
+            `
             select sum(vws.score) as score
             from view_workscoretotal vws
                    left join hospital_mapping hm on vws.operateorganization = hm.hishospid
@@ -44,18 +54,19 @@ export default class WorkPoint {
               and vws.missiontime >= ?
               and vws.missiontime < ?
           `,
-          {
-            replacements: [code, start.toDate(), end.toDate()],
-            type: QueryTypes.SELECT
-          }
-        )
-      )[0]?.score;
+            {
+              replacements: [code, start.toDate(), end.toDate()],
+              type: QueryTypes.SELECT
+            }
+          )
+        )[0]?.score ?? 0;
+      return {
+        name: hospitalModel.name,
+        score: Number(score)
+      };
     }
 
-    if (!regionModel && !hospitalModel)
-      throw new KatoCommonError(`${code} 不存在`);
-
-    return returnValue;
+    throw new KatoCommonError(`${code} 不存在`);
   }
 
   async rank1(code, start, end) {
