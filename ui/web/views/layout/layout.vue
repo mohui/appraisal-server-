@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     activeMenu() {
-      const {meta} = this.$route.meta;
+      const {meta} = this.$route;
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
     }

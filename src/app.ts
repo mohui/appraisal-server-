@@ -7,7 +7,6 @@ import * as fallback from 'connect-history-api-fallback';
 import {KatoUI} from 'kato-ui';
 import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
 
-import {MySQL} from '../util/mysql';
 import {UserMiddleware} from './api/middleware/user';
 import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
@@ -18,8 +17,6 @@ import * as models from './database/model';
 export class Application {
   express = express();
   server = http.createServer(this.express);
-  dataDB = new MySQL(config.get('data'));
-  knrtDB = new MySQL(config.get('knrt'));
   appDB = createExtendedSequelize(
     new Sequelize({
       dialect: 'postgres',
@@ -32,9 +29,7 @@ export class Application {
       define: {
         underscored: true,
         createdAt: 'created_at',
-        updatedAt: 'updated_at',
-        deletedAt: 'deleted_at',
-        paranoid: true
+        updatedAt: 'updated_at'
       },
       logging: console.log
     })
@@ -97,7 +92,7 @@ export class Application {
     this.appDB.addModels(Object.values(models));
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
-    await migrate.migrate(2);
+    await migrate.migrate(7);
   }
 
   async initExpress() {
@@ -152,6 +147,4 @@ export class Application {
 export const app = new Application();
 
 //导出各种便捷属性
-export const dataDB = app.dataDB;
-export const knrtDB = app.knrtDB;
 export const appDB = app.appDB;
