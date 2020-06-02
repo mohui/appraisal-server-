@@ -1,10 +1,12 @@
 import {
   CheckRuleModel,
   CheckSystemModel,
+  RuleHospitalModel,
   RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
+import {Op} from 'sequelize';
 import {MarkTags} from '../../common/rule-score';
 
 export default class CheckSystem {
@@ -315,6 +317,67 @@ export default class CheckSystem {
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
+  }
+
+  @validate(
+    should.object({
+      checkId: should
+        .string()
+        .required()
+        .description('考核体系id'),
+      hospitals: should
+        .array()
+        .allow([])
+        .description('机构数组')
+    })
+  )
+  async setHospitals(params) {
+    const {checkId, hospitals} = params;
+    //查询该体系下所有细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
+    });
+    if (allRules.length === 0)
+      throw new KatoCommonError('该考核系统下没有细则');
+
+    //查询这些细则原有的机构关系
+    const ruleHospital = (
+      await Promise.all(
+        allRules.map(
+          async rule =>
+            await RuleHospitalModel.findAll({
+              where: {ruleId: rule.ruleId}
+            })
+        )
+      )
+    ).reduce((pre, next) => pre.concat(next), []);
+
+    //删除被解绑的机构
+    await Promise.all(
+      ruleHospital
+        .filter(item => !hospitals.find(h => h === item.hospitalId))
+        .map(async it => await it.destroy())
+    );
+
+    //添加新增的机构和规则对应关系
+    let newRuleHospitals = [];
+    hospitals
+      .filter(
+        //过滤出新增的机构
+        hospitalId => !ruleHospital.find(r => r.hospitalId === hospitalId)
+      )
+      .forEach(hId => {
+        allRules.forEach(rule => {
+          //新增的机构与各个规则相对于的数据
+          newRuleHospitals.push({
+            hospitalId: hId,
+            ruleId: rule.ruleId,
+            auto: true
+          });
+        });
+      });
+    //批量添加规则与机构的关系数据
+    return RuleHospitalModel.bulkCreate(newRuleHospitals);
   }
 }
 
