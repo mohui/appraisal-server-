@@ -1,7 +1,7 @@
 import * as dayjs from 'dayjs';
 import {HospitalModel, RegionModel} from '../database/model';
 import {etlDB} from '../app';
-import {QueryTypes} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
 
 function prepareStartAndEnd(start?, end?) {
@@ -86,9 +86,33 @@ export default class WorkPoint {
     throw new KatoCommonError(`${code} 不存在`);
   }
 
-  async rank1(code, start, end) {
-    start = start ?? dayjs().startOf('y');
-    end = start.add(1, 'y');
+  /**
+   * 获取当前地区一级机构排行
+   *
+   * @param code 地区code
+   * @param startOptional 开始时间, 可选, 默认值为当前年的开始
+   * @param endOptional 结束时间, 可选, 默认值为当前下一年的开始
+   */
+  async rank(code, startOptional, endOptional) {
+    const {start, end} = prepareStartAndEnd(startOptional, endOptional);
     const regionModel = await RegionModel.findOne({where: {code}});
+    if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
+    return await Promise.all(
+      (
+        await HospitalModel.findAll({
+          where: {
+            regionId: {
+              [Op.like]: `${code}%`
+            }
+          }
+        })
+      ).map(async hospital => {
+        const item = await this.total(hospital.id, start, end);
+        return {
+          ...item,
+          parent: hospital.parent
+        };
+      })
+    );
   }
 }
