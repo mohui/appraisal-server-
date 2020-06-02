@@ -22,15 +22,19 @@ export default class BasicTag {
   )
   async upsert(params) {
     return appDB.transaction(async () => {
-      //自动设置当前的年份
-      params.year = dayjs().year();
       const {id = '', value = 0} = params;
       //id不存在则插入新数据
-      if (!id) return await BasicTagDataModel.create(params);
-
-      //修改已有的数据
+      if (!id) {
+        //自动设置当前的年份
+        params.year = dayjs().year();
+        //自动设置修改人姓名
+        params.editor = Context.current.user.name;
+        return await BasicTagDataModel.create(params);
+      }
+      //否则修改已有的数据
       const tag = await BasicTagDataModel.findOne({where: {id}, lock: true});
       tag.value = value;
+      tag.editor = Context.current.user.name;
       return await tag.save();
     });
   }
@@ -90,13 +94,11 @@ export default class BasicTag {
       h = h.toJSON();
       //该机构的所有相关指标数据
       const tags = queryResult.filter(q => q.hospitalId === h.id);
-      //对更新时间进行排序,取出最新的更新时间
-      h['updated_at'] =
-        tags
-          .map(tag => tag.updated_at)
-          .sort((p, n) => {
-            return dayjs(n).isAfter(p);
-          })[0] || null;
+      //对更新时间进行排序,目的取出最新的更新时间和最后的修改人
+      const sortTags =
+        tags.sort((p, n) => dayjs(n?.updated_at).isAfter(p?.updated_at)) || [];
+      h['updated_at'] = sortTags[0]?.updated_at || null;
+      h['editor'] = sortTags[0]?.editor || null;
       //给该机构对象添加相应的指标字段
       tags.forEach(
         tag =>
