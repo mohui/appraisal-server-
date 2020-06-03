@@ -43,20 +43,26 @@ export const BasicTagUsages = {
  */
 export const MarkTags = [
   {
-    name: '居民健康档案管理服务',
-    code: 'document',
+    name: '公卫指标',
+    code: 'PublicHealth',
     children: [
       {
-        code: 'S01',
-        name: '建档率'
-      },
-      {
-        code: 'S23',
-        name: '电子档案规范率'
-      },
-      {
-        code: 'S03',
-        name: '健康档案使用率'
+        name: '居民健康档案管理服务',
+        code: 'document',
+        children: [
+          {
+            code: 'S01',
+            name: '建档率'
+          },
+          {
+            code: 'S23',
+            name: '电子档案规范率'
+          },
+          {
+            code: 'S03',
+            name: '健康档案使用率'
+          }
+        ]
       }
     ]
   }
