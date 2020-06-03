@@ -112,7 +112,11 @@
         </accordion>
       </div>
     </el-card>
-    <div class="show-more" @click="totalShowMore = !totalShowMore">
+    <div
+      v-show="workpointRankData.length > 3"
+      class="show-more"
+      @click="totalShowMore = !totalShowMore"
+    >
       {{ totalShowMore ? '收起' : '显示更多' }}
     </div>
   </div>
