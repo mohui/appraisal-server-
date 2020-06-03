@@ -377,6 +377,9 @@ export default class CheckSystem {
           paranoid: false,
           attributes: {
             exclude: ['deleted_at', 'created_at', 'updated_at']
+          },
+          through: {
+            attributes: []
           }
         }
       })
