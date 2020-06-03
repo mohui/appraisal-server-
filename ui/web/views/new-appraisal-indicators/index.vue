@@ -148,27 +148,33 @@ export default {
     };
   },
   methods: {
+    //纬度切换
     latTypeChanged(type) {
       console.log('latTypeChanged', type);
       this.params.listFlag = type;
     }
   },
   computed: {
+    //医生工分值数据，用于柱状图显示
     doctorWorkpointData() {
       return {
         xAxisData: this.doctorWorkpointServerData.map(it => it.doctorName),
         yAxisData: this.doctorWorkpointServerData.map(it => it.workScore)
       };
     },
+    //校正前工分值的总值
     workpointTotalData() {
       return {
         score: Math.round(this.workpointTotalServerData.score)
       };
     },
+    //机构排行数据
     workpointRankData() {
       console.log('workpointRankServerData', this.workpointRankServerData);
       const result = this.workpointRankServerData
+        //过滤，只取一级机构（name中含'中心'）的值
         .filter(item => item.name.endsWith('中心'))
+        //添加child
         .map(item => {
           const returnValue = Object.assign({}, item, {
             child: [
@@ -178,6 +184,7 @@ export default {
               )
             ]
           });
+          //累加分数
           returnValue.score = returnValue.child.reduce(
             (result, current) => (result += current.score),
             0
@@ -193,6 +200,7 @@ export default {
     }
   },
   asyncComputed: {
+    //获取服务器的医生工分值数据
     doctorWorkpointServerData: {
       async get() {
         return await this.$phApi.SystemPoint.doctorPoint(sysCode);
@@ -204,6 +212,7 @@ export default {
         return [];
       }
     },
+    //获取服务器的工分值数据
     workpointTotalServerData: {
       async get() {
         return await this.$api.WorkPoint.total(sysCode);
@@ -216,6 +225,7 @@ export default {
         };
       }
     },
+    //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
         return await this.$api.WorkPoint.rank(sysCode);
