@@ -436,10 +436,18 @@ export default class CheckSystem {
       )
     ).reduce((pre, next) => pre.concat(next), []);
 
+    //当前用户所拥有的机构
+    const userHospital = await UserHospitalModel.findAll({
+      where: {userId: Context.req.headers.token}
+    });
+
     //删除被解绑的机构
     await Promise.all(
       ruleHospital
-        .filter(item => !hospitals.find(h => h === item.hospitalId))
+        .filter(
+          item => !userHospital.find(h => h.hospitalId === item.hospitalId) //过滤出不属于该用户管的机构
+        )
+        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
         .map(async it => await it.destroy())
     );
 
