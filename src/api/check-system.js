@@ -4,6 +4,7 @@ import {
   HospitalModel,
   RuleHospitalModel,
   RuleTagModel,
+  UserHospitalModel,
   UserModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
@@ -321,6 +322,10 @@ export default class CheckSystem {
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
+    //当前用户拥有的机构
+    const userHospital = await UserHospitalModel.findAll({
+      where: {userId: Context.req.headers.token}
+    });
     result.rows = await Promise.all(
       result.rows.map(async row => {
         row = row.toJSON();
@@ -328,10 +333,14 @@ export default class CheckSystem {
         const allRules = await CheckRuleModel.findAll({
           where: {checkId: row.checkId, parentRuleId: {[Op.not]: null}}
         }).map(it => it.ruleId);
-        // 统计该考核系统下的机构
-        const hospitalCount = await RuleHospitalModel.count({
-          where: {ruleId: {[Op.in]: allRules}}
-        });
+        // 统计该用户该考核系统下的机构
+        const hospitalCount = (
+          await RuleHospitalModel.findAll({
+            where: {ruleId: {[Op.in]: allRules}}
+          }).filter(h =>
+            userHospital.find(it => it.hospitalId === h.hospitalId)
+          )
+        ).length;
         return {...row, hospitalCount};
       })
     );
