@@ -119,6 +119,18 @@
     >
       {{ totalShowMore ? '收起' : '显示更多' }}
     </div>
+    <el-row style="margin-top: 10px">
+      <el-col :span="12">
+        <el-card>
+          一级机构排行
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          二级机构排行
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script>
