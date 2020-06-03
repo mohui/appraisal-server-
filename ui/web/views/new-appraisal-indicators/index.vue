@@ -23,7 +23,7 @@
         </el-button-group>
       </div>
     </el-card>
-    <el-row :gutter="20" style="margin: 5px 10px">
+    <el-row :gutter="20" style="margin: 20px -10px">
       <el-col :span="8">
         <el-card shadow="hover">
           <div class="score-detail">
@@ -119,7 +119,7 @@
     >
       {{ totalShowMore ? '收起' : '显示更多' }}
     </div>
-    <el-row style="margin-top: 10px">
+    <el-row :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
         <el-card shadow="hover">
           <h3 class="ins-ranking-title">一级机构排行</h3>
