@@ -109,6 +109,13 @@ export default class Score {
       await ruleHospitalScoreModel.save();
     }
 
+    // 考核满分
+    const total = (
+      await RuleHospitalModel.findAll({
+        where: {hospitalId: id},
+        include: [CheckRuleModel]
+      })
+    ).reduce((result, current) => (result += current?.rule?.ruleScore ?? 0), 0);
     // 机构总得分
     const scores = (
       await RuleHospitalScoreModel.findAll({
@@ -148,7 +155,8 @@ export default class Score {
     await ReportHospitalModel.upsert({
       hospitalId: id,
       workpoints,
-      scores
+      scores,
+      total
     });
   }
 
