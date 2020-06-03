@@ -30,11 +30,13 @@ export class ScoreMigration implements IMigration {
         "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "workpoints" INTEGER                  DEFAULT 0,
         "scores"     FLOAT                    DEFAULT 0,
+        "total"      FLOAT                    DEFAULT 0,
         PRIMARY KEY ("hospital")
       );
       COMMENT ON COLUMN "report_hospital"."hospital" IS '机构';
       COMMENT ON COLUMN "report_hospital"."workpoints" IS '工分';
-      COMMENT ON COLUMN "report_hospital"."score" IS '得分';
+      COMMENT ON COLUMN "report_hospital"."scores" IS '得分';
+      COMMENT ON COLUMN "report_hospital"."total" IS '满分';
     `);
   }
 

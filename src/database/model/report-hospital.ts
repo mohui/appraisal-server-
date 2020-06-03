@@ -4,6 +4,7 @@ import {
   Column,
   Comment,
   DataType,
+  Default,
   ForeignKey,
   Model,
   PrimaryKey,
@@ -23,12 +24,17 @@ export class ReportHospital extends Model<ReportHospital> {
   hospital: Hospital;
 
   @Comment('工分')
-  @AllowNull(false)
+  @Default(0)
   @Column
   workpoints: number;
 
   @Comment('得分')
-  @AllowNull(false)
+  @Default(0)
   @Column(DataType.FLOAT)
   scores: number;
+
+  @Comment('满分')
+  @Default(0)
+  @Column(DataType.FLOAT)
+  total: number;
 }
