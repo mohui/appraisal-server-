@@ -377,14 +377,13 @@ export default class CheckSystem {
       where: {ruleId: {[Op.in]: allRules.map(it => it.ruleId)}}
     });
     //用户可供修改的机构
-    const ableHospitals = result.filter(
+    let ableHospitals = result.filter(
       h => !extraHospitals.find(item => h.id === item.hospitalId)
     );
-    //已经绑定的机构
-    const selectHospitals = result.filter(h =>
-      hospitals.find(item => h.id === item.hospitalId)
-    );
-    return {selectHospitals, ableHospitals};
+    return ableHospitals.map(h => ({
+      ...h.toJSON(),
+      selected: !!hospitals.find(item => h.id === item.hospitalId) //是否选择的标记
+    }));
   }
 
   @validate(
