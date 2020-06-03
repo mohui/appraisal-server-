@@ -3,6 +3,7 @@ import {
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
+  RegionModel,
   ReportHospitalModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
@@ -17,7 +18,7 @@ import {
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
 import {etlDB} from '../app';
-import {QueryTypes} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 
 export default class Score {
   /**
@@ -187,5 +188,58 @@ export default class Score {
     }
 
     return model.save();
+  }
+
+  /**
+   * 获取考核地区/机构对应的考核总体情况
+   *
+   * @param code 地区或机构的code
+   * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
+   */
+  async total(code) {
+    const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
+    if (regionModel) {
+      const reduceObject = (
+        await HospitalModel.findAll({
+          where: {
+            regionId: {
+              [Op.like]: `${code}%`
+            }
+          },
+          include: [ReportHospitalModel]
+        })
+      ).reduce(
+        (result, current) => {
+          result.workpoints += current?.report?.workpoints ?? 0;
+          result.scores += current?.report?.scores ?? 0;
+          result.total += current?.report?.total ?? 0;
+          return result;
+        },
+        {workpoints: 0, scores: 0, total: 0}
+      );
+
+      return {
+        id: regionModel.code,
+        name: regionModel.name,
+        score: reduceObject.workpoints,
+        rate: reduceObject.scores / reduceObject.total
+      };
+    }
+
+    const hospitalModel = await HospitalModel.findOne({
+      where: {id: code},
+      include: [ReportHospitalModel]
+    });
+    if (hospitalModel) {
+      return {
+        id: hospitalModel.id,
+        name: hospitalModel.name,
+        score: hospitalModel?.report?.workpoints ?? 0,
+        rate:
+          hospitalModel?.report?.scores ?? 0 / hospitalModel?.report?.total ?? 0
+      };
+    }
+
+    throw new KatoCommonError(`${code} 不存在`);
   }
 }
