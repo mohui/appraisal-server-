@@ -392,10 +392,15 @@ export default class CheckSystem {
     let ableHospitals = result.filter(
       h => !extraHospitals.find(item => h.id === item.hospitalId)
     );
-    return ableHospitals.map(h => ({
-      ...h.toJSON(),
-      selected: !!hospitals.find(item => h.id === item.hospitalId) //是否选择的标记
-    }));
+    return Promise.all(
+      ableHospitals.map(async h => ({
+        ...h.toJSON(),
+        parentName: h.parent
+          ? (await HospitalModel.findOne({where: {id: h.parent}}))?.name
+          : '',
+        selected: !!hospitals.find(item => h.id === item.hospitalId) //是否选择的标记
+      }))
+    );
   }
 
   @validate(
