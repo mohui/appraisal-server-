@@ -1,13 +1,16 @@
 import {
   CheckRuleModel,
   CheckSystemModel,
+  HospitalModel,
   RuleHospitalModel,
-  RuleTagModel
+  RuleTagModel,
+  UserModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
 import {MarkTags} from '../../common/rule-score';
+import {Context} from './context';
 
 export default class CheckSystem {
   //添加考核系统
@@ -333,6 +336,55 @@ export default class CheckSystem {
       })
     );
     return result;
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核系统id')
+  )
+  async listHospitals(checkId) {
+    //考核细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId, parentRuleId: {[Op.not]: null}}
+    });
+
+    //不在该考核系统下的所有细则
+    const extraRules = await CheckRuleModel.findAll({
+      where: {checkId: {[Op.not]: checkId}, parentRuleId: {[Op.not]: null}}
+    });
+    //绑定在其他考核系统下的机构
+    const extraHospitals = await RuleHospitalModel.findAll({
+      where: {ruleId: {[Op.in]: extraRules.map(it => it.ruleId)}}
+    });
+    //用户所拥有的机构
+    const result = (
+      await UserModel.findOne({
+        where: {id: Context.req.headers.token},
+        paranoid: false,
+        include: {
+          model: HospitalModel,
+          paranoid: false,
+          attributes: {
+            exclude: ['deleted_at', 'created_at', 'updated_at']
+          }
+        }
+      })
+    ).hospitals;
+    //绑定在该考核系统的机构
+    const hospitals = await RuleHospitalModel.findAll({
+      where: {ruleId: {[Op.in]: allRules.map(it => it.ruleId)}}
+    });
+    //用户可供修改的机构
+    const ableHospitals = result.filter(
+      h => !extraHospitals.find(item => h.id === item.hospitalId)
+    );
+    //已经绑定的机构
+    const selectHospitals = result.filter(h =>
+      hospitals.find(item => h.id === item.hospitalId)
+    );
+    return {selectHospitals, ableHospitals};
   }
 
   @validate(
