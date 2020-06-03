@@ -334,14 +334,20 @@ export default class CheckSystem {
           where: {checkId: row.checkId, parentRuleId: {[Op.not]: null}}
         }).map(it => it.ruleId);
         // 统计该用户该考核系统下的机构
-        const hospitalCount = (
-          await RuleHospitalModel.findAll({
-            where: {ruleId: {[Op.in]: allRules}}
-          }).filter(h =>
-            userHospital.find(it => it.hospitalId === h.hospitalId)
-          )
-        ).length;
-        return {...row, hospitalCount};
+        const ruleHospital = await RuleHospitalModel.findAll({
+          where: {
+            ruleId: {[Op.in]: allRules},
+            hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+          }
+        });
+        //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
+        const autoTrue = !!ruleHospital.find(it => it.auto);
+        const autoFalse = !!ruleHospital.find(it => !it.auto);
+        let auto;
+        if (autoFalse && autoTrue) auto = 'part';
+        if (autoFalse && !autoTrue) auto = 'no';
+        if (!autoFalse && autoTrue) auto = 'all';
+        return {...row, hospitalCount: ruleHospital.length, auto};
       })
     );
     return result;
