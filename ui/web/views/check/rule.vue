@@ -161,17 +161,11 @@
                   size="mini"
                   type="primary"
                   icon="el-icon-check"
-                  @click="
-                    openStandardDialog(
-                      index,
-                      scope.$index,
-                      scope.row.standardName
-                    )
-                  "
+                  @click="openStandardDialog(index, scope)"
                   >选择指标</el-button
                 >
               </span>
-              <span v-else>{{ scope.row.standardNames }}</span>
+              <span v-else>{{ scope.row.ruleTagName }}</span>
             </template>
           </el-table-column>
           <el-table-column align="center" label="操作">
@@ -221,18 +215,18 @@
       >
         <el-button plain size="small" type="primary">指标解读下载</el-button>
       </el-link>
-      <el-tabs type="card" @tab-click="handleClick">
+      <el-tabs type="card" @tab-click="handleClick" v-model="curTag">
         <el-tab-pane
-          v-for="(i, k) of this.standardTab"
-          :key="i.cate"
-          :label="i.cate"
-          :name="k.toString()"
+          v-for="i of markTags"
+          :key="i.code"
+          :label="i.name"
+          :name="i.code"
         >
-          <el-tabs>
+          <el-tabs v-model="secondCurTag">
             <el-tab-pane
-              v-for="(item, index) of i.child"
+              v-for="(item, index) of i.children"
               :key="index"
-              :label="item.category"
+              :label="item.name"
               :name="index.toString()"
             >
               <table style="width:100%;">
@@ -246,34 +240,29 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(k, index) of item.child"
+                    v-for="(k, index) of item.children"
                     :key="index"
                     :style="k.visible === 2 ? 'background-color: #f8f8f8' : ''"
                   >
                     <td>
                       <label>
-                        <input
-                          type="checkbox"
-                          :value="k.id"
-                          :disabled="k.visible === 2"
-                          :style="k.visible === 2 ? 'cursor: not-allowed' : ''"
-                          :checked="k.visible !== 2 && k.checked"
-                          @change="selectSta(k)"
-                        />
-                        {{ k.name }}
+                        <el-checkbox v-model="k.visible !== 2 && k.checked">
+                          {{ k.name }}
+                        </el-checkbox>
                       </label>
                     </td>
                     <td style="text-align: center">
                       <el-select
-                        v-model="k.formulaId"
+                        size="mini"
+                        v-model="k.algorithm"
                         :disabled="k.visible === 2"
                         placeholder="请选择"
                       >
                         <el-option
-                          v-for="item in formulaList"
-                          :key="item.id"
+                          v-for="item in tagAlgorithm"
+                          :key="item.code"
                           :label="item.name"
-                          :value="item.id"
+                          :value="item.code"
                         >
                         </el-option>
                       </el-select>
@@ -283,11 +272,11 @@
                         size="mini"
                         :min="0"
                         :disabled="k.visible === 2"
-                        v-model="k.norm"
+                        v-model="k.baseline"
                       ></el-input-number>
                       <span
                         style="margin: 0 -15px 0 5px;"
-                        v-if="k.formulaId === 'egt' || k.formulaId === 'elt'"
+                        v-if="k.algorithm === 'egt' || k.algorithm === 'elt'"
                         >%</span
                       >
                     </td>
@@ -296,7 +285,7 @@
                         size="mini"
                         :min="0"
                         :disabled="k.visible === 2"
-                        v-model="k.scoreRate"
+                        v-model="k.score"
                       ></el-input-number>
                     </td>
                   </tr>
@@ -321,6 +310,7 @@
 
 <script>
 import Vue from 'vue';
+import {MarkTags, TagAlgorithm} from '../../../../common/rule-score.ts';
 export default {
   name: 'rule',
   data() {
@@ -329,7 +319,13 @@ export default {
       checkName: '',
       ruleList: [],
       dialogStandardVisible: false,
+      localStandardVisible: false,
       formulaList: [],
+      markTags: MarkTags,
+      curTag: MarkTags[0].code,
+      secondCurTag: '0',
+      curRule: {},
+      tagAlgorithm: TagAlgorithm,
       standardList: [],
       standardTab: []
     };
@@ -339,12 +335,8 @@ export default {
     this.checkName = decodeURIComponent(this.$route.query.checkName);
     this.getRuleList();
   },
-  async mounted() {
-    this.formulaList = await this.$phApi.Standard.formulaList();
-    this.standardList = await this.$phApi.Standard.standardList();
-    this.getStandardList();
-  },
   methods: {
+    //获取细则列表
     async getRuleList() {
       try {
         let result = await this.$api.CheckSystem.listRule({
@@ -358,13 +350,12 @@ export default {
                 return {
                   ...it,
                   isEdit: false,
-                  created_at: it.created_at.$format('YYYY-MM-DD'),
-                  updated_at: it.updated_at.$format('YYYY-MM-DD'),
                   group: it.group.map(item => ({
                     ...item,
                     isEdit: false,
-                    created_at: it.created_at.$format('YYYY-MM-DD'),
-                    updated_at: it.updated_at.$format('YYYY-MM-DD')
+                    ruleTagName: item.ruleTags.map(its => its.name).join('，'),
+                    created_at: item.created_at.$format('YYYY-MM-DD'),
+                    updated_at: item.updated_at.$format('YYYY-MM-DD')
                   }))
                 };
               },
@@ -384,40 +375,39 @@ export default {
         this.$message.error(e.message);
       }
     },
-    openStandardDialog() {
+    //打开指标库对话框
+    openStandardDialog(index, {$index, row}) {
+      this.curRule = Object.assign({}, {index, $index}, row);
       this.dialogStandardVisible = true;
     },
-    saveStandard() {
-      //saveStandard
-    },
-    handleClick() {
-      // this.secondActiveName = '0';
-    },
-    async getStandardList() {
+    //保存指标
+    async saveStandard() {
+      const {ruleId} = this.curRule;
+      const tags = this.markTags
+        .map(it => it.children)
+        .reduce((acc, cur) => acc.concat(cur), [])
+        .map(it => it.children)
+        .reduce((acc, cur) => acc.concat(cur), [])
+        .filter(it => it.checked)
+        .map(it => ({
+          tag: it.code,
+          algorithm: it.algorithm,
+          baseline: it.baseline,
+          score: it.score
+        }));
       try {
-        this.standardTab = this.standardList
-          .map(it => it.cate)
-          .filter((it, index, arr) => arr.indexOf(it) === index)
-          .map(i => {
-            return {
-              cate: i,
-              child: this.standardList
-                .filter(it => it.cate === i)
-                .map(it => it.category)
-                .filter((it, index, arr) => arr.indexOf(it) === index)
-                .map((it, k) => ({
-                  category: it ? it : '其它',
-                  name: (k + 1).toString(),
-                  child: this.standardList
-                    .filter(item => item.category === it)
-                    .map(it => Object.assign({}, it, {checked: false}))
-                }))
-            };
-          });
+        await this.$api.RuleTag.upsert({ruleId, tags});
+        this.getRuleList();
       } catch (e) {
         this.$message.error(e.message);
+      } finally {
+        this.dialogStandardVisible = false;
       }
     },
+    handleClick() {
+      this.secondCurTag = '0';
+    },
+    //添加细则编辑框
     addGroup() {
       this.ruleList.push({
         checkId: this.checkId,
@@ -448,7 +438,7 @@ export default {
         ]
       });
     },
-    //保存分类方法
+    //保存细则分组
     async saveGroup(row) {
       const {checkId, ruleId, ruleName} = row;
       if (ruleName === '') {
@@ -500,10 +490,17 @@ export default {
     },
     addRule(item) {
       let showInput = item.group.some(v => v.isEdit);
+      if (!item.ruleId) {
+        this.$message({
+          type: 'error',
+          message: '请先保存考核分类'
+        });
+        return;
+      }
       if (showInput) {
         this.$message({
           type: 'error',
-          message: '请先保存考核系项'
+          message: '请先保存考核细则'
         });
       } else {
         item.group.push({
