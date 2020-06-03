@@ -345,8 +345,6 @@ export default {
     async saveHospital() {
       const {checkId} = this.checkForm;
       const hospitals = this.hospitalList
-        .map(it => it.child)
-        .reduce((acc, cur) => acc.concat(cur), [])
         .filter(it => it.selected)
         .map(it => it.id);
       try {
