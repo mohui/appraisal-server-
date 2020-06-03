@@ -34,7 +34,6 @@ export default class Score {
         hospitalId: hospital.id
       }
     });
-    if (!mark) return;
     // 查所有考核细则
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
@@ -67,17 +66,20 @@ export default class Score {
             }
           });
           // 如果服务总人口数不存在, 直接跳过
-          if (!basicData.value) continue;
+          if (!basicData?.value) continue;
 
           // 根据指标算法, 计算得分
-          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark.S00) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.S00) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark.S00) {
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+            !mark?.S00
+          ) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark.S00) {
-            const rate = mark.S00 / basicData.value;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.S00) {
+            const rate = mark?.S00 / basicData.value;
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
