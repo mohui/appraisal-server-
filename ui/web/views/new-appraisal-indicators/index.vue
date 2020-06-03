@@ -174,6 +174,10 @@ export default {
               )
             ]
           });
+          returnValue.score = returnValue.child.reduce(
+            (result, current) => (result += current.score),
+            0
+          );
           return returnValue;
         });
       console.log('result', result);
