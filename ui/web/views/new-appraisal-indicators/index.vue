@@ -191,8 +191,6 @@ export default {
       params: {
         listFlag: 'score'
       },
-      //TODO:两个临时写死的变量
-      afterCorrectionScore: 24234,
       date: '2020-06-02',
       totalShowMore: false
     };
@@ -217,6 +215,14 @@ export default {
       return {
         score: Math.round(this.workpointTotalServerData.score)
       };
+    },
+    afterCorrectionScore() {
+      return (
+        Math.round(
+          this.workpointTotalServerData.rate *
+            this.workpointTotalServerData.score
+        ) | 0
+      );
     },
     //机构排行数据
     workpointRankData() {
