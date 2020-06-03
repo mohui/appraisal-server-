@@ -60,7 +60,11 @@ export default class Hospital {
     should
       .string()
       .required()
-      .description('考核系统id')
+      .description('考核系统id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分,true false')
   )
   async setAllRuleAuto(checkId, isAuto) {
     //该考核系统下所有的细则
