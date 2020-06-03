@@ -3,6 +3,8 @@ import {
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
+  RegionModel,
+  ReportHospitalModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleTagModel
@@ -15,6 +17,8 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
+import {etlDB} from '../app';
+import {Op, QueryTypes} from 'sequelize';
 
 export default class Score {
   /**
@@ -34,7 +38,6 @@ export default class Score {
         hospitalId: hospital.id
       }
     });
-    if (!mark) return;
     // 查所有考核细则
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
@@ -67,17 +70,20 @@ export default class Score {
             }
           });
           // 如果服务总人口数不存在, 直接跳过
-          if (!basicData.value) continue;
+          if (!basicData?.value) continue;
 
           // 根据指标算法, 计算得分
-          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark.S00) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.S00) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark.S00) {
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+            !mark?.S00
+          ) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark.S00) {
-            const rate = mark.S00 / basicData.value;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.S00) {
+            const rate = mark?.S00 / basicData.value;
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
@@ -104,7 +110,55 @@ export default class Score {
       await ruleHospitalScoreModel.save();
     }
 
-    return RuleHospitalScoreModel.findAll({where: {hospitalId: id}});
+    // 考核满分
+    const total = (
+      await RuleHospitalModel.findAll({
+        where: {hospitalId: id},
+        include: [CheckRuleModel]
+      })
+    ).reduce((result, current) => (result += current?.rule?.ruleScore ?? 0), 0);
+    // 机构总得分
+    const scores = (
+      await RuleHospitalScoreModel.findAll({
+        where: {hospitalId: id}
+      })
+    ).reduce((result, current) => (result += current.score), 0);
+    // 机构工分
+    // language=PostgreSQL
+    const workpoints =
+      (
+        await etlDB.query(
+          `
+            select sum(vws.score) as workpoints
+            from view_workscoretotal vws
+                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
+            where hm.h_id = ?
+              and vws.missiontime >= ?
+              and vws.missiontime < ?
+          `,
+          {
+            replacements: [
+              id,
+              dayjs()
+                .startOf('y')
+                .toDate(),
+              dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
+            ],
+            type: QueryTypes.SELECT
+          }
+        )
+      )[0]?.workpoints ?? 0;
+
+    // 更新机构考核报告表
+    await ReportHospitalModel.upsert({
+      hospitalId: id,
+      workpoints,
+      scores,
+      total
+    });
   }
 
   /**
@@ -134,5 +188,85 @@ export default class Score {
     }
 
     return model.save();
+  }
+
+  /**
+   * 获取考核地区/机构对应的考核总体情况
+   *
+   * @param code 地区或机构的code
+   * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
+   */
+  async total(code) {
+    const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
+    if (regionModel) {
+      const reduceObject = (
+        await HospitalModel.findAll({
+          where: {
+            regionId: {
+              [Op.like]: `${code}%`
+            }
+          },
+          include: [ReportHospitalModel]
+        })
+      ).reduce(
+        (result, current) => {
+          result.workpoints += current?.report?.workpoints ?? 0;
+          result.scores += current?.report?.scores ?? 0;
+          result.total += current?.report?.total ?? 0;
+          return result;
+        },
+        {workpoints: 0, scores: 0, total: 0}
+      );
+
+      return {
+        id: regionModel.code,
+        name: regionModel.name,
+        score: reduceObject.workpoints,
+        rate: reduceObject.scores / reduceObject.total
+      };
+    }
+
+    const hospitalModel = await HospitalModel.findOne({
+      where: {id: code},
+      include: [ReportHospitalModel]
+    });
+    if (hospitalModel) {
+      return {
+        id: hospitalModel.id,
+        name: hospitalModel.name,
+        score: hospitalModel?.report?.workpoints ?? 0,
+        rate:
+          hospitalModel?.report?.scores ?? 0 / hospitalModel?.report?.total ?? 0
+      };
+    }
+
+    throw new KatoCommonError(`${code} 不存在`);
+  }
+
+  /**
+   * 获取当前地区机构排行
+   *
+   * @param code 地区code
+   */
+  async rank(code) {
+    const regionModel = await RegionModel.findOne({where: {code}});
+    if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
+    return await Promise.all(
+      (
+        await HospitalModel.findAll({
+          where: {
+            regionId: {
+              [Op.like]: `${code}%`
+            }
+          }
+        })
+      ).map(async hospital => {
+        const item = await this.total(hospital.id);
+        return {
+          ...item,
+          parent: hospital.parent
+        };
+      })
+    );
   }
 }
