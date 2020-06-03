@@ -1,6 +1,11 @@
-import {CheckRuleModel, CheckSystemModel} from '../database/model';
+import {
+  CheckRuleModel,
+  CheckSystemModel,
+  RuleTagModel
+} from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
+import {MarkTags} from '../../common/rule-score';
 
 export default class CheckSystem {
   //添加考核系统
@@ -235,12 +240,12 @@ export default class CheckSystem {
       });
       if (!rule) throw new KatoCommonError('该规则不存在');
       //如果是规则组,则删除其下的细则
-      if (rule.parentRuleId)
-        await Promise.all(
-          CheckRuleModel.findAll({
-            where: {parentRuleId: rule.ruleId}
-          }).map(async it => await it.destroy())
-        );
+      if (!rule.parentRuleId) {
+        const childRules = await CheckRuleModel.findAll({
+          where: {parentRuleId: rule.ruleId}
+        });
+        await Promise.all(childRules.map(async it => await it.destroy()));
+      }
 
       return await rule.destroy({force: true});
     });
@@ -263,16 +268,29 @@ export default class CheckSystem {
     if (checkId) whereOptions.checkId = checkId;
     //查询该体系下所有rules
     let allRules = await CheckRuleModel.findAll({
-      where: whereOptions
+      where: whereOptions,
+      include: {
+        model: RuleTagModel,
+        attributes: ['id', 'tag', 'algorithm', 'baseline', 'score']
+      }
     });
 
     //rule进行分组
     const ruleGroup = allRules.filter(row => !row.parentRuleId);
     allRules = ruleGroup.map(group => ({
-      ...group.toJSON(),
+      ruleId: group.ruleId,
+      ruleName: group.ruleName,
+      checkId: group.checkId,
       group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())
+        .map(item => ({
+          ...item,
+          ruleTags: item.ruleTags.map(ruleTag => ({
+            ...ruleTag,
+            name: findTagName(ruleTag.tag)
+          }))
+        }))
     }));
     return {count: ruleGroup.length, rows: allRules};
   }
@@ -297,5 +315,12 @@ export default class CheckSystem {
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
+  }
+}
+
+function findTagName(code) {
+  for (let i = 0; i < MarkTags.length; i++) {
+    const current = MarkTags[i].children.find(c => c.code === code);
+    if (current) return current?.name || '';
   }
 }

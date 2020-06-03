@@ -34,6 +34,23 @@ export class Application {
       logging: console.log
     })
   );
+  etlDB = createExtendedSequelize(
+    new Sequelize({
+      dialect: 'postgres',
+      host: config.get('etl.host'),
+      port: config.get('etl.port'),
+      username: config.get('etl.username'),
+      password: config.get('etl.password'),
+      database: config.get('etl.database'),
+      timezone: '+8:00',
+      define: {
+        underscored: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+      },
+      logging: console.log
+    })
+  );
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -92,7 +109,7 @@ export class Application {
     this.appDB.addModels(Object.values(models));
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
-    await migrate.migrate(7);
+    await migrate.migrate(9);
   }
 
   async initExpress() {
@@ -102,12 +119,7 @@ export class Application {
 
   async initWebResource() {
     //fallback页面资源,处理vue路由
-    this.express.use(
-      fallback({
-        htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
-        rewrites: [{from: /^\/admin.*$/, to: '/admin.html'}]
-      })
-    );
+    this.express.use(fallback());
 
     //页面资源挂载
     if (_DEV_) {
@@ -148,3 +160,4 @@ export const app = new Application();
 
 //导出各种便捷属性
 export const appDB = app.appDB;
+export const etlDB = app.etlDB;
