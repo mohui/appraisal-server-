@@ -240,7 +240,8 @@ export default {
             0
           );
           return returnValue;
-        });
+        })
+        .sort((a, b) => b.score - a.score);
       console.log('result', result);
       return result;
     },
@@ -249,14 +250,16 @@ export default {
       return this.workpointRankData
         .map(item => item.child)
         .reduce((result, current) => result.concat(current), [])
-        .filter(item => item.name.endsWith('中心'));
+        .filter(item => item.name.endsWith('中心'))
+        .sort((a, b) => b.score - a.score);
     },
     //二级机构排行数据
     secondLevelWorkpointRankData() {
       return this.workpointRankData
         .map(item => item.child)
         .flat()
-        .filter(item => !item.name.endsWith('中心'));
+        .filter(item => !item.name.endsWith('中心'))
+        .sort((a, b) => b.score - a.score);
     },
     //最大得分值数
     maxScore() {
