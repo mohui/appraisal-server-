@@ -311,12 +311,28 @@ export default class CheckSystem {
     const {pageSize = 20, pageNo = 1, checkId} = params || {};
     let whereOptions = {};
     if (checkId) whereOptions['checkId'] = checkId;
-    return await CheckSystemModel.findAndCountAll({
+
+    let result = await CheckSystemModel.findAndCountAll({
       where: whereOptions,
       distinct: true,
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
+    result.rows = await Promise.all(
+      result.rows.map(async row => {
+        row = row.toJSON();
+        //该考核系统下的所有细则
+        const allRules = await CheckRuleModel.findAll({
+          where: {checkId: row.checkId, parentRuleId: {[Op.not]: null}}
+        }).map(it => it.ruleId);
+        // 统计该考核系统下的机构
+        const hospitalCount = await RuleHospitalModel.count({
+          where: {ruleId: {[Op.in]: allRules}}
+        });
+        return {...row, hospitalCount};
+      })
+    );
+    return result;
   }
 
   @validate(
