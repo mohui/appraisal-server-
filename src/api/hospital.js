@@ -1,8 +1,10 @@
 import {
   CheckRuleModel,
+  CheckSystemModel,
   HospitalModel,
   RegionModel,
   RuleHospitalModel,
+  RuleHospitalScoreModel,
   UserHospitalModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
@@ -115,5 +117,73 @@ export default class Hospital {
       else prev.push(current);
       return prev;
     }, []);
+  }
+
+  /**
+   * 机构考核详情
+   *
+   * @param id 机构id
+   */
+  async checks(id) {
+    // hospital
+    const hospitalModel = await HospitalModel.findOne({
+      where: {id}
+    });
+    if (!hospitalModel) throw new KatoCommonError(`id为 ${id} 的机构不存在`);
+    // checkSystem
+    const checkSystemModel = (
+      await RuleHospitalModel.findOne({
+        where: {hospitalId: id},
+        include: [
+          {
+            model: CheckRuleModel,
+            include: [CheckSystemModel]
+          }
+        ]
+      })
+    )?.rule?.checkSystem;
+    if (!checkSystemModel) throw new KatoCommonError(`${hospitalModel.name}`);
+    const children = await Promise.all(
+      (
+        await CheckRuleModel.findAll({
+          where: {checkId: checkSystemModel.checkId, parentRuleId: null}
+        })
+      ).map(async rule => {
+        const children = (
+          await CheckRuleModel.findAll({
+            where: {parentRuleId: rule.ruleId},
+            include: [
+              {
+                model: RuleHospitalScoreModel,
+                where: {hospitalId: id}
+              }
+            ]
+          })
+        ).map(it => {
+          it.ruleScore = it.ruleHospitalScores.reduce(
+            (result, current) => (result += current.score),
+            0
+          );
+          delete it.ruleHospitalScores;
+          return it;
+        });
+        return {
+          ruleId: rule.ruleId,
+          ruleName: rule.ruleName,
+          ruleScore: children.reduce(
+            (result, current) => (result += current.ruleScore),
+            0
+          ),
+          children
+        };
+      })
+    );
+    const returnValue = checkSystemModel.toJSON();
+    returnValue.children = children;
+    returnValue.ruleScore = children.reduce(
+      (result, current) => (result += current.ruleScore),
+      0
+    );
+    return returnValue;
   }
 }
