@@ -40,7 +40,7 @@ export default class Hospital {
   )
   async setRuleAuto(hospitalId, ruleId, isAuto) {
     //此关联是否存在
-    const result = await RuleHospitalModel.findAll({
+    const result = await RuleHospitalModel.findOne({
       where: {rule: ruleId, hospital: hospitalId}
     });
     if (!result) throw new KatoCommonError('机构与规则未关联');
