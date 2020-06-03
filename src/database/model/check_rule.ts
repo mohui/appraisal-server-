@@ -43,7 +43,7 @@ export class CheckRule extends Model<CheckRule> {
 
   @Comment('得分')
   @Column
-  ruleScore: string;
+  ruleScore: number;
 
   @Comment('考核标准')
   @Column
