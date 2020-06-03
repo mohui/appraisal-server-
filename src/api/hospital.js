@@ -1,7 +1,15 @@
-import {HospitalModel, RegionModel} from '../database/model';
-import {should, validate} from 'kato-server';
+import {
+  CheckRuleModel,
+  HospitalModel,
+  RegionModel,
+  RuleHospitalModel,
+  UserHospitalModel
+} from '../database/model';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
+import {Op} from 'sequelize';
+import {Context} from './context';
 
 export default class Hospital {
   @validate(
@@ -25,6 +33,65 @@ export default class Hospital {
         }
       }
     });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('机构id'),
+    should.string().description('规则id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分')
+  )
+  async setRuleAuto(hospitalId, ruleId, isAuto) {
+    //此关联是否存在
+    const result = await RuleHospitalModel.findOne({
+      where: {rule: ruleId, hospital: hospitalId}
+    });
+    if (!result) throw new KatoCommonError('机构与规则未关联');
+    result.auto = isAuto;
+    await result.save();
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核系统id')
+  )
+  async setAllRuleAuto(checkId, isAuto) {
+    //该考核系统下所有的细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId, parentRuleId: {[Op.not]: null}}
+    });
+    //当前用户所拥有的机构权限
+    const hospitals = await UserHospitalModel.findAll({
+      where: {userId: Context.req.headers.token}
+    }).map(h => h.hospitalId);
+
+    //用户拥有的机构和对应的规则关系
+    const ruleHospital = (
+      await Promise.all(
+        allRules.map(
+          async rule =>
+            await RuleHospitalModel.findAll({
+              where: {ruleId: rule.ruleId, hospitalId: {[Op.in]: hospitals}}
+            })
+        )
+      )
+    ).reduce((per, next) => per.concat(next), []);
+    if (ruleHospital.length === 0)
+      throw new KatoCommonError('该考核没有关联的机构可设置');
+    //批量修改自动打分选项
+    await Promise.all(
+      ruleHospital.map(async item => {
+        item.auto = isAuto;
+        await item.save();
+      })
+    );
   }
 
   async workpoints(code) {
