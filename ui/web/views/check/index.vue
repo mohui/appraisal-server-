@@ -54,11 +54,19 @@
           min-width="30"
           label="打分状态"
         ></el-table-column>
-        <el-table-column
-          prop="count"
-          min-width="20"
-          label="适用机构"
-        ></el-table-column>
+        <el-table-column min-width="20" label="适用机构">
+          <template slot-scope="scope">
+            {{ scope.row.hospitalCount }}
+            <el-button
+              circle
+              plain
+              type="primary"
+              size="mini"
+              icon="el-icon-plus"
+              @click.stop="openSelectDialog(scope.row)"
+            ></el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button
@@ -236,6 +244,20 @@
         >
       </div>
     </el-dialog>
+    <el-dialog title="选择机构" :visible.sync="dialogSelectVisible">
+      <div v-for="(item, i) of hospitalList" :key="i">
+        {{ item.name }}
+        <p v-for="(it, index) of item.child" :key="index">
+          <el-checkbox v-model="it.selected">
+            {{ index + 1 }} {{ it.name }}
+          </el-checkbox>
+        </p>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogSelectVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveHospital">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -246,6 +268,7 @@ export default {
     return {
       maxSize: 5,
       progress: 0,
+      dialogSelectVisible: false,
       dialogFormAddChecksVisible: false,
       dialogFormCloneChecksVisible: false,
       dialogUploadFormVisible: false,
@@ -260,6 +283,7 @@ export default {
         pageSize: 20,
         pageNo: 1
       },
+      hospitalList: [],
       fileList: [],
       importUrl: 'uploadUrl',
       headers: {token: "getCookie('account')"}
@@ -310,6 +334,47 @@ export default {
     }
   },
   methods: {
+    //获取机构列表
+    async getHospitalList(checkId) {
+      const result = await this.$api.CheckSystem.listHospitals(checkId);
+      this.hospitalList = result
+        .map(it => it.parent)
+        .filter((it, index, arr) => arr.indexOf(it) === index)
+        .map(it => ({
+          name: result.filter(item => item.id === it)[0]?.name,
+          code: it
+        }))
+        .filter(it => it.name)
+        .map(it => ({
+          ...it,
+          child: result.filter(
+            item => item.parent === it.code || item.id === it.code
+          )
+        }));
+    },
+    //打开机构对话框
+    openSelectDialog(item) {
+      this.checkForm = Object.assign({}, item);
+      this.getHospitalList(item.checkId);
+      this.dialogSelectVisible = true;
+    },
+    //保存选取的机构
+    async saveHospital() {
+      const {checkId} = this.checkForm;
+      const hospitals = this.hospitalList
+        .map(it => it.child)
+        .reduce((acc, cur) => acc.concat(cur), [])
+        .filter(it => it.selected)
+        .map(it => it.id);
+      try {
+        await this.$api.CheckSystem.setHospitals({checkId, hospitals});
+        this.$asyncComputed.listCheck.update();
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.dialogSelectVisible = false;
+      }
+    },
     //跳转详情
     handleCellClick(row) {
       this.$router.push({
@@ -320,6 +385,7 @@ export default {
         }
       });
     },
+    //打开添加规则对话框
     openAddCheckDialog() {
       this.dialogFormAddChecksVisible = true;
       this.checkForm = {
@@ -329,6 +395,7 @@ export default {
         radio: '1'
       };
     },
+    //保存规则
     saveCheck() {
       if (this.checkForm.checkId) {
         this.editCheck();
@@ -352,6 +419,7 @@ export default {
         this.dialogFormAddChecksVisible = false;
       }
     },
+    //打开编辑规则对话框
     openEditCheckDialog(item) {
       this.checkForm = Object.assign({}, item);
       this.dialogFormAddChecksVisible = true;
@@ -372,11 +440,12 @@ export default {
         this.dialogFormAddChecksVisible = false;
       }
     },
+    //打开克隆规则对话框
     openCloneCheckDialog(item) {
       this.checkForm = Object.assign({}, item);
       this.dialogFormCloneChecksVisible = true;
     },
-    //克隆规则
+    //保存克隆规则
     async cloneCheck() {
       try {
         const {checkId, name, cloneName, radio} = this.checkForm;
@@ -480,6 +549,7 @@ export default {
       await this.$refs.uploadForm.submit();
       this.dialogUploadFormVisible = false;
     },
+    //删除规则
     delCheck({$index, row}) {
       this.$confirm('此操作将永久删除此规则, 是否继续?', '提示', {
         confirmButtonText: '确定',
