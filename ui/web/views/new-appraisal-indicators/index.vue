@@ -122,12 +122,12 @@
     <el-row style="margin-top: 10px">
       <el-col :span="12">
         <el-card shadow="hover">
-          一级机构排行
+          <h3 class="ins-ranking-title">一级机构排行</h3>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card shadow="hover">
-          二级机构排行
+          <h3 class="ins-ranking-title">一级机构排行</h3>
         </el-card>
       </el-col>
     </el-row>
