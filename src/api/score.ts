@@ -3,6 +3,7 @@ import {
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
+  ReportHospitalModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleTagModel
@@ -15,6 +16,8 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
+import {etlDB} from '../app';
+import {QueryTypes} from 'sequelize';
 
 export default class Score {
   /**
@@ -106,7 +109,47 @@ export default class Score {
       await ruleHospitalScoreModel.save();
     }
 
-    return RuleHospitalScoreModel.findAll({where: {hospitalId: id}});
+    // 机构总得分
+    const scores = (
+      await RuleHospitalScoreModel.findAll({
+        where: {hospitalId: id}
+      })
+    ).reduce((result, current) => (result += current.score), 0);
+    // 机构工分
+    // language=PostgreSQL
+    const workpoints =
+      (
+        await etlDB.query(
+          `
+            select sum(vws.score) as workpoints
+            from view_workscoretotal vws
+                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
+            where hm.h_id = ?
+              and vws.missiontime >= ?
+              and vws.missiontime < ?
+          `,
+          {
+            replacements: [
+              id,
+              dayjs()
+                .startOf('y')
+                .toDate(),
+              dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
+            ],
+            type: QueryTypes.SELECT
+          }
+        )
+      )[0]?.workpoints ?? 0;
+
+    // 更新机构考核报告表
+    await ReportHospitalModel.upsert({
+      hospitalId: id,
+      workpoints,
+      scores
+    });
   }
 
   /**
