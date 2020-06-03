@@ -74,6 +74,9 @@
       </div>
     </el-row>
     <el-card shadow="hover">
+      <h3 class="ins-ranking-title">
+        机构排行（含一级机构及下属二级机构）
+      </h3>
       <div v-for="(item, index) of workpointRankData" :key="item.code">
         <accordion
           :Accordionindex="0"
@@ -223,5 +226,11 @@ export default {
 
 .pointer {
   cursor: pointer;
+}
+
+.ins-ranking-title {
+  margin: 0;
+  color: #1096d0;
+  font-size: 20px;
 }
 </style>
