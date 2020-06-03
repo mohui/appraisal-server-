@@ -440,6 +440,8 @@ export default class CheckSystem {
     const userHospital = await UserHospitalModel.findAll({
       where: {userId: Context.req.headers.token}
     });
+    if (hospitals.find(h => !userHospital.find(u => u.hospitalId === h)))
+      throw new KatoCommonError('权限不足');
     //删除被解绑的机构
     await Promise.all(
       ruleHospital
