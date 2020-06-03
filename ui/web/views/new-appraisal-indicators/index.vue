@@ -191,7 +191,9 @@ export default {
       params: {
         listFlag: 'score'
       },
-      date: '2020-06-02',
+      date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
+        'YYYY-MM-DD'
+      ),
       totalShowMore: false
     };
   },
