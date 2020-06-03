@@ -242,4 +242,31 @@ export default class Score {
 
     throw new KatoCommonError(`${code} 不存在`);
   }
+
+  /**
+   * 获取当前地区机构排行
+   *
+   * @param code 地区code
+   */
+  async rank(code) {
+    const regionModel = await RegionModel.findOne({where: {code}});
+    if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
+    return await Promise.all(
+      (
+        await HospitalModel.findAll({
+          where: {
+            regionId: {
+              [Op.like]: `${code}%`
+            }
+          }
+        })
+      ).map(async hospital => {
+        const item = await this.total(hospital.id);
+        return {
+          ...item,
+          parent: hospital.parent
+        };
+      })
+    );
+  }
 }
