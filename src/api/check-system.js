@@ -38,7 +38,11 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名称')
+        .description('考核系统名称'),
+      status: should
+        .boolean()
+        .required()
+        .description('状态值:true||false')
     })
   )
   updateName(params) {
@@ -48,8 +52,8 @@ export default class CheckSystem {
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
-      return await CheckSystemModel.update(
-        {checkName: params.checkName},
+      await CheckSystemModel.update(
+        {checkName: params.checkName, status: params.status},
         {where: {checkId: params.checkId}}
       );
     });
@@ -319,6 +323,7 @@ export default class CheckSystem {
     let result = await CheckSystemModel.findAndCountAll({
       where: whereOptions,
       distinct: true,
+      order: [['created_at', 'DESC']],
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
