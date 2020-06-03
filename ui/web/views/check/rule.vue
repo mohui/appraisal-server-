@@ -343,34 +343,40 @@ export default {
           checkId: this.checkId
         });
 
-        this.ruleList = result.rows.map(
-          it =>
-            new Vue({
-              data() {
-                return {
-                  ...it,
-                  isEdit: false,
-                  group: it.group.map(item => ({
-                    ...item,
+        if (result.count > 0) {
+          this.ruleList = result.rows.map(
+            it =>
+              new Vue({
+                data() {
+                  return {
+                    ...it,
                     isEdit: false,
-                    ruleTagName: item.ruleTags.map(its => its.name).join('，'),
-                    created_at: item.created_at.$format('YYYY-MM-DD'),
-                    updated_at: item.updated_at.$format('YYYY-MM-DD')
-                  }))
-                };
-              },
-              computed: {
-                ruleScores: {
-                  get() {
-                    return this.group.reduce(
-                      (acc, cur) => acc + cur.ruleScore,
-                      0
-                    );
+                    group: it.group.map(item => ({
+                      ...item,
+                      isEdit: false,
+                      ruleTagName: item.ruleTags
+                        .map(its => its.name)
+                        .join('，'),
+                      created_at: item.created_at.$format('YYYY-MM-DD'),
+                      updated_at: item.updated_at.$format('YYYY-MM-DD')
+                    }))
+                  };
+                },
+                computed: {
+                  ruleScores: {
+                    get() {
+                      return this.group.reduce(
+                        (acc, cur) => acc + cur.ruleScore,
+                        0
+                      );
+                    }
                   }
                 }
-              }
-            })
-        );
+              })
+          );
+        } else {
+          this.addGroup();
+        }
       } catch (e) {
         this.$message.error(e.message);
       }
