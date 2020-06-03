@@ -73,17 +73,58 @@
         </el-col>
       </div>
     </el-row>
+    <el-card shadow="hover">
+      <div v-for="(item, index) of workpointRankData" :key="item.code">
+        <accordion
+          :Accordionindex="0"
+          :AccordionData="`${index + 1}、${item.name}`"
+        >
+          <div
+            slot="Sizes"
+            style="float: right; width: 80px; text-align: right;"
+          >
+            {{ 54 }}家
+          </div>
+          <div slot="Progress" style="padding: 10px 20px 0;">
+            <progress-score
+              :label="item.score"
+              :height="18"
+              :percentage="
+                item.score != 0 ? Math.round((item.score / maxScore) * 100) : 0
+              "
+              style="padding:0 20px;"
+            >
+            </progress-score>
+          </div>
+          <div slot="First" style="padding: 0 20px">
+            <ul>
+              <li
+                class="pointer"
+                v-for="(i, index) of workpointRankData"
+                :key="index"
+              >
+                {{ i.name }} {{ Math.round(45) }}%
+              </li>
+            </ul>
+          </div>
+        </accordion>
+      </div>
+    </el-card>
   </div>
 </template>
 <script>
 import twoCardBar from '../appraisal-indicators/components/twocardBar';
+import accordion from '../appraisal-indicators/components/twocardAccordion';
+import progressScore from '../appraisal-indicators/components/progressScore';
 
 const sysCode = '340203';
 
 export default {
   name: 'index',
   components: {
-    twoCardBar
+    twoCardBar,
+    accordion,
+    progressScore
   },
   data() {
     return {
@@ -113,6 +154,14 @@ export default {
       return {
         score: Math.round(this.workpointTotalServerData.score)
       };
+    },
+    workpointRankData() {
+      console.log('workpointRankServerData', this.workpointRankServerData);
+      return this.workpointRankServerData;
+    },
+    //最大得分值数
+    maxScore() {
+      return Math.max(...this.workpointRankData.map(it => it.score));
     }
   },
   asyncComputed: {
@@ -137,6 +186,11 @@ export default {
           name: '',
           score: 0
         };
+      }
+    },
+    workpointRankServerData: {
+      async get() {
+        return await this.$api.WorkPoint.rank(sysCode);
       }
     }
   }
@@ -165,5 +219,9 @@ export default {
   text-align: center;
   box-sizing: border-box;
   color: #1096d0;
+}
+
+.pointer {
+  cursor: pointer;
 }
 </style>
