@@ -245,14 +245,11 @@
       </div>
     </el-dialog>
     <el-dialog title="选择机构" :visible.sync="dialogSelectVisible">
-      <div v-for="(item, i) of hospitalList" :key="i">
-        {{ item.name }}
-        <p v-for="(it, index) of item.child" :key="index">
-          <el-checkbox v-model="it.selected">
-            {{ index + 1 }} {{ it.name }}
-          </el-checkbox>
-        </p>
-      </div>
+      <p v-for="(it, index) of hospitalList" :key="index">
+        <el-checkbox v-model="it.selected">
+          {{ index + 1 }} {{ it.name }}
+        </el-checkbox>
+      </p>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveHospital">确 定</el-button>
@@ -336,21 +333,7 @@ export default {
   methods: {
     //获取机构列表
     async getHospitalList(checkId) {
-      const result = await this.$api.CheckSystem.listHospitals(checkId);
-      this.hospitalList = result
-        .map(it => it.parent)
-        .filter((it, index, arr) => arr.indexOf(it) === index)
-        .map(it => ({
-          name: result.filter(item => item.id === it)[0]?.name,
-          code: it
-        }))
-        .filter(it => it.name)
-        .map(it => ({
-          ...it,
-          child: result.filter(
-            item => item.parent === it.code || item.id === it.code
-          )
-        }));
+      this.hospitalList = await this.$api.CheckSystem.listHospitals(checkId);
     },
     //打开机构对话框
     openSelectDialog(item) {
