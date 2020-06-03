@@ -1,4 +1,5 @@
 import {
+  BasicTagDataModel,
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
@@ -12,7 +13,6 @@ import {
   MarkTagUsages,
   TagAlgorithmUsages
 } from '../../common/rule-score';
-import {BasicTagData} from '../database/model/basic-tag-data';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
 
@@ -35,27 +35,29 @@ export default class Score {
       }
     });
     if (!mark) return;
-    // 查考核细则
+    // 查所有考核细则
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
         auto: true,
         hospitalId: hospital.id
       }
     });
+    // 循环所有考核细则
     for (const ruleModel of ruleModels) {
-      // 查指标算法
-      const tagModels = await RuleTagModel.findAll({
+      // 查考核细则对应的指标算法
+      const ruleTagModels = await RuleTagModel.findAll({
         where: {
           ruleId: ruleModel.ruleId
         }
       });
-
+      // 默认打分 0分
       let score = 0;
-      for (const tagModel of tagModels) {
+      // 循环所有的指标算法, 计算得分
+      for (const tagModel of ruleTagModels) {
         // 建档率
         if (tagModel.tag === MarkTagUsages.S01.code) {
           // 查询服务总人口数
-          const basicData = await BasicTagData.findOne({
+          const basicData = await BasicTagDataModel.findOne({
             where: {
               code: BasicTagUsages.DocPeople,
               hospital: hospital.id,
@@ -68,38 +70,40 @@ export default class Score {
           if (!basicData.value) continue;
 
           // 根据指标算法, 计算得分
-          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark.S01) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark.S00) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark.S01) {
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark.S00) {
             score += tagModel.score;
           }
-          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark.S01) {
-            const rate = mark.S03 / mark.S01;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark.S00) {
+            const rate = mark.S00 / basicData.value;
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
-
-        const ruleHospitalScoreObject = {
-          ruleId: ruleModel.ruleId,
-          hospitalId: ruleModel.hospitalId
-        };
-        let ruleHospitalScoreModel = await RuleHospitalScoreModel.findOne({
-          where: ruleHospitalScoreObject
-        });
-        if (!ruleHospitalScoreModel) {
-          ruleHospitalScoreModel = new RuleHospitalScoreModel({
-            ...ruleHospitalScoreObject,
-            score,
-            id: uuid()
-          });
-        } else {
-          ruleHospitalScoreModel.score = score;
-        }
-
-        await ruleHospitalScoreModel.save();
       }
+      // 查询机构考核得分
+      const ruleHospitalScoreObject = {
+        ruleId: ruleModel.ruleId,
+        hospitalId: ruleModel.hospitalId
+      };
+      let ruleHospitalScoreModel = await RuleHospitalScoreModel.findOne({
+        where: ruleHospitalScoreObject
+      });
+      // 刷新最新得分
+      if (!ruleHospitalScoreModel) {
+        ruleHospitalScoreModel = new RuleHospitalScoreModel({
+          ...ruleHospitalScoreObject,
+          score,
+          id: uuid()
+        });
+      } else {
+        ruleHospitalScoreModel.score = score;
+      }
+      // 保存
+      await ruleHospitalScoreModel.save();
     }
+
     return RuleHospitalScoreModel.findAll({where: {hospitalId: id}});
   }
 
