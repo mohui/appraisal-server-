@@ -73,7 +73,10 @@
         </el-col>
       </div>
     </el-row>
-    <el-card shadow="hover">
+    <el-card
+      shadow="hover"
+      :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
+    >
       <h3 class="ins-ranking-title">
         机构排行（含一级机构及下属二级机构）
       </h3>
@@ -113,6 +116,9 @@
         </accordion>
       </div>
     </el-card>
+    <div class="show-more" @click="totalShowMore = !totalShowMore">
+      {{ totalShowMore ? '收起' : '显示更多' }}
+    </div>
   </div>
 </template>
 <script>
@@ -137,7 +143,8 @@ export default {
       },
       //TODO:两个临时写死的变量
       afterCorrectionScore: 24234,
-      date: '2020-06-02'
+      date: '2020-06-02',
+      totalShowMore: false
     };
   },
   methods: {
@@ -232,5 +239,19 @@ export default {
   margin: 0;
   color: #1096d0;
   font-size: 20px;
+}
+
+.show-more {
+  width: 100%;
+  line-height: 30px;
+  text-align: center;
+  padding: 10px 0;
+  background-color: #f5f5f5;
+  border: 1px solid #f5f5f5;
+  border-top: none;
+  border-color: rgba(162, 162, 162, 0.1);
+  color: #6c7177;
+  font-size: 14px;
+  cursor: pointer;
 }
 </style>
