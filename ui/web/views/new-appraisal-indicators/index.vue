@@ -123,11 +123,49 @@
       <el-col :span="12">
         <el-card shadow="hover">
           <h3 class="ins-ranking-title">一级机构排行</h3>
+          <div
+            v-for="(item, index) of firstLevelWorkpointRankData"
+            :key="item.code"
+          >
+            <div class="pointer">
+              <p>{{ index + 1 }}、{{ item.name }}</p>
+              <progress-score
+                :label="item.score"
+                :height="18"
+                :percentage="
+                  item.score != 0
+                    ? Math.round((item.score / maxScore) * 100)
+                    : 0
+                "
+                style="padding:0 20px;"
+              >
+              </progress-score>
+            </div>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card shadow="hover">
-          <h3 class="ins-ranking-title">一级机构排行</h3>
+          <h3 class="ins-ranking-title">二级机构排行</h3>
+          <div
+            v-for="(item, index) of secondLevelWorkpointRankData"
+            :key="item.code"
+          >
+            <div class="pointer">
+              <p>{{ index + 1 }}、{{ item.name }}</p>
+              <progress-score
+                :label="item.score"
+                :height="18"
+                :percentage="
+                  item.score != 0
+                    ? Math.round((item.score / maxScore) * 100)
+                    : 0
+                "
+                style="padding:0 20px;"
+              >
+              </progress-score>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -208,9 +246,17 @@ export default {
     },
     //一级机构排行数据
     firstLevelWorkpointRankData() {
-      return this.workpointRankServerData.filter(item =>
-        item.name.endsWith('中心')
-      );
+      return this.workpointRankData
+        .map(item => item.child)
+        .reduce((result, current) => result.concat(current), [])
+        .filter(item => item.name.endsWith('中心'));
+    },
+    //二级机构排行数据
+    secondLevelWorkpointRankData() {
+      return this.workpointRankData
+        .map(item => item.child)
+        .flat()
+        .filter(item => !item.name.endsWith('中心'));
     },
     //最大得分值数
     maxScore() {
