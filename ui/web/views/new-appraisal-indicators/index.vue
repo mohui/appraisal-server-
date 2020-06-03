@@ -89,7 +89,7 @@
             slot="Sizes"
             style="float: right; width: 80px; text-align: right;"
           >
-            {{ 54 }}家
+            {{ item.child.length }}家
           </div>
           <div slot="Progress" style="padding: 10px 20px 0;">
             <progress-score
@@ -104,12 +104,8 @@
           </div>
           <div slot="First" style="padding: 0 20px">
             <ul>
-              <li
-                class="pointer"
-                v-for="(i, index) of workpointRankData"
-                :key="index"
-              >
-                {{ i.name }} {{ Math.round(45) }}%
+              <li class="pointer" v-for="(i, index) of item.child" :key="index">
+                {{ i.name }} {{ i.score }}分
               </li>
             </ul>
           </div>
@@ -167,7 +163,21 @@ export default {
     },
     workpointRankData() {
       console.log('workpointRankServerData', this.workpointRankServerData);
-      return this.workpointRankServerData;
+      const result = this.workpointRankServerData
+        .filter(item => item.name.endsWith('中心'))
+        .map(item => {
+          const returnValue = Object.assign({}, item, {
+            child: [
+              item,
+              ...this.workpointRankServerData.filter(
+                it => it.parent === item.id
+              )
+            ]
+          });
+          return returnValue;
+        });
+      console.log('result', result);
+      return result;
     },
     //最大得分值数
     maxScore() {
@@ -201,6 +211,9 @@ export default {
     workpointRankServerData: {
       async get() {
         return await this.$api.WorkPoint.rank(sysCode);
+      },
+      default() {
+        return [];
       }
     }
   }
