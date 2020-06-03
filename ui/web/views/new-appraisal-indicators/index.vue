@@ -206,6 +206,12 @@ export default {
       console.log('result', result);
       return result;
     },
+    //一级机构排行数据
+    firstLevelWorkpointRankData() {
+      return this.workpointRankServerData.filter(item =>
+        item.name.endsWith('中心')
+      );
+    },
     //最大得分值数
     maxScore() {
       return Math.max(...this.workpointRankData.map(it => it.score));
