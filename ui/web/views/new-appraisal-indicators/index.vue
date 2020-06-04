@@ -313,6 +313,17 @@ export default {
       default() {
         return [];
       }
+    },
+    //获取服务器的医生工分和工分项目数据
+    doctorWorkpointRankServerData: {
+      async get() {
+        return await this.$api.Hospital.workpoints(
+          'df6365a4-5e87-42fc-a9e1-73cad5b083c4'
+        );
+      },
+      default() {
+        return [];
+      }
     }
   }
 };
