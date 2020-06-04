@@ -44,11 +44,11 @@
           min-width="40"
           label="创建时间"
         ></el-table-column>
-        <el-table-column
-          prop="status"
-          min-width="14"
-          label="状态"
-        ></el-table-column>
+        <el-table-column min-width="14" label="状态">
+          <template slot-scope="scope">
+            {{ scope.row.status ? '启用' : '停用' }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="autoScore"
           min-width="30"
@@ -87,7 +87,7 @@
             </el-button>
             <el-button
               plain
-              v-show="scope.row.status === '启用'"
+              v-show="scope.row.status"
               type="info"
               size="small"
               @click.stop="openUploadCheckDialog(scope.row)"
@@ -152,8 +152,8 @@
           <el-input v-model="checkForm.checkName"></el-input>
         </el-form-item>
         <el-form-item label="状态">
-          <el-radio v-model="checkForm.radio" label="1">启用</el-radio>
-          <el-radio v-model="checkForm.radio" label="0">禁用</el-radio>
+          <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
+          <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -172,8 +172,8 @@
           <el-input v-model="checkForm.cloneName"></el-input>
         </el-form-item>
         <el-form-item label="状态">
-          <el-radio v-model="checkForm.radio" label="1">启用</el-radio>
-          <el-radio v-model="checkForm.radio" label="0">禁用</el-radio>
+          <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
+          <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -290,16 +290,22 @@ export default {
     checkList() {
       return this.listCheck.rows.map(it => ({
         ...it,
+        autoScore:
+          it.auto === 'all'
+            ? '全部开启'
+            : it.auto === 'part'
+            ? '部分开启'
+            : it.auto === 'no'
+            ? '全部关闭'
+            : '',
         isOpen:
-          (it.autoScore === '全部关闭打分' ||
-            it.autoScore === '部分开启打分') &&
-          it.count !== 0 &&
-          it.status !== '停用',
+          (it.auto === 'no' || it.auto === 'part') &&
+          it.hospitalCount !== 0 &&
+          it.status,
         isClose:
-          (it.autoScore === '全部开启打分' ||
-            it.autoScore === '部分开启打分') &&
-          it.count !== 0 &&
-          it.status !== '停用',
+          (it.auto === 'all' || it.auto === 'part') &&
+          it.hospitalCount !== 0 &&
+          it.status,
         created_at: it.created_at.$format('YYYY-MM-DD'),
         updated_at: it.updated_at.$format('YYYY-MM-DD')
       }));
@@ -407,13 +413,13 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName} = this.checkForm;
+      const {checkId, checkName, status} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.updateName({checkId, checkName});
+        await this.$api.CheckSystem.updateName({checkId, checkName, status});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -450,7 +456,7 @@ export default {
     //开启规则
     async openCheck(item) {
       try {
-        await this.$api.CheckSystem.openCheck(item.checkId, 'Y');
+        await this.$api.Hospital.setAllRuleAuto(item.checkId, true);
         this.$message({
           type: 'success',
           message: '全部开启成功！'
@@ -463,7 +469,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.CheckSystem.closeCheck(item.checkId, 'N');
+        await this.$api.CheckSystem.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'
