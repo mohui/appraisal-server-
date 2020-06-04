@@ -64,9 +64,9 @@
                 {{ scope.row.updated_at }}
               </template>
             </el-table-column>
-            <el-table-column prop="operatorId" align="center" label="编辑人">
+            <el-table-column prop="editor" align="center" label="编辑人">
             </el-table-column>
-            <el-table-column width="80" label="操作" align="center">
+            <el-table-column width="180" label="操作" align="center">
               <template slot-scope="scope">
                 <el-button
                   plain
@@ -76,6 +76,15 @@
                   @click="updateTaskCount(scope.row)"
                 >
                   保存
+                </el-button>
+                <el-button
+                  plain
+                  v-if="scope.row.active"
+                  type="primary"
+                  size="mini"
+                  @click="scope.row.active = false"
+                >
+                  取消
                 </el-button>
                 <el-button
                   plain
