@@ -101,6 +101,7 @@ export default {
               duration: 1000
             });
             setToken(result.id);
+            this.$settings.user = result;
             this.btnLoading = false;
             await this.$router.push('/');
           } catch (e) {
