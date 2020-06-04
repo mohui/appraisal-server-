@@ -174,7 +174,7 @@
         </el-card>
       </el-col>
     </el-row>
-    <el-row>
+    <el-row :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
         <el-card shadow="hover">
           <p style="color:#1096d0; font-size:20px; font-weight:500;">
