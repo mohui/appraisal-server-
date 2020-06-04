@@ -14,7 +14,7 @@ export class CheckSystemMigration implements IMigration {
         "create_by"     VARCHAR(50),
         "update_by"     VARCHAR(50),
         "check_year"    VARCHAR(50),
-        "status"        VARCHAR(50),
+        "status"        Boolean DEFAULT true,
         "remarks"       VARCHAR(255),
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,

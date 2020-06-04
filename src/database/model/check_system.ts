@@ -41,9 +41,10 @@ export class CheckSystem extends Model<CheckSystem> {
   @Column
   checkYear: string;
 
-  @Comment('状态:')
+  @Comment('状态:默认为true')
+  @Default(true)
   @Column
-  status: string;
+  status: boolean;
 
   @Comment('备注')
   @Column

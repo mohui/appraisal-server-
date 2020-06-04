@@ -7,6 +7,7 @@ import {
   Default,
   ForeignKey,
   HasMany,
+  HasOne,
   Model,
   PrimaryKey,
   Table
@@ -16,6 +17,7 @@ import {Region} from './region';
 import {User} from './user';
 import {UserHospital} from './user_hospital';
 import {BasicTagData} from './basic-tag-data';
+import {ReportHospital} from './report-hospital';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -51,4 +53,7 @@ export class Hospital extends Model<Hospital> {
   //多个基础数据
   @HasMany(() => BasicTagData)
   basicTagData: BasicTagData[];
+
+  @HasOne(() => ReportHospital)
+  report: ReportHospital;
 }

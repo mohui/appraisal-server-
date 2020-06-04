@@ -52,15 +52,52 @@ export const MarkTags = [
         children: [
           {
             code: 'S01',
-            name: '建档率'
+            name: '建档率',
+            enabled: true
           },
           {
             code: 'S23',
-            name: '电子档案规范率'
+            name: '电子档案规范率',
+            enabled: true
           },
           {
             code: 'S03',
-            name: '健康档案使用率'
+            name: '健康档案使用率',
+            enabled: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: '医疗指标',
+    code: 'Medical',
+    children: [
+      {
+        name: '家庭医生签约服务',
+        code: 'signing',
+        children: [
+          {
+            code: 'C01',
+            name: '签约服务覆盖率',
+            enabled: false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: '定性指标',
+    code: 'AttachParent',
+    children: [
+      {
+        name: '定性指标',
+        code: 'Attach0',
+        children: [
+          {
+            name: '定性指标',
+            code: 'Attach',
+            enabled: false
           }
         ]
       }
