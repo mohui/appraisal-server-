@@ -10,8 +10,7 @@ export const settingPlugin = {
       },
       methods: {
         async load() {
-          const user = await this.$api.User.profile(getToken());
-          return {user};
+          this.user = await this.$api.User.profile(getToken());
         }
       }
     });
