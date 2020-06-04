@@ -84,7 +84,10 @@ export default {
       }
     };
   },
-  async created() {},
+  async created() {
+    //在登录界面时清空当前用户信息
+    this.$settings.user = null;
+  },
   methods: {
     submitForm() {
       this.btnLoading = true;
@@ -101,7 +104,6 @@ export default {
               duration: 1000
             });
             setToken(result.id);
-            this.$settings.user = result;
             this.btnLoading = false;
             await this.$router.push('/');
           } catch (e) {
