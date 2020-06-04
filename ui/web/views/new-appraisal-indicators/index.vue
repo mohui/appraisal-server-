@@ -366,6 +366,11 @@ export default {
             (result, current) => (result += current.score),
             0
           );
+          //累加质量系数
+          returnValue.rate = returnValue.child.reduce(
+            (result, current) => (result += current.rate),
+            0
+          );
           return returnValue;
         })
         .sort((a, b) => b.score - a.score);
