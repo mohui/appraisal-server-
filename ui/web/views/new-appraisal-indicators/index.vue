@@ -277,6 +277,44 @@ export default {
     //最大得分值数
     maxScore() {
       return Math.max(...this.workpointRankData.map(it => it.score));
+    },
+    //医生工分排行数据
+    doctorWorkpointRankData() {
+      console.log(
+        'doctorWorkpointRankServerData',
+        this.doctorWorkpointRankServerData
+      );
+      let returnValue = this.doctorWorkpointRankServerData.reduce(
+        (result, current) => {
+          // let item = result.find(it => it.doctorid === current.doctorid);
+          let item;
+          for (const it of result) {
+            if (it.doctorid === current.doctorid) {
+              item = it;
+              break;
+            }
+          }
+          if (item) {
+            // 医生已存在
+            item.score += current.score;
+            item.children.push(current);
+          } else {
+            // 不存在
+            item = {
+              doctorid: current.doctorid,
+              doctorname: current.doctorname,
+              score: current.score,
+              children: [current]
+            };
+            result.push(item);
+          }
+
+          return result;
+        },
+        []
+      );
+      console.log('retureValue', returnValue);
+      return returnValue;
     }
   },
   asyncComputed: {
