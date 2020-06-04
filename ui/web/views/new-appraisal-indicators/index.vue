@@ -315,6 +315,25 @@ export default {
       );
       console.log('retureValue', returnValue);
       return returnValue;
+    },
+    categoryWorkpointRankData() {
+      return this.doctorWorkpointRankServerData.reduce((result, current) => {
+        let item = result.find(it => it.name === current.name);
+        if (item) {
+          //类别已存在
+          item.score += current.score;
+          item.children.push(current);
+        } else {
+          //类别不存在
+          item = {
+            name: current.name,
+            score: current.score,
+            children: [current]
+          };
+          result.push(item);
+        }
+        return result;
+      }, []);
     }
   },
   asyncComputed: {
