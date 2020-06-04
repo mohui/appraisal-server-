@@ -178,6 +178,13 @@
                   @click="saveRule(scope.row, item.ruleId)"
                   >保存
                 </el-button>
+                <el-button
+                  plain
+                  type="primary"
+                  size="mini"
+                  @click="scope.row.isEdit = false"
+                  >取消
+                </el-button>
               </div>
               <div v-else>
                 <el-button
