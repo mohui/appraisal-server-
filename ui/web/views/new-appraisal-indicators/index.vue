@@ -174,6 +174,92 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-row>
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <p style="color:#1096d0; font-size:20px; font-weight:500;">
+            医生工分
+          </p>
+          <el-table
+            :data="doctorWorkpointRankData"
+            :header-cell-style="{background: '#e4e2df', color: '#333'}"
+          >
+            <el-table-column type="expand" prop="children">
+              <template slot-scope="scope">
+                <el-table :data="scope.row.children" :show-header="false">
+                  <el-table-column type="index" align="center">
+                  </el-table-column>
+                  <el-table-column prop="name" align="center"></el-table-column>
+                  <el-table-column
+                    prop="score"
+                    align="center"
+                  ></el-table-column>
+                </el-table>
+              </template>
+            </el-table-column>
+            <el-table-column label="序号" align="center">
+              <template slot-scope="scope">
+                <span>【{{ scope.$index + 1 }}】</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="医生" align="center">
+              <template slot-scope="scope">
+                <span>{{ scope.row.doctorname }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="工分值">
+              <template slot-scope="scope">
+                <span>{{ scope.row.score }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <p style="color:#1096d0; font-size:20px; font-weight:500;">
+            工分项目
+          </p>
+          <el-table
+            :data="categoryWorkpointRankData"
+            :header-cell-style="{background: '#e4e2df', color: '#333'}"
+            ref="refTable"
+          >
+            <el-table-column type="expand" prop="children">
+              <template slot-scope="scope">
+                <el-table :data="scope.row.children" :show-header="false">
+                  <el-table-column type="index" align="center">
+                  </el-table-column>
+                  <el-table-column
+                    prop="doctorname"
+                    align="center"
+                  ></el-table-column>
+                  <el-table-column
+                    prop="score"
+                    align="center"
+                  ></el-table-column>
+                </el-table>
+              </template>
+            </el-table-column>
+            <el-table-column label="序号" align="center">
+              <template slot-scope="scope">
+                <span>【{{ scope.$index + 1 }}】</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="工分目录" align="center">
+              <template slot-scope="scope">
+                <span>{{ scope.row.name }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="工分值">
+              <template slot-scope="scope">
+                <span>{{ scope.row.score }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script>
