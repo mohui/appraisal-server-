@@ -82,6 +82,34 @@
       </h3>
       <div v-for="(item, index) of workpointRankData" :key="item.code">
         <accordion
+          v-if="params.listFlag === 'quality'"
+          :Accordionindex="0"
+          :AccordionData="`${index + 1}、${item.name}`"
+        >
+          <div
+            slot="Sizes"
+            style="float: right; width: 80px; text-align: right;"
+          >
+            {{ item.child.length }}家
+          </div>
+          <div slot="Progress" style="padding: 10px 20px 0;">
+            <el-progress
+              :text-inside="true"
+              :stroke-width="18"
+              :percentage="item.rate * 100"
+            >
+            </el-progress>
+          </div>
+          <div slot="First" style="padding: 0 20px">
+            <ul>
+              <li class="pointer" v-for="(i, index) of item.child" :key="index">
+                {{ i.name }} {{ Math.round(i.rate * 100) }}%
+              </li>
+            </ul>
+          </div>
+        </accordion>
+        <accordion
+          v-if="params.listFlag === 'score'"
           :Accordionindex="0"
           :AccordionData="`${index + 1}、${item.name}`"
         >
