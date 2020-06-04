@@ -74,9 +74,32 @@ export const MarkTags = [
     code: 'Medical',
     children: [
       {
-        code: 'C01',
-        name: '签约服务覆盖率',
-        enabled: false
+        name: '家庭医生签约服务',
+        code: 'signing',
+        children: [
+          {
+            code: 'C01',
+            name: '签约服务覆盖率',
+            enabled: false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: '定性指标',
+    code: 'AttachParent',
+    children: [
+      {
+        name: '定性指标',
+        code: 'Attach0',
+        children: [
+          {
+            name: '定性指标',
+            code: 'Attach',
+            enabled: false
+          }
+        ]
       }
     ]
   }
