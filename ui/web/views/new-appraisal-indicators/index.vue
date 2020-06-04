@@ -137,6 +137,7 @@
                 style="margin: 8px 0; font-size: 14px"
                 v-for="(i, index) of item.child"
                 :key="index"
+                @click="handleClickInstitution(i.id)"
               >
                 {{ i.name }} {{ i.score }}分
               </li>
@@ -308,8 +309,10 @@ export default {
     return {
       subtitle: '芜湖市-弋江区',
       params: {
-        listFlag: 'score'
+        listFlag: 'score',
+        isInstitution: false
       },
+      isInstitution: false,
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
@@ -321,6 +324,17 @@ export default {
     latTypeChanged(type) {
       console.log('latTypeChanged', type);
       this.params.listFlag = type;
+    },
+    handleClickInstitution(id) {
+      console.log(id);
+      this.$route.query.id = id;
+      this.$router.push({
+        query: {
+          isInstitution: false,
+          listFlag: this.params.listFlag,
+          id: id
+        }
+      });
     }
   },
   computed: {
