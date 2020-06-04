@@ -46,7 +46,7 @@
           <span v-else>{{ item.ruleName }} （{{ item.ruleScores }}分）</span>
           <div>
             <el-button
-              v-if="index === ruleList.length - 1"
+              v-if="!item.isEdit && index === ruleList.length - 1"
               plain
               type="primary"
               size="mini"
