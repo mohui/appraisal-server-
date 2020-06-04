@@ -236,7 +236,8 @@ export default class Score {
         name: hospitalModel.name,
         score: hospitalModel?.report?.workpoints ?? 0,
         rate:
-          hospitalModel?.report?.scores ?? 0 / hospitalModel?.report?.total ?? 0
+          (hospitalModel?.report?.scores ?? 0) /
+          (hospitalModel?.report?.total ?? 0)
       };
     }
 
