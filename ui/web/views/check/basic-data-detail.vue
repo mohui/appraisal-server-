@@ -61,7 +61,7 @@
             </el-table-column>
             <el-table-column prop="name" align="center" label="编辑时间">
               <template slot-scope="scope">
-                {{ scope.row.created_at }}
+                {{ scope.row.updated_at }}
               </template>
             </el-table-column>
             <el-table-column prop="operatorId" align="center" label="编辑人">
@@ -137,6 +137,9 @@ export default {
             .map(it => ({
               ...it,
               created_at: it.created_at.$format('YYYY-MM-DD'),
+              updated_at: it.updated_at
+                ? it.updated_at.$format('YYYY-MM-DD')
+                : it.created_at.$format('YYYY-MM-DD'),
               active: false
             }))
         }));
@@ -157,7 +160,7 @@ export default {
                 id: it.id,
                 value: +it.value,
                 hospitalId: item.id,
-                code: this.curCode
+                code: it.code
               })
           )
       )
