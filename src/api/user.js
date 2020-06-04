@@ -363,6 +363,9 @@ export default class User {
       .description('用户id')
   )
   async profile(id) {
-    return await UserModel.findOne({where: {id}});
+    return await UserModel.findOne({
+      where: {id},
+      include: [RoleModel, RegionModel]
+    });
   }
 }
