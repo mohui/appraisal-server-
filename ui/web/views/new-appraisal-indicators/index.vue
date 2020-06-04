@@ -104,7 +104,12 @@
           </div>
           <div slot="First" style="padding: 0 20px">
             <ul>
-              <li class="pointer" v-for="(i, index) of item.child" :key="index">
+              <li
+                class="pointer"
+                style="margin: 8px 0; font-size: 14px"
+                v-for="(i, index) of item.child"
+                :key="index"
+              >
                 {{ i.name }} {{ i.score }}分
               </li>
             </ul>
