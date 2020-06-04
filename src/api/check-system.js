@@ -10,7 +10,7 @@ import {
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
-import {MarkTags} from '../../common/rule-score';
+import {MarkTagUsages} from '../../common/rule-score';
 import {Context} from './context';
 
 export default class CheckSystem {
@@ -298,7 +298,7 @@ export default class CheckSystem {
           ...item,
           ruleTags: item.ruleTags.map(ruleTag => ({
             ...ruleTag,
-            name: findTagName(ruleTag.tag)
+            name: MarkTagUsages[ruleTag.tag].name
           }))
         }))
     }));
@@ -476,12 +476,5 @@ export default class CheckSystem {
       });
     //批量添加规则与机构的关系数据
     return RuleHospitalModel.bulkCreate(newRuleHospitals);
-  }
-}
-
-function findTagName(code) {
-  for (let i = 0; i < MarkTags.length; i++) {
-    const current = MarkTags[i].children.find(c => c.code === code);
-    if (current) return current?.name || '';
   }
 }
