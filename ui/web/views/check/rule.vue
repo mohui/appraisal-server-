@@ -242,11 +242,11 @@
                   <tr
                     v-for="(k, index) of item.children"
                     :key="index"
-                    :style="k.visible === 2 ? 'background-color: #f8f8f8' : ''"
+                    :style="!k.enabled ? 'background-color: #f8f8f8' : ''"
                   >
                     <td>
                       <label>
-                        <el-checkbox v-model="k.visible !== 2 && k.checked">
+                        <el-checkbox v-model="k.checked" :disabled="!k.enabled">
                           {{ k.name }}
                         </el-checkbox>
                       </label>
@@ -255,7 +255,7 @@
                       <el-select
                         size="mini"
                         v-model="k.algorithm"
-                        :disabled="k.visible === 2"
+                        :disabled="!k.enabled"
                         placeholder="请选择"
                       >
                         <el-option
@@ -271,7 +271,7 @@
                       <el-input-number
                         size="mini"
                         :min="0"
-                        :disabled="k.visible === 2"
+                        :disabled="!k.enabled"
                         v-model="k.baseline"
                       ></el-input-number>
                       <span
@@ -284,7 +284,7 @@
                       <el-input-number
                         size="mini"
                         :min="0"
-                        :disabled="k.visible === 2"
+                        :disabled="!k.enabled"
                         v-model="k.score"
                       ></el-input-number>
                     </td>
@@ -310,7 +310,11 @@
 
 <script>
 import Vue from 'vue';
-import {MarkTags, TagAlgorithm} from '../../../../common/rule-score.ts';
+import {
+  MarkTags,
+  TagAlgorithm,
+  MarkTagUsages
+} from '../../../../common/rule-score.ts';
 export default {
   name: 'rule',
   data() {
@@ -355,7 +359,7 @@ export default {
                       ...item,
                       isEdit: false,
                       ruleTagName: item.ruleTags
-                        .map(its => its.name)
+                        .map(its => MarkTagUsages[its.tag].name)
                         .join('，'),
                       created_at: item.created_at.$format('YYYY-MM-DD'),
                       updated_at: item.updated_at.$format('YYYY-MM-DD')
@@ -384,11 +388,47 @@ export default {
     //打开指标库对话框
     openStandardDialog(index, {$index, row}) {
       this.curRule = Object.assign({}, {index, $index}, row);
+      this.markTags = MarkTags.map(it => ({
+        ...it,
+        children: it.children.map(its => ({
+          ...its,
+          children: its.children.map(item => {
+            const isChecked =
+              row.ruleTags.findIndex(items => items.tag === item.code) !== -1;
+            const curObj =
+              isChecked &&
+              row.ruleTags.filter(items => items.tag === item.code)[0];
+            let obj = Object.assign({}, item, {
+              checked: item.enabled && isChecked
+            });
+            if (curObj.algorithm) {
+              obj = Object.assign({}, obj, {
+                algorithm: curObj.algorithm
+              });
+            }
+            if (curObj.baseline) {
+              obj = Object.assign({}, obj, {
+                baseline:
+                  item.name.indexOf('率') !== -1 &&
+                  (curObj.algorithm === 'egt' || curObj.algorithm === 'elt')
+                    ? Number.parseInt(curObj.baseline * 100)
+                    : curObj.baseline
+              });
+            }
+            if (curObj.score) {
+              obj = Object.assign({}, obj, {
+                score: curObj.score
+              });
+            }
+            return obj;
+          })
+        }))
+      }));
       this.dialogStandardVisible = true;
     },
     //保存指标
     async saveStandard() {
-      const {ruleId} = this.curRule;
+      const {ruleId, index, $index} = this.curRule;
       const tags = this.markTags
         .map(it => it.children)
         .reduce((acc, cur) => acc.concat(cur), [])
@@ -398,18 +438,33 @@ export default {
         .map(it => ({
           tag: it.code,
           algorithm: it.algorithm,
-          baseline: it.baseline,
+          baseline:
+            it.name.indexOf('率') !== -1 &&
+            (it.algorithm === 'egt' || it.algorithm === 'elt')
+              ? +Number.parseFloat(it.baseline / 100).toFixed(2)
+              : it.baseline,
           score: it.score
         }));
       try {
-        await this.$api.RuleTag.upsert({ruleId, tags});
-        this.getRuleList();
+        if (ruleId) {
+          await this.$api.RuleTag.upsert({ruleId, tags});
+        } else {
+          this.curRule.ruleTags = tags;
+          this.ruleList[index].group[$index].ruleTags = tags;
+          this.curRule.ruleTagName = tags
+            .map(its => MarkTagUsages[its.tag].name)
+            .join('，');
+          this.ruleList[index].group[
+            $index
+          ].ruleTagName = this.curRule.ruleTagName;
+        }
       } catch (e) {
         this.$message.error(e.message);
       } finally {
         this.dialogStandardVisible = false;
       }
     },
+    //标签初始显示第一个
     handleClick() {
       this.secondCurTag = '0';
     },
@@ -466,9 +521,11 @@ export default {
         this.$message.error(e.message);
       }
     },
+    //切换细则分组编辑状态
     editGroup(item) {
       item.isEdit = true;
     },
+    //删除细则分组
     delGroup(row, index) {
       this.$confirm('删除分类将同时删除包含的所有细则, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -494,6 +551,7 @@ export default {
           });
         });
     },
+    //新添加细则占位编辑框
     addRule(item) {
       let showInput = item.group.some(v => v.isEdit);
       if (!item.ruleId) {
@@ -530,6 +588,7 @@ export default {
         });
       }
     },
+    //保存细则
     async saveRule(row) {
       if (row.ruleName === '') {
         return this.$message({
@@ -563,13 +622,6 @@ export default {
         });
       }
       try {
-        // let selectStand = this.selectStand.map(it => ({
-        //   formulaId: it.formulaId,
-        //   id: it.id,
-        //   name: it.name,
-        //   norm: it.norm,
-        //   scoreRate: it.scoreRate
-        // }));
         const {
           ruleId,
           ruleName,
@@ -579,9 +631,10 @@ export default {
           checkStandard,
           checkMethod,
           evaluateStandard,
-          status
+          status,
+          ruleTags
         } = row;
-        // const standardIds = [];
+
         let result;
         if (!ruleId) {
           result = await this.$api.CheckSystem.addRule({
@@ -596,8 +649,14 @@ export default {
           });
 
           this.$set(row, 'ruleId', result.ruleId);
+          if (ruleTags.length) {
+            await this.$api.RuleTag.upsert({
+              ruleId: result.ruleId,
+              tags: ruleTags
+            });
+          }
         } else {
-          result = await this.$api.CheckSystem.updateRule({
+          await this.$api.CheckSystem.updateRule({
             ruleId,
             ruleName,
             parentRuleId,
@@ -608,7 +667,6 @@ export default {
             checkMethod,
             status
           });
-          console.log(result);
         }
 
         this.$message({
@@ -621,9 +679,11 @@ export default {
         this.$message.error(e.message);
       }
     },
+    //切换细则编辑状态
     editRule(item) {
       item.isEdit = true;
     },
+    //删除细则
     delRule({row, $index}, i) {
       this.$confirm('此操作将永久删除该细则, 是否继续?', '提示', {
         confirmButtonText: '确定',
