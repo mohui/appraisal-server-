@@ -451,7 +451,7 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.WorkPoint.rank(sysCode);
+        return await this.$api.Score.rank(sysCode);
       },
       default() {
         return [];
