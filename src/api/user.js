@@ -363,8 +363,9 @@ export default class User {
       .description('用户id')
   )
   async profile(id) {
-    return await UserModel.findOne({
+    return UserModel.findOne({
       where: {id},
+      attributes: {exclude: ['password']},
       include: [RoleModel, RegionModel]
     });
   }
