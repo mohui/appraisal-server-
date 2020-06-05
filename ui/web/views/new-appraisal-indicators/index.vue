@@ -181,7 +181,7 @@
             <h3 class="ins-ranking-title">一级机构排行</h3>
             <div
               v-for="(item, index) of firstLevelWorkpointRankData"
-              :key="item.code"
+              :key="item.id"
             >
               <!--一级机构质量系数排行-->
               <div v-if="params.listFlag === 'quality'" class="pointer">
@@ -222,7 +222,7 @@
             <h3 class="ins-ranking-title">二级机构排行</h3>
             <div
               v-for="(item, index) of secondLevelWorkpointRankData"
-              :key="item.code"
+              :key="item.id"
             >
               <!--二级机构质量系数排行-->
               <div v-if="params.listFlag === 'quality'" class="pointer">
