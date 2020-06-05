@@ -97,7 +97,16 @@ export default class CheckSystem {
     })
   )
   async addRule(params) {
-    return await CheckRuleModel.create(params);
+    return appDB.transaction(async () => {
+      const rule = await CheckRuleModel.create(params);
+      //将用户所拥有的机构关联上这个rule
+      await RuleHospitalModel.bulkCreate(
+        Context.current.user.hospitals.map(h => ({
+          hospitalId: h.id,
+          ruleId: rule.ruleId
+        }))
+      );
+    });
   }
 
   //添加规则组
@@ -256,6 +265,10 @@ export default class CheckSystem {
         });
         await Promise.all(childRules.map(async it => await it.destroy()));
       }
+      //删除与该规则绑定的指标关系
+      await RuleTagModel.destroy({where: {ruleId: rule.ruleId}});
+      //删除与该规则绑定的机构关系
+      await RuleHospitalModel.destroy({where: {ruleId: rule.ruleId}});
 
       return await rule.destroy({force: true});
     });
