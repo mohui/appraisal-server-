@@ -99,13 +99,20 @@ export default class CheckSystem {
   async addRule(params) {
     return appDB.transaction(async () => {
       const rule = await CheckRuleModel.create(params);
-      //将用户所拥有的机构关联上这个rule
+      //将用户所拥有,并且没有关联其他考核的机构,关联上这个rule
+      const limitHospitals = await CheckHospitalModel.findAll({
+        where: {
+          checkId: params.checkId,
+          hospitalId: {[Op.in]: Context.current.user.hospitals.map(it => it.id)}
+        }
+      });
       await RuleHospitalModel.bulkCreate(
-        Context.current.user.hospitals.map(h => ({
-          hospitalId: h.id,
+        limitHospitals.map(h => ({
+          hospitalId: h.hospitalId,
           ruleId: rule.ruleId
         }))
       );
+      return rule;
     });
   }
 
