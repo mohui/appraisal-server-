@@ -681,9 +681,7 @@ export default {
     //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
-        return await this.$api.Hospital.checks(
-          '2d312eea-ce96-4eac-8804-266de6252f95'
-        );
+        return await this.$api.Hospital.checks(this.sysCode);
       },
       default() {
         return {};
