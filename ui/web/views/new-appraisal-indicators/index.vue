@@ -118,6 +118,7 @@
                   class="pointer"
                   v-for="(i, index) of item.child"
                   :key="index"
+                  @click="handleClickInstitution(i.id)"
                 >
                   {{ i.name }} {{ Math.round(i.rate * 100) }}%
                 </li>
@@ -184,7 +185,11 @@
               :key="item.id"
             >
               <!--一级机构质量系数排行-->
-              <div v-if="params.listFlag === 'quality'" class="pointer">
+              <div
+                v-if="params.listFlag === 'quality'"
+                class="pointer"
+                @click="handleClickInstitution(item.id)"
+              >
                 <p>
                   {{ index + 1 }}、{{ item.name }}
                   <span style="float:right"
@@ -199,7 +204,11 @@
                 </el-progress>
               </div>
               <!--一级机构工分值排行-->
-              <div class="pointer" v-else-if="params.listFlag === 'score'">
+              <div
+                class="pointer"
+                v-else-if="params.listFlag === 'score'"
+                @click="handleClickInstitution(item.id)"
+              >
                 <p>{{ index + 1 }}、{{ item.name }}</p>
                 <progress-score
                   :label="item.score"
@@ -225,7 +234,11 @@
               :key="item.id"
             >
               <!--二级机构质量系数排行-->
-              <div v-if="params.listFlag === 'quality'" class="pointer">
+              <div
+                v-if="params.listFlag === 'quality'"
+                class="pointer"
+                @click="handleClickInstitution(item.id)"
+              >
                 <p>
                   {{ index + 1 }}、{{ item.name }}
                   <span style="float:right"
@@ -240,7 +253,11 @@
                 </el-progress>
               </div>
               <!--二级机构工分值排行-->
-              <div class="pointer" v-else-if="params.listFlag === 'score'">
+              <div
+                class="pointer"
+                v-else-if="params.listFlag === 'score'"
+                @click="handleClickInstitution(item.id)"
+              >
                 <p>{{ index + 1 }}、{{ item.name }}</p>
                 <progress-score
                   :label="item.score"
