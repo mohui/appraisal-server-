@@ -641,7 +641,7 @@ export default {
         return await this.$phApi.SystemPoint.doctorPoint(this.sysCode);
       },
       shouldUpdate() {
-        return this.params.listFlag === 'score';
+        return this.params.listFlag === 'score' && !this.params.isInstitution;
       },
       default() {
         return [];
@@ -651,6 +651,9 @@ export default {
     workpointTotalServerData: {
       async get() {
         return await this.$api.WorkPoint.total(this.sysCode);
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'score' && !this.params.isInstitution;
       },
       default() {
         return {
@@ -665,6 +668,9 @@ export default {
       async get() {
         return await this.$api.Score.rank(this.sysCode);
       },
+      shouldUpdate() {
+        return !this.params.isInstitution;
+      },
       default() {
         return [];
       }
@@ -674,6 +680,9 @@ export default {
       async get() {
         return await this.$api.Hospital.workpoints(this.sysCode);
       },
+      shouldUpdate() {
+        return this.params.listFlag === 'score' && this.params.isInstitution;
+      },
       default() {
         return [];
       }
@@ -682,6 +691,9 @@ export default {
     appraisalIndicatorsServerData: {
       async get() {
         return await this.$api.Hospital.checks(this.sysCode);
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'quality' && this.params.isInstitution;
       },
       default() {
         return {};
