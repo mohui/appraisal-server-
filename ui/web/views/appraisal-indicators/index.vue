@@ -620,7 +620,11 @@ export default {
           }
           return result;
         }, [])
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => b.score - a.score)
+        .map(item => {
+          item.children.sort((a, b) => b.score - a.score);
+          return item;
+        });
       return returnValue;
     },
     //工分项目数据
@@ -643,7 +647,11 @@ export default {
           }
           return result;
         }, [])
-        .sort((a, b) => b.score - a.score);
+        .sort((a, b) => b.score - a.score)
+        .map(item => {
+          item.children.sort((a, b) => b.score - a.score);
+          return item;
+        });
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
