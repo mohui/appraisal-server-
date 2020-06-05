@@ -83,175 +83,183 @@
       </div>
     </el-row>
     <!--机构排行-->
-    <el-card
-      shadow="hover"
-      :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
-    >
-      <h3 class="ins-ranking-title">
-        机构排行（含一级机构及下属二级机构）
-      </h3>
-      <div v-for="(item, index) of workpointRankData" :key="item.code">
-        <!--质量系数机构排行-->
-        <accordion
-          v-if="params.listFlag === 'quality'"
-          :Accordionindex="0"
-          :AccordionData="`${index + 1}、${item.name}`"
-        >
-          <div
-            slot="Sizes"
-            style="float: right; width: 80px; text-align: right;"
+    <div v-if="!params.isInstitution">
+      <el-card
+        shadow="hover"
+        :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
+      >
+        <h3 class="ins-ranking-title">
+          机构排行（含一级机构及下属二级机构）
+        </h3>
+        <div v-for="(item, index) of workpointRankData" :key="item.code">
+          <!--质量系数机构排行-->
+          <accordion
+            v-if="params.listFlag === 'quality'"
+            :Accordionindex="0"
+            :AccordionData="`${index + 1}、${item.name}`"
           >
-            {{ item.child.length }}家
-          </div>
-          <div slot="Progress" style="padding: 10px 20px 0;">
-            <el-progress
-              :text-inside="true"
-              :stroke-width="18"
-              :percentage="Math.round(item.rate * 100)"
+            <div
+              slot="Sizes"
+              style="float: right; width: 80px; text-align: right;"
             >
-            </el-progress>
-          </div>
-          <div slot="First" style="padding: 0 20px">
-            <ul>
-              <li class="pointer" v-for="(i, index) of item.child" :key="index">
-                {{ i.name }} {{ Math.round(i.rate * 100) }}%
-              </li>
-            </ul>
-          </div>
-        </accordion>
-        <!--工分值机构排行-->
-        <accordion
-          v-if="params.listFlag === 'score'"
-          :Accordionindex="0"
-          :AccordionData="`${index + 1}、${item.name}`"
-        >
-          <div
-            slot="Sizes"
-            style="float: right; width: 80px; text-align: right;"
-          >
-            {{ item.child.length }}家
-          </div>
-          <div slot="Progress" style="padding: 10px 20px 0;">
-            <progress-score
-              :label="item.score"
-              :height="18"
-              :percentage="
-                item.score != 0 ? Math.round((item.score / maxScore) * 100) : 0
-              "
-              style="padding:0 20px;"
-            >
-            </progress-score>
-          </div>
-          <div slot="First" style="padding: 0 20px">
-            <ul>
-              <li
-                class="pointer"
-                style="margin: 8px 0; font-size: 14px"
-                v-for="(i, index) of item.child"
-                :key="index"
-                @click="handleClickInstitution(i.id)"
+              {{ item.child.length }}家
+            </div>
+            <div slot="Progress" style="padding: 10px 20px 0;">
+              <el-progress
+                :text-inside="true"
+                :stroke-width="18"
+                :percentage="Math.round(item.rate * 100)"
               >
-                {{ i.name }} {{ i.score }}分
-              </li>
-            </ul>
-          </div>
-        </accordion>
+              </el-progress>
+            </div>
+            <div slot="First" style="padding: 0 20px">
+              <ul>
+                <li
+                  class="pointer"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                >
+                  {{ i.name }} {{ Math.round(i.rate * 100) }}%
+                </li>
+              </ul>
+            </div>
+          </accordion>
+          <!--工分值机构排行-->
+          <accordion
+            v-if="params.listFlag === 'score'"
+            :Accordionindex="0"
+            :AccordionData="`${index + 1}、${item.name}`"
+          >
+            <div
+              slot="Sizes"
+              style="float: right; width: 80px; text-align: right;"
+            >
+              {{ item.child.length }}家
+            </div>
+            <div slot="Progress" style="padding: 10px 20px 0;">
+              <progress-score
+                :label="item.score"
+                :height="18"
+                :percentage="
+                  item.score != 0
+                    ? Math.round((item.score / maxScore) * 100)
+                    : 0
+                "
+                style="padding:0 20px;"
+              >
+              </progress-score>
+            </div>
+            <div slot="First" style="padding: 0 20px">
+              <ul>
+                <li
+                  class="pointer"
+                  style="margin: 8px 0; font-size: 14px"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ i.name }} {{ i.score }}分
+                </li>
+              </ul>
+            </div>
+          </accordion>
+        </div>
+      </el-card>
+      <!--机构排行底部【收起】/【显示更多】按钮-->
+      <div
+        v-show="workpointRankData.length > 3"
+        class="show-more"
+        @click="totalShowMore = !totalShowMore"
+      >
+        {{ totalShowMore ? '收起' : '显示更多' }}
       </div>
-    </el-card>
-    <!--机构排行底部【收起】/【显示更多】按钮-->
-    <div
-      v-show="workpointRankData.length > 3"
-      class="show-more"
-      @click="totalShowMore = !totalShowMore"
-    >
-      {{ totalShowMore ? '收起' : '显示更多' }}
+      <!--一、二级机构排行-->
+      <el-row :gutter="20" style="margin-top: 20px">
+        <!--一级机构排行-->
+        <el-col :span="12">
+          <el-card shadow="hover">
+            <h3 class="ins-ranking-title">一级机构排行</h3>
+            <div
+              v-for="(item, index) of firstLevelWorkpointRankData"
+              :key="item.code"
+            >
+              <!--一级机构质量系数排行-->
+              <div v-if="params.listFlag === 'quality'" class="pointer">
+                <p>
+                  {{ index + 1 }}、{{ item.name }}
+                  <span style="float:right"
+                    >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                  >
+                </p>
+                <el-progress
+                  :text-inside="true"
+                  :stroke-width="18"
+                  :percentage="Math.round(item.rate * 100)"
+                >
+                </el-progress>
+              </div>
+              <!--一级机构工分值排行-->
+              <div class="pointer" v-else-if="params.listFlag === 'score'">
+                <p>{{ index + 1 }}、{{ item.name }}</p>
+                <progress-score
+                  :label="item.score"
+                  :height="18"
+                  :percentage="
+                    item.score != 0
+                      ? Math.round((item.score / maxScore) * 100)
+                      : 0
+                  "
+                  style="padding:0 20px;"
+                >
+                </progress-score>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <!--二级机构排行-->
+        <el-col :span="12">
+          <el-card shadow="hover">
+            <h3 class="ins-ranking-title">二级机构排行</h3>
+            <div
+              v-for="(item, index) of secondLevelWorkpointRankData"
+              :key="item.code"
+            >
+              <!--二级机构质量系数排行-->
+              <div v-if="params.listFlag === 'quality'" class="pointer">
+                <p>
+                  {{ index + 1 }}、{{ item.name }}
+                  <span style="float:right"
+                    >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                  >
+                </p>
+                <el-progress
+                  :text-inside="true"
+                  :stroke-width="18"
+                  :percentage="Math.round(item.rate * 100)"
+                >
+                </el-progress>
+              </div>
+              <!--二级机构工分值排行-->
+              <div class="pointer" v-else-if="params.listFlag === 'score'">
+                <p>{{ index + 1 }}、{{ item.name }}</p>
+                <progress-score
+                  :label="item.score"
+                  :height="18"
+                  :percentage="
+                    item.score != 0
+                      ? Math.round((item.score / maxScore) * 100)
+                      : 0
+                  "
+                  style="padding:0 20px;"
+                >
+                </progress-score>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
     </div>
-    <!--一、二级机构排行-->
-    <el-row :gutter="20" style="margin-top: 20px">
-      <!--一级机构排行-->
-      <el-col :span="12">
-        <el-card shadow="hover">
-          <h3 class="ins-ranking-title">一级机构排行</h3>
-          <div
-            v-for="(item, index) of firstLevelWorkpointRankData"
-            :key="item.code"
-          >
-            <!--一级机构质量系数排行-->
-            <div v-if="params.listFlag === 'quality'" class="pointer">
-              <p>
-                {{ index + 1 }}、{{ item.name }}
-                <span style="float:right"
-                  >{{ Math.round(item.rate * 100) }}% 考核办法</span
-                >
-              </p>
-              <el-progress
-                :text-inside="true"
-                :stroke-width="18"
-                :percentage="Math.round(item.rate * 100)"
-              >
-              </el-progress>
-            </div>
-            <!--一级机构工分值排行-->
-            <div class="pointer" v-else-if="params.listFlag === 'score'">
-              <p>{{ index + 1 }}、{{ item.name }}</p>
-              <progress-score
-                :label="item.score"
-                :height="18"
-                :percentage="
-                  item.score != 0
-                    ? Math.round((item.score / maxScore) * 100)
-                    : 0
-                "
-                style="padding:0 20px;"
-              >
-              </progress-score>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <!--二级机构排行-->
-      <el-col :span="12">
-        <el-card shadow="hover">
-          <h3 class="ins-ranking-title">二级机构排行</h3>
-          <div
-            v-for="(item, index) of secondLevelWorkpointRankData"
-            :key="item.code"
-          >
-            <!--二级机构质量系数排行-->
-            <div v-if="params.listFlag === 'quality'" class="pointer">
-              <p>
-                {{ index + 1 }}、{{ item.name }}
-                <span style="float:right"
-                  >{{ Math.round(item.rate * 100) }}% 考核办法</span
-                >
-              </p>
-              <el-progress
-                :text-inside="true"
-                :stroke-width="18"
-                :percentage="Math.round(item.rate * 100)"
-              >
-              </el-progress>
-            </div>
-            <!--二级机构工分值排行-->
-            <div class="pointer" v-else-if="params.listFlag === 'score'">
-              <p>{{ index + 1 }}、{{ item.name }}</p>
-              <progress-score
-                :label="item.score"
-                :height="18"
-                :percentage="
-                  item.score != 0
-                    ? Math.round((item.score / maxScore) * 100)
-                    : 0
-                "
-                style="padding:0 20px;"
-              >
-              </progress-score>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-    <el-row :gutter="20" style="margin-top: 20px">
+    <el-row v-if="params.isInstitution" :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
         <el-card shadow="hover">
           <p style="color:#1096d0; font-size:20px; font-weight:500;">
@@ -344,7 +352,7 @@ import twoCardBar from '../appraisal-indicators/components/twocardBar';
 import accordion from '../appraisal-indicators/components/twocardAccordion';
 import progressScore from '../appraisal-indicators/components/progressScore';
 
-const sysCode = '340203';
+const code = '340203';
 
 export default {
   name: 'index',
@@ -357,10 +365,10 @@ export default {
     return {
       subtitle: '芜湖市-弋江区',
       params: {
-        listFlag: 'score',
-        isInstitution: false
+        listFlag: 'score', // quality(质量系数) | score（工分值）
+        isInstitution: false, // 是否机构
+        id: ''
       },
-      isInstitution: false,
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
@@ -371,25 +379,46 @@ export default {
     //纬度切换
     latTypeChanged(type) {
       console.log('latTypeChanged', type);
-      this.params.listFlag = type;
+      if (type !== this.params.listFlag) {
+        this.params.listFlag = type;
+        this.params.id = this.$route.query.id;
+        this.$router.push({query: this.params});
+      }
     },
     handleClickInstitution(id) {
       console.log(id);
-      this.$route.query.id = id;
-      this.$router.push({
-        query: {
-          isInstitution: false,
-          listFlag: this.params.listFlag,
-          id: id
-        }
-      });
+      this.params.isInstitution = true;
+      this.params.id = id;
+      if (this.params.listFlag === 'score') {
+        this.$router.push({
+          query: {
+            ...this.params
+          }
+        });
+      } else if (this.params.listFlag === 'quality') {
+        this.$router.push({
+          query: {
+            ...this.params
+          }
+        });
+      }
     },
     //返回
     handleBack() {
+      console.log('query', this.$route.query);
       this.params.isInstitution = false;
+      this.params.id = code;
+      this.$router.push({
+        query: {
+          ...this.params
+        }
+      });
     }
   },
   computed: {
+    sysCode() {
+      return this.$route.query.id || code;
+    },
     //医生工分值数据，用于柱状图显示
     doctorWorkpointData() {
       return {
@@ -526,7 +555,7 @@ export default {
     //获取服务器的医生工分值数据
     doctorWorkpointServerData: {
       async get() {
-        return await this.$phApi.SystemPoint.doctorPoint(sysCode);
+        return await this.$phApi.SystemPoint.doctorPoint(this.sysCode);
       },
       shouldUpdate() {
         return this.params.listFlag === 'score';
@@ -538,7 +567,7 @@ export default {
     //获取服务器的工分值数据
     workpointTotalServerData: {
       async get() {
-        return await this.$api.WorkPoint.total(sysCode);
+        return await this.$api.WorkPoint.total(this.sysCode);
       },
       default() {
         return {
@@ -551,7 +580,7 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.Score.rank(sysCode);
+        return await this.$api.Score.rank(this.sysCode);
       },
       default() {
         return [];
@@ -560,9 +589,7 @@ export default {
     //获取服务器的医生工分和工分项目数据
     doctorWorkpointRankServerData: {
       async get() {
-        return await this.$api.Hospital.workpoints(
-          'df6365a4-5e87-42fc-a9e1-73cad5b083c4'
-        );
+        return await this.$api.Hospital.workpoints(this.sysCode);
       },
       default() {
         return [];
