@@ -346,6 +346,12 @@ export default class CheckSystem {
             hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
           }
         });
+        const checkHospitalCount = await CheckHospitalModel.count({
+          where: {
+            checkId: row.checkId,
+            hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+          }
+        });
         //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
         const autoTrue = !!ruleHospital.find(it => it.auto);
         const autoFalse = !!ruleHospital.find(it => !it.auto);
@@ -353,7 +359,7 @@ export default class CheckSystem {
         if (autoFalse && autoTrue) auto = 'part';
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
-        return {...row, hospitalCount: ruleHospital.length, auto};
+        return {...row, hospitalCount: checkHospitalCount, auto};
       })
     );
     return result;
