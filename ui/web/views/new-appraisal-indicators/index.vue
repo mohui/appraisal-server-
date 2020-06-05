@@ -562,6 +562,9 @@ export default {
         }
         return result;
       }, []);
+    },
+    appraisalIndicatorsData() {
+      return this.appraisalIndicatorsServerData;
     }
   },
   asyncComputed: {
@@ -606,6 +609,16 @@ export default {
       },
       default() {
         return [];
+      }
+    },
+    appraisalIndicatorsServerData: {
+      async get() {
+        return await this.$api.Hospital.checks(
+          '2d312eea-ce96-4eac-8804-266de6252f95'
+        );
+      },
+      default() {
+        return {};
       }
     }
   }
