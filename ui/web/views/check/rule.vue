@@ -736,17 +736,14 @@ export default {
   background-color: #dee2e6;
   line-height: 26px;
   padding: 5px 0;
-
   span {
     padding: 0 20px;
     display: flex;
   }
-
   div {
     padding: 0 20px;
   }
 }
-
 .add-rule {
   margin: 10px 0 30px;
   width: 100%;
