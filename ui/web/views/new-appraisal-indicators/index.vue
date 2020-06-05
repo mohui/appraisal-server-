@@ -259,7 +259,69 @@
         </el-col>
       </el-row>
     </div>
-    <el-row v-if="params.isInstitution" :gutter="20" style="margin-top: 20px">
+    <el-row v-if="params.isInstitution && params.listFlag === 'quality'">
+      <el-col :span="24">
+        <div>
+          <div style="width: 100%; height:40px;">
+            <div class="appraisal-indicators-rule-title" style="float:left">
+              {{ appraisalIndicatorsData.checkName }}
+              <span style="color: #666;font-size: 14px;"
+                >{{ appraisalIndicatorsData.ruleScore }}分</span
+              >
+            </div>
+          </div>
+          <div
+            class="check-table"
+            v-for="(item, index) in appraisalIndicatorsData.children"
+            :key="index"
+          >
+            <div class="check-table-title">
+              <span>{{ item.name }}</span>
+            </div>
+            <el-table :data="item.children" show-summary style="width: 100%">
+              <el-table-column
+                type="index"
+                align="center"
+                label="序号"
+              ></el-table-column>
+              <el-table-column prop="ruleName" align="center" label="考核内容">
+              </el-table-column>
+              <el-table-column
+                prop="ruleScore"
+                align="center"
+                width="50px"
+                label="分值"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="checkStandard"
+                align="center"
+                width="284px"
+                label="考核标准"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="checkMethod"
+                align="center"
+                label="考核方法"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="evaluateStandard"
+                align="center"
+                label="评分标准"
+              >
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
+    <el-row
+      v-if="params.isInstitution && params.listFlag === 'score'"
+      :gutter="20"
+      style="margin-top: 20px"
+    >
       <el-col :span="12">
         <el-card shadow="hover">
           <p style="color:#1096d0; font-size:20px; font-weight:500;">
@@ -671,5 +733,12 @@ export default {
   color: #6c7177;
   font-size: 14px;
   cursor: pointer;
+}
+
+.appraisal-indicators-rule-title {
+  color: #1a95d7;
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 </style>
