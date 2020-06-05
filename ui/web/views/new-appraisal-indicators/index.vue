@@ -609,6 +609,7 @@ export default {
       console.log('retureValue', returnValue);
       return returnValue;
     },
+    //工分项目数据
     categoryWorkpointRankData() {
       return this.doctorWorkpointRankServerData.reduce((result, current) => {
         let item = result.find(it => it.name === current.name);
@@ -628,6 +629,7 @@ export default {
         return result;
       }, []);
     },
+    //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
       return this.appraisalIndicatorsServerData;
     }
@@ -676,6 +678,7 @@ export default {
         return [];
       }
     },
+    //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
         return await this.$api.Hospital.checks(
