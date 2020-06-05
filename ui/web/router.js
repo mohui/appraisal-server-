@@ -33,9 +33,9 @@ const router = new Router({
           component: () => import('./views/user/index')
         },
         {
-          path: 'new-appraisal-indicators',
-          name: 'new-appraisal-indicators',
-          component: () => import('./views/new-appraisal-indicators/index')
+          path: 'appraisal-indicators',
+          name: 'appraisal-indicators',
+          component: () => import('./views/appraisal-indicators/index')
         }
       ]
     },
