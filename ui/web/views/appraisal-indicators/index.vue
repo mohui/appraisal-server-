@@ -64,8 +64,8 @@
           <el-card shadow="hover">
             <div class="score-detail">
               <two-card-bar
-                :barxAxisData="doctorWorkpointData.xAxisData"
-                :baryAxisData="doctorWorkpointData.yAxisData"
+                :barxAxisData="workpointBarData.xAxisData"
+                :baryAxisData="workpointBarData.yAxisData"
               ></two-card-bar>
             </div>
           </el-card>
@@ -512,12 +512,23 @@ export default {
     sysCode() {
       return this.$route.query.id || code;
     },
-    //医生工分值数据，用于柱状图显示
-    doctorWorkpointData() {
-      return {
-        xAxisData: this.doctorWorkpointServerData.map(it => it.doctorName),
-        yAxisData: this.doctorWorkpointServerData.map(it => it.workScore)
-      };
+    //工分值数据，用于柱状图显示
+    workpointBarData() {
+      let value = {xAxisData: [], yAxisData: []};
+      let array = [];
+      if (this.params.isInstitution) {
+        //机构，取医生的前三名
+        array = this.doctorWorkpointRankData.slice(0, 3);
+        value.xAxisData = array.map(it => it.doctorname);
+        value.yAxisData = array.map(it => it.score);
+        return value;
+      } else {
+        //地区，取一级机构的前三名
+        array = this.firstLevelWorkpointRankData.slice(0, 3);
+        value.xAxisData = array.map(it => it.name);
+        value.yAxisData = array.map(it => it.score);
+      }
+      return value;
     },
     //校正前工分值的总值
     workpointTotalData() {
@@ -649,18 +660,6 @@ export default {
     }
   },
   asyncComputed: {
-    //获取服务器的医生工分值数据
-    doctorWorkpointServerData: {
-      async get() {
-        return await this.$phApi.SystemPoint.doctorPoint(this.sysCode);
-      },
-      shouldUpdate() {
-        return this.params.listFlag === 'score' && !this.params.isInstitution;
-      },
-      default() {
-        return [];
-      }
-    },
     //获取服务器的工分值数据
     workpointTotalServerData: {
       async get() {
