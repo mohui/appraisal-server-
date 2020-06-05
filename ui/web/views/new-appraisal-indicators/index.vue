@@ -22,6 +22,14 @@
             工分值
           </el-button>
         </el-button-group>
+        <el-button
+          plain
+          style="float:right; margin: 0 30px;"
+          type="primary"
+          @click="handleBack"
+          v-if="params.isInstitution"
+          >返回
+        </el-button>
       </div>
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
@@ -375,6 +383,10 @@ export default {
           id: id
         }
       });
+    },
+    //返回
+    handleBack() {
+      this.params.isInstitution = false;
     }
   },
   computed: {
