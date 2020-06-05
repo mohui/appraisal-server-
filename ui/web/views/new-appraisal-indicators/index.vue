@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!--顶部表头-->
     <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
         {{ subtitle }}两卡制管理
@@ -73,6 +74,7 @@
         </el-col>
       </div>
     </el-row>
+    <!--机构排行-->
     <el-card
       shadow="hover"
       :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
@@ -81,6 +83,7 @@
         机构排行（含一级机构及下属二级机构）
       </h3>
       <div v-for="(item, index) of workpointRankData" :key="item.code">
+        <!--质量系数机构排行-->
         <accordion
           v-if="params.listFlag === 'quality'"
           :Accordionindex="0"
@@ -108,6 +111,7 @@
             </ul>
           </div>
         </accordion>
+        <!--工分值机构排行-->
         <accordion
           v-if="params.listFlag === 'score'"
           :Accordionindex="0"
@@ -146,6 +150,7 @@
         </accordion>
       </div>
     </el-card>
+    <!--机构排行底部【收起】/【显示更多】按钮-->
     <div
       v-show="workpointRankData.length > 3"
       class="show-more"
@@ -153,7 +158,9 @@
     >
       {{ totalShowMore ? '收起' : '显示更多' }}
     </div>
+    <!--一、二级机构排行-->
     <el-row :gutter="20" style="margin-top: 20px">
+      <!--一级机构排行-->
       <el-col :span="12">
         <el-card shadow="hover">
           <h3 class="ins-ranking-title">一级机构排行</h3>
@@ -178,6 +185,7 @@
           </div>
         </el-card>
       </el-col>
+      <!--二级机构排行-->
       <el-col :span="12">
         <el-card shadow="hover">
           <h3 class="ins-ranking-title">二级机构排行</h3>
