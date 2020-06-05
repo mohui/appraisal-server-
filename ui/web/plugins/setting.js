@@ -11,6 +11,10 @@ export const settingPlugin = {
       methods: {
         async load() {
           this.user = await this.$api.User.profile(getToken());
+        },
+        //清理缓存
+        clean() {
+          this.user = null;
         }
       }
     });

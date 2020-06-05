@@ -84,10 +84,6 @@ export default {
       }
     };
   },
-  async created() {
-    //在登录界面时清空当前用户信息
-    this.$settings.user = null;
-  },
   methods: {
     submitForm() {
       this.btnLoading = true;
