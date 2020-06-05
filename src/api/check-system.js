@@ -161,6 +161,8 @@ export default class CheckSystem {
       await Promise.all(
         sys.checkRules.map(async rule => await rule.destroy({force: true}))
       );
+      //删除该考核系统下的所有的机构绑定
+      await CheckHospitalModel.destroy({where: {checkId: id}});
       //删除该考核系统
       return await sys.destroy({force: true});
     });
