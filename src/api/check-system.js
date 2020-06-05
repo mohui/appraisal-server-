@@ -5,7 +5,6 @@ import {
   HospitalModel,
   RuleHospitalModel,
   RuleTagModel,
-  UserHospitalModel,
   UserModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
@@ -331,9 +330,7 @@ export default class CheckSystem {
       limit: pageSize
     });
     //当前用户拥有的机构
-    const userHospital = await UserHospitalModel.findAll({
-      where: {userId: Context.req.headers.token}
-    });
+    const userHospital = Context.current.user.hospitals.map(it => it.id);
     result.rows = await Promise.all(
       result.rows.map(async row => {
         row = row.toJSON();
@@ -345,13 +342,13 @@ export default class CheckSystem {
         const ruleHospital = await RuleHospitalModel.findAll({
           where: {
             ruleId: {[Op.in]: allRules},
-            hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+            hospitalId: {[Op.in]: userHospital}
           }
         });
         const checkHospitalCount = await CheckHospitalModel.count({
           where: {
             checkId: row.checkId,
-            hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+            hospitalId: {[Op.in]: userHospital}
           }
         });
         //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
@@ -445,9 +442,7 @@ export default class CheckSystem {
       if (allRules.length === 0)
         throw new KatoCommonError('该考核系统下没有细则');
       //当前用户所拥有的机构
-      const userHospital = await UserHospitalModel.findAll({
-        where: {userId: Context.req.headers.token}
-      });
+      const userHospital = Context.current.user.hospitals.map(it => it.id);
 
       //查询这些细则原有的机构关系
       const ruleHospital = (
@@ -457,14 +452,14 @@ export default class CheckSystem {
               await RuleHospitalModel.findAll({
                 where: {
                   ruleId: rule.ruleId,
-                  hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+                  hospitalId: {[Op.in]: userHospital}
                 } //过滤出不属于该用户管的机构
               })
           )
         )
       ).reduce((pre, next) => pre.concat(next), []);
 
-      if (hospitals.find(h => !userHospital.find(u => u.hospitalId === h)))
+      if (hospitals.find(h => !userHospital.find(u => u === h)))
         throw new KatoCommonError('权限不足');
       //删除被解绑的机构
       await Promise.all(
@@ -476,7 +471,7 @@ export default class CheckSystem {
       const checkHospitals = await CheckHospitalModel.findAll({
         where: {
           checkId,
-          hospitalId: {[Op.in]: userHospital.map(it => it.hospitalId)}
+          hospitalId: {[Op.in]: userHospital}
         }
       });
       //删除被解绑的考核体系和机构的关系
