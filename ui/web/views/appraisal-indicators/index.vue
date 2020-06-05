@@ -465,7 +465,8 @@ export default {
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
       // TODO: 是否显示机构视图和code, 日后将由用户权限控制
-      this.params.isInstitution = route.query.isInstitution ?? false;
+      this.params.isInstitution =
+        JSON.parse(route.query.isInstitution) ?? false;
       this.params.id = route.query.id ?? code;
     },
     //纬度切换
