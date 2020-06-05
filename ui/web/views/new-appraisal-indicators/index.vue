@@ -276,7 +276,7 @@
             :key="index"
           >
             <div class="check-table-title">
-              <span>{{ item.name }}</span>
+              <span>{{ item.ruleName }}</span>
             </div>
             <el-table :data="item.children" show-summary style="width: 100%">
               <el-table-column
