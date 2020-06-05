@@ -636,23 +636,25 @@ export default {
     },
     //工分项目数据
     categoryWorkpointRankData() {
-      return this.doctorWorkpointRankServerData.reduce((result, current) => {
-        let item = result.find(it => it.name === current.name);
-        if (item) {
-          //类别已存在
-          item.score += current.score;
-          item.children.push(current);
-        } else {
-          //类别不存在
-          item = {
-            name: current.name,
-            score: current.score,
-            children: [current]
-          };
-          result.push(item);
-        }
-        return result;
-      }, []);
+      return this.doctorWorkpointRankServerData
+        .reduce((result, current) => {
+          let item = result.find(it => it.name === current.name);
+          if (item) {
+            //类别已存在
+            item.score += current.score;
+            item.children.push(current);
+          } else {
+            //类别不存在
+            item = {
+              name: current.name,
+              score: current.score,
+              children: [current]
+            };
+            result.push(item);
+          }
+          return result;
+        }, [])
+        .sort((a, b) => b.score - a.score);
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
