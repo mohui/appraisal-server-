@@ -592,8 +592,8 @@ export default {
         'doctorWorkpointRankServerData',
         this.doctorWorkpointRankServerData
       );
-      let returnValue = this.doctorWorkpointRankServerData.reduce(
-        (result, current) => {
+      let returnValue = this.doctorWorkpointRankServerData
+        .reduce((result, current) => {
           // let item = result.find(it => it.doctorid === current.doctorid);
           let item;
           for (const it of result) {
@@ -618,9 +618,8 @@ export default {
           }
 
           return result;
-        },
-        []
-      );
+        }, [])
+        .sort((a, b) => b.score - a.score);
       console.log('retureValue', returnValue);
       return returnValue;
     },
