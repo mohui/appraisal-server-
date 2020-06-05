@@ -38,9 +38,6 @@
           <div class="score-detail">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
-              <el-button plain style="float: right" size="small" type="primary"
-                >查询工分
-              </el-button>
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
