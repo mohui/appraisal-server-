@@ -96,7 +96,7 @@
             <el-progress
               :text-inside="true"
               :stroke-width="18"
-              :percentage="item.rate * 100"
+              :percentage="Math.round(item.rate * 100)"
             >
             </el-progress>
           </div>
@@ -385,6 +385,7 @@ export default {
             (result, current) => (result += current.rate),
             0
           );
+          returnValue.rate = returnValue.rate / returnValue.child.length;
           return returnValue;
         })
         .sort((a, b) => b.score - a.score);
