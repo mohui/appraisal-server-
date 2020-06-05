@@ -182,7 +182,7 @@
                   plain
                   type="primary"
                   size="mini"
-                  @click="scope.row.isEdit = false"
+                  @click="cancelRule(scope.row, item)"
                   >取消
                 </el-button>
               </div>
@@ -686,6 +686,15 @@ export default {
         this.$message.error(e.message);
       }
     },
+    cancelRule(row, item) {
+      // 根据ruleId判断取消修改的是新增细则还是已有细则
+      if (row.ruleId) {
+        // TODO: 修改部分数据后取消, 其实还是存在bug的
+        row.isEdit = false;
+      } else {
+        item.group.pop();
+      }
+    },
     //切换细则编辑状态
     editRule(item) {
       item.isEdit = true;
@@ -727,14 +736,17 @@ export default {
   background-color: #dee2e6;
   line-height: 26px;
   padding: 5px 0;
+
   span {
     padding: 0 20px;
     display: flex;
   }
+
   div {
     padding: 0 20px;
   }
 }
+
 .add-rule {
   margin: 10px 0 30px;
   width: 100%;
