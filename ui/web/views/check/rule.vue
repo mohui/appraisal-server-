@@ -182,7 +182,7 @@
                   plain
                   type="primary"
                   size="mini"
-                  @click="scope.row.isEdit = false"
+                  @click="cancelRule(scope.row, item)"
                   >取消
                 </el-button>
               </div>
@@ -684,6 +684,15 @@ export default {
         this.$set(row, 'isEdit', false);
       } catch (e) {
         this.$message.error(e.message);
+      }
+    },
+    cancelRule(row, item) {
+      // 根据ruleId判断取消修改的是新增细则还是已有细则
+      if (row.ruleId) {
+        // TODO: 修改部分数据后取消, 其实还是存在bug的
+        row.isEdit = false;
+      } else {
+        item.group.pop();
       }
     },
     //切换细则编辑状态
