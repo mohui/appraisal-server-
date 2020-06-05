@@ -259,7 +259,11 @@
         </el-col>
       </el-row>
     </div>
-    <el-row v-if="params.isInstitution && params.listFlag === 'quality'">
+    <!--考核指标规则-->
+    <el-row
+      class="appraisal-indicators-rule"
+      v-if="params.isInstitution && params.listFlag === 'quality'"
+    >
       <el-col :span="24">
         <div>
           <div style="width: 100%; height:40px;">
@@ -271,7 +275,6 @@
             </div>
           </div>
           <div
-            class="check-table"
             v-for="(item, index) in appraisalIndicatorsData.children"
             :key="index"
           >
@@ -687,7 +690,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .header-title {
   font: bold 20px/2 Arial;
   color: #0090dc;
@@ -735,10 +738,22 @@ export default {
   cursor: pointer;
 }
 
-.appraisal-indicators-rule-title {
-  color: #1a95d7;
-  font-size: 20px;
-  margin-top: 0;
-  margin-bottom: 20px;
+.appraisal-indicators-rule {
+  padding-top: 20px;
+  .appraisal-indicators-rule-title {
+    color: #1a95d7;
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+
+  .check-table-title {
+    background: #ccc;
+    width: 100%;
+    line-height: 40px;
+    padding-left: 20px;
+    float: left;
+    box-sizing: border-box;
+  }
 }
 </style>
