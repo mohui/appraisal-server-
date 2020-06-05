@@ -471,7 +471,6 @@ export default {
     },
     //纬度切换
     latTypeChanged(type) {
-      console.log('latTypeChanged', type);
       if (type !== this.params.listFlag) {
         this.params.listFlag = type;
         this.params.id = this.$route.query.id;
@@ -479,7 +478,6 @@ export default {
       }
     },
     handleClickInstitution(id) {
-      console.log(id);
       this.params.isInstitution = true;
       this.params.id = id;
       if (this.params.listFlag === 'score') {
@@ -498,7 +496,6 @@ export default {
     },
     //返回
     handleBack() {
-      console.log('query', this.$route.query);
       this.params.isInstitution = false;
       this.params.id = code;
       this.$router.push({
@@ -546,7 +543,6 @@ export default {
     },
     //机构排行数据
     workpointRankData() {
-      console.log('workpointRankServerData', this.workpointRankServerData);
       const result = this.workpointRankServerData
         //过滤，只取一级机构（name中含'中心'）的值
         .filter(item => item.name.endsWith('中心'))
@@ -574,7 +570,6 @@ export default {
           return returnValue;
         })
         .sort((a, b) => b.score - a.score);
-      console.log('result', result);
       return result;
     },
     //一级机构排行数据
@@ -599,10 +594,6 @@ export default {
     },
     //医生工分排行数据
     doctorWorkpointRankData() {
-      console.log(
-        'doctorWorkpointRankServerData',
-        this.doctorWorkpointRankServerData
-      );
       let returnValue = this.doctorWorkpointRankServerData
         .reduce((result, current) => {
           // let item = result.find(it => it.doctorid === current.doctorid);
@@ -627,11 +618,9 @@ export default {
             };
             result.push(item);
           }
-
           return result;
         }, [])
         .sort((a, b) => b.score - a.score);
-      console.log('retureValue', returnValue);
       return returnValue;
     },
     //工分项目数据
