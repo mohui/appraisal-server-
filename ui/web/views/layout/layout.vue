@@ -60,6 +60,10 @@ export default {
       return meta?.activeMenu || this.$route.name;
     }
   },
+  async created() {
+    //获取当前需要缓存的信息
+    await this.$settings.load();
+  },
   methods: {
     handCommand(command) {
       if (command === 'logout') this.logout();

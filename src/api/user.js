@@ -355,4 +355,18 @@ export default class User {
     if (!result) throw new KatoCommonError('该用户不存在');
     return result;
   }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('用户id')
+  )
+  async profile(id) {
+    return UserModel.findOne({
+      where: {id},
+      attributes: {exclude: ['password']},
+      include: [RoleModel, RegionModel]
+    });
+  }
 }
