@@ -183,7 +183,6 @@
               >
               </el-progress>
             </div>
-
             <!--一级机构工分值排行-->
             <div class="pointer" v-else-if="params.listFlag === 'score'">
               <p>{{ index + 1 }}、{{ item.name }}</p>
@@ -210,7 +209,23 @@
             v-for="(item, index) of secondLevelWorkpointRankData"
             :key="item.code"
           >
-            <div class="pointer">
+            <!--二级机构质量系数排行-->
+            <div v-if="params.listFlag === 'quality'" class="pointer">
+              <p>
+                {{ index + 1 }}、{{ item.name }}
+                <span style="float:right"
+                  >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                >
+              </p>
+              <el-progress
+                :text-inside="true"
+                :stroke-width="18"
+                :percentage="Math.round(item.rate * 100)"
+              >
+              </el-progress>
+            </div>
+            <!--二级机构工分值排行-->
+            <div class="pointer" v-else-if="params.listFlag === 'score'">
               <p>{{ index + 1 }}、{{ item.name }}</p>
               <progress-score
                 :label="item.score"
