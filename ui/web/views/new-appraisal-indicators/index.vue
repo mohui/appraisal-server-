@@ -58,7 +58,7 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            fff
+            历史趋势（待实现）
           </div>
         </el-card>
       </el-col>
@@ -76,7 +76,7 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              fff
+              人脸采集信息（待实现）
             </div>
           </el-card>
         </el-col>
