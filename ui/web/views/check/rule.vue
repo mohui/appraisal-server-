@@ -651,7 +651,7 @@ export default {
           });
 
           this.$set(row, 'ruleId', result.ruleId);
-          if (ruleTags.length) {
+          if (ruleTags && ruleTags.length) {
             await this.$api.RuleTag.upsert({
               ruleId: result.ruleId,
               tags: ruleTags
