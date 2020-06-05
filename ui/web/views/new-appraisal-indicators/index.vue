@@ -427,9 +427,9 @@
   </div>
 </template>
 <script>
-import twoCardBar from '../appraisal-indicators/components/twocardBar';
-import accordion from '../appraisal-indicators/components/twocardAccordion';
-import progressScore from '../appraisal-indicators/components/progressScore';
+import twoCardBar from './components/twocardBar';
+import accordion from './components/twocardAccordion';
+import progressScore from './components/progressScore';
 
 const code = '340203';
 
