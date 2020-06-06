@@ -74,7 +74,7 @@
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{ Math.round(this.totalData.rate * 100) }}%)
+              (计算时校正系数：{{ Math.round(totalData.rate * 100) }}%)
             </span>
           </div>
         </el-card>
