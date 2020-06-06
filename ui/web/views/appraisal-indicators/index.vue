@@ -332,6 +332,7 @@
               </el-table-column>
               <el-table-column
                 prop="ruleScore"
+                :formatter="fixedDecimal"
                 align="center"
                 width="100px"
                 label="分值"
@@ -497,6 +498,12 @@ export default {
     }
   },
   methods: {
+    //el-table-column 内容格式化保留两位小数
+    fixedDecimal: function(row, column, value) {
+      console.log('format', row, column, value);
+      if (!value) return 0;
+      return value.toFixed(2);
+    },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
       // TODO: 是否显示机构视图和code, 日后将由用户权限控制
