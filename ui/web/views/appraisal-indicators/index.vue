@@ -333,7 +333,7 @@
               <el-table-column
                 prop="ruleScore"
                 align="center"
-                width="50px"
+                width="100px"
                 label="分值"
               >
               </el-table-column>
