@@ -552,7 +552,7 @@ export default {
     },
     afterCorrectionTotolWorkpoint() {
       return (
-        Math.round(this.totalServerData.rate * this.totalServerData.score) | 0
+        Math.round(this.totalServerData.rate * this.totalServerData.score) || 0
       );
     },
     //机构排行数据
