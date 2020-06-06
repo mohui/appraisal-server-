@@ -46,13 +46,27 @@
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
             <p style="font-size:13px;">{{ totalData.name }}</p>
-            <div style="padding-top: 40px">
-              <p>校正前 {{ totalData.score }}分</p>
-            </div>
+            <table style="width: 100%;margin-top: 20px;color: #666;">
+              <tr>
+                <td style="width: 33%;text-align: center">
+                  <p>{{ Math.round(totalData.score) }}分</p>
+                  <p>校正前</p>
+                </td>
+                <td
+                  style="width: 33%;text-align: center;vertical-align: middle;"
+                >
+                  X
+                </td>
+                <td style="text-align: center">
+                  <p>{{ Math.round(totalData.rate * 100) }}%</p>
+                  <p>质量系数</p>
+                </td>
+              </tr>
+            </table>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
             <two-card-circle
-              :coefficient="this.totalData.rate"
+              :coefficient="totalData.rate"
               :pointDate="date"
               :subtitle="totalData.name"
               :text="totalData.name"
