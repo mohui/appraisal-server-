@@ -500,7 +500,6 @@ export default {
   methods: {
     //el-table-column 内容格式化保留两位小数
     fixedDecimal: function(row, column, value) {
-      console.log('format', row, column, value);
       if (!value) return 0;
       return value.toFixed(2);
     },
