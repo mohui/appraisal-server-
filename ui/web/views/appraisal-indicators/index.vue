@@ -331,7 +331,7 @@
               <el-table-column prop="ruleName" align="center" label="考核内容">
               </el-table-column>
               <el-table-column
-                prop="ruleScore"
+                prop="score"
                 :formatter="fixedDecimal"
                 align="center"
                 width="100px"
@@ -697,11 +697,30 @@ export default {
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
-      return {
-        ...this.appraisalIndicatorsServerData,
-        ruleScoreFiexdDecimal:
-          this.appraisalIndicatorsServerData?.ruleScore?.toFixed(2) ?? 0
-      };
+      const returnValue = {...this.appraisalIndicatorsServerData};
+      returnValue.children =
+        returnValue.children.map(item => {
+          // 得分
+          item.score = item?.children.reduce(
+            (result, current) => (result += current?.score ?? 0),
+            0
+          );
+          item.ruleScore = item?.children.reduce(
+            (result, current) => (result += current?.ruleScore ?? 0),
+            0
+          );
+          return item;
+        }) ?? [];
+      returnValue.score = returnValue.children.reduce(
+        (result, current) => (result += current.score ?? 0),
+        0
+      );
+      returnValue.ruleScore = returnValue.children.reduce(
+        (result, current) => (result += current.ruleScore ?? 0),
+        0
+      );
+      console.log('retureValue1', returnValue);
+      return returnValue;
     }
   },
   asyncComputed: {
@@ -752,7 +771,12 @@ export default {
         return this.params.listFlag === 'quality' && this.params.isInstitution;
       },
       default() {
-        return {};
+        return {
+          checkId: null,
+          checkName: null,
+          status: true,
+          children: []
+        };
       }
     }
   }
@@ -809,6 +833,7 @@ export default {
 
 .appraisal-indicators-rule {
   padding-top: 20px;
+
   .appraisal-indicators-rule-title {
     color: #1a95d7;
     font-size: 20px;
