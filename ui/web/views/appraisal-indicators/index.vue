@@ -35,19 +35,19 @@
     <el-row :gutter="20" style="margin: 20px -10px">
       <el-col :span="8">
         <el-card shadow="hover">
-          <div class="score-detail">
+          <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ afterCorrectionScore }}
+              {{ afterCorrectionTotolWorkpoint }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
             <p style="font-size:13px;">{{ subtitle }}</p>
             <div style="padding-top: 40px">
-              <p>校正前 {{ workpointTotalData.score }}分</p>
+              <p>校正前 {{ totalWorkpointData.score }}分</p>
             </div>
           </div>
         </el-card>
@@ -528,17 +528,14 @@ export default {
       return value;
     },
     //校正前工分值的总值
-    workpointTotalData() {
+    totalWorkpointData() {
       return {
-        score: Math.round(this.workpointTotalServerData.score)
+        score: Math.round(this.totalServerData.score)
       };
     },
-    afterCorrectionScore() {
+    afterCorrectionTotolWorkpoint() {
       return (
-        Math.round(
-          this.workpointTotalServerData.rate *
-            this.workpointTotalServerData.score
-        ) | 0
+        Math.round(this.totalServerData.rate * this.totalServerData.score) | 0
       );
     },
     //机构排行数据
@@ -659,13 +656,10 @@ export default {
     }
   },
   asyncComputed: {
-    //获取服务器的工分值数据
-    workpointTotalServerData: {
+    //获取服务器上该地区/机构的总计工分和系数
+    totalServerData: {
       async get() {
-        return await this.$api.WorkPoint.total(this.sysCode);
-      },
-      shouldUpdate() {
-        return this.params.listFlag === 'score' && !this.params.isInstitution;
+        return await this.$api.Score.total(this.sysCode);
       },
       default() {
         return {
