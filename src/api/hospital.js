@@ -176,30 +176,23 @@ export default class Hospital {
             ]
           })
         ).map(it => {
-          it.ruleScore = it.ruleHospitalScores.reduce(
+          it = it.toJSON();
+          it.score = it.ruleHospitalScores.reduce(
             (result, current) => (result += current.score),
             0
           );
-          delete it.ruleHospitalScores;
           return it;
         });
         return {
           ruleId: rule.ruleId,
           ruleName: rule.ruleName,
-          ruleScore: children.reduce(
-            (result, current) => (result += current.ruleScore),
-            0
-          ),
+          ruleScore: rule.ruleScore,
           children
         };
       })
     );
     const returnValue = checkSystemModel.toJSON();
     returnValue.children = children;
-    returnValue.ruleScore = children.reduce(
-      (result, current) => (result += current.ruleScore),
-      0
-    );
     return returnValue;
   }
 }
