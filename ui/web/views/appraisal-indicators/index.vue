@@ -513,7 +513,6 @@ export default {
   },
   methods: {
     handleSummaries(param) {
-      console.log('getSummaries', param);
       const {columns, data} = param;
       const sums = [];
       columns.forEach((column, index) => {
@@ -757,7 +756,6 @@ export default {
         (result, current) => (result += current.ruleScore ?? 0),
         0
       );
-      console.log('retureValue1', returnValue);
       return returnValue;
     }
   },
