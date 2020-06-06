@@ -324,7 +324,12 @@
             <div class="check-table-title">
               <span>{{ item.ruleName }}</span>
             </div>
-            <el-table :data="item.children" show-summary style="width: 100%">
+            <el-table
+              :data="item.children"
+              show-summary
+              :summary-method="handleSummaries"
+              style="width: 100%"
+            >
               <el-table-column
                 type="index"
                 align="center"
@@ -507,6 +512,30 @@ export default {
     }
   },
   methods: {
+    handleSummaries(param) {
+      console.log('getSummaries', param);
+      const {columns, data} = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = '小计';
+          return;
+        }
+        const values = data.map(item => Number(item[column.property]));
+        if (column.property === 'score' || column.property === 'ruleScore') {
+          sums[index] = values.reduce(
+            (result, current) => (result += current),
+            0
+          );
+          if (column.property === 'score') {
+            sums[index] = sums[index].toFixed(2);
+          }
+        } else {
+          sums[index] = '';
+        }
+      });
+      return sums;
+    },
     //el-table-column 内容格式化保留两位小数
     fixedDecimal: function(row, column, value) {
       if (!value) return 0;
