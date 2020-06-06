@@ -3,7 +3,7 @@
     <!--顶部表头-->
     <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
-        {{ subtitle }}两卡制管理
+        {{ totalData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
         <span style="margin-left:20px; font-size: 17px">纬度：</span>
@@ -35,20 +35,47 @@
     <el-row :gutter="20" style="margin: 20px -10px">
       <el-col :span="8">
         <el-card shadow="hover">
-          <div class="score-detail">
+          <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ afterCorrectionScore }}
+              {{ afterCorrectionTotolWorkpoint }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
-            <p style="font-size:13px;">{{ subtitle }}</p>
-            <div style="padding-top: 40px">
-              <p>校正前 {{ workpointTotalData.score }}分</p>
-            </div>
+            <p style="font-size:13px;">{{ totalData.name }}</p>
+            <table style="width: 100%;margin-top: 20px;color: #666;">
+              <tr>
+                <td style="width: 33%;text-align: center">
+                  <p>{{ Math.round(totalData.score) }}分</p>
+                  <p>校正前</p>
+                </td>
+                <td
+                  style="width: 33%;text-align: center;vertical-align: middle;"
+                >
+                  X
+                </td>
+                <td style="text-align: center">
+                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
+                  <p>质量系数</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class=" score-detail" v-if="params.listFlag === 'quality'">
+            <two-card-circle
+              :coefficient="totalData.fixedDecimalRate"
+              :pointDate="date"
+              :subtitle="totalData.name"
+              :text="totalData.name"
+            ></two-card-circle>
+            <span
+              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
+            >
+              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
+            </span>
           </div>
         </el-card>
       </el-col>
@@ -284,7 +311,9 @@
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
               <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.ruleScore }}分</span
+                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+                  appraisalIndicatorsData.ruleScore
+                }}分</span
               >
             </div>
           </div>
@@ -295,7 +324,12 @@
             <div class="check-table-title">
               <span>{{ item.ruleName }}</span>
             </div>
-            <el-table :data="item.children" show-summary style="width: 100%">
+            <el-table
+              :data="item.children"
+              show-summary
+              :summary-method="handleSummaries"
+              style="width: 100%"
+            >
               <el-table-column
                 type="index"
                 align="center"
@@ -306,7 +340,7 @@
               <el-table-column
                 prop="ruleScore"
                 align="center"
-                width="50px"
+                width="80px"
                 label="分值"
               >
               </el-table-column>
@@ -327,6 +361,14 @@
                 prop="evaluateStandard"
                 align="center"
                 label="评分标准"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="score"
+                :formatter="fixedDecimal"
+                align="center"
+                width="80px"
+                label="得分"
               >
               </el-table-column>
             </el-table>
@@ -428,6 +470,7 @@
 </template>
 <script>
 import twoCardBar from './components/twocardBar';
+import twoCardCircle from './components/twocardCircle';
 import accordion from './components/twocardAccordion';
 import progressScore from './components/progressScore';
 
@@ -437,6 +480,7 @@ export default {
   name: 'index',
   components: {
     twoCardBar,
+    twoCardCircle,
     accordion,
     progressScore
   },
@@ -449,7 +493,6 @@ export default {
   },
   data() {
     return {
-      subtitle: '芜湖市-弋江区',
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
@@ -461,12 +504,48 @@ export default {
       totalShowMore: false
     };
   },
+  filters: {
+    //过滤器，保留两位小数
+    fixedDecimal: function(value) {
+      if (!value) return 0;
+      return value.toFixed(2);
+    }
+  },
   methods: {
+    handleSummaries(param) {
+      const {columns, data} = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = '小计';
+          return;
+        }
+        const values = data.map(item => Number(item[column.property]));
+        if (column.property === 'score' || column.property === 'ruleScore') {
+          sums[index] = values.reduce(
+            (result, current) => (result += current),
+            0
+          );
+          if (column.property === 'score') {
+            sums[index] = sums[index].toFixed(2);
+          }
+        } else {
+          sums[index] = '';
+        }
+      });
+      return sums;
+    },
+    //el-table-column 内容格式化保留两位小数
+    fixedDecimal: function(row, column, value) {
+      if (!value) return 0;
+      return value.toFixed(2);
+    },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
       // TODO: 是否显示机构视图和code, 日后将由用户权限控制
-      this.params.isInstitution =
-        JSON.parse(route.query.isInstitution) ?? false;
+      this.params.isInstitution = route.query.isInstitution
+        ? JSON.parse(route.query.isInstitution)
+        : false;
       this.params.id = route.query.id ?? code;
     },
     //纬度切换
@@ -528,17 +607,17 @@ export default {
       return value;
     },
     //校正前工分值的总值
-    workpointTotalData() {
+    totalData() {
       return {
-        score: Math.round(this.workpointTotalServerData.score)
+        score: Math.round(this.totalServerData.score),
+        rate: this.totalServerData.rate,
+        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(4)),
+        name: this.totalServerData.name
       };
     },
-    afterCorrectionScore() {
+    afterCorrectionTotolWorkpoint() {
       return (
-        Math.round(
-          this.workpointTotalServerData.rate *
-            this.workpointTotalServerData.score
-        ) | 0
+        Math.round(this.totalServerData.rate * this.totalServerData.score) || 0
       );
     },
     //机构排行数据
@@ -655,23 +734,43 @@ export default {
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
-      return this.appraisalIndicatorsServerData;
+      const returnValue = {...this.appraisalIndicatorsServerData};
+      returnValue.children =
+        returnValue.children.map(item => {
+          // 得分
+          item.score = item?.children.reduce(
+            (result, current) => (result += current?.score ?? 0),
+            0
+          );
+          item.ruleScore = item?.children.reduce(
+            (result, current) => (result += current?.ruleScore ?? 0),
+            0
+          );
+          return item;
+        }) ?? [];
+      returnValue.score = returnValue.children.reduce(
+        (result, current) => (result += current.score ?? 0),
+        0
+      );
+      returnValue.ruleScore = returnValue.children.reduce(
+        (result, current) => (result += current.ruleScore ?? 0),
+        0
+      );
+      return returnValue;
     }
   },
   asyncComputed: {
-    //获取服务器的工分值数据
-    workpointTotalServerData: {
+    //获取服务器上该地区/机构的总计工分和系数
+    totalServerData: {
       async get() {
-        return await this.$api.WorkPoint.total(this.sysCode);
-      },
-      shouldUpdate() {
-        return this.params.listFlag === 'score' && !this.params.isInstitution;
+        return await this.$api.Score.total(this.sysCode);
       },
       default() {
         return {
           id: '',
           name: '',
-          score: 0
+          score: 0,
+          rate: 0
         };
       }
     },
@@ -708,7 +807,12 @@ export default {
         return this.params.listFlag === 'quality' && this.params.isInstitution;
       },
       default() {
-        return {};
+        return {
+          checkId: null,
+          checkName: null,
+          status: true,
+          children: []
+        };
       }
     }
   }
@@ -765,6 +869,7 @@ export default {
 
 .appraisal-indicators-rule {
   padding-top: 20px;
+
   .appraisal-indicators-rule-title {
     color: #1a95d7;
     font-size: 20px;
