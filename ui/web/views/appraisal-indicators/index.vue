@@ -331,10 +331,9 @@
               <el-table-column prop="ruleName" align="center" label="考核内容">
               </el-table-column>
               <el-table-column
-                prop="score"
-                :formatter="fixedDecimal"
+                prop="ruleScore"
                 align="center"
-                width="100px"
+                width="80px"
                 label="分值"
               >
               </el-table-column>
@@ -355,6 +354,14 @@
                 prop="evaluateStandard"
                 align="center"
                 label="评分标准"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="score"
+                :formatter="fixedDecimal"
+                align="center"
+                width="80px"
+                label="得分"
               >
               </el-table-column>
             </el-table>
