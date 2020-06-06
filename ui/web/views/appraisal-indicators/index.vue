@@ -311,7 +311,9 @@
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
               <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.ruleScore | fixedDecimal }}分</span
+                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+                  appraisalIndicatorsData.ruleScore
+                }}分</span
               >
             </div>
           </div>
