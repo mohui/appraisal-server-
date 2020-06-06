@@ -545,7 +545,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.remove(row.id);
+            await this.$api.CheckSystem.remove(row.checkId);
             this.checkList.splice($index, 1);
             this.$message({
               type: 'success',
