@@ -3,7 +3,7 @@
     <!--顶部表头-->
     <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
-        {{ totalWorkpointData.name }}两卡制管理
+        {{ totalData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
         <span style="margin-left:20px; font-size: 17px">纬度：</span>
@@ -45,24 +45,22 @@
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
-            <p style="font-size:13px;">{{ totalWorkpointData.name }}</p>
+            <p style="font-size:13px;">{{ totalData.name }}</p>
             <div style="padding-top: 40px">
-              <p>校正前 {{ totalWorkpointData.score }}分</p>
+              <p>校正前 {{ totalData.score }}分</p>
             </div>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
             <two-card-circle
-              :coefficient="this.totalWorkpointData.rate"
+              :coefficient="this.totalData.rate"
               :pointDate="date"
-              :subtitle="totalWorkpointData.name"
-              :text="totalWorkpointData.name"
+              :subtitle="totalData.name"
+              :text="totalData.name"
             ></two-card-circle>
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{
-                Math.round(this.totalWorkpointData.rate * 100)
-              }}%)
+              (计算时校正系数：{{ Math.round(this.totalData.rate * 100) }}%)
             </span>
           </div>
         </el-card>
@@ -545,7 +543,7 @@ export default {
       return value;
     },
     //校正前工分值的总值
-    totalWorkpointData() {
+    totalData() {
       return {
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
