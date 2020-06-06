@@ -172,12 +172,12 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
+      if (await CheckHospitalModel.findOne({where: {checkId: id}}))
+        throw new KatoCommonError('该考核系统绑定了机构,无法删除');
       //删除该考核系统下的所有规则
       await Promise.all(
         sys.checkRules.map(async rule => await rule.destroy({force: true}))
       );
-      //删除该考核系统下的所有的机构绑定
-      await CheckHospitalModel.destroy({where: {checkId: id}});
       //删除该考核系统
       return await sys.destroy({force: true});
     });
