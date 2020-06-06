@@ -5,12 +5,16 @@ export const settingPlugin = {
     Vue.prototype.$settings = new Vue({
       data() {
         return {
-          user: null
+          user: null,
+          permissions: []
         };
       },
       methods: {
         async load() {
           this.user = await this.$api.User.profile(getToken());
+          this.permissions = [
+            ...new Set(this.user.roles.map(it => it.permissions).flat())
+          ];
         },
         //清理缓存
         clean() {
