@@ -12,6 +12,7 @@ import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {Op} from 'sequelize';
 import {Context} from './context';
+import * as dayjs from 'dayjs';
 
 export default class Hospital {
   @validate(
@@ -105,11 +106,22 @@ export default class Hospital {
     return (
       await etlDB.query(
         `select vws.score, vws.operatorid as doctorId, vws.doctor as doctorName, vws.projectname as name
-         from view_workscoretotal vws
-                left join hospital_mapping hm on vws.hisid = hm.hisid and vws.operateorganization = hm.hishospid
-         where hm.h_id = ?`,
+           from view_workscoretotal vws
+                  left join hospital_mapping hm on vws.hisid = hm.hisid and vws.operateorganization = hm.hishospid
+           where hm.h_id = ?
+             and missiontime >= ?
+             and missiontime < ?`,
         {
-          replacements: [code],
+          replacements: [
+            code,
+            dayjs()
+              .startOf('y')
+              .toDate(),
+            dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          ],
           type: QueryTypes.SELECT
         }
       )
