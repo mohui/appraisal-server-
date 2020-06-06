@@ -311,7 +311,7 @@
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
               <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.ruleScore }}分</span
+                >{{ appraisalIndicatorsData.ruleScoreFiexdDecimal }}分</span
               >
             </div>
           </div>
@@ -684,7 +684,11 @@ export default {
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
-      return this.appraisalIndicatorsServerData;
+      return {
+        ...this.appraisalIndicatorsServerData,
+        ruleScoreFiexdDecimal:
+          this.appraisalIndicatorsServerData?.ruleScore?.toFixed(2) ?? 0
+      };
     }
   },
   asyncComputed: {
