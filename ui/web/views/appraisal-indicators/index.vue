@@ -3,7 +3,7 @@
     <!--顶部表头-->
     <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
-        {{ subtitle }}两卡制管理
+        {{ totalWorkpointData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
         <span style="margin-left:20px; font-size: 17px">纬度：</span>
@@ -45,7 +45,7 @@
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
-            <p style="font-size:13px;">{{ subtitle }}</p>
+            <p style="font-size:13px;">{{ totalWorkpointData.name }}</p>
             <div style="padding-top: 40px">
               <p>校正前 {{ totalWorkpointData.score }}分</p>
             </div>
@@ -54,8 +54,8 @@
             <two-card-circle
               :coefficient="this.totalWorkpointData.rate"
               :pointDate="date"
-              :subtitle="subtitle"
-              :text="subtitle"
+              :subtitle="totalWorkpointData.name"
+              :text="totalWorkpointData.name"
             ></two-card-circle>
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
@@ -466,7 +466,6 @@ export default {
   },
   data() {
     return {
-      subtitle: '芜湖市-弋江区',
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
@@ -549,7 +548,8 @@ export default {
     totalWorkpointData() {
       return {
         score: Math.round(this.totalServerData.score),
-        rate: this.totalServerData.rate
+        rate: this.totalServerData.rate,
+        name: this.totalServerData.name
       };
     },
     afterCorrectionTotolWorkpoint() {
