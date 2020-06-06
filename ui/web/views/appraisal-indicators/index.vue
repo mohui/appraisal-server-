@@ -50,6 +50,21 @@
               <p>校正前 {{ totalWorkpointData.score }}分</p>
             </div>
           </div>
+          <div class=" score-detail" v-if="params.listFlag === 'quality'">
+            <two-card-circle
+              :coefficient="this.totalWorkpointData.rate"
+              :pointDate="date"
+              :subtitle="subtitle"
+              :text="subtitle"
+            ></two-card-circle>
+            <span
+              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
+            >
+              (计算时校正系数：{{
+                Math.round(this.totalWorkpointData.rate * 100)
+              }}%)
+            </span>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="16" v-if="params.listFlag === 'quality'">
@@ -428,6 +443,7 @@
 </template>
 <script>
 import twoCardBar from './components/twocardBar';
+import twoCardCircle from './components/twocardCircle';
 import accordion from './components/twocardAccordion';
 import progressScore from './components/progressScore';
 
@@ -437,6 +453,7 @@ export default {
   name: 'index',
   components: {
     twoCardBar,
+    twoCardCircle,
     accordion,
     progressScore
   },
@@ -530,7 +547,8 @@ export default {
     //校正前工分值的总值
     totalWorkpointData() {
       return {
-        score: Math.round(this.totalServerData.score)
+        score: Math.round(this.totalServerData.score),
+        rate: this.totalServerData.rate
       };
     },
     afterCorrectionTotolWorkpoint() {
