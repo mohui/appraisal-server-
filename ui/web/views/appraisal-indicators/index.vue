@@ -58,7 +58,7 @@
                   X
                 </td>
                 <td style="text-align: center">
-                  <p>{{ Math.round(totalData.rate * 100) }}%</p>
+                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
                   <p>质量系数</p>
                 </td>
               </tr>
@@ -66,7 +66,7 @@
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
             <two-card-circle
-              :coefficient="totalData.rate"
+              :coefficient="totalData.fixedDecimalRate"
               :pointDate="date"
               :subtitle="totalData.name"
               :text="totalData.name"
@@ -74,7 +74,7 @@
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{ Math.round(totalData.rate * 100) }}%)
+              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
             </span>
           </div>
         </el-card>
@@ -561,6 +561,7 @@ export default {
       return {
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
+        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(4)),
         name: this.totalServerData.name
       };
     },
@@ -696,7 +697,8 @@ export default {
         return {
           id: '',
           name: '',
-          score: 0
+          score: 0,
+          rate: 0
         };
       }
     },
