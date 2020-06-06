@@ -311,7 +311,7 @@
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
               <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.ruleScoreFiexdDecimal }}分</span
+                >{{ appraisalIndicatorsData.ruleScore | fixedDecimal }}分</span
               >
             </div>
           </div>
@@ -488,6 +488,13 @@ export default {
       ),
       totalShowMore: false
     };
+  },
+  filters: {
+    //过滤器，保留两位小数
+    fixedDecimal: function(value) {
+      if (!value) return 0;
+      return value.toFixed(2);
+    }
   },
   methods: {
     initParams(route) {
