@@ -561,8 +561,35 @@ export default {
       console.log('handleScore', row);
     },
     //保存打分处理
-    handleSaveScore(row) {
+    async handleSaveScore(row) {
       console.log('handleSaveScore', row);
+      if (row.checkScore > row.ruleScore) {
+        this.$message({
+          type: 'error',
+          message: '打分不能超过最大分值！'
+        });
+        return;
+      }
+      if (row.checkScore < 0) {
+        this.$message({
+          type: 'error',
+          message: '打分不能低于0分！'
+        });
+        return;
+      }
+      try {
+        await this.$api.Score.score(row.ruleId, this.totalData.id, row.score);
+        this.$message({
+          type: 'success',
+          message: '打分成功'
+        });
+        this.$set(row, 'isGradeScore', false);
+      } catch (e) {
+        this.$message({
+          type: 'danger',
+          message: e.message
+        });
+      }
     },
     //取消打分
     cancelScore(row) {
@@ -665,6 +692,7 @@ export default {
     //校正前工分值的总值
     totalData() {
       return {
+        id: this.totalServerData.id,
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
         fixedDecimalRate: Number(this.totalServerData.rate.toFixed(4)),
