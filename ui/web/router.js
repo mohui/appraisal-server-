@@ -53,6 +53,11 @@ const router = new Router({
           name: 'basic-data-detail',
           meta: {activeMenu: 'basic-data'},
           component: () => import('./views/check/basic-data-detail')
+        },
+        {
+          path: 'person',
+          name: 'person',
+          component: () => import('./views/person/list')
         }
       ]
     },
