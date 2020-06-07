@@ -371,7 +371,7 @@
                 label="得分"
               >
                 <template slot-scope="scope">
-                  <span>
+                  <span v-if="scope.row.isGradeScore">
                     <el-input-number
                       v-model="scope.row.score"
                       size="mini"
@@ -383,6 +383,7 @@
                     >
                     </el-input-number>
                   </span>
+                  <span v-else>{{ scope.row.score }}</span>
                 </template>
               </el-table-column>
               <el-table-column align="center" label="操作" width="184px">
@@ -391,14 +392,14 @@
                     plain
                     type="success"
                     size="small"
-                    @click="handleSaveScore(scope.row, scope.$index)"
+                    @click="handleSaveScore(scope.row)"
                     >保存
                   </el-button>
                   <el-button
                     plain
                     type="primary"
                     size="small"
-                    @click="handleScore(scope.row, scope.$index)"
+                    @click="handleScore(scope.row)"
                     >打分
                   </el-button>
                 </template>
