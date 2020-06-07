@@ -389,6 +389,7 @@
               <el-table-column align="center" label="操作" width="184px">
                 <template slot-scope="scope">
                   <el-button
+                    v-if="scope.row.isGradeScore"
                     plain
                     type="success"
                     size="small"
@@ -396,11 +397,20 @@
                     >保存
                   </el-button>
                   <el-button
+                    v-if="!scope.row.isGradeScore"
                     plain
                     type="primary"
                     size="small"
                     @click="handleScore(scope.row)"
                     >打分
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.isGradeScore"
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="cancelScore(scope.row)"
+                    >取消
                   </el-button>
                 </template>
               </el-table-column>
@@ -553,6 +563,10 @@ export default {
     //保存打分处理
     handleSaveScore(row) {
       console.log('handleSaveScore', row);
+    },
+    //取消打分
+    cancelScore(row) {
+      this.$set(row, 'isGradeScore', false);
     },
     handleSummaries(param) {
       const {columns, data} = param;
