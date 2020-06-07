@@ -14,6 +14,7 @@
         <span>个人档案列表</span>
       </div>
       <el-table
+        v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
         stripe
         border
@@ -36,6 +37,18 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        background
+        :page-size="pageSize"
+        :current-page="pageNo"
+        layout="total, sizes, prev, pager, next"
+        style="margin:10px 0 -20px;"
+        :page-sizes="[50, 100, 200, 400]"
+        :total="serverData.count"
+        @current-change="handlePageNoChange"
+        @size-change="handlePageSizeChange"
+      >
+      </el-pagination>
     </el-card>
   </div>
 </template>
@@ -43,6 +56,12 @@
 <script>
 export default {
   name: 'PersonList',
+  data() {
+    return {
+      pageSize: 50,
+      pageNo: 1
+    };
+  },
   computed: {
     tableData() {
       return this.serverData.rows.map(it => {
@@ -57,7 +76,7 @@ export default {
   asyncComputed: {
     serverData: {
       async get() {
-        return this.$api.Person.list(20, 1);
+        return this.$api.Person.list(this.pageSize, this.pageNo);
       },
       default() {
         return {
@@ -65,6 +84,15 @@ export default {
           rows: []
         };
       }
+    }
+  },
+  methods: {
+    handlePageNoChange(no) {
+      this.pageNo = no;
+    },
+    handlePageSizeChange(size) {
+      this.pageNo = 1;
+      this.pageSize = size;
     }
   }
 };
