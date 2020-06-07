@@ -545,6 +545,15 @@ export default {
     }
   },
   methods: {
+    //点击打分按钮处理
+    handleScore(row) {
+      this.$set(row, 'isGradeScore', true);
+      console.log('handleScore', row);
+    },
+    //保存打分处理
+    handleSaveScore(row) {
+      console.log('handleSaveScore', row);
+    },
     handleSummaries(param) {
       const {columns, data} = param;
       const sums = [];
