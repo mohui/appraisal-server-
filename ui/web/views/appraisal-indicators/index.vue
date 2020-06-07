@@ -611,7 +611,7 @@ export default {
       return {
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
-        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(4)),
+        fixedDecimalRate: this.totalServerData.rate.toFixed(2),
         name: this.totalServerData.name
       };
     },
