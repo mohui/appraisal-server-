@@ -558,11 +558,9 @@ export default {
     //点击打分按钮处理
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
-      console.log('handleScore', row);
     },
     //保存打分处理
     async handleSaveScore(row) {
-      console.log('handleSaveScore', row);
       if (row.checkScore > row.ruleScore) {
         this.$message({
           type: 'error',
