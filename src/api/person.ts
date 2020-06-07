@@ -19,7 +19,7 @@ export default class Person {
     // language=PostgreSQL
     const person = await etlDB.query(
       `
-        select vp.name, vp.idcardno as idCard, mp."S03", mp."S23", vh0.hospname as hospital0, vh1.hospname as hospital1
+        select vp.name, vp.idcardno as "idCard", mp."S03", mp."S23", vh0.hospname as hospital0, vh1.hospname as hospital1
         from mark_person mp
                left join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
                left join view_hospital vh0 on mp.hisid = vh0.hisid and vp.operatorid = vh0.hospid
