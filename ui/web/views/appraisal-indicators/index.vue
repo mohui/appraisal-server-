@@ -367,9 +367,41 @@
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="80px"
+                width="180px"
                 label="得分"
               >
+                <template slot-scope="scope">
+                  <span>
+                    <el-input-number
+                      v-model="scope.row.score"
+                      size="mini"
+                      :min="0"
+                      :step="1"
+                      :precision="2"
+                      style="width:84%"
+                      :max="scope.row.ruleScore"
+                    >
+                    </el-input-number>
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="操作" width="184px">
+                <template slot-scope="scope">
+                  <el-button
+                    plain
+                    type="success"
+                    size="small"
+                    @click="handleSaveScore(scope.row, scope.$index)"
+                    >保存
+                  </el-button>
+                  <el-button
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="handleScore(scope.row, scope.$index)"
+                    >打分
+                  </el-button>
+                </template>
               </el-table-column>
             </el-table>
           </div>
