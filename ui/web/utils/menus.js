@@ -54,5 +54,11 @@ module.exports = [
         icon: 'el-icon-coin'
       }
     ]
+  },
+  {
+    index: 'person',
+    label: '个人档案',
+    icon: 'el-icon-edit',
+    router: '/person'
   }
 ];
