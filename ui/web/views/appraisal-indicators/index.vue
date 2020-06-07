@@ -778,6 +778,9 @@ export default {
             (result, current) => (result += current?.ruleScore ?? 0),
             0
           );
+          item.children = item.children.map(it => {
+            return {...it, isGradeScore: false};
+          });
           return item;
         }) ?? [];
       returnValue.score = returnValue.children.reduce(
