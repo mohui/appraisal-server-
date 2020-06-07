@@ -26,7 +26,13 @@
         <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
         <el-table-column label="标记">
           <template slot-scope="scope">
-            <el-tag :key="tag" v-for="tag of scope.row.tags">{{ tag }}</el-tag>
+            <el-tag
+              style="margin-right: 10px"
+              size="mini"
+              :key="tag"
+              v-for="tag of scope.row.tags"
+              >{{ tag }}
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -41,7 +47,8 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         it.tags = [];
-        if (it?.S03) it.tags.push('动态使用');
+        it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
+        it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
         if (it?.S23) it.tags.push('档案规范');
         return it;
       });
