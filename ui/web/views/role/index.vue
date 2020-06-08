@@ -177,6 +177,10 @@ export default {
           label: '用户管理',
           children: [
             {
+              key: 'user-index',
+              label: '用户首页'
+            },
+            {
               key: 'user-add',
               label: '用户添加'
             },
@@ -193,6 +197,10 @@ export default {
         {
           key: 'role-index',
           label: '角色管理'
+        },
+        {
+          key: 'appraisal',
+          label: '绩效考核'
         }
       ]
     };

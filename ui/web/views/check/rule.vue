@@ -400,41 +400,34 @@ export default {
       this.curRule = Object.assign({}, {index, $index}, row);
       this.markTags = MarkTags.map(it => ({
         ...it,
-        children: it.children.map(its => ({
-          ...its,
-          children: its.children.map(item => {
-            const isChecked = row.ruleTags
-              ? row.ruleTags.findIndex(items => items.tag === item.code) !== -1
-              : false;
-            const curObj =
-              isChecked && row.ruleTags
-                ? row.ruleTags.filter(items => items.tag === item.code)[0]
-                : {};
-            let obj = Object.assign({}, item, {
-              checked: item.enabled && isChecked
-            });
-            if (curObj.algorithm) {
-              obj = Object.assign({}, obj, {
-                algorithm: curObj.algorithm
-              });
-            }
-            if (curObj.baseline) {
-              obj = Object.assign({}, obj, {
-                baseline:
-                  item.name.indexOf('率') !== -1 &&
-                  (curObj.algorithm === 'egt' || curObj.algorithm === 'elt')
-                    ? Number.parseInt(curObj.baseline * 100)
-                    : curObj.baseline
-              });
-            }
-            if (curObj.score) {
-              obj = Object.assign({}, obj, {
-                score: curObj.score
-              });
-            }
-            return obj;
-          })
-        }))
+        children: it.children.map(its => {
+          return {
+            ...its,
+            children: its.children.map(item => {
+              // 寻找已经勾选的指标
+              const checkedTag = row?.ruleTags?.find(
+                items => items.tag === item.code
+              ) ?? {checked: false};
+              // 真正的返回值
+              const returnValue = {
+                ...item,
+                checked: true, // 默认选中, 会被checkedTag覆盖
+                ...checkedTag
+              };
+
+              // 参考值的处理
+              if (
+                returnValue.baseline &&
+                returnValue.name.includes('率') &&
+                (returnValue.algorithm === 'egt' ||
+                  returnValue.algorithm === 'elt')
+              ) {
+                returnValue.baseline = returnValue.baseline * 100;
+              }
+              return returnValue;
+            })
+          };
+        })
       }));
       this.dialogStandardVisible = true;
     },
@@ -669,7 +662,7 @@ export default {
           });
 
           this.$set(row, 'ruleId', result.ruleId);
-          if (ruleTags && ruleTags.length) {
+          if (ruleTags?.length) {
             await this.$api.RuleTag.upsert({
               ruleId: result.ruleId,
               tags: ruleTags

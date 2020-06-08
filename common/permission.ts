@@ -22,6 +22,10 @@ export const PermissionDetail = [
   {
     key: 'role-index',
     name: '角色首页'
+  },
+  {
+    key: 'appraisal',
+    name: '绩效考核'
   }
 ];
 
@@ -31,7 +35,8 @@ export const Permission = {
   USER_ADD: 'user-add',
   USER_UPDATE: 'user-update',
   USER_REMOVE: 'user-remove',
-  ROLE_INDEX: 'role-index'
+  ROLE_INDEX: 'role-index',
+  APPRAISAL: 'appraisal'
 };
 
 export function getPermission(key) {

@@ -1,6 +1,6 @@
 import Cookie from 'js-cookie';
 import dayjs from 'dayjs';
-
+import Vue from 'vue';
 const USER_TOKEN = 'user_token';
 
 export function setToken(value) {
@@ -20,5 +20,6 @@ export function removeToken() {
 }
 
 export function cleanCache() {
+  Vue.prototype.$settings.clean();
   removeToken();
 }

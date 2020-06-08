@@ -18,11 +18,6 @@ const router = new Router({
           component: () => import('./views/home/index')
         },
         {
-          path: 'test',
-          name: 'test',
-          component: () => import('./views/test/test')
-        },
-        {
           path: 'role',
           name: 'role',
           component: () => import('./views/role/index')
@@ -58,6 +53,11 @@ const router = new Router({
           name: 'basic-data-detail',
           meta: {activeMenu: 'basic-data'},
           component: () => import('./views/check/basic-data-detail')
+        },
+        {
+          path: 'person',
+          name: 'person',
+          component: () => import('./views/person/list')
         }
       ]
     },

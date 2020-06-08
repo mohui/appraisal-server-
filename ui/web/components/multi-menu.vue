@@ -1,6 +1,10 @@
 <template>
   <el-submenu
-    v-if="menu.children && menu.children.length > 0"
+    v-if="
+      menu.children &&
+        menu.children.length > 0 &&
+        (!menu.permission || findPermission(menu.permission))
+    "
     :index="menu.index"
   >
     <template slot="title">
@@ -14,7 +18,11 @@
     >
     </multi-menu>
   </el-submenu>
-  <el-menu-item v-else :route="menu.router" :index="menu.index">
+  <el-menu-item
+    v-else-if="!menu.permission || findPermission(menu.permission)"
+    :route="menu.router"
+    :index="menu.index"
+  >
     <i :class="menu.icon"></i>
     <span>{{ menu.label }}</span>
   </el-menu-item>
@@ -27,6 +35,11 @@ export default {
     menu: {
       type: Object,
       required: true
+    }
+  },
+  methods: {
+    findPermission(permission) {
+      return !!permission.find(p => this.$settings.permissions.includes(p));
     }
   }
 };
