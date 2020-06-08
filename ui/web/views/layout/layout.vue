@@ -1,24 +1,24 @@
 <template>
   <el-container class="container-full">
     <el-header class="header">
-      <span style="color: #ffffff">绩效管理系统</span>
-      <!--      <el-dropdown-->
-      <!--        class="dropdown"-->
-      <!--        @command="handCommand"-->
-      <!--        @visible-change="v => (dropdownVisible = v)"-->
-      <!--      >-->
-      <!--        <div>-->
-      <!--          <i style="padding: 0 6px" class="el-icon-user"></i>-->
-      <!--          管理员-->
-      <!--          <i-->
-      <!--            :class="dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"-->
-      <!--          ></i>-->
-      <!--        </div>-->
-      <!--        <el-dropdown-menu slot="dropdown">-->
-      <!--          <el-dropdown-item>个人中心</el-dropdown-item>-->
-      <!--          <el-dropdown-item command="logout">退出</el-dropdown-item>-->
-      <!--        </el-dropdown-menu>-->
-      <!--      </el-dropdown>-->
+      <span style="color: #fff; padding-left: 20px;">绩效管理系统</span>
+      <el-dropdown
+        class="dropdown"
+        @command="handCommand"
+        @visible-change="v => (dropdownVisible = v)"
+      >
+        <div>
+          <i style="padding: 0 6px" class="el-icon-user"></i>
+          管理员
+          <i
+            :class="dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+          ></i>
+        </div>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item>个人中心</el-dropdown-item>
+          <el-dropdown-item command="logout">退出</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
     </el-header>
     <el-container>
       <el-aside width="200px">
@@ -70,7 +70,7 @@ export default {
     },
     logout() {
       removeToken();
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
     }
   }
 };
@@ -91,12 +91,13 @@ export default {
   background: $color-primary;
   box-sizing: content-box;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .dropdown {
   line-height: $header-height;
   padding: 0 25px;
+  color: #fff;
   cursor: pointer;
 }
 </style>
