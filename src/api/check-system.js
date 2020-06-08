@@ -4,8 +4,7 @@ import {
   CheckSystemModel,
   HospitalModel,
   RuleHospitalModel,
-  RuleTagModel,
-  UserModel
+  RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -405,22 +404,7 @@ export default class CheckSystem {
       where: {ruleId: {[Op.in]: extraRules.map(it => it.ruleId)}}
     });
     //用户所拥有的机构
-    const result = (
-      await UserModel.findOne({
-        where: {id: Context.req.headers.token},
-        paranoid: false,
-        include: {
-          model: HospitalModel,
-          paranoid: false,
-          attributes: {
-            exclude: ['deleted_at', 'created_at', 'updated_at']
-          },
-          through: {
-            attributes: []
-          }
-        }
-      })
-    ).hospitals;
+    const result = Context.current.user.hospitals;
     //绑定在该考核系统的机构
     const hospitals = await RuleHospitalModel.findAll({
       where: {ruleId: {[Op.in]: allRules.map(it => it.ruleId)}}
@@ -431,7 +415,7 @@ export default class CheckSystem {
     );
     return Promise.all(
       ableHospitals.map(async h => ({
-        ...h.toJSON(),
+        ...h,
         parentName: h.parent
           ? (await HospitalModel.findOne({where: {id: h.parent}}))?.name
           : '',
