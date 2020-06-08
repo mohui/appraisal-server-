@@ -24,8 +24,20 @@ export const PermissionDetail = [
     name: '角色首页'
   },
   {
-    key: 'appraisal',
-    name: '绩效考核'
+    key: 'appraisal-indicators',
+    name: '考核指标'
+  },
+  {
+    key: 'appraisal-configuration-management',
+    name: '配置管理'
+  },
+  {
+    key: 'appraisal-basic-data',
+    name: '基础数据'
+  },
+  {
+    key: 'profile',
+    name: '个人档案'
   }
 ];
 
@@ -36,7 +48,10 @@ export const Permission = {
   USER_UPDATE: 'user-update',
   USER_REMOVE: 'user-remove',
   ROLE_INDEX: 'role-index',
-  APPRAISAL: 'appraisal'
+  APPRAISAL_INDICATORS: 'appraisal-indicators',
+  APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
+  APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
+  PROFILE: 'profile'
 };
 
 export function getPermission(key) {

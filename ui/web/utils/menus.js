@@ -30,22 +30,29 @@ module.exports = [
   },
   {
     index: 'performance-appraisal',
-    permission: [Permission.APPRAISAL],
+    permission: [
+      Permission.APPRAISAL_INDICATORS,
+      Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+      Permission.APPRAISAL_BASIC_DATA
+    ],
     label: '绩效考核',
     icon: 'el-icon-data-analysis',
     children: [
       {
         index: 'appraisal-indicators',
+        permission: [Permission.APPRAISAL_INDICATORS],
         router: '/appraisal-indicators',
         label: '考核指标'
       },
       {
         index: 'check',
+        permission: [Permission.APPRAISAL_CONFIGURATION_MANAGEMENT],
         router: '/check',
         label: '配置管理'
       },
       {
         index: 'basic-data',
+        permission: [Permission.APPRAISAL_BASIC_DATA],
         router: '/basic-data',
         label: '基础数据'
       }
@@ -53,6 +60,7 @@ module.exports = [
   },
   {
     index: 'person',
+    permission: [Permission.PROFILE],
     label: '个人档案',
     icon: 'el-icon-edit',
     router: '/person'
