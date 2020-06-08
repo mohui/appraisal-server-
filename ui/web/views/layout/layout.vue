@@ -9,7 +9,7 @@
       >
         <div>
           <i style="padding: 0 6px" class="el-icon-user"></i>
-          管理员
+          {{ $settings.user.name }}
           <i
             :class="dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
           ></i>
