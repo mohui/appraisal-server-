@@ -371,14 +371,10 @@ export default class User {
   )
   async updateProfile(params) {
     return appDB.transaction(async () => {
-      let user = await UserModel.findOne({
-        where: {
-          id: Context.req.headers.token
-        }
-      });
+      let user = Context.current.user;
       if (!user) throw new KatoCommonError('该用户不存在');
       user.name = params.name;
-      return await user.save();
+      return UserModel.update(user, {where: {id: user.id}});
     });
   }
 }
