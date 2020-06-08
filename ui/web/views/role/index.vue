@@ -200,7 +200,25 @@ export default {
         },
         {
           key: 'appraisal',
-          label: '绩效考核'
+          label: '绩效考核',
+          children: [
+            {
+              key: 'appraisal-indicators',
+              label: '考核指标'
+            },
+            {
+              key: 'appraisal-configuration-management',
+              label: '配置管理'
+            },
+            {
+              key: 'appraisal-basic-data',
+              label: '基础数据'
+            }
+          ]
+        },
+        {
+          key: 'profile',
+          label: '个人档案'
         }
       ]
     };
