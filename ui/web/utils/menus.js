@@ -18,15 +18,13 @@ module.exports = [
         index: 'user',
         permission: [Permission.USER_INDEX],
         router: '/user',
-        label: '用户列表',
-        icon: 'el-icon-user-solid'
+        label: '用户列表'
       },
       {
         index: 'role',
         permission: [Permission.ROLE_INDEX],
         router: '/role',
-        label: '角色管理',
-        icon: 'el-icon-user'
+        label: '角色管理'
       }
     ]
   },
@@ -44,14 +42,12 @@ module.exports = [
       {
         index: 'check',
         router: '/check',
-        label: '配置管理',
-        icon: 'el-icon-setting'
+        label: '配置管理'
       },
       {
         index: 'basic-data',
         router: '/basic-data',
-        label: '基础数据',
-        icon: 'el-icon-coin'
+        label: '基础数据'
       }
     ]
   },
