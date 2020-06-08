@@ -27,7 +27,7 @@
           style="float:right; margin: 0 30px;"
           type="primary"
           @click="handleBack"
-          v-if="params.isInstitution"
+          v-if="showBackButton()"
           >返回
         </el-button>
       </div>
@@ -660,6 +660,11 @@ export default {
           }
         });
       }
+    },
+    showBackButton() {
+      if (this.$route.query.isInstitution)
+        return JSON.parse(this.$route.query.isInstitution);
+      return false;
     },
     //返回
     handleBack() {
