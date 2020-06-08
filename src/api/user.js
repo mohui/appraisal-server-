@@ -357,18 +357,8 @@ export default class User {
     return result;
   }
 
-  @validate(
-    should
-      .string()
-      .required()
-      .description('用户id')
-  )
-  async profile(id) {
-    return UserModel.findOne({
-      where: {id},
-      attributes: {exclude: ['password']},
-      include: [RoleModel, RegionModel, HospitalModel]
-    });
+  async profile() {
+    return Context.current.user;
   }
 
   @validate(
