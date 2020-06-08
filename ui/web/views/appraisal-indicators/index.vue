@@ -661,9 +661,14 @@ export default {
         });
       }
     },
+    //是否显示返回按钮
     showBackButton() {
-      if (this.$route.query.isInstitution)
-        return JSON.parse(this.$route.query.isInstitution);
+      if (this.$route.query.isInstitution) {
+        if (JSON.parse(this.$route.query.isInstitution)) {
+          if (this.$settings.user.code === this.$settings.user.regionId)
+            return true;
+        }
+      }
       return false;
     },
     //返回
