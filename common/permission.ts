@@ -34,6 +34,10 @@ export const PermissionDetail = [
   {
     key: 'appraisal-basic-data',
     name: '基础数据'
+  },
+  {
+    key: 'profile',
+    name: '个人档案'
   }
 ];
 
@@ -46,7 +50,8 @@ export const Permission = {
   ROLE_INDEX: 'role-index',
   APPRAISAL_INDICATORS: 'appraisal-indicators',
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
-  APPRAISAL_BASIC_DATA: 'appraisal-basic-data'
+  APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
+  PROFILE: 'profile'
 };
 
 export function getPermission(key) {
