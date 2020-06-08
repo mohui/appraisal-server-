@@ -561,14 +561,14 @@ export default {
     },
     //保存打分处理
     async handleSaveScore(row) {
-      if (row.checkScore > row.ruleScore) {
+      if (row.score > row.ruleScore) {
         this.$message({
           type: 'error',
           message: '打分不能超过最大分值！'
         });
         return;
       }
-      if (row.checkScore < 0) {
+      if (row.score < 0) {
         this.$message({
           type: 'error',
           message: '打分不能低于0分！'
