@@ -367,9 +367,53 @@
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="80px"
+                width="180px"
                 label="得分"
               >
+                <template slot-scope="scope">
+                  <span v-if="scope.row.isGradeScore">
+                    <el-input-number
+                      v-model="scope.row.score"
+                      size="mini"
+                      :min="0"
+                      :step="1"
+                      :precision="2"
+                      style="width:84%"
+                      :max="scope.row.ruleScore"
+                    >
+                    </el-input-number>
+                  </span>
+                  <span v-else>{{ scope.row.score }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="操作" width="184px">
+                <template slot-scope="scope">
+                  <el-button
+                    v-if="scope.row.isGradeScore"
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="handleSaveScore(scope.row)"
+                    :loading="scope.row.isSaveScoreLoaing"
+                    >保存
+                  </el-button>
+                  <el-button
+                    v-if="!scope.row.isGradeScore"
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="handleScore(scope.row)"
+                    >打分
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.isGradeScore"
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="cancelScore(scope.row)"
+                    >取消
+                  </el-button>
+                </template>
               </el-table-column>
             </el-table>
           </div>
@@ -512,6 +556,48 @@ export default {
     }
   },
   methods: {
+    //点击打分按钮处理
+    handleScore(row) {
+      this.$set(row, 'isGradeScore', true);
+    },
+    //保存打分处理
+    async handleSaveScore(row) {
+      if (row.score > row.ruleScore) {
+        this.$message({
+          type: 'error',
+          message: '打分不能超过最大分值！'
+        });
+        return;
+      }
+      if (row.score < 0) {
+        this.$message({
+          type: 'error',
+          message: '打分不能低于0分！'
+        });
+        return;
+      }
+      try {
+        row.isSaveScoreLoaing = true;
+        await this.$api.Score.score(row.ruleId, this.totalData.id, row.score);
+        this.$message({
+          type: 'success',
+          message: '打分成功'
+        });
+        this.$set(row, 'isGradeScore', false);
+      } catch (e) {
+        this.$message({
+          type: 'danger',
+          message: e.message
+        });
+      } finally {
+        row.isSaveScoreLoaing = false;
+      }
+    },
+    //取消打分
+    cancelScore(row) {
+      this.$set(row, 'originalScore', row.originalScore);
+      this.$set(row, 'isGradeScore', false);
+    },
     handleSummaries(param) {
       const {columns, data} = param;
       const sums = [];
@@ -609,6 +695,7 @@ export default {
     //校正前工分值的总值
     totalData() {
       return {
+        id: this.totalServerData.id,
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
         fixedDecimalRate: this.totalServerData.rate.toFixed(2),
@@ -746,6 +833,14 @@ export default {
             (result, current) => (result += current?.ruleScore ?? 0),
             0
           );
+          item.children = item.children.map(it => {
+            return {
+              ...it,
+              isGradeScore: false,
+              originalScore: it.score,
+              isSaveScoreLoaing: false
+            };
+          });
           return item;
         }) ?? [];
       returnValue.score = returnValue.children.reduce(
