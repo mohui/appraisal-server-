@@ -391,7 +391,7 @@
                   <el-button
                     v-if="scope.row.isGradeScore"
                     plain
-                    type="success"
+                    type="primary"
                     size="small"
                     @click="handleSaveScore(scope.row)"
                     >保存
@@ -561,6 +561,7 @@ export default {
     },
     //保存打分处理
     async handleSaveScore(row) {
+      console.log(row);
       if (row.score > row.ruleScore) {
         this.$message({
           type: 'error',
