@@ -518,8 +518,6 @@ import twoCardCircle from './components/twocardCircle';
 import accordion from './components/twocardAccordion';
 import progressScore from './components/progressScore';
 
-const code = '340203';
-
 export default {
   name: 'index',
   components: {
@@ -537,6 +535,7 @@ export default {
   },
   data() {
     return {
+      code: this.$settings.user.code,
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
@@ -632,7 +631,7 @@ export default {
       this.params.isInstitution = route.query.isInstitution
         ? JSON.parse(route.query.isInstitution)
         : false;
-      this.params.id = route.query.id ?? code;
+      this.params.id = route.query.id ?? this.code;
     },
     //纬度切换
     latTypeChanged(type) {
@@ -662,7 +661,7 @@ export default {
     //返回
     handleBack() {
       this.params.isInstitution = false;
-      this.params.id = code;
+      this.params.id = this.code;
       this.$router.push({
         query: {
           ...this.params
@@ -672,7 +671,7 @@ export default {
   },
   computed: {
     sysCode() {
-      return this.$route.query.id || code;
+      return this.$route.query.id || this.code;
     },
     //工分值数据，用于柱状图显示
     workpointBarData() {
