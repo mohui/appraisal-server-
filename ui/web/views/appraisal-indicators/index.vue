@@ -591,6 +591,7 @@ export default {
     },
     //取消打分
     cancelScore(row) {
+      this.$set(row, 'originalScore', row.originalScore);
       this.$set(row, 'isGradeScore', false);
     },
     handleSummaries(param) {
@@ -829,7 +830,7 @@ export default {
             0
           );
           item.children = item.children.map(it => {
-            return {...it, isGradeScore: false};
+            return {...it, isGradeScore: false, originalScore: it.score};
           });
           return item;
         }) ?? [];
