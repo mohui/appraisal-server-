@@ -68,7 +68,7 @@ const router = new Router({
     }
   ]
 });
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   if (to.name === 'login') {
     cleanCache();
     next();
@@ -80,6 +80,9 @@ router.beforeEach((to, from, next) => {
     next('/login');
     return;
   }
+  //TODO 先解决在刷新时子页面的created周期获取不到$settings缓存的问题
+  if (!Vue.prototype.$settings.user || !Vue.prototype.$settings.permissions)
+    await Vue.prototype.$settings.load();
   setToken(getToken());
   next();
 });
