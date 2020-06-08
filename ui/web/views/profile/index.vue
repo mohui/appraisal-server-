@@ -111,6 +111,7 @@ export default {
           type: 'success',
           message: '修改用户成功!'
         });
+        await this.$settings.load();
       } catch (e) {
         this.$message.error(e.message);
       }
