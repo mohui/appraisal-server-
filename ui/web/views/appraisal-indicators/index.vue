@@ -562,7 +562,6 @@ export default {
     },
     //保存打分处理
     async handleSaveScore(row) {
-      console.log(row);
       if (row.score > row.ruleScore) {
         this.$message({
           type: 'error',
