@@ -11,7 +11,10 @@ export const settingPlugin = {
       },
       methods: {
         async load() {
-          this.user = await this.$api.User.profile(getToken());
+          const user = await this.$api.User.profile(getToken());
+          user.code =
+            user.hospitals.length === 1 ? user.hospitals[0].id : user.regionId;
+          this.user = user;
           this.permissions = [
             ...new Set(this.user.roles.map(it => it.permissions).flat())
           ];

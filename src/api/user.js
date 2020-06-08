@@ -366,7 +366,7 @@ export default class User {
     return UserModel.findOne({
       where: {id},
       attributes: {exclude: ['password']},
-      include: [RoleModel, RegionModel]
+      include: [RoleModel, RegionModel, HospitalModel]
     });
   }
 }
