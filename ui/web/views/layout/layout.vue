@@ -15,7 +15,7 @@
           ></i>
         </div>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item>个人中心</el-dropdown-item>
+          <el-dropdown-item command="profile">个人中心</el-dropdown-item>
           <el-dropdown-item command="logout">退出</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -66,11 +66,17 @@ export default {
   },
   methods: {
     handCommand(command) {
+      if (command === 'profile') this.profile();
       if (command === 'logout') this.logout();
     },
     logout() {
       removeToken();
       window.location.href = '/login';
+    },
+    profile() {
+      this.$router.push({
+        path: 'profile'
+      });
     }
   }
 };
