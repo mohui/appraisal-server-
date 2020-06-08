@@ -10,6 +10,7 @@ import {
 } from '../database/model';
 import {Op} from 'sequelize';
 import {getPermission} from '../../common/permission';
+import {Context} from './context';
 
 export default class User {
   @validate(
@@ -367,6 +368,27 @@ export default class User {
       where: {id},
       attributes: {exclude: ['password']},
       include: [RoleModel, RegionModel]
+    });
+  }
+
+  @validate(
+    should.object({
+      name: should
+        .string()
+        .required()
+        .description('个人名称')
+    })
+  )
+  async updateProfile(params) {
+    return appDB.transaction(async () => {
+      let user = await UserModel.findOne({
+        where: {
+          id: Context.req.headers.token
+        }
+      });
+      if (!user) throw new KatoCommonError('该用户不存在');
+      user.name = params.name;
+      return await user.save();
     });
   }
 }
