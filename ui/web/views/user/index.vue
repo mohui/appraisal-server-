@@ -13,6 +13,7 @@
       <div slot="header" class="clearfix">
         <span>用户列表</span>
         <el-button
+          v-if="$settings.permissions.includes(permission.USER_ADD)"
           style="float: right;margin: -9px;"
           type="primary"
           @click="openAddUserDialog"
@@ -90,12 +91,28 @@
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间"></el-table-column>
         <el-table-column prop="updated_at" label="更新时间"></el-table-column>
-        <el-table-column label="操作">
+        <el-table-column
+          label="操作"
+          v-if="
+            $settings.permissions.includes(permission.USER_UPDATE) ||
+              $settings.permissions.includes(permission.USER_REMOVE)
+          "
+        >
           <template slot-scope="scope">
-            <el-button type="primary" size="small" @click="editUser(scope)">
+            <el-button
+              v-if="$settings.permissions.includes(permission.USER_UPDATE)"
+              type="primary"
+              size="small"
+              @click="editUser(scope)"
+            >
               修改
             </el-button>
-            <el-button type="danger" size="small" @click="delUser(scope)">
+            <el-button
+              v-if="$settings.permissions.includes(permission.USER_REMOVE)"
+              type="danger"
+              size="small"
+              @click="delUser(scope)"
+            >
               删除
             </el-button>
           </template>
@@ -271,11 +288,14 @@
 </template>
 
 <script>
+import {Permission} from '../../../../common/permission.ts';
+
 export default {
   name: 'user',
   data() {
     const that = this;
     return {
+      permission: Permission,
       dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
       formLabelWidth: '100px',
