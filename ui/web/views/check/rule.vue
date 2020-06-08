@@ -39,7 +39,8 @@
               plain
               type="warning"
               size="mini"
-              @click="item.isEdit = false"
+              v-show="item.ruleId"
+              @click="cancelGroup(item)"
               >取消
             </el-button>
           </span>
@@ -182,7 +183,7 @@
                   plain
                   type="primary"
                   size="mini"
-                  @click="scope.row.isEdit = false"
+                  @click="cancelRule(scope, index)"
                   >取消
                 </el-button>
               </div>
@@ -205,7 +206,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-col :span="24">
+        <el-col :span="24" v-show="!item.isEdit">
           <div class="add-rule" @click="addRule(item)">
             <span>+ 新增考核项</span>
           </div>
@@ -304,7 +305,7 @@
       </el-tabs>
 
       <div slot="footer" class="dialog-footer">
-        <el-button plain @click="dialogStandardVisible = false">
+        <el-button plain @click="cancelStandard">
           取 消
         </el-button>
         <el-button plain type="primary" @click="saveStandard">
@@ -361,10 +362,12 @@ export default {
                 data() {
                   return {
                     ...it,
+                    original: it,
                     isEdit: false,
                     group: it.group.map(item => ({
                       ...item,
                       isEdit: false,
+                      original: item,
                       ruleTagName: item.ruleTags
                         .map(its => MarkTagUsages[its.tag].name)
                         .join('，'),
@@ -400,11 +403,13 @@ export default {
         children: it.children.map(its => ({
           ...its,
           children: its.children.map(item => {
-            const isChecked =
-              row.ruleTags.findIndex(items => items.tag === item.code) !== -1;
+            const isChecked = row.ruleTags
+              ? row.ruleTags.findIndex(items => items.tag === item.code) !== -1
+              : false;
             const curObj =
-              isChecked &&
-              row.ruleTags.filter(items => items.tag === item.code)[0];
+              isChecked && row.ruleTags
+                ? row.ruleTags.filter(items => items.tag === item.code)[0]
+                : {};
             let obj = Object.assign({}, item, {
               checked: item.enabled && isChecked
             });
@@ -433,6 +438,19 @@ export default {
       }));
       this.dialogStandardVisible = true;
     },
+    //取消指标配置
+    cancelStandard() {
+      const {index, $index} = this.curRule;
+      this.ruleList[index].group[$index].ruleTags = this.ruleList[index].group[
+        $index
+      ].original.ruleTags;
+      this.ruleList[index].group[$index].ruleTagName = this.ruleList[
+        index
+      ].group[$index].original.ruleTags
+        .map(its => MarkTagUsages[its.tag].name)
+        .join('，');
+      this.dialogStandardVisible = false;
+    },
     //保存指标
     async saveStandard() {
       const {ruleId, index, $index} = this.curRule;
@@ -455,16 +473,15 @@ export default {
       try {
         if (ruleId) {
           await this.$api.RuleTag.upsert({ruleId, tags});
-        } else {
-          this.curRule.ruleTags = tags;
-          this.ruleList[index].group[$index].ruleTags = tags;
-          this.curRule.ruleTagName = tags
-            .map(its => MarkTagUsages[its.tag].name)
-            .join('，');
-          this.ruleList[index].group[
-            $index
-          ].ruleTagName = this.curRule.ruleTagName;
         }
+        this.curRule.ruleTags = tags;
+        this.ruleList[index].group[$index].ruleTags = tags;
+        this.curRule.ruleTagName = tags
+          .map(its => MarkTagUsages[its.tag].name)
+          .join('，');
+        this.ruleList[index].group[
+          $index
+        ].ruleTagName = this.curRule.ruleTagName;
       } catch (e) {
         this.$message.error(e.message);
       } finally {
@@ -484,29 +501,15 @@ export default {
         ruleScore: 0,
         status: true,
         isEdit: true,
-        group: [
-          {
-            checkId: this.checkId,
-            // 考核内容
-            ruleName: '',
-            // 分值
-            ruleScore: '',
-            // 考核标准
-            checkStandard: '',
-            // 考核方法
-            checkMethod: '',
-            // 评分标准
-            evaluateStandard: '',
-            //关联关系
-            standardId: '',
-            standardName: '',
-            status: true,
-            isEdit: true
-          }
-        ]
+        group: []
       });
     },
-    //保存细则分组
+    //细则分类编辑取消
+    cancelGroup(item) {
+      item.ruleName = item.original.ruleName;
+      item.isEdit = false;
+    },
+    //保存细则分类
     async saveGroup(row) {
       const {checkId, ruleId, ruleName} = row;
       if (ruleName === '') {
@@ -516,23 +519,26 @@ export default {
         });
       }
       try {
-        ruleId
+        let result = ruleId
           ? await this.$api.CheckSystem.updateRuleGroup({ruleId, ruleName})
           : await this.$api.CheckSystem.addRuleGroup({checkId, ruleName});
         this.$message({
           type: 'success',
           message: '保存成功!'
         });
+        if (result.ruleId) {
+          row.ruleId = result.ruleId;
+        }
         row.isEdit = false;
       } catch (e) {
         this.$message.error(e.message);
       }
     },
-    //切换细则分组编辑状态
+    //切换细则分类编辑状态
     editGroup(item) {
       item.isEdit = true;
     },
-    //删除细则分组
+    //删除细则分类
     delGroup(row, index) {
       this.$confirm('删除分类将同时删除包含的所有细则, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -547,6 +553,9 @@ export default {
               message: '删除成功!'
             });
             this.ruleList.splice(index, 1);
+            if (this.ruleList.length === 0) {
+              this.addGroup();
+            }
           } catch (e) {
             this.$message.error(e.message);
           }
@@ -597,51 +606,55 @@ export default {
     },
     //保存细则
     async saveRule(row) {
-      if (row.ruleName === '') {
+      const {
+        ruleId,
+        ruleName,
+        parentRuleId,
+        checkId,
+        ruleScore,
+        checkStandard,
+        checkMethod,
+        evaluateStandard,
+        status,
+        ruleTags
+      } = row;
+      if (!parentRuleId) {
+        return this.$message({
+          message: '请先保存考核分类',
+          type: 'error'
+        });
+      } else if (ruleName === '') {
         return this.$message({
           message: '考核内容不能为空',
           type: 'error'
         });
-      } else if (row.ruleScore === '') {
+      } else if (ruleScore === '') {
         return this.$message({
           message: '分值不能为空',
           type: 'error'
         });
-      } else if (row.checkStandard === '') {
+      } else if (checkStandard === '') {
         return this.$message({
           message: '考核标准不能为空',
           type: 'error'
         });
-      } else if (row.ruleScore < 0) {
+      } else if (ruleScore < 0) {
         return this.$message({
           message: '分值不能小于0',
           type: 'error'
         });
-      } else if (row.checkMethod === '') {
+      } else if (checkMethod === '') {
         return this.$message({
           message: '考核方法不能为空',
           type: 'error'
         });
-      } else if (row.evaluateStandard === '') {
+      } else if (evaluateStandard === '') {
         return this.$message({
           message: '评分标准不能为空',
           type: 'error'
         });
       }
       try {
-        const {
-          ruleId,
-          ruleName,
-          parentRuleId,
-          checkId,
-          ruleScore,
-          checkStandard,
-          checkMethod,
-          evaluateStandard,
-          status,
-          ruleTags
-        } = row;
-
         let result;
         if (!ruleId) {
           result = await this.$api.CheckSystem.addRule({
@@ -656,7 +669,7 @@ export default {
           });
 
           this.$set(row, 'ruleId', result.ruleId);
-          if (ruleTags.length) {
+          if (ruleTags && ruleTags.length) {
             await this.$api.RuleTag.upsert({
               ruleId: result.ruleId,
               tags: ruleTags
@@ -684,6 +697,19 @@ export default {
         this.$set(row, 'isEdit', false);
       } catch (e) {
         this.$message.error(e.message);
+      }
+    },
+    //细则编辑取消
+    cancelRule({row, $index}, i) {
+      if (row.ruleId) {
+        row.ruleName = row.original.ruleName;
+        row.ruleScore = row.original.ruleScore;
+        row.checkStandard = row.original.checkStandard;
+        row.checkMethod = row.original.checkMethod;
+        row.evaluateStandard = row.original.evaluateStandard;
+        row.isEdit = false;
+      } else {
+        this.ruleList[i].group.splice($index, 1);
       }
     },
     //切换细则编辑状态
