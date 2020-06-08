@@ -386,7 +386,12 @@
                   <span v-else>{{ scope.row.score }}</span>
                 </template>
               </el-table-column>
-              <el-table-column align="center" label="操作" width="184px">
+              <el-table-column
+                v-if="showScoreOperation()"
+                align="center"
+                label="操作"
+                width="184px"
+              >
                 <template slot-scope="scope">
                   <el-button
                     v-if="scope.row.isGradeScore"
@@ -669,6 +674,12 @@ export default {
             return true;
         }
       }
+      return false;
+    },
+    //是否显示打分操作
+    showScoreOperation() {
+      if (this.$settings.user.code === this.$settings.user.regionId)
+        return true;
       return false;
     },
     //返回
