@@ -183,7 +183,7 @@
                   plain
                   type="primary"
                   size="mini"
-                  @click="cancelRule(scope, index)"
+                  @click="cancelRule(scope.row, item)"
                   >取消
                 </el-button>
               </div>
@@ -700,7 +700,7 @@ export default {
       }
     },
     //细则编辑取消
-    cancelRule({row, $index}, i) {
+    cancelRule(row, item) {
       if (row.ruleId) {
         row.ruleName = row.original.ruleName;
         row.ruleScore = row.original.ruleScore;
@@ -709,7 +709,7 @@ export default {
         row.evaluateStandard = row.original.evaluateStandard;
         row.isEdit = false;
       } else {
-        this.ruleList[i].group.splice($index, 1);
+        item.group.pop();
       }
     },
     //切换细则编辑状态
