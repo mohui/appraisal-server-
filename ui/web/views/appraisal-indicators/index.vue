@@ -394,6 +394,7 @@
                     type="primary"
                     size="small"
                     @click="handleSaveScore(scope.row)"
+                    :loading="scope.row.isSaveScoreLoaing"
                     >保存
                   </el-button>
                   <el-button
@@ -577,6 +578,7 @@ export default {
         return;
       }
       try {
+        row.isSaveScoreLoaing = true;
         await this.$api.Score.score(row.ruleId, this.totalData.id, row.score);
         this.$message({
           type: 'success',
@@ -588,6 +590,8 @@ export default {
           type: 'danger',
           message: e.message
         });
+      } finally {
+        row.isSaveScoreLoaing = false;
       }
     },
     //取消打分
@@ -831,7 +835,12 @@ export default {
             0
           );
           item.children = item.children.map(it => {
-            return {...it, isGradeScore: false, originalScore: it.score};
+            return {
+              ...it,
+              isGradeScore: false,
+              originalScore: it.score,
+              isSaveScoreLoaing: false
+            };
           });
           return item;
         }) ?? [];
