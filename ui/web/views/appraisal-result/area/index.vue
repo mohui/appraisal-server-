@@ -75,6 +75,13 @@
           </div>
         </el-card>
       </el-col>
+      <el-col :span="16" v-if="params.listFlag === 'quality'">
+        <el-card shadow="hover">
+          <div class="score-detail">
+            历史趋势（待实现）
+          </div>
+        </el-card>
+      </el-col>
     </el-row>
   </div>
 </template>
