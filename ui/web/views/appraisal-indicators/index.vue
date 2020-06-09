@@ -387,7 +387,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                v-if="$settings.user.code === $settings.user.regionId"
+                v-if="$settings.user.isRegion"
                 align="center"
                 label="操作"
                 width="184px"
@@ -633,7 +633,7 @@ export default {
       this.params.listFlag = route.query.listFlag ?? 'score';
       this.params.isInstitution = route.query.isInstitution
         ? JSON.parse(route.query.isInstitution)
-        : !(this.$settings.user.code === this.$settings.user.regionId);
+        : !this.$settings.user.isRegion;
       this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
@@ -668,7 +668,7 @@ export default {
     showBackButton() {
       if (this.$route.query.isInstitution) {
         if (JSON.parse(this.$route.query.isInstitution)) {
-          return this.$settings.user.code === this.$settings.user.regionId;
+          return this.$settings.user.isRegion;
         }
       }
       return false;
