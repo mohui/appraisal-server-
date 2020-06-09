@@ -15,7 +15,7 @@ export const settingPlugin = {
           user.code =
             user.hospitals.length === 1 ? user.hospitals[0].id : user.regionId;
           //用户是否为地区权限
-          user.isRegion = user.code === user.regionId ? true : false;
+          user.isRegion = user.code === user.regionId;
           this.user = user;
           this.permissions = [
             ...new Set(this.user.roles.map(it => it.permissions).flat())
