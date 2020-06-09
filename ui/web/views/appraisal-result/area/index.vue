@@ -11,12 +11,13 @@
         <el-button-group style="">
           <el-button
             :class="{'el-button--primary': params.listFlag === 'quality'}"
+            @click="latTypeChanged('quality')"
           >
             质量系数
           </el-button>
           <el-button
-            type="default"
             :class="{'el-button--primary': params.listFlag === 'score'}"
+            @click="latTypeChanged('score')"
           >
             工分值
           </el-button>
@@ -64,6 +65,19 @@ export default {
           score: 0,
           rate: 0
         };
+      }
+    }
+  },
+  methods: {
+    //纬度切换
+    latTypeChanged(type) {
+      if (type !== this.params.listFlag) {
+        this.params.listFlag = type;
+        this.$router.push({
+          query: {
+            ...this.params
+          }
+        });
       }
     }
   }
