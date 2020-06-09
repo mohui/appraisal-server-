@@ -45,6 +45,12 @@ module.exports = [
         label: '考核指标'
       },
       {
+        index: 'appraisal-result-area',
+        permission: [Permission.APPRAISAL_INDICATORS],
+        router: '/appraisal-result-area',
+        label: '考核结果'
+      },
+      {
         index: 'check',
         permission: [Permission.APPRAISAL_CONFIGURATION_MANAGEMENT],
         router: '/check',
