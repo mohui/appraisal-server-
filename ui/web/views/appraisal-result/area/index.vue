@@ -82,6 +82,15 @@
           </div>
         </el-card>
       </el-col>
+      <div v-else>
+        <el-col :span="6">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              人脸采集信息（待实现）
+            </div>
+          </el-card>
+        </el-col>
+      </div>
     </el-row>
   </div>
 </template>
