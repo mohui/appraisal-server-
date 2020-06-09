@@ -83,6 +83,16 @@
         </el-card>
       </el-col>
       <div v-else>
+        <el-col :span="10">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <two-card-bar
+                :barxAxisData="workpointBarData.xAxisData"
+                :baryAxisData="workpointBarData.yAxisData"
+              ></two-card-bar>
+            </div>
+          </el-card>
+        </el-col>
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
@@ -96,10 +106,12 @@
 </template>
 <script>
 import twoCardCircle from '../../appraisal-indicators/components/twocardCircle';
+import twoCardBar from '../../appraisal-indicators/components/twocardBar';
 export default {
   name: 'index',
   components: {
-    twoCardCircle
+    twoCardCircle,
+    twoCardBar
   },
   data() {
     return {
@@ -113,6 +125,12 @@ export default {
     };
   },
   computed: {
+    //工分值数据，用于柱状图显示
+    workpointBarData() {
+      //TODO: 真实数据待完成
+      let value = {xAxisData: [], yAxisData: []};
+      return value;
+    },
     //总计工分和质量系数数据
     totalData() {
       return {
