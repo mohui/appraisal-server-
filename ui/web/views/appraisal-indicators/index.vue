@@ -668,8 +668,7 @@ export default {
     showBackButton() {
       if (this.$route.query.isInstitution) {
         if (JSON.parse(this.$route.query.isInstitution)) {
-          if (this.$settings.user.code === this.$settings.user.regionId)
-            return true;
+          return this.$settings.user.code === this.$settings.user.regionId;
         }
       }
       return false;
