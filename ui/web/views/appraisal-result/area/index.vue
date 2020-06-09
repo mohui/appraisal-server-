@@ -24,6 +24,45 @@
         </el-button-group>
       </div>
     </el-card>
+    <el-row :gutter="20" style="margin: 20px -10px">
+      <el-col :span="8">
+        <el-card shadow="hover">
+          <div class="score-detail" v-if="params.listFlag === 'score'">
+            <p style="font-size:22px; margin:0; text-align:left;">
+              工分值
+            </p>
+            <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
+            <h3 style="font-size: 30px; margin:0; display:inline-block">
+              {{
+                Math.round(
+                  this.totalServerData.rate * this.totalServerData.score
+                )
+              }}
+            </h3>
+            <span>分</span>
+            <p style="margin:10px 0;">{{ date }}</p>
+            <p style="font-size:13px;">{{ totalData.name }}</p>
+            <table style="width: 100%;margin-top: 20px;color: #666;">
+              <tr>
+                <td style="width: 33%;text-align: center">
+                  <p>{{ Math.round(totalData.score) }}分</p>
+                  <p>校正前</p>
+                </td>
+                <td
+                  style="width: 33%;text-align: center;vertical-align: middle;"
+                >
+                  X
+                </td>
+                <td style="text-align: center">
+                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
+                  <p>质量系数</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script>
@@ -97,5 +136,12 @@ export default {
     height: 35px;
     line-height: 40px;
   }
+}
+.score-detail {
+  position: relative;
+  height: 300px;
+  text-align: center;
+  box-sizing: border-box;
+  color: #1096d0;
 }
 </style>
