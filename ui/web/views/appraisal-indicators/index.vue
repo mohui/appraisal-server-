@@ -532,7 +532,6 @@ export default {
     progressScore
   },
   beforeRouteUpdate(to, from, next) {
-    console.log('beforeRouteUpdate', to);
     this.initParams(to);
     next();
   },
@@ -631,7 +630,6 @@ export default {
       return value.toFixed(2);
     },
     initParams(route) {
-      console.log('initParams', route);
       this.params.listFlag = route.query.listFlag ?? 'score';
       this.params.isInstitution = route.query.isInstitution
         ? JSON.parse(route.query.isInstitution)
