@@ -27,7 +27,7 @@
           style="float:right; margin: 0 30px;"
           type="primary"
           @click="handleBack"
-          v-if="params.isInstitution"
+          v-if="showBackButton()"
           >返回
         </el-button>
       </div>
@@ -386,7 +386,12 @@
                   <span v-else>{{ scope.row.score }}</span>
                 </template>
               </el-table-column>
-              <el-table-column align="center" label="操作" width="184px">
+              <el-table-column
+                v-if="$settings.user.isRegion"
+                align="center"
+                label="操作"
+                width="184px"
+              >
                 <template slot-scope="scope">
                   <el-button
                     v-if="scope.row.isGradeScore"
@@ -518,8 +523,6 @@ import twoCardCircle from './components/twocardCircle';
 import accordion from './components/twocardAccordion';
 import progressScore from './components/progressScore';
 
-const code = '340203';
-
 export default {
   name: 'index',
   components: {
@@ -540,7 +543,7 @@ export default {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
-        id: ''
+        id: this.$settings.user.code
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -628,18 +631,20 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
-      // TODO: 是否显示机构视图和code, 日后将由用户权限控制
       this.params.isInstitution = route.query.isInstitution
         ? JSON.parse(route.query.isInstitution)
-        : false;
-      this.params.id = route.query.id ?? code;
+        : !this.$settings.user.isRegion;
+      this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
     latTypeChanged(type) {
       if (type !== this.params.listFlag) {
         this.params.listFlag = type;
-        this.params.id = this.$route.query.id;
-        this.$router.push({query: this.params});
+        this.$router.push({
+          query: {
+            ...this.params
+          }
+        });
       }
     },
     handleClickInstitution(id) {
@@ -659,21 +664,25 @@ export default {
         });
       }
     },
+    //是否显示返回按钮
+    showBackButton() {
+      if (this.$route.query.isInstitution) {
+        if (JSON.parse(this.$route.query.isInstitution)) {
+          return this.$settings.user.isRegion;
+        }
+      }
+      return false;
+    },
     //返回
     handleBack() {
-      this.params.isInstitution = false;
-      this.params.id = code;
-      this.$router.push({
-        query: {
-          ...this.params
-        }
-      });
+      //这里不需要设置this.params.isInstitution=false，
+      //因为执行initParams方法时
+      //会将route.query.isInstitution赋值给this.params.isInstitution
+      //this.params.isInstitution = false;
+      this.$router.go(-1);
     }
   },
   computed: {
-    sysCode() {
-      return this.$route.query.id || code;
-    },
     //工分值数据，用于柱状图显示
     workpointBarData() {
       let value = {xAxisData: [], yAxisData: []};
@@ -698,7 +707,7 @@ export default {
         id: this.totalServerData.id,
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
-        fixedDecimalRate: this.totalServerData.rate.toFixed(2),
+        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(2)),
         name: this.totalServerData.name
       };
     },
@@ -858,7 +867,7 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total(this.sysCode);
+        return await this.$api.Score.total(this.params.id);
       },
       default() {
         return {
@@ -872,7 +881,7 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.Score.rank(this.sysCode);
+        return await this.$api.Score.rank(this.params.id);
       },
       shouldUpdate() {
         return !this.params.isInstitution;
@@ -884,7 +893,7 @@ export default {
     //获取服务器的医生工分和工分项目数据
     doctorWorkpointRankServerData: {
       async get() {
-        return await this.$api.Hospital.workpoints(this.sysCode);
+        return await this.$api.Hospital.workpoints(this.params.id);
       },
       shouldUpdate() {
         return this.params.listFlag === 'score' && this.params.isInstitution;
@@ -896,7 +905,7 @@ export default {
     //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
-        return await this.$api.Hospital.checks(this.sysCode);
+        return await this.$api.Hospital.checks(this.params.id);
       },
       shouldUpdate() {
         return this.params.listFlag === 'quality' && this.params.isInstitution;
