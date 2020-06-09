@@ -68,7 +68,6 @@ export default {
         it.tags = [];
         it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
         it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
-        if (it?.S23) it.tags.push('档案规范');
         return it;
       });
     }
