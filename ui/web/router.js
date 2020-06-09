@@ -33,6 +33,11 @@ const router = new Router({
           component: () => import('./views/appraisal-indicators/index')
         },
         {
+          path: 'appraisal-result-area',
+          name: 'appraisal-result-area',
+          component: () => import('./views/appraisal-result/area/index')
+        },
+        {
           path: 'check',
           name: 'check',
           component: () => import('./views/check/index')
