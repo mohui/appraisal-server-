@@ -682,13 +682,11 @@ export default {
     },
     //返回
     handleBack() {
-      this.params.isInstitution = false;
-      this.params.id = this.$settings.user.code;
-      this.$router.push({
-        query: {
-          ...this.params
-        }
-      });
+      //这里不需要设置this.params.isInstitution=false，
+      //因为执行initParams方法时
+      //会将route.query.isInstitution赋值给this.params.isInstitution
+      //this.params.isInstitution = false;
+      this.$router.go(-1);
     }
   },
   computed: {
