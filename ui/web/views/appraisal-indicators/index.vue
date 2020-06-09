@@ -387,7 +387,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                v-if="showScoreOperation()"
+                v-if="$settings.user.code === $settings.user.regionId"
                 align="center"
                 label="操作"
                 width="184px"
@@ -672,12 +672,6 @@ export default {
             return true;
         }
       }
-      return false;
-    },
-    //是否显示打分操作
-    showScoreOperation() {
-      if (this.$settings.user.code === this.$settings.user.regionId)
-        return true;
       return false;
     },
     //返回
