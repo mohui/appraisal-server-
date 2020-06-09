@@ -147,11 +147,11 @@
       :title="checkForm.id ? '修改规则' : '新建规则'"
       :visible.sync="dialogFormAddChecksVisible"
     >
-      <el-form :model="checkForm">
-        <el-form-item label="考核名称">
+      <el-form :model="checkForm" label-position="right" label-width="120px">
+        <el-form-item label="考核名称：">
           <el-input v-model="checkForm.checkName"></el-input>
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态：">
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
@@ -164,23 +164,25 @@
       </div>
     </el-dialog>
     <el-dialog title="快速复制" :visible.sync="dialogFormCloneChecksVisible">
-      <el-form :model="checkForm">
-        <el-form-item label="复制考核名称">
-          {{ checkForm.name }}
+      <el-form :model="checkForm" label-position="right" label-width="120px">
+        <el-form-item label="复制考核名称：">
+          {{ checkForm.checkName }}
         </el-form-item>
-        <el-form-item label="考核名称">
+        <el-form-item label="考核名称：">
           <el-input v-model="checkForm.cloneName"></el-input>
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态：">
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormCloneChecksVisible = false"
-          >取 消</el-button
-        >
-        <el-button type="primary" @click="cloneCheck">确 定</el-button>
+        <el-button @click="dialogFormCloneChecksVisible = false">
+          取 消
+        </el-button>
+        <el-button type="primary" @click="cloneCheck" :loading="submitting">
+          {{ submitting ? '提交中...' : '确 定' }}
+        </el-button>
       </div>
     </el-dialog>
     <el-dialog
@@ -189,19 +191,19 @@
       :before-close="handleClose"
       width="30%"
     >
-      <el-form :model="checkForm">
-        <el-form-item label="考核名称">
-          {{ checkForm.name }}
+      <el-form :model="checkForm" label-position="right" label-width="120px">
+        <el-form-item label="考核名称：">
+          {{ checkForm.checkName }}
         </el-form-item>
-        <el-form-item label="状态">
-          <el-radio v-model="checkForm.radio" label="1">
+        <el-form-item label="状态：">
+          <el-radio v-model="checkForm.status" :label="true">
             覆盖原有考核细则
           </el-radio>
-          <el-radio v-model="checkForm.radio" label="0">
+          <el-radio v-model="checkForm.status" :label="false">
             增量更新考核细则
           </el-radio>
         </el-form-item>
-        <el-form-item label="上传文件">
+        <el-form-item label="上传文件：">
           <el-upload
             class="upload-demo"
             ref="uploadForm"
@@ -219,22 +221,27 @@
             :auto-upload="false"
           >
             <el-button plain size="small" type="primary">点击上传</el-button>
-            <div slot="tip" class="el-upload__tip" style="font-size:16px;">
-              只能上传xls文件
-            </div>
+            <span class="el-alert--warning is-light">只能上传xls文件</span>
           </el-upload>
         </el-form-item>
-        <div style="text-align:center; color:red; font-size:18px;">
-          请按照模板要求及格式填写上传&nbsp;&nbsp;
-          <el-button plain type="primary" size="small" @click="downloadTemplate"
-            >模板下载</el-button
+        <el-form-item label="模板下载：">
+          <span class="el-alert--error is-light">
+            请按照模板要求及格式填写上传
+          </span>
+          <el-button
+            plain
+            type="primary"
+            size="small"
+            @click="downloadTemplate"
           >
-        </div>
+            模板下载
+          </el-button>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button plain @click="dialogUploadFormVisible = false"
-          >取 消</el-button
-        >
+        <el-button plain @click="dialogUploadFormVisible = false">
+          取 消
+        </el-button>
         <el-button
           plain
           type="primary"
@@ -265,6 +272,7 @@ export default {
     return {
       maxSize: 5,
       progress: 0,
+      submitting: false,
       dialogSelectVisible: false,
       dialogFormAddChecksVisible: false,
       dialogFormCloneChecksVisible: false,
@@ -274,7 +282,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        radio: '1'
+        status: true
       },
       searchForm: {
         pageSize: 20,
@@ -379,7 +387,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        radio: '1'
+        status: true
       };
     },
     //保存规则
@@ -434,23 +442,81 @@ export default {
     },
     //保存克隆规则
     async cloneCheck() {
+      if (this.submitting) return;
+      this.submitting = true;
       try {
-        const {checkId, name, cloneName, radio} = this.checkForm;
-        if (!name || !cloneName) {
+        //获取被克隆的考核ID,及新的考核名称
+        const {checkId, cloneName} = this.checkForm;
+        if (!cloneName) {
           this.$message.info('考核名称不能为空');
           return;
         }
-        await this.$api.CheckSystem.cloneCheck({
-          checkId,
-          name,
-          cloneName,
-          radio
+        //创建新的考核记录
+        const result = await this.$api.CheckSystem.add({checkName: cloneName});
+        //获得新考核ID
+        const newCheckId = result.checkId;
+
+        //查询被克隆的细则列表
+        const listRule = await this.$api.CheckSystem.listRule({
+          checkId: checkId
         });
+        //遍历细则，重新创建
+        const newListRule = listRule.rows.map(async it => {
+          //重新创建分类
+          const newGroup = await this.$api.CheckSystem.addRuleGroup({
+            checkId: newCheckId,
+            ruleName: it.ruleName
+          });
+
+          for (const item of it.group) {
+            //重新创建细则
+            const {
+              ruleName,
+              ruleScore,
+              checkStandard,
+              checkMethod,
+              evaluateStandard,
+              status,
+              ruleTags
+            } = item;
+            let newRule = await this.$api.CheckSystem.addRule({
+              checkId: newCheckId,
+              ruleName,
+              parentRuleId: newGroup.ruleId,
+              ruleScore,
+              checkStandard,
+              checkMethod,
+              status,
+              evaluateStandard
+            });
+            //设置指标
+            if (ruleTags?.length) {
+              await this.$api.RuleTag.upsert({
+                ruleId: newRule.ruleId,
+                tags: ruleTags.map(its => {
+                  delete its.id;
+                  delete its.name;
+                  return its;
+                })
+              });
+            }
+          }
+        });
+
+        Promise.all(newListRule)
+          .then(() => {
+            this.$message({
+              type: 'success',
+              message: '快速复制成功！'
+            });
+          })
+          .catch(err => this.$message.error(err.message));
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
       } finally {
         this.dialogFormCloneChecksVisible = false;
+        this.submitting = false;
       }
     },
     //开启规则
