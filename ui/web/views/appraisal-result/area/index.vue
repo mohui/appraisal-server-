@@ -60,14 +60,31 @@
               </tr>
             </table>
           </div>
+          <div class=" score-detail" v-if="params.listFlag === 'quality'">
+            <two-card-circle
+              :coefficient="totalData.fixedDecimalRate"
+              :pointDate="date"
+              :subtitle="totalData.name"
+              :text="totalData.name"
+            ></two-card-circle>
+            <span
+              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
+            >
+              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
+            </span>
+          </div>
         </el-card>
       </el-col>
     </el-row>
   </div>
 </template>
 <script>
+import twoCardCircle from '../../appraisal-indicators/components/twocardCircle';
 export default {
   name: 'index',
+  components: {
+    twoCardCircle
+  },
   data() {
     return {
       params: {
