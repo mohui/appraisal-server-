@@ -270,4 +270,38 @@ export default class Score {
       })
     );
   }
+
+  /**
+   * 获取省市排行
+   *
+   * @param code 省市code
+   */
+  async areaRank(code) {
+    const regionModel = await RegionModel.findOne({
+      where: {
+        code,
+        level: {
+          [Op.lt]: 3
+        }
+      }
+    });
+    if (!regionModel) throw new KatoCommonError(`地区 ${code} 不合法`);
+
+    // 获取所有子地区
+    return await Promise.all(
+      (
+        await RegionModel.findAll({
+          where: {
+            parent: regionModel.code
+          }
+        })
+      ).map(async region => {
+        const result = await this.total(region.code);
+        return {
+          ...result,
+          ...region.toJSON()
+        };
+      })
+    );
+  }
 }
