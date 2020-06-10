@@ -388,6 +388,7 @@
                     v-if="!scope.row.isGradeScore"
                     style="padding-left:5px; color:#ff9800"
                     class="el-icon-warning"
+                    @click="handleAppraisalResultInstructions()"
                   ></i>
                 </template>
               </el-table-column>
@@ -520,6 +521,17 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-dialog
+      title="指标结果(待完成)"
+      :visible.sync="appraisalResultInstructionsDialogVisible"
+      width="30%"
+    >
+      <div>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分标准：
+        </p>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -553,7 +565,8 @@ export default {
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
-      totalShowMore: false
+      totalShowMore: false,
+      appraisalResultInstructionsDialogVisible: false //单项指标考核结果说明
     };
   },
   filters: {
@@ -685,6 +698,9 @@ export default {
       //会将route.query.isInstitution赋值给this.params.isInstitution
       //this.params.isInstitution = false;
       this.$router.go(-1);
+    },
+    handleAppraisalResultInstructions() {
+      this.appraisalResultInstructionsDialogVisible = true;
     }
   },
   computed: {
