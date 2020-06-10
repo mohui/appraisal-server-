@@ -87,6 +87,22 @@ export default class Score {
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
+
+        // 电子档案规范率
+        if (tagModel.tag === MarkTagUsages.S23.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.S23)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.S23)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.S23 &&
+            mark?.S00
+          ) {
+            const rate = mark.S23 / mark.S00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
       }
       // 查询机构考核得分
       const ruleHospitalScoreObject = {
