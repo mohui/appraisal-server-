@@ -148,9 +148,9 @@
   </div>
 </template>
 <script>
-import twoCardCircle from '../../appraisal-indicators/components/twocardCircle';
-import twoCardBar from '../../appraisal-indicators/components/twocardBar';
-import ProgressScore from '../../appraisal-indicators/components/progressScore';
+import twoCardCircle from '../components/twocardCircle';
+import twoCardBar from '../components/twocardBar';
+import ProgressScore from '../components/progressScore';
 
 export default {
   name: 'index',
@@ -255,7 +255,10 @@ export default {
         });
       } else {
         //进入区级行政区和机构页
-        this.$router.push({path: 'appraisal-indicators', query: {id: id}});
+        this.$router.push({
+          path: 'appraisal-result-institutions',
+          query: {id: id}
+        });
       }
     }
   }

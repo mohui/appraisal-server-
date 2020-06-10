@@ -67,7 +67,7 @@ export default {
     this.menus = require('../../utils/menus').map(it => {
       if (it.children) {
         it.children = it.children.map(item => {
-          if (item.index === 'appraisal-indicators') {
+          if (item.index === 'appraisal-result-institutions') {
             // 根据用户权限判断进入省市地区页还是区、机构页
             if (this.$settings.user.isRegion) {
               if (this.$settings.user.region.level < 3) {
