@@ -77,7 +77,7 @@ export default class User {
     result.rows = result.rows
       .map(it => ({
         ...it.toJSON(),
-        hospital: it.hospitals.length > 0 ? it.hospitals[0] : null
+        hospital: it.hospitals[0]
       }))
       .map(it => {
         delete it.hospitals;
