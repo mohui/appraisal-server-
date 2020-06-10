@@ -315,6 +315,14 @@
                   appraisalIndicatorsData.ruleScore
                 }}分</span
               >
+              <el-button
+                style="margin-left: 30px;"
+                size="small"
+                plain
+                type="primary"
+                @click="handleAppraisalResultsDownload()"
+                >考核结果下载</el-button
+              >
             </div>
           </div>
           <div
@@ -559,6 +567,8 @@ export default {
     }
   },
   methods: {
+    //考核结果下载
+    handleAppraisalResultsDownload() {},
     //点击打分按钮处理
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
