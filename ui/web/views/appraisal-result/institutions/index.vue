@@ -58,7 +58,7 @@
                   X
                 </td>
                 <td style="text-align: center">
-                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
+                  <p>{{ totalData.fixedDecimalRate }}%</p>
                   <p>质量系数</p>
                 </td>
               </tr>
@@ -74,7 +74,7 @@
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
+              (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
         </el-card>
@@ -383,7 +383,7 @@
                     >
                     </el-input-number>
                   </span>
-                  <span v-else>{{ scope.row.score }}</span>
+                  <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                 </template>
               </el-table-column>
               <el-table-column
@@ -538,6 +538,7 @@ import twoCardBar from '../components/twocardBar';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
+import decimal from 'decimal.js';
 
 export default {
   name: 'index',
@@ -744,7 +745,9 @@ export default {
         id: this.totalServerData.id,
         score: Math.round(this.totalServerData.score),
         rate: this.totalServerData.rate,
-        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(2)),
+        fixedDecimalRate: decimal(
+          Number((this.totalServerData.rate * 100).toFixed(2))
+        ).toNumber(),
         name: this.totalServerData.name
       };
     },
