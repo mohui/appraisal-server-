@@ -207,13 +207,13 @@ export default {
               label: '考核结果'
             },
             {
-              key: 'appraisal-configuration-management',
-              label: '配置管理'
-            },
-            {
               key: 'appraisal-configuration-management-group',
-              label: '配置管理权限分组',
+              label: '配置管理',
               children: [
+                {
+                  key: 'appraisal-configuration-management',
+                  label: '配置管理首页'
+                },
                 {
                   key: 'check',
                   label: '规则管理',
