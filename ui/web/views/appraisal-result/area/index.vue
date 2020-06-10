@@ -232,6 +232,19 @@ export default {
           rate: 0
         };
       }
+    },
+    workpointRankServerData: {
+      async get() {
+        return await this.$api.Score.areaRank('34');
+      },
+      default() {
+        return {
+          id: '',
+          name: '',
+          score: 0,
+          rate: 0
+        };
+      }
     }
   },
   methods: {
