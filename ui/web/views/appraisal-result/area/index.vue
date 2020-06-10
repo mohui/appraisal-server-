@@ -105,7 +105,7 @@
     <el-col :span="24">
       <el-card shadow="hover">
         <h3 class="ins-ranking-title">下级地区排行</h3>
-        <div v-for="(item, index) of workpointRankData" :key="item.id">
+        <div v-for="(item, index) of areaRankData" :key="item.id">
           <!--下级质量系数排行-->
           <div
             v-if="params.listFlag === 'quality'"
@@ -195,12 +195,12 @@ export default {
       };
     },
     //区域排行数据
-    workpointRankData() {
-      return this.workpointRankServerData;
+    areaRankData() {
+      return this.areaRankServerData;
     },
     //最大得分值数
     maxScore() {
-      return Math.max(...this.workpointRankData.map(it => it.score));
+      return Math.max(...this.areaRankData.map(it => it.score));
     }
   },
   asyncComputed: {
@@ -218,7 +218,7 @@ export default {
         };
       }
     },
-    workpointRankServerData: {
+    areaRankServerData: {
       async get() {
         return await this.$api.Score.areaRank(this.params.id);
       },
