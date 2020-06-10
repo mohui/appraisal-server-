@@ -5,6 +5,7 @@ import {
   RoleModel,
   UserModel
 } from '../../database/model';
+import {Op} from 'sequelize';
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   try {
@@ -45,6 +46,14 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             .reduce((result, next) => result.concat(next), [])
         )
       ];
+      //如果是地区级别的用户重新配置其所属的机构 TODO: 有点苟且
+      if (user.hospitals.length === 0) {
+        //查询该用户所属地区下的所有机构
+        user.hospitals = await HospitalModel.findAll({
+          where: {regionId: {[Op.like]: `${user.regionId}%`}},
+          attributes: ['id', 'name', 'parent', 'regionId']
+        });
+      }
       ctx.user = user;
     }
   } catch (e) {
