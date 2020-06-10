@@ -159,11 +159,18 @@ export default {
     twoCardBar,
     ProgressScore
   },
+  beforeRouteUpdate(to, from, next) {
+    this.initParams(to);
+    next();
+  },
+  created() {
+    this.initParams(this.$route);
+  },
   data() {
     return {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
-        id: this.$settings.user.code
+        id: '34'
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -221,6 +228,10 @@ export default {
     }
   },
   methods: {
+    initParams(route) {
+      this.params.listFlag = route.query.listFlag ?? 'score';
+      this.params.id = route.query.id ?? '34';
+    },
     //纬度切换
     latTypeChanged(type) {
       if (type !== this.params.listFlag) {
