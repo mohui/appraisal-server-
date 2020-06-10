@@ -49,10 +49,12 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       //如果是地区级别的用户重新配置其所属的机构 TODO: 有点苟且
       if (user.hospitals.length === 0) {
         //查询该用户所属地区下的所有机构
-        user.hospitals = await HospitalModel.findAll({
-          where: {regionId: {[Op.like]: `${user.regionId}%`}},
-          attributes: ['id', 'name', 'parent', 'regionId']
-        });
+        user.hospitals = (
+          await HospitalModel.findAll({
+            where: {regionId: {[Op.like]: `${user.regionId}%`}},
+            attributes: ['id', 'name', 'parent', 'regionId']
+          })
+        ).map(it => it.toJSON());
       }
       ctx.user = user;
     }
