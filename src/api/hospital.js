@@ -4,8 +4,7 @@ import {
   HospitalModel,
   RegionModel,
   RuleHospitalModel,
-  RuleHospitalScoreModel,
-  UserHospitalModel
+  RuleHospitalScoreModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
@@ -75,9 +74,7 @@ export default class Hospital {
       where: {checkId, parentRuleId: {[Op.not]: null}}
     });
     //当前用户所拥有的机构权限
-    const hospitals = await UserHospitalModel.findAll({
-      where: {userId: Context.req.headers.token}
-    }).map(h => h.hospitalId);
+    const hospitals = Context.current.user.hospitals.map(h => h.id);
 
     //用户拥有的机构和对应的规则关系
     const ruleHospital = (
