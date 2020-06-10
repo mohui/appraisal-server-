@@ -279,6 +279,12 @@ export default class CheckSystem {
         const childRules = await CheckRuleModel.findAll({
           where: {parentRuleId: rule.ruleId}
         });
+        //删除细则下的指标绑定关系
+        await Promise.all(
+          childRules.map(
+            async it => await RuleTagModel.destroy({where: {ruleId: it.ruleId}})
+          )
+        );
         await Promise.all(childRules.map(async it => await it.destroy()));
       }
       //删除与该规则绑定的指标关系
