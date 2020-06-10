@@ -31,7 +31,7 @@ module.exports = [
   {
     index: 'performance-appraisal',
     permission: [
-      Permission.APPRAISAL_INDICATORS,
+      Permission.APPRAISAL_RESULT,
       Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
       Permission.APPRAISAL_BASIC_DATA
     ],
@@ -40,7 +40,7 @@ module.exports = [
     children: [
       {
         index: 'appraisal-result-institutions',
-        permission: [Permission.APPRAISAL_INDICATORS],
+        permission: [Permission.APPRAISAL_RESULT],
         router: '/appraisal-result-institutions',
         label: '考核结果'
       },
