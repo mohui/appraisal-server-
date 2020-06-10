@@ -412,7 +412,8 @@ export default {
               const returnValue = {
                 ...item,
                 checked: true, // 默认选中, 会被checkedTag覆盖
-                ...checkedTag
+                ...checkedTag,
+                baseline: checkedTag.baseline || undefined
               };
 
               // 参考值的处理
@@ -446,7 +447,7 @@ export default {
     },
     //保存指标
     async saveStandard() {
-      const {ruleId, index, $index} = this.curRule;
+      const {ruleId, index, $index, ruleScore} = this.curRule;
       const tags = this.markTags
         .map(it => it.children)
         .reduce((acc, cur) => acc.concat(cur), [])
@@ -463,6 +464,22 @@ export default {
               : it.baseline,
           score: it.score
         }));
+
+      const notAlgorithm = tags.some(it => !it.algorithm);
+      if (notAlgorithm) {
+        return this.$message({
+          message: '请选择计算方式！',
+          type: 'error'
+        });
+      }
+      const totalScore = tags.reduce((acc, cur) => acc + cur.score, 0);
+      if (totalScore !== ruleScore) {
+        return this.$message({
+          message: `总分值为:${ruleScore}, 请合理分配各指标得分。`,
+          type: 'error'
+        });
+      }
+
       try {
         if (ruleId) {
           await this.$api.RuleTag.upsert({ruleId, tags});
