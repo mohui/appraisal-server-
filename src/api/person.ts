@@ -1,5 +1,13 @@
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
+import {KatoCommonError} from 'kato-server';
+
+async function etlQuery(sql, params): Promise<any[]> {
+  return etlDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
+}
 
 export default class Person {
   async list(pageSize, pageNo) {
@@ -53,6 +61,27 @@ export default class Person {
         S23: it.S23,
         hospitalName: it.hospital0 ?? it.hospital1
       }))
+    };
+  }
+
+  async detail(id) {
+    // language=PostgreSQL
+    const person = (
+      await etlQuery(
+        `select * from view_personinfo where idcardno = ? limit 1`,
+        [id]
+      )
+    )[0];
+    if (!person) throw new KatoCommonError('数据不存在');
+    // language=PostgreSQL
+    const hypertensionRows = await etlQuery(
+      `select * from view_hypertension where personnum = ?`,
+      [id]
+    );
+
+    return {
+      document: person,
+      hypertension: hypertensionRows
     };
   }
 }
