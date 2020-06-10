@@ -110,7 +110,7 @@
           <div
             v-if="params.listFlag === 'quality'"
             class="pointer"
-            @click="handleClickSubordinateArea(item.id)"
+            @click="handleClickSubordinateArea(item.id, item.level)"
           >
             <p>
               {{ index + 1 }}、{{ item.name }}
@@ -129,7 +129,7 @@
           <div
             class="pointer"
             v-else-if="params.listFlag === 'score'"
-            @click="handleClickSubordinateArea(item.id)"
+            @click="handleClickSubordinateArea(item.id, item.level)"
           >
             <p>{{ index + 1 }}、{{ item.name }}</p>
             <progress-score
@@ -244,14 +244,19 @@ export default {
       }
     },
     //进入下级地区
-    handleClickSubordinateArea(id) {
-      console.log('handleClickSubordinateArea', id);
-      this.params.id = id;
-      this.$router.push({
-        query: {
-          ...this.params
-        }
-      });
+    handleClickSubordinateArea(id, level) {
+      if (level < 3) {
+        //进入下级地区
+        this.params.id = id;
+        this.$router.push({
+          query: {
+            ...this.params
+          }
+        });
+      } else {
+        //进入区级行政区和机构页
+        this.$router.push({path: 'appraisal-indicators', query: {id: id}});
+      }
     }
   }
 };
