@@ -208,7 +208,11 @@ export default {
             },
             {
               key: 'appraisal-configuration-management',
-              label: '配置管理',
+              label: '配置管理'
+            },
+            {
+              key: 'appraisal-configuration-management-group',
+              label: '配置管理权限分组',
               children: [
                 {
                   key: 'check',
