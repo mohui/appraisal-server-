@@ -102,16 +102,62 @@
         </el-col>
       </div>
     </el-row>
+    <el-col :span="24">
+      <el-card shadow="hover">
+        <h3 class="ins-ranking-title">下级地区排行</h3>
+        <div v-for="(item, index) of workpointRankData" :key="item.id">
+          <!--下级质量系数排行-->
+          <div
+            v-if="params.listFlag === 'quality'"
+            class="pointer"
+            @click="handleClickSubordinateArea(item.id)"
+          >
+            <p>
+              {{ index + 1 }}、{{ item.name }}
+              <span style="float:right"
+                >{{ Math.round(item.rate * 100) }}% 考核办法</span
+              >
+            </p>
+            <el-progress
+              :text-inside="true"
+              :stroke-width="18"
+              :percentage="Math.round(item.rate * 100)"
+            >
+            </el-progress>
+          </div>
+          <!--一级机构工分值排行-->
+          <div
+            class="pointer"
+            v-else-if="params.listFlag === 'score'"
+            @click="handleClickSubordinateArea(item.id)"
+          >
+            <p>{{ index + 1 }}、{{ item.name }}</p>
+            <progress-score
+              :label="item.score"
+              :height="18"
+              :percentage="
+                item.score != 0 ? Math.round((item.score / maxScore) * 100) : 0
+              "
+              style="padding:0 20px;"
+            >
+            </progress-score>
+          </div>
+        </div>
+      </el-card>
+    </el-col>
   </div>
 </template>
 <script>
 import twoCardCircle from '../../appraisal-indicators/components/twocardCircle';
 import twoCardBar from '../../appraisal-indicators/components/twocardBar';
+import ProgressScore from '../../appraisal-indicators/components/progressScore';
+
 export default {
   name: 'index',
   components: {
     twoCardCircle,
-    twoCardBar
+    twoCardBar,
+    ProgressScore
   },
   data() {
     return {
@@ -140,6 +186,36 @@ export default {
         fixedDecimalRate: Number(this.totalServerData.rate.toFixed(2)),
         name: this.totalServerData.name
       };
+    },
+    //区域排行数据
+    workpointRankData() {
+      return [
+        {
+          id: '3402',
+          name: '芜湖市',
+          parent: null,
+          rate: 0.63,
+          score: 1211
+        },
+        {
+          id: '3404',
+          name: '淮南市',
+          parent: null,
+          rate: 0.36,
+          score: 511
+        },
+        {
+          id: '3401',
+          name: '合肥市',
+          parent: null,
+          rate: 0.24,
+          score: 311
+        }
+      ];
+    },
+    //最大得分值数
+    maxScore() {
+      return Math.max(...this.workpointRankData.map(it => it.score));
     }
   },
   asyncComputed: {
@@ -169,6 +245,10 @@ export default {
           }
         });
       }
+    },
+    //进入下级地区
+    handleClickSubordinateArea(id) {
+      console.log('handleClickSubordinateArea', id);
     }
   }
 };
