@@ -593,6 +593,7 @@ export default {
           type: 'error',
           message: e.message
         });
+        row.auto = !row.auto;
       }
     },
     //点击打分按钮处理
