@@ -189,29 +189,7 @@ export default {
     },
     //区域排行数据
     workpointRankData() {
-      return [
-        {
-          id: '3402',
-          name: '芜湖市',
-          parent: null,
-          rate: 0.63,
-          score: 1211
-        },
-        {
-          id: '3404',
-          name: '淮南市',
-          parent: null,
-          rate: 0.36,
-          score: 511
-        },
-        {
-          id: '3401',
-          name: '合肥市',
-          parent: null,
-          rate: 0.24,
-          score: 311
-        }
-      ];
+      return this.workpointRankServerData;
     },
     //最大得分值数
     maxScore() {
@@ -222,7 +200,7 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total(this.$settings.user.code);
+        return await this.$api.Score.total('34');
       },
       default() {
         return {
@@ -238,12 +216,7 @@ export default {
         return await this.$api.Score.areaRank('34');
       },
       default() {
-        return {
-          id: '',
-          name: '',
-          score: 0,
-          rate: 0
-        };
+        return [];
       }
     }
   },
