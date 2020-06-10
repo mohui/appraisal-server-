@@ -103,6 +103,22 @@ export default class Score {
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
+
+        // 健康档案使用率
+        if (tagModel.tag === MarkTagUsages.S03.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.S03)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.S03)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.S03 &&
+            mark?.S00
+          ) {
+            const rate = mark.S03 / mark.S00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
       }
       // 查询机构考核得分
       const ruleHospitalScoreObject = {
