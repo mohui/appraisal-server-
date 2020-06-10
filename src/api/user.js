@@ -416,7 +416,7 @@ export default class User {
   )
   async setPermission(params) {
     return appDB.transaction(async () => {
-      const {id, region, hospitalId} = params;
+      let {id, region, hospitalId} = params;
       //查询用户是否存在
       const user = await UserModel.findOne({
         where: {id}
@@ -425,11 +425,17 @@ export default class User {
       //清空其机构绑定
       await UserHospitalModel.destroy({where: {userId: id}});
       if (hospitalId) {
+        //查询机构是否存在
+        const hospital = await HospitalModel.findOne({
+          where: {id: hospitalId}
+        });
+        if (!hospital) throw new KatoCommonError('该机构不存在');
         //绑定新的机构
         await UserHospitalModel.create({userId: id, hospitalId: hospitalId});
+        //修改地区绑定
+        region = hospital.regionId;
       }
-      //修改地区绑定
-      user.region = region;
+      user.regionId = region;
       return await user.save();
     });
   }
