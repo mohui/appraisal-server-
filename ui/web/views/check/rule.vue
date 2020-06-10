@@ -190,6 +190,10 @@
               <div v-else>
                 <el-button
                   plain
+                  v-permission="{
+                    permission: permission.RULE_UPDATE,
+                    type: 'disabled'
+                  }"
                   type="primary"
                   size="mini"
                   @click="editRule(scope.row)"
@@ -197,6 +201,10 @@
                 </el-button>
                 <el-button
                   plain
+                  v-permission="{
+                    permission: permission.RULE_REMOVE,
+                    type: 'disabled'
+                  }"
                   type="danger"
                   size="mini"
                   @click="delRule(scope, index)"
@@ -207,7 +215,11 @@
           </el-table-column>
         </el-table>
         <el-col :span="24" v-show="!item.isEdit">
-          <div class="add-rule" @click="addRule(item)">
+          <div
+            class="add-rule"
+            @click="addRule(item)"
+            v-permission="permission.RULE_ADD"
+          >
             <span>+ 新增考核项</span>
           </div>
         </el-col>
@@ -323,10 +335,12 @@ import {
   TagAlgorithm,
   MarkTagUsages
 } from '../../../../common/rule-score.ts';
+import {Permission} from '../../../../common/permission.ts';
 export default {
   name: 'rule',
   data() {
     return {
+      permission: Permission,
       checkId: '',
       checkName: '',
       ruleList: [],

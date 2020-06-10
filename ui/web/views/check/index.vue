@@ -13,6 +13,7 @@
       <div slot="header" class="clearfix">
         <span>规则列表</span>
         <el-button
+          v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
           style="float: right;margin: -9px;"
           type="primary"
           @click="openAddCheckDialog"
@@ -60,6 +61,10 @@
             <el-button
               circle
               plain
+              v-permission="{
+                permission: permission.CHECK_SELECT_HOSPITAL,
+                type: 'disabled'
+              }"
               type="primary"
               size="mini"
               icon="el-icon-plus"
@@ -71,6 +76,10 @@
           <template slot-scope="scope">
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_UPDATE,
+                type: 'disabled'
+              }"
               type="primary"
               size="small"
               @click.stop="openEditCheckDialog(scope.row)"
@@ -79,6 +88,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_CLONE,
+                type: 'disabled'
+              }"
               type="warning"
               size="small"
               @click.stop="openCloneCheckDialog(scope.row)"
@@ -87,6 +100,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_IMPORT,
+                type: 'disabled'
+              }"
               v-show="scope.row.status"
               type="info"
               size="small"
@@ -96,6 +113,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_REMOVE,
+                type: 'disabled'
+              }"
               type="danger"
               size="small"
               @click.stop="delCheck(scope)"
@@ -104,6 +125,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_OPEN_GRADE,
+                type: 'disabled'
+              }"
               v-show="scope.row.isOpen"
               type="success"
               size="small"
@@ -113,6 +138,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_CLOSE_GRADE,
+                type: 'disabled'
+              }"
               v-show="scope.row.isClose"
               size="small"
               @click.stop="closeCheck(scope.row)"
@@ -266,10 +295,12 @@
 </template>
 
 <script>
+import {Permission} from '../../../../common/permission.ts';
 export default {
   name: 'check',
   data() {
     return {
+      permission: Permission,
       maxSize: 5,
       progress: 0,
       submitting: false,
