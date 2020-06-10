@@ -310,10 +310,10 @@
           <div style="width: 100%; height:40px;">
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
-              <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+              <span style="color: #666;font-size: 14px; font-weight: bold"
+                >({{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
                   appraisalIndicatorsData.ruleScore
-                }}分</span
+                }}分)</span
               >
               <el-button
                 style="margin-left: 30px;"
