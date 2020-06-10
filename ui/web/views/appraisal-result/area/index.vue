@@ -207,7 +207,7 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total('34');
+        return await this.$api.Score.total(this.params.id);
       },
       default() {
         return {
@@ -220,7 +220,7 @@ export default {
     },
     workpointRankServerData: {
       async get() {
-        return await this.$api.Score.areaRank('34');
+        return await this.$api.Score.areaRank(this.params.id);
       },
       default() {
         return [];
@@ -246,6 +246,12 @@ export default {
     //进入下级地区
     handleClickSubordinateArea(id) {
       console.log('handleClickSubordinateArea', id);
+      this.params.id = id;
+      this.$router.push({
+        query: {
+          ...this.params
+        }
+      });
     }
   }
 };
