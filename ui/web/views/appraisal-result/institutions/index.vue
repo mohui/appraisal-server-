@@ -384,6 +384,11 @@
                     </el-input-number>
                   </span>
                   <span v-else>{{ scope.row.score }}</span>
+                  <i
+                    v-if="!scope.row.isGradeScore"
+                    style="padding-left:5px; color:#ff9800"
+                    class="el-icon-warning"
+                  ></i>
                 </template>
               </el-table-column>
               <el-table-column
