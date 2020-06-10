@@ -383,7 +383,7 @@
                     >
                     </el-input-number>
                   </span>
-                  <span v-else>{{ scope.row.score }}</span>
+                  <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                 </template>
               </el-table-column>
               <el-table-column
