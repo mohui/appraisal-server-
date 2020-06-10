@@ -49,7 +49,7 @@ export default {
   components: {MultiMenu},
   data() {
     return {
-      menus: require('../../utils/menus'),
+      menus: [],
       dropdownVisible: false
     };
   },
@@ -63,6 +63,23 @@ export default {
   async created() {
     //获取当前需要缓存的信息
     await this.$settings.load();
+
+    this.menus = require('../../utils/menus').map(it => {
+      if (it.children) {
+        it.children = it.children.map(item => {
+          if (item.index === 'appraisal-indicators') {
+            // 根据用户权限判断进入省市地区页还是区、机构页
+            if (this.$settings.user.isRegion) {
+              if (this.$settings.user.region.level < 3) {
+                item.router = '/appraisal-result-area';
+              }
+            }
+          }
+          return item;
+        });
+      }
+      return it;
+    });
   },
   methods: {
     handCommand(command) {
