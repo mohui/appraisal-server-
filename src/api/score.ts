@@ -57,7 +57,7 @@ export default class Score {
       let score = 0;
       // 循环所有的指标算法, 计算得分
       for (const tagModel of ruleTagModels) {
-        // 建档率
+        // 健康档案建档率
         if (tagModel.tag === MarkTagUsages.S01.code) {
           // 查询服务总人口数
           const basicData = await BasicTagDataModel.findOne({
@@ -88,7 +88,7 @@ export default class Score {
           }
         }
 
-        // 电子档案规范率
+        // 健康档案规范率
         if (tagModel.tag === MarkTagUsages.S23.code) {
           if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.S23)
             score += tagModel.score;
