@@ -578,11 +578,22 @@ export default {
     //系统自动打分开关
     async handleChangeSystemAutoScore(row) {
       console.log(row);
-      await this.$api.Hospital.setRuleAuto(
-        this.params.id,
-        row.ruleId,
-        row.auto
-      );
+      try {
+        await this.$api.Hospital.setRuleAuto(
+          this.params.id,
+          row.ruleId,
+          row.auto
+        );
+        this.$message({
+          type: 'success',
+          message: '更改成功'
+        });
+      } catch (e) {
+        this.$message({
+          type: 'error',
+          message: e.message
+        });
+      }
     },
     //点击打分按钮处理
     handleScore(row) {
