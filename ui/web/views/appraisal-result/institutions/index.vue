@@ -387,6 +387,22 @@
                 </template>
               </el-table-column>
               <el-table-column
+                prop="isLock"
+                align="center"
+                width="150px"
+                label="系统打分"
+              >
+                <template slot-scope="scope">
+                  <el-switch
+                    v-model="scope.row.auto"
+                    active-text="开启"
+                    inactive-text="关闭"
+                    @change="handleChangeSystemAutoScore(scope.row)"
+                  >
+                  </el-switch>
+                </template>
+              </el-table-column>
+              <el-table-column
                 v-if="$settings.user.isRegion"
                 align="center"
                 label="操作"
@@ -559,6 +575,27 @@ export default {
     }
   },
   methods: {
+    //系统自动打分开关
+    async handleChangeSystemAutoScore(row) {
+      console.log(row);
+      try {
+        await this.$api.Hospital.setRuleAuto(
+          this.params.id,
+          row.ruleId,
+          row.auto
+        );
+        this.$message({
+          type: 'success',
+          message: '更改成功'
+        });
+      } catch (e) {
+        this.$message({
+          type: 'error',
+          message: e.message
+        });
+        row.auto = !row.auto;
+      }
+    },
     //点击打分按钮处理
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
