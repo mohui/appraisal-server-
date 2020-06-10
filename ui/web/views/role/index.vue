@@ -208,7 +208,65 @@ export default {
             },
             {
               key: 'appraisal-configuration-management',
-              label: '配置管理'
+              label: '配置管理',
+              children: [
+                {
+                  key: 'check',
+                  label: '规则管理',
+                  children: [
+                    {
+                      key: 'check-add',
+                      label: '新建规则'
+                    },
+                    {
+                      key: 'check-update',
+                      label: '修改规则'
+                    },
+                    {
+                      key: 'check-select-hospital',
+                      label: '配置机构'
+                    },
+                    {
+                      key: 'check-clone',
+                      label: '快速复制'
+                    },
+                    {
+                      key: 'check-import',
+                      label: '批量导入细则'
+                    },
+                    {
+                      key: 'check-open-grade',
+                      label: '全部开启打分'
+                    },
+                    {
+                      key: 'check-close-grade',
+                      label: '全部关闭打分'
+                    },
+                    {
+                      key: 'check-remove',
+                      label: '删除规则'
+                    }
+                  ]
+                },
+                {
+                  key: 'rule',
+                  label: '细则管理',
+                  children: [
+                    {
+                      key: 'rule-add',
+                      label: '新建细则'
+                    },
+                    {
+                      key: 'rule-update',
+                      label: '修改规则'
+                    },
+                    {
+                      key: 'rule-remove',
+                      label: '删除规则'
+                    }
+                  ]
+                }
+              ]
             },
             {
               key: 'appraisal-basic-data',

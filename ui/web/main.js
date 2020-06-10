@@ -10,6 +10,7 @@ import WidthCompute from './plugins/width-compute';
 import dayjs from './plugins/dayjs';
 import {settingPlugin} from './plugins/setting';
 import echarts from 'echarts';
+import './directive';
 
 (async () => {
   Vue.config.productionTip = false;
