@@ -1,14 +1,9 @@
-import {
-  BasicTagDataModel,
-  HospitalModel,
-  UserHospitalModel
-} from '../database/model';
+import {BasicTagDataModel} from '../database/model';
 import {appDB} from '../app';
 import {should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
-import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -47,18 +42,7 @@ export default class BasicTag {
   )
   async list(tagCode) {
     //当前用户地区权限下所直属的机构
-    const hospitals = await HospitalModel.findAll({
-      where: {
-        id: {
-          [Op.in]: (
-            await UserHospitalModel.findAll({
-              where: {userId: Context.req.headers.token}
-            })
-          ).map(h => h.hospitalId)
-        }
-      }
-    });
-
+    const hospitals = Context.current.user.hospitals;
     //获取大类指标下的所有的小类
     const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
 
@@ -91,7 +75,6 @@ export default class BasicTag {
 
     //组织返回结果
     return hospitals.map(h => {
-      h = h.toJSON();
       //该机构的所有相关指标数据
       const tags = queryResult.filter(q => q.hospitalId === h.id);
       //对更新时间进行排序,目的取出最新的更新时间和最后的修改人
