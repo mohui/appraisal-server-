@@ -74,15 +74,10 @@ export default class User {
         {model: HospitalModel, through: {attributes: []}}
       ]
     });
-    result.rows = result.rows
-      .map(it => ({
-        ...it.toJSON(),
-        hospital: it.hospitals[0]
-      }))
-      .map(it => {
-        delete it.hospitals;
-        return it;
-      });
+    result.rows = result.rows.map(it => ({
+      ...it.toJSON(),
+      hospital: it.hospitals[0]
+    }));
     return result;
   }
 
