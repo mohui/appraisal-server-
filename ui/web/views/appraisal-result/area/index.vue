@@ -199,7 +199,9 @@ export default {
     },
     //区域排行数据
     areaRankData() {
-      return this.areaRankServerData;
+      return this.areaRankServerData
+        .map(item => item)
+        .sort((a, b) => b.score - a.score);
     },
     //最大得分值数
     maxScore() {
