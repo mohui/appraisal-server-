@@ -87,6 +87,48 @@ export const MarkTags = [
             enabled: true
           }
         ]
+      },
+      {
+        name: '高血压患者健康管理服务',
+        code: 'hypertension',
+        children: [
+          {
+            name: '高血压患者管理率',
+            code: 'H00',
+            enabled: false
+          },
+          {
+            name: '高血压患者规范管理率',
+            code: 'H01',
+            enabled: false
+          },
+          {
+            name: '高血压患者血压控制率',
+            code: 'H02',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '2型糖尿病患者健康管理服务',
+        code: 'diabetes',
+        children: [
+          {
+            name: '2型糖尿病患者管理率',
+            code: 'H00',
+            enabled: false
+          },
+          {
+            name: '2型糖尿病患者规范管理率',
+            code: 'H01',
+            enabled: false
+          },
+          {
+            name: '2型糖尿病患者血压控制率',
+            code: 'H02',
+            enabled: false
+          }
+        ]
       }
     ]
   },
