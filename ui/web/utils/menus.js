@@ -39,10 +39,10 @@ module.exports = [
     icon: 'el-icon-data-analysis',
     children: [
       {
-        index: 'appraisal-indicators',
+        index: 'appraisal-result-institutions',
         permission: [Permission.APPRAISAL_INDICATORS],
-        router: '/appraisal-indicators',
-        label: '考核指标'
+        router: '/appraisal-result-institutions',
+        label: '考核结果'
       },
       {
         index: 'check',

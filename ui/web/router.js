@@ -28,9 +28,14 @@ const router = new Router({
           component: () => import('./views/user/index')
         },
         {
-          path: 'appraisal-indicators',
-          name: 'appraisal-indicators',
-          component: () => import('./views/appraisal-indicators/index')
+          path: 'appraisal-result-institutions',
+          name: 'appraisal-result-institutions',
+          component: () => import('./views/appraisal-result/institutions/index')
+        },
+        {
+          path: 'appraisal-result-area',
+          name: 'appraisal-result-area',
+          component: () => import('./views/appraisal-result/area/index')
         },
         {
           path: 'check',
