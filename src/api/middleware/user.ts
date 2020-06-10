@@ -51,8 +51,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         //查询该用户所属地区下的所有机构
         user.hospitals = (
           await HospitalModel.findAll({
-            where: {regionId: {[Op.like]: `${user.regionId}%`}},
-            attributes: ['id', 'name', 'parent', 'regionId']
+            where: {regionId: {[Op.like]: `${user.regionId}%`}}
           })
         ).map(it => it.toJSON());
       }
