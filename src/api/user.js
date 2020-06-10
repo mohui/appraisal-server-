@@ -410,7 +410,7 @@ export default class User {
   )
   async setPermission(params) {
     return appDB.transaction(async () => {
-      const {id, region, hospitalId} = params;
+      let {id, region, hospitalId} = params;
       //查询用户是否存在
       const user = await UserModel.findOne({
         where: {id}
@@ -421,8 +421,11 @@ export default class User {
       if (hospitalId) {
         //绑定新的机构
         await UserHospitalModel.create({userId: id, hospitalId: hospitalId});
+        //修改地区绑定
+        region = (await HospitalModel.findOne({where: {id: hospitalId}}))
+          .region;
       }
-      //修改地区绑定
+
       user.region = region;
       return await user.save();
     });
