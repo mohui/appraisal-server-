@@ -423,10 +423,10 @@ export default class User {
         await UserHospitalModel.create({userId: id, hospitalId: hospitalId});
         //修改地区绑定
         region = (await HospitalModel.findOne({where: {id: hospitalId}}))
-          .region;
+          .regionId;
       }
 
-      user.region = region;
+      user.regionId = region;
       return await user.save();
     });
   }
