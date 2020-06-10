@@ -103,7 +103,7 @@ export default {
             [1, '#f6f7fa']
           ];
       this.chart.series[0].data[0].value = this.coefficient
-        ? this.coefficient * 100
+        ? this.coefficient
         : 0;
       this.chart.series[0].data[0].name = this.pointDate
         ? this.pointDate + '\n' + this.text
