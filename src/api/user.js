@@ -58,7 +58,7 @@ export default class User {
           r => r.userId
         )
       };
-    return UserModel.findAndCountAll({
+    let result = await UserModel.findAndCountAll({
       where: whereOption,
       attributes: {exclude: ['password']},
       offset: (pageNo - 1) * pageSize,
@@ -70,9 +70,15 @@ export default class User {
           through: {attributes: []},
           required: false
         },
-        {model: RegionModel, required: true}
+        {model: RegionModel, required: true},
+        {model: HospitalModel, through: {attributes: []}}
       ]
     });
+    result.rows = result.rows.map(it => ({
+      ...it.toJSON(),
+      hospital: it.hospitals[0]
+    }));
+    return result;
   }
 
   @validate(
