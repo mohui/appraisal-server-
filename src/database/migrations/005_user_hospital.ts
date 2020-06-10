@@ -9,8 +9,8 @@ export class UserHospitalIMigration implements IMigration {
     await client.execute(`
         CREATE TABLE IF NOT EXISTS "user_hospital_mapping" -- 用户机构关联表
         (
-            "user_id"           UUID, -- 用户id
-            "hospital_id"       UUID, -- 机构id
+            "user_id"           UUID  NOT NULL REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE CASCADE     -- 用户id
+            "hospital_id"       UUID  NOT NULL REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE -- 机构id
             "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
             "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
             UNIQUE ("user_id","hospital_id"),
