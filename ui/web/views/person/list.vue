@@ -22,7 +22,13 @@
         height="100%"
         style="flex-grow: 1;"
       >
-        <el-table-column prop="name" label="姓名"></el-table-column>
+        <el-table-column prop="name" label="姓名">
+          <template slot-scope="{row}">
+            <router-link :to="'/person-detail?id=' + row.idCard">
+              <span>{{ row.name }}</span>
+            </router-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="idCard" label="身份证"></el-table-column>
         <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
         <el-table-column label="标记">
