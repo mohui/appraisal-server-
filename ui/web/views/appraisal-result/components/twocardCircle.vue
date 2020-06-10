@@ -95,7 +95,7 @@ export default {
     circleChart() {
       this.chart.series[0].axisLine.lineStyle.color = this.coefficient
         ? [
-            [this.coefficient, '#23a9e6'],
+            [this.coefficient / 100, '#23a9e6'],
             [1, '#f6f7fa']
           ]
         : [
