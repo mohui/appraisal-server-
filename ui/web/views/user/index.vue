@@ -200,7 +200,6 @@
             style="width: 100%"
             :props="{
               lazy: true,
-              multiple: true,
               checkStrictly: true,
               lazyLoad: hospitalResolver
             }"
@@ -477,10 +476,14 @@ export default {
               roles,
               regionId
             });
-            if (hospitals.length) {
-              await this.$api.User.setHospitals({
+            let hospitalId = hospitals.length
+              ? hospitals[hospitals.length - 1]
+              : '';
+            if (regionId) {
+              await this.$api.User.setPermission({
                 id: result.id,
-                hospitals: hospitals.map(it => it[it.length - 1])
+                region: regionId,
+                hospitalId: hospitalId
               });
             }
             this.$message({
@@ -513,10 +516,14 @@ export default {
               ? regionId[regionId.length - 1]
               : regionId;
             await this.$api.User.update({id, name, roles, regionId});
-            if (hospitals.length) {
-              await this.$api.User.setHospitals({
+            if (regionId) {
+              let hospitalId = hospitals.length
+                ? hospitals[hospitals.length - 1]
+                : '';
+              await this.$api.User.setPermission({
                 id,
-                hospitals: hospitals.map(it => it[it.length - 1])
+                region: regionId,
+                hospitalId: hospitalId
               });
             }
             this.$message({
