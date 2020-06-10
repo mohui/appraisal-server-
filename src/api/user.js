@@ -419,13 +419,16 @@ export default class User {
       //清空其机构绑定
       await UserHospitalModel.destroy({where: {userId: id}});
       if (hospitalId) {
+        //查询机构是否存在
+        const hospital = await HospitalModel.findOne({
+          where: {id: hospitalId}
+        });
+        if (!hospital) throw new KatoCommonError('该机构不存在');
         //绑定新的机构
         await UserHospitalModel.create({userId: id, hospitalId: hospitalId});
         //修改地区绑定
-        region = (await HospitalModel.findOne({where: {id: hospitalId}}))
-          .regionId;
+        region = hospital.regionId;
       }
-
       user.regionId = region;
       return await user.save();
     });
