@@ -35,6 +35,8 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       //该用户的默认code
       user.code =
         user.hospitals.length === 1 ? user.hospitals[0].id : user.regionId;
+      //用户是否为地区权限
+      user.isRegion = user.code === user.regionId;
       //用户权限去重整理
       user.permissions = [
         ...new Set(
