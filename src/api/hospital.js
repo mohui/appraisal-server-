@@ -1,4 +1,5 @@
 import {
+  CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
   HospitalModel,
@@ -146,6 +147,16 @@ export default class Hospital {
       where: {id}
     });
     if (!hospitalModel) throw new KatoCommonError(`id为 ${id} 的机构不存在`);
+
+    const {checkSystem} = await CheckHospitalModel.findOne({
+      where: {
+        hospital: id
+      },
+      include: [CheckSystemModel]
+    });
+
+    if (!checkSystem) throw new KatoCommonError(`该机构未绑定考核`);
+
     // checkSystem
     const checkSystemModel = (
       await RuleHospitalModel.findOne({
@@ -172,6 +183,10 @@ export default class Hospital {
               {
                 model: RuleHospitalScoreModel,
                 where: {hospitalId: id}
+              },
+              {
+                model: RuleHospitalModel,
+                where: {hospitalId: id}
               }
             ]
           })
@@ -181,6 +196,9 @@ export default class Hospital {
             (result, current) => (result += current.score),
             0
           );
+          it.auto =
+            it.ruleHospitals.find(hospital => hospital.hospitalId === id)
+              ?.auto ?? false;
           return it;
         });
         return {
