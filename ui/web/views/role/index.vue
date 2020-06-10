@@ -203,7 +203,7 @@ export default {
           label: '绩效考核',
           children: [
             {
-              key: 'appraisal-indicators',
+              key: 'institutions',
               label: '考核指标'
             },
             {

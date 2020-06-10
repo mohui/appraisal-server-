@@ -518,10 +518,10 @@
   </div>
 </template>
 <script>
-import twoCardBar from './components/twocardBar';
-import twoCardCircle from './components/twocardCircle';
-import accordion from './components/twocardAccordion';
-import progressScore from './components/progressScore';
+import twoCardBar from '../components/twocardBar';
+import twoCardCircle from '../components/twocardCircle';
+import accordion from '../components/twocardAccordion';
+import progressScore from '../components/progressScore';
 
 export default {
   name: 'index',
