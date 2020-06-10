@@ -321,6 +321,7 @@
                 plain
                 type="primary"
                 @click="handleAppraisalResultsDownload()"
+                disabled
                 >考核结果下载</el-button
               >
             </div>
