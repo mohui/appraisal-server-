@@ -757,9 +757,7 @@ export default {
     },
     //二级机构排行数据
     secondLevelWorkpointRankData() {
-      return this.workpointRankData
-        .map(item => item.child)
-        .flat()
+      return this.workpointRankServerData
         .filter(item => !item.name.endsWith('中心'))
         .sort((a, b) => b.score - a.score);
     },
