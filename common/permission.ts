@@ -24,8 +24,8 @@ export const PermissionDetail = [
     name: '角色首页'
   },
   {
-    key: 'appraisal-indicators',
-    name: '考核指标'
+    key: 'appraisal-result',
+    name: '考核结果'
   },
   {
     key: 'appraisal-configuration-management',
@@ -48,7 +48,7 @@ export const Permission = {
   USER_UPDATE: 'user-update',
   USER_REMOVE: 'user-remove',
   ROLE_INDEX: 'role-index',
-  APPRAISAL_INDICATORS: 'appraisal-indicators',
+  APPRAISAL_RESULT: 'appraisal-result',
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
   PROFILE: 'profile'
