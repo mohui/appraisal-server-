@@ -179,7 +179,8 @@ export default class Hospital {
             include: [
               {
                 model: RuleHospitalScoreModel,
-                where: {hospitalId: id}
+                where: {hospitalId: id},
+                required: false
               },
               {
                 model: RuleHospitalModel,
