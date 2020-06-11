@@ -2,6 +2,7 @@ import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
+import {Context} from './context';
 
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
@@ -19,7 +20,7 @@ function listRender(params) {
       where mp.hisid = {{? his}}
         and vp.vouchertype = '1'
         {{#if name }} and vp.name like {{? name}} {{/if}}
-        {{#if hospitals}} and mp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
     `,
     params
   );
@@ -27,13 +28,31 @@ function listRender(params) {
 
 export default class Person {
   async list(params) {
-    const {pageSize, pageNo} = params;
+    const {pageSize, pageNo, hospital} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
     let {name} = params;
     if (name) name = `%${name}%`;
-    const sqlRenderResult = listRender({his, name});
+    let hospitals = Context.current.user.hospitals.map(it => it.id);
+    if (hospital) hospitals = [hospital];
+    // language=PostgreSQL
+    hospitals = (
+      await Promise.all(
+        hospitals.map(it =>
+          etlQuery(
+            `select hishospid as id from hospital_mapping where h_id = ?`,
+            [it]
+          )
+        )
+      )
+    )
+      .filter(it => it.length > 0)
+      .reduce(
+        (result, current) => [...result, ...current.map(it => it.id)],
+        []
+      );
+    const sqlRenderResult = listRender({his, name, hospitals});
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
