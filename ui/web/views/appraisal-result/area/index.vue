@@ -25,7 +25,7 @@
       </div>
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8">
+      <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
         <el-card shadow="hover">
           <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
@@ -33,11 +33,7 @@
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{
-                Math.round(
-                  this.totalServerData.rate * this.totalServerData.score
-                )
-              }}
+              {{ Math.round(totalData.score * totalData.rate) }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
@@ -70,7 +66,10 @@
       </el-col>
       <div v-else>
         <el-col :span="10">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="$asyncComputed.areaRankServerData.updating"
+          >
             <div class="score-detail">
               <two-card-bar
                 :barxAxisData="workpointBarData.xAxisData"
@@ -89,7 +88,10 @@
       </div>
     </el-row>
     <el-col :span="24">
-      <el-card shadow="hover">
+      <el-card
+        shadow="hover"
+        v-loading="$asyncComputed.areaRankServerData.updating"
+      >
         <h3 class="ins-ranking-title">下级地区排行</h3>
         <div v-for="(item, index) of areaRankData" :key="item.id">
           <!--下级质量系数排行-->

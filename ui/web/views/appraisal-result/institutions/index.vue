@@ -34,7 +34,10 @@
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
       <el-col :span="8">
-        <el-card shadow="hover">
+        <el-card
+          shadow="hover"
+          v-loading="$asyncComputed.totalServerData.updating"
+        >
           <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
@@ -95,7 +98,13 @@
       </el-col>
       <div v-else>
         <el-col :span="10">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="
+              $asyncComputed.doctorWorkpointRankServerData.updating ||
+                $asyncComputed.workpointRankServerData.updating
+            "
+          >
             <div class="score-detail">
               <two-card-bar
                 :barxAxisData="workpointBarData.xAxisData"
@@ -116,6 +125,7 @@
     <!--机构排行-->
     <div v-if="!params.isInstitution">
       <el-card
+        v-loading="$asyncComputed.workpointRankServerData.updating"
         shadow="hover"
         :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
       >
@@ -206,7 +216,11 @@
         {{ totalShowMore ? '收起' : '显示更多' }}
       </div>
       <!--一、二级机构排行-->
-      <el-row :gutter="20" style="margin-top: 20px">
+      <el-row
+        :gutter="20"
+        style="margin-top: 20px"
+        v-loading="$asyncComputed.workpointRankServerData.updating"
+      >
         <!--一级机构排行-->
         <el-col :span="12">
           <el-card shadow="hover">
@@ -309,6 +323,7 @@
     </div>
     <!--考核指标规则-->
     <el-row
+      v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
       class="appraisal-indicators-rule"
       v-if="params.isInstitution && params.listFlag === 'quality'"
     >
@@ -449,6 +464,7 @@
       </el-col>
     </el-row>
     <el-row
+      v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
       v-if="params.isInstitution && params.listFlag === 'score'"
       :gutter="20"
       style="margin-top: 20px"
