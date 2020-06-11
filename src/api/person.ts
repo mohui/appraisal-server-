@@ -18,7 +18,7 @@ function listRender(params) {
              inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
       where mp.hisid = {{? his}}
         and vp.vouchertype = '1'
-        {{#if name }} and mp.name like {{? name}} {{/if}}
+        {{#if name }} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and mp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
     `,
     params
@@ -31,7 +31,9 @@ export default class Person {
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
-    const sqlRenderResult = listRender({his});
+    let {name} = params;
+    if (name) name = `%${name}%`;
+    const sqlRenderResult = listRender({his, name});
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
