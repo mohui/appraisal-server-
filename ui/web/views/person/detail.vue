@@ -1,18 +1,52 @@
 <template>
   <div style="height: 100%;">
     <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column'
-      }"
+      v-loading="$asyncComputed.serverData.updating"
+      style="margin-bottom: 10px"
     >
       <div slot="header" class="clearfix">
-        <span>个人档案详情</span>
+        <span>个人档案</span>
       </div>
+      <el-form v-if="$asyncComputed.serverData.success" size="mini">
+        <el-form-item label="姓名: ">
+          {{ serverData.document.name }}
+        </el-form-item>
+        <el-form-item label="性别: ">
+          {{ serverData.document.sex === '1' ? '男' : '女' }}
+        </el-form-item>
+        <el-form-item label="身份证: ">
+          {{ serverData.document.idcardno }}
+        </el-form-item>
+
+        <el-form-item label="出生日期: ">
+          {{ serverData.document.birth.$format('YYYY-MM-DD') }}
+        </el-form-item>
+        <el-form-item label="联系方式: ">
+          {{ serverData.document.phone }}
+        </el-form-item>
+      </el-form>
+    </el-card>
+    <el-card v-if="hypertensions.length > 0">
+      <div slot="header" class="clearfix">
+        <span>高血压登记</span>
+      </div>
+      <el-table :data="hypertensions" stripe border size="small">
+        <el-table-column
+          prop="systolicpressure"
+          label="血压左（收缩压）"
+        ></el-table-column>
+        <el-table-column
+          prop="assertpressure"
+          label="血压右（舒张压）"
+        ></el-table-column>
+        <el-table-column prop="dutydoctor" label="建卡医生"></el-table-column>
+        <el-table-column
+          prop="responsibility"
+          label="责任医生"
+        ></el-table-column>
+        <el-table-column prop="datecards" label="建卡日期"></el-table-column>
+        <el-table-column prop="operatetime" label="录入时间"></el-table-column>
+      </el-table>
     </el-card>
   </div>
 </template>
@@ -29,6 +63,15 @@ export default {
     const id = this.$route.query.id;
     if (!id) this.$router.push('/person');
     this.id = id;
+  },
+  computed: {
+    hypertensions() {
+      return this.serverData.hypertension.map(it => {
+        it.datecards = it.datecards.$format();
+        it.operatetime = it.operatetime.$format();
+        return it;
+      });
+    }
   },
   asyncComputed: {
     serverData: {
