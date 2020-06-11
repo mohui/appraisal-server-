@@ -1,5 +1,7 @@
 import {KatoClient} from 'kato-client';
 import {getToken, setToken} from '../utils/cache';
+import ContentDisposition from 'content-disposition';
+import FileSaver from 'file-saver';
 
 export const apiUrl = '/api';
 
@@ -26,6 +28,26 @@ export async function getApiClient() {
 
           ctx.req.headers['token'] = token;
           await next();
+          const res = ctx.res;
+          const contentType = res.headers['content-type'];
+          if (
+            ['application/octet-stream', 'application/vnd.ms-excel'].includes(
+              contentType
+            )
+          ) {
+            try {
+              const attachment = ContentDisposition.parse(
+                res.headers['content-disposition']
+              );
+              FileSaver.saveAs(
+                new Blob([res.data]),
+                attachment.parameters.filename
+              );
+            } catch (e) {
+              console.error(e);
+            }
+            ctx.res.data = '';
+          }
           // 请求成功后, 刷新token
           token && setToken(token);
         });
