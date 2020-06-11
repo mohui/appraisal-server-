@@ -1,11 +1,12 @@
 import {BasicTagDataModel} from '../database/model';
 import {appDB} from '../app';
-import {should, validate} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
+import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -98,7 +99,27 @@ export default class BasicTag {
     });
   }
 
-  async basicDownload() {
+  async dataDownload(tagCode) {
+    //当前基础数据下的所有属性
+    const tags = BasicTags.find(bt => bt.code === tagCode);
+    if (!tags) throw new KatoCommonError('该基础数据不存在');
+    console.log(tags);
+    //查询当前用户下所有的机构的基础数据值
+    const tagHospitals = await Promise.all(
+      tags.children.map(
+        async tag =>
+          await BasicTagDataModel.findAll({
+            where: {
+              code: tag.code,
+              hospitalId: {
+                [Op.in]: Context.current.user.hospitals.map(it => it.id)
+              }
+            }
+          })
+      )
+    );
+    console.log(tagHospitals);
+
     const workBook = new Excel.Workbook();
     //创建工作表
     const workSheet = workBook.addWorksheet('机构医院');
