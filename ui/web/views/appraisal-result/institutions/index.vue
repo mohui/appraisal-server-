@@ -125,6 +125,7 @@
     <!--机构排行-->
     <div v-if="!params.isInstitution">
       <el-card
+        v-loading="$asyncComputed.workpointRankServerData.updating"
         shadow="hover"
         :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
       >
