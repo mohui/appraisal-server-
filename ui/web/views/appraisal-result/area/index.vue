@@ -33,13 +33,13 @@
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ Math.round(totalData.score * totalData.rate) }}
+              {{ totalData.score }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
             <p style="font-size:13px;">{{ totalData.name }}</p>
             <div style="padding-top: 40px">
-              <p>校正前 {{ Math.round(totalData.score) }}分</p>
+              <p>校正前 {{ totalData.originalScore }}分</p>
             </div>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
@@ -179,13 +179,10 @@ export default {
     //总计工分和质量系数数据
     totalData() {
       return {
-        id: this.totalServerData.id,
-        score: Math.round(this.totalServerData.score),
-        rate: this.totalServerData.rate,
+        ...this.totalServerData,
         fixedDecimalRate: decimal(
           Number((this.totalServerData.rate * 100).toFixed(2))
-        ).toNumber(),
-        name: this.totalServerData.name
+        ).toNumber()
       };
     },
     //区域排行数据
@@ -209,6 +206,7 @@ export default {
         return {
           id: '',
           name: '',
+          originalScore: 0,
           score: 0,
           rate: 0
         };
