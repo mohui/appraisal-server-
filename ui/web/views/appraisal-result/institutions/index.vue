@@ -33,8 +33,11 @@
       </div>
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
-        <el-card shadow="hover">
+      <el-col :span="8">
+        <el-card
+          shadow="hover"
+          v-loading="$asyncComputed.totalServerData.updating"
+        >
           <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
