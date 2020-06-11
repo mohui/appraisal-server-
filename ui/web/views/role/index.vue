@@ -79,10 +79,10 @@
       <el-tag
         style="margin: 8px 10px"
         type=""
-        v-for="item in role.permissions"
+        v-for="(item, index) in role.permissions"
         :key="item.key"
       >
-        {{ item.name }}
+        {{ index + 1 }}. {{ item.name }}
       </el-tag>
     </el-dialog>
     <el-dialog
