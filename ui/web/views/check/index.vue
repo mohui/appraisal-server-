@@ -281,11 +281,34 @@
       </div>
     </el-dialog>
     <el-dialog title="选择机构" :visible.sync="dialogSelectVisible">
-      <p v-for="(it, index) of hospitalList" :key="index">
-        <el-checkbox v-model="it.selected">
-          {{ index + 1 }} {{ it.name }}
-        </el-checkbox>
-      </p>
+      <div class="hos-box">
+        <div v-for="(item, i) of hospitalList" :key="i">
+          <div class="center-title">
+            <el-checkbox
+              v-model="item.selected"
+              @change="toggleChange($event, item)"
+            >
+              <span>[{{ item.name }}]</span>
+            </el-checkbox>
+          </div>
+          <el-row :gutter="20">
+            <el-col
+              :xs="24"
+              :sm="24"
+              :md="12"
+              :lg="12"
+              :xl="8"
+              v-for="(it, index) of item.child"
+              :key="index"
+              class="el-cols"
+            >
+              <el-checkbox v-model="it.selected">
+                {{ index + 1 }} {{ it.name }}
+              </el-checkbox>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveHospital">确 定</el-button>
@@ -376,9 +399,35 @@ export default {
     }
   },
   methods: {
+    //中心下属机构全选切换
+    toggleChange(event, item) {
+      item.child.forEach(it => (it.selected = event));
+    },
     //获取机构列表
     async getHospitalList(checkId) {
-      this.hospitalList = await this.$api.CheckSystem.listHospitals(checkId);
+      const result = await this.$api.CheckSystem.listHospitals(checkId);
+      let arr = result
+        .filter(it => it.name.indexOf('中心') !== -1)
+        .map(it => ({
+          ...it,
+          child: result.filter(
+            item => item.parent === it.id || item.id === it.id
+          )
+        }));
+
+      let cur = arr.map(it => it.child).flat();
+
+      let other = {
+        name: '其它',
+        id: 'other',
+        child: result.filter(it => cur.indexOf(it) === -1)
+      };
+
+      if (other.child.length) {
+        arr.push(other);
+      }
+
+      this.hospitalList = arr;
     },
     //打开机构对话框
     openSelectDialog(item) {
@@ -390,6 +439,8 @@ export default {
     async saveHospital() {
       const {checkId} = this.checkForm;
       const hospitals = this.hospitalList
+        .map(it => it.child)
+        .flat()
         .filter(it => it.selected)
         .map(it => it.id);
       try {
@@ -663,4 +714,24 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.hos-box {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: -20px;
+  .center-title {
+    margin: 20px 0 10px 0;
+    span {
+      font-size: 16px;
+    }
+  }
+  .el-cols {
+    margin-bottom: 10px;
+    padding-left: 38px !important;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+</style>
