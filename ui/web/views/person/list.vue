@@ -64,7 +64,7 @@
       >
         <el-table-column prop="name" label="姓名">
           <template slot-scope="{row}">
-            <router-link :to="'/person-detail?id=' + row.idCard">
+            <router-link :to="'/person-detail?id=' + row.id">
               <span>{{ row.name }}</span>
             </router-link>
           </template>
