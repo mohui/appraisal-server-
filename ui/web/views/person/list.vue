@@ -17,7 +17,12 @@
         <el-row>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="姓名：">
-              <el-input size="mini" clearable></el-input>
+              <el-input
+                v-model="queryForm.name"
+                size="mini"
+                placeholder="请输入要查询的姓名"
+                clearable
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
@@ -128,7 +133,9 @@ export default {
       async get() {
         return this.$api.Person.list({
           pageSize: this.pageSize,
-          pageNo: this.pageNo
+          pageNo: this.pageNo,
+          hospital: this.queryForm.hospital,
+          name: this.queryForm.name
         });
       },
       default() {
