@@ -126,7 +126,10 @@ export default {
   asyncComputed: {
     serverData: {
       async get() {
-        return this.$api.Person.list(this.pageSize, this.pageNo);
+        return this.$api.Person.list({
+          pageSize: this.pageSize,
+          pageNo: this.pageNo
+        });
       },
       default() {
         return {

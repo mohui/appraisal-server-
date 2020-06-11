@@ -10,7 +10,8 @@ async function etlQuery(sql, params): Promise<any[]> {
 }
 
 export default class Person {
-  async list(pageSize, pageNo) {
+  async list(params) {
+    const {pageSize, pageNo} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
