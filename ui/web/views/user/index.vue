@@ -123,7 +123,7 @@
               修改
             </el-button>
             <el-button
-              v-if="$settings.permissions.includes(permission.USER_REMOVE)"
+              v-permission="{permission: '用户删除', type: 'disabled'}"
               type="danger"
               size="small"
               @click="delUser(scope)"
@@ -475,6 +475,7 @@ export default {
         roles: [],
         region: {name: ''},
         regionId: '',
+        hospital: {name: ''},
         hospitals: []
       };
     },
