@@ -6,7 +6,6 @@ import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
-import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -101,35 +100,36 @@ export default class BasicTag {
 
   async dataDownload(tagCode) {
     //当前基础数据下的所有属性
-    const tags = BasicTags.find(bt => bt.code === tagCode);
+    const tags = BasicTags.find(bt => bt.code === tagCode)?.children;
     if (!tags) throw new KatoCommonError('该基础数据不存在');
-    console.log(tags);
-    //查询当前用户下所有的机构的基础数据值
-    const tagHospitals = await Promise.all(
-      tags.children.map(
-        async tag =>
-          await BasicTagDataModel.findAll({
-            where: {
-              code: tag.code,
-              hospitalId: {
-                [Op.in]: Context.current.user.hospitals.map(it => it.id)
-              }
-            }
-          })
-      )
-    );
-    console.log(tagHospitals);
+    //组装机构与基础数据的关系数据
+    const listData = (await this.list(tagCode)).map(item => {
+      return [item.id, item.name].concat(tags.map(tag => item[tag.code].value));
+    });
 
-    const workBook = new Excel.Workbook();
     //创建工作表
-    const workSheet = workBook.addWorksheet('机构医院');
-    workSheet.addRow(['1', '2', '3']);
-    workSheet.addRow(['a', 'b', 'c']);
+    const workBook = new Excel.Workbook();
+    const workSheet = workBook.addWorksheet('基础数据导入');
+    //第一行头部
+    workSheet.addRow(
+      `${Context.current.user.region.name}基础数据表(仅基础数据的值可修改)`
+    );
+    //第二行 机构id, 名称, 基础数据名
+    workSheet.addRow(['机构id', '机构名称', ...tags.map(tag => tag.name)]);
+    //第三行 字段名
+    workSheet.addRow(['hospitalId', 'name', ...tags.map(tag => tag.code)]);
+    //剩下的数据行
+    workSheet.addRows(listData);
     const buffer = await workBook.xlsx.writeBuffer();
     Context.current.bypassing = true;
     let res = Context.current.res;
     //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
-    res.setHeader('Content-Disposition', ContentDisposition(`filename.xls`));
+    res.setHeader(
+      'Content-Disposition',
+      ContentDisposition(
+        `${Context.current.user.region.name}基础数据表(${dayjs().year()}).xls`
+      )
+    );
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
     res.send(buffer);
