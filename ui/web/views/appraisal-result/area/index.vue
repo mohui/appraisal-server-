@@ -167,8 +167,11 @@ export default {
   computed: {
     //工分值数据，用于柱状图显示
     workpointBarData() {
-      //TODO: 真实数据待完成
       let value = {xAxisData: [], yAxisData: []};
+      let array = [];
+      array = this.areaRankData.slice(0, 3);
+      value.xAxisData = array.map(it => it.name);
+      value.yAxisData = array.map(it => it.score);
       return value;
     },
     //总计工分和质量系数数据
