@@ -138,12 +138,70 @@ export const MarkTags = [
     children: [
       {
         name: '家庭医生签约服务',
-        code: 'signing',
+        code: 'sign',
         children: [
           {
-            code: 'C01',
+            code: 'SIGN01',
             name: '签约服务覆盖率',
             enabled: false
+          },
+          {
+            code: 'SIGN02',
+            name: '重点人群签约服务覆盖率',
+            enabled: false
+          },
+          {
+            code: 'SIGN03',
+            name: '签约居民续签率',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '诊疗人次服务',
+        code: 'patient',
+        children: [
+          {
+            code: 'outpatient',
+            name: '门诊患者人数'
+          },
+          {
+            code: 'inpatient',
+            name: '住院患者人数'
+          },
+          {
+            code: 'diseases',
+            name: '就诊病种种类'
+          },
+          {
+            code: 'outpatient-growth',
+            name: '同期年度门诊人次增幅'
+          }
+        ]
+      },
+      {
+        name: '合理用药',
+        code: 'drug',
+        children: [
+          {
+            name: '用药不适宜',
+            code: 'drug-00'
+          },
+          {
+            name: '静脉输液处方占比',
+            code: 'drug-01'
+          },
+          {
+            name: '抗菌药物处方占比',
+            code: 'drug-02'
+          },
+          {
+            name: '联合用药抗菌药物处方占比',
+            code: 'drug-03'
+          },
+          {
+            name: '门诊处方均次药品费用',
+            code: 'drug-04'
           }
         ]
       }
