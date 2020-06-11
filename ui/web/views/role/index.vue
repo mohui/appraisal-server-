@@ -76,13 +76,14 @@
       title="拥有的权限"
       :visible.sync="dialogPermissionsListTableViewVisible"
     >
-      <div
-        v-for="item of role.permissions"
+      <el-tag
+        style="margin: 8px 10px"
+        type=""
+        v-for="item in role.permissions"
         :key="item.key"
-        style="margin-bottom: 5px"
       >
         {{ item.name }}
-      </div>
+      </el-tag>
     </el-dialog>
     <el-dialog
       :visible.sync="dialogVisible"
