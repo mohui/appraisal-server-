@@ -27,7 +27,6 @@ export default {
   },
   created() {
     const id = this.$route.query.id;
-    console.log(id);
     if (!id) this.$router.push('/person');
     this.id = id;
   },
