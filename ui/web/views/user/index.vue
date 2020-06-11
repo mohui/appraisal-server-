@@ -123,7 +123,10 @@
               修改
             </el-button>
             <el-button
-              v-permission="{permission: '用户删除', type: 'disabled'}"
+              v-permission="{
+                permission: permission.USER_REMOVE,
+                type: 'disabled'
+              }"
               type="danger"
               size="small"
               @click="delUser(scope)"
