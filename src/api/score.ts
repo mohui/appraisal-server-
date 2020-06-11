@@ -244,20 +244,21 @@ export default class Score {
         (result, current) => {
           result.workpoints += current?.report?.workpoints ?? 0;
           result.scores += current?.report?.scores ?? 0;
+          result.correctWorkPoint +=
+            (current?.report?.workpoints ?? 0) *
+            (current?.report?.scores ?? 0 / current?.report?.total ?? 0);
           result.total += current?.report?.total ?? 0;
           return result;
         },
-        {workpoints: 0, scores: 0, total: 0}
+        {workpoints: 0, scores: 0, total: 0, correctWorkPoint: 0}
       );
 
       return {
         id: regionModel.code,
         name: regionModel.name,
         originalScore: reduceObject.workpoints,
-        score: Math.round(
-          reduceObject.workpoints * (reduceObject.scores / reduceObject.total)
-        ),
-        rate: reduceObject.scores / reduceObject.total
+        score: reduceObject.correctWorkPoint,
+        rate: reduceObject.correctWorkPoint / reduceObject.workpoints
       };
     }
 
