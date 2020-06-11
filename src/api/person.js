@@ -19,8 +19,9 @@ function listRender(params) {
              inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
       where mp.hisid = {{? his}}
         and vp.vouchertype = '1'
-        {{#if name }} and vp.name like {{? name}} {{/if}}
+        {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
     `,
     params
   );
@@ -28,7 +29,7 @@ function listRender(params) {
 
 export default class Person {
   async list(params) {
-    const {pageSize, pageNo, hospital} = params;
+    const {pageSize, pageNo, hospital, idCard} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
@@ -52,7 +53,7 @@ export default class Person {
         (result, current) => [...result, ...current.map(it => it.id)],
         []
       );
-    const sqlRenderResult = listRender({his, name, hospitals});
+    const sqlRenderResult = listRender({his, name, hospitals, idCard});
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
