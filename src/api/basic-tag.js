@@ -4,6 +4,8 @@ import {should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
+import Excel from 'exceljs';
+import ContentDisposition from 'content-disposition';
 
 export default class BasicTag {
   //设置基础数据
@@ -94,5 +96,22 @@ export default class BasicTag {
       );
       return h;
     });
+  }
+
+  async basicDownload() {
+    const workBook = new Excel.Workbook();
+    //创建工作表
+    const workSheet = workBook.addWorksheet('机构医院');
+    workSheet.addRow(['1', '2', '3']);
+    workSheet.addRow(['a', 'b', 'c']);
+    const buffer = await workBook.xlsx.writeBuffer();
+    Context.current.bypassing = true;
+    let res = Context.current.res;
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader('Content-Disposition', ContentDisposition(`filename.xls`));
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.send(buffer);
+    res.end();
   }
 }
