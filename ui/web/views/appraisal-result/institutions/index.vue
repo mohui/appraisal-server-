@@ -216,7 +216,11 @@
         {{ totalShowMore ? '收起' : '显示更多' }}
       </div>
       <!--一、二级机构排行-->
-      <el-row :gutter="20" style="margin-top: 20px">
+      <el-row
+        :gutter="20"
+        style="margin-top: 20px"
+        v-loading="$asyncComputed.workpointRankServerData.updating"
+      >
         <!--一级机构排行-->
         <el-col :span="12">
           <el-card shadow="hover">
