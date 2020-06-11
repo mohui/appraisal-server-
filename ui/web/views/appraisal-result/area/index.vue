@@ -85,7 +85,10 @@
       </div>
     </el-row>
     <el-col :span="24">
-      <el-card shadow="hover">
+      <el-card
+        shadow="hover"
+        v-loading="$asyncComputed.areaRankServerData.updating"
+      >
         <h3 class="ins-ranking-title">下级地区排行</h3>
         <div v-for="(item, index) of areaRankData" :key="item.id">
           <!--下级质量系数排行-->
