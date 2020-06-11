@@ -44,7 +44,7 @@
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ afterCorrectionTotolWorkpoint }}
+              {{ totalData.score }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
@@ -55,7 +55,7 @@
             >
               <tr>
                 <td style="width: 33%;text-align: center">
-                  <p>{{ Math.round(totalData.score) }}分</p>
+                  <p>{{ totalData.originalScore }}分</p>
                   <p>校正前</p>
                 </td>
                 <td
@@ -71,7 +71,7 @@
             </table>
 
             <div style="padding-top: 40px;" v-else>
-              <p>校正前 {{ Math.round(totalData.score) }}分</p>
+              <p>校正前 {{ totalData.originalScore }}分</p>
             </div>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
@@ -762,22 +762,14 @@ export default {
       }
       return value;
     },
-    //校正前工分值的总值
+    //总计工分和质量系数数据
     totalData() {
       return {
-        id: this.totalServerData.id,
-        score: Math.round(this.totalServerData.score),
-        rate: this.totalServerData.rate,
+        ...this.totalServerData,
         fixedDecimalRate: decimal(
           Number((this.totalServerData.rate * 100).toFixed(2))
-        ).toNumber(),
-        name: this.totalServerData.name
+        ).toNumber()
       };
-    },
-    afterCorrectionTotolWorkpoint() {
-      return (
-        Math.round(this.totalServerData.rate * this.totalServerData.score) || 0
-      );
     },
     //机构排行数据
     workpointRankData() {
@@ -934,6 +926,7 @@ export default {
         return {
           id: '',
           name: '',
+          originalScore: 0,
           score: 0,
           rate: 0
         };
