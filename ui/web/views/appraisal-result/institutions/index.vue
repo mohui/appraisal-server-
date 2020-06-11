@@ -323,6 +323,7 @@
     </div>
     <!--考核指标规则-->
     <el-row
+      v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
       class="appraisal-indicators-rule"
       v-if="params.isInstitution && params.listFlag === 'quality'"
     >
