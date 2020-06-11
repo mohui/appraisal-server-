@@ -58,14 +58,7 @@ export default class Person {
 
     return {
       count: Number(count),
-      rows: person.map(it => ({
-        id: it.id,
-        name: it.name,
-        idCard: it.idCard,
-        S03: it.S03,
-        S23: it.S23,
-        hospitalName: it.hospital0 ?? it.hospital1
-      }))
+      rows: person
     };
   }
 
