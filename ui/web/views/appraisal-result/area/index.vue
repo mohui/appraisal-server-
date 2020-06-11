@@ -33,11 +33,7 @@
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{
-                Math.round(
-                  this.totalServerData.rate * this.totalServerData.score
-                )
-              }}
+              {{ Math.round(totalData.score * totalData.rate) }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
