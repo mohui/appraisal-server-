@@ -61,7 +61,11 @@
                 @click="$asyncComputed.serverData.update()"
                 >查询</el-button
               >
-              <el-button type="primary" size="mini">
+              <el-button
+                type="primary"
+                size="mini"
+                @click="handleResetCondition"
+              >
                 重置条件
               </el-button>
             </el-form-item>
@@ -165,6 +169,13 @@ export default {
     handlePageSizeChange(size) {
       this.pageNo = 1;
       this.pageSize = size;
+    },
+    handleResetCondition() {
+      this.queryForm = {
+        name: '',
+        hospital: '',
+        idCard: ''
+      };
     }
   }
 };
