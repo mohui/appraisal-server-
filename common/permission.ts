@@ -37,47 +37,47 @@ export const PermissionDetail = [
   },
   {
     key: 'check-add',
-    label: '新建规则'
+    name: '新建规则'
   },
   {
     key: 'check-update',
-    label: '修改规则'
+    name: '修改规则'
   },
   {
     key: 'check-select-hospital',
-    label: '配置机构'
+    name: '配置机构'
   },
   {
     key: 'check-clone',
-    label: '快速复制'
+    name: '快速复制'
   },
   {
     key: 'check-import',
-    label: '批量导入细则'
+    name: '批量导入细则'
   },
   {
     key: 'check-open-grade',
-    label: '全部开启打分'
+    name: '全部开启打分'
   },
   {
     key: 'check-close-grade',
-    label: '全部关闭打分'
+    name: '全部关闭打分'
   },
   {
     key: 'check-remove',
-    label: '删除规则'
+    name: '删除规则'
   },
   {
     key: 'rule-add',
-    label: '新建细则'
+    name: '新建细则'
   },
   {
     key: 'rule-update',
-    label: '修改规则'
+    name: '修改规则'
   },
   {
     key: 'rule-remove',
-    label: '删除规则'
+    name: '删除规则'
   },
   {
     key: 'profile',
