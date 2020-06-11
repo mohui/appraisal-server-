@@ -218,7 +218,7 @@ export const MarkTags = [
           {
             name: '定性指标',
             code: 'Attach',
-            enabled: false
+            enabled: true
           }
         ]
       }
@@ -250,6 +250,10 @@ export const MarkTagUsages = {
   O02: {
     code: 'O02',
     name: '老年人中医药健康管理率'
+  },
+  Attach: {
+    name: '定性指标',
+    code: 'Attach'
   }
 };
 
