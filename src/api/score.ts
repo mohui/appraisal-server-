@@ -257,7 +257,7 @@ export default class Score {
         id: regionModel.code,
         name: regionModel.name,
         originalScore: reduceObject.workpoints,
-        score: reduceObject.correctWorkPoint,
+        score: Math.round(reduceObject.correctWorkPoint),
         rate: reduceObject.correctWorkPoint / reduceObject.workpoints
       };
     }
