@@ -26,6 +26,16 @@
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="身份证号码：">
+              <el-input
+                v-model="queryForm.idCard"
+                size="mini"
+                placeholder="请输入要查询的身份证号码"
+                clearable
+              ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="管理机构：">
               <el-select
                 v-model="queryForm.hospital"
@@ -114,7 +124,8 @@ export default {
       hospitals: this.$settings.user.hospitals,
       queryForm: {
         name: '',
-        hospital: ''
+        hospital: '',
+        idCard: ''
       }
     };
   },
@@ -134,8 +145,9 @@ export default {
         return this.$api.Person.list({
           pageSize: this.pageSize,
           pageNo: this.pageNo,
-          hospital: this.queryForm.hospital,
-          name: this.queryForm.name
+          name: this.queryForm.name,
+          idCard: this.queryForm.idCard,
+          hospital: this.queryForm.hospital
         });
       },
       default() {
