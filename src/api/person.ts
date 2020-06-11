@@ -20,9 +20,11 @@ export default class Person {
       await etlDB.query(
         `select count(1) as count
            from mark_person mp
-                  left join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
+                  inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
+                  inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
            where mp.hisid = ?
-             and vp.vouchertype = '1'`,
+             and vp.vouchertype = '1'
+        `,
         {
           replacements: [his],
           type: QueryTypes.SELECT
@@ -33,19 +35,19 @@ export default class Person {
     // language=PostgreSQL
     const person = await etlDB.query(
       `
-        select vp.personnum as id,
+        select vp.personnum   as id,
                vp.name,
-               vp.idcardno  as "idCard",
+               vp.idcardno    as "idCard",
                mp."S03",
                mp."S23",
-               vh0.hospname as hospital0,
-               vh1.hospname as hospital1
+               vh.hospname    as "hospitalName",
+               vp.operatetime as date
         from mark_person mp
-               left join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
-               left join view_hospital vh0 on mp.hisid = vh0.hisid and vp.operatorid = vh0.hospid
-               left join view_hospital vh1 on mp.hisid = vh1.hisid and vp.adminorganization = vh1.hospid
+               inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
+               inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
         where mp.hisid = ?
           and vp.vouchertype = '1' -- 证件类型 身份证
+        order by vp.operatetime desc
         limit ? offset ?
       `,
       {
