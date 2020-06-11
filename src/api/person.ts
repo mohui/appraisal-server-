@@ -1,12 +1,28 @@
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
+import {sql as sqlRender} from '../database/template';
 
-async function etlQuery(sql, params): Promise<any[]> {
+async function etlQuery(sql, params) {
   return etlDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
+}
+
+function listRender(params) {
+  return sqlRender(
+    `
+      from mark_person mp
+             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
+             inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
+      where mp.hisid = {{? his}}
+        and vp.vouchertype = '1'
+        {{#if name }} and mp.name like {{? name}} {{/if}}
+        {{#if hospitals}} and mp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+    `,
+    params
+  );
 }
 
 export default class Person {
@@ -15,45 +31,25 @@ export default class Person {
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
-    // language=PostgreSQL
+    const sqlRenderResult = listRender({his});
     const count = (
-      await etlDB.query(
-        `select count(1) as count
-           from mark_person mp
-                  inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
-                  inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
-           where mp.hisid = ?
-             and vp.vouchertype = '1'
-        `,
-        {
-          replacements: [his],
-          type: QueryTypes.SELECT
-        }
+      await etlQuery(
+        `select count(1) as count ${sqlRenderResult[0]}`,
+        sqlRenderResult[1]
       )
     )[0].count;
-
-    // language=PostgreSQL
-    const person = await etlDB.query(
-      `
-        select vp.personnum   as id,
+    const person = await etlQuery(
+      `select vp.personnum   as id,
                vp.name,
                vp.idcardno    as "idCard",
                mp."S03",
                mp."S23",
                vh.hospname    as "hospitalName",
                vp.operatetime as date
-        from mark_person mp
-               inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
-               inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
-        where mp.hisid = ?
-          and vp.vouchertype = '1' -- 证件类型 身份证
-        order by vp.operatetime desc
-        limit ? offset ?
-      `,
-      {
-        replacements: [his, limit, offset],
-        type: QueryTypes.SELECT
-      }
+           ${sqlRenderResult[0]}
+           order by vp.operatetime desc
+           limit ? offset ?`,
+      [...sqlRenderResult[1], limit, offset]
     );
 
     return {
