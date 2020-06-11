@@ -68,14 +68,20 @@ export default class Person {
     // language=PostgreSQL
     const person = (
       await etlQuery(
-        `select * from view_personinfo where idcardno = ? limit 1`,
+        `select *
+           from view_personinfo
+           where idcardno = ?
+           limit 1`,
         [id]
       )
     )[0];
     if (!person) throw new KatoCommonError('数据不存在');
     // language=PostgreSQL
     const hypertensionRows = await etlQuery(
-      `select * from view_hypertension where personnum = ?`,
+      `select *
+         from view_hypertension vh
+                left join view_personinfo vp on vh.personnum = vp.personnum
+         where vp.idcardno = ?`,
       [id]
     );
 
