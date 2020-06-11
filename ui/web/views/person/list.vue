@@ -13,6 +13,46 @@
       <div slot="header" class="clearfix">
         <span>个人档案列表</span>
       </div>
+      <el-form :model="queryForm" label-width="100px" size="mini">
+        <el-row>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="姓名：">
+              <el-input size="mini" clearable></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="管理机构：">
+              <el-select
+                v-model="queryForm.hospital"
+                clearable
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in hospitals"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+            <el-form-item label="">
+              <el-button
+                type="primary"
+                size="mini"
+                @click="$asyncComputed.serverData.update()"
+                >查询</el-button
+              >
+              <el-button type="primary" size="mini">
+                重置条件
+              </el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
       <el-table
         v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
@@ -65,7 +105,12 @@ export default {
   data() {
     return {
       pageSize: 50,
-      pageNo: 1
+      pageNo: 1,
+      hospitals: this.$settings.user.hospitals,
+      queryForm: {
+        name: '',
+        hospital: ''
+      }
     };
   },
   computed: {
