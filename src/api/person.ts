@@ -71,7 +71,8 @@ export default class Person {
     // language=PostgreSQL
     const person = (
       await etlQuery(
-        `select personnum as id,
+        `
+          select personnum as id,
                  name,
                  sex,
                  birth,
@@ -79,16 +80,19 @@ export default class Person {
                  phone
           from view_personinfo
           where personnum = ?
-          limit 1`,
+          limit 1
+        `,
         [id]
       )
     )[0];
     if (!person) throw new KatoCommonError('数据不存在');
     // language=PostgreSQL
     const hypertensionRows = await etlQuery(
-      `select *
+      `
+        select *
         from view_hypertension
-        where personnum = ?`,
+        where personnum = ?
+      `,
       [id]
     );
 
