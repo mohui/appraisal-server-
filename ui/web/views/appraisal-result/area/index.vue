@@ -1,6 +1,5 @@
 <template>
   <div>
-    省、市下级区域排行
     <!--顶部表头-->
     <el-card class="header-box-card" shadow="never">
       <div class="header-title" style="float: left">
