@@ -98,7 +98,13 @@
       </el-col>
       <div v-else>
         <el-col :span="10">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="
+              $asyncComputed.doctorWorkpointRankServerData.updating ||
+                $asyncComputed.workpointRankServerData.updating
+            "
+          >
             <div class="score-detail">
               <two-card-bar
                 :barxAxisData="workpointBarData.xAxisData"
