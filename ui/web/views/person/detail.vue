@@ -36,7 +36,12 @@ export default {
         return await this.$api.Person.detail(this.id);
       },
       default() {
-        return {};
+        return {
+          // 个人信息
+          document: {},
+          // 高血压登记
+          hypertension: []
+        };
       }
     }
   }
