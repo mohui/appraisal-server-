@@ -26,6 +26,7 @@
         size="mini"
         :data="checkList"
         @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
@@ -285,6 +286,7 @@
         <div v-for="(item, i) of hospitalList" :key="i">
           <div class="center-title">
             <el-checkbox
+              :indeterminate="item.isIndeterminate"
               v-model="item.selected"
               @change="toggleChange($event, item)"
             >
@@ -302,7 +304,10 @@
               :key="index"
               class="el-cols"
             >
-              <el-checkbox v-model="it.selected">
+              <el-checkbox
+                v-model="it.selected"
+                @change="() => childToggleChange(item)"
+              >
                 {{ index + 1 }} {{ it.name }}
               </el-checkbox>
             </el-col>
@@ -399,8 +404,16 @@ export default {
     }
   },
   methods: {
+    //下属机构未全选状态切换
+    childToggleChange(item) {
+      const checkedCount = item.child.filter(it => it.selected).length;
+      item.selected = checkedCount === item.child.length;
+      item.isIndeterminate =
+        checkedCount > 0 && checkedCount < item.child.length;
+    },
     //中心下属机构全选切换
     toggleChange(event, item) {
+      item.isIndeterminate = false;
       item.child.forEach(it => (it.selected = event));
     },
     //获取机构列表
@@ -410,6 +423,7 @@ export default {
         .filter(it => it.name.indexOf('中心') !== -1)
         .map(it => ({
           ...it,
+          isIndeterminate: false,
           child: result.filter(
             item => item.parent === it.id || item.id === it.id
           )
@@ -427,7 +441,11 @@ export default {
         arr.push(other);
       }
 
-      this.hospitalList = arr;
+      this.hospitalList = arr.map(it => ({
+        ...it,
+        selected: !it.child.some(it => !it.selected),
+        isIndeterminate: it.child.some(it => !it.selected)
+      }));
     },
     //打开机构对话框
     openSelectDialog(item) {
@@ -452,15 +470,20 @@ export default {
         this.dialogSelectVisible = false;
       }
     },
-    //跳转详情
-    handleCellClick(row) {
-      this.$router.push({
-        name: 'rule',
-        query: {
-          checkId: row.checkId,
-          checkName: encodeURIComponent(row.checkName)
-        }
-      });
+    //设置规则标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'check-title';
+    },
+    //点击规则标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'checkName')
+        return this.$router.push({
+          name: 'rule',
+          query: {
+            checkId: row.checkId,
+            checkName: encodeURIComponent(row.checkName)
+          }
+        });
     },
     //打开添加规则对话框
     openAddCheckDialog() {
@@ -714,9 +737,17 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.check-title {
+  cursor: pointer;
+  :hover {
+    color: #1a95d7;
+  }
+}
+</style>
 <style scoped lang="scss">
 .hos-box {
-  max-height: 400px;
+  height: 50vh;
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: -20px;
