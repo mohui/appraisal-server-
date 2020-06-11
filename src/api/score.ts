@@ -244,17 +244,21 @@ export default class Score {
         (result, current) => {
           result.workpoints += current?.report?.workpoints ?? 0;
           result.scores += current?.report?.scores ?? 0;
+          result.correctWorkPoint +=
+            (current?.report?.workpoints ?? 0) *
+            (current?.report?.scores ?? 0 / current?.report?.total ?? 0);
           result.total += current?.report?.total ?? 0;
           return result;
         },
-        {workpoints: 0, scores: 0, total: 0}
+        {workpoints: 0, scores: 0, total: 0, correctWorkPoint: 0}
       );
 
       return {
         id: regionModel.code,
         name: regionModel.name,
-        score: reduceObject.workpoints,
-        rate: reduceObject.scores / reduceObject.total
+        originalScore: reduceObject.workpoints,
+        score: Math.round(reduceObject.correctWorkPoint),
+        rate: reduceObject.correctWorkPoint / reduceObject.workpoints
       };
     }
 
@@ -266,7 +270,12 @@ export default class Score {
       return {
         id: hospitalModel.id,
         name: hospitalModel.name,
-        score: hospitalModel?.report?.workpoints ?? 0,
+        originalScore: hospitalModel?.report?.workpoints ?? 0,
+        score: Math.round(
+          (hospitalModel?.report?.workpoints ?? 0) *
+            ((hospitalModel?.report?.scores ?? 0) /
+              (hospitalModel?.report?.total ?? 0))
+        ),
         rate:
           (hospitalModel?.report?.scores ?? 0) /
           (hospitalModel?.report?.total ?? 0)
