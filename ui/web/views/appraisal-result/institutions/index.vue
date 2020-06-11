@@ -464,6 +464,7 @@
       </el-col>
     </el-row>
     <el-row
+      v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
       v-if="params.isInstitution && params.listFlag === 'score'"
       :gutter="20"
       style="margin-top: 20px"
