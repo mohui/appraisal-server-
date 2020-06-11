@@ -2,10 +2,29 @@ import {KatoClient} from 'kato-client';
 import {getToken, setToken} from '../utils/cache';
 import ContentDisposition from 'content-disposition';
 import FileSaver from 'file-saver';
-
+import axios from 'axios';
 export const apiUrl = '/api';
 
-const client = new KatoClient(apiUrl);
+const Dispatcher = async req => {
+  const res = await axios({
+    method: 'post',
+    url: req.url,
+    data: req.data,
+    headers: req.headers,
+    responseType: 'arraybuffer'
+  });
+  if (res.headers['content-type'] === 'application/json')
+    res.data = Buffer.from(res.data).toString('utf-8');
+  return {
+    data: res.data,
+    statusCode: res.status,
+    type: res.headers['content-type'],
+    headers: res.headers
+  };
+};
+const client = new KatoClient(apiUrl, {
+  dispatcher: Dispatcher
+});
 
 export async function getApiClient() {
   await client.init();
