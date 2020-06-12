@@ -141,4 +141,48 @@ export default class BasicTag {
     res.send(buffer);
     res.end();
   }
+
+  async dataImport(file) {
+    return appDB.transaction(async () => {
+      //读取文件
+      const workBook = new Excel.Workbook();
+      const workSheet = await workBook.xlsx.load(file.buffer);
+      const data = workSheet.getWorksheet(1);
+      //所有基础数据code
+      let tags = [];
+      //所有机构和每个基础数据的对应数据
+      let tagHospital = [];
+      //遍历excel表格的数据
+      data.eachRow((row, index) => {
+        //取出基础数据的code
+        if (index === 3) {
+          row.eachCell((cell, cellIndex) => {
+            if (cellIndex > 2) tags.push(cell.value);
+          });
+        }
+        //组装机构与code的数据
+        if (index > 3) {
+          tags.forEach(tag =>
+            tagHospital.push({
+              hospitalId: row.values[1],
+              code: tag,
+              value: row.values[3]
+            })
+          );
+        }
+      });
+      //查询基础数据机构表,找出已存在的数据的id
+      tagHospital = await Promise.all(
+        tagHospital.map(async item => {
+          const tagData = await BasicTagDataModel.findOne({
+            where: {hospitalId: item.hospitalId, code: item.code}
+          });
+          if (tagData) item.id = tagData.id;
+          return item;
+        })
+      );
+      //批量更新基础数据
+      await Promise.all(tagHospital.map(async item => await this.upsert(item)));
+    });
+  }
 }
