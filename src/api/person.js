@@ -114,4 +114,112 @@ export default class Person {
       hypertension: hypertensionRows
     };
   }
+
+  /**
+   * 获取个人档案信息
+   *
+   * @param id 个人id
+   * @return {
+   *   id: id
+   *   name: 姓名
+   *   address: 现住址
+   *   census: 户籍地址
+   *   phone: 联系电话
+   *   operateOrganization{ 建档机构
+   *     id: id
+   *     name: 机构名
+   *   }:
+   *   organization: {
+   *     id: id,
+   *     name: 机构名
+   *   }
+   *   fileDate: 建档日期
+   * }
+   */
+  async document(id) {
+    const person = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select personnum       as id,
+                 name,
+                 address,
+                 Residencestring as "census",
+                 phone,
+                 filedate        as "fileDate",
+                 adminorganization,
+                 operateorganization
+          from view_personinfo
+          where personnum = ?
+          limit 1
+        `,
+        [id]
+      )
+    )[0];
+
+    if (!person) throw new KatoCommonError('数据不存在');
+    person.operateOrganization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select hospid as id, hospname as name
+          from view_hospital
+          where hospid = ?
+        `,
+        [person.operateorganization]
+      )
+    )[0];
+
+    person.organization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+            select hospid as id, hospname as name
+            from view_hospital
+            where hospid = ?
+          `,
+        [person.adminorganization]
+      )
+    )[0];
+
+    return person;
+  }
+
+  /**
+   * 获取高血压随访
+   *
+   * @param id 个人id
+   */
+  async hypertensions(id) {
+    // language=PostgreSQL
+    return etlQuery(
+      `
+        select *
+        from view_hypertensionvisit vhv
+               inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
+        where vh.personnum = ?
+        order by vhv.operatetime desc
+      `,
+      [id]
+    );
+  }
+
+  /**
+   * 获取糖尿病随访
+   *
+   * @param id 个人id
+   */
+  async diabetes(id) {
+    // language=PostgreSQL
+    return etlQuery(
+      `
+        select *
+        from view_diabetesvisit vdv
+               inner join view_diabetes vd on vdv.HypertensionCardID = vd.HypertensionCardID
+        where vd.personnum = ?
+        order by vdv.operatetime desc
+      `,
+      [id]
+    );
+  }
 }
