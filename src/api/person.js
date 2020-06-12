@@ -114,4 +114,24 @@ export default class Person {
       hypertension: hypertensionRows
     };
   }
+
+  /**
+   * 获取个人档案信息
+   * @param id 个人id
+   */
+  async document(id) {
+    // language=PostgreSQL
+    return (
+      await etlQuery(
+        `select vp.*, vh.hospname as organization
+         from view_personinfo vp
+            inner join view_hospital vh on vp.adminorganization = vh.hospid
+         where personnum = ?`,
+        [id]
+      )
+    ).map(it => ({
+      ...it,
+      sex: it.sex === '1' ? '男' : '女'
+    }))[0];
+  }
 }
