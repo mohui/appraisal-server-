@@ -98,6 +98,12 @@ export default class BasicTag {
     });
   }
 
+  @validate(
+    should
+      .string()
+      .required()
+      .description('基础数据code')
+  )
   async dataDownload(tagCode) {
     //当前基础数据下的所有属性
     const tags = BasicTags.find(bt => bt.code === tagCode)?.children;
