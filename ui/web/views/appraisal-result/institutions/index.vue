@@ -461,6 +461,7 @@
               <el-table-column v-else align="center" label="操作" width="184px">
                 <template slot-scope="scope">
                   <el-button
+                    v-if="scope.row.isAttach"
                     plain
                     type="primary"
                     size="small"
@@ -965,11 +966,16 @@ export default {
             0
           );
           item.children = item.children.map(it => {
+            //判断ruleTags里面是否包含需要上传附件的关联关系
+            const isAttach = it.ruleTags
+              .map(tag => tag.algorithm)
+              .some(tag => tag === 'attach');
             return {
               ...it,
               isGradeScore: false,
               originalScore: it.score,
-              isSaveScoreLoaing: false
+              isSaveScoreLoaing: false,
+              isAttach: isAttach
             };
           });
           return item;
