@@ -17,22 +17,20 @@
         <el-row>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="姓名：">
-              <el-input
-                v-model="queryForm.name"
-                size="mini"
+              <kn-debounce-input
+                v-model.trim="queryForm.name"
                 placeholder="请输入要查询的姓名"
                 clearable
-              ></el-input>
+              ></kn-debounce-input>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="身份证号码：">
-              <el-input
-                v-model="queryForm.idCard"
-                size="mini"
+              <kn-debounce-input
+                v-model.trim="queryForm.idCard"
                 placeholder="请输入要查询的身份证号码"
                 clearable
-              ></el-input>
+              ></kn-debounce-input>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
@@ -141,6 +139,14 @@ export default {
         it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
         return it;
       });
+    }
+  },
+  watch: {
+    queryForm: {
+      handler() {
+        this.pageNo = 1;
+      },
+      deep: true
     }
   },
   asyncComputed: {

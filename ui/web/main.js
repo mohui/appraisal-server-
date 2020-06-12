@@ -11,6 +11,7 @@ import dayjs from './plugins/dayjs';
 import {settingPlugin} from './plugins/setting';
 import echarts from 'echarts';
 import './directive';
+import KnDebounceInputComponent from './components/kn-debounce-input';
 
 (async () => {
   Vue.config.productionTip = false;
@@ -21,6 +22,7 @@ import './directive';
   Vue.use(WidthCompute);
   Vue.use(dayjs);
   Vue.prototype.$echarts = echarts;
+  Vue.component('kn-debounce-input', KnDebounceInputComponent);
 
   new Vue({
     router,
