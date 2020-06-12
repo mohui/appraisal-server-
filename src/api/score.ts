@@ -5,6 +5,7 @@ import {
   MarkHospitalModel,
   RegionModel,
   ReportHospitalModel,
+  RuleHospitalAttachModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleTagModel
@@ -19,6 +20,8 @@ import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
 import {etlDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
+import * as path from 'path';
+import {ossClient} from '../../util/oss';
 
 export default class Score {
   /**
@@ -344,5 +347,29 @@ export default class Score {
         };
       })
     );
+  }
+
+  async upload(ruleId, hospitalId, attachments) {
+    const ossName = `/appraisal/attachment/${uuid()}${path.extname(
+      attachments.originalname
+    )}`;
+
+    let attachURL;
+    try {
+      attachURL = await ossClient.save(ossName, attachments.buffer);
+    } catch (e) {
+      console.log(e);
+      throw new KatoCommonError('文件上传失败');
+    }
+
+    const name = attachments.originalname;
+    await new RuleHospitalAttachModel({
+      ruleId,
+      hospitalId,
+      name,
+      url: attachURL
+    }).save();
+
+    return attachURL;
   }
 }
