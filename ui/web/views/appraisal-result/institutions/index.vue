@@ -687,7 +687,6 @@ export default {
   methods: {
     //系统自动打分开关
     async handleChangeSystemAutoScore(row) {
-      console.log(row);
       try {
         await this.$api.Hospital.setRuleAuto(
           this.params.id,
@@ -777,7 +776,6 @@ export default {
       this.dialogUploadAppraisalFileVisible = false;
     },
     handleDialogAppraisalFileListVisible(row) {
-      console.log('handleDialogAppraisalFileListVisible', row);
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
