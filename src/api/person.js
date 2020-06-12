@@ -134,6 +134,7 @@ export default class Person {
    *     name: 机构名
    *   }
    *   fileDate: 建档日期
+   *   updateAt: 更新日期
    * }
    */
   async document(id) {
@@ -148,7 +149,8 @@ export default class Person {
                  phone,
                  filedate        as "fileDate",
                  adminorganization,
-                 operateorganization
+                 operateorganization,
+                 operatetime as "updateAt"
           from view_personinfo
           where personnum = ?
           limit 1
@@ -189,16 +191,27 @@ export default class Person {
    * 获取高血压随访
    *
    * @param id 个人id
+   * return {
+   *   id: id,
+   *   followDate: 随访时间
+   *   followWay: 随访方式
+   *   doctor: 随访医生
+   *   updateAt: 更新时间
+   * }
    */
   async hypertensions(id) {
-    // language=PostgreSQL
     return etlQuery(
+      // language=PostgreSQL
       `
-        select *
+        select vhv.highbloodid as id,
+               vhv.followupdate as "followDate",
+               vhv.followupway as "followWay",
+               vhv.doctor,
+               vhv.operatetime as "updateAt"
         from view_hypertensionvisit vhv
                inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
         where vh.personnum = ?
-        order by vhv.operatetime desc
+        order by vhv.followupdate desc
       `,
       [id]
     );
