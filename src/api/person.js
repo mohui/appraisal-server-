@@ -117,6 +117,7 @@ export default class Person {
 
   /**
    * 获取个人档案信息
+   *
    * @param id 个人id
    */
   async document(id) {
