@@ -143,6 +143,14 @@ export default {
       });
     }
   },
+  watch: {
+    queryForm: {
+      handler() {
+        this.pageNo = 1;
+      },
+      deep: true
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
