@@ -117,9 +117,9 @@ export default class BasicTag {
     const workBook = new Excel.Workbook();
     const workSheet = workBook.addWorksheet('基础数据导入');
     //第一行头部
-    workSheet.addRow(
+    workSheet.addRow([
       `${Context.current.user.region.name}基础数据表(仅基础数据的值可修改)`
-    );
+    ]);
     //第二行 机构id, 名称, 基础数据名
     workSheet.addRow(['机构id', '机构名称', ...tags.map(tag => tag.name)]);
     //第三行 字段名
