@@ -12,6 +12,14 @@
       <div slot="header" class="clearfix">
         <span>{{ standardName }}</span>
         <el-button
+          plain
+          style="margin: -9px 20px;"
+          type="primary"
+          size="mini"
+          @click="dataDownload"
+          >导出
+        </el-button>
+        <el-button
           style="float: right;margin: -9px;"
           type="primary"
           @click="
@@ -129,6 +137,13 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    async dataDownload() {
+      try {
+        await this.$api.BasicTag.dataDownload(this.curCode);
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    },
     async getLists(code) {
       let result = await this.$api.BasicTag.list(code);
       this.listData = result
