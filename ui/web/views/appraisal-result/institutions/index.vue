@@ -583,6 +583,8 @@
             :auto-upload="false"
             :limit="1"
             :on-exceed="handleExceed"
+            :on-success="handleUploadAppraisalFileSuccess"
+            :on-error="handleUploadAppraisalFileError"
             action="/api/Score/upload.ac"
             :data="curRule.data"
           >
@@ -731,11 +733,20 @@ export default {
     //保存上传资料到服务器
     async handleSaveUploadFile() {
       await this.$refs.uploadForm.submit();
-      this.dialogUploadAppraisalFileVisible = false;
     },
     //超出文件个数限制的处理
     handleExceed() {
       this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
+    },
+    //文件上传成功
+    handleUploadAppraisalFileSuccess() {
+      this.$message.success('文件上传成功');
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    //文件上传失败
+    handleUploadAppraisalFileError() {
+      this.$message.error('文件上传失败');
+      this.dialogUploadAppraisalFileVisible = false;
     },
     handleSummaries(param) {
       const {columns, data} = param;
