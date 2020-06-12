@@ -572,7 +572,7 @@
     >
       <el-form :model="curRule">
         <el-form-item label="考核内容">
-          name
+          {{ curRule.ruleName }}
         </el-form-item>
         <el-form-item label="上传文件">
           <el-upload
