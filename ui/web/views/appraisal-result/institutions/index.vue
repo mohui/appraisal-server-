@@ -458,6 +458,17 @@
                   </el-button>
                 </template>
               </el-table-column>
+              <el-table-column v-else align="center" label="操作" width="184px">
+                <template slot-scope="scope">
+                  <el-button
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="handleUploadAppraisalFile(scope.row)"
+                    >上传考核资料
+                  </el-button>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </div>
@@ -554,6 +565,42 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-dialog
+      title="上传考核资料"
+      :visible.sync="dialogUploadAppraisalFileVisible"
+      width="30%"
+    >
+      <el-form :model="curRule">
+        <el-form-item label="考核内容">
+          name
+        </el-form-item>
+        <el-form-item label="上传文件">
+          <el-upload
+            name="attachments"
+            accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
+            ref="uploadForm"
+            :auto-upload="false"
+            action="/api/Score/upload.ac"
+            :data="curRule.data"
+          >
+            <el-button plain slot="trigger" size="small" type="primary"
+              >选取文件</el-button
+            >
+            <div slot="tip" class="el-upload__tip" style="font-size:12px;">
+              可以上传图片，word文件，xls文件，pdf文件，压缩包文件，单个文件不能超过5M。
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button plain @click="dialogUploadAppraisalFileVisible = false"
+          >取 消</el-button
+        >
+        <el-button plain type="primary" @click="handleSaveUploadFile"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -588,7 +635,13 @@ export default {
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
-      totalShowMore: false
+      totalShowMore: false,
+      dialogUploadAppraisalFileVisible: false,
+      curRule: {
+        ruleName: '',
+        ruleId: '',
+        data: ''
+      }
     };
   },
   filters: {
@@ -661,6 +714,22 @@ export default {
     cancelScore(row) {
       this.$set(row, 'originalScore', row.originalScore);
       this.$set(row, 'isGradeScore', false);
+    },
+    //上传考核资料
+    handleUploadAppraisalFile(row) {
+      console.log(row);
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.data = {
+        ruleId: JSON.stringify(this.curRule.ruleId),
+        hospitalId: JSON.stringify(this.params.id)
+      };
+      this.dialogUploadAppraisalFileVisible = true;
+    },
+    //保存上传资料到服务器
+    async handleSaveUploadFile() {
+      await this.$refs.uploadForm.submit();
+      this.dialogUploadAppraisalFileVisible = false;
     },
     handleSummaries(param) {
       const {columns, data} = param;
