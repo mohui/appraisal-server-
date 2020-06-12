@@ -10,6 +10,7 @@ import {UserRegionMigration} from './007_user_region';
 import {TagEditorMigration} from './008_tag_editor';
 import {ScoreMigration} from './009_score';
 import {CheckHospitalMigration} from './010_check_hospital';
+import {RuleHospitalAttachMigration} from './011_rule_hospital_attatch';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -23,5 +24,6 @@ export const migrations: IMigration[] = [
   new UserRegionMigration(),
   new TagEditorMigration(),
   new ScoreMigration(),
-  new CheckHospitalMigration()
+  new CheckHospitalMigration(),
+  new RuleHospitalAttachMigration()
 ];
