@@ -40,6 +40,11 @@ export class RuleHospitalAttach extends Model<RuleHospitalAttach> {
   @BelongsTo(() => Hospital)
   hospital: Hospital;
 
+  @Comment('附件中文名')
+  @AllowNull(false)
+  @Column
+  name: string;
+
   @Comment('附件URL')
   @AllowNull(false)
   @Column
