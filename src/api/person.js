@@ -139,4 +139,23 @@ export default class Person {
       }))[0]
     );
   }
+
+  /**
+   * 获取糖尿病随访
+   *
+   * @param id 个人id
+   */
+  async hypertensions(id) {
+    // language=PostgreSQL
+    return etlQuery(
+      `
+        select *
+        from view_hypertensionvisit vhv
+               inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
+        where vh.personnum = ?
+        order by vhv.operatetime desc
+      `,
+      [id]
+    );
+  }
 }
