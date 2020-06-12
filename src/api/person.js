@@ -134,6 +134,7 @@ export default class Person {
    *     name: 机构名
    *   }
    *   fileDate: 建档日期
+   *   updateAt: 更新日期
    * }
    */
   async document(id) {
@@ -148,7 +149,8 @@ export default class Person {
                  phone,
                  filedate        as "fileDate",
                  adminorganization,
-                 operateorganization
+                 operateorganization,
+                 operatetime as "updateAt"
           from view_personinfo
           where personnum = ?
           limit 1
