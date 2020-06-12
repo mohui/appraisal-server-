@@ -158,4 +158,23 @@ export default class Person {
       [id]
     );
   }
+
+  /**
+   * 获取糖尿病随访
+   *
+   * @param id 个人id
+   */
+  async diabetes(id) {
+    // language=PostgreSQL
+    return etlQuery(
+      `
+        select *
+        from view_diabetesvisit vdv
+               inner join view_diabetes vd on vdv.HypertensionCardID = vd.HypertensionCardID
+        where vd.personnum = ?
+        order by vdv.operatetime desc
+      `,
+      [id]
+    );
+  }
 }
