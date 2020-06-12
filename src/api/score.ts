@@ -372,4 +372,21 @@ export default class Score {
 
     return attachURL;
   }
+
+  async listAttachments(ruleId, hospitalId) {
+    return RuleHospitalAttachModel.findAll({
+      where: {
+        ruleId,
+        hospitalId
+      }
+    });
+  }
+
+  async delAttachment(id) {
+    return RuleHospitalAttachModel.destroy({
+      where: {
+        id
+      }
+    });
+  }
 }
