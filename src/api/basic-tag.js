@@ -145,9 +145,18 @@ export default class BasicTag {
   }
 
   //基础数据导入接口
-  @validate(should.required().description('文件'))
-  async dataImport(file) {
+  @validate(
+    should.required().description('文件'),
+    should
+      .string()
+      .required()
+      .description('基础数据code')
+  )
+  async dataImport(file, tagCode) {
     return appDB.transaction(async () => {
+      //读取基础数据声明文件
+      const basicTags = BasicTags.find(tag => tag.code === tagCode)?.children;
+      if (!basicTags) throw new KatoCommonError('基础数据code传递有误');
       //读取文件
       const workBook = new Excel.Workbook();
       const workSheet = await workBook.xlsx.load(file.buffer);
@@ -161,7 +170,11 @@ export default class BasicTag {
         //取出基础数据的code
         if (index === 3) {
           row.eachCell((cell, cellIndex) => {
-            if (cellIndex > 2) tags.push(cell.value);
+            if (cellIndex > 2) {
+              if (!basicTags.find(tag => tag.code === cell.value))
+                throw new KatoCommonError('表格中基础数据code填写有误');
+              tags.push(cell.value);
+            }
           });
         }
         //组装机构与code的数据
