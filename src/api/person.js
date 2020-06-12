@@ -141,7 +141,7 @@ export default class Person {
   }
 
   /**
-   * 获取糖尿病随访
+   * 获取高血压随访
    *
    * @param id 个人id
    */
