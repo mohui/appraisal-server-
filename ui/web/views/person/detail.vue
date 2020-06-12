@@ -6,6 +6,14 @@
     >
       <div slot="header" class="clearfix">
         <span>个人档案</span>
+        <el-button
+          size="mini"
+          type="primary"
+          plain
+          style="float: right"
+          @click="handleBack"
+          >返回</el-button
+        >
       </div>
       <el-form v-if="$asyncComputed.serverData.success" size="mini">
         <el-form-item label="姓名: ">
@@ -86,6 +94,11 @@ export default {
           hypertension: []
         };
       }
+    }
+  },
+  methods: {
+    handleBack() {
+      this.$router.go(-1);
     }
   }
 };
