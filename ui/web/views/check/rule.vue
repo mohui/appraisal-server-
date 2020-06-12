@@ -338,7 +338,8 @@ import Vue from 'vue';
 import {
   MarkTags,
   TagAlgorithm,
-  MarkTagUsages
+  MarkTagUsages,
+  TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
 export default {
@@ -493,8 +494,12 @@ export default {
           type: 'error'
         });
       }
-      const hasAttach = tags.some(it => it.algorithm === 'attach');
-      const noAttach = tags.some(it => it.algorithm !== 'attach');
+      const hasAttach = tags.some(
+        it => it.algorithm === TagAlgorithmUsages.attach.code
+      );
+      const noAttach = tags.some(
+        it => it.algorithm !== TagAlgorithmUsages.attach.code
+      );
       if (hasAttach && noAttach) {
         return this.$message({
           message: '定性指标请单独设置！',
