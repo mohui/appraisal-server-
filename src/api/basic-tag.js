@@ -144,6 +144,8 @@ export default class BasicTag {
     res.end();
   }
 
+  //基础数据导入接口
+  @validate(should.required().description('文件'))
   async dataImport(file) {
     return appDB.transaction(async () => {
       //读取文件
