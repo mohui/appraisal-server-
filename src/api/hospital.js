@@ -10,8 +10,7 @@ import {
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
-import {QueryTypes} from 'sequelize';
-import {Op} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
 import Excel from 'exceljs';
@@ -232,6 +231,37 @@ export default class Hospital {
     });
     if (!checkSystem) throw new KatoCommonError('该机构未绑定考核系统');
 
+    //查询该机构的直属的二级机构
+    const childrenHospital = await HospitalModel.findAll({
+      where: {parent: hospitalId}
+    });
+    //被绑定在该考核下的下属机构
+    const checkChildrenHospital = (
+      await Promise.all(
+        childrenHospital.map(
+          async hospital =>
+            await CheckHospitalModel.findOne({
+              where: {hospitalId: hospital.id},
+              include: [HospitalModel]
+            })
+        )
+      )
+    ).reduce((res, next) => (next ? res.concat(next) : res), []);
+
+    //子机构的得分情况
+    const childrenHospitalCheckResult = await Promise.all(
+      checkChildrenHospital.map(async item => ({
+        hospital: item.hospital,
+        result: await this.checks(item.hospital.id)
+      }))
+    );
+    console.log(childrenHospitalCheckResult);
+    //----- return childrenHospitalCheckResult;
+    //子机构的得分数据排列
+    // childrenHospitalCheckResult.map(item=>{
+    // })
+
+    //当前机构的考核结果
     const hospitalCheckResult = await this.checks(hospitalId);
 
     const firstRow = ['--'].concat(
