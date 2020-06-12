@@ -623,9 +623,12 @@
         <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
           评分标准：{{ curRule.evaluateStandard }}
         </p>
-        <div v-for="item of appraisalFileListData" :key="item.id">
-          <a :href="item.url" target="_blank">{{ item.name }}</a>
+        <div v-if="appraisalFileListData.length > 0">
+          <div v-for="item of appraisalFileListData" :key="item.id">
+            <a :href="item.url" target="_blank">{{ item.name }}</a>
+          </div>
         </div>
+        <div v-else style="color: red">暂无文件</div>
       </div>
     </el-dialog>
   </div>
