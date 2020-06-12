@@ -406,6 +406,11 @@
                     </el-input-number>
                   </span>
                   <span v-else>{{ scope.row.score | fixedDecimal }}</span>
+                  <i
+                    style="padding-left:5px; color:#ff9800"
+                    class="el-icon-document"
+                    @click="handleDialogAppraisalFileListVisible(scope.row)"
+                  ></i>
                 </template>
               </el-table-column>
               <el-table-column
@@ -606,6 +611,23 @@
         >
       </div>
     </el-dialog>
+    <el-dialog
+      title="考核资料"
+      :visible.sync="dialogAppraisalFileListVisible"
+      width="30%"
+    >
+      <div>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分内容：{{ curRule.ruleName }}
+        </p>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分标准：{{ curRule.evaluateStandard }}
+        </p>
+        <div v-for="item of appraisalFileListData" :key="item.id">
+          <a :href="item.url" target="_blank">{{ item.name }}</a>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -645,8 +667,10 @@ export default {
       curRule: {
         ruleName: '',
         ruleId: '',
+        evaluateStandard: '',
         data: ''
-      }
+      },
+      dialogAppraisalFileListVisible: false
     };
   },
   filters: {
@@ -747,6 +771,13 @@ export default {
     handleUploadAppraisalFileError() {
       this.$message.error('文件上传失败');
       this.dialogUploadAppraisalFileVisible = false;
+    },
+    handleDialogAppraisalFileListVisible(row) {
+      console.log('handleDialogAppraisalFileListVisible', row);
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.evaluateStandard = row.evaluateStandard;
+      this.dialogAppraisalFileListVisible = true;
     },
     handleSummaries(param) {
       const {columns, data} = param;
@@ -1005,6 +1036,10 @@ export default {
         0
       );
       return returnValue;
+    },
+    //单项考核规则的考核文件列表数据
+    appraisalFileListData() {
+      return this.appraisalFileListServerData;
     }
   },
   asyncComputed: {
@@ -1062,6 +1097,15 @@ export default {
           status: true,
           children: []
         };
+      }
+    },
+    //获取服务器单项考核规则的考核文件列表数据
+    appraisalFileListServerData: {
+      async get() {
+        return await this.$api.Score.listAttachments(
+          this.curRule.ruleId,
+          this.params.id
+        );
       }
     }
   }
