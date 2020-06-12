@@ -720,7 +720,6 @@ export default {
     },
     //上传考核资料
     handleUploadAppraisalFile(row) {
-      console.log(row);
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.data = {
