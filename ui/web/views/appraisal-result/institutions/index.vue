@@ -581,6 +581,7 @@
             accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
             ref="uploadForm"
             :auto-upload="false"
+            :limit="1"
             action="/api/Score/upload.ac"
             :data="curRule.data"
           >
