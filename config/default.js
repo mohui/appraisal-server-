@@ -15,5 +15,11 @@ module.exports = {
     username: 'root',
     password: 'root',
     database: 'appraisal-etl'
+  },
+  oss: {
+    accessKeyId: '',
+    accessKeySecret: '',
+    region: '',
+    bucket: ''
   }
 };
