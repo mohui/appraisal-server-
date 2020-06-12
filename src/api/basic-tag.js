@@ -126,16 +126,16 @@ export default class BasicTag {
     workSheet.addRow(['hospitalId', 'name', ...tags.map(tag => tag.code)]);
     //剩下的数据行
     workSheet.addRows(listData);
+    //文件名
+    const fileName = `${Context.current.user.region.name}-${
+      BasicTags.find(bt => bt.code === tagCode).name
+    }基础数据表(${dayjs().year()}).xls`;
+
     const buffer = await workBook.xlsx.writeBuffer();
     Context.current.bypassing = true;
     let res = Context.current.res;
     //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
-    res.setHeader(
-      'Content-Disposition',
-      ContentDisposition(
-        `${Context.current.user.region.name}基础数据表(${dayjs().year()}).xls`
-      )
-    );
+    res.setHeader('Content-Disposition', ContentDisposition(fileName));
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
     res.send(buffer);
