@@ -386,6 +386,22 @@
               >
               </el-table-column>
               <el-table-column
+                prop="isLock"
+                align="center"
+                width="150px"
+                label="系统打分"
+              >
+                <template slot-scope="scope">
+                  <el-switch
+                    v-model="scope.row.auto"
+                    active-text="开启"
+                    inactive-text="关闭"
+                    @change="handleChangeSystemAutoScore(scope.row)"
+                  >
+                  </el-switch>
+                </template>
+              </el-table-column>
+              <el-table-column
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
@@ -412,22 +428,6 @@
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
                   ></i>
-                </template>
-              </el-table-column>
-              <el-table-column
-                prop="isLock"
-                align="center"
-                width="150px"
-                label="系统打分"
-              >
-                <template slot-scope="scope">
-                  <el-switch
-                    v-model="scope.row.auto"
-                    active-text="开启"
-                    inactive-text="关闭"
-                    @change="handleChangeSystemAutoScore(scope.row)"
-                  >
-                  </el-switch>
                 </template>
               </el-table-column>
               <el-table-column
