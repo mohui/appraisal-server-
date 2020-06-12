@@ -388,7 +388,7 @@
               <el-table-column
                 prop="isLock"
                 align="center"
-                width="150px"
+                width="160px"
                 label="系统打分"
               >
                 <template slot-scope="scope">
@@ -405,7 +405,7 @@
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="180px"
+                width="160px"
                 label="得分"
               >
                 <template slot-scope="scope">
@@ -464,7 +464,7 @@
                   </el-button>
                 </template>
               </el-table-column>
-              <el-table-column v-else align="center" label="操作" width="184px">
+              <el-table-column v-else align="center" label="操作" width="150px">
                 <template slot-scope="scope">
                   <el-button
                     v-if="scope.row.isAttach"
