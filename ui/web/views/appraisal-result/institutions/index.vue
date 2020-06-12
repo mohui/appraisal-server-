@@ -582,6 +582,7 @@
             ref="uploadForm"
             :auto-upload="false"
             :limit="1"
+            :on-exceed="handleExceed"
             action="/api/Score/upload.ac"
             :data="curRule.data"
           >
@@ -732,6 +733,10 @@ export default {
     async handleSaveUploadFile() {
       await this.$refs.uploadForm.submit();
       this.dialogUploadAppraisalFileVisible = false;
+    },
+    //超出文件个数限制的处理
+    handleExceed() {
+      this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
     },
     handleSummaries(param) {
       const {columns, data} = param;
