@@ -119,25 +119,70 @@ export default class Person {
    * 获取个人档案信息
    *
    * @param id 个人id
+   * @return {
+   *   id: id
+   *   name: 姓名
+   *   address: 现住址
+   *   census: 户籍地址
+   *   phone: 联系电话
+   *   operateOrganization{ 建档机构
+   *     id: id
+   *     name: 机构名
+   *   }:
+   *   organization: {
+   *     id: id,
+   *     name: 机构名
+   *   }
+   *   fileDate: 建档日期
+   * }
    */
   async document(id) {
-    return (
-      // language=PostgreSQL
-      (
-        await etlQuery(
-          `
-            select vp.*, vh.hospname as organization
-            from view_personinfo vp
-                   inner join view_hospital vh on vp.adminorganization = vh.hospid
-            where personnum = ?
+    const person = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select personnum       as id,
+                 name,
+                 address,
+                 Residencestring as "census",
+                 phone,
+                 filedate        as "fileDate",
+                 adminorganization,
+                 operateorganization
+          from view_personinfo
+          where personnum = ?
+          limit 1
+        `,
+        [id]
+      )
+    )[0];
+
+    if (!person) throw new KatoCommonError('数据不存在');
+    person.operateOrganization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select hospid as id, hospname as name
+          from view_hospital
+          where hospid = ?
+        `,
+        [person.operateorganization]
+      )
+    )[0];
+
+    person.organization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+            select hospid as id, hospname as name
+            from view_hospital
+            where hospid = ?
           `,
-          [id]
-        )
-      ).map(it => ({
-        ...it,
-        sex: it.sex === '1' ? '男' : '女'
-      }))[0]
-    );
+        [person.adminorganization]
+      )
+    )[0];
+
+    return person;
   }
 
   /**
