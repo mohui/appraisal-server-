@@ -407,6 +407,7 @@
                   </span>
                   <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                   <i
+                    v-if="!$settings.user.isRegion && scope.row.isAttach"
                     style="padding-left:5px; color:#ff9800"
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
@@ -1109,6 +1110,12 @@ export default {
           this.curRule.ruleId,
           this.params.id
         );
+      },
+      shouldUpdate() {
+        return this.dialogAppraisalFileListVisible;
+      },
+      default() {
+        return [];
       }
     }
   }
