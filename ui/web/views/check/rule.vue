@@ -287,7 +287,7 @@
                         </el-option>
                       </el-select>
                     </td>
-                    <td style="text-align: center; width: 180px">
+                    <td style="text-align: center; width: 210px">
                       <el-input-number
                         size="mini"
                         :min="0"
@@ -298,6 +298,11 @@
                         style="margin: 0 -15px 0 5px;"
                         v-if="k.algorithm === 'egt' || k.algorithm === 'elt'"
                         >%</span
+                      >
+                      <span
+                        style="margin: 0 -15px 0 5px;"
+                        v-if="k.algorithm === 'attach'"
+                        >个附件</span
                       >
                     </td>
                     <td style="text-align: center">
@@ -449,6 +454,9 @@ export default {
     //取消指标配置
     cancelStandard() {
       const {index, $index} = this.curRule;
+      this.dialogStandardVisible = false;
+
+      if (!this.ruleList[index].group[$index].ruleTags) return;
       this.ruleList[index].group[$index].ruleTags = this.ruleList[index].group[
         $index
       ].original.ruleTags;
@@ -457,7 +465,6 @@ export default {
       ].group[$index].original.ruleTags
         .map(its => MarkTagUsages[its.tag].name)
         .join('，');
-      this.dialogStandardVisible = false;
     },
     //保存指标
     async saveStandard() {
@@ -483,6 +490,14 @@ export default {
       if (notAlgorithm) {
         return this.$message({
           message: '请选择计算方式！',
+          type: 'error'
+        });
+      }
+      const hasAttach = tags.some(it => it.algorithm === 'attach');
+      const noAttach = tags.some(it => it.algorithm !== 'attach');
+      if (hasAttach && noAttach) {
+        return this.$message({
+          message: '定性指标请单独设置！',
           type: 'error'
         });
       }
