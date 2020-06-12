@@ -84,6 +84,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
+    "ali-oss": "^6.9.0",
     "cls-hooked": "^4.2.2",
     "conctx": "0.0.5",
     "config": "^3.3.1",
