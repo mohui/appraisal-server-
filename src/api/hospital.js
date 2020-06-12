@@ -5,7 +5,8 @@ import {
   HospitalModel,
   RegionModel,
   RuleHospitalModel,
-  RuleHospitalScoreModel
+  RuleHospitalScoreModel,
+  RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
@@ -185,7 +186,8 @@ export default class Hospital {
               {
                 model: RuleHospitalModel,
                 where: {hospitalId: id}
-              }
+              },
+              RuleTagModel
             ]
           })
         ).map(it => {

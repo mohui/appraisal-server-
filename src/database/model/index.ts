@@ -13,3 +13,4 @@ export {RuleHospitalScore as RuleHospitalScoreModel} from './rule-hospital-score
 export {MarkHospital as MarkHospitalModel} from './mark-hospital';
 export {ReportHospital as ReportHospitalModel} from './report-hospital';
 export {CheckHospital as CheckHospitalModel} from './check-hospital';
+export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
