@@ -668,7 +668,7 @@ export default class Score {
       if (ruleTagModel.tag === MarkTagUsages.O02.code) {
         result.push(
           `${
-            MarkTagUsages.S03.name
+            MarkTagUsages.O02.name
           } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
             markHospitalModel.O02
           } / ${markHospitalModel.O00} = ${(
