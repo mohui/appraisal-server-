@@ -1,5 +1,6 @@
 import {
   BasicTagDataModel,
+  CheckHospitalModel,
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
@@ -22,6 +23,7 @@ import {etlDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
+import {Context} from './context';
 
 export default class Score {
   /**
@@ -467,18 +469,19 @@ export default class Score {
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
     return await Promise.all(
       (
-        await HospitalModel.findAll({
+        await CheckHospitalModel.findAll({
           where: {
-            regionId: {
-              [Op.like]: `${code}%`
+            hospitalId: {
+              [Op.in]: Context.current.user.hospitals.map(it => it.id)
             }
-          }
+          },
+          include: [HospitalModel]
         })
-      ).map(async hospital => {
-        const item = await this.total(hospital.id);
+      ).map(async checkHospital => {
+        const item = await this.total(checkHospital.hospitalId);
         return {
           ...item,
-          parent: hospital.parent
+          parent: checkHospital?.hospital?.parent
         };
       })
     );
