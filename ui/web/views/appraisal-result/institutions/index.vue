@@ -920,23 +920,35 @@ export default {
           );
           returnValue.rate = returnValue.rate / returnValue.child.length;
           return returnValue;
-        })
-        .sort((a, b) => b.score - a.score);
-      return result;
+        });
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //一级机构排行数据
     firstLevelWorkpointRankData() {
-      return this.workpointRankData
+      const result = this.workpointRankData
         .map(item => item.child)
         .reduce((result, current) => result.concat(current), [])
-        .filter(item => item.name.endsWith('中心'))
-        .sort((a, b) => b.score - a.score);
+        .filter(item => item.name.endsWith('中心'));
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //二级机构排行数据
     secondLevelWorkpointRankData() {
-      return this.workpointRankServerData
+      const result = this.workpointRankServerData
         .filter(item => !item.name.endsWith('中心'))
         .sort((a, b) => b.score - a.score);
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //最大得分值数
     maxScore() {
