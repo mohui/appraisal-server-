@@ -16,214 +16,37 @@
           }"
         >
           <el-tabs v-model="activeTab">
-            <el-tab-pane label="体验记录" name="activity">
+            <el-tab-pane label="体验记录" name="physical">
               <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">医院名称：张家山社区卫生服务中心</span>
-                  <span class="visitTime">就诊时间：2020-04-23 7:30</span>
+                <div class="notes-block display-none">
+                  <span class="hospital">医院名称：</span>
+                  <span class="visitTime">就诊时间：</span>
                 </div>
                 <p>
-                  主诉：咳嗽
-                </p>
-                <p>
-                  诊断：支气管炎
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">医院名称：张家山社区卫生服务中心</span>
-                  <span class="visitTime">就诊时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  主诉：咳嗽
-                </p>
-                <p>
-                  诊断：支气管炎
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">医院名称：张家山社区卫生服务中心</span>
-                  <span class="visitTime">就诊时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  主诉：咳嗽
-                </p>
-                <p>
-                  诊断：支气管炎
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">医院名称：张家山社区卫生服务中心</span>
-                  <span class="visitTime">就诊时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  主诉：咳嗽
-                </p>
-                <p>
-                  诊断：支气管炎
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">医院名称：张家山社区卫生服务中心</span>
-                  <span class="visitTime">就诊时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  主诉：咳嗽
-                </p>
-                <p>
-                  诊断：支气管炎
+                  暂无记录
                 </p>
               </div>
             </el-tab-pane>
-            <el-tab-pane label="高血压随访记录" name="account">
-              <div class="notes">
+            <el-tab-pane label="高血压随访记录" name="hypertensions">
+              <div
+                class="notes"
+                v-for="(item, index) of hypertensions"
+                :key="index"
+              >
                 <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
+                  <span class="hospital">随访医生：{{ item.doctor }}</span>
+                  <span class="visitTime">随访时间：{{ item.followDate }}</span>
                 </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
+                <p>随访方式：{{ item.followWay }}</p>
               </div>
             </el-tab-pane>
-            <el-tab-pane label="糖尿病随访记录" name="account2">
-              <div class="notes">
+            <el-tab-pane label="糖尿病随访记录" name="diabetes">
+              <div class="notes" v-for="(item, index) of diabetes" :key="index">
                 <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
+                  <span class="hospital">随访医生：{{ item.doctor }}</span>
+                  <span class="visitTime">随访时间：{{ item.followDate }}</span>
                 </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
-              </div>
-              <div class="notes">
-                <div class="notes-block">
-                  <span class="hospital">随访人员：王五</span>
-                  <span class="visitTime">随访时间：2020-04-23 7:30</span>
-                </div>
-                <p>
-                  随访事项：公共健康
-                </p>
+                <p>随访方式：{{ item.followWay }}</p>
               </div>
             </el-tab-pane>
             <el-tab-pane label="老年人健康管理" name="timeline">
@@ -264,27 +87,12 @@ export default {
           'https://pic4.zhimg.com/80/v2-3cdfb5a464dc931630dd359b71a10587_1440w.jpg',
         address: '芜湖市'
       },
-      activeTab: 'activity',
+      activeTab: 'physical',
       timeline: [
         {
           timestamp: '2019-04-20',
-          title: '非洛地平',
-          content: '口服：起始剂量2.5mg（1/2片），一日2次'
-        },
-        {
-          timestamp: '2019-04-21',
-          title: '非洛地平',
-          content: '口服：起始剂量2.5mg（1/2片），一日2次'
-        },
-        {
-          timestamp: '2019-04-22',
-          title: '非洛地平',
-          content: '口服：起始剂量2.5mg（1/2片），一日2次'
-        },
-        {
-          timestamp: '2019-04-23',
-          title: '非洛地平',
-          content: '口服：起始剂量2.5mg（1/2片），一日2次'
+          title: '',
+          content: '暂无记录'
         }
       ]
     };
@@ -296,9 +104,10 @@ export default {
   },
   computed: {
     hypertensions() {
-      return this.serverData.hypertension.map(it => {
-        it.datecards = it.datecards.$format();
-        it.operatetime = it.operatetime.$format();
+      return this.hypertension.map(it => {
+        it.followDate = it.followDate
+          ? it.followDate.$format('YYYY-MM-DD')
+          : '';
         return it;
       });
     }
@@ -326,6 +135,38 @@ export default {
           },
           fileDate: '' //建档日期
         };
+      }
+    },
+    hypertension: {
+      //高血压随访
+      async get() {
+        return await this.$api.Person.hypertensions(this.id);
+      },
+      default() {
+        return [
+          {
+            followDate: '',
+            followWay: '暂无随访记录',
+            doctor: '',
+            updateAt: ''
+          }
+        ];
+      }
+    },
+    diabetes: {
+      //糖尿病随访
+      async get() {
+        return await this.$api.Person.diabetes(this.id);
+      },
+      default() {
+        return [
+          {
+            followDate: '',
+            followWay: '暂无随访记录',
+            doctor: '',
+            updateAt: ''
+          }
+        ];
       }
     }
   },
