@@ -631,7 +631,7 @@
     <el-dialog
       title="考核资料"
       :visible.sync="dialogAppraisalFileListVisible"
-      width="30%"
+      width="50%"
     >
       <div>
         <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
@@ -651,7 +651,7 @@
     <el-dialog
       title="指标结果"
       :visible.sync="appraisalResultInstructionsDialogVisible"
-      width="30%"
+      width="50%"
     >
       <div>
         <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
