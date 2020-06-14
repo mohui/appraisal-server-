@@ -249,4 +249,32 @@ export default class Person {
       [id]
     );
   }
+
+  /**
+   * 获取体检表
+   * stature: 身高
+   * weight: 体重
+   * temperature: 体温
+   * symptom: 症状
+   * bc_abnormal: B超说明
+   * updateAt: 更新时间
+   * @param id 个人id
+   */
+  async healthy(id) {
+    return etlQuery(
+      `
+        select
+          vh.stature as "stature",
+          vh.weight as "weight",
+          vh.temperature as "temperature",
+          vh.symptom as "symptom",
+          vh.bc_abnormal as "bc_abnormal",
+          vh.operatetime as "updateAt"
+        from view_healthy vh
+        where vh.personnum = ?
+        order by vh.operatetime desc
+       `,
+      [id]
+    );
+  }
 }
