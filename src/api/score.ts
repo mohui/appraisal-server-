@@ -627,6 +627,56 @@ export default class Score {
           ).toFixed(0)}%`
         );
       }
+
+      // 老年人健康管理率
+      if (ruleTagModel.tag === MarkTagUsages.O00.code) {
+        // 查询老年人人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.OldPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.O00.name
+          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+            markHospitalModel.O00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.S00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 老年人体检完整率
+      if (ruleTagModel.tag === MarkTagUsages.O01.code) {
+        result.push(
+          `${
+            MarkTagUsages.O01.name
+          } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.O01
+          } / ${markHospitalModel.O00} = ${(
+            (markHospitalModel.O01 / markHospitalModel.O00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 老年人中医药健康管理率
+      if (ruleTagModel.tag === MarkTagUsages.O02.code) {
+        result.push(
+          `${
+            MarkTagUsages.S03.name
+          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.O02
+          } / ${markHospitalModel.O00} = ${(
+            (markHospitalModel.O02 / markHospitalModel.O00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
     }
 
     return result;
