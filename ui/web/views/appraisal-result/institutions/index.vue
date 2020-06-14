@@ -733,6 +733,9 @@ export default {
           message: '打分成功'
         });
         this.$set(row, 'isGradeScore', false);
+        //手动打分之后将自动打分关闭
+        row.auto = false;
+        this.handleChangeSystemAutoScore(row);
       } catch (e) {
         this.$message({
           type: 'danger',
