@@ -186,9 +186,12 @@ export default {
     },
     //区域排行数据
     areaRankData() {
-      return this.areaRankServerData
-        .map(item => item)
-        .sort((a, b) => b.score - a.score);
+      const result = this.areaRankServerData.map(item => item);
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //最大得分值数
     maxScore() {
