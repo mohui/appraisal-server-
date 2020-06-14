@@ -16,11 +16,11 @@
       </div>
     </div>
     <div class="patient-info">
-      <p>户籍地址: {{ patient.census }}</p>
-      <p>联系电话: {{ patient.phone }}</p>
-      <p>建档机构: {{ patient.operateOrganization.name }}</p>
-      <p>建档日期: {{ patient.fileDate.toLocaleString() }}</p>
-      <p>管理机构: {{ patient.organization.name }}</p>
+      <p><span>户籍地址: </span>{{ patient.census }}</p>
+      <p><span>联系电话: </span>{{ patient.phone }}</p>
+      <p><span>建档机构: </span>{{ patient.operateOrganization.name }}</p>
+      <p><span>建档日期: </span>{{ patient.fileDate.toLocaleString() }}</p>
+      <p><span>管理机构: </span>{{ patient.organization.name }}</p>
     </div>
 
     <div class="patient-tag">
@@ -88,6 +88,7 @@ export default {
 
 <style lang="scss" scoped>
 .box-center {
+  text-align: center;
   margin: 0 auto;
   display: table;
 }
@@ -106,6 +107,15 @@ export default {
   }
   .box-center {
     padding-top: 10px;
+  }
+}
+.patient-info {
+  font-size: 14px;
+  p {
+    span {
+      font-size: 12px;
+      color: #666;
+    }
   }
 }
 .patient-medicine,
