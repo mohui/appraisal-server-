@@ -577,6 +577,7 @@ export default class Score {
     });
     if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
     for (const ruleTagModel of ruleTagModels) {
+      // 建档率
       if (ruleTagModel.tag === MarkTagUsages.S01.code) {
         // 建档率
         // 查询服务总人口数
@@ -596,6 +597,182 @@ export default class Score {
             markHospitalModel.S00
           } / ${basicData.value} = ${(
             (markHospitalModel.S00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 电子档案规范率
+      if (ruleTagModel.tag === MarkTagUsages.S23.code) {
+        result.push(
+          `${
+            MarkTagUsages.S23.name
+          } = 规范的电子档案数 / 建立电子健康档案人数 = ${
+            markHospitalModel.S23
+          } / ${markHospitalModel.S00} = ${(
+            (markHospitalModel.S23 / markHospitalModel.S00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 健康档案使用率
+      if (ruleTagModel.tag === MarkTagUsages.S03.code) {
+        result.push(
+          `${
+            MarkTagUsages.S03.name
+          } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
+            markHospitalModel.S03
+          } / ${markHospitalModel.S00} = ${(
+            (markHospitalModel.S03 / markHospitalModel.S00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+
+      // 老年人健康管理率
+      if (ruleTagModel.tag === MarkTagUsages.O00.code) {
+        // 查询老年人人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.OldPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.O00.name
+          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+            markHospitalModel.O00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.O00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 老年人体检完整率
+      if (ruleTagModel.tag === MarkTagUsages.O01.code) {
+        result.push(
+          `${
+            MarkTagUsages.O01.name
+          } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.O01
+          } / ${markHospitalModel.O00} = ${(
+            (markHospitalModel.O01 / markHospitalModel.O00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 老年人中医药健康管理率
+      if (ruleTagModel.tag === MarkTagUsages.O02.code) {
+        result.push(
+          `${
+            MarkTagUsages.O02.name
+          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.O02
+          } / ${markHospitalModel.O00} = ${(
+            (markHospitalModel.O02 / markHospitalModel.O00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+
+      // 高血压患者管理率
+      if (ruleTagModel.tag === MarkTagUsages.H00.code) {
+        // 查询高血压患者人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.HypertensionPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.H00.name
+          } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
+            markHospitalModel.H00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.H00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 高血压患者规范管理率
+      if (ruleTagModel.tag === MarkTagUsages.H01.code) {
+        result.push(
+          `${
+            MarkTagUsages.H01.name
+          } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
+            markHospitalModel.H01
+          } / ${markHospitalModel.H00} = ${(
+            (markHospitalModel.H01 / markHospitalModel.H00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 高血压患者血压控制率
+      if (ruleTagModel.tag === MarkTagUsages.H02.code) {
+        result.push(
+          `${
+            MarkTagUsages.H02.name
+          } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
+            markHospitalModel.H02
+          } / ${markHospitalModel.H00} = ${(
+            (markHospitalModel.H02 / markHospitalModel.H00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+
+      // 糖尿病患者管理率
+      if (ruleTagModel.tag === MarkTagUsages.D00.code) {
+        // 查询糖尿病患者人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.DiabetesPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.D00.name
+          } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+            markHospitalModel.D00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.D00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 糖尿病患者规范管理率
+      if (ruleTagModel.tag === MarkTagUsages.D01.code) {
+        result.push(
+          `${
+            MarkTagUsages.D01.name
+          } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel.D01
+          } / ${markHospitalModel.D00} = ${(
+            (markHospitalModel.D01 / markHospitalModel.D00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 糖尿病患者血压控制率
+      if (ruleTagModel.tag === MarkTagUsages.D02.code) {
+        result.push(
+          `${
+            MarkTagUsages.D02.name
+          } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel.D02
+          } / ${markHospitalModel.D00} = ${(
+            (markHospitalModel.D02 / markHospitalModel.D00) *
             100
           ).toFixed(0)}%`
         );
