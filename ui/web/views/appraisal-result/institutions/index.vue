@@ -337,6 +337,14 @@
                   appraisalIndicatorsData.ruleScore
                 }}分</span
               >
+              <el-button
+                style="margin-left: 30px;"
+                size="small"
+                plain
+                type="primary"
+                @click="handleAppraisalResultsDownload()"
+                >考核结果下载</el-button
+              >
             </div>
           </div>
           <div
@@ -863,6 +871,10 @@ export default {
       //会将route.query.isInstitution赋值给this.params.isInstitution
       //this.params.isInstitution = false;
       this.$router.go(-1);
+    },
+    //考核结果下载
+    async handleAppraisalResultsDownload() {
+      await this.$api.Hospital.checkDownload(this.params.id);
     }
   },
   computed: {
