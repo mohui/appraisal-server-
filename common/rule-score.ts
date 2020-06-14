@@ -31,11 +31,24 @@ export const BasicTags = [
         code: 'hypertension-people'
       }
     ]
+  },
+  {
+    name: '糖尿病患者健康管理服务',
+    code: 'diabetes',
+    children: [
+      {
+        name: '年内应管理糖尿病患者人数',
+        code: 'diabetes-people'
+      }
+    ]
   }
 ];
 
 export const BasicTagUsages = {
-  DocPeople: 'doc-people'
+  DocPeople: 'doc-people',
+  OldPeople: 'old-people',
+  HypertensionPeople: 'hypertension-people',
+  DiabetesPeople: 'diabetes-people'
 };
 
 /**
