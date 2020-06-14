@@ -206,6 +206,8 @@ export default class Person {
         select vhv.highbloodid as id,
                vhv.followupdate as "followDate",
                vhv.followupway as "followWay",
+               vhv.systolicpressure as "systolicPressure",
+               vhv.assertpressure as "assertPressure",
                vhv.doctor,
                vhv.operatetime as "updateAt"
         from view_hypertensionvisit vhv
