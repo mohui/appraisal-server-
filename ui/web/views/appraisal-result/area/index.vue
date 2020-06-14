@@ -158,7 +158,7 @@ export default {
     return {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
-        id: '34'
+        id: this.$setting.user.code
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -223,7 +223,7 @@ export default {
   methods: {
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
-      this.params.id = route.query.id ?? '34';
+      this.params.id = route.query.id ?? this.$setting.user.code;
     },
     //纬度切换
     latTypeChanged(type) {
