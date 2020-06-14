@@ -23,6 +23,7 @@ import {etlDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
+import {Context} from './context';
 
 export default class Score {
   /**
@@ -466,21 +467,12 @@ export default class Score {
   async rank(code) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
-    const hospitals = await Promise.all(
-      await HospitalModel.findAll({
-        where: {
-          regionId: {
-            [Op.like]: `${code}%`
-          }
-        }
-      })
-    );
     return await Promise.all(
       (
         await CheckHospitalModel.findAll({
           where: {
             hospitalId: {
-              [Op.in]: hospitals.map(it => it.id)
+              [Op.in]: Context.current.user.hospitals.map(it => it.id)
             }
           },
           include: [HospitalModel]
