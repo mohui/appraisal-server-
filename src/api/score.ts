@@ -561,4 +561,47 @@ export default class Score {
       }
     });
   }
+
+  /**
+   * 指标解释
+   *
+   * @param hospitalId 医院id
+   * @param ruleId 规则id
+   */
+  async detail(hospitalId, ruleId) {
+    const result = [];
+    // 查询规则绑定的关联关系
+    const ruleTagModels = await RuleTagModel.findAll({where: {ruleId}});
+    const markHospitalModel = await MarkHospitalModel.findOne({
+      where: {hospitalId}
+    });
+    if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
+    for (const ruleTagModel of ruleTagModels) {
+      if (ruleTagModel.tag === MarkTagUsages.S01.code) {
+        // 建档率
+        // 查询服务总人口数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.DocPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.S01.name
+          } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
+            markHospitalModel.S00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.S00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+    }
+
+    return result;
+  }
 }
