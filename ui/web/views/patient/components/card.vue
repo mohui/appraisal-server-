@@ -27,30 +27,7 @@
       <div class="patient-tag-header">
         <span>患者标签</span>
       </div>
-      <div class="patient-tag-body">
-        <el-tag type="warning">慢病患者</el-tag>
-        <el-tag type="warning">高血压</el-tag>
-      </div>
-    </div>
-
-    <div class="patient-medicine">
-      <div class="patient-medicine-header">
-        <span>常用药物</span>
-      </div>
-      <div class="patient-medicine-body">
-        <div class="patient-medicine-item">
-          <span>非洛地平（波一定）</span>
-        </div>
-        <div class="patient-medicine-item">
-          <span>氨氯地平（络活喜、施慧达）尼群、尼莫地平</span>
-        </div>
-        <div class="patient-medicine-item">
-          <span>拉西地平</span>
-        </div>
-        <div class="patient-medicine-item">
-          <span>硝苯地平（心痛定）</span>
-        </div>
-      </div>
+      <div class="patient-tag-body"></div>
     </div>
   </el-card>
 </template>
