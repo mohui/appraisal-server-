@@ -59,25 +59,6 @@
                 </p>
               </div>
             </el-tab-pane>
-            <el-tab-pane
-              label="老年人健康管理"
-              name="timeline"
-              style="display: none;"
-            >
-              <el-timeline>
-                <el-timeline-item
-                  v-for="(item, index) of timeline"
-                  :key="index"
-                  :timestamp="item.timestamp"
-                  placement="top"
-                >
-                  <el-card>
-                    <h4>{{ item.title }}</h4>
-                    <p>{{ item.content }}</p>
-                  </el-card>
-                </el-timeline-item>
-              </el-timeline>
-            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -94,14 +75,7 @@ export default {
   data() {
     return {
       id: null,
-      activeTab: 'hypertension',
-      timeline: [
-        {
-          timestamp: '2019-04-20',
-          title: '',
-          content: '暂无记录'
-        }
-      ]
+      activeTab: 'hypertension'
     };
   },
   created() {
