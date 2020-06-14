@@ -577,6 +577,7 @@ export default class Score {
     });
     if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
     for (const ruleTagModel of ruleTagModels) {
+      // 建档率
       if (ruleTagModel.tag === MarkTagUsages.S01.code) {
         // 建档率
         // 查询服务总人口数
@@ -596,6 +597,19 @@ export default class Score {
             markHospitalModel.S00
           } / ${basicData.value} = ${(
             (markHospitalModel.S00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 电子档案规范率
+      if (ruleTagModel.tag === MarkTagUsages.S23.code) {
+        result.push(
+          `${
+            MarkTagUsages.S23.name
+          } = 规范的电子档案数 / 建立电子健康档案人数 = ${
+            markHospitalModel.S23
+          } / ${markHospitalModel.S00} = ${(
+            (markHospitalModel.S23 / markHospitalModel.S00) *
             100
           ).toFixed(0)}%`
         );
