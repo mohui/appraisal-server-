@@ -122,6 +122,174 @@ export default class Score {
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
+
+        // 老年人健康管理率
+        if (tagModel.tag === MarkTagUsages.O00.code) {
+          // 查询老年人人数
+          const basicData = await BasicTagDataModel.findOne({
+            where: {
+              code: BasicTagUsages.OldPeople,
+              hospital: hospital.id,
+              year: dayjs()
+                .year()
+                .toString()
+            }
+          });
+          // 如果老年人人数不存在, 直接跳过
+          if (!basicData?.value) continue;
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.O00) {
+            const rate = mark.O00 / basicData.value;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 老年人体检完整率
+        if (tagModel.tag === MarkTagUsages.O01.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O01)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O01)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.O00 &&
+            mark?.O01
+          ) {
+            const rate = mark.O01 / mark.O00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 老年人中医药健康管理率
+        if (tagModel.tag === MarkTagUsages.O02.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O02)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O02)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.O00 &&
+            mark?.O02
+          ) {
+            const rate = mark.O02 / mark.O00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 高血压健康管理
+        if (tagModel.tag === MarkTagUsages.H00.code) {
+          // 查询高血压人数
+          const basicData = await BasicTagDataModel.findOne({
+            where: {
+              code: BasicTagUsages.HypertensionPeople,
+              hospital: hospital.id,
+              year: dayjs()
+                .year()
+                .toString()
+            }
+          });
+          // 如果查询高血压人数不存在, 直接跳过
+          if (!basicData?.value) continue;
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.H00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.H00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.H00) {
+            const rate = mark.O00 / basicData.value;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 高血压规范管理率
+        if (tagModel.tag === MarkTagUsages.H01.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.H01)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.H01)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.H00 &&
+            mark?.H01
+          ) {
+            const rate = mark.H01 / mark.H00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 高血压控制率
+        if (tagModel.tag === MarkTagUsages.H02.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.H02)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.H02)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.H00 &&
+            mark?.H02
+          ) {
+            const rate = mark.H02 / mark.H00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 糖尿病健康管理
+        if (tagModel.tag === MarkTagUsages.D00.code) {
+          // 查询糖尿病人数
+          const basicData = await BasicTagDataModel.findOne({
+            where: {
+              code: BasicTagUsages.DiabetesPeople,
+              hospital: hospital.id,
+              year: dayjs()
+                .year()
+                .toString()
+            }
+          });
+          // 如果查询糖尿病人数不存在, 直接跳过
+          if (!basicData?.value) continue;
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.D00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.D00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.D00) {
+            const rate = mark.D00 / basicData.value;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 糖尿病规范管理率
+        if (tagModel.tag === MarkTagUsages.D01.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.D01)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.D01)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.D00 &&
+            mark?.D01
+          ) {
+            const rate = mark.D01 / mark.D00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
+
+        // 糖尿病控制率
+        if (tagModel.tag === MarkTagUsages.D02.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.D02)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.D02)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.D00 &&
+            mark?.D02
+          ) {
+            const rate = mark.D02 / mark.D00;
+            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+          }
+        }
       }
       // 查询机构考核得分
       const ruleHospitalScoreObject = {
