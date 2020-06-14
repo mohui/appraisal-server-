@@ -58,9 +58,7 @@
         ></el-table-column>
         <el-table-column min-width="14" label="适用机构">
           <template slot-scope="scope">
-            {{ scope.row.hospitalCount }}
             <el-button
-              circle
               plain
               v-permission="{
                 permission: permission.CHECK_SELECT_HOSPITAL,
@@ -68,9 +66,9 @@
               }"
               type="primary"
               size="mini"
-              icon="el-icon-plus"
               @click.stop="openSelectDialog(scope.row)"
-            ></el-button>
+              >{{ scope.row.hospitalCount }}</el-button
+            >
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="94">
