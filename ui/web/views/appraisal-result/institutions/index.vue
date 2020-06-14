@@ -436,6 +436,14 @@
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
                   ></i>
+                  <i
+                    v-if="!$settings.user.isRegion && !scope.row.isAttach"
+                    style="padding-left:5px; color:#ff9800"
+                    class="el-icon-warning"
+                    @click="
+                      handleDialogAppraisalResultInstructionsVisible(scope.row)
+                    "
+                  ></i>
                 </template>
               </el-table-column>
               <el-table-column
@@ -623,7 +631,7 @@
     <el-dialog
       title="考核资料"
       :visible.sync="dialogAppraisalFileListVisible"
-      width="30%"
+      width="50%"
     >
       <div>
         <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
@@ -638,6 +646,22 @@
           </div>
         </div>
         <div v-else style="color: red">暂无文件</div>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="指标结果"
+      :visible.sync="appraisalResultInstructionsDialogVisible"
+      width="50%"
+    >
+      <div>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分标准：{{ curRule.evaluateStandard }}
+        </p>
+        <ul>
+          <li v-for="item of appraisalResultInstructionsData" :key="item">
+            {{ item }}
+          </li>
+        </ul>
       </div>
     </el-dialog>
   </div>
@@ -682,7 +706,8 @@ export default {
         evaluateStandard: '',
         data: ''
       },
-      dialogAppraisalFileListVisible: false
+      dialogAppraisalFileListVisible: false,
+      appraisalResultInstructionsDialogVisible: false //单项指标考核结果说明
     };
   },
   filters: {
@@ -791,6 +816,13 @@ export default {
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
       this.dialogAppraisalFileListVisible = true;
+    },
+    //单项指标考核得分解读
+    handleDialogAppraisalResultInstructionsVisible(row) {
+      this.appraisalResultInstructionsDialogVisible = true;
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.evaluateStandard = row.evaluateStandard;
     },
     handleSummaries(param) {
       const {columns, data} = param;
@@ -1069,6 +1101,10 @@ export default {
     //单项考核规则的考核文件列表数据
     appraisalFileListData() {
       return this.appraisalFileListServerData;
+    },
+    //单项考核得分解读数据
+    appraisalResultInstructionsData() {
+      return this.appraisalResultInstructionsServerData;
     }
   },
   asyncComputed: {
@@ -1138,6 +1174,21 @@ export default {
       },
       shouldUpdate() {
         return this.dialogAppraisalFileListVisible;
+      },
+      default() {
+        return [];
+      }
+    },
+    //获取服务器单项考核得分解读数据
+    appraisalResultInstructionsServerData: {
+      async get() {
+        return await this.$api.Score.detail(
+          this.params.id,
+          this.curRule.ruleId
+        );
+      },
+      shouldUpdate() {
+        return this.appraisalResultInstructionsDialogVisible;
       },
       default() {
         return [];
