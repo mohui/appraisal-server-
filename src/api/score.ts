@@ -25,6 +25,20 @@ import * as path from 'path';
 import {ossClient} from '../../util/oss';
 import {Context} from './context';
 
+/**
+ * 获取百分数字符串, 默认返回'0'
+ *
+ * @param numerator 分子
+ * @param denominator 分母
+ */
+function percentString(numerator: number, denominator: number): string {
+  if (denominator) {
+    return ((numerator / denominator) * 100).toFixed(0) + '%';
+  } else {
+    return '0';
+  }
+}
+
 export default class Score {
   /**
    * 系统打分
