@@ -1,5 +1,6 @@
 import {
   BasicTagDataModel,
+  CheckHospitalModel,
   CheckRuleModel,
   HospitalModel,
   MarkHospitalModel,
@@ -465,20 +466,30 @@ export default class Score {
   async rank(code) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
+    const hospitals = await Promise.all(
+      await HospitalModel.findAll({
+        where: {
+          regionId: {
+            [Op.like]: `${code}%`
+          }
+        }
+      })
+    );
     return await Promise.all(
       (
-        await HospitalModel.findAll({
+        await CheckHospitalModel.findAll({
           where: {
-            regionId: {
-              [Op.like]: `${code}%`
+            hospitalId: {
+              [Op.in]: hospitals.map(it => it.id)
             }
-          }
+          },
+          include: [HospitalModel]
         })
-      ).map(async hospital => {
-        const item = await this.total(hospital.id);
+      ).map(async checkHospital => {
+        const item = await this.total(checkHospital.hospitalId);
         return {
           ...item,
-          parent: hospital.parent
+          parent: checkHospital?.hospital?.parent
         };
       })
     );
