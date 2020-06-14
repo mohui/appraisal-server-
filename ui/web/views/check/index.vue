@@ -43,7 +43,7 @@
         ></el-table-column>
         <el-table-column
           prop="created_at"
-          min-width="14"
+          min-width="16"
           label="创建时间"
         ></el-table-column>
         <el-table-column min-width="10" label="状态">
@@ -73,7 +73,7 @@
             ></el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column label="操作" min-width="94">
           <template slot-scope="scope">
             <el-button
               plain
