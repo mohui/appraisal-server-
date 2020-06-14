@@ -727,6 +727,56 @@ export default class Score {
           ).toFixed(0)}%`
         );
       }
+
+      // 糖尿病患者管理率
+      if (ruleTagModel.tag === MarkTagUsages.D00.code) {
+        // 查询糖尿病患者人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.DiabetesPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.D00.name
+          } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+            markHospitalModel.D00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.D00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 糖尿病患者规范管理率
+      if (ruleTagModel.tag === MarkTagUsages.D01.code) {
+        result.push(
+          `${
+            MarkTagUsages.D01.name
+          } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel.D01
+          } / ${markHospitalModel.D00} = ${(
+            (markHospitalModel.D01 / markHospitalModel.D00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 糖尿病患者血压控制率
+      if (ruleTagModel.tag === MarkTagUsages.D02.code) {
+        result.push(
+          `${
+            MarkTagUsages.D02.name
+          } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel.D02
+          } / ${markHospitalModel.D00} = ${(
+            (markHospitalModel.D02 / markHospitalModel.D00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
     }
 
     return result;
