@@ -24,6 +24,12 @@ import * as path from 'path';
 import {ossClient} from '../../util/oss';
 
 export default class Score {
+  async autoScoreAll() {
+    return Promise.all(
+      (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
+    );
+  }
+
   /**
    * 系统打分
    *
