@@ -614,6 +614,19 @@ export default class Score {
           ).toFixed(0)}%`
         );
       }
+      // 健康档案使用率
+      if (ruleTagModel.tag === MarkTagUsages.S03.code) {
+        result.push(
+          `${
+            MarkTagUsages.S03.name
+          } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
+            markHospitalModel.S03
+          } / ${markHospitalModel.S00} = ${(
+            (markHospitalModel.S03 / markHospitalModel.S00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
     }
 
     return result;
