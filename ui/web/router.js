@@ -35,6 +35,7 @@ const router = new Router({
         {
           path: 'appraisal-result-area',
           name: 'appraisal-result-area',
+          meta: {activeMenu: 'appraisal-result-institutions'},
           component: () => import('./views/appraisal-result/area/index')
         },
         {
@@ -68,6 +69,11 @@ const router = new Router({
           path: 'person',
           name: 'person',
           component: () => import('./views/person/list')
+        },
+        {
+          path: 'person-detail',
+          name: 'person-detail',
+          component: () => import('./views/person/detail')
         }
       ]
     },

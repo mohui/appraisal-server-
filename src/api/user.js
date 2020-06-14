@@ -364,18 +364,8 @@ export default class User {
     return result;
   }
 
-  @validate(
-    should
-      .string()
-      .required()
-      .description('用户id')
-  )
-  async profile(id) {
-    return UserModel.findOne({
-      where: {id},
-      attributes: {exclude: ['password']},
-      include: [RoleModel, RegionModel, HospitalModel]
-    });
+  async profile() {
+    return Context.current.user;
   }
 
   @validate(
@@ -388,14 +378,10 @@ export default class User {
   )
   async updateProfile(params) {
     return appDB.transaction(async () => {
-      let user = await UserModel.findOne({
-        where: {
-          id: Context.req.headers.token
-        }
-      });
+      let user = Context.current.user;
       if (!user) throw new KatoCommonError('该用户不存在');
       user.name = params.name;
-      return await user.save();
+      return UserModel.update(user, {where: {id: user.id}});
     });
   }
 

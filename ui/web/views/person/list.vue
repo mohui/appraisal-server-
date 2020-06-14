@@ -13,6 +13,63 @@
       <div slot="header" class="clearfix">
         <span>个人档案列表</span>
       </div>
+      <el-form :model="queryForm" label-width="100px" size="mini">
+        <el-row>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="姓名：">
+              <kn-debounce-input
+                v-model.trim="queryForm.name"
+                placeholder="请输入要查询的姓名"
+                clearable
+              ></kn-debounce-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="身份证号码：">
+              <kn-debounce-input
+                v-model.trim="queryForm.idCard"
+                placeholder="请输入要查询的身份证号码"
+                clearable
+              ></kn-debounce-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="管理机构：">
+              <el-select
+                v-model="queryForm.hospital"
+                clearable
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in hospitals"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+            <el-form-item label="">
+              <el-button
+                type="primary"
+                size="mini"
+                @click="$asyncComputed.serverData.update()"
+                >查询</el-button
+              >
+              <el-button
+                type="primary"
+                size="mini"
+                @click="handleResetCondition"
+              >
+                重置条件
+              </el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
       <el-table
         v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
@@ -22,7 +79,13 @@
         height="100%"
         style="flex-grow: 1;"
       >
-        <el-table-column prop="name" label="姓名"></el-table-column>
+        <el-table-column prop="name" label="姓名">
+          <template slot-scope="{row}">
+            <router-link :to="'/person-detail?id=' + row.id">
+              <span>{{ row.name }}</span>
+            </router-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="idCard" label="身份证"></el-table-column>
         <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
         <el-table-column label="标记">
@@ -59,7 +122,13 @@ export default {
   data() {
     return {
       pageSize: 50,
-      pageNo: 1
+      pageNo: 1,
+      hospitals: this.$settings.user.hospitals,
+      queryForm: {
+        name: '',
+        hospital: '',
+        idCard: ''
+      }
     };
   },
   computed: {
@@ -72,10 +141,24 @@ export default {
       });
     }
   },
+  watch: {
+    queryForm: {
+      handler() {
+        this.pageNo = 1;
+      },
+      deep: true
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
-        return this.$api.Person.list(this.pageSize, this.pageNo);
+        return this.$api.Person.list({
+          pageSize: this.pageSize,
+          pageNo: this.pageNo,
+          name: this.queryForm.name,
+          idCard: this.queryForm.idCard,
+          hospital: this.queryForm.hospital
+        });
       },
       default() {
         return {
@@ -92,6 +175,13 @@ export default {
     handlePageSizeChange(size) {
       this.pageNo = 1;
       this.pageSize = size;
+    },
+    handleResetCondition() {
+      this.queryForm = {
+        name: '',
+        hospital: '',
+        idCard: ''
+      };
     }
   }
 };

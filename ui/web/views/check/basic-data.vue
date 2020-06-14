@@ -15,7 +15,9 @@
       </div>
       <el-table
         stripe
-        size="mini"
+        size="medium"
+        @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
         :data="tagList"
         border
         height="100%"
@@ -27,24 +29,6 @@
           </template>
         </el-table-column>
         <el-table-column label="公共卫生服务" prop="name"> </el-table-column>
-        <el-table-column align="center" width="220" fixed="right" label="操作">
-          <template slot-scope="scope">
-            <el-button
-              plain
-              type="primary"
-              @click="edit(scope.row)"
-              size="small"
-              >编辑
-            </el-button>
-            <el-button
-              plain
-              style="background-color: #37474F; color:#fff"
-              @click="uploadData(scope.row.code)"
-              size="small"
-              >批量导入数据
-            </el-button>
-          </template>
-        </el-table-column>
       </el-table>
     </el-card>
   </div>
@@ -56,99 +40,34 @@ export default {
   name: 'basicData',
   data() {
     return {
-      dialogFormVisible: false,
-      dialogCloneFormVisible: false,
-      dialogUploadFormVisible: false,
-      form: {},
-      fileList: [],
-      importUrl: 'taskUrl',
-      headers: {token: "getCookie('account')"},
-      maxSize: 2,
-      progress: 0,
-      curCode: '',
       tagList: BasicTags
     };
   },
-  computed: {
-    uploadLoading() {
-      return this.progress > 0 && this.progress < 100;
-    }
-  },
   methods: {
-    //编辑
-    async edit(row) {
-      await this.$router.push({
-        path: 'basic-data-detail',
-        query: {code: row.code, name: row.name}
-      });
+    //设置标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'tags-title';
     },
-    //导入
-    async uploadData(row) {
-      this.dialogUploadFormVisible = true;
-      this.curCode = row;
-    },
-
-    async saveUploadRules() {
-      await this.$refs.uploadForm.submit();
-      this.dialogUploadFormVisible = false;
-    },
-
-    handleProgress(event) {
-      this.progress = Number(event.percent.toFixed(2));
-    },
-
-    async uploadSuccess() {
-      try {
-        this.$message({
-          type: 'success',
-          message: '批量导入数据成功！'
+    //点击标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'name')
+        return this.$router.push({
+          name: 'basic-data-detail',
+          query: {
+            code: row.code,
+            name: row.name
+          }
         });
-      } catch (e) {
-        this.$message(e.message);
-      }
-      this.fileList = [];
-    },
-
-    handleClose() {
-      this.fileList = [];
-      this.dialogUploadFormVisible = false;
-    },
-
-    handleBeforeUpload(file) {
-      const fType = ['xls', 'xlsx'];
-      const fName = file.name
-        .split('.')
-        .pop()
-        .toLowerCase();
-      const hasType = fType.some(it => it === fName);
-      const isLt5M = file.size / 1024 / 1024 < this.maxSize;
-
-      if (!hasType) {
-        this.$message.error("仅允许上传'xls','xlsx'格式文件！");
-        return false;
-      }
-      if (!isLt5M) {
-        this.$message.error(`文件大小不能超过${this.maxSize}M!`);
-        return false;
-      }
-      return true;
-    },
-
-    handleExceed() {
-      this.$message('最多只能上传一个文件!');
-    },
-
-    uploadError(err) {
-      this.$message(err);
-    },
-    async downloadTemplate() {
-      await this.$api.Task.exportTaskExcel(
-        localStorage.getItem('code'),
-        this.curCode
-      );
     }
   }
 };
 </script>
 
-<style scoped></style>
+<style lang="scss">
+.tags-title {
+  cursor: pointer;
+  :hover {
+    color: #1a95d7;
+  }
+}
+</style>

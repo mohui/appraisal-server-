@@ -1,19 +1,20 @@
 import {
+  CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
   HospitalModel,
   RegionModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
-  UserHospitalModel
+  RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {etlDB} from '../app';
-import {QueryTypes} from 'sequelize';
-import {Op} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
-
+import Excel from 'exceljs';
+import ContentDisposition from 'content-disposition';
 export default class Hospital {
   @validate(
     should
@@ -75,9 +76,7 @@ export default class Hospital {
       where: {checkId, parentRuleId: {[Op.not]: null}}
     });
     //当前用户所拥有的机构权限
-    const hospitals = await UserHospitalModel.findAll({
-      where: {userId: Context.req.headers.token}
-    }).map(h => h.hospitalId);
+    const hospitals = Context.current.user.hospitals.map(h => h.id);
 
     //用户拥有的机构和对应的规则关系
     const ruleHospital = (
@@ -146,6 +145,16 @@ export default class Hospital {
       where: {id}
     });
     if (!hospitalModel) throw new KatoCommonError(`id为 ${id} 的机构不存在`);
+
+    const {checkSystem} = await CheckHospitalModel.findOne({
+      where: {
+        hospital: id
+      },
+      include: [CheckSystemModel]
+    });
+
+    if (!checkSystem) throw new KatoCommonError(`该机构未绑定考核`);
+
     // checkSystem
     const checkSystemModel = (
       await RuleHospitalModel.findOne({
@@ -171,8 +180,14 @@ export default class Hospital {
             include: [
               {
                 model: RuleHospitalScoreModel,
+                where: {hospitalId: id},
+                required: false
+              },
+              {
+                model: RuleHospitalModel,
                 where: {hospitalId: id}
-              }
+              },
+              RuleTagModel
             ]
           })
         ).map(it => {
@@ -181,6 +196,9 @@ export default class Hospital {
             (result, current) => (result += current.score),
             0
           );
+          it.auto =
+            it.ruleHospitals.find(hospital => hospital.hospitalId === id)
+              ?.auto ?? false;
           return it;
         });
         return {
@@ -194,5 +212,161 @@ export default class Hospital {
     const returnValue = checkSystemModel.toJSON();
     returnValue.children = children;
     return returnValue;
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('机构id')
+  )
+  async checkDownload(hospitalId) {
+    const hospital = await HospitalModel.findOne({
+      where: {id: hospitalId}
+    });
+    if (!hospital) throw new KatoCommonError('该机构不存在');
+    const {checkSystem} = await CheckHospitalModel.findOne({
+      where: {hospital: hospitalId},
+      include: [CheckSystemModel]
+    });
+    if (!checkSystem) throw new KatoCommonError('该机构未绑定考核系统');
+
+    //查询该机构和其直属的二级机构
+    const childrenHospital = [hospital].concat(
+      await HospitalModel.findAll({
+        where: {parent: hospitalId}
+      })
+    );
+    //被绑定在该考核下的下属机构
+    const checkChildrenHospital = (
+      await Promise.all(
+        childrenHospital.map(
+          async hospital =>
+            await CheckHospitalModel.findOne({
+              where: {hospitalId: hospital.id},
+              include: [HospitalModel]
+            })
+        )
+      )
+    ).reduce((res, next) => (next ? res.concat(next) : res), []);
+
+    //机构的得分情况
+    let childrenHospitalCheckResult = (
+      await Promise.all(
+        checkChildrenHospital.map(async item => ({
+          hospital: item.hospital,
+          result: await this.checks(item.hospital.id)
+        }))
+      )
+    ).map(item => {
+      //机构总分
+      let count = 0;
+      let data = [item.hospital.name];
+      item.result.children.forEach(rule => {
+        if (rule.children.length > 0) {
+          data = data.concat(rule.children.map(child => child.score));
+          //每个规则组的总分
+          let groupCount = rule.children.reduce(
+            (res, next) => (res += next.score),
+            0
+          );
+          data.push(groupCount);
+          //规则组总分累加
+          count += groupCount;
+        }
+      });
+      data.push(count);
+      return data;
+    });
+    //当前机构的考核结果
+    const hospitalCheckResult = await this.checks(hospitalId);
+
+    //所有细则合并
+    const rules = hospitalCheckResult.children
+      .filter(item => item.children.length > 0)
+      .map(it => it.children)
+      .reduce((res, pre) => {
+        pre.push({ruleName: '小计'});
+        return res.concat(pre);
+      }, []);
+
+    //计算每个rule组需要合并多少个单元格
+    const cells = hospitalCheckResult.children
+      .filter(item => item.children.length > 0)
+      .map(it => it.children.length);
+
+    const firstRow = ['一级机构及二级机构', '一级机构', '二级机构']
+      .concat(
+        hospitalCheckResult.children
+          .filter(item => item.children.length > 0)
+          .map(rule => rule.ruleName)
+          .reduce((res, pre, index) => {
+            res.push(pre);
+            for (let i = 0; i < cells[index] - 1; i++) {
+              res.push('');
+            }
+            return res;
+          }, [])
+      )
+      .concat('总分');
+
+    //第二行数据
+    const secondRow = ['---', '---', '---'].concat(
+      rules.map(item => item.ruleName)
+    );
+
+    //第三行的数据只要一个一级机构名
+    const thirdRow = [`${hospital.name}`];
+
+    //第四行第二列才是一级机构
+    childrenHospitalCheckResult[0].splice(0, 0, '');
+    childrenHospitalCheckResult[0].splice(2, 0, '---');
+
+    //剩下的二级机构前面空两个单元格
+    childrenHospitalCheckResult = childrenHospitalCheckResult.map(
+      (res, index) => {
+        if (index > 0) {
+          res.splice(0, 0, '');
+          res.splice(0, 0, '');
+        }
+        return res;
+      }
+    );
+
+    //开始创建Excel表格
+    const workBook = new Excel.Workbook();
+    const workSheet = workBook.addWorksheet(`${hospital.name}考核结果`);
+    //添加标题
+    workSheet.addRow([`${hospital.name}-${checkSystem.checkName}`]);
+    workSheet.addRows([
+      firstRow,
+      secondRow,
+      thirdRow,
+      ...childrenHospitalCheckResult
+    ]);
+
+    //标题占据一整行单元格
+    workSheet.mergeCells(1, childrenHospitalCheckResult[0].length, 1, 1);
+
+    let cellCount = 0;
+    //合并单元格
+    firstRow.forEach((row, index) => {
+      if (index > 2 && index < firstRow.length - 1 && firstRow[index]) {
+        workSheet.mergeCells(2, index + 1, 2, index + cells[cellCount++]);
+      }
+    });
+
+    const buffer = await workBook.xlsx.writeBuffer();
+    Context.current.bypassing = true;
+    let res = Context.current.res;
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader(
+      'Content-Disposition',
+      ContentDisposition(`${hospital.name}-考核结果表.xls`)
+    );
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.send(buffer);
+    res.end();
   }
 }

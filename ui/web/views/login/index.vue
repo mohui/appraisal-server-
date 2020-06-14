@@ -77,7 +77,7 @@ export default {
       title: '说明书',
       inputType: 'password',
       btnLoading: false,
-      loginForm: {pass: 'admin', account: 'admin'},
+      loginForm: {pass: '', account: ''},
       rules: {
         pass: [{validator: validatePass, trigger: 'blur'}],
         account: [{validator: checkAccount, trigger: 'blur'}]

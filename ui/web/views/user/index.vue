@@ -29,12 +29,20 @@
         <el-row>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="登录名：">
-              <el-input v-model="searchForm.account" size="mini"></el-input>
+              <el-input
+                v-model="searchForm.account"
+                size="mini"
+                clearable
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="用户名：">
-              <el-input v-model="searchForm.name" size="mini"></el-input>
+              <el-input
+                v-model="searchForm.name"
+                size="mini"
+                clearable
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
@@ -57,8 +65,15 @@
           </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
             <el-form-item label="">
-              <el-button type="primary" size="mini">查询</el-button>
-              <el-button type="primary" size="mini">重置条件</el-button>
+              <el-button
+                type="primary"
+                size="mini"
+                @click="$asyncComputed.listUser.update()"
+                >查询</el-button
+              >
+              <el-button type="primary" size="mini" @click="reset">
+                重置条件
+              </el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -108,7 +123,10 @@
               修改
             </el-button>
             <el-button
-              v-if="$settings.permissions.includes(permission.USER_REMOVE)"
+              v-permission="{
+                permission: permission.USER_REMOVE,
+                type: 'disabled'
+              }"
               type="danger"
               size="small"
               @click="delUser(scope)"
@@ -265,11 +283,10 @@
           <el-cascader
             ref="hospital"
             v-model="userForm.hospitals"
-            placeholder="请选择机构"
+            :placeholder="userForm.hospital.name || '请选择机构'"
             style="width: 100%"
             :props="{
               lazy: true,
-              multiple: true,
               checkStrictly: true,
               lazyLoad: hospitalResolver
             }"
@@ -305,6 +322,7 @@ export default {
         roles: [],
         region: {name: ''},
         regionId: '',
+        hospital: {name: ''},
         hospitals: []
       },
       searchForm: {
@@ -413,6 +431,16 @@ export default {
     }
   },
   methods: {
+    //重置查询条件
+    reset() {
+      this.searchForm = {
+        account: '',
+        name: '',
+        roleId: '',
+        pageSize: 20,
+        pageNo: 1
+      };
+    },
     //异步加载机构列表
     async hospitalResolver(node, resolve) {
       const regionId = Array.isArray(this.userForm.regionId)
@@ -450,6 +478,7 @@ export default {
         roles: [],
         region: {name: ''},
         regionId: '',
+        hospital: {name: ''},
         hospitals: []
       };
     },
@@ -503,7 +532,7 @@ export default {
     },
     //设置用户编辑状态，并打开对话框
     editUser(item) {
-      this.userForm = Object.assign({}, item.row);
+      this.userForm = Object.assign({hospital: {name: ''}}, item.row);
       this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息

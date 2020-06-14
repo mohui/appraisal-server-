@@ -34,22 +34,28 @@
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
       <el-col :span="8">
-        <el-card shadow="hover">
+        <el-card
+          shadow="hover"
+          v-loading="$asyncComputed.totalServerData.updating"
+        >
           <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
               工分值
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ afterCorrectionTotolWorkpoint }}
+              {{ totalData.score }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
             <p style="font-size:13px;">{{ totalData.name }}</p>
-            <table style="width: 100%;margin-top: 20px;color: #666;">
+            <table
+              v-if="params.isInstitution"
+              style="width: 100%;margin-top: 20px;color: #666;"
+            >
               <tr>
                 <td style="width: 33%;text-align: center">
-                  <p>{{ Math.round(totalData.score) }}分</p>
+                  <p>{{ totalData.originalScore }}分</p>
                   <p>校正前</p>
                 </td>
                 <td
@@ -58,11 +64,15 @@
                   X
                 </td>
                 <td style="text-align: center">
-                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
+                  <p>{{ totalData.fixedDecimalRate }}%</p>
                   <p>质量系数</p>
                 </td>
               </tr>
             </table>
+
+            <div style="padding-top: 40px;" v-else>
+              <p>校正前 {{ totalData.originalScore }}分</p>
+            </div>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
             <two-card-circle
@@ -74,7 +84,7 @@
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
+              (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
         </el-card>
@@ -88,7 +98,13 @@
       </el-col>
       <div v-else>
         <el-col :span="10">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="
+              $asyncComputed.doctorWorkpointRankServerData.updating ||
+                $asyncComputed.workpointRankServerData.updating
+            "
+          >
             <div class="score-detail">
               <two-card-bar
                 :barxAxisData="workpointBarData.xAxisData"
@@ -109,6 +125,7 @@
     <!--机构排行-->
     <div v-if="!params.isInstitution">
       <el-card
+        v-loading="$asyncComputed.workpointRankServerData.updating"
         shadow="hover"
         :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
       >
@@ -199,7 +216,11 @@
         {{ totalShowMore ? '收起' : '显示更多' }}
       </div>
       <!--一、二级机构排行-->
-      <el-row :gutter="20" style="margin-top: 20px">
+      <el-row
+        :gutter="20"
+        style="margin-top: 20px"
+        v-loading="$asyncComputed.workpointRankServerData.updating"
+      >
         <!--一级机构排行-->
         <el-col :span="12">
           <el-card shadow="hover">
@@ -302,6 +323,7 @@
     </div>
     <!--考核指标规则-->
     <el-row
+      v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
       class="appraisal-indicators-rule"
       v-if="params.isInstitution && params.listFlag === 'quality'"
     >
@@ -310,19 +332,10 @@
           <div style="width: 100%; height:40px;">
             <div class="appraisal-indicators-rule-title" style="float:left">
               {{ appraisalIndicatorsData.checkName }}
-              <span style="color: #666;font-size: 14px; font-weight: bold"
-                >({{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+              <span style="color: #666;font-size: 14px;"
+                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
                   appraisalIndicatorsData.ruleScore
-                }}分)</span
-              >
-              <el-button
-                style="margin-left: 30px;"
-                size="small"
-                plain
-                type="primary"
-                @click="handleAppraisalResultsDownload()"
-                disabled
-                >考核结果下载</el-button
+                }}分</span
               >
             </div>
           </div>
@@ -373,10 +386,26 @@
               >
               </el-table-column>
               <el-table-column
+                prop="isLock"
+                align="center"
+                width="160px"
+                label="系统打分"
+              >
+                <template slot-scope="scope">
+                  <el-switch
+                    v-model="scope.row.auto"
+                    active-text="开启"
+                    inactive-text="关闭"
+                    @change="handleChangeSystemAutoScore(scope.row)"
+                  >
+                  </el-switch>
+                </template>
+              </el-table-column>
+              <el-table-column
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="180px"
+                width="160px"
                 label="得分"
               >
                 <template slot-scope="scope">
@@ -392,7 +421,13 @@
                     >
                     </el-input-number>
                   </span>
-                  <span v-else>{{ scope.row.score }}</span>
+                  <span v-else>{{ scope.row.score | fixedDecimal }}</span>
+                  <i
+                    v-if="!$settings.user.isRegion && scope.row.isAttach"
+                    style="padding-left:5px; color:#ff9800"
+                    class="el-icon-document"
+                    @click="handleDialogAppraisalFileListVisible(scope.row)"
+                  ></i>
                 </template>
               </el-table-column>
               <el-table-column
@@ -429,12 +464,25 @@
                   </el-button>
                 </template>
               </el-table-column>
+              <el-table-column v-else align="center" label="操作" width="150px">
+                <template slot-scope="scope">
+                  <el-button
+                    v-if="scope.row.isAttach"
+                    plain
+                    type="primary"
+                    size="small"
+                    @click="handleUploadAppraisalFile(scope.row)"
+                    >上传考核资料
+                  </el-button>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </div>
       </el-col>
     </el-row>
     <el-row
+      v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
       v-if="params.isInstitution && params.listFlag === 'score'"
       :gutter="20"
       style="margin-top: 20px"
@@ -524,6 +572,66 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-dialog
+      title="上传考核资料"
+      :visible.sync="dialogUploadAppraisalFileVisible"
+      width="30%"
+    >
+      <el-form :model="curRule">
+        <el-form-item label="考核内容">
+          {{ curRule.ruleName }}
+        </el-form-item>
+        <el-form-item label="上传文件">
+          <el-upload
+            name="attachments"
+            accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
+            ref="uploadForm"
+            :auto-upload="false"
+            :limit="1"
+            :on-exceed="handleExceed"
+            :on-success="handleUploadAppraisalFileSuccess"
+            :on-error="handleUploadAppraisalFileError"
+            action="/api/Score/upload.ac"
+            :data="curRule.data"
+          >
+            <el-button plain slot="trigger" size="small" type="primary"
+              >选取文件</el-button
+            >
+            <div slot="tip" class="el-upload__tip" style="font-size:12px;">
+              可以上传图片，word文件，xls文件，pdf文件，压缩包文件，单个文件不能超过5M。
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button plain @click="dialogUploadAppraisalFileVisible = false"
+          >取 消</el-button
+        >
+        <el-button plain type="primary" @click="handleSaveUploadFile"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="考核资料"
+      :visible.sync="dialogAppraisalFileListVisible"
+      width="30%"
+    >
+      <div>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分内容：{{ curRule.ruleName }}
+        </p>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分标准：{{ curRule.evaluateStandard }}
+        </p>
+        <div v-if="appraisalFileListData.length > 0">
+          <div v-for="item of appraisalFileListData" :key="item.id">
+            <a :href="item.url" target="_blank">{{ item.name }}</a>
+          </div>
+        </div>
+        <div v-else style="color: red">暂无文件</div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -531,6 +639,7 @@ import twoCardBar from '../components/twocardBar';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
+import decimal from 'decimal.js';
 
 export default {
   name: 'index',
@@ -557,7 +666,15 @@ export default {
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
-      totalShowMore: false
+      totalShowMore: false,
+      dialogUploadAppraisalFileVisible: false,
+      curRule: {
+        ruleName: '',
+        ruleId: '',
+        evaluateStandard: '',
+        data: ''
+      },
+      dialogAppraisalFileListVisible: false
     };
   },
   filters: {
@@ -568,8 +685,26 @@ export default {
     }
   },
   methods: {
-    //考核结果下载
-    handleAppraisalResultsDownload() {},
+    //系统自动打分开关
+    async handleChangeSystemAutoScore(row) {
+      try {
+        await this.$api.Hospital.setRuleAuto(
+          this.params.id,
+          row.ruleId,
+          row.auto
+        );
+        this.$message({
+          type: 'success',
+          message: '更改成功'
+        });
+      } catch (e) {
+        this.$message({
+          type: 'error',
+          message: e.message
+        });
+        row.auto = !row.auto;
+      }
+    },
     //点击打分按钮处理
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
@@ -598,6 +733,9 @@ export default {
           message: '打分成功'
         });
         this.$set(row, 'isGradeScore', false);
+        //手动打分之后将自动打分关闭
+        row.auto = false;
+        this.handleChangeSystemAutoScore(row);
       } catch (e) {
         this.$message({
           type: 'danger',
@@ -611,6 +749,40 @@ export default {
     cancelScore(row) {
       this.$set(row, 'originalScore', row.originalScore);
       this.$set(row, 'isGradeScore', false);
+    },
+    //上传考核资料
+    handleUploadAppraisalFile(row) {
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.data = {
+        ruleId: JSON.stringify(this.curRule.ruleId),
+        hospitalId: JSON.stringify(this.params.id)
+      };
+      this.dialogUploadAppraisalFileVisible = true;
+    },
+    //保存上传资料到服务器
+    async handleSaveUploadFile() {
+      await this.$refs.uploadForm.submit();
+    },
+    //超出文件个数限制的处理
+    handleExceed() {
+      this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
+    },
+    //文件上传成功
+    handleUploadAppraisalFileSuccess() {
+      this.$message.success('文件上传成功');
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    //文件上传失败
+    handleUploadAppraisalFileError() {
+      this.$message.error('文件上传失败');
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    handleDialogAppraisalFileListVisible(row) {
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.evaluateStandard = row.evaluateStandard;
+      this.dialogAppraisalFileListVisible = true;
     },
     handleSummaries(param) {
       const {columns, data} = param;
@@ -712,20 +884,14 @@ export default {
       }
       return value;
     },
-    //校正前工分值的总值
+    //总计工分和质量系数数据
     totalData() {
       return {
-        id: this.totalServerData.id,
-        score: Math.round(this.totalServerData.score),
-        rate: this.totalServerData.rate,
-        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(2)),
-        name: this.totalServerData.name
+        ...this.totalServerData,
+        fixedDecimalRate: decimal(
+          Number((this.totalServerData.rate * 100).toFixed(2))
+        ).toNumber()
       };
-    },
-    afterCorrectionTotolWorkpoint() {
-      return (
-        Math.round(this.totalServerData.rate * this.totalServerData.score) || 0
-      );
     },
     //机构排行数据
     workpointRankData() {
@@ -754,23 +920,35 @@ export default {
           );
           returnValue.rate = returnValue.rate / returnValue.child.length;
           return returnValue;
-        })
-        .sort((a, b) => b.score - a.score);
-      return result;
+        });
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //一级机构排行数据
     firstLevelWorkpointRankData() {
-      return this.workpointRankData
+      const result = this.workpointRankData
         .map(item => item.child)
         .reduce((result, current) => result.concat(current), [])
-        .filter(item => item.name.endsWith('中心'))
-        .sort((a, b) => b.score - a.score);
+        .filter(item => item.name.endsWith('中心'));
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //二级机构排行数据
     secondLevelWorkpointRankData() {
-      return this.workpointRankServerData
+      const result = this.workpointRankServerData
         .filter(item => !item.name.endsWith('中心'))
         .sort((a, b) => b.score - a.score);
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //最大得分值数
     maxScore() {
@@ -852,11 +1030,16 @@ export default {
             0
           );
           item.children = item.children.map(it => {
+            //判断ruleTags里面是否包含需要上传附件的关联关系
+            const isAttach = it.ruleTags
+              .map(tag => tag.algorithm)
+              .some(tag => tag === 'attach');
             return {
               ...it,
               isGradeScore: false,
               originalScore: it.score,
-              isSaveScoreLoaing: false
+              isSaveScoreLoaing: false,
+              isAttach: isAttach
             };
           });
           return item;
@@ -870,6 +1053,10 @@ export default {
         0
       );
       return returnValue;
+    },
+    //单项考核规则的考核文件列表数据
+    appraisalFileListData() {
+      return this.appraisalFileListServerData;
     }
   },
   asyncComputed: {
@@ -882,6 +1069,7 @@ export default {
         return {
           id: '',
           name: '',
+          originalScore: 0,
           score: 0,
           rate: 0
         };
@@ -926,6 +1114,21 @@ export default {
           status: true,
           children: []
         };
+      }
+    },
+    //获取服务器单项考核规则的考核文件列表数据
+    appraisalFileListServerData: {
+      async get() {
+        return await this.$api.Score.listAttachments(
+          this.curRule.ruleId,
+          this.params.id
+        );
+      },
+      shouldUpdate() {
+        return this.dialogAppraisalFileListVisible;
+      },
+      default() {
+        return [];
       }
     }
   }

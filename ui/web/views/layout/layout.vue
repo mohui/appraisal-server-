@@ -61,9 +61,6 @@ export default {
     }
   },
   async created() {
-    //获取当前需要缓存的信息
-    await this.$settings.load();
-
     this.menus = require('../../utils/menus').map(it => {
       if (it.children) {
         it.children = it.children.map(item => {

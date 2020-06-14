@@ -1,4 +1,4 @@
-FROM node:carbon
+FROM node:erbium
 ADD . /home/node/app
 WORKDIR /home/node/app
 ENV NODE_ENV production

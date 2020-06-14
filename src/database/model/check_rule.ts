@@ -15,6 +15,7 @@ import {UUIDV4} from 'sequelize';
 import {CheckSystem} from './check_system';
 import {RuleTag} from './rule-tag';
 import {RuleHospitalScore} from './rule-hospital-score';
+import {RuleHospital} from './rule-hospital';
 
 @Table({tableName: 'check_rule'})
 export class CheckRule extends Model<CheckRule> {
@@ -75,4 +76,7 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => RuleHospitalScore)
   ruleHospitalScores: RuleHospitalScore[];
+
+  @HasMany(() => RuleHospital)
+  ruleHospitals: RuleHospital[];
 }

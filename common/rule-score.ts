@@ -31,11 +31,24 @@ export const BasicTags = [
         code: 'hypertension-people'
       }
     ]
+  },
+  {
+    name: '糖尿病患者健康管理服务',
+    code: 'diabetes',
+    children: [
+      {
+        name: '年内应管理糖尿病患者人数',
+        code: 'diabetes-people'
+      }
+    ]
   }
 ];
 
 export const BasicTagUsages = {
-  DocPeople: 'doc-people'
+  DocPeople: 'doc-people',
+  OldPeople: 'old-people',
+  HypertensionPeople: 'hypertension-people',
+  DiabetesPeople: 'diabetes-people'
 };
 
 /**
@@ -66,6 +79,69 @@ export const MarkTags = [
             enabled: true
           }
         ]
+      },
+      {
+        name: '老年人健康管理服务',
+        code: 'old',
+        children: [
+          {
+            code: 'O00',
+            name: '老年人健康管理率',
+            enabled: true
+          },
+          {
+            code: 'O01',
+            name: '老年人体检完整率',
+            enabled: true
+          },
+          {
+            code: 'O02',
+            name: '老年人中医药健康管理率',
+            enabled: true
+          }
+        ]
+      },
+      {
+        name: '高血压患者健康管理服务',
+        code: 'hypertension',
+        children: [
+          {
+            name: '高血压患者管理率',
+            code: 'H00',
+            enabled: true
+          },
+          {
+            name: '高血压患者规范管理率',
+            code: 'H01',
+            enabled: true
+          },
+          {
+            name: '高血压患者血压控制率',
+            code: 'H02',
+            enabled: true
+          }
+        ]
+      },
+      {
+        name: '2型糖尿病患者健康管理服务',
+        code: 'diabetes',
+        children: [
+          {
+            name: '2型糖尿病患者管理率',
+            code: 'D00',
+            enabled: true
+          },
+          {
+            name: '2型糖尿病患者规范管理率',
+            code: 'D01',
+            enabled: true
+          },
+          {
+            name: '2型糖尿病患者血压控制率',
+            code: 'D02',
+            enabled: true
+          }
+        ]
       }
     ]
   },
@@ -75,12 +151,70 @@ export const MarkTags = [
     children: [
       {
         name: '家庭医生签约服务',
-        code: 'signing',
+        code: 'sign',
         children: [
           {
-            code: 'C01',
+            code: 'SIGN01',
             name: '签约服务覆盖率',
             enabled: false
+          },
+          {
+            code: 'SIGN02',
+            name: '重点人群签约服务覆盖率',
+            enabled: false
+          },
+          {
+            code: 'SIGN03',
+            name: '签约居民续签率',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '诊疗人次服务',
+        code: 'patient',
+        children: [
+          {
+            code: 'outpatient',
+            name: '门诊患者人数'
+          },
+          {
+            code: 'inpatient',
+            name: '住院患者人数'
+          },
+          {
+            code: 'diseases',
+            name: '就诊病种种类'
+          },
+          {
+            code: 'outpatient-growth',
+            name: '同期年度门诊人次增幅'
+          }
+        ]
+      },
+      {
+        name: '合理用药',
+        code: 'drug',
+        children: [
+          {
+            name: '用药不适宜',
+            code: 'drug-00'
+          },
+          {
+            name: '静脉输液处方占比',
+            code: 'drug-01'
+          },
+          {
+            name: '抗菌药物处方占比',
+            code: 'drug-02'
+          },
+          {
+            name: '联合用药抗菌药物处方占比',
+            code: 'drug-03'
+          },
+          {
+            name: '门诊处方均次药品费用',
+            code: 'drug-04'
           }
         ]
       }
@@ -97,7 +231,7 @@ export const MarkTags = [
           {
             name: '定性指标',
             code: 'Attach',
-            enabled: false
+            enabled: true
           }
         ]
       }
@@ -117,6 +251,46 @@ export const MarkTagUsages = {
   S03: {
     code: 'S03',
     name: '健康档案使用率'
+  },
+  O00: {
+    code: 'O00',
+    name: '老年人健康管理率'
+  },
+  O01: {
+    code: 'O01',
+    name: '老年人体检完整率'
+  },
+  O02: {
+    code: 'O02',
+    name: '老年人中医药健康管理率'
+  },
+  H00: {
+    code: 'H00',
+    name: '高血压患者管理率'
+  },
+  H01: {
+    code: 'H01',
+    name: '高血压患者规范管理率'
+  },
+  H02: {
+    code: 'H02',
+    name: '高血压患者血压控制率'
+  },
+  D00: {
+    code: 'D00',
+    name: '2型糖尿病患者管理率'
+  },
+  D01: {
+    code: 'D01',
+    name: '2型糖尿病患者规范管理率'
+  },
+  D02: {
+    code: 'D02',
+    name: '2型糖尿病患者血压控制率'
+  },
+  Attach: {
+    name: '定性指标',
+    code: 'Attach'
   }
 };
 
