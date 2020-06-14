@@ -1,0 +1,280 @@
+import {etlDB} from '../app';
+import {QueryTypes} from 'sequelize';
+import {KatoCommonError} from 'kato-server';
+import {sql as sqlRender} from '../database/template';
+import {Context} from './context';
+
+async function etlQuery(sql, params) {
+  return etlDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
+}
+
+function listRender(params) {
+  return sqlRender(
+    `
+      from mark_person mp
+             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
+             inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
+      where mp.hisid = {{? his}}
+        and vp.vouchertype = '1'
+        {{#if name}} and vp.name like {{? name}} {{/if}}
+        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+    `,
+    params
+  );
+}
+
+export default class Person {
+  async list(params) {
+    const {pageSize, pageNo, hospital, idCard} = params;
+    const limit = pageSize;
+    const offset = (pageNo - 1 || 0) * limit;
+    const his = '340203';
+    let {name} = params;
+    if (name) name = `%${name}%`;
+    let hospitals = Context.current.user.hospitals.map(it => it.id);
+    if (hospital) hospitals = [hospital];
+    // language=PostgreSQL
+    hospitals = (
+      await Promise.all(
+        hospitals.map(it =>
+          etlQuery(
+            `select hishospid as id from hospital_mapping where h_id = ?`,
+            [it]
+          )
+        )
+      )
+    )
+      .filter(it => it.length > 0)
+      .reduce(
+        (result, current) => [...result, ...current.map(it => it.id)],
+        []
+      );
+    const sqlRenderResult = listRender({his, name, hospitals, idCard});
+    const count = (
+      await etlQuery(
+        `select count(1) as count ${sqlRenderResult[0]}`,
+        sqlRenderResult[1]
+      )
+    )[0].count;
+    const person = await etlQuery(
+      `select vp.personnum   as id,
+               vp.name,
+               vp.idcardno    as "idCard",
+               mp."S03",
+               mp."S23",
+               vh.hospname    as "hospitalName",
+               vp.operatetime as date
+           ${sqlRenderResult[0]}
+           order by vp.operatetime desc
+           limit ? offset ?`,
+      [...sqlRenderResult[1], limit, offset]
+    );
+
+    return {
+      count: Number(count),
+      rows: person
+    };
+  }
+
+  async detail(id) {
+    // language=PostgreSQL
+    const person = (
+      await etlQuery(
+        `
+          select personnum as id,
+                 name,
+                 sex,
+                 birth,
+                 idcardno  as "idCard",
+                 phone
+          from view_personinfo
+          where personnum = ?
+          limit 1
+        `,
+        [id]
+      )
+    )[0];
+    if (!person) throw new KatoCommonError('数据不存在');
+    // language=PostgreSQL
+    const hypertensionRows = await etlQuery(
+      `
+        select *
+        from view_hypertension
+        where personnum = ?
+      `,
+      [id]
+    );
+
+    return {
+      document: person,
+      hypertension: hypertensionRows
+    };
+  }
+
+  /**
+   * 获取个人档案信息
+   *
+   * @param id 个人id
+   * @return {
+   *   id: id
+   *   name: 姓名
+   *   address: 现住址
+   *   census: 户籍地址
+   *   phone: 联系电话
+   *   operateOrganization{ 建档机构
+   *     id: id
+   *     name: 机构名
+   *   }:
+   *   organization: {
+   *     id: id,
+   *     name: 机构名
+   *   }
+   *   fileDate: 建档日期
+   *   updateAt: 更新日期
+   * }
+   */
+  async document(id) {
+    const person = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select personnum       as id,
+                 name,
+                 address,
+                 Residencestring as "census",
+                 phone,
+                 filedate        as "fileDate",
+                 adminorganization,
+                 operateorganization,
+                 operatetime as "updateAt"
+          from view_personinfo
+          where personnum = ?
+          limit 1
+        `,
+        [id]
+      )
+    )[0];
+
+    if (!person) throw new KatoCommonError('数据不存在');
+    person.operateOrganization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+          select hospid as id, hospname as name
+          from view_hospital
+          where hospid = ?
+        `,
+        [person.operateorganization]
+      )
+    )[0];
+
+    person.organization = (
+      await etlQuery(
+        // language=PostgreSQL
+        `
+            select hospid as id, hospname as name
+            from view_hospital
+            where hospid = ?
+          `,
+        [person.adminorganization]
+      )
+    )[0];
+
+    return person;
+  }
+
+  /**
+   * 获取高血压随访
+   *
+   * @param id 个人id
+   * return {
+   *   id: id,
+   *   followDate: 随访时间
+   *   followWay: 随访方式
+   *   systolicpressure: 收缩压
+   *   assertpressure: 舒张压
+   *   doctor: 随访医生
+   *   updateAt: 更新时间
+   * }
+   */
+  async hypertensions(id) {
+    return etlQuery(
+      // language=PostgreSQL
+      `
+        select vhv.highbloodid as id,
+               vhv.followupdate as "followDate",
+               vhv.followupway as "followWay",
+               vhv.systolicpressure as "systolicPressure",
+               vhv.assertpressure as "assertPressure",
+               vhv.doctor,
+               vhv.operatetime as "updateAt"
+        from view_hypertensionvisit vhv
+               inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
+        where vh.personnum = ?
+        order by vhv.followupdate desc
+      `,
+      [id]
+    );
+  }
+
+  /**
+   * 获取糖尿病随访
+   * followDate: 随访时间
+   * followWay: 随访方式
+   * fastingGlucose: 空腹血糖
+   * postprandialGlucose: 随机血糖
+   * doctor: 随访医生
+   * updateAt: 更新时间
+   * @param id 个人id
+   */
+  async diabetes(id) {
+    // language=PostgreSQL
+    return etlQuery(
+      `
+        select
+          vdv.followupdate as "followDate",
+          vdv.followupway as "followWay",
+          vdv.FastingGlucose as "fastingGlucose",
+          vdv.PostprandialGlucose as "postprandialGlucose",
+          vdv.operatetime as "updateAt"
+        from view_diabetesvisit vdv
+               inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
+        where vd.personnum = ?
+        order by vdv.operatetime desc
+      `,
+      [id]
+    );
+  }
+
+  /**
+   * 获取体检表
+   * stature: 身高
+   * weight: 体重
+   * temperature: 体温
+   * symptom: 症状
+   * bc_abnormal: B超说明
+   * updateAt: 更新时间
+   * @param id 个人id
+   */
+  async healthy(id) {
+    return etlQuery(
+      `
+        select
+          vh.stature as "stature",
+          vh.weight as "weight",
+          vh.temperature as "temperature",
+          vh.symptom as "symptom",
+          vh.bc_abnormal as "bc_abnormal",
+          vh.operatetime as "updateAt"
+        from view_healthy vh
+        where vh.personnum = ?
+        order by vh.operatetime desc
+       `,
+      [id]
+    );
+  }
+}

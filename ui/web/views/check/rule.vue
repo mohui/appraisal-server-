@@ -190,6 +190,10 @@
               <div v-else>
                 <el-button
                   plain
+                  v-permission="{
+                    permission: permission.RULE_UPDATE,
+                    type: 'disabled'
+                  }"
                   type="primary"
                   size="mini"
                   @click="editRule(scope.row)"
@@ -197,6 +201,10 @@
                 </el-button>
                 <el-button
                   plain
+                  v-permission="{
+                    permission: permission.RULE_REMOVE,
+                    type: 'disabled'
+                  }"
                   type="danger"
                   size="mini"
                   @click="delRule(scope, index)"
@@ -207,7 +215,11 @@
           </el-table-column>
         </el-table>
         <el-col :span="24" v-show="!item.isEdit">
-          <div class="add-rule" @click="addRule(item)">
+          <div
+            class="add-rule"
+            @click="addRule(item)"
+            v-permission="permission.RULE_ADD"
+          >
             <span>+ 新增考核项</span>
           </div>
         </el-col>
@@ -275,7 +287,7 @@
                         </el-option>
                       </el-select>
                     </td>
-                    <td style="text-align: center; width: 180px">
+                    <td style="text-align: center; width: 210px">
                       <el-input-number
                         size="mini"
                         :min="0"
@@ -286,6 +298,11 @@
                         style="margin: 0 -15px 0 5px;"
                         v-if="k.algorithm === 'egt' || k.algorithm === 'elt'"
                         >%</span
+                      >
+                      <span
+                        style="margin: 0 -15px 0 5px;"
+                        v-if="k.algorithm === 'attach'"
+                        >个附件</span
                       >
                     </td>
                     <td style="text-align: center">
@@ -321,12 +338,15 @@ import Vue from 'vue';
 import {
   MarkTags,
   TagAlgorithm,
-  MarkTagUsages
+  MarkTagUsages,
+  TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
+import {Permission} from '../../../../common/permission.ts';
 export default {
   name: 'rule',
   data() {
     return {
+      permission: Permission,
       checkId: '',
       checkName: '',
       ruleList: [],
@@ -435,6 +455,9 @@ export default {
     //取消指标配置
     cancelStandard() {
       const {index, $index} = this.curRule;
+      this.dialogStandardVisible = false;
+
+      if (!this.ruleList[index].group[$index].ruleTags) return;
       this.ruleList[index].group[$index].ruleTags = this.ruleList[index].group[
         $index
       ].original.ruleTags;
@@ -443,7 +466,6 @@ export default {
       ].group[$index].original.ruleTags
         .map(its => MarkTagUsages[its.tag].name)
         .join('，');
-      this.dialogStandardVisible = false;
     },
     //保存指标
     async saveStandard() {
@@ -469,6 +491,18 @@ export default {
       if (notAlgorithm) {
         return this.$message({
           message: '请选择计算方式！',
+          type: 'error'
+        });
+      }
+      const hasAttach = tags.some(
+        it => it.algorithm === TagAlgorithmUsages.attach.code
+      );
+      const noAttach = tags.some(
+        it => it.algorithm !== TagAlgorithmUsages.attach.code
+      );
+      if (hasAttach && noAttach) {
+        return this.$message({
+          message: '定性指标请单独设置！',
           type: 'error'
         });
       }

@@ -12,6 +12,22 @@
       <div slot="header" class="clearfix">
         <span>{{ standardName }}</span>
         <el-button
+          plain
+          style="margin: -9px 20px;"
+          type="primary"
+          size="mini"
+          @click="dataDownload"
+          >导出数据
+        </el-button>
+        <el-button
+          plain
+          style="margin: -9px 20px;"
+          type="primary"
+          size="mini"
+          @click="dialogImportVisible = true"
+          >批量导入数据
+        </el-button>
+        <el-button
           style="float: right;margin: -9px;"
           type="primary"
           @click="
@@ -82,7 +98,7 @@
                   v-if="scope.row.active"
                   type="primary"
                   size="mini"
-                  @click="scope.row.active = false"
+                  @click="cancelData(scope.row)"
                 >
                   取消
                 </el-button>
@@ -101,16 +117,64 @@
         </div>
       </div>
     </el-card>
+    <el-dialog
+      title="批量导入数据"
+      :visible.sync="dialogImportVisible"
+      :before-close="handleClose"
+      width="30%"
+    >
+      <el-form label-position="right" label-width="120px">
+        <el-form-item label="上传文件：">
+          <el-upload
+            ref="uploadForm"
+            :multiple="false"
+            action="/api/BasicTag/dataImport.ac"
+            :headers="headers"
+            :data="{tagCode: JSON.stringify(curCode)}"
+            :before-upload="handleBeforeUpload"
+            :on-progress="handleProgress"
+            :on-success="uploadSuccess"
+            :on-error="uploadError"
+            :on-exceed="handleExceed"
+            :limit="1"
+            :file-list="fileList"
+            :auto-upload="false"
+          >
+            <el-button plain size="small" type="primary">点击上传</el-button>
+            <span class="el-alert--warning is-light">只能上传xls文件</span>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button plain @click="dialogImportVisible = false">
+          取 消
+        </el-button>
+        <el-button
+          plain
+          type="primary"
+          @click="dataImport"
+          :loading="uploadLoading"
+        >
+          确 定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import {BasicTags} from '../../../../common/rule-score.ts';
+import {getToken} from '../../utils/cache';
 
 export default {
   name: 'BasicDataDetail',
   data() {
     return {
+      dialogImportVisible: false,
+      maxSize: 5,
+      progress: 0,
+      fileList: [],
+      headers: {token: getToken()},
       isLoading: true,
       standardName: '',
       listData: [],
@@ -128,34 +192,109 @@ export default {
     await this.getLists(code);
     this.isLoading = false;
   },
+  computed: {
+    uploadLoading() {
+      return this.progress > 0 && this.progress < 100;
+    }
+  },
   methods: {
+    async dataImport() {
+      await this.$refs.uploadForm.submit();
+      this.dialogImportVisible = false;
+    },
+    handleClose() {
+      this.fileList = [];
+      this.dialogImportVisible = false;
+    },
+    handleBeforeUpload(file) {
+      const fType = ['xls', 'xlsx'];
+      const fName = file.name
+        .split('.')
+        .pop()
+        .toLowerCase();
+      const hasType = fType.some(it => it === fName);
+      const isLt5M = file.size / 1024 / 1024 < this.maxSize;
+
+      if (!hasType) {
+        this.$message.error("仅允许上传'xls','xlsx'格式文件！");
+        return false;
+      }
+      if (!isLt5M) {
+        this.$message.error(`文件大小不能超过${this.maxSize}M!`);
+        return false;
+      }
+      return true;
+    },
+    handleProgress(event) {
+      this.progress = Number(event.percent.toFixed(2));
+    },
+    uploadSuccess() {
+      try {
+        this.$message({
+          type: 'success',
+          message: '批量导入数据成功'
+        });
+        this.getLists(this.curCode);
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+      this.fileList = [];
+    },
+    uploadError(e) {
+      this.$message.error(e.message);
+    },
+    handleExceed() {
+      this.$message('最多只能上传一个文件!');
+    },
+    async dataDownload() {
+      try {
+        await this.$api.BasicTag.dataDownload(this.curCode);
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    },
     async getLists(code) {
       let result = await this.$api.BasicTag.list(code);
-      this.listData = result
-        .map(it => it.parent)
-        .filter((it, index, arr) => arr.indexOf(it) === index)
-        .map(it => ({
-          name: result.filter(item => item.id === it)[0]?.name,
-          code: it
-        }))
-        .filter(it => it.name)
+      result = result.map(it => ({
+        ...it,
+        original: JSON.parse(JSON.stringify(it)),
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at
+          ? it.updated_at.$format('YYYY-MM-DD')
+          : it.created_at.$format('YYYY-MM-DD'),
+        active: false
+      }));
+      let arr = result
+        .filter(it => it.name.indexOf('中心') !== -1)
         .map(it => ({
           ...it,
-          child: result
-            .filter(item => item.parent === it.code || item.id === it.code)
-            .map(it => ({
-              ...it,
-              created_at: it.created_at.$format('YYYY-MM-DD'),
-              updated_at: it.updated_at
-                ? it.updated_at.$format('YYYY-MM-DD')
-                : it.created_at.$format('YYYY-MM-DD'),
-              active: false
-            }))
+          child: result.filter(
+            item => item.parent === it.id || item.id === it.id
+          )
         }));
+
+      let cur = arr.map(it => it.child).flat();
+
+      let other = {
+        name: '其它',
+        id: 'other',
+        child: result.filter(it => cur.indexOf(it) === -1)
+      };
+
+      if (other.child.length) {
+        arr.push(other);
+      }
+      this.listData = arr;
     },
     //修改数据
     async edit(row) {
       row.active = true;
+    },
+    cancelData(row) {
+      row.active = false;
+      this.curTag.forEach(
+        it => (row[it.code].value = row.original[it.code].value)
+      );
     },
     //保存数据
     async updateTaskCount(item) {

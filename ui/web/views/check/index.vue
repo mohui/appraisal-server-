@@ -13,6 +13,7 @@
       <div slot="header" class="clearfix">
         <span>规则列表</span>
         <el-button
+          v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
           style="float: right;margin: -9px;"
           type="primary"
           @click="openAddCheckDialog"
@@ -25,6 +26,7 @@
         size="mini"
         :data="checkList"
         @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
@@ -41,25 +43,29 @@
         ></el-table-column>
         <el-table-column
           prop="created_at"
-          min-width="40"
+          min-width="14"
           label="创建时间"
         ></el-table-column>
-        <el-table-column min-width="14" label="状态">
+        <el-table-column min-width="10" label="状态">
           <template slot-scope="scope">
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
         <el-table-column
           prop="autoScore"
-          min-width="30"
+          min-width="14"
           label="打分状态"
         ></el-table-column>
-        <el-table-column min-width="20" label="适用机构">
+        <el-table-column min-width="14" label="适用机构">
           <template slot-scope="scope">
             {{ scope.row.hospitalCount }}
             <el-button
               circle
               plain
+              v-permission="{
+                permission: permission.CHECK_SELECT_HOSPITAL,
+                type: 'disabled'
+              }"
               type="primary"
               size="mini"
               icon="el-icon-plus"
@@ -71,6 +77,10 @@
           <template slot-scope="scope">
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_UPDATE,
+                type: 'disabled'
+              }"
               type="primary"
               size="small"
               @click.stop="openEditCheckDialog(scope.row)"
@@ -79,6 +89,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_CLONE,
+                type: 'disabled'
+              }"
               type="warning"
               size="small"
               @click.stop="openCloneCheckDialog(scope.row)"
@@ -87,6 +101,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_IMPORT,
+                type: 'disabled'
+              }"
               v-show="scope.row.status"
               type="info"
               size="small"
@@ -96,6 +114,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_REMOVE,
+                type: 'disabled'
+              }"
               type="danger"
               size="small"
               @click.stop="delCheck(scope)"
@@ -104,6 +126,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_OPEN_GRADE,
+                type: 'disabled'
+              }"
               v-show="scope.row.isOpen"
               type="success"
               size="small"
@@ -113,6 +139,10 @@
             </el-button>
             <el-button
               plain
+              v-permission="{
+                permission: permission.CHECK_CLOSE_GRADE,
+                type: 'disabled'
+              }"
               v-show="scope.row.isClose"
               size="small"
               @click.stop="closeCheck(scope.row)"
@@ -252,11 +282,38 @@
       </div>
     </el-dialog>
     <el-dialog title="选择机构" :visible.sync="dialogSelectVisible">
-      <p v-for="(it, index) of hospitalList" :key="index">
-        <el-checkbox v-model="it.selected">
-          {{ index + 1 }} {{ it.name }}
-        </el-checkbox>
-      </p>
+      <div class="hos-box">
+        <div v-for="(item, i) of hospitalList" :key="i">
+          <div class="center-title">
+            <el-checkbox
+              :indeterminate="item.isIndeterminate"
+              v-model="item.selected"
+              @change="toggleChange($event, item)"
+            >
+              <span>[{{ item.name }}]</span>
+            </el-checkbox>
+          </div>
+          <el-row :gutter="20">
+            <el-col
+              :xs="24"
+              :sm="24"
+              :md="12"
+              :lg="12"
+              :xl="8"
+              v-for="(it, index) of item.child"
+              :key="index"
+              class="el-cols"
+            >
+              <el-checkbox
+                v-model="it.selected"
+                @change="() => childToggleChange(item)"
+              >
+                {{ index + 1 }} {{ it.name }}
+              </el-checkbox>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveHospital">确 定</el-button>
@@ -266,10 +323,12 @@
 </template>
 
 <script>
+import {Permission} from '../../../../common/permission.ts';
 export default {
   name: 'check',
   data() {
     return {
+      permission: Permission,
       maxSize: 5,
       progress: 0,
       submitting: false,
@@ -345,9 +404,48 @@ export default {
     }
   },
   methods: {
+    //下属机构未全选状态切换
+    childToggleChange(item) {
+      const checkedCount = item.child.filter(it => it.selected).length;
+      item.selected = checkedCount === item.child.length;
+      item.isIndeterminate =
+        checkedCount > 0 && checkedCount < item.child.length;
+    },
+    //中心下属机构全选切换
+    toggleChange(event, item) {
+      item.isIndeterminate = false;
+      item.child.forEach(it => (it.selected = event));
+    },
     //获取机构列表
     async getHospitalList(checkId) {
-      this.hospitalList = await this.$api.CheckSystem.listHospitals(checkId);
+      const result = await this.$api.CheckSystem.listHospitals(checkId);
+      let arr = result
+        .filter(it => it.name.indexOf('中心') !== -1)
+        .map(it => ({
+          ...it,
+          isIndeterminate: false,
+          child: result.filter(
+            item => item.parent === it.id || item.id === it.id
+          )
+        }));
+
+      let cur = arr.map(it => it.child).flat();
+
+      let other = {
+        name: '其它',
+        id: 'other',
+        child: result.filter(it => cur.indexOf(it) === -1)
+      };
+
+      if (other.child.length) {
+        arr.push(other);
+      }
+
+      this.hospitalList = arr.map(it => ({
+        ...it,
+        selected: !it.child.some(it => !it.selected),
+        isIndeterminate: it.child.some(it => !it.selected)
+      }));
     },
     //打开机构对话框
     openSelectDialog(item) {
@@ -359,6 +457,8 @@ export default {
     async saveHospital() {
       const {checkId} = this.checkForm;
       const hospitals = this.hospitalList
+        .map(it => it.child)
+        .flat()
         .filter(it => it.selected)
         .map(it => it.id);
       try {
@@ -370,15 +470,20 @@ export default {
         this.dialogSelectVisible = false;
       }
     },
-    //跳转详情
-    handleCellClick(row) {
-      this.$router.push({
-        name: 'rule',
-        query: {
-          checkId: row.checkId,
-          checkName: encodeURIComponent(row.checkName)
-        }
-      });
+    //设置规则标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'check-title';
+    },
+    //点击规则标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'checkName')
+        return this.$router.push({
+          name: 'rule',
+          query: {
+            checkId: row.checkId,
+            checkName: encodeURIComponent(row.checkName)
+          }
+        });
     },
     //打开添加规则对话框
     openAddCheckDialog() {
@@ -632,4 +737,32 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style lang="scss">
+.check-title {
+  cursor: pointer;
+  :hover {
+    color: #1a95d7;
+  }
+}
+</style>
+<style scoped lang="scss">
+.hos-box {
+  height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: -20px;
+  .center-title {
+    margin: 20px 0 10px 0;
+    span {
+      font-size: 16px;
+    }
+  }
+  .el-cols {
+    margin-bottom: 10px;
+    padding-left: 38px !important;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+</style>

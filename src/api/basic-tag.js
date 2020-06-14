@@ -1,14 +1,11 @@
-import {
-  BasicTagDataModel,
-  HospitalModel,
-  UserHospitalModel
-} from '../database/model';
+import {BasicTagDataModel} from '../database/model';
 import {appDB} from '../app';
-import {should, validate} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import dayjs from 'dayjs';
 import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
-import {Op} from 'sequelize';
+import Excel from 'exceljs';
+import ContentDisposition from 'content-disposition';
 
 export default class BasicTag {
   //设置基础数据
@@ -47,18 +44,7 @@ export default class BasicTag {
   )
   async list(tagCode) {
     //当前用户地区权限下所直属的机构
-    const hospitals = await HospitalModel.findAll({
-      where: {
-        id: {
-          [Op.in]: (
-            await UserHospitalModel.findAll({
-              where: {userId: Context.req.headers.token}
-            })
-          ).map(h => h.hospitalId)
-        }
-      }
-    });
-
+    const hospitals = Context.current.user.hospitals;
     //获取大类指标下的所有的小类
     const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
 
@@ -91,7 +77,6 @@ export default class BasicTag {
 
     //组织返回结果
     return hospitals.map(h => {
-      h = h.toJSON();
       //该机构的所有相关指标数据
       const tags = queryResult.filter(q => q.hospitalId === h.id);
       //对更新时间进行排序,目的取出最新的更新时间和最后的修改人
@@ -110,6 +95,111 @@ export default class BasicTag {
           })
       );
       return h;
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('基础数据code')
+  )
+  async dataDownload(tagCode) {
+    //当前基础数据下的所有属性
+    const tags = BasicTags.find(bt => bt.code === tagCode)?.children;
+    if (!tags) throw new KatoCommonError('该基础数据不存在');
+    //组装机构与基础数据的关系数据
+    const listData = (await this.list(tagCode)).map(item => {
+      return [item.id, item.name].concat(tags.map(tag => item[tag.code].value));
+    });
+
+    //创建工作表
+    const workBook = new Excel.Workbook();
+    const workSheet = workBook.addWorksheet('基础数据导入');
+    //第一行头部
+    workSheet.addRow([
+      `${Context.current.user.region.name}-${
+        BasicTags.find(bt => bt.code === tagCode).name
+      }基础数据表(仅基础数据的值可修改)`
+    ]);
+    //第二行 机构id, 名称, 基础数据名
+    workSheet.addRow(['机构id', '机构名称', ...tags.map(tag => tag.name)]);
+    //第三行 字段名
+    workSheet.addRow(['hospitalId', 'name', ...tags.map(tag => tag.code)]);
+    //剩下的数据行
+    workSheet.addRows(listData);
+    //文件名
+    const fileName = `${Context.current.user.region.name}-${
+      BasicTags.find(bt => bt.code === tagCode).name
+    }基础数据表(${dayjs().year()}).xls`;
+
+    const buffer = await workBook.xlsx.writeBuffer();
+    Context.current.bypassing = true;
+    let res = Context.current.res;
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader('Content-Disposition', ContentDisposition(fileName));
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.send(buffer);
+    res.end();
+  }
+
+  //基础数据导入接口
+  @validate(
+    should.required().description('文件'),
+    should
+      .string()
+      .required()
+      .description('基础数据code')
+  )
+  async dataImport(file, tagCode) {
+    return appDB.transaction(async () => {
+      //读取基础数据声明文件
+      const basicTags = BasicTags.find(tag => tag.code === tagCode)?.children;
+      if (!basicTags) throw new KatoCommonError('基础数据code传递有误');
+      //读取文件
+      const workBook = new Excel.Workbook();
+      const workSheet = await workBook.xlsx.load(file.buffer);
+      const data = workSheet.getWorksheet(1);
+      //所有基础数据code
+      let tags = [];
+      //所有机构和每个基础数据的对应数据
+      let tagHospital = [];
+      //遍历excel表格的数据
+      data.eachRow((row, index) => {
+        //取出基础数据的code
+        if (index === 3) {
+          row.eachCell((cell, cellIndex) => {
+            if (cellIndex > 2) {
+              if (!basicTags.find(tag => tag.code === cell.value))
+                throw new KatoCommonError('表格中基础数据code填写有误');
+              tags.push(cell.value);
+            }
+          });
+        }
+        //组装机构与code的数据
+        if (index > 3) {
+          tags.forEach(tag =>
+            tagHospital.push({
+              hospitalId: row.values[1],
+              code: tag,
+              value: row.values[3]
+            })
+          );
+        }
+      });
+      //查询基础数据机构表,找出已存在的数据的id
+      tagHospital = await Promise.all(
+        tagHospital.map(async item => {
+          const tagData = await BasicTagDataModel.findOne({
+            where: {hospitalId: item.hospitalId, code: item.code}
+          });
+          if (tagData) item.id = tagData.id;
+          return item;
+        })
+      );
+      //批量更新基础数据
+      await Promise.all(tagHospital.map(async item => await this.upsert(item)));
     });
   }
 }

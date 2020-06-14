@@ -24,8 +24,8 @@ export const PermissionDetail = [
     name: '角色首页'
   },
   {
-    key: 'appraisal-indicators',
-    name: '考核指标'
+    key: 'appraisal-result',
+    name: '考核结果'
   },
   {
     key: 'appraisal-configuration-management',
@@ -34,6 +34,50 @@ export const PermissionDetail = [
   {
     key: 'appraisal-basic-data',
     name: '基础数据'
+  },
+  {
+    key: 'check-add',
+    name: '新建规则'
+  },
+  {
+    key: 'check-update',
+    name: '修改规则'
+  },
+  {
+    key: 'check-select-hospital',
+    name: '配置机构'
+  },
+  {
+    key: 'check-clone',
+    name: '快速复制'
+  },
+  {
+    key: 'check-import',
+    name: '批量导入细则'
+  },
+  {
+    key: 'check-open-grade',
+    name: '全部开启打分'
+  },
+  {
+    key: 'check-close-grade',
+    name: '全部关闭打分'
+  },
+  {
+    key: 'check-remove',
+    name: '删除规则'
+  },
+  {
+    key: 'rule-add',
+    name: '新建细则'
+  },
+  {
+    key: 'rule-update',
+    name: '修改规则'
+  },
+  {
+    key: 'rule-remove',
+    name: '删除规则'
   },
   {
     key: 'profile',
@@ -48,9 +92,20 @@ export const Permission = {
   USER_UPDATE: 'user-update',
   USER_REMOVE: 'user-remove',
   ROLE_INDEX: 'role-index',
-  APPRAISAL_INDICATORS: 'appraisal-indicators',
+  APPRAISAL_RESULT: 'appraisal-result',
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
+  CHECK_ADD: 'check-add',
+  CHECK_UPDATE: 'check-update',
+  CHECK_SELECT_HOSPITAL: 'check-select-hospital',
+  CHECK_CLONE: 'check-clone',
+  CHECK_IMPORT: 'check-import',
+  CHECK_OPEN_GRADE: 'check-open-grade',
+  CHECK_CLOSE_GRADE: 'check-close-grade',
+  CHECK_REMOVE: 'check-remove',
+  RULE_ADD: 'rule-add',
+  RULE_UPDATE: 'rule-update',
+  RULE_REMOVE: 'rule-remove',
   PROFILE: 'profile'
 };
 

@@ -1,6 +1,5 @@
 <template>
   <div>
-    省、市下级区域排行
     <!--顶部表头-->
     <el-card class="header-box-card" shadow="never">
       <div class="header-title" style="float: left">
@@ -25,7 +24,7 @@
       </div>
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8">
+      <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
         <el-card shadow="hover">
           <div class="score-detail" v-if="params.listFlag === 'score'">
             <p style="font-size:22px; margin:0; text-align:left;">
@@ -33,32 +32,14 @@
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{
-                Math.round(
-                  this.totalServerData.rate * this.totalServerData.score
-                )
-              }}
+              {{ totalData.score }}
             </h3>
             <span>分</span>
             <p style="margin:10px 0;">{{ date }}</p>
             <p style="font-size:13px;">{{ totalData.name }}</p>
-            <table style="width: 100%;margin-top: 20px;color: #666;">
-              <tr>
-                <td style="width: 33%;text-align: center">
-                  <p>{{ Math.round(totalData.score) }}分</p>
-                  <p>校正前</p>
-                </td>
-                <td
-                  style="width: 33%;text-align: center;vertical-align: middle;"
-                >
-                  X
-                </td>
-                <td style="text-align: center">
-                  <p>{{ totalData.fixedDecimalRate * 100 }}%</p>
-                  <p>质量系数</p>
-                </td>
-              </tr>
-            </table>
+            <div style="padding-top: 40px">
+              <p>校正前 {{ totalData.originalScore }}分</p>
+            </div>
           </div>
           <div class=" score-detail" v-if="params.listFlag === 'quality'">
             <two-card-circle
@@ -70,7 +51,7 @@
             <span
               style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
             >
-              (计算时校正系数：{{ totalData.fixedDecimalRate * 100 }}%)
+              (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
         </el-card>
@@ -84,7 +65,10 @@
       </el-col>
       <div v-else>
         <el-col :span="10">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="$asyncComputed.areaRankServerData.updating"
+          >
             <div class="score-detail">
               <two-card-bar
                 :barxAxisData="workpointBarData.xAxisData"
@@ -103,7 +87,10 @@
       </div>
     </el-row>
     <el-col :span="24">
-      <el-card shadow="hover">
+      <el-card
+        shadow="hover"
+        v-loading="$asyncComputed.areaRankServerData.updating"
+      >
         <h3 class="ins-ranking-title">下级地区排行</h3>
         <div v-for="(item, index) of areaRankData" :key="item.id">
           <!--下级质量系数排行-->
@@ -151,6 +138,7 @@
 import twoCardCircle from '../components/twocardCircle';
 import twoCardBar from '../components/twocardBar';
 import ProgressScore from '../components/progressScore';
+import decimal from 'decimal.js';
 
 export default {
   name: 'index',
@@ -170,7 +158,7 @@ export default {
     return {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
-        id: '34'
+        id: this.$settings.user.code
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -180,23 +168,30 @@ export default {
   computed: {
     //工分值数据，用于柱状图显示
     workpointBarData() {
-      //TODO: 真实数据待完成
       let value = {xAxisData: [], yAxisData: []};
+      let array = [];
+      array = this.areaRankData.slice(0, 3);
+      value.xAxisData = array.map(it => it.name);
+      value.yAxisData = array.map(it => it.score);
       return value;
     },
     //总计工分和质量系数数据
     totalData() {
       return {
-        id: this.totalServerData.id,
-        score: Math.round(this.totalServerData.score),
-        rate: this.totalServerData.rate,
-        fixedDecimalRate: Number(this.totalServerData.rate.toFixed(2)),
-        name: this.totalServerData.name
+        ...this.totalServerData,
+        fixedDecimalRate: decimal(
+          Number((this.totalServerData.rate * 100).toFixed(2))
+        ).toNumber()
       };
     },
     //区域排行数据
     areaRankData() {
-      return this.areaRankServerData;
+      const result = this.areaRankServerData.map(item => item);
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //最大得分值数
     maxScore() {
@@ -213,6 +208,7 @@ export default {
         return {
           id: '',
           name: '',
+          originalScore: 0,
           score: 0,
           rate: 0
         };
@@ -230,7 +226,7 @@ export default {
   methods: {
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
-      this.params.id = route.query.id ?? '34';
+      this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
     latTypeChanged(type) {
