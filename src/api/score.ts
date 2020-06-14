@@ -40,6 +40,12 @@ function percentString(numerator: number, denominator: number): string {
 }
 
 export default class Score {
+  async autoScoreAll() {
+    return Promise.all(
+      (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
+    );
+  }
+
   /**
    * 系统打分
    *
