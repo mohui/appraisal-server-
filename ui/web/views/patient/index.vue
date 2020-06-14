@@ -16,18 +16,20 @@
           }"
         >
           <el-tabs v-model="activeTab">
-            <el-tab-pane label="体验记录" name="physical">
-              <div class="notes">
-                <div class="notes-block display-none">
-                  <span class="hospital">医院名称：</span>
-                  <span class="visitTime">就诊时间：</span>
+            <el-tab-pane label="体检记录" name="physical">
+              <div class="notes" v-for="(item, index) of healthy" :key="index">
+                <div class="notes-block">
+                  <span class="hospital">体检时间：{{ item.updateAt }}</span>
                 </div>
                 <p>
-                  暂无记录
+                  身高：{{ item.stature }} 体重：{{ item.weight }} 体温：{{
+                    item.temperature
+                  }}
+                  症状：{{ item.symptom }}
                 </p>
               </div>
             </el-tab-pane>
-            <el-tab-pane label="高血压随访记录" name="hypertensions">
+            <el-tab-pane label="高血压随访记录" name="hypertension">
               <div
                 class="notes"
                 v-for="(item, index) of hypertensions"
@@ -37,7 +39,11 @@
                   <span class="hospital">随访医生：{{ item.doctor }}</span>
                   <span class="visitTime">随访时间：{{ item.followDate }}</span>
                 </div>
-                <p>随访方式：{{ item.followWay }}</p>
+                <p>
+                  随访方式：{{ item.followWay }}；收缩压：{{
+                    item.systolicPressure
+                  }}；舒张压：{{ item.assertPressure }}
+                </p>
               </div>
             </el-tab-pane>
             <el-tab-pane label="糖尿病随访记录" name="diabetes">
@@ -46,10 +52,18 @@
                   <span class="hospital">随访医生：{{ item.doctor }}</span>
                   <span class="visitTime">随访时间：{{ item.followDate }}</span>
                 </div>
-                <p>随访方式：{{ item.followWay }}</p>
+                <p>
+                  随访方式：{{ item.followWay }}；空腹血糖：{{
+                    item.fastingGlucose
+                  }}；随机血糖：{{ item.postprandialGlucose }}
+                </p>
               </div>
             </el-tab-pane>
-            <el-tab-pane label="老年人健康管理" name="timeline">
+            <el-tab-pane
+              label="老年人健康管理"
+              name="timeline"
+              style="display: none;"
+            >
               <el-timeline>
                 <el-timeline-item
                   v-for="(item, index) of timeline"
@@ -80,14 +94,7 @@ export default {
   data() {
     return {
       id: null,
-      patient: {
-        name: '张三',
-        age: '120岁',
-        avatar:
-          'https://pic4.zhimg.com/80/v2-3cdfb5a464dc931630dd359b71a10587_1440w.jpg',
-        address: '芜湖市'
-      },
-      activeTab: 'physical',
+      activeTab: 'hypertension',
       timeline: [
         {
           timestamp: '2019-04-20',
@@ -137,20 +144,22 @@ export default {
         };
       }
     },
+    healthy: {
+      //体检记录
+      async get() {
+        return await this.$api.Person.healthy(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
     hypertension: {
       //高血压随访
       async get() {
         return await this.$api.Person.hypertensions(this.id);
       },
       default() {
-        return [
-          {
-            followDate: '',
-            followWay: '暂无随访记录',
-            doctor: '',
-            updateAt: ''
-          }
-        ];
+        return [];
       }
     },
     diabetes: {
@@ -159,14 +168,7 @@ export default {
         return await this.$api.Person.diabetes(this.id);
       },
       default() {
-        return [
-          {
-            followDate: '',
-            followWay: '暂无随访记录',
-            doctor: '',
-            updateAt: ''
-          }
-        ];
+        return [];
       }
     }
   },
