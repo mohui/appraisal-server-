@@ -95,17 +95,17 @@ export const MarkTags = [
           {
             name: '高血压患者管理率',
             code: 'H00',
-            enabled: false
+            enabled: true
           },
           {
             name: '高血压患者规范管理率',
             code: 'H01',
-            enabled: false
+            enabled: true
           },
           {
             name: '高血压患者血压控制率',
             code: 'H02',
-            enabled: false
+            enabled: true
           }
         ]
       },
@@ -115,18 +115,18 @@ export const MarkTags = [
         children: [
           {
             name: '2型糖尿病患者管理率',
-            code: 'H00',
-            enabled: false
+            code: 'D00',
+            enabled: true
           },
           {
             name: '2型糖尿病患者规范管理率',
-            code: 'H01',
-            enabled: false
+            code: 'D01',
+            enabled: true
           },
           {
             name: '2型糖尿病患者血压控制率',
-            code: 'H02',
-            enabled: false
+            code: 'D02',
+            enabled: true
           }
         ]
       }
@@ -249,6 +249,30 @@ export const MarkTagUsages = {
   },
   O02: {
     code: 'O02',
+    name: '老年人中医药健康管理率'
+  },
+  H00: {
+    code: 'H00',
+    name: '老年人健康管理率'
+  },
+  H01: {
+    code: 'H01',
+    name: '老年人体检完整率'
+  },
+  H02: {
+    code: 'H02',
+    name: '老年人中医药健康管理率'
+  },
+  D00: {
+    code: 'D00',
+    name: '老年人健康管理率'
+  },
+  D01: {
+    code: 'D01',
+    name: '老年人体检完整率'
+  },
+  D02: {
+    code: 'D02',
     name: '老年人中医药健康管理率'
   },
   Attach: {
