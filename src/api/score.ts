@@ -677,6 +677,56 @@ export default class Score {
           ).toFixed(0)}%`
         );
       }
+
+      // 高血压患者管理率
+      if (ruleTagModel.tag === MarkTagUsages.H00.code) {
+        // 查询高血压患者人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.HypertensionPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        result.push(
+          `${
+            MarkTagUsages.H00.name
+          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+            markHospitalModel.H00
+          } / ${basicData.value} = ${(
+            (markHospitalModel.H00 / basicData.value) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 高血压患者规范管理率
+      if (ruleTagModel.tag === MarkTagUsages.H01.code) {
+        result.push(
+          `${
+            MarkTagUsages.H01.name
+          } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.H01
+          } / ${markHospitalModel.H00} = ${(
+            (markHospitalModel.H01 / markHospitalModel.H00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
+      // 高血压患者血压控制率
+      if (ruleTagModel.tag === MarkTagUsages.H02.code) {
+        result.push(
+          `${
+            MarkTagUsages.H02.name
+          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel.H02
+          } / ${markHospitalModel.H00} = ${(
+            (markHospitalModel.H02 / markHospitalModel.H00) *
+            100
+          ).toFixed(0)}%`
+        );
+      }
     }
 
     return result;
