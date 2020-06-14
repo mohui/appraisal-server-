@@ -195,6 +195,8 @@ export default class Person {
    *   id: id,
    *   followDate: 随访时间
    *   followWay: 随访方式
+   *   systolicpressure: 收缩压
+   *   assertpressure: 舒张压
    *   doctor: 随访医生
    *   updateAt: 更新时间
    * }
@@ -221,7 +223,12 @@ export default class Person {
 
   /**
    * 获取糖尿病随访
-   *
+   * followDate: 随访时间
+   * followWay: 随访方式
+   * fastingGlucose: 空腹血糖
+   * postprandialGlucose: 随机血糖
+   * doctor: 随访医生
+   * updateAt: 更新时间
    * @param id 个人id
    */
   async diabetes(id) {
