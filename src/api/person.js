@@ -228,9 +228,14 @@ export default class Person {
     // language=PostgreSQL
     return etlQuery(
       `
-        select *
+        select
+          vdv.followupdate as "followDate",
+          vdv.followupway as "followWay",
+          vdv.FastingGlucose as "fastingGlucose",
+          vdv.PostprandialGlucose as "postprandialGlucose",
+          vdv.operatetime as "updateAt"
         from view_diabetesvisit vdv
-               inner join view_diabetes vd on vdv.HypertensionCardID = vd.HypertensionCardID
+               inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
         where vd.personnum = ?
         order by vdv.operatetime desc
       `,
