@@ -646,7 +646,7 @@ export default class Score {
           } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
             markHospitalModel.O00
           } / ${basicData.value} = ${(
-            (markHospitalModel.S00 / basicData.value) *
+            (markHospitalModel.O00 / basicData.value) *
             100
           ).toFixed(0)}%`
         );
