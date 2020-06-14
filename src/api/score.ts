@@ -609,10 +609,10 @@ export default class Score {
             MarkTagUsages.S01.name
           } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
             markHospitalModel.S00
-          } / ${basicData.value} = ${(
-            (markHospitalModel.S00 / basicData.value) *
-            100
-          ).toFixed(0)}%`
+          } / ${basicData.value} = ${percentString(
+            markHospitalModel.S00,
+            basicData.value
+          )}`
         );
       }
       // 电子档案规范率
@@ -622,10 +622,10 @@ export default class Score {
             MarkTagUsages.S23.name
           } = 规范的电子档案数 / 建立电子健康档案人数 = ${
             markHospitalModel.S23
-          } / ${markHospitalModel.S00} = ${(
-            (markHospitalModel.S23 / markHospitalModel.S00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.S00} = ${percentString(
+            markHospitalModel.S23,
+            markHospitalModel.S00
+          )}`
         );
       }
       // 健康档案使用率
@@ -635,10 +635,10 @@ export default class Score {
             MarkTagUsages.S03.name
           } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
             markHospitalModel.S03
-          } / ${markHospitalModel.S00} = ${(
-            (markHospitalModel.S03 / markHospitalModel.S00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.S00} = ${percentString(
+            markHospitalModel.S03,
+            markHospitalModel.S00
+          )}`
         );
       }
 
@@ -659,10 +659,10 @@ export default class Score {
             MarkTagUsages.O00.name
           } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
             markHospitalModel.O00
-          } / ${basicData.value} = ${(
-            (markHospitalModel.O00 / basicData.value) *
-            100
-          ).toFixed(0)}%`
+          } / ${basicData.value} = ${percentString(
+            markHospitalModel.O00,
+            basicData.value
+          )}`
         );
       }
       // 老年人体检完整率
@@ -672,10 +672,10 @@ export default class Score {
             MarkTagUsages.O01.name
           } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
             markHospitalModel.O01
-          } / ${markHospitalModel.O00} = ${(
-            (markHospitalModel.O01 / markHospitalModel.O00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.O00} = ${percentString(
+            markHospitalModel.O01,
+            markHospitalModel.O00
+          )}`
         );
       }
       // 老年人中医药健康管理率
@@ -685,10 +685,10 @@ export default class Score {
             MarkTagUsages.O02.name
           } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
             markHospitalModel.O02
-          } / ${markHospitalModel.O00} = ${(
-            (markHospitalModel.O02 / markHospitalModel.O00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.O00} = ${percentString(
+            markHospitalModel.O02,
+            markHospitalModel.O00
+          )}`
         );
       }
 
@@ -709,10 +709,10 @@ export default class Score {
             MarkTagUsages.H00.name
           } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
             markHospitalModel.H00
-          } / ${basicData.value} = ${(
-            (markHospitalModel.H00 / basicData.value) *
-            100
-          ).toFixed(0)}%`
+          } / ${basicData.value} = ${percentString(
+            markHospitalModel.H00,
+            basicData.value
+          )}`
         );
       }
       // 高血压患者规范管理率
@@ -722,10 +722,10 @@ export default class Score {
             MarkTagUsages.H01.name
           } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
             markHospitalModel.H01
-          } / ${markHospitalModel.H00} = ${(
-            (markHospitalModel.H01 / markHospitalModel.H00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.H00} = ${percentString(
+            markHospitalModel.H01,
+            markHospitalModel.H00
+          )}`
         );
       }
       // 高血压患者血压控制率
@@ -735,10 +735,10 @@ export default class Score {
             MarkTagUsages.H02.name
           } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
             markHospitalModel.H02
-          } / ${markHospitalModel.H00} = ${(
-            (markHospitalModel.H02 / markHospitalModel.H00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.H00} = ${percentString(
+            markHospitalModel.H02,
+            markHospitalModel.H00
+          )}`
         );
       }
 
@@ -759,10 +759,10 @@ export default class Score {
             MarkTagUsages.D00.name
           } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
             markHospitalModel.D00
-          } / ${basicData.value} = ${(
-            (markHospitalModel.D00 / basicData.value) *
-            100
-          ).toFixed(0)}%`
+          } / ${basicData.value} = ${percentString(
+            markHospitalModel.D00,
+            basicData.value
+          )}`
         );
       }
       // 糖尿病患者规范管理率
@@ -772,10 +772,10 @@ export default class Score {
             MarkTagUsages.D01.name
           } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
             markHospitalModel.D01
-          } / ${markHospitalModel.D00} = ${(
-            (markHospitalModel.D01 / markHospitalModel.D00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.D00} = ${percentString(
+            markHospitalModel.D01,
+            markHospitalModel.D00
+          )}`
         );
       }
       // 糖尿病患者血压控制率
@@ -785,10 +785,10 @@ export default class Score {
             MarkTagUsages.D02.name
           } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
             markHospitalModel.D02
-          } / ${markHospitalModel.D00} = ${(
-            (markHospitalModel.D02 / markHospitalModel.D00) *
-            100
-          ).toFixed(0)}%`
+          } / ${markHospitalModel.D00} = ${percentString(
+            markHospitalModel.D01,
+            markHospitalModel.D00
+          )}`
         );
       }
     }
