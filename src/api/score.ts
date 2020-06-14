@@ -693,7 +693,7 @@ export default class Score {
         result.push(
           `${
             MarkTagUsages.H00.name
-          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+          } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
             markHospitalModel.H00
           } / ${basicData.value} = ${(
             (markHospitalModel.H00 / basicData.value) *
@@ -706,7 +706,7 @@ export default class Score {
         result.push(
           `${
             MarkTagUsages.H01.name
-          } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+          } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
             markHospitalModel.H01
           } / ${markHospitalModel.H00} = ${(
             (markHospitalModel.H01 / markHospitalModel.H00) *
@@ -719,7 +719,7 @@ export default class Score {
         result.push(
           `${
             MarkTagUsages.H02.name
-          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+          } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
             markHospitalModel.H02
           } / ${markHospitalModel.H00} = ${(
             (markHospitalModel.H02 / markHospitalModel.H00) *
