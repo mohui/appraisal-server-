@@ -216,6 +216,16 @@ export const BasicTags = [
     ]
   },
   {
+    name: '中医药健康管理服务',
+    code: 'TCM',
+    children: [
+      {
+        name: '年内辖区内65岁及以上常住居民数',
+        code: 'TCM00'
+      }
+    ]
+  },
+  {
     code: 'PublicHealthEmergency',
     name: '传染病及突发公共卫生事件报告和处理服务',
     children: [
