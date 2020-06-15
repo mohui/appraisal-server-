@@ -437,10 +437,10 @@ export default class Score {
         (result, current) => {
           result.workpoints += current?.report?.workpoints ?? 0;
           result.scores += current?.report?.scores ?? 0;
-          result.correctWorkPoint +=
-            (current?.report?.workpoints ?? 0) *
-              ((current?.report?.scores ?? 0) /
-                (current?.report?.total ?? 0)) || 0;
+          result.correctWorkPoint += current?.report?.total
+            ? (current?.report?.workpoints ?? 0) *
+              ((current?.report?.scores ?? 0) / current?.report?.total)
+            : 0;
           result.total += current?.report?.total ?? 0;
           return result;
         },
