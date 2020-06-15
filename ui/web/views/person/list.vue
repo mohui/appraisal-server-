@@ -82,7 +82,7 @@
         style="flex-grow: 1;"
       >
         <el-table-column prop="name" label="姓名"> </el-table-column>
-        <el-table-column prop="idCard" label="身份证"></el-table-column>
+        <el-table-column prop="idCardfFormat" label="身份证"></el-table-column>
         <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
         <el-table-column label="标记">
           <template slot-scope="scope">
@@ -133,6 +133,10 @@ export default {
         it.tags = [];
         it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
         it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
+        it.idCardfFormat = it.idCard.replace(
+          /^(.{10})(?:\d+)(.{2})$/,
+          '$1******$2'
+        );
         return it;
       });
     }
