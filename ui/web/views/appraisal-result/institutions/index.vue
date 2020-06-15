@@ -346,7 +346,7 @@
                 >考核结果下载</el-button
               >
             </div>
-            <div style="float: right">
+            <div style="float: right" v-if="$settings.user.isRegion">
               <span style="font-size: 14px">系统自动打分：</span>
               <el-switch
                 v-model="appraisalIndicatorsData.auto"
@@ -405,6 +405,7 @@
               >
               </el-table-column>
               <el-table-column
+                v-if="$settings.user.isRegion"
                 prop="isLock"
                 align="center"
                 width="160px"
