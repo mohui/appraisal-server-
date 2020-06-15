@@ -29,7 +29,11 @@
         :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
-        :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        :header-cell-style="{
+          background: '#F3F4F7',
+          color: '#555',
+          textAlign: 'center'
+        }"
       >
         <el-table-column align="center" width="50" label="序号">
           <template slot-scope="scope">
@@ -42,21 +46,23 @@
           label="考核名称"
         ></el-table-column>
         <el-table-column
+          align="center"
           prop="created_at"
           min-width="16"
           label="创建时间"
         ></el-table-column>
-        <el-table-column min-width="10" label="状态">
+        <el-table-column align="center" min-width="10" label="状态">
           <template slot-scope="scope">
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
         <el-table-column
+          align="center"
           prop="autoScore"
           min-width="14"
           label="打分状态"
         ></el-table-column>
-        <el-table-column min-width="14" label="适用机构">
+        <el-table-column align="center" min-width="14" label="适用机构">
           <template slot-scope="scope">
             <el-button
               plain
