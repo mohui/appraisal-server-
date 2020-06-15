@@ -304,6 +304,11 @@ export const MarkTags = [
             code: 'S03',
             name: '健康档案使用率',
             enabled: true
+          },
+          {
+            code: 'S04',
+            name: '建立电子健康档案人数',
+            enabled: false
           }
         ]
       },
@@ -325,6 +330,16 @@ export const MarkTags = [
             code: 'O02',
             name: '老年人中医药健康管理率',
             enabled: true
+          },
+          {
+            code: 'O03',
+            name: '年内接受健康管理的老年人人数',
+            enabled: false
+          },
+          {
+            code: 'O04',
+            name: '老年人中医药健康管理率',
+            enabled: false
           }
         ]
       },
@@ -346,6 +361,36 @@ export const MarkTags = [
             name: '高血压患者血压控制率',
             code: 'H02',
             enabled: true
+          },
+          {
+            name: '为机构内初次就诊的35岁以上患者免费测血压',
+            code: 'H03',
+            enabled: false
+          },
+          {
+            name: '血压异常者应建档案管理',
+            code: 'H04',
+            enabled: false
+          },
+          {
+            name: '高血压定期年检人数',
+            code: 'H05',
+            enabled: false
+          },
+          {
+            name: '一年内已管理的高血压患者数',
+            code: 'H06',
+            enabled: false
+          },
+          {
+            name: '按照规范要求进行高血压患者健康管理的人数',
+            code: 'H07',
+            enabled: false
+          },
+          {
+            name: '一年内最近一次随访血压达标人数',
+            code: 'H08',
+            enabled: false
           }
         ]
       },
@@ -367,6 +412,184 @@ export const MarkTags = [
             name: '2型糖尿病患者血压控制率',
             code: 'D02',
             enabled: true
+          },
+          {
+            name: '糖尿病定期年检人数',
+            code: 'D03',
+            enabled: false
+          },
+          {
+            name: '一年内已管理的2型糖尿病患者数',
+            code: 'D04',
+            enabled: false
+          },
+          {
+            name: '按照规范要求进行2型糖尿病患者健康管理的人数',
+            code: 'D05',
+            enabled: false
+          },
+          {
+            name: '一年内最近一次随访空腹血糖达标人数',
+            code: 'D06',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '预防接种服务',
+        code: 'vaccination',
+        children: [
+          {
+            name: '建证率',
+            code: 'V01',
+            enabled: false
+          },
+          {
+            name: 'xxx疫苗接种率',
+            code: 'V02',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '0~6岁儿童健康管理服务',
+        code: 'childHealth',
+        children: [
+          {
+            name: '新生儿访视率',
+            code: 'C01',
+            enabled: false
+          },
+          {
+            name: '儿童健康管理率',
+            code: 'C02',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '孕产妇健康管理服务',
+        code: 'maternal',
+        children: [
+          {
+            name: '早孕建册率',
+            code: 'M01',
+            enabled: false
+          },
+          {
+            name: '产后访视率',
+            code: 'M02',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '严重精神病障碍患者管理服务',
+        code: 'mental',
+        children: [
+          {
+            name: '严重精神病障碍患者规范管理率',
+            code: 'M03',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '肺结核患者健康管理服务',
+        code: 'phthisis',
+        children: [
+          {
+            name: '肺结核患者管理率',
+            code: 'P01',
+            enabled: false
+          },
+          {
+            name: '肺结核患者规则服药率',
+            code: 'P02',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '传染病及突发公共卫生事件报告和处理服务',
+        code: 'contagion',
+        children: [
+          {
+            name: '传染病疫情报告率',
+            code: 'C03',
+            enabled: false
+          },
+          {
+            name: '传染病疫情报告及时率',
+            code: 'C04',
+            enabled: false
+          },
+          {
+            name: '突发公共卫生事件相关信息报告率',
+            code: 'C05',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '卫生计生监督协管服务',
+        code: 'supervise',
+        children: [
+          {
+            name: '卫生计生监督协管信息报告率',
+            code: 'S05',
+            enabled: false
+          }
+        ]
+      },
+      {
+        name: '健康教育服务',
+        code: 'education',
+        children: [
+          {
+            name: '发放健康教育印刷资料的种类',
+            code: 'E01',
+            enabled: false
+          },
+          {
+            name: '发放健康教育印刷资料的数量',
+            code: 'E02',
+            enabled: false
+          },
+          {
+            name: '播放健康教育音像资料的种类',
+            code: 'E03',
+            enabled: false
+          },
+          {
+            name: '播放健康教育音像资料的次数',
+            code: 'E04',
+            enabled: false
+          },
+          {
+            name: '播放健康教育音像资料的时间',
+            code: 'E05',
+            enabled: false
+          },
+          {
+            name: '健康教育宣传栏设置几处',
+            code: 'E06',
+            enabled: false
+          },
+          {
+            name: '健康教育宣传栏更新情况',
+            code: 'E07',
+            enabled: false
+          },
+          {
+            name: '健康教育讲座的次数及明细（参加人数等）',
+            code: 'E08',
+            enabled: false
+          },
+          {
+            name: '健康教育咨询活动的次数及明细（参加人数等）',
+            code: 'E09',
+            enabled: false
           }
         ]
       }
