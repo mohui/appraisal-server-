@@ -1,7 +1,7 @@
 <template>
   <el-card shadow="never" style="margin-bottom:20px;">
     <div slot="header" class="clearfix">
-      <span>患者信息</span>
+      <span>居民信息</span>
     </div>
 
     <div class="patient-profile">
@@ -25,7 +25,7 @@
 
     <div class="patient-tag">
       <div class="patient-tag-header">
-        <span>患者标签</span>
+        <span>居民标签</span>
       </div>
       <div class="patient-tag-body"></div>
     </div>
