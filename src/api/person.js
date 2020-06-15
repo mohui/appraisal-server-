@@ -62,15 +62,24 @@ export default class Person {
     )[0].count;
     const person = await etlQuery(
       `select vp.personnum   as id,
-               vp.name,
-               vp.idcardno    as "idCard",
-               mp."S03",
-               mp."S23",
-               vh.hospname    as "hospitalName",
-               vp.operatetime as date
-           ${sqlRenderResult[0]}
-           order by vp.operatetime desc
-           limit ? offset ?`,
+                vp.name,
+                vp.idcardno    as "idCard",
+                mp."S03",
+                mp."S23",
+                mp."O00",
+                mp."O01",
+                mp."O02",
+                mp."H00",
+                mp."H01",
+                mp."H02",
+                mp."D00",
+                mp."D01",
+                mp."D02",
+                vh.hospname    as "hospitalName",
+                vp.operatetime as date
+         ${sqlRenderResult[0]}
+         order by vp.operatetime desc
+         limit ? offset ?`,
       [...sqlRenderResult[1], limit, offset]
     );
 
