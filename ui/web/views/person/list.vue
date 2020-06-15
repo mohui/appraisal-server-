@@ -131,8 +131,25 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         it.tags = [];
+        // 健康档案标记
         it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
         it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
+        // 老年人标记
+        if (it.O01 || it.O02) {
+          it.tags.push(`老年人健康管理${it?.O00 ? '' : '不'}规范`);
+          it.tags.push(`老年人体检${it?.O01 ? '' : '不'}完整`);
+          it.tags.push(`${it?.O02 ? '' : '无'}老年人中医药管理`);
+        }
+        // 高血压标记
+        if (it.H01 || it.H02) {
+          it.tags.push(`高血压管理${it?.H01 ? '' : '不'}规范`);
+          it.tags.push(`高血压${it?.H02 ? '已' : '未'}控制`);
+        }
+        // 糖尿病标记
+        if (it.D01 || it.D02) {
+          it.tags.push(`糖尿病管理${it?.D01 ? '' : '不'}规范`);
+          it.tags.push(`糖尿病${it?.D02 ? '已' : '未'}控制`);
+        }
         it.idCardfFormat = it.idCard.replace(
           /^(.{10})(?:\d+)(.{2})$/,
           '$1******$2'
@@ -204,6 +221,7 @@ export default {
 <style lang="scss">
 .person-name {
   cursor: pointer;
+
   :hover {
     color: #1a95d7;
   }
