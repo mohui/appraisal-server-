@@ -242,6 +242,27 @@
             disabled
           ></el-input>
         </el-form-item>
+        <el-form-item
+          label="密码"
+          prop="password"
+          :label-width="formLabelWidth"
+        >
+          <el-input
+            v-model="userForm.password"
+            :type="inputType"
+            autocomplete="off"
+            style="width: auto"
+            ><i
+              slot="suffix"
+              style="cursor: pointer;"
+              class="el-icon-view"
+              @click="isShowPwd()"
+            ></i
+          ></el-input>
+          <el-button type="warning" plain @click="resetPassword"
+            >重置密码</el-button
+          >
+        </el-form-item>
         <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
@@ -311,6 +332,7 @@ export default {
   data() {
     const that = this;
     return {
+      inputType: 'password',
       permission: Permission,
       dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
@@ -431,6 +453,20 @@ export default {
     }
   },
   methods: {
+    async resetPassword() {
+      try {
+        await this.$api.User.resetPassword(this.userForm.id);
+        this.$message({
+          type: 'success',
+          message: '重置成功!'
+        });
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    },
+    isShowPwd() {
+      this.inputType = this.inputType === 'password' ? '' : 'password';
+    },
     //重置查询条件
     reset() {
       this.searchForm = {
