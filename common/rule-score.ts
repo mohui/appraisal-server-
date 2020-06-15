@@ -83,6 +83,76 @@ export const BasicTags = [
         code: 'HE08'
       }
     ]
+  },
+  {
+    name: '预防接种服务',
+    code: 'Inoculate',
+    children: [
+      {
+        code: 'Inoculate00',
+        name: '年度辖区内应建立预防接种人数'
+      },
+      {
+        code: 'Inoculate01',
+        name: '年度辖区内卡介苗疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate02',
+        name: '年度辖区内乙肝疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate03',
+        name: '年度辖区内脊灰疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate04',
+        name: '年度辖区内麻风疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate05',
+        name: '年度辖区内乙脑疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate06',
+        name: '年度辖区内流脑疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate07',
+        name: '年度辖区内无细胞百白破疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate08',
+        name: '年度辖区内甲肝疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate09',
+        name: '年度辖区内麻腮风疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate10',
+        name: '年度辖区内无细胞百白破(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate11',
+        name: '年度辖区内脊灰(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate12',
+        name: '年度辖区内乙脑(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate13',
+        name: '年度辖区内流脑(3周岁加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate14',
+        name: '年度辖区内白破疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate15',
+        name: '年度辖区内流脑(6周岁加强)疫苗应接种人数'
+      }
+    ]
   }
 ];
 
