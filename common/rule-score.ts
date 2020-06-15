@@ -167,6 +167,16 @@ export const BasicTags = [
         name: '年度辖区内0-6岁儿童数'
       }
     ]
+  },
+  {
+    code: 'Maternal',
+    name: '孕产妇健康管理服务',
+    children: [
+      {
+        code: 'Maternal00',
+        name: '年度辖区内活产数'
+      }
+    ]
   }
 ];
 
