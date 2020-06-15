@@ -100,6 +100,34 @@ export default class Hospital {
     );
   }
 
+  /**
+   * 设置考核下某个机构的自动打分
+   * @param checkId 考核id
+   * @param hospitalId 机构id
+   * @param isAuto 是否开启 true || false
+   * @returns {Promise<unknown[]>}
+   */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.boolean().required()
+  )
+  async setCheckAuto(checkId, hospitalId, isAuto) {
+    const check = await CheckSystemModel.findOne({where: {checkId}});
+    if (!check) throw new KatoCommonError('该考核体系不存在');
+    //修改该机构在考核系统下的所有规则的自动打分
+    await Promise.all(
+      (
+        await CheckRuleModel.findAll({
+          where: {checkId, parentRuleId: {[Op.not]: null}},
+          include: {model: RuleHospitalModel, where: {hospitalId: hospitalId}}
+        }).reduce((per, next) => per.concat(next.ruleHospitals), [])
+      ).map(async item => {
+        await this.setRuleAuto(item.hospitalId, item.ruleId, isAuto);
+      })
+    );
+  }
+
   async workpoints(code) {
     // language=PostgreSQL
     return (
