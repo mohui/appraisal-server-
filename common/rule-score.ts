@@ -41,6 +41,233 @@ export const BasicTags = [
         code: 'diabetes-people'
       }
     ]
+  },
+  {
+    name: '健康教育服务',
+    code: 'HealthEducation',
+    children: [
+      {
+        name: '发放健康教育印刷资料的种类',
+        code: 'HE00'
+      },
+      {
+        name: '发放健康教育印刷资料的数量',
+        code: 'HE01'
+      },
+      {
+        name: '播放健康教育音像资料的种类',
+        code: 'HE02'
+      },
+      {
+        name: '播放健康教育音像资料的次数',
+        code: 'HE03'
+      },
+      {
+        name: '播放健康教育音像资料的时间',
+        code: 'HE04'
+      },
+      {
+        name: '健康教育宣传栏设置几处',
+        code: 'HE05'
+      },
+      {
+        name: '健康教育宣传栏更新情况',
+        code: 'HE06'
+      },
+      {
+        name: '健康教育讲座的次数及明细(参加人数等)',
+        code: 'HE07'
+      },
+      {
+        name: '健康教育咨询活动的次数及明细(参加人数等)',
+        code: 'HE08'
+      }
+    ]
+  },
+  {
+    name: '预防接种服务',
+    code: 'Inoculate',
+    children: [
+      {
+        code: 'Inoculate00',
+        name: '年度辖区内应建立预防接种人数'
+      },
+      {
+        code: 'Inoculate01',
+        name: '年度辖区内卡介苗疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate02',
+        name: '年度辖区内乙肝疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate03',
+        name: '年度辖区内脊灰疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate04',
+        name: '年度辖区内麻风疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate05',
+        name: '年度辖区内乙脑疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate06',
+        name: '年度辖区内流脑疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate07',
+        name: '年度辖区内无细胞百白破疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate08',
+        name: '年度辖区内甲肝疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate09',
+        name: '年度辖区内麻腮风疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate10',
+        name: '年度辖区内无细胞百白破(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate11',
+        name: '年度辖区内脊灰(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate12',
+        name: '年度辖区内乙脑(加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate13',
+        name: '年度辖区内流脑(3周岁加强)疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate14',
+        name: '年度辖区内白破疫苗应接种人数'
+      },
+      {
+        code: 'Inoculate15',
+        name: '年度辖区内流脑(6周岁加强)疫苗应接种人数'
+      }
+    ]
+  },
+  {
+    code: 'Children',
+    name: '0-6岁儿童健康管理服务',
+    children: [
+      {
+        code: 'Children00',
+        name: '年度辖区内活产数'
+      },
+      {
+        code: 'Children01',
+        name: '年度辖区内0-6岁儿童数'
+      }
+    ]
+  },
+  {
+    code: 'Maternal',
+    name: '孕产妇健康管理服务',
+    children: [
+      {
+        code: 'Maternal00',
+        name: '年度辖区内活产数'
+      }
+    ]
+  },
+  {
+    code: 'Psychosis',
+    name: '严重精神病障碍患者管理服务',
+    children: [
+      {
+        code: 'Psychosis00',
+        name: '年度辖区内按照规范要求进行管理的严重精神障碍患者人数'
+      },
+      {
+        code: 'Psychosis01',
+        name: '年度辖区内登记在册的确诊严重精神障碍患者人数'
+      }
+    ]
+  },
+  {
+    code: 'Tuberculosis',
+    name: '肺结核患者健康管理服务',
+    children: [
+      {
+        code: 'Tuberculosis00',
+        name: '年度辖区内已管理的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis01',
+        name:
+          '年度辖区内经上级定点医疗机构确诊并通知基层医疗卫生机构管理的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis02',
+        name: '按照要求规则服药的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis03',
+        name: '年度辖区内已完成治疗的肺结核患者人数'
+      }
+    ]
+  },
+  {
+    name: '中医药健康管理服务',
+    code: 'TCM',
+    children: [
+      {
+        name: '年内辖区内65岁及以上常住居民数',
+        code: 'TCM00'
+      }
+    ]
+  },
+  {
+    code: 'PublicHealthEmergency',
+    name: '传染病及突发公共卫生事件报告和处理服务',
+    children: [
+      {
+        code: 'PublicHealthEmergency00',
+        name: '登记传染病病例数'
+      },
+      {
+        code: 'PublicHealthEmergency01',
+        name: '报告及时的病例数'
+      },
+      {
+        code: 'PublicHealthEmergency02',
+        name: '报告的传染病病例数'
+      },
+      {
+        code: 'PublicHealthEmergency03',
+        name: '及时报告的突发公共卫生时间相关信息数'
+      },
+      {
+        code: 'PublicHealthEmergency04',
+        name: '报告突发公共卫生时间相关信息数'
+      }
+    ]
+  },
+  {
+    code: 'Supervision',
+    name: '卫生计生监督协管服务',
+    children: [
+      {
+        code: 'Supervision00',
+        name: '报告的时间或线索次数'
+      },
+      {
+        code: 'Supervision01',
+        name: '发现的事件或线索次数'
+      },
+      {
+        code: 'Supervision02',
+        name: '协助开展实地巡查次数'
+      }
+    ]
   }
 ];
 
