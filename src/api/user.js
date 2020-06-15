@@ -428,4 +428,14 @@ export default class User {
       return await user.save();
     });
   }
+
+  @validate(should.string().description('用户id'))
+  async resetPassword(id) {
+    return appDB.transaction(async () => {
+      const user = await UserModel.findOne({where: {id}, lock: true});
+      if (!user) throw new KatoCommonError('该用户不存在');
+      user.password = '666666';
+      await user.save();
+    });
+  }
 }
