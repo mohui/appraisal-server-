@@ -214,6 +214,32 @@ export const BasicTags = [
         name: '年度辖区内已完成治疗的肺结核患者人数'
       }
     ]
+  },
+  {
+    code: 'PublicHealthEmergency',
+    name: '传染病及突发公共卫生事件报告和处理服务',
+    children: [
+      {
+        code: 'PublicHealthEmergency00',
+        name: '登记传染病病例数'
+      },
+      {
+        code: 'PublicHealthEmergency01',
+        name: '报告及时的病例数'
+      },
+      {
+        code: 'PublicHealthEmergency02',
+        name: '报告的传染病病例数'
+      },
+      {
+        code: 'PublicHealthEmergency03',
+        name: '及时报告的突发公共卫生时间相关信息数'
+      },
+      {
+        code: 'PublicHealthEmergency04',
+        name: '报告突发公共卫生时间相关信息数'
+      }
+    ]
   }
 ];
 
