@@ -41,6 +41,48 @@ export const BasicTags = [
         code: 'diabetes-people'
       }
     ]
+  },
+  {
+    name: '健康教育服务',
+    code: 'HealthEducation',
+    children: [
+      {
+        name: '发放健康教育印刷资料的种类',
+        code: 'HE00'
+      },
+      {
+        name: '发放健康教育印刷资料的数量',
+        code: 'HE01'
+      },
+      {
+        name: '播放健康教育音像资料的种类',
+        code: 'HE02'
+      },
+      {
+        name: '播放健康教育音像资料的次数',
+        code: 'HE03'
+      },
+      {
+        name: '播放健康教育音像资料的时间',
+        code: 'HE04'
+      },
+      {
+        name: '健康教育宣传栏设置几处',
+        code: 'HE05'
+      },
+      {
+        name: '健康教育宣传栏更新情况',
+        code: 'HE06'
+      },
+      {
+        name: '健康教育讲座的次数及明细(参加人数等)',
+        code: 'HE07'
+      },
+      {
+        name: '健康教育咨询活动的次数及明细(参加人数等)',
+        code: 'HE08'
+      }
+    ]
   }
 ];
 
