@@ -32,6 +32,13 @@ module.exports = [
     ]
   },
   {
+    index: 'person',
+    permission: [Permission.PROFILE],
+    label: '个人档案',
+    icon: 'el-icon-edit',
+    router: '/person'
+  },
+  {
     index: 'userManage',
     permission: [Permission.USER_INDEX, Permission.ROLE_INDEX],
     label: '用户管理',
@@ -50,12 +57,5 @@ module.exports = [
         label: '角色管理'
       }
     ]
-  },
-  {
-    index: 'person',
-    permission: [Permission.PROFILE],
-    label: '个人档案',
-    icon: 'el-icon-edit',
-    router: '/person'
   }
 ];
