@@ -13,6 +13,10 @@
 export default {
   name: 'kn-debounce-input',
   props: {
+    value:{
+      type: String,
+      default: ''
+    },
     debounce: {
       type: Number,
       default: 500
