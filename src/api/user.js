@@ -60,7 +60,6 @@ export default class User {
       };
     let result = await UserModel.findAndCountAll({
       where: whereOption,
-      attributes: {exclude: ['password']},
       distinct: true,
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
@@ -426,6 +425,16 @@ export default class User {
       }
       user.regionId = region;
       return await user.save();
+    });
+  }
+
+  @validate(should.string().description('用户id'))
+  async resetPassword(id) {
+    return appDB.transaction(async () => {
+      const user = await UserModel.findOne({where: {id}, lock: true});
+      if (!user) throw new KatoCommonError('该用户不存在');
+      user.password = '666666';
+      await user.save();
     });
   }
 }
