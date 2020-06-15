@@ -10,7 +10,7 @@ const router = new Router({
     {
       path: '/',
       component: Layout,
-      redirect: '/appraisal-result-institutions',
+      redirect: '/home',
       children: [
         {
           path: 'home',
