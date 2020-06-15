@@ -22,6 +22,15 @@ function listRender(params) {
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        {{#if S03}} and mp.S03={{? S03}}{{/if}}
+        {{#if S23}} and mp.S23={{? S23}}{{/if}}
+        {{#if O00}} and mp.O00={{? O00}}{{/if}}
+        {{#if O01}} and mp.O01={{? O01}}{{/if}}
+        {{#if O02}} and mp.O02={{? O02}}{{/if}}
+        {{#if H01}} and mp.H01={{? H01}}{{/if}}
+        {{#if H02}} and mp.H02={{? H02}}{{/if}}
+        {{#if D01}} and mp.D01={{? D01}}{{/if}}
+        {{#if D02}} and mp.D02={{? D02}}{{/if}}
     `,
     params
   );
@@ -29,7 +38,7 @@ function listRender(params) {
 
 export default class Person {
   async list(params) {
-    const {pageSize, pageNo, hospital, idCard} = params;
+    const {pageSize, pageNo, hospital, idCard, tags} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
@@ -53,7 +62,7 @@ export default class Person {
         (result, current) => [...result, ...current.map(it => it.id)],
         []
       );
-    const sqlRenderResult = listRender({his, name, hospitals, idCard});
+    const sqlRenderResult = listRender({his, name, hospitals, idCard, ...tags});
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
