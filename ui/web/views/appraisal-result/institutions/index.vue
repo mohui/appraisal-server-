@@ -728,7 +728,7 @@ export default {
         );
         this.$message({
           type: 'success',
-          message: '更改成功'
+          message: '您的更改将在明日生效'
         });
       } catch (e) {
         this.$message({
