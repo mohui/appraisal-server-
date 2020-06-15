@@ -191,6 +191,29 @@ export const BasicTags = [
         name: '年度辖区内登记在册的确诊严重精神障碍患者人数'
       }
     ]
+  },
+  {
+    code: 'Tuberculosis',
+    name: '肺结核患者健康管理服务',
+    children: [
+      {
+        code: 'Tuberculosis00',
+        name: '年度辖区内已管理的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis01',
+        name:
+          '年度辖区内经上级定点医疗机构确诊并通知基层医疗卫生机构管理的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis02',
+        name: '按照要求规则服药的肺结核患者人数'
+      },
+      {
+        code: 'Tuberculosis03',
+        name: '年度辖区内已完成治疗的肺结核患者人数'
+      }
+    ]
   }
 ];
 
