@@ -60,7 +60,6 @@ export default class User {
       };
     let result = await UserModel.findAndCountAll({
       where: whereOption,
-      attributes: {exclude: ['password']},
       distinct: true,
       offset: (pageNo - 1) * pageSize,
       limit: pageSize,
