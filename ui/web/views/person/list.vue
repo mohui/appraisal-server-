@@ -51,6 +51,26 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="标记:">
+              <el-select
+                v-model="queryForm.tags"
+                clearable
+                multiple
+                collapse-tags
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in tagList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
             <el-form-item label="">
               <el-button
@@ -123,8 +143,47 @@ export default {
       queryForm: {
         name: '',
         hospital: '',
-        idCard: ''
-      }
+        idCard: '',
+        tags: []
+      },
+      tagList: [
+        {
+          id: 'S03',
+          name: '非动态使用'
+        },
+        {
+          id: 'S23',
+          name: '档案不规范'
+        },
+        {
+          id: 'O00',
+          name: '老年人健康管理不规范'
+        },
+        {
+          id: 'O01',
+          name: '老年人体检不完整'
+        },
+        {
+          id: 'O02',
+          name: '无老年人中医药管理'
+        },
+        {
+          id: 'H01',
+          name: '高血压管理不规范'
+        },
+        {
+          id: 'H02',
+          name: '高血压未控制'
+        },
+        {
+          id: 'D01',
+          name: '糖尿病管理不规范'
+        },
+        {
+          id: 'D02',
+          name: '糖尿病未控制'
+        }
+      ]
     };
   },
   computed: {
@@ -132,21 +191,21 @@ export default {
       return this.serverData.rows.map(it => {
         it.tags = [];
         // 健康档案标记
-        it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
-        it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
+        if (it.S03 !== null) it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
+        if (it.S23 !== null) it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
         // 老年人标记
-        if (it.O01 || it.O02) {
+        if (it.O01 !== null || it.O02 !== null) {
           it.tags.push(`老年人健康管理${it?.O00 ? '' : '不'}规范`);
           it.tags.push(`老年人体检${it?.O01 ? '' : '不'}完整`);
           it.tags.push(`${it?.O02 ? '' : '无'}老年人中医药管理`);
         }
         // 高血压标记
-        if (it.H01 || it.H02) {
+        if (it.H01 !== null || it.H02 !== null) {
           it.tags.push(`高血压管理${it?.H01 ? '' : '不'}规范`);
           it.tags.push(`高血压${it?.H02 ? '已' : '未'}控制`);
         }
         // 糖尿病标记
-        if (it.D01 || it.D02) {
+        if (it.D01 !== null || it.D02 !== null) {
           it.tags.push(`糖尿病管理${it?.D01 ? '' : '不'}规范`);
           it.tags.push(`糖尿病${it?.D02 ? '已' : '未'}控制`);
         }
@@ -174,7 +233,12 @@ export default {
           pageNo: this.pageNo,
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
-          hospital: this.queryForm.hospital
+          hospital: this.queryForm.hospital,
+          tags: this.queryForm.tags.map(tag => {
+            let obj = {};
+            obj[tag] = false;
+            return obj;
+          })
         });
       },
       default() {
