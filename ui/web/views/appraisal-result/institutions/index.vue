@@ -437,7 +437,7 @@
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
                   ></i>
                   <i
-                    v-if="!$settings.user.isRegion && !scope.row.isAttach"
+                    v-if="!scope.row.isAttach"
                     style="padding-left:5px; color:#ff9800"
                     class="el-icon-warning"
                     @click="
