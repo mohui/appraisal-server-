@@ -240,6 +240,24 @@ export const BasicTags = [
         name: '报告突发公共卫生时间相关信息数'
       }
     ]
+  },
+  {
+    code: 'Supervision',
+    name: '卫生计生监督协管服务',
+    children: [
+      {
+        code: 'Supervision00',
+        name: '报告的时间或线索次数'
+      },
+      {
+        code: 'Supervision01',
+        name: '发现的事件或线索次数'
+      },
+      {
+        code: 'Supervision02',
+        name: '协助开展实地巡查次数'
+      }
+    ]
   }
 ];
 
