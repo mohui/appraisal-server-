@@ -346,6 +346,17 @@
                 >考核结果下载</el-button
               >
             </div>
+            <div style="float: right" v-if="$settings.user.isRegion">
+              <span style="font-size: 14px">系统自动打分：</span>
+              <el-switch
+                v-model="appraisalIndicatorsData.auto"
+                @change="handleSystemAllAutoScore"
+                style="padding-right: 20px;"
+                active-text="开启"
+                inactive-text="关闭"
+              >
+              </el-switch>
+            </div>
           </div>
           <div
             v-for="(item, index) in appraisalIndicatorsData.children"
@@ -394,6 +405,7 @@
               >
               </el-table-column>
               <el-table-column
+                v-if="$settings.user.isRegion"
                 prop="isLock"
                 align="center"
                 width="160px"
@@ -718,7 +730,16 @@ export default {
     }
   },
   methods: {
-    //系统自动打分开关
+    //系统自动打分开关事件
+    async handleSystemAllAutoScore() {
+      await this.$api.Hospital.setCheckAuto(
+        this.appraisalIndicatorsData.checkId,
+        this.params.id,
+        this.appraisalIndicatorsData.auto
+      );
+      this.$asyncComputed.appraisalIndicatorsServerData.update();
+    },
+    //单项指标系统自动打分开关
     async handleChangeSystemAutoScore(row) {
       try {
         await this.$api.Hospital.setRuleAuto(
@@ -1096,6 +1117,17 @@ export default {
         (result, current) => (result += current.ruleScore ?? 0),
         0
       );
+      //系统自动打分
+      returnValue.auto = true;
+      //循环各单项指标规则里面的系统自动打分是否开启，有一项是关闭状态，则returnValue.auto = false
+      for (let item of returnValue.children) {
+        for (let it of item.children) {
+          if (it.auto === false) {
+            returnValue.auto = false;
+            break;
+          }
+        }
+      }
       return returnValue;
     },
     //单项考核规则的考核文件列表数据
