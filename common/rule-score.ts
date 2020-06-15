@@ -153,6 +153,20 @@ export const BasicTags = [
         name: '年度辖区内流脑(6周岁加强)疫苗应接种人数'
       }
     ]
+  },
+  {
+    code: 'Children',
+    name: '0-6岁儿童健康管理服务',
+    children: [
+      {
+        code: 'Children00',
+        name: '年度辖区内活产数'
+      },
+      {
+        code: 'Children01',
+        name: '年度辖区内0-6岁儿童数'
+      }
+    ]
   }
 ];
 
