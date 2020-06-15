@@ -346,6 +346,17 @@
                 >考核结果下载</el-button
               >
             </div>
+            <div style="float: right">
+              <span style="font-size: 14px">系统自动打分：</span>
+              <el-switch
+                v-model="appraisalIndicatorsData.auto"
+                @change="handleSystemAllAutoScore"
+                style="padding-right: 20px;"
+                active-text="开启"
+                inactive-text="关闭"
+              >
+              </el-switch>
+            </div>
           </div>
           <div
             v-for="(item, index) in appraisalIndicatorsData.children"
@@ -718,7 +729,16 @@ export default {
     }
   },
   methods: {
-    //系统自动打分开关
+    //系统自动打分开关事件
+    async handleSystemAllAutoScore() {
+      await this.$api.Hospital.setCheckAuto(
+        this.appraisalIndicatorsData.checkId,
+        this.params.id,
+        this.appraisalIndicatorsData.auto
+      );
+      this.$asyncComputed.appraisalIndicatorsServerData.update();
+    },
+    //单项指标系统自动打分开关
     async handleChangeSystemAutoScore(row) {
       try {
         await this.$api.Hospital.setRuleAuto(
