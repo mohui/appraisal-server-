@@ -177,6 +177,20 @@ export const BasicTags = [
         name: '年度辖区内活产数'
       }
     ]
+  },
+  {
+    code: 'Psychosis',
+    name: '严重精神病障碍患者管理服务',
+    children: [
+      {
+        code: 'Psychosis00',
+        name: '年度辖区内按照规范要求进行管理的严重精神障碍患者人数'
+      },
+      {
+        code: 'Psychosis01',
+        name: '年度辖区内登记在册的确诊严重精神障碍患者人数'
+      }
+    ]
   }
 ];
 
