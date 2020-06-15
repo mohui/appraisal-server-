@@ -192,6 +192,24 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label=" " :label-width="formLabelWidth">
+          <el-button-group>
+            <el-button
+              :type="userForm.isRegion ? 'primary' : 'default'"
+              size="mini"
+              @click="toggleRegion"
+            >
+              行政区域
+            </el-button>
+            <el-button
+              :type="!userForm.isRegion ? 'primary' : 'default'"
+              @click="toggleRegion"
+              size="mini"
+            >
+              医疗机构
+            </el-button>
+          </el-button-group>
+        </el-form-item>
         <el-form-item
           label="所属地区"
           prop="regionId"
@@ -209,6 +227,7 @@
         <el-form-item
           label="管理机构"
           prop="hospitals"
+          v-show="!userForm.isRegion"
           :label-width="formLabelWidth"
         >
           <el-cascader
@@ -282,6 +301,24 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label=" " :label-width="formLabelWidth">
+          <el-button-group>
+            <el-button
+              :type="userForm.isRegion ? 'primary' : 'default'"
+              size="mini"
+              @click="toggleRegion"
+            >
+              行政区域
+            </el-button>
+            <el-button
+              :type="!userForm.isRegion ? 'primary' : 'default'"
+              @click="toggleRegion"
+              size="mini"
+            >
+              医疗机构
+            </el-button>
+          </el-button-group>
+        </el-form-item>
         <el-form-item
           label="所属地区"
           prop="regionId"
@@ -299,6 +336,7 @@
         <el-form-item
           label="管理机构"
           prop="hospitals"
+          v-show="!userForm.isRegion"
           :label-width="formLabelWidth"
         >
           <el-cascader
@@ -342,6 +380,7 @@ export default {
         password: '',
         name: '',
         roles: [],
+        isRegion: true,
         region: {name: ''},
         regionId: '',
         hospital: {name: ''},
@@ -453,6 +492,11 @@ export default {
     }
   },
   methods: {
+    toggleRegion() {
+      this.userForm.isRegion = !this.userForm.isRegion;
+      this.userForm.hospitals = [];
+      this.userForm.hospital.name = '';
+    },
     async resetPassword() {
       try {
         await this.$api.User.resetPassword(this.userForm.id);
@@ -512,6 +556,7 @@ export default {
         password: '',
         name: '',
         roles: [],
+        isRegion: true,
         region: {name: ''},
         regionId: '',
         hospital: {name: ''},
@@ -568,7 +613,10 @@ export default {
     },
     //设置用户编辑状态，并打开对话框
     editUser(item) {
-      this.userForm = Object.assign({hospital: {name: ''}}, item.row);
+      this.userForm = Object.assign(
+        {hospital: {name: ''}, isRegion: !item.row.hospitals.length},
+        item.row
+      );
       this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
@@ -583,7 +631,9 @@ export default {
             await this.$api.User.update({id, name, roles, regionId});
             if (regionId) {
               let hospitalId = hospitals.length
-                ? hospitals[hospitals.length - 1]
+                ? hospitals[hospitals.length - 1].id
+                  ? hospitals[hospitals.length - 1].id
+                  : hospitals[hospitals.length - 1]
                 : '';
               await this.$api.User.setPermission({
                 id,
