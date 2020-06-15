@@ -97,19 +97,19 @@
             >
               快速复制
             </el-button>
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_IMPORT,
-                type: 'disabled'
-              }"
-              v-show="scope.row.status"
-              type="info"
-              size="small"
-              @click.stop="openUploadCheckDialog(scope.row)"
-            >
-              批量导入细则
-            </el-button>
+            <!--            <el-button-->
+            <!--              plain-->
+            <!--              v-permission="{-->
+            <!--                permission: permission.CHECK_IMPORT,-->
+            <!--                type: 'disabled'-->
+            <!--              }"-->
+            <!--              v-show="scope.row.status"-->
+            <!--              type="info"-->
+            <!--              size="small"-->
+            <!--              @click.stop="openUploadCheckDialog(scope.row)"-->
+            <!--            >-->
+            <!--              批量导入细则-->
+            <!--            </el-button>-->
             <el-button
               plain
               v-permission="{
