@@ -1096,6 +1096,17 @@ export default {
         (result, current) => (result += current.ruleScore ?? 0),
         0
       );
+      //系统自动打分
+      returnValue.auto = true;
+      //循环各单项指标规则里面的系统自动打分是否开启，有一项是关闭状态，则returnValue.auto = false
+      for (let item of returnValue.children) {
+        for (let it of item.children) {
+          if (it.auto === false) {
+            returnValue.auto = false;
+            break;
+          }
+        }
+      }
       return returnValue;
     },
     //单项考核规则的考核文件列表数据
