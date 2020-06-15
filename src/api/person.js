@@ -242,22 +242,33 @@ export default class Person {
    * @param id 个人id
    */
   async diabetes(id) {
+    const followCodeNames = await etlQuery(
+      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      ['7010104']
+    );
     // language=PostgreSQL
-    return etlQuery(
-      `
+    return (
+      await etlQuery(
+        `
         select
           vdv.followupdate as "followDate",
           vdv.followupway as "followWay",
           vdv.FastingGlucose as "fastingGlucose",
           vdv.PostprandialGlucose as "postprandialGlucose",
+          vdv.doctor,
           vdv.operatetime as "updateAt"
         from view_diabetesvisit vdv
                inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
         where vd.personnum = ?
         order by vdv.operatetime desc
       `,
-      [id]
-    );
+        [id]
+      )
+    ).map(item => ({
+      ...item,
+      followWay: followCodeNames.find(way => way.code === item.followWay)
+        ?.codename
+    }));
   }
 
   /**
