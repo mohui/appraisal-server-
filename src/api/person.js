@@ -202,9 +202,14 @@ export default class Person {
    * }
    */
   async hypertensions(id) {
-    return etlQuery(
-      // language=PostgreSQL
-      `
+    const followCodeNames = await etlQuery(
+      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      ['7010104']
+    );
+    return (
+      await etlQuery(
+        // language=PostgreSQL
+        `
         select vhv.highbloodid as id,
                vhv.followupdate as "followDate",
                vhv.followupway as "followWay",
@@ -217,8 +222,13 @@ export default class Person {
         where vh.personnum = ?
         order by vhv.followupdate desc
       `,
-      [id]
-    );
+        [id]
+      )
+    ).map(item => ({
+      ...item,
+      followWay: followCodeNames.find(way => way.code === item.followWay)
+        ?.codename
+    }));
   }
 
   /**
