@@ -337,6 +337,14 @@
                   appraisalIndicatorsData.ruleScore
                 }}分</span
               >
+              <el-button
+                style="margin-left: 30px;"
+                size="small"
+                plain
+                type="primary"
+                @click="handleAppraisalResultsDownload()"
+                >考核结果下载</el-button
+              >
             </div>
           </div>
           <div
@@ -427,6 +435,14 @@
                     style="padding-left:5px; color:#ff9800"
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
+                  ></i>
+                  <i
+                    v-if="!$settings.user.isRegion && !scope.row.isAttach"
+                    style="padding-left:5px; color:#ff9800"
+                    class="el-icon-warning"
+                    @click="
+                      handleDialogAppraisalResultInstructionsVisible(scope.row)
+                    "
                   ></i>
                 </template>
               </el-table-column>
@@ -615,7 +631,7 @@
     <el-dialog
       title="考核资料"
       :visible.sync="dialogAppraisalFileListVisible"
-      width="30%"
+      width="50%"
     >
       <div>
         <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
@@ -630,6 +646,22 @@
           </div>
         </div>
         <div v-else style="color: red">暂无文件</div>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="指标结果"
+      :visible.sync="appraisalResultInstructionsDialogVisible"
+      width="50%"
+    >
+      <div>
+        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
+          评分标准：{{ curRule.evaluateStandard }}
+        </p>
+        <ul>
+          <li v-for="item of appraisalResultInstructionsData" :key="item">
+            {{ item }}
+          </li>
+        </ul>
       </div>
     </el-dialog>
   </div>
@@ -674,7 +706,8 @@ export default {
         evaluateStandard: '',
         data: ''
       },
-      dialogAppraisalFileListVisible: false
+      dialogAppraisalFileListVisible: false,
+      appraisalResultInstructionsDialogVisible: false //单项指标考核结果说明
     };
   },
   filters: {
@@ -784,6 +817,13 @@ export default {
       this.curRule.evaluateStandard = row.evaluateStandard;
       this.dialogAppraisalFileListVisible = true;
     },
+    //单项指标考核得分解读
+    handleDialogAppraisalResultInstructionsVisible(row) {
+      this.appraisalResultInstructionsDialogVisible = true;
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.evaluateStandard = row.evaluateStandard;
+    },
     handleSummaries(param) {
       const {columns, data} = param;
       const sums = [];
@@ -863,6 +903,10 @@ export default {
       //会将route.query.isInstitution赋值给this.params.isInstitution
       //this.params.isInstitution = false;
       this.$router.go(-1);
+    },
+    //考核结果下载
+    async handleAppraisalResultsDownload() {
+      await this.$api.Hospital.checkDownload(this.params.id);
     }
   },
   computed: {
@@ -920,23 +964,35 @@ export default {
           );
           returnValue.rate = returnValue.rate / returnValue.child.length;
           return returnValue;
-        })
-        .sort((a, b) => b.score - a.score);
-      return result;
+        });
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //一级机构排行数据
     firstLevelWorkpointRankData() {
-      return this.workpointRankData
+      const result = this.workpointRankData
         .map(item => item.child)
         .reduce((result, current) => result.concat(current), [])
-        .filter(item => item.name.endsWith('中心'))
-        .sort((a, b) => b.score - a.score);
+        .filter(item => item.name.endsWith('中心'));
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //二级机构排行数据
     secondLevelWorkpointRankData() {
-      return this.workpointRankServerData
+      const result = this.workpointRankServerData
         .filter(item => !item.name.endsWith('中心'))
         .sort((a, b) => b.score - a.score);
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
     },
     //最大得分值数
     maxScore() {
@@ -1045,6 +1101,10 @@ export default {
     //单项考核规则的考核文件列表数据
     appraisalFileListData() {
       return this.appraisalFileListServerData;
+    },
+    //单项考核得分解读数据
+    appraisalResultInstructionsData() {
+      return this.appraisalResultInstructionsServerData;
     }
   },
   asyncComputed: {
@@ -1114,6 +1174,21 @@ export default {
       },
       shouldUpdate() {
         return this.dialogAppraisalFileListVisible;
+      },
+      default() {
+        return [];
+      }
+    },
+    //获取服务器单项考核得分解读数据
+    appraisalResultInstructionsServerData: {
+      async get() {
+        return await this.$api.Score.detail(
+          this.params.id,
+          this.curRule.ruleId
+        );
+      },
+      shouldUpdate() {
+        return this.appraisalResultInstructionsDialogVisible;
       },
       default() {
         return [];

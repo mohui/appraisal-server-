@@ -73,19 +73,15 @@
       <el-table
         v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
+        @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
         stripe
         border
         size="small"
         height="100%"
         style="flex-grow: 1;"
       >
-        <el-table-column prop="name" label="姓名">
-          <template slot-scope="{row}">
-            <router-link :to="'/person-detail?id=' + row.id">
-              <span>{{ row.name }}</span>
-            </router-link>
-          </template>
-        </el-table-column>
+        <el-table-column prop="name" label="姓名"> </el-table-column>
         <el-table-column prop="idCard" label="身份证"></el-table-column>
         <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
         <el-table-column label="标记">
@@ -169,6 +165,20 @@ export default {
     }
   },
   methods: {
+    //设置标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 0) return 'person-name';
+    },
+    //点击标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'name')
+        return this.$router.push({
+          name: 'patient',
+          query: {
+            id: row.id
+          }
+        });
+    },
     handlePageNoChange(no) {
       this.pageNo = no;
     },
@@ -187,4 +197,11 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style lang="scss">
+.person-name {
+  cursor: pointer;
+  :hover {
+    color: #1a95d7;
+  }
+}
+</style>

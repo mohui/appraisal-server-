@@ -36,4 +36,40 @@ export class MarkHospital extends Model<MarkHospital> {
   @Default(0)
   @Column({field: 'S03'})
   S03: number;
+
+  @Default(0)
+  @Column({field: 'O00'})
+  O00: number;
+
+  @Default(0)
+  @Column({field: 'O01'})
+  O01: number;
+
+  @Default(0)
+  @Column({field: 'O02'})
+  O02: number;
+
+  @Default(0)
+  @Column({field: 'H00'})
+  H00: number;
+
+  @Default(0)
+  @Column({field: 'H01'})
+  H01: number;
+
+  @Default(0)
+  @Column({field: 'H02'})
+  H02: number;
+
+  @Default(0)
+  @Column({field: 'D00'})
+  D00: number;
+
+  @Default(0)
+  @Column({field: 'D01'})
+  D01: number;
+
+  @Default(0)
+  @Column({field: 'D02'})
+  D02: number;
 }

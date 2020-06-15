@@ -270,6 +270,8 @@ export default class User {
         include: [{model: RoleModel}]
       });
       if (!result) throw new KatoCommonError('该用户不存在');
+      //删除机构关系
+      await UserHospitalModel.destroy({where: {userId: id}});
       //删除角色关系
       await Promise.all(
         result.roles.map(

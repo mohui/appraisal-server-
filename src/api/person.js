@@ -195,6 +195,8 @@ export default class Person {
    *   id: id,
    *   followDate: 随访时间
    *   followWay: 随访方式
+   *   systolicpressure: 收缩压
+   *   assertpressure: 舒张压
    *   doctor: 随访医生
    *   updateAt: 更新时间
    * }
@@ -206,6 +208,8 @@ export default class Person {
         select vhv.highbloodid as id,
                vhv.followupdate as "followDate",
                vhv.followupway as "followWay",
+               vhv.systolicpressure as "systolicPressure",
+               vhv.assertpressure as "assertPressure",
                vhv.doctor,
                vhv.operatetime as "updateAt"
         from view_hypertensionvisit vhv
@@ -219,19 +223,57 @@ export default class Person {
 
   /**
    * 获取糖尿病随访
-   *
+   * followDate: 随访时间
+   * followWay: 随访方式
+   * fastingGlucose: 空腹血糖
+   * postprandialGlucose: 随机血糖
+   * doctor: 随访医生
+   * updateAt: 更新时间
    * @param id 个人id
    */
   async diabetes(id) {
     // language=PostgreSQL
     return etlQuery(
       `
-        select *
+        select
+          vdv.followupdate as "followDate",
+          vdv.followupway as "followWay",
+          vdv.FastingGlucose as "fastingGlucose",
+          vdv.PostprandialGlucose as "postprandialGlucose",
+          vdv.operatetime as "updateAt"
         from view_diabetesvisit vdv
-               inner join view_diabetes vd on vdv.HypertensionCardID = vd.HypertensionCardID
+               inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
         where vd.personnum = ?
         order by vdv.operatetime desc
       `,
+      [id]
+    );
+  }
+
+  /**
+   * 获取体检表
+   * stature: 身高
+   * weight: 体重
+   * temperature: 体温
+   * symptom: 症状
+   * bc_abnormal: B超说明
+   * updateAt: 更新时间
+   * @param id 个人id
+   */
+  async healthy(id) {
+    return etlQuery(
+      `
+        select
+          vh.stature as "stature",
+          vh.weight as "weight",
+          vh.temperature as "temperature",
+          vh.symptom as "symptom",
+          vh.bc_abnormal as "bc_abnormal",
+          vh.operatetime as "updateAt"
+        from view_healthy vh
+        where vh.personnum = ?
+        order by vh.operatetime desc
+       `,
       [id]
     );
   }
