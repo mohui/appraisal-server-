@@ -37,13 +37,13 @@ h1, h2, h3, h4, h5, h6, p, a {
   height: 100%;
   .el-submenu__title {
     padding-left: 20px !important;
-    height: $header-height !important;
-    line-height: $header-height !important;
+    height: $menu-item-height !important;
+    line-height: $menu-item-height !important;
   }
 
   .el-menu-item {
-    height: $header-height !important;
-    line-height: $header-height !important;
+    height: $menu-item-height !important;
+    line-height: $menu-item-height !important;
   }
 }
 
