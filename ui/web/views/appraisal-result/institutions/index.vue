@@ -40,9 +40,9 @@
           v-loading="$asyncComputed.totalServerData.updating"
         >
           <div class="score-detail" v-if="params.listFlag === 'score'">
-            <p class="second-title" style="margin:0; text-align:left;">
+            <div class="second-title" style="text-align:left">
               工分值
-            </p>
+            </div>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
               {{ totalData.score }}
@@ -93,7 +93,9 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            <p class="second-title" style="float: left">历史趋势（待实现）</p>
+            <div class="second-title" style="float: left">
+              历史趋势（待实现）
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -117,9 +119,9 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              <p class="second-title" style="float: left">
+              <div class="second-title" style="float: left">
                 人脸采集信息（待实现）
-              </p>
+              </div>
             </div>
           </el-card>
         </el-col>

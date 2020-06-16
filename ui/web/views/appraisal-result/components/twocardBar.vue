@@ -30,7 +30,7 @@ export default {
             fontWeight: 'bold',
             color: 'rgb(64, 158, 255)'
           },
-          top: '10px',
+          top: '0',
           left: '5px'
         },
         grid: {

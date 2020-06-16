@@ -60,7 +60,9 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            <p class="second-title">历史趋势（待实现）</p>
+            <div class="second-title" style="float: left">
+              历史趋势（待实现）
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -81,7 +83,9 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              <p class="second-title">人脸采集信息（待实现）</p>
+              <div class="second-title" style="float: left">
+                人脸采集信息（待实现）
+              </div>
             </div>
           </el-card>
         </el-col>
