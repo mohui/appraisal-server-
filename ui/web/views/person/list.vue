@@ -348,7 +348,8 @@ export default {
       this.queryForm = {
         name: '',
         hospital: '',
-        idCard: ''
+        idCard: '',
+        tags: []
       };
     }
   }
