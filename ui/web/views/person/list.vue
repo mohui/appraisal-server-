@@ -147,6 +147,9 @@
 <script>
 export default {
   name: 'PersonList',
+  created() {
+    this.initParams(this.$route);
+  },
   data() {
     return {
       pageSize: 50,
@@ -295,6 +298,16 @@ export default {
     queryForm: {
       handler() {
         this.pageNo = 1;
+        const urlTags = JSON.stringify(this.queryForm.tags);
+        let query = {};
+        if (this.queryForm.name) query.name = this.queryForm.name;
+        if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
+        if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
+        if (this.queryForm.tags.length) query.tags = urlTags;
+        else delete query.tags;
+        this.$router.replace({query: query}).catch(err => {
+          err;
+        });
       },
       deep: true
     }
@@ -323,6 +336,12 @@ export default {
     }
   },
   methods: {
+    initParams(route) {
+      if (route.query.name) this.queryForm.name = route.query.name;
+      if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
+      if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
+      if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
+    },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
       if (columnIndex === 0) return 'person-name';
@@ -349,7 +368,8 @@ export default {
       this.queryForm = {
         name: '',
         hospital: '',
-        idCard: ''
+        idCard: '',
+        tags: []
       };
     }
   }
