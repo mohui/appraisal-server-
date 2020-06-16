@@ -119,7 +119,7 @@
           <template slot-scope="scope">
             <el-tag
               v-for="tag of scope.row.tags"
-              :key="tag"
+              :key="tag.label"
               style="margin-right: 5px"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
