@@ -426,7 +426,7 @@
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="160px"
+                width="170px"
                 label="得分"
               >
                 <template slot-scope="scope">
