@@ -227,12 +227,12 @@ export default {
       return this.serverData.rows.map(it => {
         it.tags = [];
         //重点人群
-        if (it.C00 !== null) it.tags.push({label: `普通居民`, type: it?.C00});
-        if (it.C01 !== null) it.tags.push({label: `老年人`, type: it?.C01});
-        if (it.C02 !== null) it.tags.push({label: `高血压`, type: it?.C02});
-        if (it.C03 !== null) it.tags.push({label: `糖尿病`, type: it?.C03});
-        if (it.C04 !== null) it.tags.push({label: `孕产妇`, type: it?.C04});
-        if (it.C05 !== null) it.tags.push({label: `0~6岁儿童`, type: it?.C05});
+        if (it.C00) it.tags.push({label: `普通居民`, type: it?.C00});
+        if (it.C01) it.tags.push({label: `老年人`, type: it?.C01});
+        if (it.C02) it.tags.push({label: `高血压`, type: it?.C02});
+        if (it.C03) it.tags.push({label: `糖尿病`, type: it?.C03});
+        if (it.C04) it.tags.push({label: `孕产妇`, type: it?.C04});
+        if (it.C05) it.tags.push({label: `0~6岁儿童`, type: it?.C05});
         // 健康档案标记
         if (it.S03 !== null)
           it.tags.push({
