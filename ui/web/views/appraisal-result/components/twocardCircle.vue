@@ -12,8 +12,10 @@ export default {
   props: {
     coefficient: Number,
     pointDate: String,
-    subtitle: String,
-    text: String,
+    text: {
+      type: String,
+      default: ''
+    },
     color: {
       type: String,
       default: '#409EFF'
@@ -72,13 +74,13 @@ export default {
             splitLine: {show: false},
             pointer: {show: false},
             title: {
-              offsetCenter: [0, '-4%'],
+              offsetCenter: [0, '-3%'],
               textStyle: {color: this.color, fontSize: '14'}
             },
             detail: {
               show: true,
               formatter: '{value}',
-              offsetCenter: [0, '-35%'],
+              offsetCenter: [0, '-30%'],
               textStyle: {color: this.color, fontSize: '30', fontWeight: '600'}
             },
             data: [
@@ -120,7 +122,7 @@ export default {
     }
   },
   watch: {
-    subtitle: function() {
+    coefficient: function() {
       this.circleChart();
     }
   }

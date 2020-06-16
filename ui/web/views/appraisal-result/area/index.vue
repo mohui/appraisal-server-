@@ -46,12 +46,8 @@
             <two-card-circle
               :coefficient="totalData.fixedDecimalRate"
               :pointDate="date"
-              :subtitle="totalData.name"
-              :text="totalData.name"
             ></two-card-circle>
-            <span
-              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
-            >
+            <span style="position: absolute; bottom: 20px; left: 31%;">
               (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
