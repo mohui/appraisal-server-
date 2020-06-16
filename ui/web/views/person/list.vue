@@ -333,7 +333,8 @@ export default {
         return this.$router.push({
           name: 'patient',
           query: {
-            id: row.id
+            id: row.id,
+            tags: JSON.stringify(row.tags)
           }
         });
     },

@@ -27,7 +27,16 @@
       <div class="patient-tag-header">
         <span>居民标签</span>
       </div>
-      <div class="patient-tag-body"></div>
+      <div class="patient-tag-body">
+        <el-tag
+          v-for="tag of tags"
+          :key="tag.label"
+          style="margin-right: 5px"
+          size="mini"
+          :type="tag.type ? 'primary' : 'danger'"
+          >{{ tag.label }}
+        </el-tag>
+      </div>
     </div>
   </el-card>
 </template>
@@ -58,6 +67,9 @@ export default {
           fileDate: '' //建档日期
         };
       }
+    },
+    tags: {
+      type: Array
     }
   }
 };
