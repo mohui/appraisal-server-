@@ -13,7 +13,11 @@ export default {
     coefficient: Number,
     pointDate: String,
     subtitle: String,
-    text: String
+    text: String,
+    color: {
+      type: String,
+      default: '#409EFF'
+    }
   },
   data() {
     return {
@@ -22,9 +26,9 @@ export default {
           show: true,
           text: '质量系数(%)',
           textStyle: {
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 'bolder',
-            color: '#1096d0'
+            color: this.color
           },
           top: 0,
           left: '5px'
@@ -69,13 +73,13 @@ export default {
             pointer: {show: false},
             title: {
               offsetCenter: [0, '-4%'],
-              textStyle: {color: '#23a9e6', fontSize: '14'}
+              textStyle: {color: this.color, fontSize: '14'}
             },
             detail: {
               show: true,
               formatter: '{value}',
               offsetCenter: [0, '-35%'],
-              textStyle: {color: '#23a9e6', fontSize: '30', fontWeight: '600'}
+              textStyle: {color: this.color, fontSize: '30', fontWeight: '600'}
             },
             data: [
               {
@@ -95,11 +99,11 @@ export default {
     circleChart() {
       this.chart.series[0].axisLine.lineStyle.color = this.coefficient
         ? [
-            [this.coefficient / 100, '#23a9e6'],
+            [this.coefficient / 100, this.color],
             [1, '#f6f7fa']
           ]
         : [
-            [0, '#23a9e6'],
+            [0, this.color],
             [1, '#f6f7fa']
           ];
       this.chart.series[0].data[0].value = this.coefficient

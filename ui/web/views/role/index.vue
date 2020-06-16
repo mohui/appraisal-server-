@@ -419,9 +419,10 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import '../../styles/vars.scss';
 .el-table .el-table__row .cell a {
-  color: #409eff;
+  color: $color-primary;
   cursor: pointer;
 }
 </style>

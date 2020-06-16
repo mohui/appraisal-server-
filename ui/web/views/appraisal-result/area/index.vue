@@ -261,14 +261,15 @@ export default {
   }
 };
 </script>
-
 <style scoped lang="scss">
+@import '../../../styles/vars';
+
 .header-box-card {
   width: auto;
 
   .header-title {
     font: bold 20px/2 Arial;
-    color: #0090dc;
+    color: $color-primary;
   }
   .kpiSum-select {
     width: 100%;
@@ -281,6 +282,6 @@ export default {
   height: 300px;
   text-align: center;
   box-sizing: border-box;
-  color: #1096d0;
+  color: $color-primary;
 }
 </style>

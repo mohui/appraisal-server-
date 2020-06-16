@@ -1232,9 +1232,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import '../../../styles/vars';
+
 .header-title {
   font: bold 20px/2 Arial;
-  color: #0090dc;
+  color: $color-primary;
 }
 
 .kpiSum-select {
@@ -1252,7 +1254,7 @@ export default {
   height: 300px;
   text-align: center;
   box-sizing: border-box;
-  color: #1096d0;
+  color: $color-primary;
 }
 
 .pointer {
@@ -1261,7 +1263,7 @@ export default {
 
 .ins-ranking-title {
   margin: 0;
-  color: #1096d0;
+  color: $color-primary;
   font-size: 20px;
 }
 
@@ -1283,7 +1285,7 @@ export default {
   padding-top: 20px;
 
   .appraisal-indicators-rule-title {
-    color: #1a95d7;
+    color: $color-primary;
     font-size: 20px;
     margin-top: 0;
     margin-bottom: 20px;
