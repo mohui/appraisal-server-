@@ -6,8 +6,7 @@
         {{ totalData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
-        <span style="margin-left:20px; font-size: 17px">纬度：</span>
-        <el-button-group style="">
+        <el-button-group style="margin-left:20px">
           <el-button
             :class="{'el-button--primary': params.listFlag === 'quality'}"
             @click="latTypeChanged('quality')"
