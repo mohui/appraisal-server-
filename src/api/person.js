@@ -22,6 +22,21 @@ function listRender(params) {
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        {{#compare S03}} and mp."S03"={{? S03}}{{/compare}}
+        {{#compare S23}} and mp."S23"={{? S23}}{{/compare}}
+        {{#compare O00}} and mp."O00"={{? O00}}{{/compare}}
+        {{#compare O01}} and mp."O01"={{? O01}}{{/compare}}
+        {{#compare O02}} and mp."O02"={{? O02}}{{/compare}}
+        {{#compare H01}} and mp."H01"={{? H01}}{{/compare}}
+        {{#compare H02}} and mp."H02"={{? H02}}{{/compare}}
+        {{#compare D01}} and mp."D01"={{? D01}}{{/compare}}
+        {{#compare D02}} and mp."D02"={{? D02}}{{/compare}}
+        {{#compare C01}} and mp."C01"={{? C01}}{{/compare}}
+        {{#compare C02}} and mp."C02"={{? C02}}{{/compare}}
+        {{#compare C03}} and mp."C03"={{? C03}}{{/compare}}
+        {{#compare C04}} and mp."C04"={{? C04}}{{/compare}}
+        {{#compare C05}} and mp."C05"={{? C05}}{{/compare}}
+        {{#compare C00}} and mp."C00"={{? C00}}{{/compare}}
     `,
     params
   );
@@ -29,7 +44,7 @@ function listRender(params) {
 
 export default class Person {
   async list(params) {
-    const {pageSize, pageNo, hospital, idCard} = params;
+    const {pageSize, pageNo, hospital, idCard, tags} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
@@ -53,7 +68,7 @@ export default class Person {
         (result, current) => [...result, ...current.map(it => it.id)],
         []
       );
-    const sqlRenderResult = listRender({his, name, hospitals, idCard});
+    const sqlRenderResult = listRender({his, name, hospitals, idCard, ...tags});
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
@@ -75,6 +90,12 @@ export default class Person {
                 mp."D00",
                 mp."D01",
                 mp."D02",
+                mp."C01",
+                mp."C02",
+                mp."C03",
+                mp."C04",
+                mp."C05",
+                mp."C00",
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
