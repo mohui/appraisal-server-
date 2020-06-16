@@ -1,12 +1,18 @@
 <template>
   <div style="height: 100%; display: flex; flex-direction: column">
-    <el-button style="width: 100px" type="primary" @click="handleAddRole"
-      >新增角色</el-button
-    >
+    <div>
+      <el-button
+        style=" float: right; margin: 0px 0 0 20px;"
+        size="small"
+        type="primary"
+        @click="handleAddRole"
+        >新增角色</el-button
+      >
+    </div>
     <el-table
       :data="tableData"
       v-loading="$asyncComputed.serverData.updating"
-      style="width: 100%; margin-top:30px; flex-grow: 1 "
+      style="width: 100%; margin-top:20px; flex-grow: 1 "
       height="100%"
       border
     >
@@ -40,12 +46,12 @@
       </el-table-column>
       <el-table-column align="center" width="250" label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope)"
+          <el-button type="primary" size="mini" @click="handleEdit(scope)"
             >编辑
           </el-button>
           <el-button
             type="danger"
-            size="small"
+            size="mini"
             @click="handleDelete(scope.row.id)"
             >删除
           </el-button>

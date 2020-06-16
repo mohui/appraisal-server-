@@ -14,7 +14,8 @@
         <span>规则列表</span>
         <el-button
           v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
-          style="float: right;margin: -9px;"
+          style="float: right;margin: -4px 0 0 20px;"
+          size="small"
           type="primary"
           @click="openAddCheckDialog"
           >新建规则
@@ -86,7 +87,7 @@
                 type: 'disabled'
               }"
               type="primary"
-              size="small"
+              size="mini"
               @click.stop="openEditCheckDialog(scope.row)"
             >
               修改
@@ -98,7 +99,7 @@
                 type: 'disabled'
               }"
               type="warning"
-              size="small"
+              size="mini"
               @click.stop="openCloneCheckDialog(scope.row)"
             >
               快速复制
@@ -111,7 +112,7 @@
             <!--              }"-->
             <!--              v-show="scope.row.status"-->
             <!--              type="info"-->
-            <!--              size="small"-->
+            <!--              size="mini"-->
             <!--              @click.stop="openUploadCheckDialog(scope.row)"-->
             <!--            >-->
             <!--              批量导入细则-->
@@ -123,7 +124,7 @@
                 type: 'disabled'
               }"
               type="danger"
-              size="small"
+              size="mini"
               @click.stop="delCheck(scope)"
             >
               删除
@@ -136,7 +137,7 @@
               }"
               v-show="scope.row.isOpen"
               type="success"
-              size="small"
+              size="mini"
               @click.stop="openCheck(scope.row)"
             >
               全部开启打分
@@ -148,7 +149,7 @@
                 type: 'disabled'
               }"
               v-show="scope.row.isClose"
-              size="small"
+              size="mini"
               @click.stop="closeCheck(scope.row)"
             >
               全部关闭打分
