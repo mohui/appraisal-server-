@@ -6,15 +6,16 @@
         {{ totalData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
-        <span style="margin-left:20px; font-size: 17px">纬度：</span>
-        <el-button-group style="">
+        <el-button-group style="margin-left: 20px">
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'quality'}"
             @click="latTypeChanged('quality')"
           >
             质量系数
           </el-button>
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'score'}"
             @click="latTypeChanged('score')"
           >
@@ -27,7 +28,7 @@
       <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
         <el-card shadow="hover">
           <div class="score-detail" v-if="params.listFlag === 'score'">
-            <p style="font-size:22px; margin:0; text-align:left;">
+            <p class="second-title" style="margin:0; text-align:left;">
               工分值
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
@@ -45,12 +46,8 @@
             <two-card-circle
               :coefficient="totalData.fixedDecimalRate"
               :pointDate="date"
-              :subtitle="totalData.name"
-              :text="totalData.name"
             ></two-card-circle>
-            <span
-              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
-            >
+            <span style="position: absolute; bottom: 20px; left: 31%;">
               (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
@@ -59,7 +56,9 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            历史趋势（待实现）
+            <div class="second-title" style="float: left">
+              历史趋势（待实现）
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -80,7 +79,9 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              人脸采集信息（待实现）
+              <div class="second-title" style="float: left">
+                人脸采集信息（待实现）
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -91,7 +92,7 @@
         shadow="hover"
         v-loading="$asyncComputed.areaRankServerData.updating"
       >
-        <h3 class="ins-ranking-title">下级地区排行</h3>
+        <h3 class="area-ranking-title">下级地区排行</h3>
         <div v-for="(item, index) of areaRankData" :key="item.id">
           <!--下级质量系数排行-->
           <div
@@ -260,14 +261,19 @@ export default {
   }
 };
 </script>
-
 <style scoped lang="scss">
+@import '../../../styles/vars';
+
+.second-title {
+  font-size: 18px;
+  font-weight: bold;
+}
 .header-box-card {
   width: auto;
 
   .header-title {
     font: bold 20px/2 Arial;
-    color: #0090dc;
+    color: $color-primary;
   }
   .kpiSum-select {
     width: 100%;
@@ -280,6 +286,13 @@ export default {
   height: 300px;
   text-align: center;
   box-sizing: border-box;
-  color: #1096d0;
+  color: $color-primary;
+}
+
+.area-ranking-title {
+  margin: 0;
+  color: $color-primary;
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>

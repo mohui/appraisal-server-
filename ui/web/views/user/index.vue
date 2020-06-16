@@ -14,7 +14,8 @@
         <span>用户列表</span>
         <el-button
           v-if="$settings.permissions.includes(permission.USER_ADD)"
-          style="float: right;margin: -9px;"
+          style="float: right;margin: -4px 0 0 20px;"
+          size="small"
           type="primary"
           @click="openAddUserDialog"
           >新建用户
@@ -117,7 +118,7 @@
             <el-button
               v-if="$settings.permissions.includes(permission.USER_UPDATE)"
               type="primary"
-              size="small"
+              size="mini"
               @click="editUser(scope)"
             >
               修改
@@ -128,7 +129,7 @@
                 type: 'disabled'
               }"
               type="danger"
-              size="small"
+              size="mini"
               @click="delUser(scope)"
             >
               删除

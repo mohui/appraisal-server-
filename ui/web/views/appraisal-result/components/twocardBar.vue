@@ -26,11 +26,11 @@ export default {
           show: true,
           text: '工分值信息',
           textStyle: {
-            fontSize: 20,
-            fontWeight: 'bolder',
+            fontSize: 18,
+            fontWeight: 'bold',
             color: 'rgb(64, 158, 255)'
           },
-          top: '10px',
+          top: '0',
           left: '5px'
         },
         grid: {

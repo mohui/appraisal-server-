@@ -6,16 +6,16 @@
         {{ totalData.name }}两卡制管理
       </div>
       <div class="kpiSum-select">
-        <span style="margin-left:20px; font-size: 17px">纬度：</span>
-        <el-button-group style="">
+        <el-button-group style="margin-left:20px">
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'quality'}"
             @click="latTypeChanged('quality')"
           >
             质量系数
           </el-button>
           <el-button
-            type="default"
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'score'}"
             @click="latTypeChanged('score')"
           >
@@ -23,8 +23,9 @@
           </el-button>
         </el-button-group>
         <el-button
+          size="small"
           plain
-          style="float:right; margin: 0 30px;"
+          style="float:right; margin: 4px 0 0 30px"
           type="primary"
           @click="handleBack"
           v-if="showBackButton()"
@@ -39,9 +40,9 @@
           v-loading="$asyncComputed.totalServerData.updating"
         >
           <div class="score-detail" v-if="params.listFlag === 'score'">
-            <p style="font-size:22px; margin:0; text-align:left;">
+            <div class="second-title" style="text-align:left">
               工分值
-            </p>
+            </div>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
             <h3 style="font-size: 30px; margin:0; display:inline-block">
               {{ totalData.score }}
@@ -78,12 +79,8 @@
             <two-card-circle
               :coefficient="totalData.fixedDecimalRate"
               :pointDate="date"
-              :subtitle="totalData.name"
-              :text="totalData.name"
             ></two-card-circle>
-            <span
-              style="bottom: 20px;position: absolute;left: 50%;margin-left: -90px;"
-            >
+            <span style="position: absolute; bottom: 20px; left: 31%;">
               (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
             </span>
           </div>
@@ -92,7 +89,9 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            历史趋势（待实现）
+            <div class="second-title" style="float: left">
+              历史趋势（待实现）
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -116,7 +115,9 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              人脸采集信息（待实现）
+              <div class="second-title" style="float: left">
+                人脸采集信息（待实现）
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -339,7 +340,7 @@
               >
               <el-button
                 style="margin-left: 30px;"
-                size="small"
+                size="mini"
                 plain
                 type="primary"
                 @click="handleAppraisalResultsDownload()"
@@ -425,7 +426,7 @@
                 prop="score"
                 :formatter="fixedDecimal"
                 align="center"
-                width="160px"
+                width="170px"
                 label="得分"
               >
                 <template slot-scope="scope">
@@ -469,7 +470,7 @@
                     v-if="scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleSaveScore(scope.row)"
                     :loading="scope.row.isSaveScoreLoaing"
                     >保存
@@ -478,7 +479,7 @@
                     v-if="!scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleScore(scope.row)"
                     >打分
                   </el-button>
@@ -486,7 +487,7 @@
                     v-if="scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="cancelScore(scope.row)"
                     >取消
                   </el-button>
@@ -498,7 +499,7 @@
                     v-if="scope.row.isAttach"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleUploadAppraisalFile(scope.row)"
                     >上传考核资料
                   </el-button>
@@ -1231,9 +1232,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import '../../../styles/vars';
+
+.second-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .header-title {
   font: bold 20px/2 Arial;
-  color: #0090dc;
+  color: $color-primary;
 }
 
 .kpiSum-select {
@@ -1251,7 +1259,7 @@ export default {
   height: 300px;
   text-align: center;
   box-sizing: border-box;
-  color: #1096d0;
+  color: $color-primary;
 }
 
 .pointer {
@@ -1260,8 +1268,9 @@ export default {
 
 .ins-ranking-title {
   margin: 0;
-  color: #1096d0;
-  font-size: 20px;
+  color: $color-primary;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .show-more {
@@ -1282,7 +1291,7 @@ export default {
   padding-top: 20px;
 
   .appraisal-indicators-rule-title {
-    color: #1a95d7;
+    color: $color-primary;
     font-size: 20px;
     margin-top: 0;
     margin-bottom: 20px;
