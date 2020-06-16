@@ -33,6 +33,8 @@ import {Context} from './context';
  */
 function percentString(numerator: number, denominator: number): string {
   if (denominator) {
+    const rate = numerator / denominator;
+    if (rate > 1) return '100%';
     return ((numerator / denominator) * 100).toFixed(0) + '%';
   } else {
     return '0';
