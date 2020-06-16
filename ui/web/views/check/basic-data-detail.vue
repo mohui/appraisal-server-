@@ -153,10 +153,58 @@
           plain
           type="primary"
           @click="dataImport"
-          :loading="uploadLoading"
+          :loading="importLoading"
         >
           确 定
         </el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="批量导入结果"
+      width="50%"
+      :visible.sync="errorResultVisible"
+    >
+      <div style="display: flex;flex-direction: column">
+        <span style="color:red">
+          以下信息是导入出错的数据,请再检查一下数据,若还有疑问请将错误信息反馈给开发人员
+        </span>
+        <el-table
+          :data="errorTable"
+          stripe
+          style="width: 100%;flex-grow: 1"
+          size="mini"
+          border
+        >
+          <el-table-column
+            fixed
+            label="序号"
+            type="index"
+            min-width="50"
+            align="center"
+          >
+          </el-table-column>
+          <el-table-column
+            min-width="120"
+            label="机构id"
+            prop="hospitalId"
+            align="center"
+          >
+          </el-table-column>
+          <el-table-column
+            min-width="80"
+            label="基础数据code"
+            prop="code"
+            align="center"
+          >
+          </el-table-column>
+          <el-table-column
+            min-width="150"
+            label="错误信息"
+            prop="error"
+            align="center"
+          >
+          </el-table-column>
+        </el-table>
       </div>
     </el-dialog>
   </div>
@@ -179,7 +227,10 @@ export default {
       standardName: '',
       listData: [],
       curTag: [],
-      curCode: ''
+      curCode: '',
+      errorTable: [],
+      errorResultVisible: false,
+      importLoading: false
     };
   },
   async created() {
@@ -192,15 +243,10 @@ export default {
     await this.getLists(code);
     this.isLoading = false;
   },
-  computed: {
-    uploadLoading() {
-      return this.progress > 0 && this.progress < 100;
-    }
-  },
   methods: {
     async dataImport() {
+      this.importLoading = true;
       await this.$refs.uploadForm.submit();
-      this.dialogImportVisible = false;
     },
     handleClose() {
       this.fileList = [];
@@ -228,15 +274,21 @@ export default {
     handleProgress(event) {
       this.progress = Number(event.percent.toFixed(2));
     },
-    uploadSuccess() {
+    uploadSuccess(result) {
       try {
-        this.$message({
-          type: 'success',
-          message: '批量导入数据成功'
-        });
+        this.errorTable = result.filter(item => item.error);
+        if (this.errorTable.length === 0)
+          this.$message({
+            type: 'success',
+            message: '批量导入数据成功'
+          });
+        else this.errorResultVisible = true;
         this.getLists(this.curCode);
       } catch (e) {
         this.$message.error(e.message);
+      } finally {
+        this.importLoading = false;
+        this.dialogImportVisible = false;
       }
       this.fileList = [];
     },
