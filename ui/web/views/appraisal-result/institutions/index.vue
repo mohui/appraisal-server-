@@ -40,7 +40,7 @@
           v-loading="$asyncComputed.totalServerData.updating"
         >
           <div class="score-detail" v-if="params.listFlag === 'score'">
-            <p style="font-size:22px; margin:0; text-align:left;">
+            <p class="second-title" style="margin:0; text-align:left;">
               工分值
             </p>
             <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
@@ -93,7 +93,7 @@
       <el-col :span="16" v-if="params.listFlag === 'quality'">
         <el-card shadow="hover">
           <div class="score-detail">
-            历史趋势（待实现）
+            <p class="second-title" style="float: left">历史趋势（待实现）</p>
           </div>
         </el-card>
       </el-col>
@@ -117,7 +117,9 @@
         <el-col :span="6">
           <el-card shadow="hover">
             <div class="score-detail">
-              人脸采集信息（待实现）
+              <p class="second-title" style="float: left">
+                人脸采集信息（待实现）
+              </p>
             </div>
           </el-card>
         </el-col>
@@ -1234,6 +1236,11 @@ export default {
 <style scoped lang="scss">
 @import '../../../styles/vars';
 
+.second-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .header-title {
   font: bold 20px/2 Arial;
   color: $color-primary;
@@ -1264,7 +1271,8 @@ export default {
 .ins-ranking-title {
   margin: 0;
   color: $color-primary;
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .show-more {
