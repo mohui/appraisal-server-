@@ -22,15 +22,15 @@ function listRender(params) {
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
-        {{#if S03}} and mp.S03={{? S03}}{{/if}}
-        {{#if S23}} and mp.S23={{? S23}}{{/if}}
-        {{#if O00}} and mp.O00={{? O00}}{{/if}}
-        {{#if O01}} and mp.O01={{? O01}}{{/if}}
-        {{#if O02}} and mp.O02={{? O02}}{{/if}}
-        {{#if H01}} and mp.H01={{? H01}}{{/if}}
-        {{#if H02}} and mp.H02={{? H02}}{{/if}}
-        {{#if D01}} and mp.D01={{? D01}}{{/if}}
-        {{#if D02}} and mp.D02={{? D02}}{{/if}}
+        {{#compare S03}} and mp."S03"={{? S03}}{{/compare}}
+        {{#compare S23}} and mp."S23"={{? S23}}{{/compare}}
+        {{#compare O00}} and mp."O00"={{? O00}}{{/compare}}
+        {{#compare O01}} and mp."O01"={{? O01}}{{/compare}}
+        {{#compare O02}} and mp."O02"={{? O02}}{{/compare}}
+        {{#compare H01}} and mp."H01"={{? H01}}{{/compare}}
+        {{#compare H02}} and mp."H02"={{? H02}}{{/compare}}
+        {{#compare D01}} and mp."D01"={{? D01}}{{/compare}}
+        {{#compare D02}} and mp."D02"={{? D02}}{{/compare}}
     `,
     params
   );
