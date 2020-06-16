@@ -119,7 +119,7 @@
           <template slot-scope="scope">
             <el-tag
               v-for="tag of scope.row.tags"
-              :key="tag"
+              :key="tag.label"
               style="margin-right: 5px"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
@@ -160,6 +160,30 @@ export default {
       },
       tagList: [
         {
+          id: 'C00',
+          name: '普通居民'
+        },
+        {
+          id: 'C01',
+          name: '老年人'
+        },
+        {
+          id: 'C02',
+          name: '高血压'
+        },
+        {
+          id: 'C03',
+          name: '糖尿病'
+        },
+        {
+          id: 'C04',
+          name: '孕产妇'
+        },
+        {
+          id: 'C05',
+          name: '0~6岁儿童'
+        },
+        {
           id: 'S03',
           name: '非动态使用'
         },
@@ -194,30 +218,6 @@ export default {
         {
           id: 'D02',
           name: '糖尿病未控制'
-        },
-        {
-          id: 'C00',
-          name: '普通居民'
-        },
-        {
-          id: 'C01',
-          name: '老年人'
-        },
-        {
-          id: 'C02',
-          name: '高血压'
-        },
-        {
-          id: 'C03',
-          name: '糖尿病'
-        },
-        {
-          id: 'C04',
-          name: '孕产妇'
-        },
-        {
-          id: 'C05',
-          name: '0~6岁儿童'
         }
       ]
     };
@@ -226,6 +226,13 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         it.tags = [];
+        //重点人群
+        if (it.C00) it.tags.push({label: `普通居民`, type: it?.C00});
+        if (it.C01) it.tags.push({label: `老年人`, type: it?.C01});
+        if (it.C02) it.tags.push({label: `高血压`, type: it?.C02});
+        if (it.C03) it.tags.push({label: `糖尿病`, type: it?.C03});
+        if (it.C04) it.tags.push({label: `孕产妇`, type: it?.C04});
+        if (it.C05) it.tags.push({label: `0~6岁儿童`, type: it?.C05});
         // 健康档案标记
         if (it.S03 !== null)
           it.tags.push({
@@ -276,13 +283,6 @@ export default {
             label: `糖尿病${it?.D02 ? '已' : '未'}控制`,
             type: it?.D02
           });
-        //重点人群
-        if (it.C00 !== null) it.tags.push({label: `普通居民`, type: it?.C00});
-        if (it.C01 !== null) it.tags.push({label: `老年人`, type: it?.C01});
-        if (it.C02 !== null) it.tags.push({label: `高血压`, type: it?.C02});
-        if (it.C03 !== null) it.tags.push({label: `糖尿病`, type: it?.C03});
-        if (it.C04 !== null) it.tags.push({label: `孕产妇`, type: it?.C04});
-        if (it.C05 !== null) it.tags.push({label: `0~6岁儿童`, type: it?.C05});
         it.idCardfFormat = it.idCard.replace(
           /^(.{10})(?:\d+)(.{2})$/,
           '$1******$2'
