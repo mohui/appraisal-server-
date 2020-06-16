@@ -8,13 +8,14 @@
       <div class="kpiSum-select">
         <el-button-group style="margin-left:20px">
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'quality'}"
             @click="latTypeChanged('quality')"
           >
             质量系数
           </el-button>
           <el-button
-            type="default"
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'score'}"
             @click="latTypeChanged('score')"
           >
@@ -22,8 +23,9 @@
           </el-button>
         </el-button-group>
         <el-button
+          size="small"
           plain
-          style="float:right; margin: 0 30px;"
+          style="float:right; margin: 4px 0 0 30px"
           type="primary"
           @click="handleBack"
           v-if="showBackButton()"
@@ -338,7 +340,7 @@
               >
               <el-button
                 style="margin-left: 30px;"
-                size="small"
+                size="mini"
                 plain
                 type="primary"
                 @click="handleAppraisalResultsDownload()"
@@ -468,7 +470,7 @@
                     v-if="scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleSaveScore(scope.row)"
                     :loading="scope.row.isSaveScoreLoaing"
                     >保存
@@ -477,7 +479,7 @@
                     v-if="!scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleScore(scope.row)"
                     >打分
                   </el-button>
@@ -485,7 +487,7 @@
                     v-if="scope.row.isGradeScore"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="cancelScore(scope.row)"
                     >取消
                   </el-button>
@@ -497,7 +499,7 @@
                     v-if="scope.row.isAttach"
                     plain
                     type="primary"
-                    size="small"
+                    size="mini"
                     @click="handleUploadAppraisalFile(scope.row)"
                     >上传考核资料
                   </el-button>

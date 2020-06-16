@@ -8,12 +8,14 @@
       <div class="kpiSum-select">
         <el-button-group style="margin-left: 20px">
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'quality'}"
             @click="latTypeChanged('quality')"
           >
             质量系数
           </el-button>
           <el-button
+            size="small"
             :class="{'el-button--primary': params.listFlag === 'score'}"
             @click="latTypeChanged('score')"
           >
