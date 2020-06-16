@@ -101,13 +101,24 @@
         height="100%"
         style="flex-grow: 1;"
       >
-        <el-table-column prop="name" label="姓名"> </el-table-column>
-        <el-table-column prop="idCardfFormat" label="身份证"></el-table-column>
-        <el-table-column prop="hospitalName" label="管理机构"></el-table-column>
-        <el-table-column label="标记">
+        <el-table-column prop="name" label="姓名" min-width="50" align="center">
+        </el-table-column>
+        <el-table-column
+          prop="idCardfFormat"
+          label="身份证"
+          min-width="80"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="hospitalName"
+          label="管理机构"
+          min-width="100"
+          align="center"
+        ></el-table-column>
+        <el-table-column label="标记" min-width="400" align="center">
           <template slot-scope="scope">
             <el-tag
-              style="margin-right: 10px"
+              style="margin-right: 5px"
               size="mini"
               :key="tag"
               v-for="tag of scope.row.tags"
@@ -194,21 +205,20 @@ export default {
         if (it.S03 !== null) it.tags.push(`${it?.S03 ? '' : '非'}动态使用`);
         if (it.S23 !== null) it.tags.push(`档案${it?.S23 ? '' : '不'}规范`);
         // 老年人标记
-        if (it.O01 !== null || it.O02 !== null) {
+        if (it.O00 !== null)
           it.tags.push(`老年人健康管理${it?.O00 ? '' : '不'}规范`);
+        if (it.O01 !== null)
           it.tags.push(`老年人体检${it?.O01 ? '' : '不'}完整`);
+        if (it.O02 !== null)
           it.tags.push(`${it?.O02 ? '' : '无'}老年人中医药管理`);
-        }
         // 高血压标记
-        if (it.H01 !== null || it.H02 !== null) {
+        if (it.H01 !== null)
           it.tags.push(`高血压管理${it?.H01 ? '' : '不'}规范`);
-          it.tags.push(`高血压${it?.H02 ? '已' : '未'}控制`);
-        }
+        if (it.H02 !== null) it.tags.push(`高血压${it?.H02 ? '已' : '未'}控制`);
         // 糖尿病标记
-        if (it.D01 !== null || it.D02 !== null) {
+        if (it.D01 !== null)
           it.tags.push(`糖尿病管理${it?.D01 ? '' : '不'}规范`);
-          it.tags.push(`糖尿病${it?.D02 ? '已' : '未'}控制`);
-        }
+        if (it.D02 !== null) it.tags.push(`糖尿病${it?.D02 ? '已' : '未'}控制`);
         it.idCardfFormat = it.idCard.replace(
           /^(.{10})(?:\d+)(.{2})$/,
           '$1******$2'
@@ -234,11 +244,10 @@ export default {
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
           hospital: this.queryForm.hospital,
-          tags: this.queryForm.tags.map(tag => {
-            let obj = {};
-            obj[tag] = false;
-            return obj;
-          })
+          tags: this.queryForm.tags.reduce((res, next) => {
+            res[`${next}`] = false;
+            return res;
+          }, {})
         });
       },
       default() {
