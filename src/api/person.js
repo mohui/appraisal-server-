@@ -96,6 +96,15 @@ export default class Person {
                 mp."C04",
                 mp."C05",
                 mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
