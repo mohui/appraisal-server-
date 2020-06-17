@@ -243,12 +243,15 @@ export default {
       handler() {
         this.pageNo = 1;
         const urlTags = JSON.stringify(this.queryForm.tags);
+        const urlPersonTags = JSON.stringify(this.queryForm.personTags);
         let query = {};
         if (this.queryForm.name) query.name = this.queryForm.name;
         if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
+        if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
+        else delete query.urlPersonTags;
         this.$router.replace({query: query}).catch(err => {
           err;
         });
@@ -287,6 +290,8 @@ export default {
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
+      if (route.query.personTags)
+        this.queryForm.personTags = JSON.parse(route.query.personTags);
     },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
