@@ -315,7 +315,8 @@ export default {
         name: '',
         hospital: '',
         idCard: '',
-        tags: []
+        tags: [],
+        personTags: []
       };
     }
   }
