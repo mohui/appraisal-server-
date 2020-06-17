@@ -1,144 +1,158 @@
 <template>
-  <div style="height: 100%; display: flex; flex-direction: column">
-    <div>
-      <el-button
-        style=" float: right; margin: 0px 0 0 20px;"
-        size="small"
-        type="primary"
-        @click="handleAddRole"
-        >新增角色</el-button
-      >
-    </div>
-    <el-table
-      :data="tableData"
-      v-loading="$asyncComputed.serverData.updating"
-      style="width: 100%; margin-top:20px; flex-grow: 1 "
-      height="100%"
-      border
+  <div style="height: 100%">
+    <el-card
+      class="box-card"
+      style="height: 100%;"
+      shadow="never"
+      :body-style="{
+        height: 'calc(100% - 110px)',
+        display: 'flex',
+        'flex-direction': 'column'
+      }"
     >
-      <el-table-column align="center" fixed width="80" label="序号">
-        <template slot-scope="scope">
-          {{ scope.$index + 1 }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        v-for="(it, index) of tableFields"
-        :key="index"
-        :prop="it.prop"
-        :label="it.label"
-        :min-width="it.width"
-        align="center"
+      <div slot="header" class="clearfix">
+        <span>角色列表</span>
+        <el-button
+          style=" float: right; margin: -5px 0 0 20px;"
+          size="small"
+          type="primary"
+          @click="handleAddRole"
+          >新增角色</el-button
+        >
+      </div>
+      <el-table
+        :data="tableData"
+        v-loading="$asyncComputed.serverData.updating"
+        style="width: 100%; flex-grow: 1 "
+        height="100%"
+        border
       >
-        <template slot-scope="scope">
-          <div v-if="scope.column.property === 'users'">
-            {{ scope.row[it.prop].length }}
-          </div>
-          <a
-            v-else-if="scope.column.property === 'permissions'"
-            @click="
-              (dialogPermissionsListTableViewVisible = true), (role = scope.row)
-            "
-          >
-            {{ scope.row[it.prop].length }}
-          </a>
-          <div v-else>{{ scope.row[it.prop] }}</div>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" width="250" label="操作">
-        <template slot-scope="scope">
-          <el-button type="primary" size="mini" @click="handleEdit(scope)"
-            >编辑
-          </el-button>
-          <el-button
-            type="danger"
-            size="mini"
-            @click="handleDelete(scope.row.id)"
-            >删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      background
-      :current-page="pageNo"
-      :page-sizes="[10, 20, 30, 50, 100]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="serverData.count"
-      @size-change="
-        size => {
-          pageSize = size;
-          pageNo = 1;
-        }
-      "
-      @current-change="
-        no => {
-          pageNo = no;
-        }
-      "
-    >
-    </el-pagination>
-    <el-dialog
-      title="拥有的权限"
-      :visible.sync="dialogPermissionsListTableViewVisible"
-    >
-      <el-tag
-        style="margin: 8px 10px"
-        type=""
-        v-for="(item, index) in role.permissions"
-        :key="item.key"
-      >
-        {{ index + 1 }}. {{ item.name }}
-      </el-tag>
-    </el-dialog>
-    <el-dialog
-      :visible.sync="dialogVisible"
-      :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
-    >
-      <el-form
-        ref="ruleForm"
-        :model="role"
-        :rules="rules"
-        label-width="80px"
-        label-position="left"
-      >
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="role.name" placeholder="角色名称" />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input
-            v-model="role.description"
-            :autosize="{minRows: 2, maxRows: 4}"
-            type="textarea"
-            placeholder="角色描述"
-          />
-        </el-form-item>
-        <el-form-item label="权限">
-          <el-tree
-            ref="tree"
-            :check-strictly="checkStrictly"
-            :data="permissionsList"
-            :props="defaultProps"
-            show-checkbox
-            node-key="key"
-          />
-        </el-form-item>
-        <el-form-item>
-          <div style="text-align:right;">
-            <el-button type="danger" @click="dialogVisible = false"
-              >取消
+        <el-table-column align="center" fixed width="80" label="序号">
+          <template slot-scope="scope">
+            {{ scope.$index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-for="(it, index) of tableFields"
+          :key="index"
+          :prop="it.prop"
+          :label="it.label"
+          :min-width="it.width"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <div v-if="scope.column.property === 'users'">
+              {{ scope.row[it.prop].length }}
+            </div>
+            <a
+              v-else-if="scope.column.property === 'permissions'"
+              @click="
+                (dialogPermissionsListTableViewVisible = true),
+                  (role = scope.row)
+              "
+            >
+              {{ scope.row[it.prop].length }}
+            </a>
+            <div v-else>{{ scope.row[it.prop] }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" width="250" label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click="handleEdit(scope)"
+              >编辑
             </el-button>
             <el-button
-              type="primary"
-              :loading="submitting"
-              @click="submitForm('ruleForm')"
-            >
-              {{ submitting ? '提交中...' : '确定' }}
+              type="danger"
+              size="mini"
+              @click="handleDelete(scope.row.id)"
+              >删除
             </el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        background
+        :current-page="pageNo"
+        :page-sizes="[10, 20, 30, 50, 100]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        style="margin:10px 0 -20px 0;"
+        :total="serverData.count"
+        @size-change="
+          size => {
+            pageSize = size;
+            pageNo = 1;
+          }
+        "
+        @current-change="
+          no => {
+            pageNo = no;
+          }
+        "
+      >
+      </el-pagination>
+      <el-dialog
+        title="拥有的权限"
+        :visible.sync="dialogPermissionsListTableViewVisible"
+      >
+        <el-tag
+          style="margin: 8px 10px"
+          type=""
+          v-for="(item, index) in role.permissions"
+          :key="item.key"
+        >
+          {{ index + 1 }}. {{ item.name }}
+        </el-tag>
+      </el-dialog>
+      <el-dialog
+        :visible.sync="dialogVisible"
+        :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
+      >
+        <el-form
+          ref="ruleForm"
+          :model="role"
+          :rules="rules"
+          label-width="80px"
+          label-position="left"
+        >
+          <el-form-item label="名称" prop="name">
+            <el-input v-model="role.name" placeholder="角色名称" />
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input
+              v-model="role.description"
+              :autosize="{minRows: 2, maxRows: 4}"
+              type="textarea"
+              placeholder="角色描述"
+            />
+          </el-form-item>
+          <el-form-item label="权限">
+            <el-tree
+              ref="tree"
+              :check-strictly="checkStrictly"
+              :data="permissionsList"
+              :props="defaultProps"
+              show-checkbox
+              node-key="key"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div style="text-align:right;">
+              <el-button type="danger" @click="dialogVisible = false"
+                >取消
+              </el-button>
+              <el-button
+                type="primary"
+                :loading="submitting"
+                @click="submitForm('ruleForm')"
+              >
+                {{ submitting ? '提交中...' : '确定' }}
+              </el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </el-card>
   </div>
 </template>
 
