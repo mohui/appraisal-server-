@@ -7,7 +7,16 @@ export const personTags = {
   C02: {label: '高血压', type: true},
   C03: {label: '糖尿病', type: true},
   C04: {label: '孕产妇', type: true},
-  C05: {label: '0~6岁儿童', type: true}
+  C05: {label: '0~6岁儿童', type: true},
+  C06: {label: '脑卒中', type: true},
+  C07: {label: '计划生育特殊家庭对象', type: true},
+  C08: {label: '严重精神病', type: true},
+  C09: {label: '肺结核患者', type: true},
+  C10: {label: '残疾人', type: true},
+  C11: {label: '其他慢病', type: true},
+  C13: {label: '高危人群', type: true},
+  C14: {label: '高校', type: true},
+  E00: {label: '人群标记错误', type: true}
 };
 /***
  * 人群分类的选项框options
@@ -41,6 +50,51 @@ export const personTagList = [
   {
     id: 'C05',
     name: personTags.C05.label,
+    type: true
+  },
+  {
+    id: 'C06',
+    name: personTags.C06.label,
+    type: true
+  },
+  {
+    id: 'C07',
+    name: personTags.C07.label,
+    type: true
+  },
+  {
+    id: 'C08',
+    name: personTags.C08.label,
+    type: true
+  },
+  {
+    id: 'C09',
+    name: personTags.C09.label,
+    type: true
+  },
+  {
+    id: 'C10',
+    name: personTags.C10.label,
+    type: true
+  },
+  {
+    id: 'C11',
+    name: personTags.C11.label,
+    type: true
+  },
+  {
+    id: 'C13',
+    name: personTags.C13.label,
+    type: true
+  },
+  {
+    id: 'C14',
+    name: personTags.C14.label,
+    type: true
+  },
+  {
+    id: 'E00',
+    name: personTags.E00.label,
     type: true
   }
 ];

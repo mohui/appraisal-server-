@@ -37,6 +37,15 @@ function listRender(params) {
         {{#compare C04}} and mp."C04"={{? C04}}{{/compare}}
         {{#compare C05}} and mp."C05"={{? C05}}{{/compare}}
         {{#compare C00}} and mp."C00"={{? C00}}{{/compare}}
+        {{#compare C06}} and mp."C06"={{? C06}}{{/compare}}
+        {{#compare C07}} and mp."C07"={{? C07}}{{/compare}}
+        {{#compare C08}} and mp."C08"={{? C08}}{{/compare}}
+        {{#compare C09}} and mp."C09"={{? C09}}{{/compare}}
+        {{#compare C10}} and mp."C10"={{? C10}}{{/compare}}
+        {{#compare C11}} and mp."C11"={{? C11}}{{/compare}}
+        {{#compare C13}} and mp."C13"={{? C13}}{{/compare}}
+        {{#compare C14}} and mp."C14"={{? C14}}{{/compare}}
+        {{#compare E00}} and mp."E00"={{? E00}}{{/compare}}
     `,
     params
   );
@@ -135,6 +144,15 @@ export default class Person {
                 mp."C04",
                 mp."C05",
                 mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
