@@ -135,7 +135,19 @@
           min-width="100"
           align="center"
         ></el-table-column>
-        <el-table-column label="标记" min-width="400" align="center">
+        <el-table-column label="人群分类" min-width="100" align="center">
+          <template slot-scope="scope">
+            <el-tag
+              v-for="tag of scope.row.personTags"
+              :key="tag.label"
+              style="margin-right: 5px"
+              size="mini"
+              :type="tag.type ? 'primary' : 'danger'"
+              >{{ tag.label }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="档案问题" min-width="400" align="center">
           <template slot-scope="scope">
             <el-tag
               v-for="tag of scope.row.tags"
@@ -196,19 +208,16 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         it.tags = [];
+        it.personTags = [];
         //重点人群
-        if (it.C00) it.tags.push(personTags.C00);
-        if (it.C01) it.tags.push(personTags.C01);
-        if (it.C02) it.tags.push(personTags.C02);
-        if (it.C03) it.tags.push(personTags.C03);
-        if (it.C04) it.tags.push(personTags.C04);
-        if (it.C05) it.tags.push(personTags.C05);
+        if (it.C00) it.personTags.push(personTags.C00);
+        if (it.C01) it.personTags.push(personTags.C01);
+        if (it.C02) it.personTags.push(personTags.C02);
+        if (it.C03) it.personTags.push(personTags.C03);
+        if (it.C04) it.personTags.push(personTags.C04);
+        if (it.C05) it.personTags.push(personTags.C05);
         // 健康档案标记
-        if (it.S03 !== null)
-          it.tags.push({
-            label: `${it?.S03 ? '' : '非'}动态使用`,
-            type: it?.S03
-          });
+        if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
         if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
         // 老年人标记
         if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
