@@ -2,7 +2,7 @@
   <div style="height: 100%;">
     <el-row :gutter="20" style="height: 100%;">
       <el-col :span="6" :xs="24">
-        <card :patient="document" :tags="tags" />
+        <card :patient="document" :tags="tags" :personTags="personTags" />
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
@@ -103,6 +103,7 @@ export default {
     return {
       id: null,
       tags: [],
+      personTags: [],
       activeTab: 'hypertension'
     };
   },
@@ -111,6 +112,7 @@ export default {
     if (!id) this.$router.push('/person');
     this.id = id;
     this.tags = JSON.parse(this.$route.query.tags);
+    this.personTags = JSON.parse(this.$route.query.personTags);
   },
   mounted() {
     if (this.healthyList.length > 0) {

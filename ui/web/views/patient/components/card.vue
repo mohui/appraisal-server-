@@ -25,13 +25,28 @@
 
     <div class="patient-tag">
       <div class="patient-tag-header">
+        <span>人群分类</span>
+      </div>
+      <div class="patient-tag-body">
+        <el-tag
+          v-for="tag of personTags"
+          :key="tag.label"
+          style="margin:0 5px 5px 0"
+          size="mini"
+          :type="tag.type ? 'primary' : 'danger'"
+          >{{ tag.label }}
+        </el-tag>
+      </div>
+    </div>
+    <div class="patient-tag">
+      <div class="patient-tag-header">
         <span>居民标签</span>
       </div>
       <div class="patient-tag-body">
         <el-tag
           v-for="tag of tags"
           :key="tag.label"
-          style="margin-right: 5px"
+          style="margin:0 5px 5px 0"
           size="mini"
           :type="tag.type ? 'primary' : 'danger'"
           >{{ tag.label }}
@@ -69,6 +84,9 @@ export default {
       }
     },
     tags: {
+      type: Array
+    },
+    personTags: {
       type: Array
     }
   }
