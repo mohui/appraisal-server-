@@ -60,10 +60,7 @@ export default class Person {
         .object()
         .required()
         .allow([]),
-      include: should
-        .boolean()
-        .required()
-        .description('是否包含查询下级机构的个人档案')
+      include: should.boolean().description('是否包含查询下级机构的个人档案')
     })
   )
   async list(params) {
