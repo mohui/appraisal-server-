@@ -233,7 +233,7 @@ export default {
     latTypeChanged(type) {
       if (type !== this.params.listFlag) {
         this.params.listFlag = type;
-        this.$router.push({
+        this.$router.replace({
           query: {
             ...this.params
           }
