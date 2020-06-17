@@ -372,6 +372,7 @@ export default class Person {
     return etlQuery(
       `
         select
+          vh.incrementno as "id",
           vh.stature as "stature",
           vh.weight as "weight",
           vh.temperature as "temperature",
@@ -380,6 +381,497 @@ export default class Person {
           vh.operatetime as "updateAt"
         from view_healthy vh
         where vh.personnum = ?
+        order by vh.operatetime desc
+       `,
+      [id]
+    );
+  }
+
+  /**
+   * 获取体检表详情
+   * gender: 性别
+   * checkupNo: 体检编号
+   * IDCard: 身份证
+   * stature: 身高
+   * weight: 体重
+   * temperature: 体温
+   * symptom: 症状
+   * bc_abnormal: B超说明
+   * marrage: 婚姻状态
+   * profession: 职业
+   * pulse:脉率
+   * breathe:呼吸频率
+   * leftDiastolicPressure: 左侧舒张压
+   * leftSystolicPressure: 左侧收缩压
+   * rightDiastolicPressure: 右侧舒张压
+   * rightSystolicPressure: 右侧收缩压
+   * waistline: 腰围
+   * oldManHealthSelf: 老年人健康状态自我评估
+   * oldManLifeSelf: 老年人生活自理能力自我评估
+   * oldManCognitiveSelf: 老年人认知功能
+   * oldManCognitiveSelf: 老年人认知功能
+   * cognitiveScore: 简易智力状态检查
+   * oldManEmotion: 老年人情感状态
+   * EmotionalScore: 老年人抑郁评分检查
+   * 锻炼评率
+   * 每次锻炼时间
+   * 坚持锻炼时间
+   * 锻炼方式
+   * 饮食习惯
+   * 吸烟史
+   * 吸烟量
+   * 开始吸烟时间
+   * 戒烟年龄
+   * 饮酒频率
+   * 日饮酒量
+   * 开始饮酒时间
+   * 是否戒酒
+   * 开始戒酒时间
+   * 近一年内是否曾醉酒
+   * 主要饮酒品种
+   * 职业暴露情况
+   * 具体职业
+   * 从业时间
+   * 粉尘
+   * 粉尘防护措施
+   * 粉尘防护措施说明
+   * 物理原因
+   * 物理原因防护措施
+   * 物理原因防护措施说明
+   * 化学物质
+   * 化学物质防护措施
+   * 化学物质防护措施说明
+   * 放射物质
+   * 放射物质防护措施
+   * 放射物质防护措施说明
+   * 其他（健康辅助检查）
+   * 其他防护措施
+   * 其他防护措施说明
+   * 口唇
+   * 咽部
+   * 齿列情况
+   * 缺齿（上左）
+   * 缺齿（上右）
+   * 缺齿（下左）
+   * 缺齿（下右）
+   * 龋齿（上左）
+   * 龋齿（上右）
+   * 龋齿（下左）
+   * 龋齿（下右）
+   * 义齿（上左）
+   * 义齿（上右）
+   * 义齿（下左）
+   * 义齿（下右）
+   * 视力（左眼）
+   * 视力（右眼）
+   * 矫正视力（左眼）
+   * 矫正视力（右眼）
+   * 听力
+   * 运动功能
+   * 眼底状态
+   * 眼底说明
+   * 皮肤状态
+   * 皮肤说明
+   * 巩膜状态
+   * 巩膜说明
+   * 淋巴结状态
+   * 淋巴结说明
+   * 桶状胸
+   * 呼吸音状态
+   * 呼吸音说明
+   * 罗音状态
+   * 罗音说明
+   * 心率
+   * 心律
+   * 杂音状态
+   * 杂音说明
+   * 腹部压痛状态
+   * 腹部压痛说明
+   * 腹部包块状态
+   * 腹部包块说明
+   * 腹部肝大状态
+   * 腹部肝大说明
+   * 腹部脾大状态
+   * 腹部脾大说明
+   * 腹部移动性浊音状态
+   * 腹部移动性浊音说明
+   * 下肢水肿
+   * 肛门指诊状态
+   * 足背动脉搏动
+   * 乳腺
+   * 外阴状态
+   * 外阴说明
+   * 阴道状态
+   * 阴道说明
+   * 宫颈状态
+   * 宫颈说明
+   * 宫体状态
+   * 宫体说明
+   * 附件状态
+   * 附件说明
+   * 查体其他
+   * 血红蛋白
+   * 白细胞
+   * 血小板
+   * 其他
+   * 尿蛋白
+   * 尿糖
+   * 尿酮体
+   * 尿潜血
+   * 其他
+   * 尿微量白蛋白
+   * 尿白细胞
+   * 大便潜血
+   * 心电图状态
+   * 心电图说明
+   * HBsAg
+   * 空腹血糖
+   * 餐后血糖
+   * 糖化血红蛋白
+   * 血清谷丙转氨酶
+   * 血清谷草转氨酶
+   * 白蛋白
+   * 总胆红素
+   * 结合胆红素
+   * 血清肌酐
+   * 血尿素氮
+   * 血钾浓度
+   * 血钠浓度
+   * 血尿酸
+   * 总胆固醇
+   * 甘油三酯
+   * 血清低密度蛋白胆固醇
+   * 血清高密度蛋白胆固醇
+   * 胸片状态
+   * 胸片说明
+   * B超状态
+   * B超说明
+   * 宫颈涂片状态
+   * 宫颈涂片说明
+   * 其他
+   * 脑血管疾病
+   * 肾脏疾病
+   * 心脏疾病
+   * 血管疾病
+   * 眼部疾病
+   * 神经系统疾病状态
+   * 神经系统疾病说明
+   * 其他系统疾病状态
+   * 其他系统疾病说明
+   * 住院1住院时间
+   * 住院1出院时间
+   * 住院1原因
+   * 住院1医疗结构名称
+   * 住院1病案号
+   * 住院2住院时间
+   * 住院2出院时间
+   * 住院2原因
+   * 住院2医疗结构名称
+   * 住院2病案号
+   * 家族病床史1建床时间
+   * 家族病床史1撤床时间
+   * 家族病床史1原因
+   * 家族病床史1医疗机构名称
+   * 家族病床史1病案号
+   * 家族病床史2建床时间
+   * 家族病床史2撤床时间
+   * 家族病床史2原因
+   * 家族病床史2医疗机构名称
+   * 家族病床史2病案号
+   * 药物1名称
+   * 药物1用法
+   * 药物1用量
+   * 药物1用药时间
+   * 药物1服药依从性
+   * 药物2名称
+   * 药物2用法
+   * 药物2用量
+   * 药物2用药时间
+   * 药物2服药依从性
+   * 药物3名称
+   * 药物3用法
+   * 药物3用量
+   * 药物3用药时间
+   * 药物3服药依从性
+   * 药物4名称
+   * 药物4用法
+   * 药物4用量
+   * 药物4用药时间
+   * 药物4服药依从性
+   * 药物5名称
+   * 药物5用法
+   * 药物5用量
+   * 药物5用药时间
+   * 药物5服药依从性
+   * 药物6名称
+   * 药物6用法
+   * 药物6用量
+   * 药物6用药时间
+   * 药物6服药依从性
+   * 疫苗1名称
+   * 疫苗1接种日期
+   * 疫苗1接种机构
+   * 疫苗2名称
+   * 疫苗2接种日期
+   * 疫苗2接种机构
+   * 疫苗3名称
+   * 疫苗3接种日期
+   * 疫苗3接种机构
+   * 健康评价状态
+   * 健康评价异常1
+   * 健康评价异常2
+   * 健康评价异常3
+   * 健康评价异常4
+   * 健康指导
+   * 危险因素控制
+   * 录入机构
+   *
+   * updateAt: 更新时间
+   * @param id 体检表id
+   */
+  async healthyDeatil(id) {
+    return etlQuery(
+      `
+        select
+          vh.incrementno as "id",
+          vh.checkupNo as "checkupNo",
+          vh.IDCardNo as "IDCard",
+          vh.sex as "gender",
+          vh.stature as "stature",
+          vh.weight as "weight",
+          vh.temperature as "temperature",
+          vh.symptom as "symptom",
+          vh.bc_abnormal as "bc_abnormal",
+          vh.MarrageType as "marrage",
+          vh.JobType as "profession",
+          vh.pulse as "pulse",
+          vh.breathe as "breathe",
+          vh.xyzcszy as "leftDiastolicPressure",
+          vh.xyzcssy as "leftSystolicPressure",
+          vh.xyycszy as "rightDiastolicPressure",
+          vh.xyycssy as "rightSystolicPressure",
+          vh.waistline as "waistline",
+          vh.BMI as "BMI",
+          vh.lnrjkzt as "oldManHealthSelf",
+          vh.lnrzlnl as "oldManLifeSelf",
+          vh.lnrrzgn as "oldManCognitiveSelf",
+          vh.CognitiveFunctionScore as "cognitiveScore",
+          vh.lnrqgzt as "oldManEmotion",
+          vh.EmotionalStatusScore as "emotionalScore",
+          vh.dlpn as "exerciseFrequency",
+          vh.mcdlTime as "eachExerciseTime",
+          vh.jcdlTime as "stickExerciseTime",
+          vh.dlfs as "exerciseWay",
+          vh.ysxg as "eatingHabit",
+          vh.isxy as "smokingHistory",
+          vh.xyl as "smokingAmount",
+          vh.ksxyTime as "smokingStartTime",
+          vh.jyTime as "smokingStopTime",
+          vh.yjpn as "yjpn",
+          vh.yjl as "yjl",
+          vh.ksyjTime as "ksyjTime",
+          vh.isjj as "isjj",
+          vh.ksjjTime as "ksjjTime",
+          vh.iszj as "iszj",
+          vh.zyyjpz as "zyyjpz",
+          vh.zyblqk as "zyblqk",
+          vh.jtzy as "jtzy",
+          vh.cysj as "cysj",
+          vh.fc as "fc",
+          vh.fcfhcs as "fcfhcs",
+          vh.fcfhcs_other as "fcfhcs_other",
+          vh.wlys as "wlys",
+          vh.wlysfhcs as "wlysfhcs",
+          vh.wlysfhcs_other as "wlysfhcs_other",
+          vh.hxp as "hxp",
+          vh.hxpfhcs as "hxpfhcs",
+          vh.hxpfhcs_other as "hxpfhcs_other",
+          vh.sx\t as "sx	",
+          vh.sxfhcs as "sxfhcs",
+          vh.sxfhcs_other as "sxfhcs_other",
+          vh.qt as "qt",
+          vh.qtfhcs as "qtfhcs",
+          vh.qtfhcs_other as "qtfhcs_other",
+          vh.kc as "kc",
+          vh.yb as "yb",
+          vh.cl as "cl",
+          vh.qc1 as "qc1",
+          vh.qc2 as "qc2",
+          vh.qc3 as "qc3",
+          vh.qc4 as "qc4",
+          vh.yuc1 as "yuc1",
+          vh.yuc2 as "yuc2",
+          vh.yuc3 as "yuc3",
+          vh.yuc4 as "yuc4",
+          vh.jy1 as "jy1",
+          vh.jy2 as "jy2",
+          vh.jy3 as "jy3",
+          vh.jy4 as "jy4",
+          vh.slzy as "slzy",
+          vh.slyy as "slyy",
+          vh.yzzy as "yzzy",
+          vh.jzyy as "jzyy",
+          vh.listen as "listen",
+          vh.ydgn as "ydgn",
+          vh.yd as "yd",
+          vh.yd_abnormal as "yd_abnormal",
+          vh.pf as "pf",
+          vh.pf_Other as "pf_Other",
+          vh.gm as "gm",
+          vh.gm_Other as "gm_Other",
+          vh.lbj as "lbj",
+          vh.lbjOther as "lbjOther",
+          vh.ftzx as "ftzx",
+          vh.fhxy as "fhxy",
+          vh.fhxyyc as "fhxyyc",
+          vh.fly as "fly",
+          vh.flyOther as "flyOther",
+          vh.xzxn as "xzxn",
+          vh.xzxl as "xzxl",
+          vh.xzzy as "xzzy",
+          vh.xzzyOther as "xzzyOther",
+          vh.fbyt as "fbyt",
+          vh.fbytOther as "fbytOther",
+          vh.fbbk as "fbbk",
+          vh.fbbkOther as "fbbkOther",
+          vh.fbgd as "fbgd",
+          vh.fbgdOther as "fbgdOther",
+          vh.fbpd as "fbpd",
+          vh.fbpdOther as "fbpdOther",
+          vh.fbydxzy as "fbydxzy",
+          vh.fbydxzyOther as "fbydxzyOther",
+          vh.xzsz as "xzsz",
+          vh.gmzz as "gmzz",
+          vh.tnbzbdmbd as "tnbzbdmbd",
+          vh.rx as "rx",
+          vh.fk_wy as "fk_wy",
+          vh.fk_wy_abnormal as "fk_wy_abnormal",
+          vh.fk_yd as "fk_yd",
+          vh.fk_yd_abnormal as "fk_yd_abnormal",
+          vh.fk_gj as "fk_gj",
+          vh.fk_gj_abnormal as "fk_gj_abnormal",
+          vh.fk_gt as "fk_gt",
+          vh.fk_gt_abnormal as "fk_gt_abnormal",
+          vh.fk_fj as "fk_fj",
+          vh.fk_fj_abnormal as "fk_fj_abnormal",
+          vh.ctqt as "ctqt",
+          vh.xcgHb as "xcgHb",
+          vh.xcgWBC as "xcgWBC",
+          vh.xcgPLT as "xcgPLT",
+          vh.xcgqt as "xcgqt",
+          vh.ncgndb as "ncgndb",
+          vh.ncgnt as "ncgnt",
+          vh.ncgntt as "ncgntt",
+          vh.ncgnqx as "ncgnqx",
+          vh.ncgOther as "ncgOther",
+          vh.nwlbdb as "nwlbdb",
+          vh.LEU as "LEU",
+          vh.dbqx as "dbqx",
+          vh.xdt as "xdt",
+          vh.xdt_abnormal as "xdt_abnormal",
+          vh.HBsAg as "HBsAg",
+          vh.suijxt as "suijxt",
+          vh.kfxt as "kfxt",
+          vh.tnbthxhdb as "tnbthxhdb",
+          vh.ggnALT as "ggnALT",
+          vh.ggnAST as "ggnAST",
+          vh.ggnALB as "ggnALB",
+          vh.ggnTBIL as "ggnTBIL",
+          vh.ggnDBIL as "ggnDBIL",
+          vh.sgnScr as "sgnScr",
+          vh.sgnBUN as "sgnBUN",
+          vh.sgnxjnd as "sgnxjnd",
+          vh.sgnxnnd as "sgnxnnd",
+          vh.BUA as "BUA",
+          vh.xzCHO as "xzCHO",
+          vh.xzTG as "xzTG",
+          vh.xzLDLC as "xzLDLC",
+          vh.xzHDLC as "xzHDLC",
+          vh.xp as "xp",
+          vh.xp_abnormal as "xp_abnormal",
+          vh.bc as "bc",
+          vh.bc_abnormal as "bc_abnormal",
+          vh.gjtp as "gjtp",
+          vh.gjtp_abnormal as "gjtp_abnormal",
+          vh.jkfzjcqt as "jkfzjcqt",
+          vh.nxgjb as "nxgjb",
+          vh.szjb as "szjb",
+          vh.xzjb as "xzjb",
+          vh.xgjb as "xgjb",
+          vh.ybjb as "ybjb",
+          vh.sjxt as "sjxt",
+          vh.sjxt_other as "sjxt_other",
+          vh.qtxt as "qtxt",
+          vh.otherDisease1 as "otherDisease1",
+          vh.ruyTime1 as "ruyTime1",
+          vh.chuyTime1 as "chuyTime1",
+          vh.zhuyReason1 as "zhuyReason1",
+          vh.hospName1 as "hospName1",
+          vh.bah1 as "bah1",
+          vh.ruyTime2 as "ruyTime2",
+          vh.chuyTime2 as "chuyTime2",
+          vh.HospName2 as "HospName2",
+          vh.bah2 as "bah2",
+          vh.jcTime1 as "jcTime1",
+          vh.ccTime1 as "ccTime1",
+          vh.jcyy1 as "jcyy1",
+          vh.jcyljgmc1 as "jcyljgmc1",
+          vh.jcbah1 as "jcbah1",
+          vh.jcTime2 as "jcTime2",
+          vh.ccTime2 as "ccTime2",
+          vh.jcyy2 as "jcyy2",
+          vh.jcyljgmc2 as "jcyljgmc2",
+          vh.jcbah2 as "jcbah2",
+          vh.yaowu1 as "yaowu1",
+          vh.yf1 as "yf1",
+          vh.yl1 as "yl1",
+          vh.yysj1 as "yysj1",
+          vh.fyycx as "fyycx",
+          vh.yaowu2 as "yaowu2",
+          vh.yf2 as "yf2",
+          vh.yl2 as "yl2",
+          vh.yysj2 as "yysj2",
+          vh.fyycx2 as "fyycx2",
+          vh.yaowu3 as "yaowu3",
+          vh.yf3 as "yf3",
+          vh.yl3 as "yl3",
+          vh.yysj3 as "yysj3",
+          vh.fyycx3 as "fyycx3",
+          vh.yaowu4 as "yaowu4",
+          vh.yf4 as "yf4",
+          vh.yl4 as "yl4",
+          vh.yysj4 as "yysj4",
+          vh.fyycx4 as "fyycx4",
+          vh.yaowu5 as "yaowu5",
+          vh.yf5 as "yf5",
+          vh.yl5 as "yl5",
+          vh.yysj5 as "yysj5",
+          vh.fyycx5 as "fyycx5",
+          vh.yaowu6 as "yaowu6",
+          vh.yf6 as "yf6",
+          vh.yl6 as "yl6",
+          vh.yysj6 as "yysj6",
+          vh.fyycx6 as "fyycx6",
+          vh.fmy_mc1 as "fmy_mc1",
+          vh.fmy_jzrq1 as "fmy_jzrq1",
+          vh.fmy_jzjg1 as "fmy_jzjg1",
+          vh.fmy_mc2 as "fmy_mc2",
+          vh.fmy_jzrq2 as "fmy_jzrq2",
+          vh.fmy_jzjg2 as "fmy_jzjg2",
+          vh.fmy_mc3 as "fmy_mc3",
+          vh.fmy_jzrq3 as "fmy_jzrq3",
+          vh.fmy_jzjg3 as "fmy_jzjg3",
+          vh.jkpjywyc as "jkpjywyc",
+          vh.yichang1 as "yichang1",
+          vh.yichang2 as "yichang2",
+          vh.yichang3 as "yichang3",
+          vh.yichang4 as "yichang4",
+          vh.jkzd_dqsf as "jkzd_dqsf",
+          vh.jkzd_wxyskz as "jkzd_wxyskz",
+          vh.OperateOrganization as "OperateOrganization",
+          vh.operatetime as "updateAt"
+        from view_healthy vh
+        where vh.incrementno = ?
         order by vh.operatetime desc
        `,
       [id]
