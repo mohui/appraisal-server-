@@ -1,6 +1,6 @@
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 
@@ -43,8 +43,31 @@ function listRender(params) {
 }
 
 export default class Person {
+  @validate(
+    should.object({
+      pageSize: should.number().required(),
+      pageNo: should.number().required(),
+      name: should.string().allow('', null),
+      hospital: should
+        .string()
+        .required()
+        .allow('', null),
+      idCard: should
+        .string()
+        .required()
+        .allow('', null),
+      tags: should
+        .object()
+        .required()
+        .allow([]),
+      include: should
+        .boolean()
+        .required()
+        .description('是否包含查询下级机构的个人档案')
+    })
+  )
   async list(params) {
-    const {pageSize, pageNo, hospital, idCard, tags} = params;
+    const {pageSize, pageNo, hospital, idCard, tags, include} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 || 0) * limit;
     const his = '340203';
@@ -68,6 +91,25 @@ export default class Person {
         (result, current) => [...result, ...current.map(it => it.id)],
         []
       );
+    if (include && hospital)
+      hospitals = (
+        await Promise.all(
+          hospitals.map(item =>
+            //查询机构的下属机构
+            etlQuery(
+              `select hospid as id from view_hospital where hos_hospid = ?`,
+              [item]
+            )
+          )
+        )
+      )
+        .filter(it => it.length > 0)
+        .reduce(
+          (result, current) => [...result, ...current.map(it => it.id)],
+          []
+        )
+        .concat(hospitals);
+
     const sqlRenderResult = listRender({his, name, hospitals, idCard, ...tags});
     const count = (
       await etlQuery(
