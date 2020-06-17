@@ -1,6 +1,6 @@
 import {etlDB} from '../app';
 import {QueryTypes} from 'sequelize';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 
@@ -43,6 +43,29 @@ function listRender(params) {
 }
 
 export default class Person {
+  @validate(
+    should.object({
+      pageSize: should.number().required(),
+      pageNo: should.number().required(),
+      name: should.string().allow('', null),
+      hospital: should
+        .string()
+        .required()
+        .allow('', null),
+      idCard: should
+        .string()
+        .required()
+        .allow('', null),
+      tags: should
+        .object()
+        .required()
+        .allow([]),
+      include: should
+        .boolean()
+        .required()
+        .description('是否包含查询下级机构的个人档案')
+    })
+  )
   async list(params) {
     const {pageSize, pageNo, hospital, idCard, tags, include} = params;
     const limit = pageSize;
