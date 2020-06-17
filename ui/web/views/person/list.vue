@@ -218,6 +218,15 @@ export default {
         if (it.C03) it.personTags.push(personTags.C03);
         if (it.C04) it.personTags.push(personTags.C04);
         if (it.C05) it.personTags.push(personTags.C05);
+        if (it.C06) it.personTags.push(personTags.C06);
+        if (it.C07) it.personTags.push(personTags.C07);
+        if (it.C08) it.personTags.push(personTags.C08);
+        if (it.C09) it.personTags.push(personTags.C09);
+        if (it.C10) it.personTags.push(personTags.C10);
+        if (it.C11) it.personTags.push(personTags.C11);
+        if (it.C13) it.personTags.push(personTags.C13);
+        if (it.C14) it.personTags.push(personTags.C14);
+        if (it.E00) it.personTags.push(personTags.E00);
         // 健康档案标记
         if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
         if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
