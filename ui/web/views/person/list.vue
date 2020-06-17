@@ -71,6 +71,26 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="人群分类:">
+              <el-select
+                v-model="queryForm.personTags"
+                clearable
+                multiple
+                collapse-tags
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in personTagList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
             <el-form-item label="">
               <el-button
@@ -145,6 +165,13 @@
 </template>
 
 <script>
+import {
+  personTags,
+  personTagList,
+  documentTagList,
+  documentTags
+} from '../../../../common/person-tag.ts';
+
 export default {
   name: 'PersonList',
   created() {
@@ -161,68 +188,8 @@ export default {
         idCard: '',
         tags: []
       },
-      tagList: [
-        {
-          id: 'C00',
-          name: '普通居民'
-        },
-        {
-          id: 'C01',
-          name: '老年人'
-        },
-        {
-          id: 'C02',
-          name: '高血压'
-        },
-        {
-          id: 'C03',
-          name: '糖尿病'
-        },
-        {
-          id: 'C04',
-          name: '孕产妇'
-        },
-        {
-          id: 'C05',
-          name: '0~6岁儿童'
-        },
-        {
-          id: 'S03',
-          name: '非动态使用'
-        },
-        {
-          id: 'S23',
-          name: '档案不规范'
-        },
-        {
-          id: 'O00',
-          name: '老年人健康管理不规范'
-        },
-        {
-          id: 'O01',
-          name: '老年人体检不完整'
-        },
-        {
-          id: 'O02',
-          name: '无老年人中医药管理'
-        },
-        {
-          id: 'H01',
-          name: '高血压管理不规范'
-        },
-        {
-          id: 'H02',
-          name: '高血压未控制'
-        },
-        {
-          id: 'D01',
-          name: '糖尿病管理不规范'
-        },
-        {
-          id: 'D02',
-          name: '糖尿病未控制'
-        }
-      ]
+      personTagList: personTagList,
+      tagList: documentTagList
     };
   },
   computed: {
@@ -230,62 +197,29 @@ export default {
       return this.serverData.rows.map(it => {
         it.tags = [];
         //重点人群
-        if (it.C00) it.tags.push({label: `普通居民`, type: it?.C00});
-        if (it.C01) it.tags.push({label: `老年人`, type: it?.C01});
-        if (it.C02) it.tags.push({label: `高血压`, type: it?.C02});
-        if (it.C03) it.tags.push({label: `糖尿病`, type: it?.C03});
-        if (it.C04) it.tags.push({label: `孕产妇`, type: it?.C04});
-        if (it.C05) it.tags.push({label: `0~6岁儿童`, type: it?.C05});
+        if (it.C00) it.tags.push(personTags.C00);
+        if (it.C01) it.tags.push(personTags.C01);
+        if (it.C02) it.tags.push(personTags.C02);
+        if (it.C03) it.tags.push(personTags.C03);
+        if (it.C04) it.tags.push(personTags.C04);
+        if (it.C05) it.tags.push(personTags.C05);
         // 健康档案标记
         if (it.S03 !== null)
           it.tags.push({
             label: `${it?.S03 ? '' : '非'}动态使用`,
             type: it?.S03
           });
-        if (it.S23 !== null)
-          it.tags.push({
-            label: `档案${it?.S23 ? '' : '不'}规范`,
-            type: it?.S23
-          });
+        if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
         // 老年人标记
-
-        if (it.O00 !== null)
-          it.tags.push({
-            label: `老年人健康管理${it?.O00 ? '' : '不'}规范`,
-            type: it?.O00
-          });
-        if (it.O01 !== null)
-          it.tags.push({
-            label: `老年人体检${it?.O01 ? '' : '不'}完整`,
-            type: it?.S23
-          });
-        if (it.O02 !== null)
-          it.tags.push({
-            label: `${it?.O02 ? '' : '无'}老年人中医药管理`,
-            type: it?.O02
-          });
+        if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
+        if (it.O01 !== null) it.tags.push(documentTags.O01(it.O01));
+        if (it.O02 !== null) it.tags.push(documentTags.O02(it.O02));
         // 高血压标记
-        if (it.H01 !== null)
-          it.tags.push({
-            label: `高血压管理${it?.H01 ? '' : '不'}规范`,
-            type: it?.H01
-          });
-        if (it.H02 !== null)
-          it.tags.push({
-            label: `高血压${it?.H02 ? '已' : '未'}控制`,
-            type: it?.H02
-          });
+        if (it.H01 !== null) it.tags.push(documentTags.H01(it.H01));
+        if (it.H02 !== null) it.tags.push(documentTags.H02(it.H02));
         // 糖尿病标记
-        if (it.D01 !== null)
-          it.tags.push({
-            label: `糖尿病管理${it?.D01 ? '' : '不'}规范`,
-            type: it?.D01
-          });
-        if (it.D02 !== null)
-          it.tags.push({
-            label: `糖尿病${it?.D02 ? '已' : '未'}控制`,
-            type: it?.D02
-          });
+        if (it.D01 !== null) it.tags.push(documentTags.D01(it.D01));
+        if (it.D02 !== null) it.tags.push(documentTags.D02(it.D02));
         it.idCardfFormat = it.idCard.replace(
           /^(.{10})(?:\d+)(.{2})$/,
           '$1******$2'
