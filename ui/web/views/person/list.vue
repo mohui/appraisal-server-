@@ -52,7 +52,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="标记:">
+            <el-form-item label="档案问题:">
               <el-select
                 v-model="queryForm.tags"
                 clearable
