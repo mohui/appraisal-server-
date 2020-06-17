@@ -1,3 +1,6 @@
+/***
+ * 人群分类的标记
+ */
 export const personTags = {
   C00: {label: '普通居民', type: true},
   C01: {label: '老年人', type: true},
@@ -6,6 +9,9 @@ export const personTags = {
   C04: {label: '孕产妇', type: true},
   C05: {label: '0~6岁儿童', type: true}
 };
+/***
+ * 人群分类的选项框options
+ */
 export const personTagList = [
   {
     id: 'C00',
@@ -38,6 +44,10 @@ export const personTagList = [
     type: true
   }
 ];
+
+/**
+ * 档案问题的标记文案
+ */
 export const documentTags = {
   S03(value) {
     return {
@@ -94,6 +104,10 @@ export const documentTags = {
     };
   }
 };
+
+/**
+ * 用于档案问题选项框的options
+ */
 export const documentTagList = [
   {
     id: 'S03',
