@@ -198,7 +198,8 @@ export default {
         name: '',
         hospital: '',
         idCard: '',
-        tags: []
+        tags: [],
+        personTags: []
       },
       personTagList: personTagList,
       tagList: documentTagList
@@ -264,10 +265,12 @@ export default {
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
           hospital: this.queryForm.hospital,
-          tags: this.queryForm.tags.reduce((res, next) => {
-            res[`${next}`] = next.includes('C0');
-            return res;
-          }, {})
+          tags: this.queryForm.tags
+            .concat(this.queryForm.personTags)
+            .reduce((res, next) => {
+              res[`${next}`] = next.includes('C0');
+              return res;
+            }, {})
         });
       },
       default() {
