@@ -52,26 +52,6 @@
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="档案问题:">
-              <el-select
-                v-model="queryForm.tags"
-                clearable
-                multiple
-                collapse-tags
-                placeholder="请选择"
-                style="width: 100%;"
-              >
-                <el-option
-                  v-for="item in tagList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="人群分类:">
               <el-select
                 v-model="queryForm.personTags"
@@ -83,6 +63,26 @@
               >
                 <el-option
                   v-for="item in personTagList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="档案问题:">
+              <el-select
+                v-model="queryForm.tags"
+                clearable
+                multiple
+                collapse-tags
+                placeholder="请选择"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in tagList"
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
