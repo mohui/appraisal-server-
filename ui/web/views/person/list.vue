@@ -299,7 +299,8 @@ export default {
           name: 'patient',
           query: {
             id: row.id,
-            tags: JSON.stringify(row.tags)
+            tags: JSON.stringify(row.tags),
+            personTags: JSON.stringify(row.personTags)
           }
         });
     },
