@@ -16,7 +16,7 @@ export const personTags = {
   C11: {label: '其他慢病', type: true},
   C13: {label: '高危人群', type: true},
   C14: {label: '高校', type: true},
-  E00: {label: '国卫人群标记错误', type: true}
+  E00: {label: '人群标记错误', type: true}
 };
 /***
  * 人群分类的选项框options
