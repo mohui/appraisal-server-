@@ -15,8 +15,8 @@
       </div>
       <el-form :model="queryForm" label-width="100px" size="mini">
         <el-row>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="姓名：">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-form-item label="姓名:">
               <kn-debounce-input
                 v-model.trim="queryForm.name"
                 placeholder="请输入要查询的姓名"
@@ -24,8 +24,8 @@
               ></kn-debounce-input>
             </el-form-item>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="身份证号码：">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-form-item label="身份证号码:">
               <kn-debounce-input
                 v-model.trim="queryForm.idCard"
                 placeholder="请输入要查询的身份证号码"
@@ -33,8 +33,8 @@
               ></kn-debounce-input>
             </el-form-item>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="管理机构：">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-form-item label="管理机构:">
               <el-select
                 v-model="queryForm.hospital"
                 clearable
@@ -51,14 +51,14 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
             <el-form-item label="人群分类:">
               <el-select
                 v-model="queryForm.personTags"
                 clearable
                 multiple
                 collapse-tags
-                placeholder="请选择"
+                placeholder="未选择代表默认全人群"
                 style="width: 100%;"
               >
                 <el-option
@@ -71,7 +71,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
             <el-form-item label="档案问题:">
               <el-select
                 v-model="queryForm.tags"
@@ -91,7 +91,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
             <el-form-item label="">
               <el-button
                 type="primary"
