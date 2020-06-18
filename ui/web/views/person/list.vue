@@ -62,7 +62,9 @@
           >
             <el-form-item>
               <div style="margin-bottom: 1px">
-                <el-checkbox>包含下属机构</el-checkbox>
+                <el-checkbox v-model="queryForm.include"
+                  >包含下属机构</el-checkbox
+                >
               </div>
             </el-form-item>
           </el-col>
@@ -215,6 +217,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        include: false,
         personTags: []
       },
       personTagList: personTagList,
@@ -266,6 +269,7 @@ export default {
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
+        if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
         this.$router.replace({query: query}).catch(err => {
@@ -289,7 +293,8 @@ export default {
             .reduce((res, next) => {
               res[`${next}`] = next.includes('C0');
               return res;
-            }, {})
+            }, {}),
+          include: this.queryForm.include
         });
       },
       default() {
@@ -305,6 +310,7 @@ export default {
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
+      if (route.query.include) this.queryForm.include = route.query.include;
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
@@ -338,6 +344,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        include: false,
         personTags: []
       };
     }
