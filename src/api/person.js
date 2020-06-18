@@ -318,6 +318,47 @@ export default class Person {
     }));
   }
 
+  /***
+   * 高血压随访详情
+   * @param id
+   * @returns {Promise<void>}
+   */
+  async hypertensionsDetail(id) {
+    return etlQuery(
+      `select
+        vh.highbloodid as "id",
+        vh.hypertensioncardid as "cardId",
+        vh.Name as "name",
+        vh.sex as "gender",
+        vh.age as "age",
+        vh.ContactPhone as "phone",
+        vh.SerialNum as "No",
+        vh.FollowUpDate as "followDate",
+        vh.FollowUpWay as "followWay",
+        vh.PresentSymptoms as "symptoms",
+        vh.SystolicPressure as "systolicPressure",
+        vh.AssertPressure as "assertPressure",
+        vh.Weight as "weight",
+        vh.Weight_Suggest as "weigthSuggest",
+        vh.Stature as "stature",
+        vh.BMI as "BMI",
+        vh.Other_Tz as "other",
+        vh.DaySmoke as "daySmoke",
+        vh.DaySmoke_Suggest as "daySomkeSuggest",
+        vh.DayDrink as "dayDrink",
+        vh.DayDrink_Suggest as "dayDrinkSuggest",
+        vh.Sport_Week as "exerciseWeek",
+        vh.Sport_Minute as "exerciseMinute",
+        vh.Sport_Week_Suggest as "exerciseWeekSuggest",
+        vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+        vh.OperateOrganization as "hospital",
+        vh.OperateTime as "updateAt",
+        vh.Doctor as "doctor"
+       from view_hypertensionvisit vh where highbloodid=?`,
+      [id]
+    );
+  }
+
   /**
    * 获取糖尿病随访
    * followDate: 随访时间
@@ -398,6 +439,8 @@ export default class Person {
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
         vd.CheckTime as "checkTime",
+        vd.OperateOrganization as "hospital",
+        vd.OperateTime as "updateAt",
         vd.Doctor as "doctor"
         from view_diabetesvisit vd where DiabetesFollowUpID=?`,
       [id]
