@@ -497,7 +497,12 @@ export default class Score {
               [Op.in]: Context.current.user.hospitals.map(it => it.id)
             }
           },
-          include: [HospitalModel]
+          include: [
+            {
+              model: HospitalModel,
+              where: {region: {[Op.like]: `${regionModel.code}%`}}
+            }
+          ]
         })
       ).map(async checkHospital => {
         const item = await this.total(checkHospital.hospitalId);
