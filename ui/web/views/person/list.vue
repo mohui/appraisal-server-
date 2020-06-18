@@ -37,6 +37,7 @@
             <el-form-item label="管理机构:">
               <el-select
                 v-model="queryForm.hospital"
+                filterable
                 clearable
                 placeholder="请选择"
                 style="width: 100%;"
