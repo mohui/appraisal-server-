@@ -51,6 +51,21 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col
+            style="margin-left: -80px"
+            :span="3"
+            :xs="24"
+            :sm="12"
+            :md="6"
+            :lg="6"
+            :xl="3"
+          >
+            <el-form-item>
+              <div style="margin-bottom: 1px">
+                <el-checkbox>包含下属机构</el-checkbox>
+              </div>
+            </el-form-item>
+          </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
             <el-form-item label="人群分类:">
               <el-select
