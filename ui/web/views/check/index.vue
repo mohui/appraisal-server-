@@ -85,80 +85,92 @@
         </el-table-column>
         <el-table-column label="操作" min-width="220">
           <template slot-scope="scope">
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_UPDATE,
-                type: 'disabled'
-              }"
-              type="primary"
-              size="mini"
-              @click.stop="openEditCheckDialog(scope.row)"
-            >
-              修改
-            </el-button>
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_CLONE,
-                type: 'disabled'
-              }"
-              type="warning"
-              size="mini"
-              @click.stop="openCloneCheckDialog(scope.row)"
-            >
-              快速复制
-            </el-button>
-            <!--            <el-button-->
-            <!--              plain-->
-            <!--              v-permission="{-->
-            <!--                permission: permission.CHECK_IMPORT,-->
-            <!--                type: 'disabled'-->
-            <!--              }"-->
-            <!--              v-show="scope.row.status"-->
-            <!--              type="info"-->
-            <!--              size="mini"-->
-            <!--              @click.stop="openUploadCheckDialog(scope.row)"-->
-            <!--            >-->
-            <!--              批量导入细则-->
-            <!--            </el-button>-->
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_REMOVE,
-                type: 'disabled'
-              }"
-              type="danger"
-              size="mini"
-              @click.stop="delCheck(scope)"
-            >
-              删除
-            </el-button>
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_OPEN_GRADE,
-                type: 'disabled'
-              }"
-              v-show="scope.row.isOpen"
-              type="success"
-              size="mini"
-              @click.stop="openCheck(scope.row)"
-            >
-              全部开启打分
-            </el-button>
-            <el-button
-              plain
-              v-permission="{
-                permission: permission.CHECK_CLOSE_GRADE,
-                type: 'disabled'
-              }"
-              v-show="scope.row.isClose"
-              size="mini"
-              @click.stop="closeCheck(scope.row)"
-            >
-              全部关闭打分
-            </el-button>
+            <el-tooltip content="编辑" :enterable="false">
+              <el-button
+                type="primary"
+                icon="el-icon-edit"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_UPDATE,
+                  type: 'disabled'
+                }"
+                size="mini"
+                @click.stop="openEditCheckDialog(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="快速复制" :enterable="false">
+              <el-button
+                icon="el-icon-document-copy"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_CLONE,
+                  type: 'disabled'
+                }"
+                type="warning"
+                size="mini"
+                @click.stop="openCloneCheckDialog(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="删除" :enterable="false">
+              <el-button
+                icon="el-icon-delete"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_REMOVE,
+                  type: 'disabled'
+                }"
+                type="danger"
+                size="mini"
+                @click.stop="delCheck(scope)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="批量导入细则" :enterable="false">
+              <el-button
+                icon="el-icon-download"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_IMPORT,
+                  type: 'disabled'
+                }"
+                v-show="scope.row.status"
+                type="info"
+                size="mini"
+                @click.stop="openUploadCheckDialog(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="全部开启打分" :enterable="false">
+              <el-button
+                icon="el-icon-check"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_OPEN_GRADE,
+                  type: 'disabled'
+                }"
+                v-show="scope.row.isOpen"
+                type="success"
+                size="mini"
+                @click.stop="openCheck(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="全部关闭打分" :enterable="false">
+              <el-button
+                icon="el-icon-close"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_CLOSE_GRADE,
+                  type: 'disabled'
+                }"
+                v-show="scope.row.isClose"
+                size="mini"
+                @click.stop="closeCheck(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
