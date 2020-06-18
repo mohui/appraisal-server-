@@ -15,8 +15,7 @@ export const personTags = {
   C10: {label: '残疾人', type: true},
   C11: {label: '其他慢病', type: true},
   C13: {label: '高危人群', type: true},
-  C14: {label: '高校', type: true},
-  E00: {label: '人群标记错误', type: true}
+  C14: {label: '高校', type: true}
 };
 /***
  * 人群分类的选项框options
@@ -91,11 +90,6 @@ export const personTagList = [
     id: 'C14',
     name: personTags.C14.label,
     type: true
-  },
-  {
-    id: 'E00',
-    name: personTags.E00.label,
-    type: true
   }
 ];
 
@@ -156,7 +150,8 @@ export const documentTags = {
       label: `糖尿病${value ? '已' : '未'}控制`,
       type: !!value
     };
-  }
+  },
+  E00: {label: '人群标记错误', type: false}
 };
 
 /**
@@ -198,5 +193,9 @@ export const documentTagList = [
   {
     id: 'D02',
     name: '糖尿病未控制'
+  },
+  {
+    id: 'E00',
+    name: documentTags.E00.label
   }
 ];
