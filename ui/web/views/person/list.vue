@@ -52,6 +52,25 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col
+            style="margin-left: -80px"
+            :span="3"
+            :xs="24"
+            :sm="12"
+            :md="6"
+            :lg="6"
+            :xl="3"
+          >
+            <el-form-item>
+              <div style="margin-bottom: 1px">
+                <el-checkbox
+                  v-model="queryForm.include"
+                  :disabled="!queryForm.hospital"
+                  >包含下属机构</el-checkbox
+                >
+              </div>
+            </el-form-item>
+          </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
             <el-form-item label="人群分类:">
               <el-select
@@ -201,6 +220,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        include: false,
         personTags: []
       },
       personTagList: personTagList,
@@ -261,6 +281,7 @@ export default {
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
+        if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
         this.$router.replace({query: query}).catch(err => {
@@ -268,6 +289,9 @@ export default {
         });
       },
       deep: true
+    },
+    'queryForm.hospital'() {
+      this.queryForm.include = false;
     }
   },
   asyncComputed: {
@@ -284,7 +308,8 @@ export default {
             .reduce((res, next) => {
               res[`${next}`] = next.includes('C') || next.includes('E');
               return res;
-            }, {})
+            }, {}),
+          include: this.queryForm.include
         });
       },
       default() {
@@ -300,6 +325,7 @@ export default {
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
+      if (route.query.include) this.queryForm.include = route.query.include;
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
@@ -333,6 +359,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        include: false,
         personTags: []
       };
     }
