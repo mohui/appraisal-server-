@@ -36,23 +36,28 @@
           textAlign: 'center'
         }"
       >
-        <el-table-column align="center" width="50" label="序号">
+        <el-table-column align="center" label="序号">
           <template slot-scope="scope">
             {{ scope.$index + 1 }}
           </template>
         </el-table-column>
         <el-table-column
+          align="center"
           prop="checkName"
-          min-width="60"
+          :min-width="computedColWidth('checkName')"
           label="考核名称"
         ></el-table-column>
         <el-table-column
           align="center"
           prop="created_at"
-          min-width="16"
+          :min-width="computedColWidth('created_at')"
           label="创建时间"
         ></el-table-column>
-        <el-table-column align="center" min-width="10" label="状态">
+        <el-table-column
+          align="center"
+          :min-width="computedColWidth('status')"
+          label="状态"
+        >
           <template slot-scope="scope">
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
@@ -60,10 +65,10 @@
         <el-table-column
           align="center"
           prop="autoScore"
-          min-width="14"
+          :min-width="computedColWidth('autoScore')"
           label="打分状态"
         ></el-table-column>
-        <el-table-column align="center" min-width="14" label="适用机构">
+        <el-table-column align="center" min-width="70" label="适用机构">
           <template slot-scope="scope">
             <el-button
               plain
@@ -78,7 +83,7 @@
             >
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="94">
+        <el-table-column label="操作" min-width="220">
           <template slot-scope="scope">
             <el-button
               plain
@@ -737,6 +742,11 @@ export default {
             message: '已取消删除'
           });
         });
+    },
+    computedColWidth(field) {
+      if (this.checkList.length > 0) {
+        return this.$widthCompute(this.checkList.map(item => item[field]));
+      }
     }
   }
 };
