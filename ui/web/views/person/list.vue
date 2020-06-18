@@ -62,7 +62,9 @@
           >
             <el-form-item>
               <div style="margin-bottom: 1px">
-                <el-checkbox v-model="queryForm.include"
+                <el-checkbox
+                  v-model="queryForm.include"
+                  :disabled="!queryForm.hospital"
                   >包含下属机构</el-checkbox
                 >
               </div>
@@ -277,6 +279,9 @@ export default {
         });
       },
       deep: true
+    },
+    'queryForm.hospital'() {
+      this.queryForm.include = false;
     }
   },
   asyncComputed: {
