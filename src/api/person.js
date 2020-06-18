@@ -629,7 +629,7 @@ export default class Person {
    * updateAt: 更新时间
    * @param id 体检表id
    */
-  async healthyDeatil(id) {
+  async healthyDetail(id) {
     return etlQuery(
       `
         select
