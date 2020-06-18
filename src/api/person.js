@@ -338,6 +338,7 @@ export default class Person {
       await etlQuery(
         `
         select
+          vdv.DiabetesFollowUpID as "id",
           vdv.followupdate as "followDate",
           vdv.followupway as "followWay",
           vdv.FastingGlucose as "fastingGlucose",
@@ -356,6 +357,51 @@ export default class Person {
       followWay: followCodeNames.find(way => way.code === item.followWay)
         ?.codename
     }));
+  }
+
+  /***
+   * 糖尿病随访详情
+   *
+   * @param id
+   */
+  diabetesDetail(id) {
+    return etlQuery(
+      `select
+        vd.DiabetesFollowUpID as "id",
+        vd.name as "name",
+        vd.sex as "gender",
+        vd.idCardNo as "idCard",
+        vd.serialNum as "No",
+        vd.followUpDate as "followUpDate",
+        vd.followUpWay as "followUpWay",
+        vd.presentSymptoms as "symptoms",
+        vd.SystolicPressure as "systolicPressure",
+        vd.AssertPressure as "assertPressure",
+        vd.Weight as "weight",
+        vd.Weight_Suggest as "weigthSuggest",
+        vd.Stature as "stature",
+        vd.BMI as "BMI",
+        vd.BMI_Suggest as "BMISuggest",
+        vd.Arterial as "arterial",
+        vd.Other_Tz as "other",
+        vd.DaySmoke as "daySmoke",
+        vd.DaySmoke_Suggest as "daySomkeSuggest",
+        vd.DayDrink as "dayDrink",
+        vd.DayDrink_Suggest as "dayDrinkSuggest",
+        vd.Sport_Week as "exerciseWeek",
+        vd.Sport_Minute as "exerciseMinute",
+        vd.Sport_Week_Suggest as "exerciseWeekSuggest",
+        vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+        vd.Principal_Food as "principalFood",
+        vd.Principal_Food_Suggest as "principalFoodSuggest",
+        vd.FastingGlucose as "fastingGlucose",
+        vd.PostprandialGlucose as "postprandialGlucose",
+        vd.Hemoglobin as "hemoglobin",
+        vd.CheckTime as "checkTime",
+        vd.Doctor as "doctor"
+        from view_diabetesvisit vd where DiabetesFollowUpID=?`,
+      [id]
+    );
   }
 
   /**
