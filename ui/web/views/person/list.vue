@@ -247,10 +247,11 @@ export default {
         if (it.C11) it.personTags.push(personTags.C11);
         if (it.C13) it.personTags.push(personTags.C13);
         if (it.C14) it.personTags.push(personTags.C14);
-        if (it.E00) it.personTags.push(personTags.E00);
         // 健康档案标记
         if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
         if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
+        // 人群标记错误
+        if (it.E00 !== null) it.tags.push(documentTags.E00);
         // 老年人标记
         if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
         if (it.O01 !== null) it.tags.push(documentTags.O01(it.O01));
