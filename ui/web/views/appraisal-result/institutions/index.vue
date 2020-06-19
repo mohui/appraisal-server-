@@ -497,11 +497,14 @@
                 <template slot-scope="scope">
                   <el-button
                     v-if="scope.row.isAttach"
+                    :disabled="!scope.row.isUploadAttach"
                     plain
                     type="primary"
                     size="mini"
                     @click="handleUploadAppraisalFile(scope.row)"
-                    >上传考核资料
+                    >{{
+                      scope.row.isUploadAttach ? '上传考核资料' : '超出上传时间'
+                    }}
                   </el-button>
                 </template>
               </el-table-column>
