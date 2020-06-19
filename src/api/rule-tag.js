@@ -1,6 +1,7 @@
-import {should, validate} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {RuleTagModel} from '../database/model';
 import {appDB} from '../app';
+import dayjs from 'dayjs';
 
 export default class RuleTag {
   @validate(
@@ -28,7 +29,15 @@ export default class RuleTag {
             score: should
               .number()
               .required()
-              .description('得分')
+              .description('得分'),
+            attachStartDate: should
+              .date()
+              .allow(null)
+              .description('定性指标上传附件的开始时间'),
+            attachEndDate: should
+              .date()
+              .allow(null)
+              .description('定性指标上传附件的结束时间')
           })
         )
         .required()
@@ -50,6 +59,15 @@ export default class RuleTag {
       //剩下的批量操作
       await Promise.all(
         tags.map(async tag => {
+          //检查是否是attach指标以及上传时间
+          if (
+            tag.tag === 'Attach' &&
+            (!tag.attachStartDate ||
+              !tag.attachEndDate ||
+              dayjs(tag.attachStartDate).isAfter(tag.attachEndDate))
+          )
+            throw new KatoCommonError('定性指标的附件上传起始时间有误');
+
           //查询该指标是否原先就有配置
           let currentTag = allTags.find(item => item.tag === tag.tag);
           if (currentTag) {
@@ -57,9 +75,19 @@ export default class RuleTag {
             currentTag.algorithm = tag.algorithm;
             currentTag.baseline = tag.baseline;
             currentTag.score = tag.score;
+            if (tag.tag === 'Attach') {
+              currentTag.attachStartDate = tag.attachStartDate;
+              currentTag.attachEndDate = tag.attachEndDate;
+            }
             return await currentTag.save();
           }
+
           //否则进行新增操作
+          //不是定性指标的删除他的起始时间
+          if (tag.tag !== 'Attach') {
+            delete tag.attachStartDate;
+            delete tag.attachEndDate;
+          }
           tag.ruleId = ruleId;
           return await RuleTagModel.create(tag);
         })
