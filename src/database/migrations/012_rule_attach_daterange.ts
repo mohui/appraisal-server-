@@ -10,8 +10,8 @@ export class RuleAttachDateRangeMigration implements IMigration {
     await client.execute(
       `
         ALTER TABLE rule_tag
-            ADD COLUMN IF NOT EXISTS attach_start_date date DEFAULT NULL,
-            ADD COLUMN IF NOT EXISTS attach_end_date date DEFAULT NULL;
+            ADD COLUMN IF NOT EXISTS attach_start_date TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+            ADD COLUMN IF NOT EXISTS attach_end_date TIMESTAMP WITH TIME ZONE DEFAULT NULL;
     `
     );
   }
