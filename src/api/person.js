@@ -15,8 +15,8 @@ function listRender(params) {
   return sqlRender(
     `
       from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.hisid = vp.hisid
-             inner join view_hospital vh on mp.hisid = vh.hisid and vp.adminorganization = vh.hospid
+             inner join view_personinfo vp on mp.personnum = vp.personnum
+             inner join view_hospital vh on vp.adminorganization = vh.hospid
       where mp.hisid = {{? his}}
         and vp.vouchertype = '1'
         {{#if name}} and vp.name like {{? name}} {{/if}}

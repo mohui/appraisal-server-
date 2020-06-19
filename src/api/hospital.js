@@ -134,7 +134,7 @@ export default class Hospital {
       await etlDB.query(
         `select vws.score, vws.operatorid as doctorId, vws.doctor as doctorName, vws.projectname as name
            from view_workscoretotal vws
-                  left join hospital_mapping hm on vws.hisid = hm.hisid and vws.operateorganization = hm.hishospid
+                  left join hospital_mapping hm on vws.operateorganization = hm.hishospid
            where hm.h_id = ?
              and missiontime >= ?
              and missiontime < ?`,
