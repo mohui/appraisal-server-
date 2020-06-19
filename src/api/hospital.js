@@ -15,6 +15,7 @@ import {Context} from './context';
 import * as dayjs from 'dayjs';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
+import {MarkTagUsages} from '../../common/rule-score';
 export default class Hospital {
   @validate(
     should
@@ -227,6 +228,19 @@ export default class Hospital {
           it.auto =
             it.ruleHospitals.find(hospital => hospital.hospitalId === id)
               ?.auto ?? false;
+          it.isUploadAttach = false;
+          //含定性指标,并且判断是否在可上传时间范围内
+          const ruleTagDateRange = it.ruleTags.find(
+            tag =>
+              tag.tag === MarkTagUsages.Attach.code &&
+              tag.attachStartDate &&
+              tag.attachEndDate
+          );
+          if (ruleTagDateRange) {
+            it.isUploadAttach =
+              dayjs().isAfter(ruleTagDateRange.attachStartDate) &&
+              dayjs().isBefore(ruleTagDateRange.attachEndDate);
+          }
           return it;
         });
         return {
