@@ -459,6 +459,7 @@ export default class Person {
    * exerciseMinuteSuggest: 运动（分钟/次）（建议）
    * principalFood: 主食
    * principalFoodSuggest: 主食(建议)
+   * mental: 心理调整
    * fastingGlucose: 空腹血糖
    * postprandialGlucose: 随机血糖
    * hemoglobin: 糖化血红蛋白
@@ -521,6 +522,7 @@ export default class Person {
         vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
         vd.Principal_Food as "principalFood",
         vd.Principal_Food_Suggest as "principalFoodSuggest",
+        vd.MentalSet as "mental",
         vd.FastingGlucose as "fastingGlucose",
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
