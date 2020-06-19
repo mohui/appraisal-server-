@@ -432,7 +432,39 @@ export default class Person {
   /***
    * 糖尿病随访详情
    * return {
-   *
+   * id : id
+   * name: 身份证号码
+   * gender: 性别
+   * idCard: 年龄
+   * No:编号
+   * followUpDate: 随访日期
+   * followUpWay: 随访方式
+   * symptoms: 症状
+   * systolicPressure: 收缩压
+   * assertPressure: 舒张压
+   * weight: 体重
+   * weightSuggest: 建议体重
+   * stature: 身高
+   * BMI: BMI
+   * arterial: 足背动脉搏动
+   * other: 其他
+   * daySmoke: 日吸烟量
+   * daySmokeSuggest: 建议日吸烟量
+   * dayDrink: 日饮酒量
+   * dayDrinkSuggest:建议日饮酒量
+   * exerciseWeek: 运动(次/周)
+   * exerciseMinute: 每次锻炼时间(分钟/次)
+   * exerciseWeekSuggest: 运动（次/周)（建议）
+   * exerciseMinuteSuggest: 运动（分钟/次）（建议）
+   * principalFood: 主食
+   * principalFoodSuggest: 主食(建议)
+   * fastingGlucose: 空腹血糖
+   * postprandialGlucose: 随机血糖
+   * hemoglobin: 糖化血红蛋白
+   * checkTime: 检查时间
+   * hospital: 录入机构
+   * updateAt: 录入时间
+   * doctor: 随访医生
    * }
    * @param id
    */
@@ -450,14 +482,14 @@ export default class Person {
         vd.SystolicPressure as "systolicPressure",
         vd.AssertPressure as "assertPressure",
         vd.Weight as "weight",
-        vd.Weight_Suggest as "weigthSuggest",
+        vd.Weight_Suggest as "weightSuggest",
         vd.Stature as "stature",
         vd.BMI as "BMI",
         vd.BMI_Suggest as "BMISuggest",
         vd.Arterial as "arterial",
         vd.Other_Tz as "other",
         vd.DaySmoke as "daySmoke",
-        vd.DaySmoke_Suggest as "daySomkeSuggest",
+        vd.DaySmoke_Suggest as "daySmokeSuggest",
         vd.DayDrink as "dayDrink",
         vd.DayDrink_Suggest as "dayDrinkSuggest",
         vd.Sport_Week as "exerciseWeek",
