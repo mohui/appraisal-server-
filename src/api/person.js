@@ -320,6 +320,35 @@ export default class Person {
 
   /***
    * 高血压随访详情
+   * return {
+   *   id: id,
+   *   idCard: 身份证号码
+   *   gender: 性别
+   *   age: 年龄
+   *   phone: 联系电话
+   *   No: 编号
+   *   followDate: 随访日期
+   *   followWay: 随访方式
+   *   symptoms: 症状
+   *   systolicPressure: 收缩压
+   *   assertPressure: 舒张压
+   *   weight: 体重
+   *   weightSuggest: 建议体重
+   *   stature: 身高
+   *   BMI: BMI
+   *   other: 其他
+   *   daySmoke: 日吸烟量
+   *   daySmokeSuggest: 建议日吸烟量
+   *   dayDrink: 日饮酒量
+   *   dayDrinkSuggest: 建议日饮酒量
+   *   exerciseWeek: 运动(次/周)
+   *   exerciseMinute: 每次锻炼时间(分钟/次)
+   *   exerciseWeekSuggest: 运动（次/周）（建议）
+   *   exerciseMinuteSuggest: 运动（分钟/次）（建议）
+   *   hospital: 录入机构
+   *   updateAt: 录入时间
+   *   doctor: 随访医生
+   * }
    * @param id
    * @returns {Promise<void>}
    */
@@ -344,7 +373,7 @@ export default class Person {
         vh.BMI as "BMI",
         vh.Other_Tz as "other",
         vh.DaySmoke as "daySmoke",
-        vh.DaySmoke_Suggest as "daySomkeSuggest",
+        vh.DaySmoke_Suggest as "daySmokeSuggest",
         vh.DayDrink as "dayDrink",
         vh.DayDrink_Suggest as "dayDrinkSuggest",
         vh.Sport_Week as "exerciseWeek",
@@ -402,7 +431,9 @@ export default class Person {
 
   /***
    * 糖尿病随访详情
+   * return {
    *
+   * }
    * @param id
    */
   diabetesDetail(id) {
