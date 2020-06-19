@@ -50,10 +50,10 @@ export class RuleTag extends Model<RuleTag> {
   score: number;
 
   @Comment('定性指标上传开始时间')
-  @Column(DataType.DATE)
+  @Column({field: 'attach_start_date'})
   attachStartDate: Date;
 
   @Comment('定性指标上传结束时间')
-  @Column(DataType.DATE)
+  @Column({field: 'attach_end_date'})
   attachEndDate: Date;
 }

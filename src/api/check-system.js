@@ -321,7 +321,15 @@ export default class CheckSystem {
       where: whereOptions,
       include: {
         model: RuleTagModel,
-        attributes: ['id', 'tag', 'algorithm', 'baseline', 'score']
+        attributes: [
+          'id',
+          'tag',
+          'algorithm',
+          'baseline',
+          'score',
+          'attachStartDate',
+          'attachEndDate'
+        ]
       }
     });
 
