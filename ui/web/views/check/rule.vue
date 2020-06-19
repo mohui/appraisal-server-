@@ -287,7 +287,7 @@
                         </el-option>
                       </el-select>
                     </td>
-                    <td style="text-align: center; width: 210px">
+                    <td style="text-align: center; width: 300px">
                       <el-input-number
                         size="mini"
                         :min="0"
@@ -302,8 +302,29 @@
                       <span
                         style="margin: 0 -15px 0 5px;"
                         v-if="k.algorithm === 'attach'"
-                        >个附件</span
-                      >
+                        >个附件
+                        <el-popover
+                          placement="bottom"
+                          width="360"
+                          trigger="click"
+                        >
+                          <el-date-picker
+                            type="daterange"
+                            v-model="k.daterange"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                          >
+                          </el-date-picker>
+                          <el-button
+                            size="mini"
+                            slot="reference"
+                            type="primary"
+                          >
+                            上传时间
+                          </el-button>
+                        </el-popover>
+                      </span>
                     </td>
                     <td style="text-align: center">
                       <el-input-number
@@ -335,6 +356,7 @@
 
 <script>
 import Vue from 'vue';
+import dayjs from 'dayjs';
 import {
   MarkTags,
   TagAlgorithm,
@@ -433,6 +455,12 @@ export default {
                 ...item,
                 checked: true, // 默认选中, 会被checkedTag覆盖
                 ...checkedTag,
+                daterange: checkedTag.attachStartDate
+                  ? [
+                      checkedTag.attachStartDate,
+                      dayjs(checkedTag.attachEndDate).subtract(1, 'day')
+                    ]
+                  : [],
                 baseline: checkedTag.baseline || undefined
               };
 
@@ -484,7 +512,12 @@ export default {
             (it.algorithm === 'egt' || it.algorithm === 'elt')
               ? +Number.parseFloat(it.baseline / 100).toFixed(2)
               : it.baseline,
-          score: it.score
+          score: it.score,
+          attachStartDate: it.daterange.length ? it.daterange[0] : null,
+          attachEndDate:
+            it.daterange.length === 2
+              ? dayjs(it.daterange[1]).add(1, 'day')
+              : null
         }));
 
       const notAlgorithm = tags.some(it => !it.algorithm);
