@@ -23,6 +23,14 @@
                   class="notes"
                   v-for="(item, index) of healthyList"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-healthy',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">体检时间：{{ item.updateAt }}</span>
@@ -46,6 +54,14 @@
                   class="notes"
                   v-for="(item, index) of hypertensions"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-hypertension',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">随访医生：{{ item.doctor }}</span>
@@ -71,6 +87,14 @@
                   class="notes"
                   v-for="(item, index) of diabetesList"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-diabetes',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">随访医生：{{ item.doctor }}</span>
@@ -235,6 +259,7 @@ export default {
 </style>
 <style lang="scss" scoped>
 .notes {
+  cursor: pointer;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
   p {

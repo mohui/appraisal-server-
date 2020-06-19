@@ -71,6 +71,26 @@ const router = new Router({
           component: () => import('./views/patient/index')
         },
         {
+          path: 'record-healthy',
+          name: 'record-healthy',
+          component: () => import('./views/patient/record-healthy')
+        },
+        {
+          path: 'record-diabetes',
+          name: 'record-diabetes',
+          component: () => import('./views/patient/record-diabetes')
+        },
+        {
+          path: 'record-hypertension',
+          name: 'record-hypertension',
+          component: () => import('./views/patient/record-hypertension')
+        },
+        {
+          path: 'record-old',
+          name: 'record-old',
+          component: () => import('./views/patient/record-old')
+        },
+        {
           path: 'person',
           name: 'person',
           component: () => import('./views/person/list')
