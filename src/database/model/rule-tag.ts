@@ -48,4 +48,12 @@ export class RuleTag extends Model<RuleTag> {
   @AllowNull(false)
   @Column(DataType.FLOAT)
   score: number;
+
+  @Comment('定性指标上传开始时间')
+  @Column(DataType.DATE)
+  attachStartDate: Date;
+
+  @Comment('定性指标上传结束时间')
+  @Column(DataType.DATE)
+  attachEndDate: Date;
 }
