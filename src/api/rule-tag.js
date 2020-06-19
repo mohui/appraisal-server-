@@ -2,7 +2,7 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {RuleTagModel} from '../database/model';
 import {appDB} from '../app';
 import dayjs from 'dayjs';
-
+import {MarkTagUsages} from '../../common/rule-score';
 export default class RuleTag {
   @validate(
     should.object({
@@ -61,7 +61,7 @@ export default class RuleTag {
         tags.map(async tag => {
           //检查是否是attach指标以及上传时间
           if (
-            tag.tag === 'Attach' &&
+            tag.tag === MarkTagUsages.Attach.code &&
             (!tag.attachStartDate ||
               !tag.attachEndDate ||
               dayjs(tag.attachStartDate).isAfter(tag.attachEndDate))
@@ -75,7 +75,7 @@ export default class RuleTag {
             currentTag.algorithm = tag.algorithm;
             currentTag.baseline = tag.baseline;
             currentTag.score = tag.score;
-            if (tag.tag === 'Attach') {
+            if (tag.tag === MarkTagUsages.Attach.code) {
               currentTag.attachStartDate = tag.attachStartDate;
               currentTag.attachEndDate = tag.attachEndDate;
             }
@@ -84,7 +84,7 @@ export default class RuleTag {
 
           //否则进行新增操作
           //不是定性指标的删除他的起始时间
-          if (tag.tag !== 'Attach') {
+          if (tag.tag !== MarkTagUsages.Attach.code) {
             delete tag.attachStartDate;
             delete tag.attachEndDate;
           }
