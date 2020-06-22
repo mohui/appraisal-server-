@@ -381,12 +381,12 @@ export default class Person {
         vh.highbloodid as "id",
         vh.hypertensioncardid as "cardId",
         vh.Name as "name",
-        vh.sex as "gender",
+        vc_sex.codeName as "gender",
         vh.age as "age",
         vh.ContactPhone as "phone",
         vh.SerialNum as "No",
         vh.FollowUpDate as "followDate",
-        vh.FollowUpWay as "followWay",
+        vc_follow.codename as "followWay",
         vh.PresentSymptoms as "symptoms",
         vh.SystolicPressure as "systolicPressure",
         vh.AssertPressure as "assertPressure",
@@ -403,15 +403,15 @@ export default class Person {
         vh.Sport_Minute as "exerciseMinute",
         vh.Sport_Week_Suggest as "exerciseWeekSuggest",
         vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-        vh.Salt_Situation as "saltInTake",
-        vh.Salt_Situation_Suggest as "saltInTakeSuggest",
-        vh.MentalSet as "mental",
-        vh.DoctorStatue as "doctorStatue",
+        vc_salt.codename as "saltInTake",
+        vc_salt_suggest.codename as "saltInTakeSuggest",
+        vc_mental.codename as "mental",
+        vc_doctor_s.codename as "doctorStatue",
         vh.Fzjc as "assistExam",
-        vh.MedicationAdherence as "medicationAdherence",
+        vc_ma.codename as "medicationAdherence",
         vh.AdverseEffect as "adverseReactions",
         vh.AdverseEffectOther as "adverseReactionsExplain",
-        vh.VisitClass as "visitClass",
+        vc_vc.codename as "visitClass",
         vh.DrugName1 as "drugName1",
         vh.Usage_Day1 as "dailyTimesDrugName1",
         vh.Usage_Time1 as "usageDrugName1",
@@ -421,10 +421,6 @@ export default class Person {
         vh.DrugName3 as "drugName3",
         vh.Usage_Day3 as "dailyTimesDrugName3",
         vh.Usage_Time3 as "usageDrugName3",
-        vh.Insulin1 as "insulin1",
-        vh.InsulinUsing1 as "usageInsulin1",
-        vh.Insulin2 as "insulin2",
-        vh.InsulinUsing2 as "usageInsulin2",
         vh.Remark as "remark",
         vh.Referral as "referral",
         vh.ReferralReason as "referralReason",
@@ -433,7 +429,16 @@ export default class Person {
         vh.OperateOrganization as "hospital",
         vh.OperateTime as "updateAt",
         vh.Doctor as "doctor"
-       from view_hypertensionvisit vh where highbloodid=?`,
+       from view_hypertensionvisit vh
+       left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vh.sex
+       left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vh.FollowUpWay
+       left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
+       left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+       left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vh.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
+       left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vh.DoctorStatue
+       left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
+       left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
+       where vh.highbloodid=?`,
       [id]
     );
   }
