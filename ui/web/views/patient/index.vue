@@ -11,7 +11,13 @@
           :body-style="{
             height: 'calc(100% - 40px)'
           }"
-        >
+          ><el-button
+            style="position: absolute;top:15px;right:30px;"
+            size="small"
+            type="primary"
+            @click="$router.go(-1)"
+            >返回
+          </el-button>
           <el-tabs v-model="activeTab" class="patient-tab-list">
             <el-tab-pane
               label="体检记录"
@@ -141,8 +147,10 @@ export default {
   mounted() {
     if (this.healthyList.length > 0) {
       this.activeTab = 'physical';
+      return;
     } else if (this.hypertensions.length > 0) {
       this.activeTab = 'hypertension';
+      return;
     } else if (this.diabetesList.length > 0) {
       this.activeTab = 'diabetes';
     }
