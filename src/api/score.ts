@@ -317,7 +317,7 @@ export default class Score {
         // 定性指标得分
         if (tagModel.tag === MarkTagUsages.Attach.code) {
           //查询定性指标和机构表
-          const attach = await RuleHospitalAttachModel.findOne({
+          const attach = await RuleHospitalAttachModel.findAll({
             where: {
               ruleId: tagModel.ruleId,
               hospitalId: id,
@@ -327,8 +327,13 @@ export default class Score {
               }
             }
           });
-          if (attach) score += tagModel.score;
-          else score += 0;
+          if (attach?.length) {
+            if (!tagModel?.baseline) score += tagModel.score;
+
+            //有上传文件数量的要求
+            if (tagModel?.baseline && attach.length === tagModel.baseline)
+              score += tagModel.score;
+          }
         }
       }
       // 查询机构考核得分
