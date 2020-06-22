@@ -314,6 +314,22 @@ export default class Score {
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
+        // 定性指标得分
+        if (tagModel.tag === MarkTagUsages.Attach.code) {
+          //查询定性指标和机构表
+          const attach = await RuleHospitalAttachModel.findOne({
+            where: {
+              ruleId: tagModel.ruleId,
+              hospitalId: id,
+              updatedAt: {
+                [Op.gt]: tagModel.attachStartDate,
+                [Op.lt]: tagModel.attachEndDate
+              }
+            }
+          });
+          if (attach) score += tagModel.score;
+          else score += 0;
+        }
       }
       // 查询机构考核得分
       const ruleHospitalScoreObject = {
