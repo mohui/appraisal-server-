@@ -349,6 +349,7 @@ export default class Person {
    *   saltInTakeSuggest: 摄入盐量情况(建议)
    *   mental: 心理调整
    *   doctorStatue:  遵医行为
+   *   assistExam: 辅助检查
    *   medicationAdherence: 服药依从性
    *   adverseReactions: 不良反应
    *   adverseReactionsExplain: 不良反应说明
@@ -406,6 +407,7 @@ export default class Person {
         vh.Salt_Situation_Suggest as "saltInTakeSuggest",
         vh.MentalSet as "mental",
         vh.DoctorStatue as "doctorStatue",
+        vh.Fzjc as "assistExam",
         vh.MedicationAdherence as "medicationAdherence",
         vh.AdverseEffect as "adverseReactions",
         vh.AdverseEffectOther as "adverseReactionsExplain",
