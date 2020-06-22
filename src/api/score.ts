@@ -331,8 +331,10 @@ export default class Score {
             if (!tagModel?.baseline) score += tagModel.score;
 
             //有上传文件数量的要求
-            if (tagModel?.baseline && attach.length === tagModel.baseline)
-              score += tagModel.score;
+            if (tagModel?.baseline) {
+              const rate = attach.length / tagModel.baseline;
+              score += tagModel.score * (rate < 1 ? rate : 1);
+            }
           }
         }
       }
