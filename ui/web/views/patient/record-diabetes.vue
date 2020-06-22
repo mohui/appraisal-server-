@@ -27,7 +27,7 @@
           </el-col>
           <el-col :span="6">编号：{{ person.No }}</el-col>
         </el-row>
-        <table class="record-table">
+        <table class="record-dia-table">
           <colgroup>
             <col width="50" />
             <col width="160" />
@@ -36,12 +36,14 @@
           <tbody>
             <tr>
               <td colspan="2">随访日期</td>
-              <td>{{ person.followUpDate }}</td>
+              <td>
+                <em>{{ person.followDate }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="2">随访方式</td>
               <td>
-                <el-radio-group v-model="person.followUpWay">
+                <el-radio-group v-model="person.followWay">
                   <el-radio label="01">1 门诊</el-radio>
                   <el-radio label="02">2 家庭</el-radio>
                   <el-radio label="03">3 电话</el-radio>
@@ -55,38 +57,42 @@
                 <br />6 感染 <br />7 手脚麻木 <br />8 下肢浮肿 <br />9
                 体重明显下降
               </td>
-              <td>
-                <el-checkbox-group v-model="person.symptoms">
-                  <el-checkbox label="无症状"></el-checkbox>
-                  <el-checkbox label="多饮"></el-checkbox>
-                  <el-checkbox label="多食"></el-checkbox>
-                  <el-checkbox label="多尿"></el-checkbox>
-                  <el-checkbox label="视力模糊"></el-checkbox>
-                  <el-checkbox label="感染"></el-checkbox>
-                  <el-checkbox label="手脚麻木"></el-checkbox>
-                  <el-checkbox label="下肢浮肿"></el-checkbox>
-                  <el-checkbox label="体重明显下降"></el-checkbox>
-                </el-checkbox-group>
+              <td style="text-align: left;">
+                <em>{{ person.symptoms }}</em>
               </td>
             </tr>
             <tr>
-              <td>其它 <br /><br /><br /><br /><br /><br /><br /><br /></td>
+              <td style="vertical-align: top;">其它 <br /></td>
             </tr>
             <tr>
               <td rowspan="5">体征</td>
               <td>血 压<sub>（mmHg）</sub></td>
               <td>
-                收缩压: {{ person.systolicPressure }} 舒张压:
-                {{ person.assertPressure }}
+                收缩压:
+                <em>
+                  {{ person.systolicPressure }}
+                </em>
+                舒张压:
+                <em>
+                  {{ person.assertPressure }}
+                </em>
               </td>
             </tr>
             <tr>
               <td>体 重<sub>（kg）</sub></td>
-              <td>{{ person.weight }}</td>
+              <td>
+                <em>
+                  {{ person.weight }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>体质指数<sub>（kg/m2）</sub></td>
-              <td>{{ person.BMI }}</td>
+              <td>
+                <em>
+                  {{ person.BMI }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>足背动脉搏动</td>
@@ -97,22 +103,36 @@
             </tr>
             <tr>
               <td>其 他</td>
-              <td>{{ person.other }}</td>
+              <td>
+                <em>
+                  {{ person.other }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td rowspan="6">生活方式指导</td>
               <td>日吸烟量</td>
-              <td>{{ person.daySmoke }} / 支</td>
+              <td>
+                <em>
+                  {{ person.daySmoke }}
+                </em>
+                / 支
+              </td>
             </tr>
             <tr>
               <td>日饮酒量</td>
-              <td>{{ person.dayDrink }} / 两</td>
+              <td>
+                <em>
+                  {{ person.dayDrink }}
+                </em>
+                / 两
+              </td>
             </tr>
             <tr>
               <td>运 动</td>
               <td>
-                {{ person.exerciseWeek }}次/周
-                {{ person.exerciseMinute }}分钟/次 <br />建议：{{
+                <em> {{ person.exerciseWeek }} </em>次/周
+                <em> {{ person.exerciseMinute }} </em>分钟/次 <br />建议：{{
                   person.exerciseWeekSuggest
                 }}次/周 {{ person.exerciseMinuteSuggest }}分钟/次
               </td>
@@ -120,43 +140,65 @@
             <tr>
               <td>主食<sub>（克/天）</sub></td>
               <td>
-                {{ person.principalFood }}
+                <em>
+                  {{ person.principalFood }}
+                </em>
               </td>
             </tr>
             <tr>
               <td>心理调整</td>
-              <td>1 良好 2 一般 3 差 □</td>
+              <td>
+                <el-radio-group v-model="person.mental">
+                  <el-radio label="01">1 良好</el-radio>
+                  <el-radio label="02">2 一般</el-radio>
+                  <el-radio label="03">3 差</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td>遵医行为</td>
-              <td>1 良好 2 一般 3 差 □</td>
+              <td>
+                <el-radio-group v-model="person.doctorStatue">
+                  <el-radio label="01">1 良好</el-radio>
+                  <el-radio label="02">2 一般</el-radio>
+                  <el-radio label="03">3 差</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td rowspan="2">辅助检查</td>
               <td>
                 空腹血糖值
               </td>
-              <td>mmol/L</td>
+              <td>
+                <em>{{ person.fastingGlucose }}</em>
+                mmol/L
+              </td>
             </tr>
             <tr>
               <td>其他检查*</td>
               <td>
-                糖化血红蛋白 ％<br />
+                糖化血红蛋白 <em>{{ person.hemoglobin }}</em> ％<br />
                 检查日期： 月 日<br /><br /><br /><br /><br />
               </td>
             </tr>
             <tr>
               <td colspan="2">服药依从性</td>
               <td>
-                <input type="radio" name="adherence" />1 规律
-                <input type="radio" name="adherence" />2 间断
-                <input type="radio" name="adherence" />3 不服药
+                <el-radio-group v-model="person.medicationAdherence">
+                  <el-radio label="1">1 规律</el-radio>
+                  <el-radio label="2">2 间断</el-radio>
+                  <el-radio label="3">3 不服药</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">药物不良反应</td>
               <td>
-                1 无 2 有
+                <el-radio-group v-model="person.adverseReactions">
+                  <el-radio label="0">1 无</el-radio>
+                  <el-radio label="1">2 有</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
@@ -168,60 +210,107 @@
             <tr>
               <td colspan="2">此次随访分类</td>
               <td>
-                1控制满意 2控制不满意 <br />
-                3不良反应 4并发症
+                <el-radio-group v-model="person.visitClass">
+                  <el-radio label="1">1 控制满意</el-radio>
+                  <el-radio label="2">2 控制不满意</el-radio>
+                  <el-radio label="3">3 不良反应</el-radio>
+                  <el-radio label="4">4 并发症</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td rowspan="7">用药情况</td>
               <td>药物名称 1</td>
-              <td>&nbsp;</td>
+              <td>
+                <em>{{ person.drugName1 }}</em>
+              </td>
             </tr>
             <tr>
               <td>用法用量</td>
-              <td>每日 次 每次</td>
+              <td>
+                每日 <em> {{ person.dailyTimesDrugName1 }} </em>次 每次
+                <em>
+                  {{ person.usageDrugName1 }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>药物名称 2</td>
-              <td>&nbsp;</td>
+              <td>
+                <em>{{ person.drugName2 }}</em>
+              </td>
             </tr>
             <tr>
               <td>用法用量</td>
-              <td>每日 次 每次</td>
+              <td>
+                每日
+                <em> {{ person.dailyTimesDrugName2 }} </em>次 每次
+                <em>{{ person.usageDrugName2 }}</em>
+              </td>
             </tr>
             <tr>
               <td>药物名称 3</td>
-              <td>&nbsp;</td>
+              <td>
+                <em>{{ person.drugName3 }}</em>
+              </td>
             </tr>
             <tr>
               <td>用法用量</td>
-              <td>每日 次 每次</td>
+              <td>
+                每日
+                <em> {{ person.dailyTimesDrugName3 }} </em>次 每次
+                <em>
+                  {{ person.usageDrugName3 }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>胰岛素</td>
               <td>
-                种类：<br />
-                用法和用量：
+                种类：<em>
+                  {{ person.insulin1 }}
+                </em>
+                用法和用量：<em>
+                  {{ person.usageInsulin1 }}
+                </em>
+                种类：<em>
+                  {{ person.insulin2 }}
+                </em>
+                用法和用量：<em>
+                  {{ person.usageInsulin2 }}
+                </em>
               </td>
             </tr>
             <tr>
               <td rowspan="2">转诊</td>
               <td>
-                原 因
+                是否转诊：
               </td>
-              <td></td>
+              <td>
+                <em>{{ person.referral ? '是' : '否' }}</em
+                >。 原 因：
+                <em>
+                  {{ person.referralReason }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>机构及科别</td>
-              <td></td>
+              <td>
+                <em>{{ person.referralAgencies }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="2">下次随访日期</td>
-              <td>0</td>
+              <td>
+                <em>{{ person.nextVisitDate }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="2">随访医生签名</td>
-              <td>{{ person.doctor }}</td>
+              <td>
+                <em>{{ person.doctor }}</em>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -351,7 +440,8 @@ export default {
         console.log(result);
         if (result.length > 0) {
           this.person = Object.assign({}, result[0], {
-            followUpDate: result[0].followUpDate.$format('YYYY-MM-DD'),
+            followDate: result[0].followDate.$format('YYYY-MM-DD'),
+            nextVisitDate: result[0].nextVisitDate.$format('YYYY-MM-DD'),
             updateAt: result[0].updateAt.$format()
           });
         }
@@ -369,7 +459,7 @@ export default {
   max-width: 1200px;
   margin-bottom: 10px;
 }
-.record-table {
+.record-dia-table {
   width: 100%;
   max-width: 1200px;
   background-color: #fff;
@@ -382,6 +472,9 @@ export default {
       padding: 0 10px;
       border-top: 1px solid #ccc;
       border-left: 1px solid #ccc;
+      em {
+        color: #409eff;
+      }
       sub {
         vertical-align: bottom;
       }

@@ -372,7 +372,7 @@
             </tr>
           </tbody>
         </table>
-        <table class="record-table">
+        <table class="record-old-table">
           <thead>
             <tr>
               <th>体质类型</th>
@@ -561,9 +561,9 @@
   max-width: 1200px;
   margin-bottom: 10px;
 }
-.record-table {
+.record-old-table {
   width: 100%;
-  margin: 0 auto;
+  max-width: 1200px;
   background-color: #fff;
   border-collapse: collapse;
   border-right: 1px solid #ccc;
