@@ -449,14 +449,42 @@
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
                   ></i>
-                  <i
+                  <el-popover
                     v-if="!scope.row.isAttach"
-                    style="padding-left:5px; color:#ff9800"
-                    class="el-icon-warning"
-                    @click="
-                      handleDialogAppraisalResultInstructionsVisible(scope.row)
+                    placement="top"
+                    title="指标结果"
+                    width="400px"
+                    trigger="hover"
+                    @show="
+                      handleAppraisalResultInstructionsPopoverVisible(scope.row)
                     "
-                  ></i>
+                  >
+                    <div
+                      v-loading="
+                        $asyncComputed.appraisalResultInstructionsServerData
+                          .updating
+                      "
+                    >
+                      <p
+                        style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
+                      >
+                        评分标准：{{ curRule.evaluateStandard }}
+                      </p>
+                      <ul>
+                        <li
+                          v-for="item of appraisalResultInstructionsData"
+                          :key="item"
+                        >
+                          {{ item }}
+                        </li>
+                      </ul>
+                    </div>
+                    <i
+                      slot="reference"
+                      class="el-icon-warning"
+                      style="padding-left:5px; color:#ff9800"
+                    ></i>
+                  </el-popover>
                 </template>
               </el-table-column>
               <el-table-column
@@ -664,22 +692,6 @@
         <div v-else style="color: red">暂无文件</div>
       </div>
     </el-dialog>
-    <el-dialog
-      title="指标结果"
-      :visible.sync="appraisalResultInstructionsDialogVisible"
-      width="50%"
-    >
-      <div>
-        <p style="border-bottom: 1px solid #ccc;padding-bottom: 10px;">
-          评分标准：{{ curRule.evaluateStandard }}
-        </p>
-        <ul>
-          <li v-for="item of appraisalResultInstructionsData" :key="item">
-            {{ item }}
-          </li>
-        </ul>
-      </div>
-    </el-dialog>
   </div>
 </template>
 <script>
@@ -723,7 +735,7 @@ export default {
         data: ''
       },
       dialogAppraisalFileListVisible: false,
-      appraisalResultInstructionsDialogVisible: false //单项指标考核结果说明
+      appraisalResultInstructionsPopoverVisible: false //单项指标考核结果说明
     };
   },
   filters: {
@@ -843,8 +855,8 @@ export default {
       this.dialogAppraisalFileListVisible = true;
     },
     //单项指标考核得分解读
-    handleDialogAppraisalResultInstructionsVisible(row) {
-      this.appraisalResultInstructionsDialogVisible = true;
+    handleAppraisalResultInstructionsPopoverVisible(row) {
+      this.appraisalResultInstructionsPopoverVisible = true;
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
@@ -1224,7 +1236,7 @@ export default {
         );
       },
       shouldUpdate() {
-        return this.appraisalResultInstructionsDialogVisible;
+        return this.appraisalResultInstructionsPopoverVisible;
       },
       default() {
         return [];
