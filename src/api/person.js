@@ -336,6 +336,7 @@ export default class Person {
    *   weightSuggest: 建议体重
    *   stature: 身高
    *   BMI: BMI
+   *   heartRate: 心率
    *   other: 其他
    *   daySmoke: 日吸烟量
    *   daySmokeSuggest: 建议日吸烟量
@@ -394,6 +395,7 @@ export default class Person {
         vh.Weight_Suggest as "weigthSuggest",
         vh.Stature as "stature",
         vh.BMI as "BMI",
+        vh.HeartRate as "heartRate",
         vh.Other_Tz as "other",
         vh.DaySmoke as "daySmoke",
         vh.DaySmoke_Suggest as "daySmokeSuggest",
