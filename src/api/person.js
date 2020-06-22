@@ -345,6 +345,29 @@ export default class Person {
    *   exerciseMinute: 每次锻炼时间(分钟/次)
    *   exerciseWeekSuggest: 运动（次/周）（建议）
    *   exerciseMinuteSuggest: 运动（分钟/次）（建议）
+   *   saltInTake: 摄入盐量情况
+   *   saltInTakeSuggest: 摄入盐量情况(建议)
+   *   mental: 心理调整
+   *   doctorStatue:  遵医行为
+   *   assistExam: 辅助检查
+   *   medicationAdherence: 服药依从性
+   *   adverseReactions: 不良反应
+   *   adverseReactionsExplain: 不良反应说明
+   *   visitClass: 此次随访分类
+   *   drugName1: 用药1名称
+   *   dailyTimesDrugName1: 用药1每日次数
+   *   usageDrugName1: 用药1每次量
+   *   drugName2: 用药2名称
+   *   dailyTimesDrugName2: 用药2每日次数
+   *   usageDrugName2: 用药2每次量
+   *   drugName3: 用药3名称
+   *   dailyTimesDrugName3: 用药3每日次数
+   *   usageDrugName3: 用药3每次量
+   *   remark: 备注
+   *   referral: 是否转诊
+   *   referralReason: 转诊原因
+   *   referralAgencies: 转诊机构及科室
+   *   nextVisitDate: 下次随访日期
    *   hospital: 录入机构
    *   updateAt: 录入时间
    *   doctor: 随访医生
@@ -358,12 +381,12 @@ export default class Person {
         vh.highbloodid as "id",
         vh.hypertensioncardid as "cardId",
         vh.Name as "name",
-        vh.sex as "gender",
+        vc_sex.codeName as "gender",
         vh.age as "age",
         vh.ContactPhone as "phone",
         vh.SerialNum as "No",
         vh.FollowUpDate as "followDate",
-        vh.FollowUpWay as "followWay",
+        vc_follow.codename as "followWay",
         vh.PresentSymptoms as "symptoms",
         vh.SystolicPressure as "systolicPressure",
         vh.AssertPressure as "assertPressure",
@@ -380,10 +403,42 @@ export default class Person {
         vh.Sport_Minute as "exerciseMinute",
         vh.Sport_Week_Suggest as "exerciseWeekSuggest",
         vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+        vc_salt.codename as "saltInTake",
+        vc_salt_suggest.codename as "saltInTakeSuggest",
+        vc_mental.codename as "mental",
+        vc_doctor_s.codename as "doctorStatue",
+        vh.Fzjc as "assistExam",
+        vc_ma.codename as "medicationAdherence",
+        vh.AdverseEffect as "adverseReactions",
+        vh.AdverseEffectOther as "adverseReactionsExplain",
+        vc_vc.codename as "visitClass",
+        vh.DrugName1 as "drugName1",
+        vh.Usage_Day1 as "dailyTimesDrugName1",
+        vh.Usage_Time1 as "usageDrugName1",
+        vh.DrugName2 as "drugName2",
+        vh.Usage_Day2 as "dailyTimesDrugName2",
+        vh.Usage_Time2 as "usageDrugName2",
+        vh.DrugName3 as "drugName3",
+        vh.Usage_Day3 as "dailyTimesDrugName3",
+        vh.Usage_Time3 as "usageDrugName3",
+        vh.Remark as "remark",
+        vh.Referral as "referral",
+        vh.ReferralReason as "referralReason",
+        vh.ReferralAgencies as "referralAgencies",
+        vh.NextVisitDate as "nextVisitDate",
         vh.OperateOrganization as "hospital",
         vh.OperateTime as "updateAt",
         vh.Doctor as "doctor"
-       from view_hypertensionvisit vh where highbloodid=?`,
+       from view_hypertensionvisit vh
+       left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vh.sex
+       left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vh.FollowUpWay
+       left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
+       left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+       left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vh.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
+       left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vh.DoctorStatue
+       left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
+       left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
+       where vh.highbloodid=?`,
       [id]
     );
   }
@@ -433,12 +488,13 @@ export default class Person {
    * 糖尿病随访详情
    * return {
    * id : id
-   * name: 身份证号码
+   * name: 姓名
    * gender: 性别
-   * idCard: 年龄
+   * age: 年龄
+   * idCard: 身份证号码
    * No:编号
-   * followUpDate: 随访日期
-   * followUpWay: 随访方式
+   * followDate: 随访日期
+   * followWay: 随访方式
    * symptoms: 症状
    * systolicPressure: 收缩压
    * assertPressure: 舒张压
@@ -458,10 +514,33 @@ export default class Person {
    * exerciseMinuteSuggest: 运动（分钟/次）（建议）
    * principalFood: 主食
    * principalFoodSuggest: 主食(建议)
+   * mental: 心理调整
+   * doctorStatue: 遵医行为
    * fastingGlucose: 空腹血糖
    * postprandialGlucose: 随机血糖
    * hemoglobin: 糖化血红蛋白
    * checkTime: 检查时间
+   * medicationAdherence: 服药依从性
+   * adverseReactions: 不良反应
+   * visitClass: 此次随访分类
+   * drugName1: 用药1名称
+   * dailyTimesDrugName1: 用药1每日次数
+   * usageDrugName1: 用药1每次量
+   * drugName2: 用药2名称
+   * dailyTimesDrugName2: 用药2每日次数
+   * usageDrugName2: 用药2每次量
+   * drugName3: 用药3名称
+   * dailyTimesDrugName3: 用药3每日次数
+   * usageDrugName3: 用药3每次量
+   * insulin1: 胰岛素1名称
+   * usageInsulin1: 胰岛素1用法用量
+   * insulin2: 胰岛素2名称
+   * usageInsulin2: 胰岛素2用法用量
+   * remark: 备注
+   * referral: 是否转诊
+   * referralReason: 转诊原因
+   * referralAgencies: 转诊机构及科室
+   * nextVisitDate: 下次随访日期
    * hospital: 录入机构
    * updateAt: 录入时间
    * doctor: 随访医生
@@ -474,10 +553,11 @@ export default class Person {
         vd.DiabetesFollowUpID as "id",
         vd.name as "name",
         vd.sex as "gender",
+        vd.age as "age",
         vd.idCardNo as "idCard",
         vd.serialNum as "No",
-        vd.followUpDate as "followUpDate",
-        vd.followUpWay as "followUpWay",
+        vd.followUpDate as "followDate",
+        vd.followUpWay as "followWay",
         vd.presentSymptoms as "symptoms",
         vd.SystolicPressure as "systolicPressure",
         vd.AssertPressure as "assertPressure",
@@ -498,10 +578,35 @@ export default class Person {
         vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
         vd.Principal_Food as "principalFood",
         vd.Principal_Food_Suggest as "principalFoodSuggest",
+        vd.MentalSet as "mental",
+        vd.DoctorStatue as "doctorStatue",
         vd.FastingGlucose as "fastingGlucose",
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
         vd.CheckTime as "checkTime",
+        vd.MedicationAdherence as "medicationAdherence",
+        vd.Blfy as "adverseReactions",
+        vd.BlfyOther as "adverseReactionsExplain",
+        vd.LowBlood as "lowBloodReaction",
+        vd.VisitClass as "visitClass",
+        vd.DrugName1 as "drugName1",
+        vd.Usage_Day1 as "dailyTimesDrugName1",
+        vd.Usage_Time1 as "usageDrugName1",
+        vd.DrugName2 as "drugName2",
+        vd.Usage_Day2 as "dailyTimesDrugName2",
+        vd.Usage_Time2 as "usageDrugName2",
+        vd.DrugName3 as "drugName3",
+        vd.Usage_Day3 as "dailyTimesDrugName3",
+        vd.Usage_Time3 as "usageDrugName3",
+        vd.Insulin1 as "insulin1",
+        vd.InsulinUsing1 as "usageInsulin1",
+        vd.Insulin2 as "insulin2",
+        vd.InsulinUsing2 as "usageInsulin2",
+        vd.Remark as "remark",
+        vd.Referral as "referral",
+        vd.ReferralReason as "referralReason",
+        vd.ReferralAgencies as "referralAgencies",
+        vd.NextVisitDate as "nextVisitDate",
         vd.OperateOrganization as "hospital",
         vd.OperateTime as "updateAt",
         vd.Doctor as "doctor"
