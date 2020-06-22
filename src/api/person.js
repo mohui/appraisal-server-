@@ -557,12 +557,12 @@ export default class Person {
       `select
         vd.DiabetesFollowUpID as "id",
         vd.name as "name",
-        vd.sex as "gender",
+        vc_sex.codeName as "gender",
         vd.age as "age",
         vd.idCardNo as "idCard",
         vd.serialNum as "No",
         vd.followUpDate as "followDate",
-        vd.followUpWay as "followWay",
+        vc_follow.codename as "followWay",
         vd.presentSymptoms as "symptoms",
         vd.SystolicPressure as "systolicPressure",
         vd.AssertPressure as "assertPressure",
@@ -584,7 +584,7 @@ export default class Person {
         vd.Principal_Food as "principalFood",
         vd.Principal_Food_Suggest as "principalFoodSuggest",
         vd.MentalSet as "mental",
-        vd.DoctorStatue as "doctorStatue",
+        vc_doctor_s.codename as "doctorStatue",
         vd.FastingGlucose as "fastingGlucose",
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
@@ -593,7 +593,7 @@ export default class Person {
         vd.Blfy as "adverseReactions",
         vd.BlfyOther as "adverseReactionsExplain",
         vd.LowBlood as "lowBloodReaction",
-        vd.VisitClass as "visitClass",
+        vc_vc.codename as "visitClass",
         vd.DrugName1 as "drugName1",
         vd.Usage_Day1 as "dailyTimesDrugName1",
         vd.Usage_Time1 as "usageDrugName1",
@@ -603,6 +603,9 @@ export default class Person {
         vd.DrugName3 as "drugName3",
         vd.Usage_Day3 as "dailyTimesDrugName3",
         vd.Usage_Time3 as "usageDrugName3",
+        (vh.DrugName4,vh.DrugName5,vh.DrugName6,vh.DrugName7,vh.DrugName8) as "otherDrugName",
+        (vh.Usage_Day4,vh.Usage_Day5,vh.Usage_Day6,vh.Usage_Day7,vh.Usage_Day8) as "otherDailyTimesDrugName",
+        (vh.Usage_Time4,vh.Usage_Time5,vh.Usage_Time6,vh.Usage_Time7,vh.Usage_Time8) as "otherUsageDrugName",
         vd.Insulin1 as "insulin1",
         vd.InsulinUsing1 as "usageInsulin1",
         vd.Insulin2 as "insulin2",
@@ -615,7 +618,16 @@ export default class Person {
         vd.OperateOrganization as "hospital",
         vd.OperateTime as "updateAt",
         vd.Doctor as "doctor"
-        from view_diabetesvisit vd where DiabetesFollowUpID=?`,
+        from view_diabetesvisit vd
+        left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vd.sex
+        left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
+        left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
+        left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vd.Salt_Situation_Suggest
+        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
+        left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
+        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
+        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
+        where DiabetesFollowUpID=?`,
       [id]
     );
   }
