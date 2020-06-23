@@ -827,42 +827,42 @@ export default class Person {
    * attach 附件状态
    * attachExplain 附件说明
    * vaginaOther 查体其他
-   * 血红蛋白
-   * 白细胞
-   * 血小板
-   * 其他
-   * 尿蛋白
-   * 尿糖
-   * 尿酮体
-   * 尿潜血
-   * 其他
-   * 尿微量白蛋白
-   * 尿白细胞
-   * 大便潜血
-   * 心电图状态
-   * 心电图说明
-   * HBsAg
-   * 空腹血糖
+   * hemoglobin 血红蛋白
+   * whiteCell 白细胞
+   * platelet 血小板
+   * bloodOther 其他
+   * urineProtein 尿蛋白
+   * urineSugar 尿糖
+   * urineKetone 尿酮体
+   * urineBlood 尿潜血
+   * urineOther 尿 其他
+   * urineTraceAlbumin 尿微量白蛋白
+   * urineWhiteCell 尿白细胞
+   * defecateBlood 大便潜血
+   * ecg 心电图状态
+   * ecgExplain 心电图说明
+   * HBsAg HBsAg
+   * fastingGlucose 空腹血糖
    * 餐后血糖
-   * 糖化血红蛋白
-   * 血清谷丙转氨酶
-   * 血清谷草转氨酶
-   * 白蛋白
-   * 总胆红素
-   * 结合胆红素
-   * 血清肌酐
-   * 血尿素氮
-   * 血钾浓度
-   * 血钠浓度
+   * sugarHemoglobin 糖化血红蛋白
+   * liverALT 血清谷丙转氨酶
+   * liverAST 血清谷草转氨酶
+   * liverALB 白蛋白
+   * liverTBIL 总胆红素
+   * liverDBIL 结合胆红素
+   * renalSCR 血清肌酐
+   * renalBUM 血尿素氮
+   * renalPotassium 血钾浓度
+   * renalSodium 血钠浓度
    * 血尿酸
-   * 总胆固醇
-   * 甘油三酯
-   * 血清低密度蛋白胆固醇
-   * 血清高密度蛋白胆固醇
-   * 胸片状态
-   * 胸片说明
-   * B超状态
-   * B超说明
+   * bloodCHO 总胆固醇
+   * bloodTG 甘油三酯
+   * bloodLDLC 血清低密度蛋白胆固醇
+   * bloodHDLC 血清高密度蛋白胆固醇
+   * chest 胸片状态
+   * chestExplain 胸片说明
+   * bc B态超状
+   * bcExplain B超说明
    * 宫颈涂片状态
    * 宫颈涂片说明
    * 其他
@@ -965,7 +965,8 @@ export default class Person {
       drinkFrequencyCode, //饮酒频率
       professionExposeCode, //职业暴露情况,是否防护措施 7468
       arterialCode, //足背动脉搏动	tnbzbdmbd	7152
-      vaginaCode //妇科Code	7465
+      vaginaCode, //妇科Code	7465
+      urineProteinCode //尿蛋白	ncgndb	009
     ] = await Promise.all([
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('558'), //婚姻字典
@@ -984,7 +985,8 @@ export default class Person {
       dictionaryQuery('729'), //饮酒频率
       dictionaryQuery('7468'), //职业暴露情况,是否防护措施
       dictionaryQuery('7152'), //足背动脉搏动
-      dictionaryQuery('7465') //妇科状态
+      dictionaryQuery('7465'), //妇科状态
+      dictionaryQuery('009') //尿蛋白
     ]);
     const result = await etlQuery(
       `
@@ -1114,42 +1116,42 @@ export default class Person {
           vh.fk_fj as "attach",
           vh.fk_fj_abnormal as "attachExplain",
           vh.ctqt as "vaginaOther",
---           vh.xcgHb as "xcgHb",
---           vh.xcgWBC as "xcgWBC",
---           vh.xcgPLT as "xcgPLT",
---           vh.xcgqt as "xcgqt",
---           vh.ncgndb as "ncgndb",
---           vh.ncgnt as "ncgnt",
---           vh.ncgntt as "ncgntt",
---           vh.ncgnqx as "ncgnqx",
---           vh.ncgOther as "ncgOther",
---           vh.nwlbdb as "nwlbdb",
---           vh.LEU as "LEU",
---           vh.dbqx as "dbqx",
---           vh.xdt as "xdt",
---           vh.xdt_abnormal as "xdt_abnormal",
---           vh.HBsAg as "HBsAg",
---           vh.suijxt as "suijxt",
---           vh.kfxt as "kfxt",
---           vh.tnbthxhdb as "tnbthxhdb",
---           vh.ggnALT as "ggnALT",
---           vh.ggnAST as "ggnAST",
---           vh.ggnALB as "ggnALB",
---           vh.ggnTBIL as "ggnTBIL",
---           vh.ggnDBIL as "ggnDBIL",
---           vh.sgnScr as "sgnScr",
---           vh.sgnBUN as "sgnBUN",
---           vh.sgnxjnd as "sgnxjnd",
---           vh.sgnxnnd as "sgnxnnd",
---           vh.BUA as "BUA",
---           vh.xzCHO as "xzCHO",
---           vh.xzTG as "xzTG",
---           vh.xzLDLC as "xzLDLC",
---           vh.xzHDLC as "xzHDLC",
---           vh.xp as "xp",
---           vh.xp_abnormal as "xp_abnormal",
---           vh.bc as "bc",
---           vh.bc_abnormal as "bc_abnormal",
+          vh.xcgHb as "hemoglobin",
+          vh.xcgWBC as "whiteCell",
+          vh.xcgPLT as "platelet",
+          vh.xcgqt as "bloodOther",
+          vh.ncgndb as "urineProtein",
+          vh.ncgnt as "urineSugar",
+          vh.ncgntt as "urineKetone",
+          vh.ncgnqx as "urineBlood",
+          vh.ncgOther as "urineOther",
+          vh.nwlbdb as "urineTraceAlbumin",
+          vh.LEU as "urineWhiteCell",
+          vh.dbqx as "defecateBlood",
+          vh.xdt as "ecg",
+          vh.xdt_abnormal as "ecgExplain",
+          vh.HBsAg as "HBsAg",
+          vh.suijxt as "postprandialGlucose",
+          vh.kfxt as "fastingGlucose",
+          vh.tnbthxhdb as "sugarHemoglobin",
+          vh.ggnALT as "liverALT",
+          vh.ggnAST as "liverAST",
+          vh.ggnALB as "liverALB",
+          vh.ggnTBIL as "liverTBIL",
+          vh.ggnDBIL as "liverDBIL",
+          vh.sgnScr as "renalSCR",
+          vh.sgnBUN as "renalBUM",
+          vh.sgnxjnd as "renalPotassium",
+          vh.sgnxnnd as "renalSodium",
+          vh.BUA as "BUA",
+          vh.xzCHO as "bloodCHO",
+          vh.xzTG as "bloodTG",
+          vh.xzLDLC as "bloodLDLC",
+          vh.xzHDLC as "bloodHDLC",
+          vh.xp as "chest",
+          vh.xp_abnormal as "chestExplain",
+          vh.bc as "bc",
+          vh.bc_abnormal as "bcExplain",
 --           vh.gjtp as "gjtp",
 --           vh.gjtp_abnormal as "gjtp_abnormal",
 --           vh.jkfzjcqt as "jkfzjcqt",
@@ -1305,7 +1307,10 @@ export default class Person {
       cervical:
         vaginaCode.find(it => it.code === item.cervical)?.codename || '',
       uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
-      attach: vaginaCode.find(it => it.code === item.attach)?.codename || ''
+      attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
+      urineProtein:
+        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ||
+        ''
     }));
   }
 }
