@@ -812,21 +812,21 @@ export default class Person {
    * abdominalSpleenExplain 腹部脾大说明
    * abdominalNoise 腹部移动性浊音状态
    * abdominalNoiseExplain 腹部移动性浊音说明
-   * 下肢水肿
-   * 肛门指诊状态
-   * 足背动脉搏动
-   * 乳腺
-   * 外阴状态
-   * 外阴说明
-   * 阴道状态
-   * 阴道说明
-   * 宫颈状态
-   * 宫颈说明
-   * 宫体状态
-   * 宫体说明
-   * 附件状态
-   * 附件说明
-   * 查体其他
+   * lowLimbsEdema 下肢水肿
+   * anus 肛门指诊状态
+   * arterial 足背动脉搏动
+   * mammary 乳腺
+   * vulva 外阴状态
+   * vulvaExplain 外阴说明
+   * vagina 阴道状态
+   * vaginaExplain 阴道说明
+   * cervical 宫颈状态
+   * cervicalExplain 宫颈说明
+   * uterus 宫体状态
+   * uterusExplain 宫体说明
+   * attach 附件状态
+   * attachExplain 附件说明
+   * vaginaOther 查体其他
    * 血红蛋白
    * 白细胞
    * 血小板
@@ -963,7 +963,9 @@ export default class Person {
       // lungSoundCode, //肺罗音状态
       abdominalCode, //腹部状态
       drinkFrequencyCode, //饮酒频率
-      professionExposeCode //职业暴露情况,是否防护措施 7468
+      professionExposeCode, //职业暴露情况,是否防护措施 7468
+      arterialCode, //足背动脉搏动	tnbzbdmbd	7152
+      vaginaCode //妇科Code	7465
     ] = await Promise.all([
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('558'), //婚姻字典
@@ -980,12 +982,15 @@ export default class Person {
       // dictionaryQuery('717'), //肺罗音状态
       dictionaryQuery('744'), //腹部状态
       dictionaryQuery('729'), //饮酒频率
-      dictionaryQuery('7468') //职业暴露情况,是否防护措施
+      dictionaryQuery('7468'), //职业暴露情况,是否防护措施
+      dictionaryQuery('7152'), //足背动脉搏动
+      dictionaryQuery('7465') //妇科状态
     ]);
     const result = await etlQuery(
       `
         select
           vh.incrementno as "id",
+          vh.name as "name",
           vh.checkupNo as "checkupNo",
           vh.IDCardNo as "IDCard",
           vh.sex as "gender",
@@ -1094,21 +1099,21 @@ export default class Person {
           vh.fbpdOther as "abdominalSpleenExplain",
           vh.fbydxzy as "abdominalNoise",
           vh.fbydxzyOther as "abdominalNoiseExplain",
---           vh.xzsz as "xzsz",
---           vh.gmzz as "gmzz",
---           vh.tnbzbdmbd as "tnbzbdmbd",
---           vh.rx as "rx",
---           vh.fk_wy as "fk_wy",
---           vh.fk_wy_abnormal as "fk_wy_abnormal",
---           vh.fk_yd as "fk_yd",
---           vh.fk_yd_abnormal as "fk_yd_abnormal",
---           vh.fk_gj as "fk_gj",
---           vh.fk_gj_abnormal as "fk_gj_abnormal",
---           vh.fk_gt as "fk_gt",
---           vh.fk_gt_abnormal as "fk_gt_abnormal",
---           vh.fk_fj as "fk_fj",
---           vh.fk_fj_abnormal as "fk_fj_abnormal",
---           vh.ctqt as "ctqt",
+          vh.xzsz as "lowLimbsEdema",
+          vh.gmzz as "anus",
+          vh.tnbzbdmbd as "arterial",
+          vh.rx as "mammary",
+          vh.fk_wy as "vulva",
+          vh.fk_wy_abnormal as "vulvaExplain",
+          vh.fk_yd as "vagina",
+          vh.fk_yd_abnormal as "vaginaExplain",
+          vh.fk_gj as "cervical",
+          vh.fk_gj_abnormal as "cervicalExplain",
+          vh.fk_gt as "uterus",
+          vh.fk_gt_abnormal as "uterusExplain",
+          vh.fk_fj as "attach",
+          vh.fk_fj_abnormal as "attachExplain",
+          vh.ctqt as "vaginaOther",
 --           vh.xcgHb as "xcgHb",
 --           vh.xcgWBC as "xcgWBC",
 --           vh.xcgPLT as "xcgPLT",
@@ -1292,7 +1297,15 @@ export default class Person {
         '',
       abdominalNoise:
         abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
-        ''
+        '',
+      arterial:
+        arterialCode.find(it => it.code === item.arterial)?.codename || '',
+      vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
+      vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
+      cervical:
+        vaginaCode.find(it => it.code === item.cervical)?.codename || '',
+      uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
+      attach: vaginaCode.find(it => it.code === item.attach)?.codename || ''
     }));
   }
 }
