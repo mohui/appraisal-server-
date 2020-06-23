@@ -380,7 +380,17 @@ export default class Person {
    * @returns {Promise<void>}
    */
   async hypertensionsDetail(id) {
-    return etlQuery(
+    const mentalCodeNames = (
+      await etlQuery(
+        `select * from view_codedictionary vc where categoryno=?;`,
+        ['331']
+      )
+    ).map(item => ({
+      ...item,
+      code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
+    }));
+
+    const result = await etlQuery(
       `select
         vh.highbloodid as "id",
         vh.hypertensioncardid as "cardId",
@@ -410,7 +420,7 @@ export default class Person {
         vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
         vc_salt.codename as "saltInTake",
         vc_salt_suggest.codename as "saltInTakeSuggest",
-        vc_mental.codename as "mental",
+        vh.MentalSet as "mental",
         vc_doctor_s.codename as "doctorStatue",
         vh.Fzjc as "assistExam",
         vc_ma.codename as "medicationAdherence",
@@ -449,6 +459,10 @@ export default class Person {
        where vh.highbloodid=?`,
       [id]
     );
+    return result.map(r => ({
+      ...r,
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+    }));
   }
 
   /**
