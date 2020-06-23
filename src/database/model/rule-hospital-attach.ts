@@ -49,4 +49,8 @@ export class RuleHospitalAttach extends Model<RuleHospitalAttach> {
   @AllowNull(false)
   @Column
   url: string;
+
+  @Comment('更新时间')
+  @Column({field: 'updated_at', type: DataType.DATE})
+  updatedAt;
 }
