@@ -709,6 +709,7 @@ export default class Person {
    * IDCard: 身份证
    * stature: 身高
    * weight: 体重
+   * checkDate: 体验日期
    * temperature: 体温
    * symptom: 症状
    * bc_abnormal: B超说明
@@ -800,16 +801,16 @@ export default class Person {
    * heartRule 心律
    * noise 杂音状态
    * noiseExplain 杂音说明
-   * 腹部压痛状态
-   * 腹部压痛说明
-   * 腹部包块状态
-   * 腹部包块说明
-   * 腹部肝大状态
-   * 腹部肝大说明
-   * 腹部脾大状态
-   * 腹部脾大说明
-   * 腹部移动性浊音状态
-   * 腹部移动性浊音说明
+   * abdominalTenderness 腹部压痛状态
+   * abdominalTendernessExplain 腹部压痛说明
+   * abdominalBag 腹部包块状态
+   * abdominalBagExplain 腹部包块说明
+   * abdominalLiver 腹部肝大状态
+   * abdominalLiverExplain 腹部肝大说明
+   * abdominalSpleen 腹部脾大状态
+   * abdominalSpleenExplain 腹部脾大说明
+   * abdominalNoise 腹部移动性浊音状态
+   * abdominalNoiseExplain 腹部移动性浊音说明
    * 下肢水肿
    * 肛门指诊状态
    * 足背动脉搏动
@@ -985,6 +986,7 @@ export default class Person {
           vh.sex as "gender",
           vh.stature as "stature",
           vh.weight as "weight",
+          vh.checkupDate as "checkDate",
           vh.temperature as "temperature",
           vh.symptom as "symptom",
           vh.bc_abnormal as "bc_abnormal",
@@ -1076,8 +1078,8 @@ export default class Person {
           vh.xzxl as "heartRule",
           vh.xzzy as "noise",
           vh.xzzyOther as "noiseExplain",
---           vh.fbyt as "fbyt",
---           vh.fbytOther as "fbytOther",
+          vh.fbyt as "abdominalTenderness",
+          vh.fbytOther as "abdominalTendernessExplain",
 --           vh.fbbk as "fbbk",
 --           vh.fbbkOther as "fbbkOther",
 --           vh.fbgd as "fbgd",
