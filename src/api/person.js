@@ -11,6 +11,13 @@ async function etlQuery(sql, params) {
   });
 }
 
+async function dictionaryQuery(categoryno) {
+  return await etlQuery(
+    `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
+    [categoryno]
+  );
+}
+
 function listRender(params) {
   return sqlRender(
     `
@@ -708,6 +715,7 @@ export default class Person {
    * marrage: 婚姻状态
    * professionType: 职业种类
    * pulse:脉率
+   * BMI: BMI
    * breathe:呼吸频率
    * leftDiastolicPressure: 左侧舒张压
    * leftSystolicPressure: 左侧收缩压
@@ -716,15 +724,14 @@ export default class Person {
    * waistline: 腰围
    * oldManHealthSelf: 老年人健康状态自我评估
    * oldManLifeSelf: 老年人生活自理能力自我评估
-   * oldManCognitiveSelf: 老年人认知功能
-   * oldManCognitiveSelf: 老年人认知功能
+   * oldManCognitiveSelf: 老年人认知功能     //TODO: 没有对应字典code
    * cognitiveScore: 简易智力状态检查
-   * oldManEmotion: 老年人情感状态
-   * EmotionalScore: 老年人抑郁评分检查
-   * 锻炼评率
-   * 每次锻炼时间
-   * 坚持锻炼时间
-   * 锻炼方式
+   * oldManEmotion: 老年人情感状态           //TODO: 没有对应字典code
+   * emotionalScore: 老年人抑郁评分检查
+   * exerciseWeek 锻炼评率
+   * exerciseMinute 每次锻炼时间
+   * exerciseWeekSuggest 坚持锻炼时间
+   * exerciseMinuteSuggest 锻炼方式
    * 饮食习惯
    * 吸烟史
    * 吸烟量
@@ -776,23 +783,23 @@ export default class Person {
    * 矫正视力（右眼）
    * 听力
    * 运动功能
-   * 眼底状态
-   * 眼底说明
-   * 皮肤状态
-   * 皮肤说明
-   * 巩膜状态
-   * 巩膜说明
-   * 淋巴结状态
-   * 淋巴结说明
-   * 桶状胸
-   * 呼吸音状态
-   * 呼吸音说明
-   * 罗音状态
-   * 罗音说明
-   * 心率
-   * 心律
-   * 杂音状态
-   * 杂音说明
+   * eyeGround: 眼底状态
+   * eyeGroundExplain:眼底说明
+   * skin 皮肤状态
+   * skinExplain 皮肤说明
+   * sclera 巩膜状态
+   * scleraExplain: 巩膜说明
+   * lymph: 淋巴结状态
+   * lymphExplain: 淋巴结说明
+   * barrelChest: 桶状胸
+   * breathSound: 呼吸音状态
+   * breathSoundExplain: 呼吸音说明
+   * lungSound: 罗音状态
+   * lungSoundExplain: 罗音说明
+   * heartRate 心率
+   * heartRule 心律
+   * noise 杂音状态
+   * noiseExplain 杂音说明
    * 腹部压痛状态
    * 腹部压痛说明
    * 腹部包块状态
@@ -938,7 +945,38 @@ export default class Person {
    * @param id 体检表id
    */
   async healthyDetail(id) {
-    return etlQuery(
+    const [
+      genderCode, //性别字典
+      marrageCode, //婚姻字典
+      jobTypeCode, //职业字典
+      exerciseFrequencyCode, //锻炼频率
+      oldManHealthSelfCode, //健康状态自我评估
+      oldManLifeSelfCode, //生活自理
+      eyeGroundCode, //眼底
+      skinCode, //皮肤
+      scleraCode, //巩膜状态
+      lymphCode, //淋巴结状态
+      barrelChestCode, //桶状胸
+      breathSoundCode, //呼吸音状态
+      lungSoundCode, //肺罗音状态
+      abdominalCode //腹部状态
+    ] = await Promise.all([
+      dictionaryQuery('001'), //性别字典
+      dictionaryQuery('558'), //婚姻字典
+      dictionaryQuery('557'), //职业字典
+      dictionaryQuery('724'), //锻炼频率
+      dictionaryQuery('7470'), //健康状态自我评估
+      dictionaryQuery('7471'), //生活自理
+      dictionaryQuery('745'), //眼底
+      dictionaryQuery('715'), //皮肤
+      dictionaryQuery('7151'), //巩膜状态
+      dictionaryQuery('716'), //淋巴结状态
+      dictionaryQuery('743'), //桶状胸
+      dictionaryQuery('745'), //呼吸音状态
+      dictionaryQuery('717'), //肺罗音状态
+      dictionaryQuery('744') //腹部状态
+    ]);
+    const result = await etlQuery(
       `
         select
           vh.incrementno as "id",
@@ -1024,158 +1062,158 @@ export default class Person {
           vh.yd as "eyeGround",
           vh.yd_abnormal as "eyeGroundExplain",
           vh.pf as "skin",
-          vh.pf_Other as "pf_Other", --TODO: 字段补充先写到这里, 太多了 下次再补
-          vh.gm as "gm",
-          vh.gm_Other as "gm_Other",
-          vh.lbj as "lbj",
-          vh.lbjOther as "lbjOther",
-          vh.ftzx as "ftzx",
-          vh.fhxy as "fhxy",
-          vh.fhxyyc as "fhxyyc",
-          vh.fly as "fly",
-          vh.flyOther as "flyOther",
-          vh.xzxn as "xzxn",
-          vh.xzxl as "xzxl",
-          vh.xzzy as "xzzy",
-          vh.xzzyOther as "xzzyOther",
-          vh.fbyt as "fbyt",
-          vh.fbytOther as "fbytOther",
-          vh.fbbk as "fbbk",
-          vh.fbbkOther as "fbbkOther",
-          vh.fbgd as "fbgd",
-          vh.fbgdOther as "fbgdOther",
-          vh.fbpd as "fbpd",
-          vh.fbpdOther as "fbpdOther",
-          vh.fbydxzy as "fbydxzy",
-          vh.fbydxzyOther as "fbydxzyOther",
-          vh.xzsz as "xzsz",
-          vh.gmzz as "gmzz",
-          vh.tnbzbdmbd as "tnbzbdmbd",
-          vh.rx as "rx",
-          vh.fk_wy as "fk_wy",
-          vh.fk_wy_abnormal as "fk_wy_abnormal",
-          vh.fk_yd as "fk_yd",
-          vh.fk_yd_abnormal as "fk_yd_abnormal",
-          vh.fk_gj as "fk_gj",
-          vh.fk_gj_abnormal as "fk_gj_abnormal",
-          vh.fk_gt as "fk_gt",
-          vh.fk_gt_abnormal as "fk_gt_abnormal",
-          vh.fk_fj as "fk_fj",
-          vh.fk_fj_abnormal as "fk_fj_abnormal",
-          vh.ctqt as "ctqt",
-          vh.xcgHb as "xcgHb",
-          vh.xcgWBC as "xcgWBC",
-          vh.xcgPLT as "xcgPLT",
-          vh.xcgqt as "xcgqt",
-          vh.ncgndb as "ncgndb",
-          vh.ncgnt as "ncgnt",
-          vh.ncgntt as "ncgntt",
-          vh.ncgnqx as "ncgnqx",
-          vh.ncgOther as "ncgOther",
-          vh.nwlbdb as "nwlbdb",
-          vh.LEU as "LEU",
-          vh.dbqx as "dbqx",
-          vh.xdt as "xdt",
-          vh.xdt_abnormal as "xdt_abnormal",
-          vh.HBsAg as "HBsAg",
-          vh.suijxt as "suijxt",
-          vh.kfxt as "kfxt",
-          vh.tnbthxhdb as "tnbthxhdb",
-          vh.ggnALT as "ggnALT",
-          vh.ggnAST as "ggnAST",
-          vh.ggnALB as "ggnALB",
-          vh.ggnTBIL as "ggnTBIL",
-          vh.ggnDBIL as "ggnDBIL",
-          vh.sgnScr as "sgnScr",
-          vh.sgnBUN as "sgnBUN",
-          vh.sgnxjnd as "sgnxjnd",
-          vh.sgnxnnd as "sgnxnnd",
-          vh.BUA as "BUA",
-          vh.xzCHO as "xzCHO",
-          vh.xzTG as "xzTG",
-          vh.xzLDLC as "xzLDLC",
-          vh.xzHDLC as "xzHDLC",
-          vh.xp as "xp",
-          vh.xp_abnormal as "xp_abnormal",
-          vh.bc as "bc",
-          vh.bc_abnormal as "bc_abnormal",
-          vh.gjtp as "gjtp",
-          vh.gjtp_abnormal as "gjtp_abnormal",
-          vh.jkfzjcqt as "jkfzjcqt",
-          vh.nxgjb as "nxgjb",
-          vh.szjb as "szjb",
-          vh.xzjb as "xzjb",
-          vh.xgjb as "xgjb",
-          vh.ybjb as "ybjb",
-          vh.sjxt as "sjxt",
-          vh.sjxt_other as "sjxt_other",
-          vh.qtxt as "qtxt",
-          vh.otherDisease1 as "otherDisease1",
-          vh.ruyTime1 as "ruyTime1",
-          vh.chuyTime1 as "chuyTime1",
-          vh.zhuyReason1 as "zhuyReason1",
-          vh.hospName1 as "hospName1",
-          vh.bah1 as "bah1",
-          vh.ruyTime2 as "ruyTime2",
-          vh.chuyTime2 as "chuyTime2",
-          vh.HospName2 as "HospName2",
-          vh.bah2 as "bah2",
-          vh.jcTime1 as "jcTime1",
-          vh.ccTime1 as "ccTime1",
-          vh.jcyy1 as "jcyy1",
-          vh.jcyljgmc1 as "jcyljgmc1",
-          vh.jcbah1 as "jcbah1",
-          vh.jcTime2 as "jcTime2",
-          vh.ccTime2 as "ccTime2",
-          vh.jcyy2 as "jcyy2",
-          vh.jcyljgmc2 as "jcyljgmc2",
-          vh.jcbah2 as "jcbah2",
-          vh.yaowu1 as "yaowu1",
-          vh.yf1 as "yf1",
-          vh.yl1 as "yl1",
-          vh.yysj1 as "yysj1",
-          vh.fyycx as "fyycx",
-          vh.yaowu2 as "yaowu2",
-          vh.yf2 as "yf2",
-          vh.yl2 as "yl2",
-          vh.yysj2 as "yysj2",
-          vh.fyycx2 as "fyycx2",
-          vh.yaowu3 as "yaowu3",
-          vh.yf3 as "yf3",
-          vh.yl3 as "yl3",
-          vh.yysj3 as "yysj3",
-          vh.fyycx3 as "fyycx3",
-          vh.yaowu4 as "yaowu4",
-          vh.yf4 as "yf4",
-          vh.yl4 as "yl4",
-          vh.yysj4 as "yysj4",
-          vh.fyycx4 as "fyycx4",
-          vh.yaowu5 as "yaowu5",
-          vh.yf5 as "yf5",
-          vh.yl5 as "yl5",
-          vh.yysj5 as "yysj5",
-          vh.fyycx5 as "fyycx5",
-          vh.yaowu6 as "yaowu6",
-          vh.yf6 as "yf6",
-          vh.yl6 as "yl6",
-          vh.yysj6 as "yysj6",
-          vh.fyycx6 as "fyycx6",
-          vh.fmy_mc1 as "fmy_mc1",
-          vh.fmy_jzrq1 as "fmy_jzrq1",
-          vh.fmy_jzjg1 as "fmy_jzjg1",
-          vh.fmy_mc2 as "fmy_mc2",
-          vh.fmy_jzrq2 as "fmy_jzrq2",
-          vh.fmy_jzjg2 as "fmy_jzjg2",
-          vh.fmy_mc3 as "fmy_mc3",
-          vh.fmy_jzrq3 as "fmy_jzrq3",
-          vh.fmy_jzjg3 as "fmy_jzjg3",
-          vh.jkpjywyc as "jkpjywyc",
-          vh.yichang1 as "yichang1",
-          vh.yichang2 as "yichang2",
-          vh.yichang3 as "yichang3",
-          vh.yichang4 as "yichang4",
-          vh.jkzd_dqsf as "jkzd_dqsf",
-          vh.jkzd_wxyskz as "jkzd_wxyskz",
+          vh.pf_Other as "skinExplain",
+          vh.gm as "sclera",
+          vh.gm_Other as "scleraExplain",
+          vh.lbj as "lymph",
+          vh.lbjOther as "lymphExplain",
+          vh.ftzx as "barrelChest",
+          vh.fhxy as "breathSound",
+          vh.fhxyyc as "breathSoundExplain",
+          vh.fly as "lungSound",
+          vh.flyOther as "lungSoundExplain",
+          vh.xzxn as "heartRate",
+          vh.xzxl as "heartRule",
+          vh.xzzy as "noise",
+          vh.xzzyOther as "noiseExplain",
+--           vh.fbyt as "fbyt",
+--           vh.fbytOther as "fbytOther",
+--           vh.fbbk as "fbbk",
+--           vh.fbbkOther as "fbbkOther",
+--           vh.fbgd as "fbgd",
+--           vh.fbgdOther as "fbgdOther",
+--           vh.fbpd as "fbpd",
+--           vh.fbpdOther as "fbpdOther",
+--           vh.fbydxzy as "fbydxzy",
+--           vh.fbydxzyOther as "fbydxzyOther",
+--           vh.xzsz as "xzsz",
+--           vh.gmzz as "gmzz",
+--           vh.tnbzbdmbd as "tnbzbdmbd",
+--           vh.rx as "rx",
+--           vh.fk_wy as "fk_wy",
+--           vh.fk_wy_abnormal as "fk_wy_abnormal",
+--           vh.fk_yd as "fk_yd",
+--           vh.fk_yd_abnormal as "fk_yd_abnormal",
+--           vh.fk_gj as "fk_gj",
+--           vh.fk_gj_abnormal as "fk_gj_abnormal",
+--           vh.fk_gt as "fk_gt",
+--           vh.fk_gt_abnormal as "fk_gt_abnormal",
+--           vh.fk_fj as "fk_fj",
+--           vh.fk_fj_abnormal as "fk_fj_abnormal",
+--           vh.ctqt as "ctqt",
+--           vh.xcgHb as "xcgHb",
+--           vh.xcgWBC as "xcgWBC",
+--           vh.xcgPLT as "xcgPLT",
+--           vh.xcgqt as "xcgqt",
+--           vh.ncgndb as "ncgndb",
+--           vh.ncgnt as "ncgnt",
+--           vh.ncgntt as "ncgntt",
+--           vh.ncgnqx as "ncgnqx",
+--           vh.ncgOther as "ncgOther",
+--           vh.nwlbdb as "nwlbdb",
+--           vh.LEU as "LEU",
+--           vh.dbqx as "dbqx",
+--           vh.xdt as "xdt",
+--           vh.xdt_abnormal as "xdt_abnormal",
+--           vh.HBsAg as "HBsAg",
+--           vh.suijxt as "suijxt",
+--           vh.kfxt as "kfxt",
+--           vh.tnbthxhdb as "tnbthxhdb",
+--           vh.ggnALT as "ggnALT",
+--           vh.ggnAST as "ggnAST",
+--           vh.ggnALB as "ggnALB",
+--           vh.ggnTBIL as "ggnTBIL",
+--           vh.ggnDBIL as "ggnDBIL",
+--           vh.sgnScr as "sgnScr",
+--           vh.sgnBUN as "sgnBUN",
+--           vh.sgnxjnd as "sgnxjnd",
+--           vh.sgnxnnd as "sgnxnnd",
+--           vh.BUA as "BUA",
+--           vh.xzCHO as "xzCHO",
+--           vh.xzTG as "xzTG",
+--           vh.xzLDLC as "xzLDLC",
+--           vh.xzHDLC as "xzHDLC",
+--           vh.xp as "xp",
+--           vh.xp_abnormal as "xp_abnormal",
+--           vh.bc as "bc",
+--           vh.bc_abnormal as "bc_abnormal",
+--           vh.gjtp as "gjtp",
+--           vh.gjtp_abnormal as "gjtp_abnormal",
+--           vh.jkfzjcqt as "jkfzjcqt",
+--           vh.nxgjb as "nxgjb",
+--           vh.szjb as "szjb",
+--           vh.xzjb as "xzjb",
+--           vh.xgjb as "xgjb",
+--           vh.ybjb as "ybjb",
+--           vh.sjxt as "sjxt",
+--           vh.sjxt_other as "sjxt_other",
+--           vh.qtxt as "qtxt",
+--           vh.otherDisease1 as "otherDisease1",
+--           vh.ruyTime1 as "ruyTime1",
+--           vh.chuyTime1 as "chuyTime1",
+--           vh.zhuyReason1 as "zhuyReason1",
+--           vh.hospName1 as "hospName1",
+--           vh.bah1 as "bah1",
+--           vh.ruyTime2 as "ruyTime2",
+--           vh.chuyTime2 as "chuyTime2",
+--           vh.HospName2 as "HospName2",
+--           vh.bah2 as "bah2",
+--           vh.jcTime1 as "jcTime1",
+--           vh.ccTime1 as "ccTime1",
+--           vh.jcyy1 as "jcyy1",
+--           vh.jcyljgmc1 as "jcyljgmc1",
+--           vh.jcbah1 as "jcbah1",
+--           vh.jcTime2 as "jcTime2",
+--           vh.ccTime2 as "ccTime2",
+--           vh.jcyy2 as "jcyy2",
+--           vh.jcyljgmc2 as "jcyljgmc2",
+--           vh.jcbah2 as "jcbah2",
+--           vh.yaowu1 as "yaowu1",
+--           vh.yf1 as "yf1",
+--           vh.yl1 as "yl1",
+--           vh.yysj1 as "yysj1",
+--           vh.fyycx as "fyycx",
+--           vh.yaowu2 as "yaowu2",
+--           vh.yf2 as "yf2",
+--           vh.yl2 as "yl2",
+--           vh.yysj2 as "yysj2",
+--           vh.fyycx2 as "fyycx2",
+--           vh.yaowu3 as "yaowu3",
+--           vh.yf3 as "yf3",
+--           vh.yl3 as "yl3",
+--           vh.yysj3 as "yysj3",
+--           vh.fyycx3 as "fyycx3",
+--           vh.yaowu4 as "yaowu4",
+--           vh.yf4 as "yf4",
+--           vh.yl4 as "yl4",
+--           vh.yysj4 as "yysj4",
+--           vh.fyycx4 as "fyycx4",
+--           vh.yaowu5 as "yaowu5",
+--           vh.yf5 as "yf5",
+--           vh.yl5 as "yl5",
+--           vh.yysj5 as "yysj5",
+--           vh.fyycx5 as "fyycx5",
+--           vh.yaowu6 as "yaowu6",
+--           vh.yf6 as "yf6",
+--           vh.yl6 as "yl6",
+--           vh.yysj6 as "yysj6",
+--           vh.fyycx6 as "fyycx6",
+--           vh.fmy_mc1 as "fmy_mc1",
+--           vh.fmy_jzrq1 as "fmy_jzrq1",
+--           vh.fmy_jzjg1 as "fmy_jzjg1",
+--           vh.fmy_mc2 as "fmy_mc2",
+--           vh.fmy_jzrq2 as "fmy_jzrq2",
+--           vh.fmy_jzjg2 as "fmy_jzjg2",
+--           vh.fmy_mc3 as "fmy_mc3",
+--           vh.fmy_jzrq3 as "fmy_jzrq3",
+--           vh.fmy_jzjg3 as "fmy_jzjg3",
+--           vh.jkpjywyc as "jkpjywyc",
+--           vh.yichang1 as "yichang1",
+--           vh.yichang2 as "yichang2",
+--           vh.yichang3 as "yichang3",
+--           vh.yichang4 as "yichang4",
+--           vh.jkzd_dqsf as "jkzd_dqsf",
+--           vh.jkzd_wxyskz as "jkzd_wxyskz",
           vh.OperateOrganization as "OperateOrganization",
           vh.operatetime as "updateAt"
         from view_healthy vh
@@ -1184,5 +1222,35 @@ export default class Person {
        `,
       [id]
     );
+    console.log(exerciseFrequencyCode);
+    console.log(abdominalCode);
+
+    return result.map(item => ({
+      ...item,
+      gender: genderCode.find(it => it.code === item.gender)?.codename || '',
+      marrage: marrageCode.find(it => it.code === item.marrage)?.codename || '',
+      professionType:
+        jobTypeCode.find(it => `0${it.code}` === item.professionType)
+          ?.codename || '',
+      oldManHealthSelf:
+        oldManHealthSelfCode.find(it => it.code === item.professionType)
+          ?.codename || '',
+      oldManLifeSelf:
+        oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
+          ?.codename || '',
+      eyeGround:
+        eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
+      skin: skinCode.find(it => it.code === item.skin)?.codename || '',
+      sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
+      lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
+      barrelChest:
+        barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
+        '',
+      breathSound:
+        breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+        '',
+      lungSound:
+        lungSoundCode.find(it => it.code === item.lungSound)?.codename || ''
+    }));
   }
 }
