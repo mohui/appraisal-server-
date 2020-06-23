@@ -623,7 +623,6 @@ export default class Person {
         vd.MedicationAdherence as "medicationAdherence",
         vd.Blfy as "adverseReactions",
         vd.BlfyOther as "adverseReactionsExplain",
-        vd.LowBlood as "lowBloodReaction",
         vc_vc.codename as "visitClass",
         vd.DrugName1 as "drugName1",
         vd.Usage_Day1 as "dailyTimesDrugName1",
