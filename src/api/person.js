@@ -577,7 +577,7 @@ export default class Person {
         vd.Stature as "stature",
         vd.BMI as "BMI",
         vd.BMI_Suggest as "BMISuggest",
-        vd.Arterial as "arterial",
+        vc_arterial.codename as "arterial",
         vd.Other_Tz as "other",
         vd.DaySmoke as "daySmoke",
         vd.DaySmoke_Suggest as "daySmokeSuggest",
@@ -631,6 +631,7 @@ export default class Person {
         left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
         left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
         left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
+        left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
         where DiabetesFollowUpID=?`,
       [id]
     );
