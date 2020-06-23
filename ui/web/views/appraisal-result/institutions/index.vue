@@ -861,6 +861,13 @@ export default {
     },
     //单项指标考核得分解读
     handleAppraisalResultInstructionsPopoverVisible(row) {
+      //如果查看的和前一条不同，则先清空前一条的数据
+      if (
+        this.appraisalResultInstructionsServerData &&
+        this.curRule.ruleId !== row.ruleId
+      ) {
+        this.appraisalResultInstructionsServerData = [];
+      }
       this.appraisalResultInstructionsPopoverVisible = true;
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
@@ -1168,7 +1175,6 @@ export default {
     },
     //单项考核得分解读数据
     appraisalResultInstructionsData() {
-      console.log(1111);
       return this.appraisalResultInstructionsServerData;
     }
   },
