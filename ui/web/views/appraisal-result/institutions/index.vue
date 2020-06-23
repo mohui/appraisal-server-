@@ -477,6 +477,7 @@
                       </p>
                       <ul>
                         <li
+                          style="margin-left: -20px"
                           v-for="item of appraisalResultInstructionsData"
                           :key="item"
                         >
