@@ -764,27 +764,27 @@ export default class Person {
    * other 其他（健康辅助检查）
    * otherProtection 其他防护措施
    * otherProtectionExplain 其他防护措施说明
-   * 口唇
-   * 咽部
-   * 齿列情况
-   * 缺齿（上左）
-   * 缺齿（上右）
-   * 缺齿（下左）
-   * 缺齿（下右）
-   * 龋齿（上左）
-   * 龋齿（上右）
-   * 龋齿（下左）
-   * 龋齿（下右）
-   * 义齿（上左）
-   * 义齿（上右）
-   * 义齿（下左）
-   * 义齿（下右）
-   * 视力（左眼）
-   * 视力（右眼）
-   * 矫正视力（左眼）
-   * 矫正视力（右眼）
-   * 听力
-   * 运动功能
+   * lip 口唇
+   * throat 咽部
+   * tooth 齿列情况
+   * missToothTopLeft 缺齿（上左）
+   * missToothTopRight 缺齿（上右）
+   * missToothBottomLeft 缺齿（下左）
+   * missToothTopRight 缺齿（下右）
+   * cariesTopLeft 龋齿（上左）
+   * cariesTopRight 龋齿（上右）
+   * cariesBottomLeft 龋齿（下左）
+   * cariesBottomRight 龋齿（下右）
+   * falseToothTopLeft 义齿（上左）
+   * falseToothTopRight 义齿（上右）
+   * falseToothBottomLeft 义齿（下左）
+   * falseToothBottomRight 义齿（下右）
+   * visionLeft 视力（左眼）
+   * visionRight 视力（右眼）
+   * visionCorrectionLeft 矫正视力（左眼）
+   * visonCorrectionRight 矫正视力（右眼）
+   * listen 听力
+   * sport 运动功能
    * eyeGround: 眼底状态
    * eyeGroundExplain:眼底说明
    * skin 皮肤状态
