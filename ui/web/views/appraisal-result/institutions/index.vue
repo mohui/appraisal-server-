@@ -451,9 +451,14 @@
                   ></i>
                   <el-popover
                     v-if="!scope.row.isAttach"
+                    :ref="scope.row.ruleId"
+                    :popper-options="{
+                      boundariesElement: 'viewport',
+                      removeOnDestroy: true
+                    }"
                     placement="top"
                     title="指标结果"
-                    width="400px"
+                    width="500"
                     trigger="hover"
                     @show="
                       handleAppraisalResultInstructionsPopoverVisible(scope.row)
@@ -946,6 +951,17 @@ export default {
       await this.$api.Hospital.checkDownload(this.params.id);
     }
   },
+  watch: {
+    //指标得分解读详情数据
+    appraisalResultInstructionsData() {
+      if (this.$refs[this.curRule.ruleId]) {
+        //数据返回后更新popper，重新修正定位
+        this.$nextTick(() => {
+          this.$refs[this.curRule.ruleId][0].updatePopper();
+        });
+      }
+    }
+  },
   computed: {
     //工分值数据，用于柱状图显示
     workpointBarData() {
@@ -1152,6 +1168,7 @@ export default {
     },
     //单项考核得分解读数据
     appraisalResultInstructionsData() {
+      console.log(1111);
       return this.appraisalResultInstructionsServerData;
     }
   },
