@@ -541,6 +541,7 @@ export default class Person {
    * fastingGlucose: 空腹血糖
    * postprandialGlucose: 随机血糖
    * hemoglobin: 糖化血红蛋白
+   * lowBloodReaction: 低血糖反应
    * checkTime: 检查时间
    * medicationAdherence: 服药依从性
    * adverseReactions: 不良反应
@@ -617,6 +618,7 @@ export default class Person {
         vd.FastingGlucose as "fastingGlucose",
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
+        vc_lb.codename as "lowBloodReaction",
         vd.CheckTime as "checkTime",
         vd.MedicationAdherence as "medicationAdherence",
         vd.Blfy as "adverseReactions",
@@ -655,6 +657,7 @@ export default class Person {
         left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
         left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
         left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
+        left join view_codedictionary vc_lb on vc_lb.categoryno='7020101' and vc_lb.code = vd.LowBlood
         where DiabetesFollowUpID=?`,
       [id]
     );
