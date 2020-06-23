@@ -558,8 +558,17 @@ export default class Person {
    * }
    * @param id
    */
-  diabetesDetail(id) {
-    return etlQuery(
+  async diabetesDetail(id) {
+    const mentalCodeNames = (
+      await etlQuery(
+        `select * from view_codedictionary vc where categoryno=?;`,
+        ['331']
+      )
+    ).map(item => ({
+      ...item,
+      code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
+    }));
+    const result = await etlQuery(
       `select
         vd.DiabetesFollowUpID as "id",
         vd.name as "name",
@@ -627,7 +636,7 @@ export default class Person {
         from view_diabetesvisit vd
         left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vd.sex
         left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet  --TODO:字典数据里的code不带0, vd记录的带0
+        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet
         left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
         left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
         left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
@@ -635,6 +644,10 @@ export default class Person {
         where DiabetesFollowUpID=?`,
       [id]
     );
+    return result.map(r => ({
+      ...r,
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+    }));
   }
 
   /**
