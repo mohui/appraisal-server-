@@ -710,6 +710,7 @@ export default class Person {
    * stature: 身高
    * weight: 体重
    * checkDate: 体验日期
+   * checkupDoctor: 体检医生
    * temperature: 体温
    * symptom: 症状
    * bc_abnormal: B超说明
@@ -729,40 +730,40 @@ export default class Person {
    * cognitiveScore: 简易智力状态检查
    * oldManEmotion: 老年人情感状态           //TODO: 没有对应字典code
    * emotionalScore: 老年人抑郁评分检查
-   * exerciseWeek 锻炼评率
-   * exerciseMinute 每次锻炼时间
-   * exerciseWeekSuggest 坚持锻炼时间
-   * exerciseMinuteSuggest 锻炼方式
-   * 饮食习惯
-   * 吸烟史
-   * 吸烟量
-   * 开始吸烟时间
-   * 戒烟年龄
-   * 饮酒频率
-   * 日饮酒量
-   * 开始饮酒时间
-   * 是否戒酒
-   * 开始戒酒时间
-   * 近一年内是否曾醉酒
-   * 主要饮酒品种
-   * 职业暴露情况
-   * 具体职业
-   * 从业时间
-   * 粉尘
-   * 粉尘防护措施
-   * 粉尘防护措施说明
-   * 物理原因
-   * 物理原因防护措施
-   * 物理原因防护措施说明
-   * 化学物质
-   * 化学物质防护措施
-   * 化学物质防护措施说明
-   * 放射物质
-   * 放射物质防护措施
-   * 放射物质防护措施说明
-   * 其他（健康辅助检查）
-   * 其他防护措施
-   * 其他防护措施说明
+   * exerciseFrequency 锻炼评率
+   * eachExerciseTime 每次锻炼时间
+   * stickExerciseTime 坚持锻炼时间
+   * exerciseWay 锻炼方式
+   * eatingHabit 饮食习惯
+   * smokingHistory 吸烟史
+   * smokingAmount 吸烟量
+   * smokingStartTime 开始吸烟时间
+   * smokingStopTime 戒烟年龄
+   * drinkFrequency 饮酒频率
+   * drinkAmount 日饮酒量
+   * drinkStartTime 开始饮酒时间
+   * isDrinkStop 是否戒酒
+   * drinkStopTime 开始戒酒时间
+   * isDrunkThisYear 近一年内是否曾醉酒
+   * wineKind 主要饮酒品种
+   * professionExpose 职业暴露情况
+   * profession 具体职业
+   * workingTime 从业时间
+   * dust 粉尘
+   * dustProtection 粉尘防护措施
+   * dustProtectionExplain 粉尘防护措施说明
+   * physicalCause 物理原因
+   * physicalProtection 物理原因防护措施
+   * physicalProtectionExplain 物理原因防护措施说明
+   * chemicals 化学物质
+   * chemicalsProtection 化学物质防护措施
+   * chemicalsProtectionExplain 化学物质防护措施说明
+   * radiation 放射物质
+   * radiationProtection 放射物质防护措施
+   * radiationProtectionExplain 放射物质防护措施说明
+   * other 其他（健康辅助检查）
+   * otherProtection 其他防护措施
+   * otherProtectionExplain 其他防护措施说明
    * 口唇
    * 咽部
    * 齿列情况
@@ -953,14 +954,16 @@ export default class Person {
       exerciseFrequencyCode, //锻炼频率
       oldManHealthSelfCode, //健康状态自我评估
       oldManLifeSelfCode, //生活自理
-      eyeGroundCode, //眼底
-      skinCode, //皮肤
-      scleraCode, //巩膜状态
-      lymphCode, //淋巴结状态
+      // eyeGroundCode, //眼底
+      // skinCode, //皮肤
+      // scleraCode, //巩膜状态
+      // lymphCode, //淋巴结状态
       barrelChestCode, //桶状胸
-      breathSoundCode, //呼吸音状态
-      lungSoundCode, //肺罗音状态
-      abdominalCode //腹部状态
+      // breathSoundCode, //呼吸音状态
+      // lungSoundCode, //肺罗音状态
+      abdominalCode, //腹部状态
+      drinkFrequencyCode, //饮酒频率
+      professionExposeCode //职业暴露情况,是否防护措施 7468
     ] = await Promise.all([
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('558'), //婚姻字典
@@ -968,14 +971,16 @@ export default class Person {
       dictionaryQuery('724'), //锻炼频率
       dictionaryQuery('7470'), //健康状态自我评估
       dictionaryQuery('7471'), //生活自理
-      dictionaryQuery('745'), //眼底
-      dictionaryQuery('715'), //皮肤
-      dictionaryQuery('7151'), //巩膜状态
-      dictionaryQuery('716'), //淋巴结状态
+      // dictionaryQuery('745'), //眼底
+      // dictionaryQuery('715'), //皮肤
+      // dictionaryQuery('7151'), //巩膜状态
+      // dictionaryQuery('716'), //淋巴结状态
       dictionaryQuery('743'), //桶状胸
-      dictionaryQuery('745'), //呼吸音状态
-      dictionaryQuery('717'), //肺罗音状态
-      dictionaryQuery('744') //腹部状态
+      // dictionaryQuery('745'), //呼吸音状态
+      // dictionaryQuery('717'), //肺罗音状态
+      dictionaryQuery('744'), //腹部状态
+      dictionaryQuery('729'), //饮酒频率
+      dictionaryQuery('7468') //职业暴露情况,是否防护措施
     ]);
     const result = await etlQuery(
       `
@@ -987,6 +992,7 @@ export default class Person {
           vh.stature as "stature",
           vh.weight as "weight",
           vh.checkupDate as "checkDate",
+          vh.checkupDoctor as "checkupDoctor",
           vh.temperature as "temperature",
           vh.symptom as "symptom",
           vh.bc_abnormal as "bc_abnormal",
@@ -1034,9 +1040,9 @@ export default class Person {
           vh.hxp as "chemicals",
           vh.hxpfhcs as "chemicalsProtection",
           vh.hxpfhcs_other as "chemicalsProtectionExplain",
-          vh.sx as "radiogen",
-          vh.sxfhcs as "radiogenProtection",
-          vh.sxfhcs_other as "radiogenProtectionExplain",
+          vh.sx as "radiation",
+          vh.sxfhcs as "radiationProtection",
+          vh.sxfhcs_other as "radiationProtectionExplain",
           vh.qt as "other",
           vh.qtfhcs as "otherProtection",
           vh.qtfhcs_other as "otherProtectionExplain",
@@ -1080,14 +1086,14 @@ export default class Person {
           vh.xzzyOther as "noiseExplain",
           vh.fbyt as "abdominalTenderness",
           vh.fbytOther as "abdominalTendernessExplain",
---           vh.fbbk as "fbbk",
---           vh.fbbkOther as "fbbkOther",
---           vh.fbgd as "fbgd",
---           vh.fbgdOther as "fbgdOther",
---           vh.fbpd as "fbpd",
---           vh.fbpdOther as "fbpdOther",
---           vh.fbydxzy as "fbydxzy",
---           vh.fbydxzyOther as "fbydxzyOther",
+          vh.fbbk as "abdominalBag",
+          vh.fbbkOther as "abdominalBagExplain",
+          vh.fbgd as "abdominalLiver",
+          vh.fbgdOther as "abdominalLiverExplain",
+          vh.fbpd as "abdominalSpleen",
+          vh.fbpdOther as "abdominalSpleenExplain",
+          vh.fbydxzy as "abdominalNoise",
+          vh.fbydxzyOther as "abdominalNoiseExplain",
 --           vh.xzsz as "xzsz",
 --           vh.gmzz as "gmzz",
 --           vh.tnbzbdmbd as "tnbzbdmbd",
@@ -1225,7 +1231,6 @@ export default class Person {
       [id]
     );
     console.log(exerciseFrequencyCode);
-    console.log(abdominalCode);
 
     return result.map(item => ({
       ...item,
@@ -1240,19 +1245,54 @@ export default class Person {
       oldManLifeSelf:
         oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
           ?.codename || '',
-      eyeGround:
-        eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
-      skin: skinCode.find(it => it.code === item.skin)?.codename || '',
-      sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
-      lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
+      // eyeGround:
+      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
+      // skin: skinCode.find(it => it.code === item.skin)?.codename || '',
+      // sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
+      // lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
       barrelChest:
         barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
         '',
-      breathSound:
-        breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+      // breathSound:
+      //   breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+      //   '',
+      // lungSound:
+      //   lungSoundCode.find(it => it.code === item.lungSound)?.codename || '',
+      exerciseFrequency:
+        exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
+          ?.codename || '',
+      drinkFrequency:
+        drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
+          ?.codename || '',
+      professionExpose:
+        professionExposeCode.find(it => it.code === item.professionExpose)
+          ?.codename || '',
+      dustProtection:
+        professionExposeCode.find(it => it.code === item.dustProtection)
+          ?.codename || '',
+      physicalProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      chemicalsProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      radiationProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      otherProtection:
+        professionExposeCode.find(it => it.code === item.otherProtection)
+          ?.codename || '',
+      abdominalBag:
+        abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
+      abdominalLiver:
+        abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
         '',
-      lungSound:
-        lungSoundCode.find(it => it.code === item.lungSound)?.codename || ''
+      abdominalSpleen:
+        abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
+        '',
+      abdominalNoise:
+        abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
+        ''
     }));
   }
 }
