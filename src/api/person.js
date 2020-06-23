@@ -364,6 +364,9 @@ export default class Person {
    *   drugName3: 用药3名称
    *   dailyTimesDrugName3: 用药3每日次数
    *   usageDrugName3: 用药3每次量
+   *   otherDrugName: 其他用药
+   *   otherDailyTimesDrugName: 其他用药每日次数
+   *   otherUsageDrugName: 其他用药每次用量
    *   remark: 备注
    *   referral: 是否转诊
    *   referralReason: 转诊原因
@@ -423,9 +426,9 @@ export default class Person {
         vh.DrugName3 as "drugName3",
         vh.Usage_Day3 as "dailyTimesDrugName3",
         vh.Usage_Time3 as "usageDrugName3",
-        (vh.DrugName4,vh.DrugName5,vh.DrugName6,vh.DrugName7,vh.DrugName8) as "otherDrugName",
-        (vh.Usage_Day4,vh.Usage_Day5,vh.Usage_Day6,vh.Usage_Day7,vh.Usage_Day8) as "otherDailyTimesDrugName",
-        (vh.Usage_Time4,vh.Usage_Time5,vh.Usage_Time6,vh.Usage_Time7,vh.Usage_Time8) as "otherUsageDrugName",
+        concat(vh.DrugName4,vh.DrugName5,vh.DrugName6,vh.DrugName7,vh.DrugName8) as "otherDrugName",
+        concat(vh.Usage_Day4,vh.Usage_Day5,vh.Usage_Day6,vh.Usage_Day7,vh.Usage_Day8) as "otherDailyTimesDrugName",
+        concat(vh.Usage_Time4,vh.Usage_Time5,vh.Usage_Time6,vh.Usage_Time7,vh.Usage_Time8) as "otherUsageDrugName",
         vh.Remark as "remark",
         vh.Referral as "referral",
         vh.ReferralReason as "referralReason",
@@ -537,6 +540,9 @@ export default class Person {
    * drugName3: 用药3名称
    * dailyTimesDrugName3: 用药3每日次数
    * usageDrugName3: 用药3每次量
+   * otherDrugName: 其他用药
+   * otherDailyTimesDrugName: 其他用药每日次数
+   * otherUsageDrugName: 其他用药每次用量
    * insulin1: 胰岛素1名称
    * usageInsulin1: 胰岛素1用法用量
    * insulin2: 胰岛素2名称
@@ -603,9 +609,9 @@ export default class Person {
         vd.DrugName3 as "drugName3",
         vd.Usage_Day3 as "dailyTimesDrugName3",
         vd.Usage_Time3 as "usageDrugName3",
-        (vh.DrugName4,vh.DrugName5,vh.DrugName6,vh.DrugName7,vh.DrugName8) as "otherDrugName",
-        (vh.Usage_Day4,vh.Usage_Day5,vh.Usage_Day6,vh.Usage_Day7,vh.Usage_Day8) as "otherDailyTimesDrugName",
-        (vh.Usage_Time4,vh.Usage_Time5,vh.Usage_Time6,vh.Usage_Time7,vh.Usage_Time8) as "otherUsageDrugName",
+        concat(vd.DrugName4,vd.DrugName5,vd.DrugName6,vd.DrugName7,vd.DrugName8) as "otherDrugName",
+        concat(vd.Usage_Day4,vd.Usage_Day5,vd.Usage_Day6,vd.Usage_Day7,vd.Usage_Day8) as "otherDailyTimesDrugName",
+        concat(vd.Usage_Time4,vd.Usage_Time5,vd.Usage_Time6,vd.Usage_Time7,vd.Usage_Time8) as "otherUsageDrugName",
         vd.Insulin1 as "insulin1",
         vd.InsulinUsing1 as "usageInsulin1",
         vd.Insulin2 as "insulin2",
@@ -621,9 +627,7 @@ export default class Person {
         from view_diabetesvisit vd
         left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vd.sex
         left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
-        left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vd.Salt_Situation_Suggest
-        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
+        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet  --TODO:字典数据里的code不带0, vd记录的带0
         left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
         left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
         left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
