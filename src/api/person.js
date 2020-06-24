@@ -926,15 +926,15 @@ export default class Person {
    * drugAmount6 药物6用量
    * drugDate6 药物6用药时间
    * drugAdherence6 药物6服药依从性
-   * 疫苗1名称
-   * 疫苗1接种日期
-   * 疫苗1接种机构
-   * 疫苗2名称
-   * 疫苗2接种日期
-   * 疫苗2接种机构
-   * 疫苗3名称
-   * 疫苗3接种日期
-   * 疫苗3接种机构
+   * vaccine1 疫苗1名称
+   * vaccineDate1 疫苗1接种日期
+   * vaccineHospital1 疫苗1接种机构
+   * vaccine2 疫苗2名称
+   * vaccineDate2 疫苗2接种日期
+   * vaccineHospital2 疫苗2接种机构
+   * vaccine3 疫苗3名称
+   * vaccineDate3 疫苗3接种日期
+   * vaccineHospital3 疫苗3接种机构
    * 健康评价状态
    * 健康评价异常1
    * 健康评价异常2
@@ -1220,15 +1220,15 @@ export default class Person {
           vh.yl6 as "drugAmount6",
           vh.yysj6 as "drugDate6",
           vh.fyycx6 as "drugAdherence6",
---           vh.fmy_mc1 as "fmy_mc1",
---           vh.fmy_jzrq1 as "fmy_jzrq1",
---           vh.fmy_jzjg1 as "fmy_jzjg1",
---           vh.fmy_mc2 as "fmy_mc2",
---           vh.fmy_jzrq2 as "fmy_jzrq2",
---           vh.fmy_jzjg2 as "fmy_jzjg2",
---           vh.fmy_mc3 as "fmy_mc3",
---           vh.fmy_jzrq3 as "fmy_jzrq3",
---           vh.fmy_jzjg3 as "fmy_jzjg3",
+          vh.fmy_mc1 as "vaccine1",
+          vh.fmy_jzrq1 as "vaccineDate1",
+          vh.fmy_jzjg1 as "vaccineHospital1",
+          vh.fmy_mc2 as "vaccine2",
+          vh.fmy_jzrq2 as "vaccineDate2",
+          vh.fmy_jzjg2 as "vaccineHospital2",
+          vh.fmy_mc3 as "vaccine3",
+          vh.fmy_jzrq3 as "vaccineDate3",
+          vh.fmy_jzjg3 as "vaccineHospital3",
 --           vh.jkpjywyc as "jkpjywyc",
 --           vh.yichang1 as "yichang1",
 --           vh.yichang2 as "yichang2",
