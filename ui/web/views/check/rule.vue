@@ -229,7 +229,7 @@
       <el-link
         target="_blank"
         download
-        href="/系统考核规则详解共识.pdf"
+        href="/2020系统考核规则详解共识.pdf"
         :underline="false"
         style="position: absolute;top: 20px;left: 100px;"
       >
