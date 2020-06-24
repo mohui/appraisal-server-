@@ -935,15 +935,14 @@ export default class Person {
    * vaccine3 疫苗3名称
    * vaccineDate3 疫苗3接种日期
    * vaccineHospital3 疫苗3接种机构
-   * 健康评价状态
-   * 健康评价异常1
-   * 健康评价异常2
-   * 健康评价异常3
-   * 健康评价异常4
-   * 健康指导
-   * 危险因素控制
-   * 录入机构
-   *
+   * healthyState 健康评价状态
+   * abnormal1 健康评价异常1
+   * abnormal2 健康评价异常2
+   * abnormal3 健康评价异常3
+   * abnormal4 健康评价异常4
+   * healthyGuide 健康指导
+   * healthyRisk 危险因素控制
+   * hospital 录入机构
    * updateAt: 更新时间
    * @param id 体检表id
    */
@@ -1229,16 +1228,17 @@ export default class Person {
           vh.fmy_mc3 as "vaccine3",
           vh.fmy_jzrq3 as "vaccineDate3",
           vh.fmy_jzjg3 as "vaccineHospital3",
---           vh.jkpjywyc as "jkpjywyc",
---           vh.yichang1 as "yichang1",
---           vh.yichang2 as "yichang2",
---           vh.yichang3 as "yichang3",
---           vh.yichang4 as "yichang4",
---           vh.jkzd_dqsf as "jkzd_dqsf",
---           vh.jkzd_wxyskz as "jkzd_wxyskz",
-          vh.OperateOrganization as "OperateOrganization",
+          vh.jkpjywyc as "healthyState",
+          vh.yichang1 as "abnormal1",
+          vh.yichang2 as "abnormal2",
+          vh.yichang3 as "abnormal3",
+          vh.yichang4 as "abnormal4",
+          vh.jkzd_dqsf as "healthyGuide",
+          vh.jkzd_wxyskz as "healthyRisk",
+          vc_hos.hospname as "hospital",
           vh.operatetime as "updateAt"
         from view_healthy vh
+        left join view_hospital vc_hos on vc_hos.hospid=vh.OperateOrganization
         where vh.incrementno = ?
         order by vh.operatetime desc
        `,
