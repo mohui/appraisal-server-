@@ -105,7 +105,7 @@ export const documentTags = {
   },
   S23(value) {
     return {
-      label: `档案${value ? '' : '不'}规范`,
+      label: `个人基本信息填写${value ? '' : '不'}规范`,
       type: !!value
     };
   },
@@ -164,7 +164,7 @@ export const documentTagList = [
   },
   {
     id: 'S23',
-    name: '档案不规范'
+    name: '个人基本信息填写不规范'
   },
   {
     id: 'O00',
