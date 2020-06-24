@@ -3,6 +3,7 @@ import {QueryTypes} from 'sequelize';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
+import dayjs from 'dayjs';
 
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
@@ -1241,6 +1242,7 @@ export default class Person {
 
     return result.map(item => ({
       ...item,
+      checkDate: dayjs(item.checkDate).toDate(),
       gender: genderCode.find(it => it.code === item.gender)?.codename || '',
       marrage: marrageCode.find(it => it.code === item.marrage)?.codename || '',
       professionType:
