@@ -877,25 +877,25 @@ export default class Person {
    * otherDisease 其他系统疾病状态
    * otherDiseaseExplain 其他系统疾病说明
    * inHospitalDate1 住院1住院时间
-   * outHospitalDate 住院1出院时间
-   * inHospitalTimeReason1 住院1原因
+   * outHospitalDate1 住院1出院时间
+   * inHospitalReason1 住院1原因
    * inHospitalName1 住院1医疗结构名称
    * inHospitalRecord1 住院1病案号
-   * 住院2住院时间
-   * 住院2出院时间
-   * 住院2原因
-   * 住院2医疗结构名称
-   * 住院2病案号
-   * familyInHospitalDate 家族病床史1建床时间
-   * familyOutHospitalDate 家族病床史1撤床时间
-   * familyInHospitalReason 家族病床史1原因
-   * familyHospitalName 家族病床史1医疗机构名称
-   * familyHospitalRecord 家族病床史1病案号
-   * 家族病床史2建床时间
-   * 家族病床史2撤床时间
-   * 家族病床史2原因
-   * 家族病床史2医疗机构名称
-   * 家族病床史2病案号
+   * inHospitalDate2 住院2住院时间
+   * outHospitalDate2 住院2出院时间
+   * inHospitalReason2 住院2原因
+   * inHospitalName2 住院2医疗结构名称
+   * inHospitalRecord2 住院2病案号
+   * familyInHospitalDate1 家族病床史1建床时间
+   * familyOutHospitalDate1 家族病床史1撤床时间
+   * familyInHospitalReason1 家族病床史1原因
+   * familyHospitalName1 家族病床史1医疗机构名称
+   * familyHospitalRecord1 家族病床史1病案号
+   * familyInHospitalDate2 家族病床史2建床时间
+   * familyOutHospitalDate2 家族病床史2撤床时间
+   * familyInHospitalReason2 家族病床史2原因
+   * familyHospitalName2 家族病床史2医疗机构名称
+   * familyHospitalRecord2 家族病床史2病案号
    * drug1 药物1名称
    * drugUsage1 药物1用法
    * drugAmount1 药物1用量
@@ -1172,24 +1172,24 @@ export default class Person {
           vh.qtxt as "otherDisease",
           vh.otherDisease1 as "otherDiseaseExplain",
           vh.ruyTime1 as "inHospitalDate1",
-          vh.chuyTime1 as "outHospitalDate",
-          vh.zhuyReason1 as "inHospitalTimeReason1",
+          vh.chuyTime1 as "outHospitalDate1",
+          vh.zhuyReason1 as "inHospitalReason1",
           vh.hospName1 as "inHospitalName1",
           vh.bah1 as "inHospitalRecord1",
---           vh.ruyTime2 as "ruyTime2",
---           vh.chuyTime2 as "chuyTime2",
---           vh.HospName2 as "HospName2",
---           vh.bah2 as "bah2",
-          vh.jcTime1 as "familyInHospitalDate",
-          vh.ccTime1 as "familyOutHospitalDate",
-          vh.jcyy1 as "familyInHospitalReason",
-          vh.jcyljgmc1 as "familyHospitalName",
-          vh.jcbah1 as "familyHospitalRecord",
---           vh.jcTime2 as "jcTime2",
---           vh.ccTime2 as "ccTime2",
---           vh.jcyy2 as "jcyy2",
---           vh.jcyljgmc2 as "jcyljgmc2",
---           vh.jcbah2 as "jcbah2",
+          vh.ruyTime2 as "inHospitalDate2",
+          vh.chuyTime2 as "outHospitalDate2",
+          vh.HospName2 as "inHospitalName2",
+          vh.bah2 as "inHospitalRecord2",
+          vh.jcTime1 as "familyInHospitalDate1",
+          vh.ccTime1 as "familyOutHospitalDate1",
+          vh.jcyy1 as "familyInHospitalReason1",
+          vh.jcyljgmc1 as "familyHospitalName1",
+          vh.jcbah1 as "familyHospitalRecord1",
+          vh.jcTime2 as "familyInHospitalDate2",
+          vh.ccTime2 as "familyOutHospitalDate2",
+          vh.jcyy2 as "familyInHospitalReason2",
+          vh.jcyljgmc2 as "familyHospitalName2",
+          vh.jcbah2 as "familyHospitalRecord2",
           vh.yaowu1 as "drug1",
           vh.yf1 as "drugUsage1",
           vh.yl1 as "drugAmount1",
