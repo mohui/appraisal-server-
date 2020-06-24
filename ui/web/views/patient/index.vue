@@ -11,7 +11,13 @@
           :body-style="{
             height: 'calc(100% - 40px)'
           }"
-        >
+          ><el-button
+            style="position: absolute;top:15px;right:30px;z-index: 99999;"
+            size="small"
+            type="primary"
+            @click="$router.go(-1)"
+            >返回
+          </el-button>
           <el-tabs v-model="activeTab" class="patient-tab-list">
             <el-tab-pane
               label="体检记录"
@@ -23,6 +29,14 @@
                   class="notes"
                   v-for="(item, index) of healthyList"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-healthy',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">体检时间：{{ item.updateAt }}</span>
@@ -46,6 +60,14 @@
                   class="notes"
                   v-for="(item, index) of hypertensions"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-hypertension',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">随访医生：{{ item.doctor }}</span>
@@ -71,6 +93,14 @@
                   class="notes"
                   v-for="(item, index) of diabetesList"
                   :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-diabetes',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
                 >
                   <div class="notes-block">
                     <span class="hospital">随访医生：{{ item.doctor }}</span>
@@ -117,9 +147,13 @@ export default {
   mounted() {
     if (this.healthyList.length > 0) {
       this.activeTab = 'physical';
-    } else if (this.hypertensions.length > 0) {
+      return;
+    }
+    if (this.hypertensions.length > 0) {
       this.activeTab = 'hypertension';
-    } else if (this.diabetesList.length > 0) {
+      return;
+    }
+    if (this.diabetesList.length > 0) {
       this.activeTab = 'diabetes';
     }
   },
@@ -235,6 +269,7 @@ export default {
 </style>
 <style lang="scss" scoped>
 .notes {
+  cursor: pointer;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
   p {
