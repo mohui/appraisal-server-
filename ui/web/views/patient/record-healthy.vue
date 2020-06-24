@@ -21,13 +21,27 @@
         </el-button>
       </div>
       <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+        <el-row type="flex" class="record-head" justify="space-between">
+          <el-col :span="6">
+            姓名：<strong>{{ person.name }}</strong>
+          </el-col>
+          <el-col :span="6">编号：{{ person.checkupNo }}</el-col>
+        </el-row>
         <table class="record-he-table">
           <tbody>
             <tr>
               <td colspan="2">体检日期</td>
-              <td colspan="2">年 月 日</td>
+              <td colspan="2">
+                <em>
+                  {{ person.checkDate }}
+                </em>
+              </td>
               <td>责任医生</td>
-              <td colspan="2"></td>
+              <td colspan="2">
+                <em>
+                  {{ person.checkupDoctor }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>内 容</td>
@@ -41,74 +55,128 @@
                 1 无症状 2 头痛 3 头晕 4 心悸 5 胸闷 6 胸痛 7 慢性咳嗽 8 咳痰 9
                 呼吸困难 10 多饮 11 多尿 12 体重下降 13 乏力 14 关节肿痛 15
                 视力模糊 16 手脚麻木 17 尿急 18 尿痛 19 便秘 20 腹泻 21 恶心呕吐
-                22 眼花 23 耳鸣 24 乳房胀痛 25 其他 □/□/□/□/□/□/□/□/□/□
+                22 眼花 23 耳鸣 24 乳房胀痛 25 其他
+                <em>
+                  {{ person.symptom }}
+                </em>
               </td>
             </tr>
             <tr>
               <td rowspan="9">一般状况</td>
               <td colspan="2">体 温</td>
-              <td>℃</td>
+              <td>
+                <em>{{ person.temperature }}</em>
+                ℃
+              </td>
               <td>脉 率</td>
-              <td colspan="2">次/分钟</td>
+              <td colspan="2">
+                <em>{{ person.pulse }}</em>
+                次/分钟
+              </td>
             </tr>
             <tr>
               <td rowspan="2" colspan="2">呼吸频率</td>
-              <td rowspan="2">次/分钟</td>
+              <td rowspan="2">
+                <em>{{ person.breathe }}</em>
+                次/分钟
+              </td>
               <td rowspan="2">血 压</td>
               <td>左 侧</td>
-              <td>/ mmHg</td>
+              <td>
+                <em>{{ person.leftDiastolicPressure }}</em> -
+                <em>{{ person.leftSystolicPressure }}</em>
+                / mmHg
+              </td>
             </tr>
             <tr>
               <td>右 侧</td>
-              <td>/ mmHg</td>
+              <td>
+                <em>{{ person.rightDiastolicPressure }}</em> -
+                <em>{{ person.rightSystolicPressure }}</em>
+                / mmHg
+              </td>
             </tr>
             <tr>
               <td colspan="2">身 高</td>
               <td>
+                <em> {{ person.stature }} </em>
                 cm
               </td>
               <td>
                 体 重
               </td>
               <td colspan="2">
+                <em> {{ person.weight }} </em>
                 kg
               </td>
             </tr>
             <tr>
               <td colspan="2">腰 围</td>
               <td>
+                <em>
+                  {{ person.waistline }}
+                </em>
                 cm
               </td>
               <td>
                 体质指数（BMI）
               </td>
               <td colspan="2">
+                <em> {{ person.BMI }} </em>
                 Kg/m2
               </td>
             </tr>
             <tr>
-              <td colspan="2">老年人健康状态 自我评估*</td>
+              <td colspan="2">老年人健康状态自我评估*</td>
               <td colspan="4">
-                1 满意 2 基本满意 3 说不清楚 4 不太满意 5 不满意
+                <el-radio-group v-model="person.oldManCognitiveSelf">
+                  <el-radio label="1">1 满意</el-radio>
+                  <el-radio label="2">2 基本满意</el-radio>
+                  <el-radio label="3">3 说不清楚</el-radio>
+                  <el-radio label="4">4 不太满意</el-radio>
+                  <el-radio label="5">5 不满意</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
-              <td colspan="2">老年人生活自理 能力自我评估*</td>
+              <td colspan="2">老年人生活自理能力自我评估*</td>
               <td colspan="4">
-                1 可自理（0～3 分） 2 轻度依赖（4～8 分） 3 中度依赖（9～18 分)
-                4 不能自理（≥19 分）
+                <el-radio-group v-model="person.oldManLifeSelf">
+                  <el-radio label="1">1 可自理（0～3 分）</el-radio>
+                  <el-radio label="2">2 轻度依赖（4～8 分）</el-radio>
+                  <el-radio label="3">3 中度依赖（9～18 分)</el-radio>
+                  <el-radio label="4">4 不能自理（≥19 分）</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
-              <td colspan="2">老年人 认知功能*</td>
+              <td colspan="2">老年人认知功能*</td>
               <td colspan="4">
-                1 粗筛阴性 2 粗筛阳性， 简易智力状态检查，总分
+                <el-radio-group v-model="person.oldManCognitiveSelf">
+                  <el-radio label="1">1 粗筛阴性</el-radio>
+                  <el-radio label="2">2 粗筛阳性</el-radio>
+                </el-radio-group>
+                <span v-if="person.cognitiveScore">
+                  简易智力状态检查，总分
+                  <em>
+                    {{ person.cognitiveScore }}
+                  </em>
+                </span>
               </td>
             </tr>
             <tr>
-              <td colspan="2">老年人 情感状态*</td>
+              <td colspan="2">老年人情感状态*</td>
               <td colspan="4">
-                1 粗筛阴性 2 粗筛阳性， 老年人抑郁评分检查，总分
+                <el-radio-group v-model="person.oldManEmotion">
+                  <el-radio label="1">1 粗筛阴性</el-radio>
+                  <el-radio label="2">2 粗筛阳性</el-radio>
+                </el-radio-group>
+                <span v-if="person.emotionalScore">
+                  老年人抑郁评分检查，总分
+                  <em>
+                    {{ person.emotionalScore }}
+                  </em>
+                </span>
               </td>
             </tr>
             <tr>
@@ -120,23 +188,45 @@
                 锻炼频率
               </td>
               <td colspan="3">
-                1 每天 2 每周一次以上 3 偶尔 4 不锻炼
+                <el-radio-group v-model="person.exerciseFrequency">
+                  <el-radio label="1">1 每天</el-radio>
+                  <el-radio label="2">2 每周一次以上</el-radio>
+                  <el-radio label="3">3 偶尔</el-radio>
+                  <el-radio label="4">4 不锻炼</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td>每次锻炼时间</td>
-              <td>分钟</td>
+              <td>
+                <em>
+                  {{ person.eachExerciseTime }}
+                </em>
+                分钟
+              </td>
               <td>坚持锻炼时间</td>
-              <td>年</td>
+              <td>
+                <em>
+                  {{ person.stickExerciseTime }}
+                </em>
+                年
+              </td>
             </tr>
             <tr>
               <td>锻炼方式</td>
-              <td colspan="3">/</td>
+              <td colspan="3">
+                <em>
+                  {{ person.exerciseWay }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td colspan="2">饮食习惯</td>
               <td colspan="4">
                 1 荤素均衡 2 荤食为主 3 素食为主 4 嗜盐 5 嗜油 6 嗜糖
+                <em>
+                  {{ person.eatingHabit }}
+                </em>
               </td>
             </tr>
             <tr>
@@ -145,24 +235,38 @@
                 吸烟状况
               </td>
               <td colspan="3">
-                1 从不吸烟 2 已戒烟 3 吸烟
+                <el-radio-group v-model="person.smokingHistory">
+                  <el-radio label="1">1 从不吸烟</el-radio>
+                  <el-radio label="2">2 已戒烟</el-radio>
+                  <el-radio label="3">3 吸烟</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td>日吸烟量</td>
               <td colspan="3">
-                平均 支
+                平均
+                <em>
+                  {{ person.smokingAmount }}
+                </em>
+                支
               </td>
             </tr>
             <tr>
               <td>开始吸烟年龄</td>
               <td>
+                <em>
+                  {{ person.smokingStartTime }}
+                </em>
                 岁
               </td>
               <td>
                 戒烟年龄
               </td>
               <td>
+                <em>
+                  {{ person.smokingStopTime }}
+                </em>
                 岁
               </td>
             </tr>
@@ -170,246 +274,584 @@
               <td rowspan="5" colspan="2">饮酒情况</td>
               <td>饮酒频率</td>
               <td colspan="3">
-                1 从不 2 偶尔 3 经常 4 每天
+                <el-radio-group v-model="person.drinkFrequency">
+                  <el-radio label="1">1 从不</el-radio>
+                  <el-radio label="2">2 偶尔</el-radio>
+                  <el-radio label="3">3 经常</el-radio>
+                  <el-radio label="4">4 每天</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td>日饮酒量</td>
               <td colspan="3">
-                平均 两
+                平均
+                <em>
+                  {{ person.drinkAmount }}
+                </em>
+                两
               </td>
             </tr>
             <tr>
               <td>是否戒酒</td>
-              <td colspan="2">1 未戒酒 2 已戒酒</td>
-              <td>戒酒年龄： 岁</td>
+              <td colspan="2">
+                <em>
+                  {{ person.isDrinkStop }}
+                </em>
+                1 未戒酒 2 已戒酒
+              </td>
+              <td>
+                戒酒年龄：
+                <em>
+                  {{ person.drinkStopTime }}
+                </em>
+                岁
+              </td>
             </tr>
             <tr>
               <td>开始饮酒年龄</td>
-              <td>岁</td>
+              <td>
+                <em>
+                  {{ person.drinkStopTime }}
+                </em>
+                岁
+              </td>
               <td>近一年内是否曾醉酒</td>
-              <td>1 是 2 否</td>
+              <td>
+                <em>
+                  {{ person.isDrunkThisYear }}
+                </em>
+                1 是 2 否
+              </td>
             </tr>
             <tr>
               <td>饮酒种类</td>
-              <td colspan="3">1 白酒 2 啤酒 3 红酒 4 黄酒 ５其他</td>
+              <td colspan="3">
+                <em>
+                  {{ person.wineKind }}
+                </em>
+                1 白酒 2 啤酒 3 红酒 4 黄酒 ５其他
+              </td>
             </tr>
             <tr>
-              <td colspan="2">职业病危害因素 接触史</td>
+              <td colspan="2">职业病危害因素接触史</td>
               <td colspan="4">
-                1 无 2 有（工种 从业时间 年） <br />毒物种类 粉尘 防护措施 1 无
-                2 有 <br />放射物质 防护措施 1 无 2 有 <br />物理因素 防护措施 1
-                无 2 有 <br />化学物质 防护措施 1 无 2 有 <br />其他 防护措施 1
-                无 2 有 □□□□□□
+                <el-radio-group v-model="person.professionExpose">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <span v-if="person.professionExpose">
+                  （工种
+                  <em>
+                    {{ person.profession }}
+                  </em>
+                  从业时间
+                  <em>
+                    {{ person.workingTime }}
+                  </em>
+                  年）
+                </span>
+                <br />毒物种类 粉尘 防护措施
+                <em> {{ person.dust }}/{{ person.dustProtection }} </em>
+                1 无 2 有 <br />放射物质 防护措施
+                <em>
+                  {{ person.radiation }}/{{ person.radiationProtection }}
+                </em>
+                1 无 2 有 <br />物理因素 防护措施
+                <em>
+                  {{ person.physicalCause }}/{{ person.physicalProtection }}
+                </em>
+                1 无 2 有 <br />化学物质 防护措施
+                <em>
+                  {{ person.chemicals }}/{{ person.chemicalsProtection }}
+                </em>
+                1 无 2 有 <br />其他 防护措施
+                <em> {{ person.other }}/{{ person.otherProtection }} </em>
+                1 无 2 有
               </td>
             </tr>
             <tr>
               <td rowspan="4">脏器功能</td>
               <td colspan="2">口 腔</td>
               <td colspan="4">
-                口唇 1 红润 2 苍白 3 发绀 4 皲裂 5 疱疹 齿列 1 正常 2 缺齿 3
-                龋齿 4 义齿(假牙) 咽部 1 无充血 2 充血 3 淋巴滤泡增生 □ □/□/□□
+                口唇
+                <el-radio-group v-model="person.lip">
+                  <el-radio label="1">1 红润</el-radio>
+                  <el-radio label="2">2 苍白</el-radio>
+                  <el-radio label="3">3 发绀</el-radio>
+                  <el-radio label="4">4 皲裂</el-radio>
+                  <el-radio label="5">5 疱疹</el-radio>
+                </el-radio-group>
+                <br />齿列 1 正常 2 缺齿 3 龋齿 4 义齿(假牙)
+                <em>
+                  {{ person.tooth }}
+                </em>
+                <br />咽部
+                <el-radio-group v-model="person.throat">
+                  <el-radio label="1">1 无充血</el-radio>
+                  <el-radio label="2">2 充血</el-radio>
+                  <el-radio label="3">3 淋巴滤泡增生</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">视 力</td>
               <td colspan="4">
-                左眼 右眼 （矫正视力：左眼 右眼 ）
+                左眼
+                <em>
+                  {{ person.visionLeft }}
+                </em>
+                右眼
+                <em>
+                  {{ person.visionRight }}
+                </em>
+                （矫正视力：左眼
+                <em>
+                  {{ person.visionCorrectionLeft }}
+                </em>
+                右眼
+                <em> {{ person.visonCorrectionRight }} </em>）
               </td>
             </tr>
             <tr>
               <td colspan="2">听 力</td>
               <td colspan="4">
-                1 听见 2 听不清或无法听见 □
+                <el-radio-group v-model="person.listen">
+                  <el-radio label="1">1 听见</el-radio>
+                  <el-radio label="2">2 听不清或无法听见</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">运动功能</td>
               <td colspan="4">
-                1 可顺利完成 2 无法独立完成任何一个动作 □
+                <el-radio-group v-model="person.sport">
+                  <el-radio label="1">1 可顺利完成</el-radio>
+                  <el-radio label="2">2 无法独立完成任何一个动作</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td rowspan="19">查体</td>
               <td colspan="2">眼 底*</td>
-              <td colspan="4">1 正常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.eyeGround">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td colspan="2">皮 肤</td>
               <td colspan="4">
-                1 正常 2 潮红 3 苍白 4发绀 5 黄染 6 色素沉着 7 其他 □
+                <el-radio-group v-model="person.skin">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 潮红</el-radio>
+                  <el-radio label="3">3 苍白</el-radio>
+                  <el-radio label="4">4 发绀</el-radio>
+                  <el-radio label="5">5 黄染</el-radio>
+                  <el-radio label="6">6 色素沉着</el-radio>
+                  <el-radio label="7">7 其他</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">巩 膜</td>
-              <td colspan="4">1 正常 2 黄染 3 充血 4 其他 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.sclera">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 黄染</el-radio>
+                  <el-radio label="3">3 充血</el-radio>
+                  <el-radio label="4">4 其他</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td colspan="2">淋巴结</td>
-              <td colspan="4">1 未触及 2 锁骨上 3 腋窝 4 其他 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.lymph">
+                  <el-radio label="1">1 未触及</el-radio>
+                  <el-radio label="2">2 锁骨上</el-radio>
+                  <el-radio label="3">3 腋窝</el-radio>
+                  <el-radio label="4">4 其他</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td rowspan="3" colspan="2">肺</td>
-              <td colspan="4">桶状胸：1 否 2 是 □</td>
+              <td colspan="4" style="text-align: left;">
+                桶状胸：
+                <el-radio-group v-model="person.barrelChest">
+                  <el-radio label="1">1 否</el-radio>
+                  <el-radio label="2">2 是</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
-              <td colspan="4">呼吸音：1 正常 2 异常 □</td>
+              <td colspan="4">
+                呼吸音：
+                <el-radio-group v-model="person.breathSound">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
-              <td colspan="4">罗 音：1 无 2 干罗音 3 湿罗音 4 其他 □</td>
+              <td colspan="4">
+                罗 音：
+                <el-radio-group v-model="person.lungSound">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 干罗音</el-radio>
+                  <el-radio label="3">3 湿罗音</el-radio>
+                  <el-radio label="4">4 其他</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td colspan="2">心 脏</td>
               <td colspan="4">
-                心率： 次/分钟 心律：1 齐 2 不齐 3 绝对不齐 杂音：1 无 2 有 □□
+                心率：<em>{{ person.heartRate }}</em> 次/分钟 <br />心律：
+                <el-radio-group v-model="person.heartRule">
+                  <el-radio label="1">1 齐</el-radio>
+                  <el-radio label="2">2 不齐</el-radio>
+                  <el-radio label="3">3 绝对不齐</el-radio>
+                </el-radio-group>
+                <br />杂音：
+                <el-radio-group v-model="person.noise">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">腹 部</td>
               <td colspan="4">
-                压痛：1 无 2 有 包块：1 无 2 有 肝大：1 无 2 有 脾大：1 无 2 有
-                移动性浊音：1 无 2 有 □□□□□
+                压痛：
+                <el-radio-group v-model="person.abdominalTenderness">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <br />包块：
+                <el-radio-group v-model="person.abdominalBag">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <br />肝大：
+                <el-radio-group v-model="person.abdominalLiver">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <br />脾大：
+                <el-radio-group v-model="person.abdominalSpleen">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <br />移动性浊音：
+                <el-radio-group v-model="person.abdominalNoise">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">下肢水肿</td>
-              <td colspan="4">1 无 2 单侧 3 双侧不对称 4 双侧对称</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.lowLimbsEdema">
+                  <el-radio label="1">1 无</el-radio>
+                  <el-radio label="2">2 单侧</el-radio>
+                  <el-radio label="3">3 双侧不对称</el-radio>
+                  <el-radio label="4">4 双侧对称</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td colspan="2">足背动脉搏动*</td>
               <td colspan="4">
-                1 未触及 2 触及双侧对称 3 触及左侧弱或消失 4 触及右侧弱或消失 □
+                <el-radio-group v-model="person.arterial">
+                  <el-radio label="1">1 未触及</el-radio>
+                  <el-radio label="2">2 触及双侧对称</el-radio>
+                  <el-radio label="3">3 触及左侧弱或消失</el-radio>
+                  <el-radio label="4">4 触及右侧弱或消失</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">肛门指诊*</td>
               <td colspan="4">
-                1 未及异常 2 触痛 3 包块 4 前列腺异常 5 其他 □
+                <el-radio-group v-model="person.anus">
+                  <el-radio label="1">1 未及异常</el-radio>
+                  <el-radio label="2">2 触痛</el-radio>
+                  <el-radio label="3">3 包块</el-radio>
+                  <el-radio label="4">4 前列腺异常</el-radio>
+                  <el-radio label="5">5 其他</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">乳 腺*</td>
               <td colspan="4">
-                1 未见异常 2 乳房切除 3 异常泌乳 4 乳腺包块 5 其他 □/□/□/□
+                <el-radio-group v-model="person.mammary">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 乳房切除</el-radio>
+                  <el-radio label="3">3 异常泌乳</el-radio>
+                  <el-radio label="4">4 乳腺包块</el-radio>
+                  <el-radio label="5">5 其他</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td rowspan="5">妇科*</td>
               <td>外阴</td>
-              <td colspan="4">1 未见异常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.vulva">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td>阴道</td>
-              <td colspan="4">1 未见异常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.vagina">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td>宫颈</td>
-              <td colspan="4">1 未见异常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.cervical">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td>宫体</td>
-              <td colspan="4">1 未见异常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.uterus">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td>附件</td>
-              <td colspan="4">1 未见异常 2 异常 □</td>
+              <td colspan="4">
+                <el-radio-group v-model="person.attach">
+                  <el-radio label="1">1 未见异常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
+              </td>
             </tr>
             <tr>
               <td colspan="2">其 他*</td>
-              <td colspan="4"></td>
+              <td colspan="4">
+                <em>
+                  {{ person.vaginaOther }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td rowspan="16">辅助检查</td>
               <td colspan="2">血常规*</td>
               <td colspan="4">
-                血红蛋白__________g/L 白细胞_______×109 /L 血小板______×109 /L
-                其他____________________________________
+                血红蛋白
+                <em>
+                  {{ person.hemoglobin }}
+                </em>
+                g/L 白细胞
+                <em>
+                  {{ person.whiteCell }}
+                </em>
+                ×109 /L 血小板
+                <em>
+                  {{ person.platelet }}
+                </em>
+                ×109 /L 其他
+                <em>
+                  {{ person.bloodOther }}
+                </em>
               </td>
             </tr>
             <tr>
               <td colspan="2">尿常规*</td>
               <td colspan="4">
-                尿蛋白_________尿糖_________尿酮体__________尿潜血___________
-                其他______
+                尿蛋白
+                <em>
+                  {{ person.urineProtein }}
+                </em>
+                尿糖
+                <em>
+                  {{ person.urineSugar }}
+                </em>
+                尿酮体
+                <em>
+                  {{ person.urineKetone }}
+                </em>
+                尿潜血
+                <em>
+                  {{ person.urineBlood }}
+                </em>
+                其他
+                <em>
+                  {{ person.urineOther }}
+                </em>
               </td>
             </tr>
             <tr>
               <td colspan="2">空腹血糖*</td>
               <td colspan="4">
-                _________________mmol/L 或 ___________________mg/dL
+                <em>
+                  {{ person.fastingGlucose }}
+                </em>
+                mmol/L 或 ___________________mg/dL
               </td>
             </tr>
             <tr>
               <td colspan="2">心电图*</td>
               <td colspan="4">
-                1 正常 2 异常 □
+                <el-radio-group v-model="person.ecg">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">尿微量白蛋白*</td>
               <td colspan="4">
-                ___________mg/dL
+                <em>
+                  {{ person.urineTraceAlbumin }}
+                </em>
+                mg/dL
               </td>
             </tr>
             <tr>
               <td colspan="2">大便潜血*</td>
               <td colspan="4">
-                1 阴性 2 阳性 □
+                <el-radio-group v-model="person.defecateBlood">
+                  <el-radio label="1">1 阴性</el-radio>
+                  <el-radio label="2">2 阳性</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">糖化血红蛋白*</td>
               <td colspan="4">
+                <em>
+                  {{ person.sugarHemoglobin }}
+                </em>
                 %
               </td>
             </tr>
             <tr>
-              <td colspan="2">乙型肝炎 表面抗原*</td>
+              <td colspan="2">乙型肝炎表面抗原*</td>
               <td colspan="4">
-                1 阴性 2 阳性 □
+                1 阴性 2 阳性
               </td>
             </tr>
             <tr>
               <td colspan="2">肝功能*</td>
               <td colspan="4">
-                血清谷丙转氨酶 U/L 血清谷草转氨酶 U/L 白蛋白 g/L 总胆红素 μmol/L
-                结合胆红素 μmol/L
+                血清谷丙转氨酶
+                <em>
+                  {{ person.liverALT }}
+                </em>
+                U/L 血清谷草转氨酶
+                <em>
+                  {{ person.liverAST }}
+                </em>
+                U/L 白蛋白
+                <em>
+                  {{ person.liverALB }}
+                </em>
+                g/L 总胆红素
+                <em>
+                  {{ person.liverTBIL }}
+                </em>
+                μmol/L 结合胆红素
+                <em>
+                  {{ person.liverDBIL }}
+                </em>
+                μmol/L
               </td>
             </tr>
             <tr>
               <td colspan="2">肾功能*</td>
               <td colspan="4">
-                血清肌酐 μmol/L 血尿素 mmol/L 血钾浓度 mmol/L 血钠浓度 mmol/L
+                血清肌酐
+                <em>
+                  {{ person.renalSCR }}
+                </em>
+                μmol/L 血尿素
+                <em>
+                  {{ person.renalBUM }}
+                </em>
+                mmol/L 血钾浓度
+                <em>
+                  {{ person.renalPotassium }}
+                </em>
+                mmol/L 血钠浓度
+                <em>
+                  {{ person.renalSodium }}
+                </em>
+                mmol/L
               </td>
             </tr>
             <tr>
               <td colspan="2">血 脂*</td>
               <td colspan="4">
-                总胆固醇 mmol/L 甘油三酯 mmol/L 血清低密度脂蛋白胆固醇 mmol/L
-                血清高密度脂蛋白胆固醇 mmol/L
+                总胆固醇
+                <em>
+                  {{ person.bloodCHO }}
+                </em>
+                mmol/L 甘油三酯
+                <em>
+                  {{ person.bloodTG }}
+                </em>
+                mmol/L 血清低密度脂蛋白胆固醇
+                <em>
+                  {{ person.bloodLDLC }}
+                </em>
+                mmol/L 血清高密度脂蛋白胆固醇
+                <em>
+                  {{ person.bloodHDLC }}
+                </em>
+                mmol/L
               </td>
             </tr>
             <tr>
               <td colspan="2">胸部 X 线片*</td>
               <td colspan="4">
-                1 正常 2 异常 □
+                <el-radio-group v-model="person.chest">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2" rowspan="2">B 超*</td>
-              <td colspan="4">
-                腹部 B 超 1 正常 2 异常 □
+              <td colspan="4" style="text-align: left;">
+                腹部 B 超
+                <el-radio-group v-model="person.bc">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="4">
-                其他 1 正常 2 异常 □
+                其他 1 正常 2 异常
               </td>
             </tr>
             <tr>
               <td colspan="2">宫颈涂片*</td>
               <td colspan="4">
-                1 正常 2 异常 □
+                <el-radio-group v-model="person.cervicalSmear">
+                  <el-radio label="1">1 正常</el-radio>
+                  <el-radio label="2">2 异常</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
@@ -417,59 +859,79 @@
               <td colspan="4"></td>
             </tr>
             <tr>
-              <td rowspan="11">现存主要 健康问题</td>
-              <td colspan="2" rowspan="2">脑血管疾病</td>
+              <td rowspan="7">现存主要健康问题</td>
+              <td colspan="2">脑血管疾病</td>
               <td colspan="4">
                 1 未发现 2 缺血性卒中 3 脑出血 4 蛛网膜下腔出血 5
-                短暂性脑缺血发作
+                短暂性脑缺血发作 6 其他
+                <em>
+                  {{ person.cerebrovascular }}
+                </em>
               </td>
             </tr>
             <tr>
-              <td colspan="4">6 其他 □/□/□/□/□</td>
-            </tr>
-            <tr>
-              <td colspan="2" rowspan="2">肾脏疾病</td>
+              <td colspan="2">肾脏疾病</td>
               <td colspan="4">
-                1 未发现 2 糖尿病肾病 3 肾功能衰竭 4 急性肾炎 5 慢性肾炎
+                1 未发现 2 糖尿病肾病 3 肾功能衰竭 4 急性肾炎 5 慢性肾炎 6 其他
+                <em>
+                  {{ person.renal }}
+                </em>
               </td>
             </tr>
             <tr>
-              <td colspan="4">6 其他 □/□/□/□/□</td>
-            </tr>
-            <tr>
-              <td colspan="2" rowspan="2">心脏疾病</td>
+              <td colspan="2">心脏疾病</td>
               <td colspan="4">
                 1 未发现 2 心肌梗死 3 心绞痛 4 冠状动脉血运重建 5 充血性心力衰竭
+                6 心前区疼痛 7 其他
+                <em>
+                  {{ person.heart }}
+                </em>
               </td>
-            </tr>
-            <tr>
-              <td colspan="4">6 心前区疼痛 7 其他 □/□/□/□/□/□</td>
             </tr>
             <tr>
               <td colspan="2">血管疾病</td>
               <td colspan="4">
-                1 未发现 2 夹层动脉瘤 3 动脉闭塞性疾病 4 其他 □/□/□
+                1 未发现 2 夹层动脉瘤 3 动脉闭塞性疾病 4 其他
+                <em>
+                  {{ person.bloodVessels }}
+                </em>
               </td>
             </tr>
             <tr>
-              <td colspan="2" rowspan="2">眼部疾病</td>
+              <td colspan="2">眼部疾病</td>
               <td colspan="4">
-                1 未发现 2 视网膜出血或渗出 3 视乳头水肿 4 白内障
+                1 未发现 2 视网膜出血或渗出 3 视乳头水肿 4 白内障 5 其他
+                <em>
+                  {{ person.eye }}
+                </em>
               </td>
-            </tr>
-            <tr>
-              <td colspan="4">5 其他 □/□/□/□</td>
             </tr>
             <tr>
               <td colspan="2">神经系统疾病</td>
               <td colspan="4">
-                1 未发现 2 有 □
+                <el-radio-group v-model="person.nerve">
+                  <el-radio label="1">1 未发现</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <span v-if="person.nerve === '2'">
+                  <em>
+                    {{ person.nerveExplain }}
+                  </em>
+                </span>
               </td>
             </tr>
             <tr>
               <td colspan="2">其他系统疾病</td>
               <td colspan="4">
-                1 未发现 2 有 □
+                <el-radio-group v-model="person.otherDisease">
+                  <el-radio label="1">1 未发现</el-radio>
+                  <el-radio label="2">2 有</el-radio>
+                </el-radio-group>
+                <span v-if="person.otherDisease === '2'">
+                  <em>
+                    {{ person.otherDiseaseExplain }}
+                  </em>
+                </span>
               </td>
             </tr>
             <tr>
@@ -483,10 +945,29 @@
               <td>病案号</td>
             </tr>
             <tr>
-              <td>/</td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td>
+                <em>
+                  {{ person.inHospitalDate1 }}
+                </em>
+                /<em>
+                  {{ person.outHospitalDate }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.inHospitalTimeReason1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.inHospitalName1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.inHospitalRecord1 }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>/</td>
@@ -504,10 +985,29 @@
               <td>病案号</td>
             </tr>
             <tr>
-              <td>/</td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td>
+                <em>
+                  {{ person.familyInHospitalDate }}
+                </em>
+                /<em>
+                  {{ person.familyOutHospitalDate }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.familyInHospitalReason }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.familyHospitalName }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.familyHospitalRecord }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>/</td>
@@ -516,7 +1016,7 @@
               <td></td>
             </tr>
             <tr>
-              <td rowspan="7">主要用药 情况</td>
+              <td rowspan="7">主要用药情况</td>
               <td colspan="2">药物名称</td>
               <td>用 法</td>
               <td>用 量</td>
@@ -524,49 +1024,175 @@
               <td>服药依从性 <br />1 规律 2 间断 3 不服药</td>
             </tr>
             <tr>
-              <td colspan="2">1</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                1
+                <em>
+                  {{ person.drug1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate1 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence1 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td colspan="2">2</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                2
+                <em>
+                  {{ person.drug2 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage2 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount2 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate2 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence2 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td colspan="2">3</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                3
+                <em>
+                  {{ person.drug3 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage3 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount3 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate3 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence3 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td colspan="2">4</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                4
+                <em>
+                  {{ person.drug4 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage4 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount4 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate4 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence4 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td colspan="2">5</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                5
+                <em>
+                  {{ person.drug5 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage5 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount5 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate5 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence5 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td colspan="2">6</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="2">
+                6
+                <em>
+                  {{ person.drug6 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugUsage6 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAmount6 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugDate6 }}
+                </em>
+              </td>
+              <td>
+                <em>
+                  {{ person.drugAdherence6 }}
+                </em>
+              </td>
             </tr>
             <tr>
-              <td rowspan="4">非免疫 规划预防 接种史</td>
+              <td rowspan="4">非免疫规划预防接种史</td>
               <td colspan="2">名 称</td>
               <td>接种日期</td>
               <td colspan="3">接种机构</td>
@@ -588,22 +1214,52 @@
             </tr>
             <tr>
               <td>
-                健康 评价
+                健康评价
               </td>
               <td colspan="6">
-                1 体检无异常 □ <br />2 有异常 <br />异常 1 <br />异常 2
-                <br />异常 3 <br />异常 4
+                <el-radio-group v-model="person.healthyState">
+                  <el-radio label="1">1 体检无异常</el-radio>
+                  <el-radio label="2">2 有异常</el-radio>
+                </el-radio-group>
+                <br /><em>
+                  {{ person.abnormal1 }}
+                </em>
+                <br /><em>
+                  {{ person.abnormal2 }}
+                </em>
+                <br /><em>
+                  {{ person.abnormal3 }}
+                </em>
+                <br /><em>
+                  {{ person.abnormal4 }}
+                </em>
               </td>
             </tr>
             <tr>
               <td>健康指导</td>
               <td colspan="3">
                 1 纳入慢性病患者健康管理 <br />2 建议复查 <br />3 建议转诊
+                <br />
+                <em>
+                  {{ person.healthyGuide }}
+                </em>
               </td>
               <td colspan="3">
-                危险因素控制： □/□/□/□/□/□/□ <br />1 戒烟 <br />2 健康饮酒
-                <br />3 饮食 <br />4 锻炼 <br />5 减体重（目标 Kg） <br />6
-                建议接种疫苗 <br />7 其他
+                危险因素控制： <br />1 戒烟 <br />2 健康饮酒 <br />3 饮食
+                <br />4 锻炼 <br />5 减体重（目标 Kg） <br />6 建议接种疫苗
+                <br />7 其他
+                <br />
+                <em>
+                  {{ person.healthyRisk }}
+                </em>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="7">
+                录入机构：
+                <em>
+                  {{ person.hospital }}
+                </em>
               </td>
             </tr>
           </tbody>
@@ -724,10 +1380,281 @@
 </template>
 
 <script>
-//script
+export default {
+  name: 'record-healthy',
+  data() {
+    return {
+      id: null,
+      person: {
+        id: '',
+        checkupNo: '',
+        IDCard: '',
+        gender: '',
+        stature: '',
+        weight: 0,
+        temperature: '',
+        symptom: '',
+        bc_abnormal: '',
+        marrage: '',
+        professionType: '',
+        pulse: '',
+        breathe: '',
+        leftDiastolicPressure: '',
+        leftSystolicPressure: '',
+        rightDiastolicPressure: '',
+        rightSystolicPressure: '',
+        waistline: '',
+        BMI: '',
+        oldManHealthSelf: '',
+        oldManLifeSelf: '',
+        oldManCognitiveSelf: '',
+        cognitiveScore: null,
+        oldManEmotion: '',
+        emotionalScore: null,
+        exerciseFrequency: '',
+        eachExerciseTime: null,
+        stickExerciseTime: null,
+        exerciseWay: '',
+        eatingHabit: '',
+        smokingHistory: '',
+        smokingAmount: null,
+        smokingStartTime: null,
+        smokingStopTime: null,
+        drinkFrequency: '',
+        drinkAmount: null,
+        drinkStartTime: null,
+        isDrinkStop: '',
+        drinkStopTime: null,
+        isDrunkThisYear: '',
+        wineKind: '',
+        professionExpose: '',
+        profession: '',
+        workingTime: null,
+        dust: '',
+        dustProtection: '',
+        dustProtectionExplain: '',
+        physicalCause: '',
+        physicalProtection: '',
+        physicalProtectionExplain: '',
+        chemicals: '',
+        chemicalsProtection: '',
+        chemicalsProtectionExplain: '',
+        radiogen: '',
+        radiogenProtection: '',
+        radiogenProtectionExplain: '',
+        other: '',
+        otherProtection: '',
+        otherProtectionExplain: '',
+        lip: '',
+        throat: '',
+        tooth: ',',
+        missToothTopLeft: null,
+        missToothTopRight: null,
+        missToothBottomLeft: null,
+        cariesTopLeft: null,
+        cariesTopRight: null,
+        cariesBottomLeft: null,
+        cariesBottomRight: null,
+        falseToothTopLeft: null,
+        falseToothTopRight: null,
+        falseToothBottomLeft: null,
+        falseToothBottomRight: null,
+        visionLeft: '',
+        visionRight: '',
+        visionCorrectionLeft: null,
+        visonCorrectionRight: null,
+        listen: '',
+        sport: '',
+        eyeGround: ' ',
+        eyeGroundExplain: '',
+        skin: '',
+        pf_Other: '',
+        gm: '',
+        gm_Other: '',
+        lbj: '',
+        lbjOther: '',
+        ftzx: '',
+        fhxy: '',
+        fhxyyc: '',
+        fly: '',
+        flyOther: '',
+        xzxn: '',
+        xzxl: '',
+        xzzy: '',
+        xzzyOther: '',
+        fbyt: '',
+        fbytOther: '',
+        fbbk: '',
+        fbbkOther: '',
+        fbgd: '',
+        fbgdOther: '',
+        fbpd: '',
+        fbpdOther: '',
+        fbydxzy: '',
+        fbydxzyOther: '',
+        xzsz: '',
+        gmzz: '',
+        tnbzbdmbd: '',
+        rx: '',
+        fk_wy: '',
+        fk_wy_abnormal: '',
+        fk_yd: '',
+        fk_yd_abnormal: '',
+        fk_gj: '',
+        fk_gj_abnormal: '',
+        fk_gt: '',
+        fk_gt_abnormal: '',
+        fk_fj: '',
+        fk_fj_abnormal: '',
+        ctqt: '',
+        xcgHb: '',
+        xcgWBC: '',
+        xcgPLT: '',
+        xcgqt: '',
+        ncgndb: '',
+        ncgnt: '',
+        ncgntt: '',
+        ncgnqx: '',
+        ncgOther: '',
+        nwlbdb: '',
+        LEU: '',
+        dbqx: '',
+        xdt: '',
+        xdt_abnormal: '',
+        HBsAg: '',
+        suijxt: null,
+        kfxt: '',
+        tnbthxhdb: null,
+        ggnALT: '',
+        ggnAST: '',
+        ggnALB: '',
+        ggnTBIL: '',
+        ggnDBIL: '',
+        sgnScr: '',
+        sgnBUN: '',
+        sgnxjnd: null,
+        sgnxnnd: null,
+        BUA: '',
+        xzCHO: '',
+        xzTG: '',
+        xzLDLC: '',
+        xzHDLC: '',
+        xp: ' ',
+        xp_abnormal: null,
+        bc: '',
+        gjtp: '',
+        gjtp_abnormal: '',
+        jkfzjcqt: '',
+        nxgjb: '',
+        szjb: '',
+        xzjb: '',
+        xgjb: '',
+        ybjb: '',
+        sjxt: '',
+        sjxt_other: null,
+        qtxt: '',
+        otherDisease1: '',
+        ruyTime1: null,
+        chuyTime1: null,
+        zhuyReason1: '',
+        hospName1: '',
+        bah1: '',
+        ruyTime2: null,
+        chuyTime2: null,
+        HospName2: '',
+        bah2: '',
+        jcTime1: null,
+        ccTime1: null,
+        jcyy1: '',
+        jcyljgmc1: '',
+        jcbah1: '',
+        jcTime2: null,
+        ccTime2: null,
+        jcyy2: '',
+        jcyljgmc2: '',
+        jcbah2: '',
+        yaowu1: '',
+        yf1: '',
+        yl1: '',
+        yysj1: '',
+        fyycx: '',
+        yaowu2: '',
+        yf2: '',
+        yl2: '',
+        yysj2: '',
+        fyycx2: ' ',
+        yaowu3: '',
+        yf3: '',
+        yl3: '',
+        yysj3: '',
+        fyycx3: ' ',
+        yaowu4: '',
+        yf4: '',
+        yl4: '',
+        yysj4: '',
+        fyycx4: ' ',
+        yaowu5: '',
+        yf5: '',
+        yl5: '',
+        yysj5: '',
+        fyycx5: ' ',
+        yaowu6: '',
+        yf6: '',
+        yl6: '',
+        yysj6: '',
+        fyycx6: ' ',
+        fmy_mc1: '',
+        fmy_jzrq1: null,
+        fmy_jzjg1: '',
+        fmy_mc2: '',
+        fmy_jzrq2: null,
+        fmy_jzjg2: '',
+        fmy_mc3: '',
+        fmy_jzrq3: null,
+        fmy_jzjg3: '',
+        jkpjywyc: '',
+        yichang1: '',
+        yichang2: '',
+        yichang3: '',
+        yichang4: '',
+        jkzd_dqsf: '',
+        jkzd_wxyskz: '',
+        OperateOrganization: '',
+        updateAt: ''
+      }
+    };
+  },
+  created() {
+    const id = this.$route.query.id;
+    if (!id) this.$router.go(-1);
+    this.id = id;
+    this.getHealthyDetail(id);
+  },
+  methods: {
+    async getHealthyDetail(id) {
+      try {
+        let result = await this.$api.Person.healthyDetail(id);
+        console.log(result);
+        if (result.length > 0) {
+          this.person = Object.assign({}, result[0], {
+            updateAt: result[0].updateAt.$format(),
+            checkDate: result[0].checkDate.$format('YYYY-MM-DD')
+          });
+        }
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    }
+  }
+};
 </script>
 
 <style lang="scss">
+.record-head {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 10px;
+}
 .record-he-table {
   width: 100%;
   max-width: 1200px;
@@ -738,9 +1665,12 @@
   line-height: 2;
   tr {
     td {
-      padding: 0 10px;
+      padding: 3px 10px;
       border-top: 1px solid #ccc;
       border-left: 1px solid #ccc;
+      em {
+        color: #409eff;
+      }
       sub {
         vertical-align: bottom;
       }

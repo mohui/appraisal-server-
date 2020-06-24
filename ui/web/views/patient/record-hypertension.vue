@@ -96,7 +96,7 @@
                 <sub>（次/分钟 ）</sub>
               </td>
               <td>
-                /
+                <em>{{ person.heartRate }}</em>
               </td>
             </tr>
             <tr>
@@ -146,11 +146,7 @@
             <tr>
               <td>心理调整</td>
               <td>
-                <el-radio-group v-model="person.mental">
-                  <el-radio label="良好">1 良好</el-radio>
-                  <el-radio label="一般">2 一般</el-radio>
-                  <el-radio label="差">3 差</el-radio>
-                </el-radio-group>
+                <em>{{ person.mental }}</em>
               </td>
             </tr>
             <tr>
@@ -186,7 +182,9 @@
                   <el-radio label="0">1 无</el-radio>
                   <el-radio label="1">2 有</el-radio>
                 </el-radio-group>
-                不良反应说明：{{ person.adverseReactionsExplain }}
+                <span v-if="person.adverseReactionsExplain !== '0'">
+                  不良反应说明：{{ person.adverseReactionsExplain }}
+                </span>
               </td>
             </tr>
             <tr>
@@ -249,15 +247,19 @@
             </tr>
             <tr>
               <td>其他药物</td>
-              <td></td>
+              <td>
+                <em>
+                  {{ person.otherDrugName }}
+                </em>
+              </td>
             </tr>
             <tr>
               <td>用法用量</td>
               <td>
                 每日
-                <em> {{ person.dailyTimesDrugName3 }} </em>次 每次
+                <em> {{ person.otherDailyTimesDrugName }} </em>次 每次
                 <em>
-                  {{ person.usageDrugName3 }}
+                  {{ person.otherUsageDrugName }}
                 </em>
               </td>
             </tr>
@@ -267,8 +269,8 @@
                 是否转诊：
               </td>
               <td>
-                <em>{{ person.referral ? '是' : '否' }}</em
-                >。 原 因：
+                <em> {{ person.referral === 'false' ? '否' : '是' }} </em>。 原
+                因：
                 <em>
                   {{ person.referralReason }}
                 </em>

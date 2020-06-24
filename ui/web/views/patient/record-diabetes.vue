@@ -44,9 +44,9 @@
               <td colspan="2">随访方式</td>
               <td>
                 <el-radio-group v-model="person.followWay">
-                  <el-radio label="01">1 门诊</el-radio>
-                  <el-radio label="02">2 家庭</el-radio>
-                  <el-radio label="03">3 电话</el-radio>
+                  <el-radio label="门诊">1 门诊</el-radio>
+                  <el-radio label="家庭">2 家庭</el-radio>
+                  <el-radio label="电话">3 电话</el-radio>
                 </el-radio-group>
               </td>
             </tr>
@@ -97,8 +97,9 @@
             <tr>
               <td>足背动脉搏动</td>
               <td>
-                {{ person.arterial }} 1 触及正常 □ <br />2 减弱（双侧 左侧
-                右侧） <br />3 消失（双侧 左侧 右侧）
+                <em>
+                  {{ person.arterial }}
+                </em>
               </td>
             </tr>
             <tr>
@@ -148,20 +149,16 @@
             <tr>
               <td>心理调整</td>
               <td>
-                <el-radio-group v-model="person.mental">
-                  <el-radio label="01">1 良好</el-radio>
-                  <el-radio label="02">2 一般</el-radio>
-                  <el-radio label="03">3 差</el-radio>
-                </el-radio-group>
+                <em>{{ person.mental }}</em>
               </td>
             </tr>
             <tr>
               <td>遵医行为</td>
               <td>
                 <el-radio-group v-model="person.doctorStatue">
-                  <el-radio label="01">1 良好</el-radio>
-                  <el-radio label="02">2 一般</el-radio>
-                  <el-radio label="03">3 差</el-radio>
+                  <el-radio label="良好">1 良好</el-radio>
+                  <el-radio label="一般">2 一般</el-radio>
+                  <el-radio label="差">3 差</el-radio>
                 </el-radio-group>
               </td>
             </tr>
@@ -179,7 +176,10 @@
               <td>其他检查*</td>
               <td>
                 糖化血红蛋白 <em>{{ person.hemoglobin }}</em> ％<br />
-                检查日期： 月 日<br /><br /><br /><br /><br />
+                检查日期：
+                <em>
+                  {{ person.checkTime }}
+                </em>
               </td>
             </tr>
             <tr>
@@ -204,17 +204,21 @@
             <tr>
               <td colspan="2">低血糖反应</td>
               <td>
-                1 无 2 偶尔 3 频繁
+                <el-radio-group v-model="person.lowBloodReaction">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="偶尔">2 偶尔</el-radio>
+                  <el-radio label="频繁">3 频繁</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td colspan="2">此次随访分类</td>
               <td>
                 <el-radio-group v-model="person.visitClass">
-                  <el-radio label="1">1 控制满意</el-radio>
-                  <el-radio label="2">2 控制不满意</el-radio>
-                  <el-radio label="3">3 不良反应</el-radio>
-                  <el-radio label="4">4 并发症</el-radio>
+                  <el-radio label="控制满意">1 控制满意</el-radio>
+                  <el-radio label="控制不满意">2 控制不满意</el-radio>
+                  <el-radio label="不良反应">3 不良反应</el-radio>
+                  <el-radio label="并发症">4 并发症</el-radio>
                 </el-radio-group>
               </td>
             </tr>
@@ -267,18 +271,22 @@
             <tr>
               <td>胰岛素</td>
               <td>
-                种类：<em>
-                  {{ person.insulin1 }}
-                </em>
-                用法和用量：<em>
-                  {{ person.usageInsulin1 }}
-                </em>
-                种类：<em>
-                  {{ person.insulin2 }}
-                </em>
-                用法和用量：<em>
-                  {{ person.usageInsulin2 }}
-                </em>
+                <span v-if="person.insulin1">
+                  种类：<em>
+                    {{ person.insulin1 }}
+                  </em>
+                  用法和用量：<em>
+                    {{ person.usageInsulin1 }}
+                  </em>
+                </span>
+                <span v-if="person.insulin2">
+                  种类：<em>
+                    {{ person.insulin2 }}
+                  </em>
+                  用法和用量：<em>
+                    {{ person.usageInsulin2 }}
+                  </em>
+                </span>
               </td>
             </tr>
             <tr>
@@ -287,8 +295,8 @@
                 是否转诊：
               </td>
               <td>
-                <em>{{ person.referral ? '是' : '否' }}</em
-                >。 原 因：
+                <em> {{ person.referral === 'true' ? '是' : '否' }} </em>。 原
+                因：
                 <em>
                   {{ person.referralReason }}
                 </em>

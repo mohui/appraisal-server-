@@ -12,7 +12,7 @@
             height: 'calc(100% - 40px)'
           }"
           ><el-button
-            style="position: absolute;top:15px;right:30px;"
+            style="position: absolute;top:15px;right:30px;z-index: 99999;"
             size="small"
             type="primary"
             @click="$router.go(-1)"
@@ -148,10 +148,12 @@ export default {
     if (this.healthyList.length > 0) {
       this.activeTab = 'physical';
       return;
-    } else if (this.hypertensions.length > 0) {
+    }
+    if (this.hypertensions.length > 0) {
       this.activeTab = 'hypertension';
       return;
-    } else if (this.diabetesList.length > 0) {
+    }
+    if (this.diabetesList.length > 0) {
       this.activeTab = 'diabetes';
     }
   },
