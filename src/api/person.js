@@ -876,56 +876,56 @@ export default class Person {
    * nerveExplain 神经系统疾病说明
    * otherDisease 其他系统疾病状态
    * otherDiseaseExplain 其他系统疾病说明
-   * 住院1住院时间
-   * 住院1出院时间
-   * 住院1原因
-   * 住院1医疗结构名称
-   * 住院1病案号
+   * inHospitalDate1 住院1住院时间
+   * outHospitalDate 住院1出院时间
+   * inHospitalTimeReason1 住院1原因
+   * inHospitalName1 住院1医疗结构名称
+   * inHospitalRecord1 住院1病案号
    * 住院2住院时间
    * 住院2出院时间
    * 住院2原因
    * 住院2医疗结构名称
    * 住院2病案号
-   * 家族病床史1建床时间
-   * 家族病床史1撤床时间
-   * 家族病床史1原因
-   * 家族病床史1医疗机构名称
-   * 家族病床史1病案号
+   * familyInHospitalDate 家族病床史1建床时间
+   * familyOutHospitalDate 家族病床史1撤床时间
+   * familyInHospitalReason 家族病床史1原因
+   * familyHospitalName 家族病床史1医疗机构名称
+   * familyHospitalRecord 家族病床史1病案号
    * 家族病床史2建床时间
    * 家族病床史2撤床时间
    * 家族病床史2原因
    * 家族病床史2医疗机构名称
    * 家族病床史2病案号
-   * 药物1名称
-   * 药物1用法
-   * 药物1用量
-   * 药物1用药时间
-   * 药物1服药依从性
-   * 药物2名称
-   * 药物2用法
-   * 药物2用量
-   * 药物2用药时间
-   * 药物2服药依从性
-   * 药物3名称
-   * 药物3用法
-   * 药物3用量
-   * 药物3用药时间
-   * 药物3服药依从性
-   * 药物4名称
-   * 药物4用法
-   * 药物4用量
-   * 药物4用药时间
-   * 药物4服药依从性
-   * 药物5名称
-   * 药物5用法
-   * 药物5用量
-   * 药物5用药时间
-   * 药物5服药依从性
-   * 药物6名称
-   * 药物6用法
-   * 药物6用量
-   * 药物6用药时间
-   * 药物6服药依从性
+   * drug1 药物1名称
+   * drugUsage1 药物1用法
+   * drugAmount1 药物1用量
+   * drugDate1 药物1用药时间
+   * drugAdherence1 药物1服药依从性
+   * drug2 药物2名称
+   * drugUsage2 药物2用法
+   * drugAmount2 药物2用量
+   * drugDate2 药物2用药时间
+   * drugAdherence2 药物2服药依从性
+   * drug3 药物3名称
+   * drugUsage3 药物3用法
+   * drugAmount3 药物3用量
+   * drugDate3 药物3用药时间
+   * drugAdherence3 药物3服药依从性
+   * drug4 药物4名称
+   * drugUsage4 药物4用法
+   * drugAmount4 药物4用量
+   * drugDate4 药物4用药时间
+   * drugAdherence4 药物4服药依从性
+   * drug5 药物5名称
+   * drugUsage5 药物5用法
+   * drugAmount5 药物5用量
+   * drugDate5 药物5用药时间
+   * drugAdherence5 药物5服药依从性
+   * drug6 药物6名称
+   * drugUsage6 药物6用法
+   * drugAmount6 药物6用量
+   * drugDate6 药物6用药时间
+   * drugAdherence6 药物6服药依从性
    * 疫苗1名称
    * 疫苗1接种日期
    * 疫苗1接种机构
@@ -1171,55 +1171,55 @@ export default class Person {
           vh.sjxt_other as "nerveExplain",
           vh.qtxt as "otherDisease",
           vh.otherDisease1 as "otherDiseaseExplain",
-          vh.ruyTime1 as "inHospitalTime1",
-          vh.chuyTime1 as "outHospitalTime",
---           vh.zhuyReason1 as "zhuyReason1",
---           vh.hospName1 as "hospName1",
---           vh.bah1 as "bah1",
+          vh.ruyTime1 as "inHospitalDate1",
+          vh.chuyTime1 as "outHospitalDate",
+          vh.zhuyReason1 as "inHospitalTimeReason1",
+          vh.hospName1 as "inHospitalName1",
+          vh.bah1 as "inHospitalRecord1",
 --           vh.ruyTime2 as "ruyTime2",
 --           vh.chuyTime2 as "chuyTime2",
 --           vh.HospName2 as "HospName2",
 --           vh.bah2 as "bah2",
---           vh.jcTime1 as "jcTime1",
---           vh.ccTime1 as "ccTime1",
---           vh.jcyy1 as "jcyy1",
---           vh.jcyljgmc1 as "jcyljgmc1",
---           vh.jcbah1 as "jcbah1",
+          vh.jcTime1 as "familyInHospitalDate",
+          vh.ccTime1 as "familyOutHospitalDate",
+          vh.jcyy1 as "familyInHospitalReason",
+          vh.jcyljgmc1 as "familyHospitalName",
+          vh.jcbah1 as "familyHospitalRecord",
 --           vh.jcTime2 as "jcTime2",
 --           vh.ccTime2 as "ccTime2",
 --           vh.jcyy2 as "jcyy2",
 --           vh.jcyljgmc2 as "jcyljgmc2",
 --           vh.jcbah2 as "jcbah2",
---           vh.yaowu1 as "yaowu1",
---           vh.yf1 as "yf1",
---           vh.yl1 as "yl1",
---           vh.yysj1 as "yysj1",
---           vh.fyycx as "fyycx",
---           vh.yaowu2 as "yaowu2",
---           vh.yf2 as "yf2",
---           vh.yl2 as "yl2",
---           vh.yysj2 as "yysj2",
---           vh.fyycx2 as "fyycx2",
---           vh.yaowu3 as "yaowu3",
---           vh.yf3 as "yf3",
---           vh.yl3 as "yl3",
---           vh.yysj3 as "yysj3",
---           vh.fyycx3 as "fyycx3",
---           vh.yaowu4 as "yaowu4",
---           vh.yf4 as "yf4",
---           vh.yl4 as "yl4",
---           vh.yysj4 as "yysj4",
---           vh.fyycx4 as "fyycx4",
---           vh.yaowu5 as "yaowu5",
---           vh.yf5 as "yf5",
---           vh.yl5 as "yl5",
---           vh.yysj5 as "yysj5",
---           vh.fyycx5 as "fyycx5",
---           vh.yaowu6 as "yaowu6",
---           vh.yf6 as "yf6",
---           vh.yl6 as "yl6",
---           vh.yysj6 as "yysj6",
---           vh.fyycx6 as "fyycx6",
+          vh.yaowu1 as "drug1",
+          vh.yf1 as "drugUsage1",
+          vh.yl1 as "drugAmount1",
+          vh.yysj1 as "drugDate1",
+          vh.fyycx as "drugAdherence1",
+          vh.yaowu2 as "drug2",
+          vh.yf2 as "drugUsage2",
+          vh.yl2 as "drugAmount2",
+          vh.yysj2 as "drugDate2",
+          vh.fyycx2 as "drugAdherence2",
+          vh.yaowu3 as "drug3",
+          vh.yf3 as "drugUsage3",
+          vh.yl3 as "drugAmount3",
+          vh.yysj3 as "drugDate3",
+          vh.fyycx3 as "drugAdherence3",
+          vh.yaowu4 as "drug4",
+          vh.yf4 as "drugUsage4",
+          vh.yl4 as "drugAmount4",
+          vh.yysj4 as "drugDate4",
+          vh.fyycx4 as "drugAdherence4",
+          vh.yaowu5 as "drug5",
+          vh.yf5 as "drugUsage5",
+          vh.yl5 as "drugAmount5",
+          vh.yysj5 as "drugDate5",
+          vh.fyycx5 as "drugAdherence5",
+          vh.yaowu6 as "drug6",
+          vh.yf6 as "drugUsage6",
+          vh.yl6 as "drugAmount6",
+          vh.yysj6 as "drugDate6",
+          vh.fyycx6 as "drugAdherence6",
 --           vh.fmy_mc1 as "fmy_mc1",
 --           vh.fmy_jzrq1 as "fmy_jzrq1",
 --           vh.fmy_jzjg1 as "fmy_jzjg1",
