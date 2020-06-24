@@ -953,20 +953,20 @@ export default class Person {
       marrageCode, //婚姻字典
       jobTypeCode, //职业字典
       exerciseFrequencyCode, //锻炼频率
-      oldManHealthSelfCode, //健康状态自我评估
-      oldManLifeSelfCode, //生活自理
+      // oldManHealthSelfCode, //健康状态自我评估
+      // oldManLifeSelfCode, //生活自理
       // eyeGroundCode, //眼底
       // skinCode, //皮肤
       // scleraCode, //巩膜状态
       // lymphCode, //淋巴结状态
-      barrelChestCode, //桶状胸
+      // barrelChestCode, //桶状胸
       // breathSoundCode, //呼吸音状态
       // lungSoundCode, //肺罗音状态
-      abdominalCode, //腹部状态
-      drinkFrequencyCode, //饮酒频率
+      // abdominalCode, //腹部状态
+      // drinkFrequencyCode, //饮酒频率
       professionExposeCode, //职业暴露情况,是否防护措施 7468
-      arterialCode, //足背动脉搏动	tnbzbdmbd	7152
-      vaginaCode, //妇科Code	7465
+      // arterialCode, //足背动脉搏动	tnbzbdmbd	7152
+      // vaginaCode, //妇科Code	7465
       urineProteinCode, //尿蛋白	ncgndb	009
       urineSugarCode, //尿糖	ncgnt	362
       urineKetoneCode, //尿酮体	ncgntt	4010006
@@ -976,20 +976,20 @@ export default class Person {
       dictionaryQuery('558'), //婚姻字典
       dictionaryQuery('557'), //职业字典
       dictionaryQuery('724'), //锻炼频率
-      dictionaryQuery('7470'), //健康状态自我评估
-      dictionaryQuery('7471'), //生活自理
+      // dictionaryQuery('7470'), //健康状态自我评估
+      // dictionaryQuery('7471'), //生活自理
       // dictionaryQuery('745'), //眼底
       // dictionaryQuery('715'), //皮肤
       // dictionaryQuery('7151'), //巩膜状态
       // dictionaryQuery('716'), //淋巴结状态
-      dictionaryQuery('743'), //桶状胸
+      // dictionaryQuery('743'), //桶状胸
       // dictionaryQuery('745'), //呼吸音状态
       // dictionaryQuery('717'), //肺罗音状态
-      dictionaryQuery('744'), //腹部状态
-      dictionaryQuery('729'), //饮酒频率
+      // dictionaryQuery('744'), //腹部状态
+      // dictionaryQuery('729'), //饮酒频率
       dictionaryQuery('7468'), //职业暴露情况,是否防护措施
-      dictionaryQuery('7152'), //足背动脉搏动
-      dictionaryQuery('7465'), //妇科状态
+      // dictionaryQuery('7152'), //足背动脉搏动
+      // dictionaryQuery('7465'), //妇科状态
       dictionaryQuery('009'), //尿蛋白
       dictionaryQuery('362'), //尿糖
       dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
@@ -1254,34 +1254,34 @@ export default class Person {
       professionType:
         jobTypeCode.find(it => `0${it.code}` === item.professionType)
           ?.codename || '',
-      oldManHealthSelf:
-        oldManHealthSelfCode.find(it => it.code === item.professionType)
-          ?.codename || '',
-      oldManLifeSelf:
-        oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
-          ?.codename || '',
+      // oldManHealthSelf:
+      //   oldManHealthSelfCode.find(it => it.code === item.professionType)
+      //     ?.codename || '',
+      // oldManLifeSelf:
+      //   oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
+      //     ?.codename || '',
       // eyeGround:
       //   eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
       // skin: skinCode.find(it => it.code === item.skin)?.codename || '',
       // sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
       // lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
-      barrelChest:
-        barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
-        '',
+      // barrelChest:
+      //   barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
+      //   '',
       // breathSound:
       //   breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
       //   '',
       // lungSound:
       //   lungSoundCode.find(it => it.code === item.lungSound)?.codename || '',
-      exerciseFrequency:
-        exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
-          ?.codename || '',
-      drinkFrequency:
-        drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
-          ?.codename || '',
-      professionExpose:
-        professionExposeCode.find(it => it.code === item.professionExpose)
-          ?.codename || '',
+      // exerciseFrequency:
+      //   exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
+      //     ?.codename || '',
+      // drinkFrequency:
+      //   drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
+      //     ?.codename || '',
+      // professionExpose:
+      //   professionExposeCode.find(it => it.code === item.professionExpose)
+      //     ?.codename || '',
       dustProtection:
         professionExposeCode.find(it => it.code === item.dustProtection)
           ?.codename || '',
@@ -1297,25 +1297,25 @@ export default class Person {
       otherProtection:
         professionExposeCode.find(it => it.code === item.otherProtection)
           ?.codename || '',
-      abdominalBag:
-        abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
-      abdominalLiver:
-        abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
-        '',
-      abdominalSpleen:
-        abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
-        '',
-      abdominalNoise:
-        abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
-        '',
-      arterial:
-        arterialCode.find(it => it.code === item.arterial)?.codename || '',
-      vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
-      vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
-      cervical:
-        vaginaCode.find(it => it.code === item.cervical)?.codename || '',
-      uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
-      attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
+      // abdominalBag:
+      //   abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
+      // abdominalLiver:
+      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
+      //   '',
+      // abdominalSpleen:
+      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
+      //   '',
+      // abdominalNoise:
+      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
+      //   '',
+      // arterial:
+      //   arterialCode.find(it => it.code === item.arterial)?.codename || '',
+      // vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
+      // vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
+      // cervical:
+      //   vaginaCode.find(it => it.code === item.cervical)?.codename || '',
+      // uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
+      // attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
       urineProtein:
         urineProteinCode.find(it => it.code === item.urineProtein)?.codename ||
         '',
