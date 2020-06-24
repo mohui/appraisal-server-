@@ -863,14 +863,14 @@ export default class Person {
    * chestExplain 胸片说明
    * bc B态超状
    * bcExplain B超说明
-   * 宫颈涂片状态
-   * 宫颈涂片说明
-   * 其他
-   * 脑血管疾病
-   * 肾脏疾病
-   * 心脏疾病
-   * 血管疾病
-   * 眼部疾病
+   * cervicalSmear 宫颈涂片状态
+   * cervicalSmearExplain 宫颈涂片说明
+   * assistExam 其他(健康辅助检查)
+   * cerebrovascular 脑血管疾病
+   * renal 肾脏疾病
+   * heart 心脏疾病
+   * bloodVessels 血管疾病
+   * eye 眼部疾病
    * 神经系统疾病状态
    * 神经系统疾病说明
    * 其他系统疾病状态
@@ -1152,20 +1152,20 @@ export default class Person {
           vh.xp_abnormal as "chestExplain",
           vh.bc as "bc",
           vh.bc_abnormal as "bcExplain",
---           vh.gjtp as "gjtp",
---           vh.gjtp_abnormal as "gjtp_abnormal",
---           vh.jkfzjcqt as "jkfzjcqt",
---           vh.nxgjb as "nxgjb",
---           vh.szjb as "szjb",
---           vh.xzjb as "xzjb",
---           vh.xgjb as "xgjb",
---           vh.ybjb as "ybjb",
---           vh.sjxt as "sjxt",
---           vh.sjxt_other as "sjxt_other",
---           vh.qtxt as "qtxt",
---           vh.otherDisease1 as "otherDisease1",
---           vh.ruyTime1 as "ruyTime1",
---           vh.chuyTime1 as "chuyTime1",
+          vh.gjtp as "cervicalSmear",
+          vh.gjtp_abnormal as "cervicalSmearExplain",
+          vh.jkfzjcqt as "assistExam",
+          vh.nxgjb as "cerebrovascular",
+          vh.szjb as "renal",
+          vh.xzjb as "heart",
+          vh.xgjb as "bloodVessels",
+          vh.ybjb as "eye",
+          vh.sjxt as "nerve",
+          vh.sjxt_other as "nerveExplain",
+          vh.qtxt as "otherDisease",
+          vh.otherDisease1 as "otherDiseaseExplain",
+          vh.ruyTime1 as "inHospitalTime1",
+          vh.chuyTime1 as "outHospitalTime",
 --           vh.zhuyReason1 as "zhuyReason1",
 --           vh.hospName1 as "hospName1",
 --           vh.bah1 as "bah1",
