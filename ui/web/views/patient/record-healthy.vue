@@ -129,7 +129,7 @@
             <tr>
               <td colspan="2">老年人健康状态自我评估*</td>
               <td colspan="4">
-                <el-radio-group v-model="person.oldManCognitiveSelf">
+                <el-radio-group v-model="person.oldManHealthSelf">
                   <el-radio label="1">1 满意</el-radio>
                   <el-radio label="2">2 基本满意</el-radio>
                   <el-radio label="3">3 说不清楚</el-radio>
@@ -295,10 +295,10 @@
             <tr>
               <td>是否戒酒</td>
               <td colspan="2">
-                <em>
-                  {{ person.isDrinkStop }}
-                </em>
-                1 未戒酒 2 已戒酒
+                <el-radio-group v-model="person.isDrinkStop">
+                  <el-radio label="1">1 未戒酒</el-radio>
+                  <el-radio label="2">2 已戒酒</el-radio>
+                </el-radio-group>
               </td>
               <td>
                 戒酒年龄：
@@ -318,19 +318,19 @@
               </td>
               <td>近一年内是否曾醉酒</td>
               <td>
-                <em>
-                  {{ person.isDrunkThisYear }}
-                </em>
-                1 是 2 否
+                <el-radio-group v-model="person.isDrunkThisYear">
+                  <el-radio label="1">1 是</el-radio>
+                  <el-radio label="2">2 否</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
               <td>饮酒种类</td>
               <td colspan="3">
+                1 白酒 2 啤酒 3 红酒 4 黄酒 ５其他
                 <em>
                   {{ person.wineKind }}
                 </em>
-                1 白酒 2 啤酒 3 红酒 4 黄酒 ５其他
               </td>
             </tr>
             <tr>
@@ -351,23 +351,46 @@
                   </em>
                   年）
                 </span>
-                <br />毒物种类 粉尘 防护措施
-                <em> {{ person.dust }}/{{ person.dustProtection }} </em>
-                1 无 2 有 <br />放射物质 防护措施
+                <br />毒物种类 <br />粉尘
+                <em> {{ person.dust }} </em>
+                防护措施
+                <el-radio-group v-model="person.dustProtection">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="有">2 有</el-radio>
+                </el-radio-group>
+                <br />放射物质
                 <em>
-                  {{ person.radiation }}/{{ person.radiationProtection }}
+                  {{ person.radiation }}
                 </em>
-                1 无 2 有 <br />物理因素 防护措施
+                防护措施
+                <el-radio-group v-model="person.radiationProtection">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="有">2 有</el-radio>
+                </el-radio-group>
+                <br />物理因素
                 <em>
-                  {{ person.physicalCause }}/{{ person.physicalProtection }}
+                  {{ person.physicalCause }}
                 </em>
-                1 无 2 有 <br />化学物质 防护措施
+                防护措施
+                <el-radio-group v-model="person.physicalProtection">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="有">2 有</el-radio>
+                </el-radio-group>
+                <br />化学物质
                 <em>
-                  {{ person.chemicals }}/{{ person.chemicalsProtection }}
+                  {{ person.chemicals }}
                 </em>
-                1 无 2 有 <br />其他 防护措施
-                <em> {{ person.other }}/{{ person.otherProtection }} </em>
-                1 无 2 有
+                防护措施
+                <el-radio-group v-model="person.chemicalsProtection">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="有">2 有</el-radio>
+                </el-radio-group>
+                <br />其他 <em> {{ person.other }} </em>
+                防护措施
+                <el-radio-group v-model="person.otherProtection">
+                  <el-radio label="无">1 无</el-radio>
+                  <el-radio label="有">2 有</el-radio>
+                </el-radio-group>
               </td>
             </tr>
             <tr>
