@@ -967,7 +967,10 @@ export default class Person {
       professionExposeCode, //职业暴露情况,是否防护措施 7468
       arterialCode, //足背动脉搏动	tnbzbdmbd	7152
       vaginaCode, //妇科Code	7465
-      urineProteinCode //尿蛋白	ncgndb	009
+      urineProteinCode, //尿蛋白	ncgndb	009
+      urineSugarCode, //尿糖	ncgnt	362
+      urineKetoneCode, //尿酮体	ncgntt	4010006
+      urineBloodCode //尿潜血	ncgnqx	4010007
     ] = await Promise.all([
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('558'), //婚姻字典
@@ -987,7 +990,10 @@ export default class Person {
       dictionaryQuery('7468'), //职业暴露情况,是否防护措施
       dictionaryQuery('7152'), //足背动脉搏动
       dictionaryQuery('7465'), //妇科状态
-      dictionaryQuery('009') //尿蛋白
+      dictionaryQuery('009'), //尿蛋白
+      dictionaryQuery('362'), //尿糖
+      dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
+      dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
     ]);
     const result = await etlQuery(
       `
@@ -1312,7 +1318,14 @@ export default class Person {
       attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
       urineProtein:
         urineProteinCode.find(it => it.code === item.urineProtein)?.codename ||
-        ''
+        '',
+      urineSugar:
+        urineSugarCode.find(it => it.code === item.urineSugar)?.codename || '',
+      urineKetone:
+        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ||
+        '',
+      urineBlood:
+        urineBloodCode.find(it => it.code === item.urineBlood)?.codename || ''
     }));
   }
 }
