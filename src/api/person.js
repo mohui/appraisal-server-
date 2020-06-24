@@ -3,12 +3,20 @@ import {QueryTypes} from 'sequelize';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
+import dayjs from 'dayjs';
 
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
+}
+
+async function dictionaryQuery(categoryno) {
+  return await etlQuery(
+    `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
+    [categoryno]
+  );
 }
 
 function listRender(params) {
@@ -702,12 +710,15 @@ export default class Person {
    * IDCard: 身份证
    * stature: 身高
    * weight: 体重
+   * checkDate: 体验日期
+   * checkupDoctor: 体检医生
    * temperature: 体温
    * symptom: 症状
    * bc_abnormal: B超说明
    * marrage: 婚姻状态
    * professionType: 职业种类
    * pulse:脉率
+   * BMI: BMI
    * breathe:呼吸频率
    * leftDiastolicPressure: 左侧舒张压
    * leftSystolicPressure: 左侧收缩压
@@ -716,237 +727,285 @@ export default class Person {
    * waistline: 腰围
    * oldManHealthSelf: 老年人健康状态自我评估
    * oldManLifeSelf: 老年人生活自理能力自我评估
-   * oldManCognitiveSelf: 老年人认知功能
-   * oldManCognitiveSelf: 老年人认知功能
+   * oldManCognitiveSelf: 老年人认知功能     //TODO: 没有对应字典code
    * cognitiveScore: 简易智力状态检查
-   * oldManEmotion: 老年人情感状态
-   * EmotionalScore: 老年人抑郁评分检查
-   * 锻炼评率
-   * 每次锻炼时间
-   * 坚持锻炼时间
-   * 锻炼方式
-   * 饮食习惯
-   * 吸烟史
-   * 吸烟量
-   * 开始吸烟时间
-   * 戒烟年龄
-   * 饮酒频率
-   * 日饮酒量
-   * 开始饮酒时间
-   * 是否戒酒
-   * 开始戒酒时间
-   * 近一年内是否曾醉酒
-   * 主要饮酒品种
-   * 职业暴露情况
-   * 具体职业
-   * 从业时间
-   * 粉尘
-   * 粉尘防护措施
-   * 粉尘防护措施说明
-   * 物理原因
-   * 物理原因防护措施
-   * 物理原因防护措施说明
-   * 化学物质
-   * 化学物质防护措施
-   * 化学物质防护措施说明
-   * 放射物质
-   * 放射物质防护措施
-   * 放射物质防护措施说明
-   * 其他（健康辅助检查）
-   * 其他防护措施
-   * 其他防护措施说明
-   * 口唇
-   * 咽部
-   * 齿列情况
-   * 缺齿（上左）
-   * 缺齿（上右）
-   * 缺齿（下左）
-   * 缺齿（下右）
-   * 龋齿（上左）
-   * 龋齿（上右）
-   * 龋齿（下左）
-   * 龋齿（下右）
-   * 义齿（上左）
-   * 义齿（上右）
-   * 义齿（下左）
-   * 义齿（下右）
-   * 视力（左眼）
-   * 视力（右眼）
-   * 矫正视力（左眼）
-   * 矫正视力（右眼）
-   * 听力
-   * 运动功能
-   * 眼底状态
-   * 眼底说明
-   * 皮肤状态
-   * 皮肤说明
-   * 巩膜状态
-   * 巩膜说明
-   * 淋巴结状态
-   * 淋巴结说明
-   * 桶状胸
-   * 呼吸音状态
-   * 呼吸音说明
-   * 罗音状态
-   * 罗音说明
-   * 心率
-   * 心律
-   * 杂音状态
-   * 杂音说明
-   * 腹部压痛状态
-   * 腹部压痛说明
-   * 腹部包块状态
-   * 腹部包块说明
-   * 腹部肝大状态
-   * 腹部肝大说明
-   * 腹部脾大状态
-   * 腹部脾大说明
-   * 腹部移动性浊音状态
-   * 腹部移动性浊音说明
-   * 下肢水肿
-   * 肛门指诊状态
-   * 足背动脉搏动
-   * 乳腺
-   * 外阴状态
-   * 外阴说明
-   * 阴道状态
-   * 阴道说明
-   * 宫颈状态
-   * 宫颈说明
-   * 宫体状态
-   * 宫体说明
-   * 附件状态
-   * 附件说明
-   * 查体其他
-   * 血红蛋白
-   * 白细胞
-   * 血小板
-   * 其他
-   * 尿蛋白
-   * 尿糖
-   * 尿酮体
-   * 尿潜血
-   * 其他
-   * 尿微量白蛋白
-   * 尿白细胞
-   * 大便潜血
-   * 心电图状态
-   * 心电图说明
-   * HBsAg
-   * 空腹血糖
+   * oldManEmotion: 老年人情感状态           //TODO: 没有对应字典code
+   * emotionalScore: 老年人抑郁评分检查
+   * exerciseFrequency 锻炼评率
+   * eachExerciseTime 每次锻炼时间
+   * stickExerciseTime 坚持锻炼时间
+   * exerciseWay 锻炼方式
+   * eatingHabit 饮食习惯
+   * smokingHistory 吸烟史
+   * smokingAmount 吸烟量
+   * smokingStartTime 开始吸烟时间
+   * smokingStopTime 戒烟年龄
+   * drinkFrequency 饮酒频率
+   * drinkAmount 日饮酒量
+   * drinkStartTime 开始饮酒时间
+   * isDrinkStop 是否戒酒
+   * drinkStopTime 开始戒酒时间
+   * isDrunkThisYear 近一年内是否曾醉酒
+   * wineKind 主要饮酒品种
+   * professionExpose 职业暴露情况
+   * profession 具体职业
+   * workingTime 从业时间
+   * dust 粉尘
+   * dustProtection 粉尘防护措施
+   * dustProtectionExplain 粉尘防护措施说明
+   * physicalCause 物理原因
+   * physicalProtection 物理原因防护措施
+   * physicalProtectionExplain 物理原因防护措施说明
+   * chemicals 化学物质
+   * chemicalsProtection 化学物质防护措施
+   * chemicalsProtectionExplain 化学物质防护措施说明
+   * radiation 放射物质
+   * radiationProtection 放射物质防护措施
+   * radiationProtectionExplain 放射物质防护措施说明
+   * other 其他（健康辅助检查）
+   * otherProtection 其他防护措施
+   * otherProtectionExplain 其他防护措施说明
+   * lip 口唇
+   * throat 咽部
+   * tooth 齿列情况
+   * missToothTopLeft 缺齿（上左）
+   * missToothTopRight 缺齿（上右）
+   * missToothBottomLeft 缺齿（下左）
+   * missToothTopRight 缺齿（下右）
+   * cariesTopLeft 龋齿（上左）
+   * cariesTopRight 龋齿（上右）
+   * cariesBottomLeft 龋齿（下左）
+   * cariesBottomRight 龋齿（下右）
+   * falseToothTopLeft 义齿（上左）
+   * falseToothTopRight 义齿（上右）
+   * falseToothBottomLeft 义齿（下左）
+   * falseToothBottomRight 义齿（下右）
+   * visionLeft 视力（左眼）
+   * visionRight 视力（右眼）
+   * visionCorrectionLeft 矫正视力（左眼）
+   * visonCorrectionRight 矫正视力（右眼）
+   * listen 听力
+   * sport 运动功能
+   * eyeGround: 眼底状态
+   * eyeGroundExplain:眼底说明
+   * skin 皮肤状态
+   * skinExplain 皮肤说明
+   * sclera 巩膜状态
+   * scleraExplain: 巩膜说明
+   * lymph: 淋巴结状态
+   * lymphExplain: 淋巴结说明
+   * barrelChest: 桶状胸
+   * breathSound: 呼吸音状态
+   * breathSoundExplain: 呼吸音说明
+   * lungSound: 罗音状态
+   * lungSoundExplain: 罗音说明
+   * heartRate 心率
+   * heartRule 心律
+   * noise 杂音状态
+   * noiseExplain 杂音说明
+   * abdominalTenderness 腹部压痛状态
+   * abdominalTendernessExplain 腹部压痛说明
+   * abdominalBag 腹部包块状态
+   * abdominalBagExplain 腹部包块说明
+   * abdominalLiver 腹部肝大状态
+   * abdominalLiverExplain 腹部肝大说明
+   * abdominalSpleen 腹部脾大状态
+   * abdominalSpleenExplain 腹部脾大说明
+   * abdominalNoise 腹部移动性浊音状态
+   * abdominalNoiseExplain 腹部移动性浊音说明
+   * lowLimbsEdema 下肢水肿
+   * anus 肛门指诊状态
+   * arterial 足背动脉搏动
+   * mammary 乳腺
+   * vulva 外阴状态
+   * vulvaExplain 外阴说明
+   * vagina 阴道状态
+   * vaginaExplain 阴道说明
+   * cervical 宫颈状态
+   * cervicalExplain 宫颈说明
+   * uterus 宫体状态
+   * uterusExplain 宫体说明
+   * attach 附件状态
+   * attachExplain 附件说明
+   * vaginaOther 查体其他
+   * hemoglobin 血红蛋白
+   * whiteCell 白细胞
+   * platelet 血小板
+   * bloodOther 其他
+   * urineProtein 尿蛋白
+   * urineSugar 尿糖
+   * urineKetone 尿酮体
+   * urineBlood 尿潜血
+   * urineOther 尿 其他
+   * urineTraceAlbumin 尿微量白蛋白
+   * urineWhiteCell 尿白细胞
+   * defecateBlood 大便潜血
+   * ecg 心电图状态
+   * ecgExplain 心电图说明
+   * HBsAg HBsAg
+   * fastingGlucose 空腹血糖
    * 餐后血糖
-   * 糖化血红蛋白
-   * 血清谷丙转氨酶
-   * 血清谷草转氨酶
-   * 白蛋白
-   * 总胆红素
-   * 结合胆红素
-   * 血清肌酐
-   * 血尿素氮
-   * 血钾浓度
-   * 血钠浓度
+   * sugarHemoglobin 糖化血红蛋白
+   * liverALT 血清谷丙转氨酶
+   * liverAST 血清谷草转氨酶
+   * liverALB 白蛋白
+   * liverTBIL 总胆红素
+   * liverDBIL 结合胆红素
+   * renalSCR 血清肌酐
+   * renalBUM 血尿素氮
+   * renalPotassium 血钾浓度
+   * renalSodium 血钠浓度
    * 血尿酸
-   * 总胆固醇
-   * 甘油三酯
-   * 血清低密度蛋白胆固醇
-   * 血清高密度蛋白胆固醇
-   * 胸片状态
-   * 胸片说明
-   * B超状态
-   * B超说明
-   * 宫颈涂片状态
-   * 宫颈涂片说明
-   * 其他
-   * 脑血管疾病
-   * 肾脏疾病
-   * 心脏疾病
-   * 血管疾病
-   * 眼部疾病
-   * 神经系统疾病状态
-   * 神经系统疾病说明
-   * 其他系统疾病状态
-   * 其他系统疾病说明
-   * 住院1住院时间
-   * 住院1出院时间
-   * 住院1原因
-   * 住院1医疗结构名称
-   * 住院1病案号
-   * 住院2住院时间
-   * 住院2出院时间
-   * 住院2原因
-   * 住院2医疗结构名称
-   * 住院2病案号
-   * 家族病床史1建床时间
-   * 家族病床史1撤床时间
-   * 家族病床史1原因
-   * 家族病床史1医疗机构名称
-   * 家族病床史1病案号
-   * 家族病床史2建床时间
-   * 家族病床史2撤床时间
-   * 家族病床史2原因
-   * 家族病床史2医疗机构名称
-   * 家族病床史2病案号
-   * 药物1名称
-   * 药物1用法
-   * 药物1用量
-   * 药物1用药时间
-   * 药物1服药依从性
-   * 药物2名称
-   * 药物2用法
-   * 药物2用量
-   * 药物2用药时间
-   * 药物2服药依从性
-   * 药物3名称
-   * 药物3用法
-   * 药物3用量
-   * 药物3用药时间
-   * 药物3服药依从性
-   * 药物4名称
-   * 药物4用法
-   * 药物4用量
-   * 药物4用药时间
-   * 药物4服药依从性
-   * 药物5名称
-   * 药物5用法
-   * 药物5用量
-   * 药物5用药时间
-   * 药物5服药依从性
-   * 药物6名称
-   * 药物6用法
-   * 药物6用量
-   * 药物6用药时间
-   * 药物6服药依从性
-   * 疫苗1名称
-   * 疫苗1接种日期
-   * 疫苗1接种机构
-   * 疫苗2名称
-   * 疫苗2接种日期
-   * 疫苗2接种机构
-   * 疫苗3名称
-   * 疫苗3接种日期
-   * 疫苗3接种机构
-   * 健康评价状态
-   * 健康评价异常1
-   * 健康评价异常2
-   * 健康评价异常3
-   * 健康评价异常4
-   * 健康指导
-   * 危险因素控制
-   * 录入机构
-   *
+   * bloodCHO 总胆固醇
+   * bloodTG 甘油三酯
+   * bloodLDLC 血清低密度蛋白胆固醇
+   * bloodHDLC 血清高密度蛋白胆固醇
+   * chest 胸片状态
+   * chestExplain 胸片说明
+   * bc B态超状
+   * bcExplain B超说明
+   * cervicalSmear 宫颈涂片状态
+   * cervicalSmearExplain 宫颈涂片说明
+   * assistExam 其他(健康辅助检查)
+   * cerebrovascular 脑血管疾病
+   * renal 肾脏疾病
+   * heart 心脏疾病
+   * bloodVessels 血管疾病
+   * eye 眼部疾病
+   * nerve 神经系统疾病状态
+   * nerveExplain 神经系统疾病说明
+   * otherDisease 其他系统疾病状态
+   * otherDiseaseExplain 其他系统疾病说明
+   * inHospitalDate1 住院1住院时间
+   * outHospitalDate1 住院1出院时间
+   * inHospitalReason1 住院1原因
+   * inHospitalName1 住院1医疗结构名称
+   * inHospitalRecord1 住院1病案号
+   * inHospitalDate2 住院2住院时间
+   * outHospitalDate2 住院2出院时间
+   * inHospitalReason2 住院2原因
+   * inHospitalName2 住院2医疗结构名称
+   * inHospitalRecord2 住院2病案号
+   * familyInHospitalDate1 家族病床史1建床时间
+   * familyOutHospitalDate1 家族病床史1撤床时间
+   * familyInHospitalReason1 家族病床史1原因
+   * familyHospitalName1 家族病床史1医疗机构名称
+   * familyHospitalRecord1 家族病床史1病案号
+   * familyInHospitalDate2 家族病床史2建床时间
+   * familyOutHospitalDate2 家族病床史2撤床时间
+   * familyInHospitalReason2 家族病床史2原因
+   * familyHospitalName2 家族病床史2医疗机构名称
+   * familyHospitalRecord2 家族病床史2病案号
+   * drug1 药物1名称
+   * drugUsage1 药物1用法
+   * drugAmount1 药物1用量
+   * drugDate1 药物1用药时间
+   * drugAdherence1 药物1服药依从性
+   * drug2 药物2名称
+   * drugUsage2 药物2用法
+   * drugAmount2 药物2用量
+   * drugDate2 药物2用药时间
+   * drugAdherence2 药物2服药依从性
+   * drug3 药物3名称
+   * drugUsage3 药物3用法
+   * drugAmount3 药物3用量
+   * drugDate3 药物3用药时间
+   * drugAdherence3 药物3服药依从性
+   * drug4 药物4名称
+   * drugUsage4 药物4用法
+   * drugAmount4 药物4用量
+   * drugDate4 药物4用药时间
+   * drugAdherence4 药物4服药依从性
+   * drug5 药物5名称
+   * drugUsage5 药物5用法
+   * drugAmount5 药物5用量
+   * drugDate5 药物5用药时间
+   * drugAdherence5 药物5服药依从性
+   * drug6 药物6名称
+   * drugUsage6 药物6用法
+   * drugAmount6 药物6用量
+   * drugDate6 药物6用药时间
+   * drugAdherence6 药物6服药依从性
+   * vaccine1 疫苗1名称
+   * vaccineDate1 疫苗1接种日期
+   * vaccineHospital1 疫苗1接种机构
+   * vaccine2 疫苗2名称
+   * vaccineDate2 疫苗2接种日期
+   * vaccineHospital2 疫苗2接种机构
+   * vaccine3 疫苗3名称
+   * vaccineDate3 疫苗3接种日期
+   * vaccineHospital3 疫苗3接种机构
+   * healthyState 健康评价状态
+   * abnormal1 健康评价异常1
+   * abnormal2 健康评价异常2
+   * abnormal3 健康评价异常3
+   * abnormal4 健康评价异常4
+   * healthyGuide 健康指导
+   * healthyRisk 危险因素控制
+   * hospital 录入机构
    * updateAt: 更新时间
    * @param id 体检表id
    */
   async healthyDetail(id) {
-    return etlQuery(
+    const [
+      genderCode, //性别字典
+      marrageCode, //婚姻字典
+      jobTypeCode, //职业字典
+      exerciseFrequencyCode, //锻炼频率
+      // oldManHealthSelfCode, //健康状态自我评估
+      // oldManLifeSelfCode, //生活自理
+      // eyeGroundCode, //眼底
+      // skinCode, //皮肤
+      // scleraCode, //巩膜状态
+      // lymphCode, //淋巴结状态
+      // barrelChestCode, //桶状胸
+      // breathSoundCode, //呼吸音状态
+      // lungSoundCode, //肺罗音状态
+      // abdominalCode, //腹部状态
+      // drinkFrequencyCode, //饮酒频率
+      professionExposeCode, //职业暴露情况,是否防护措施 7468
+      // arterialCode, //足背动脉搏动	tnbzbdmbd	7152
+      // vaginaCode, //妇科Code	7465
+      urineProteinCode, //尿蛋白	ncgndb	009
+      urineSugarCode, //尿糖	ncgnt	362
+      urineKetoneCode, //尿酮体	ncgntt	4010006
+      urineBloodCode //尿潜血	ncgnqx	4010007
+    ] = await Promise.all([
+      dictionaryQuery('001'), //性别字典
+      dictionaryQuery('558'), //婚姻字典
+      dictionaryQuery('557'), //职业字典
+      dictionaryQuery('724'), //锻炼频率
+      // dictionaryQuery('7470'), //健康状态自我评估
+      // dictionaryQuery('7471'), //生活自理
+      // dictionaryQuery('745'), //眼底
+      // dictionaryQuery('715'), //皮肤
+      // dictionaryQuery('7151'), //巩膜状态
+      // dictionaryQuery('716'), //淋巴结状态
+      // dictionaryQuery('743'), //桶状胸
+      // dictionaryQuery('745'), //呼吸音状态
+      // dictionaryQuery('717'), //肺罗音状态
+      // dictionaryQuery('744'), //腹部状态
+      // dictionaryQuery('729'), //饮酒频率
+      dictionaryQuery('7468'), //职业暴露情况,是否防护措施
+      // dictionaryQuery('7152'), //足背动脉搏动
+      // dictionaryQuery('7465'), //妇科状态
+      dictionaryQuery('009'), //尿蛋白
+      dictionaryQuery('362'), //尿糖
+      dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
+      dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
+    ]);
+    const result = await etlQuery(
       `
         select
           vh.incrementno as "id",
+          vh.name as "name",
           vh.checkupNo as "checkupNo",
           vh.IDCardNo as "IDCard",
           vh.sex as "gender",
           vh.stature as "stature",
           vh.weight as "weight",
+          vh.checkupDate as "checkDate",
+          vh.checkupDoctor as "checkupDoctor",
           vh.temperature as "temperature",
           vh.symptom as "symptom",
           vh.bc_abnormal as "bc_abnormal",
@@ -994,9 +1053,9 @@ export default class Person {
           vh.hxp as "chemicals",
           vh.hxpfhcs as "chemicalsProtection",
           vh.hxpfhcs_other as "chemicalsProtectionExplain",
-          vh.sx as "radiogen",
-          vh.sxfhcs as "radiogenProtection",
-          vh.sxfhcs_other as "radiogenProtectionExplain",
+          vh.sx as "radiation",
+          vh.sxfhcs as "radiationProtection",
+          vh.sxfhcs_other as "radiationProtectionExplain",
           vh.qt as "other",
           vh.qtfhcs as "otherProtection",
           vh.qtfhcs_other as "otherProtectionExplain",
@@ -1024,165 +1083,249 @@ export default class Person {
           vh.yd as "eyeGround",
           vh.yd_abnormal as "eyeGroundExplain",
           vh.pf as "skin",
-          vh.pf_Other as "pf_Other", --TODO: 字段补充先写到这里, 太多了 下次再补
-          vh.gm as "gm",
-          vh.gm_Other as "gm_Other",
-          vh.lbj as "lbj",
-          vh.lbjOther as "lbjOther",
-          vh.ftzx as "ftzx",
-          vh.fhxy as "fhxy",
-          vh.fhxyyc as "fhxyyc",
-          vh.fly as "fly",
-          vh.flyOther as "flyOther",
-          vh.xzxn as "xzxn",
-          vh.xzxl as "xzxl",
-          vh.xzzy as "xzzy",
-          vh.xzzyOther as "xzzyOther",
-          vh.fbyt as "fbyt",
-          vh.fbytOther as "fbytOther",
-          vh.fbbk as "fbbk",
-          vh.fbbkOther as "fbbkOther",
-          vh.fbgd as "fbgd",
-          vh.fbgdOther as "fbgdOther",
-          vh.fbpd as "fbpd",
-          vh.fbpdOther as "fbpdOther",
-          vh.fbydxzy as "fbydxzy",
-          vh.fbydxzyOther as "fbydxzyOther",
-          vh.xzsz as "xzsz",
-          vh.gmzz as "gmzz",
-          vh.tnbzbdmbd as "tnbzbdmbd",
-          vh.rx as "rx",
-          vh.fk_wy as "fk_wy",
-          vh.fk_wy_abnormal as "fk_wy_abnormal",
-          vh.fk_yd as "fk_yd",
-          vh.fk_yd_abnormal as "fk_yd_abnormal",
-          vh.fk_gj as "fk_gj",
-          vh.fk_gj_abnormal as "fk_gj_abnormal",
-          vh.fk_gt as "fk_gt",
-          vh.fk_gt_abnormal as "fk_gt_abnormal",
-          vh.fk_fj as "fk_fj",
-          vh.fk_fj_abnormal as "fk_fj_abnormal",
-          vh.ctqt as "ctqt",
-          vh.xcgHb as "xcgHb",
-          vh.xcgWBC as "xcgWBC",
-          vh.xcgPLT as "xcgPLT",
-          vh.xcgqt as "xcgqt",
-          vh.ncgndb as "ncgndb",
-          vh.ncgnt as "ncgnt",
-          vh.ncgntt as "ncgntt",
-          vh.ncgnqx as "ncgnqx",
-          vh.ncgOther as "ncgOther",
-          vh.nwlbdb as "nwlbdb",
-          vh.LEU as "LEU",
-          vh.dbqx as "dbqx",
-          vh.xdt as "xdt",
-          vh.xdt_abnormal as "xdt_abnormal",
+          vh.pf_Other as "skinExplain",
+          vh.gm as "sclera",
+          vh.gm_Other as "scleraExplain",
+          vh.lbj as "lymph",
+          vh.lbjOther as "lymphExplain",
+          vh.ftzx as "barrelChest",
+          vh.fhxy as "breathSound",
+          vh.fhxyyc as "breathSoundExplain",
+          vh.fly as "lungSound",
+          vh.flyOther as "lungSoundExplain",
+          vh.xzxn as "heartRate",
+          vh.xzxl as "heartRule",
+          vh.xzzy as "noise",
+          vh.xzzyOther as "noiseExplain",
+          vh.fbyt as "abdominalTenderness",
+          vh.fbytOther as "abdominalTendernessExplain",
+          vh.fbbk as "abdominalBag",
+          vh.fbbkOther as "abdominalBagExplain",
+          vh.fbgd as "abdominalLiver",
+          vh.fbgdOther as "abdominalLiverExplain",
+          vh.fbpd as "abdominalSpleen",
+          vh.fbpdOther as "abdominalSpleenExplain",
+          vh.fbydxzy as "abdominalNoise",
+          vh.fbydxzyOther as "abdominalNoiseExplain",
+          vh.xzsz as "lowLimbsEdema",
+          vh.gmzz as "anus",
+          vh.tnbzbdmbd as "arterial",
+          vh.rx as "mammary",
+          vh.fk_wy as "vulva",
+          vh.fk_wy_abnormal as "vulvaExplain",
+          vh.fk_yd as "vagina",
+          vh.fk_yd_abnormal as "vaginaExplain",
+          vh.fk_gj as "cervical",
+          vh.fk_gj_abnormal as "cervicalExplain",
+          vh.fk_gt as "uterus",
+          vh.fk_gt_abnormal as "uterusExplain",
+          vh.fk_fj as "attach",
+          vh.fk_fj_abnormal as "attachExplain",
+          vh.ctqt as "vaginaOther",
+          vh.xcgHb as "hemoglobin",
+          vh.xcgWBC as "whiteCell",
+          vh.xcgPLT as "platelet",
+          vh.xcgqt as "bloodOther",
+          vh.ncgndb as "urineProtein",
+          vh.ncgnt as "urineSugar",
+          vh.ncgntt as "urineKetone",
+          vh.ncgnqx as "urineBlood",
+          vh.ncgOther as "urineOther",
+          vh.nwlbdb as "urineTraceAlbumin",
+          vh.LEU as "urineWhiteCell",
+          vh.dbqx as "defecateBlood",
+          vh.xdt as "ecg",
+          vh.xdt_abnormal as "ecgExplain",
           vh.HBsAg as "HBsAg",
-          vh.suijxt as "suijxt",
-          vh.kfxt as "kfxt",
-          vh.tnbthxhdb as "tnbthxhdb",
-          vh.ggnALT as "ggnALT",
-          vh.ggnAST as "ggnAST",
-          vh.ggnALB as "ggnALB",
-          vh.ggnTBIL as "ggnTBIL",
-          vh.ggnDBIL as "ggnDBIL",
-          vh.sgnScr as "sgnScr",
-          vh.sgnBUN as "sgnBUN",
-          vh.sgnxjnd as "sgnxjnd",
-          vh.sgnxnnd as "sgnxnnd",
+          vh.suijxt as "postprandialGlucose",
+          vh.kfxt as "fastingGlucose",
+          vh.tnbthxhdb as "sugarHemoglobin",
+          vh.ggnALT as "liverALT",
+          vh.ggnAST as "liverAST",
+          vh.ggnALB as "liverALB",
+          vh.ggnTBIL as "liverTBIL",
+          vh.ggnDBIL as "liverDBIL",
+          vh.sgnScr as "renalSCR",
+          vh.sgnBUN as "renalBUM",
+          vh.sgnxjnd as "renalPotassium",
+          vh.sgnxnnd as "renalSodium",
           vh.BUA as "BUA",
-          vh.xzCHO as "xzCHO",
-          vh.xzTG as "xzTG",
-          vh.xzLDLC as "xzLDLC",
-          vh.xzHDLC as "xzHDLC",
-          vh.xp as "xp",
-          vh.xp_abnormal as "xp_abnormal",
+          vh.xzCHO as "bloodCHO",
+          vh.xzTG as "bloodTG",
+          vh.xzLDLC as "bloodLDLC",
+          vh.xzHDLC as "bloodHDLC",
+          vh.xp as "chest",
+          vh.xp_abnormal as "chestExplain",
           vh.bc as "bc",
-          vh.bc_abnormal as "bc_abnormal",
-          vh.gjtp as "gjtp",
-          vh.gjtp_abnormal as "gjtp_abnormal",
-          vh.jkfzjcqt as "jkfzjcqt",
-          vh.nxgjb as "nxgjb",
-          vh.szjb as "szjb",
-          vh.xzjb as "xzjb",
-          vh.xgjb as "xgjb",
-          vh.ybjb as "ybjb",
-          vh.sjxt as "sjxt",
-          vh.sjxt_other as "sjxt_other",
-          vh.qtxt as "qtxt",
-          vh.otherDisease1 as "otherDisease1",
-          vh.ruyTime1 as "ruyTime1",
-          vh.chuyTime1 as "chuyTime1",
-          vh.zhuyReason1 as "zhuyReason1",
-          vh.hospName1 as "hospName1",
-          vh.bah1 as "bah1",
-          vh.ruyTime2 as "ruyTime2",
-          vh.chuyTime2 as "chuyTime2",
-          vh.HospName2 as "HospName2",
-          vh.bah2 as "bah2",
-          vh.jcTime1 as "jcTime1",
-          vh.ccTime1 as "ccTime1",
-          vh.jcyy1 as "jcyy1",
-          vh.jcyljgmc1 as "jcyljgmc1",
-          vh.jcbah1 as "jcbah1",
-          vh.jcTime2 as "jcTime2",
-          vh.ccTime2 as "ccTime2",
-          vh.jcyy2 as "jcyy2",
-          vh.jcyljgmc2 as "jcyljgmc2",
-          vh.jcbah2 as "jcbah2",
-          vh.yaowu1 as "yaowu1",
-          vh.yf1 as "yf1",
-          vh.yl1 as "yl1",
-          vh.yysj1 as "yysj1",
-          vh.fyycx as "fyycx",
-          vh.yaowu2 as "yaowu2",
-          vh.yf2 as "yf2",
-          vh.yl2 as "yl2",
-          vh.yysj2 as "yysj2",
-          vh.fyycx2 as "fyycx2",
-          vh.yaowu3 as "yaowu3",
-          vh.yf3 as "yf3",
-          vh.yl3 as "yl3",
-          vh.yysj3 as "yysj3",
-          vh.fyycx3 as "fyycx3",
-          vh.yaowu4 as "yaowu4",
-          vh.yf4 as "yf4",
-          vh.yl4 as "yl4",
-          vh.yysj4 as "yysj4",
-          vh.fyycx4 as "fyycx4",
-          vh.yaowu5 as "yaowu5",
-          vh.yf5 as "yf5",
-          vh.yl5 as "yl5",
-          vh.yysj5 as "yysj5",
-          vh.fyycx5 as "fyycx5",
-          vh.yaowu6 as "yaowu6",
-          vh.yf6 as "yf6",
-          vh.yl6 as "yl6",
-          vh.yysj6 as "yysj6",
-          vh.fyycx6 as "fyycx6",
-          vh.fmy_mc1 as "fmy_mc1",
-          vh.fmy_jzrq1 as "fmy_jzrq1",
-          vh.fmy_jzjg1 as "fmy_jzjg1",
-          vh.fmy_mc2 as "fmy_mc2",
-          vh.fmy_jzrq2 as "fmy_jzrq2",
-          vh.fmy_jzjg2 as "fmy_jzjg2",
-          vh.fmy_mc3 as "fmy_mc3",
-          vh.fmy_jzrq3 as "fmy_jzrq3",
-          vh.fmy_jzjg3 as "fmy_jzjg3",
-          vh.jkpjywyc as "jkpjywyc",
-          vh.yichang1 as "yichang1",
-          vh.yichang2 as "yichang2",
-          vh.yichang3 as "yichang3",
-          vh.yichang4 as "yichang4",
-          vh.jkzd_dqsf as "jkzd_dqsf",
-          vh.jkzd_wxyskz as "jkzd_wxyskz",
-          vh.OperateOrganization as "OperateOrganization",
+          vh.bc_abnormal as "bcExplain",
+          vh.gjtp as "cervicalSmear",
+          vh.gjtp_abnormal as "cervicalSmearExplain",
+          vh.jkfzjcqt as "assistExam",
+          vh.nxgjb as "cerebrovascular",
+          vh.szjb as "renal",
+          vh.xzjb as "heart",
+          vh.xgjb as "bloodVessels",
+          vh.ybjb as "eye",
+          vh.sjxt as "nerve",
+          vh.sjxt_other as "nerveExplain",
+          vh.qtxt as "otherDisease",
+          vh.otherDisease1 as "otherDiseaseExplain",
+          vh.ruyTime1 as "inHospitalDate1",
+          vh.chuyTime1 as "outHospitalDate1",
+          vh.zhuyReason1 as "inHospitalReason1",
+          vh.hospName1 as "inHospitalName1",
+          vh.bah1 as "inHospitalRecord1",
+          vh.ruyTime2 as "inHospitalDate2",
+          vh.chuyTime2 as "outHospitalDate2",
+          vh.HospName2 as "inHospitalName2",
+          vh.bah2 as "inHospitalRecord2",
+          vh.jcTime1 as "familyInHospitalDate1",
+          vh.ccTime1 as "familyOutHospitalDate1",
+          vh.jcyy1 as "familyInHospitalReason1",
+          vh.jcyljgmc1 as "familyHospitalName1",
+          vh.jcbah1 as "familyHospitalRecord1",
+          vh.jcTime2 as "familyInHospitalDate2",
+          vh.ccTime2 as "familyOutHospitalDate2",
+          vh.jcyy2 as "familyInHospitalReason2",
+          vh.jcyljgmc2 as "familyHospitalName2",
+          vh.jcbah2 as "familyHospitalRecord2",
+          vh.yaowu1 as "drug1",
+          vh.yf1 as "drugUsage1",
+          vh.yl1 as "drugAmount1",
+          vh.yysj1 as "drugDate1",
+          vh.fyycx as "drugAdherence1",
+          vh.yaowu2 as "drug2",
+          vh.yf2 as "drugUsage2",
+          vh.yl2 as "drugAmount2",
+          vh.yysj2 as "drugDate2",
+          vh.fyycx2 as "drugAdherence2",
+          vh.yaowu3 as "drug3",
+          vh.yf3 as "drugUsage3",
+          vh.yl3 as "drugAmount3",
+          vh.yysj3 as "drugDate3",
+          vh.fyycx3 as "drugAdherence3",
+          vh.yaowu4 as "drug4",
+          vh.yf4 as "drugUsage4",
+          vh.yl4 as "drugAmount4",
+          vh.yysj4 as "drugDate4",
+          vh.fyycx4 as "drugAdherence4",
+          vh.yaowu5 as "drug5",
+          vh.yf5 as "drugUsage5",
+          vh.yl5 as "drugAmount5",
+          vh.yysj5 as "drugDate5",
+          vh.fyycx5 as "drugAdherence5",
+          vh.yaowu6 as "drug6",
+          vh.yf6 as "drugUsage6",
+          vh.yl6 as "drugAmount6",
+          vh.yysj6 as "drugDate6",
+          vh.fyycx6 as "drugAdherence6",
+          vh.fmy_mc1 as "vaccine1",
+          vh.fmy_jzrq1 as "vaccineDate1",
+          vh.fmy_jzjg1 as "vaccineHospital1",
+          vh.fmy_mc2 as "vaccine2",
+          vh.fmy_jzrq2 as "vaccineDate2",
+          vh.fmy_jzjg2 as "vaccineHospital2",
+          vh.fmy_mc3 as "vaccine3",
+          vh.fmy_jzrq3 as "vaccineDate3",
+          vh.fmy_jzjg3 as "vaccineHospital3",
+          vh.jkpjywyc as "healthyState",
+          vh.yichang1 as "abnormal1",
+          vh.yichang2 as "abnormal2",
+          vh.yichang3 as "abnormal3",
+          vh.yichang4 as "abnormal4",
+          vh.jkzd_dqsf as "healthyGuide",
+          vh.jkzd_wxyskz as "healthyRisk",
+          vc_hos.hospname as "hospital",
           vh.operatetime as "updateAt"
         from view_healthy vh
+        left join view_hospital vc_hos on vc_hos.hospid=vh.OperateOrganization
         where vh.incrementno = ?
         order by vh.operatetime desc
        `,
       [id]
     );
+    console.log(exerciseFrequencyCode);
+
+    return result.map(item => ({
+      ...item,
+      checkDate: dayjs(item.checkDate).toDate(),
+      gender: genderCode.find(it => it.code === item.gender)?.codename || '',
+      marrage: marrageCode.find(it => it.code === item.marrage)?.codename || '',
+      professionType:
+        jobTypeCode.find(it => `0${it.code}` === item.professionType)
+          ?.codename || '',
+      // oldManHealthSelf:
+      //   oldManHealthSelfCode.find(it => it.code === item.professionType)
+      //     ?.codename || '',
+      // oldManLifeSelf:
+      //   oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
+      //     ?.codename || '',
+      // eyeGround:
+      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
+      // skin: skinCode.find(it => it.code === item.skin)?.codename || '',
+      // sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
+      // lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
+      // barrelChest:
+      //   barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
+      //   '',
+      // breathSound:
+      //   breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+      //   '',
+      // lungSound:
+      //   lungSoundCode.find(it => it.code === item.lungSound)?.codename || '',
+      // exerciseFrequency:
+      //   exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
+      //     ?.codename || '',
+      // drinkFrequency:
+      //   drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
+      //     ?.codename || '',
+      // professionExpose:
+      //   professionExposeCode.find(it => it.code === item.professionExpose)
+      //     ?.codename || '',
+      dustProtection:
+        professionExposeCode.find(it => it.code === item.dustProtection)
+          ?.codename || '',
+      physicalProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      chemicalsProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      radiationProtection:
+        professionExposeCode.find(it => it.code === item.physicalProtection)
+          ?.codename || '',
+      otherProtection:
+        professionExposeCode.find(it => it.code === item.otherProtection)
+          ?.codename || '',
+      // abdominalBag:
+      //   abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
+      // abdominalLiver:
+      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
+      //   '',
+      // abdominalSpleen:
+      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
+      //   '',
+      // abdominalNoise:
+      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
+      //   '',
+      // arterial:
+      //   arterialCode.find(it => it.code === item.arterial)?.codename || '',
+      // vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
+      // vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
+      // cervical:
+      //   vaginaCode.find(it => it.code === item.cervical)?.codename || '',
+      // uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
+      // attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
+      urineProtein:
+        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ||
+        '',
+      urineSugar:
+        urineSugarCode.find(it => it.code === item.urineSugar)?.codename || '',
+      urineKetone:
+        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ||
+        '',
+      urineBlood:
+        urineBloodCode.find(it => it.code === item.urineBlood)?.codename || ''
+    }));
   }
 }
