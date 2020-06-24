@@ -871,10 +871,10 @@ export default class Person {
    * heart 心脏疾病
    * bloodVessels 血管疾病
    * eye 眼部疾病
-   * 神经系统疾病状态
-   * 神经系统疾病说明
-   * 其他系统疾病状态
-   * 其他系统疾病说明
+   * nerve 神经系统疾病状态
+   * nerveExplain 神经系统疾病说明
+   * otherDisease 其他系统疾病状态
+   * otherDiseaseExplain 其他系统疾病说明
    * 住院1住院时间
    * 住院1出院时间
    * 住院1原因
