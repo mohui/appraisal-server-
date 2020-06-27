@@ -14,3 +14,4 @@ export {MarkHospital as MarkHospitalModel} from './mark-hospital';
 export {ReportHospital as ReportHospitalModel} from './report-hospital';
 export {CheckHospital as CheckHospitalModel} from './check-hospital';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
+export {AreaBudget as AreaBudgetModel} from './area-budget';
