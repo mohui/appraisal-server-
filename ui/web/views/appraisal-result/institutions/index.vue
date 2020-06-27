@@ -4,6 +4,11 @@
     <el-card class="box-card" shadow="never">
       <div class="header-title" style="float: left">
         {{ totalData.name }}两卡制管理
+        <span
+          v-if="params.isInstitution && totalData.budget"
+          style="color: #606266;"
+          >({{ totalData.budget }}元)</span
+        >
       </div>
       <div class="kpiSum-select">
         <el-button-group style="margin-left:20px">
