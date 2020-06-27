@@ -410,6 +410,9 @@ export default class Score {
       scores,
       total
     });
+
+    // 分配金额
+    await this.setBudget();
   }
 
   /**
