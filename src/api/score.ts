@@ -24,6 +24,7 @@ import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
 import {Context} from './context';
+import {Decimal} from 'decimal.js';
 
 /**
  * 获取百分数字符串, 默认返回'0'
@@ -409,6 +410,68 @@ export default class Score {
       scores,
       total
     });
+  }
+
+  /**
+   * 分配金额
+   *
+   * 1. 查出所有分配了金额的地区
+   * 2. 累计校正后的工分值
+   * 3. 按机构工分值比例分配
+   */
+  async setBudget() {
+    // 1. 查出所有分配了金额的地区
+    const regions: RegionModel[] = await RegionModel.findAll({
+      where: {
+        budget: {
+          [Op.ne]: 0
+        }
+      }
+    });
+    // 循环分配了金额的地区
+    for (const region of regions) {
+      // 查询该地区下的所有机构
+      const reportHospitalModels: ReportHospitalModel[] = await ReportHospitalModel.findAll(
+        {
+          include: [
+            {
+              model: HospitalModel,
+              where: {
+                regionId: {
+                  [Op.like]: `${region.code}%`
+                }
+              }
+            }
+          ]
+        }
+      );
+      // 2. 累计校正后的工分值
+      const totalWorkPoints = reportHospitalModels.reduce((result, current) => {
+        if (current.scores && current.total && current.workpoints) {
+          result = new Decimal(current.scores)
+            .div(current.total)
+            .mul(current.workpoints)
+            .add(result)
+            .toNumber();
+        }
+        return result;
+      }, 0);
+      // 3. 按机构工分值比例分配
+      await Promise.all(
+        reportHospitalModels.map(async it => {
+          it.budget = 0;
+          if (it.scores && it.total && it.workpoints) {
+            it.budget = new Decimal(it.scores)
+              .div(it.total)
+              .mul(it.workpoints)
+              .div(totalWorkPoints)
+              .mul(region.budget)
+              .toNumber();
+          }
+          await it.save();
+        })
+      );
+    }
   }
 
   /**
