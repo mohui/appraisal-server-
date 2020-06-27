@@ -1,8 +1,8 @@
 import {
-  BelongsToMany,
   Column,
   Comment,
   DataType,
+  Default,
   HasMany,
   Model,
   PrimaryKey,
@@ -29,6 +29,11 @@ export class Region extends Model<Region> {
   @Comment('上级行政code')
   @Column
   parent: string;
+
+  @Comment('金额')
+  @Default(0)
+  @Column({type: DataType.DECIMAL(15, 4)})
+  budget: number;
 
   //一对多个机构
   @HasMany(() => Hospital)
