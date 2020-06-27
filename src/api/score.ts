@@ -560,7 +560,8 @@ export default class Score {
         ),
         rate:
           (hospitalModel?.report?.scores ?? 0) /
-          (hospitalModel?.report?.total ?? 0)
+          (hospitalModel?.report?.total ?? 0),
+        budget: Number(hospitalModel.report.budget || 0)
       };
     }
 
