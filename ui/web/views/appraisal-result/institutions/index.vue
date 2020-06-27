@@ -377,31 +377,42 @@
                 align="center"
                 label="序号"
               ></el-table-column>
-              <el-table-column prop="ruleName" align="center" label="考核内容">
+              <el-table-column
+                prop="ruleName"
+                header-align="center"
+                align="left"
+                min-width="150px"
+                label="考核内容"
+              >
               </el-table-column>
               <el-table-column
                 prop="ruleScore"
                 align="center"
-                width="80px"
+                width="100px"
                 label="分值"
               >
               </el-table-column>
               <el-table-column
                 prop="checkStandard"
-                align="center"
-                width="284px"
+                header-align="center"
+                align="left"
+                min-width="200px"
                 label="考核标准"
               >
               </el-table-column>
               <el-table-column
                 prop="checkMethod"
-                align="center"
+                header-align="center"
+                align="left"
+                min-width="100px"
                 label="考核方法"
               >
               </el-table-column>
               <el-table-column
                 prop="evaluateStandard"
-                align="center"
+                header-align="center"
+                align="left"
+                min-width="150px"
                 label="评分标准"
               >
               </el-table-column>
