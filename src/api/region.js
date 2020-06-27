@@ -29,4 +29,17 @@ export default class Region {
       }
     });
   }
+
+  async setBudget(budget, code) {
+    return RegionModel.update(
+      {
+        budget
+      },
+      {
+        where: {
+          code
+        }
+      }
+    );
+  }
 }
