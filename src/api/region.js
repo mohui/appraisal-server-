@@ -15,6 +15,17 @@ export default class Region {
     });
   }
 
+  //地区的信息
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code')
+  )
+  async info(code) {
+    return RegionModel.findOne({where: {code}});
+  }
+
   @validate(should.string().description('通过code查询区域下的机构'))
   async listHospital(code) {
     return await HospitalModel.findAll({
