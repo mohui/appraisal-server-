@@ -1,5 +1,8 @@
 import {RegionModel, HospitalModel} from '../database/model';
 import {should, validate} from 'kato-server';
+import Score from './score';
+
+const scoreAPI = new Score();
 
 export default class Region {
   //通过code查询下一级行政区域
@@ -28,5 +31,21 @@ export default class Region {
         }
       }
     });
+  }
+
+  async setBudget(budget, code) {
+    await RegionModel.update(
+      {
+        budget
+      },
+      {
+        where: {
+          code
+        }
+      }
+    );
+
+    // 分配金额
+    await scoreAPI.setBudget();
   }
 }

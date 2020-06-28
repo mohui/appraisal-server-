@@ -37,4 +37,9 @@ export class ReportHospital extends Model<ReportHospital> {
   @Default(0)
   @Column(DataType.FLOAT)
   total: number;
+
+  @Comment('金额')
+  @Default(0)
+  @Column(DataType.DECIMAL(20, 4))
+  budget: number;
 }
