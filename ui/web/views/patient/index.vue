@@ -19,6 +19,9 @@
             >返回
           </el-button>
           <el-tabs v-model="activeTab" class="patient-tab-list">
+            <el-tab-pane label="个人基本信息表" name="personal">
+              {{ personDetailData }}
+            </el-tab-pane>
             <el-tab-pane
               label="体检记录"
               name="physical"
