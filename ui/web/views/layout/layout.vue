@@ -1,7 +1,15 @@
 <template>
   <el-container class="container-full">
     <el-header class="header">
-      <span style="color: #fff; padding-left: 20px;">绩效管理系统</span>
+      <span style="color: #fff; padding-left: 20px;">
+        <i
+          class="el-icon-s-fold"
+          v-if="device === 'mobile'"
+          style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
+          @click="toggleMenu"
+        ></i>
+        绩效管理系统</span
+      >
       <el-dropdown
         class="dropdown"
         @command="handCommand"
@@ -21,14 +29,28 @@
       </el-dropdown>
     </el-header>
     <el-container>
-      <el-aside width="200px">
-        <el-menu class="layout-side-menu" :default-active="activeMenu" router>
-          <multi-menu
-            v-for="menu of menus"
-            :key="menu.router"
-            :menu="menu"
-          ></multi-menu>
-        </el-menu>
+      <el-aside
+        width="200px"
+        :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
+      >
+        <div
+          :class="{mask: device === 'mobile'}"
+          style="height: 100%;"
+          @click="toggleMenu"
+        >
+          <el-menu
+            class="layout-side-menu"
+            :default-active="activeMenu"
+            router
+            :unique-opened="true"
+          >
+            <multi-menu
+              v-for="menu of menus"
+              :key="menu.router"
+              :menu="menu"
+            ></multi-menu>
+          </el-menu>
+        </div>
       </el-aside>
 
       <el-main>
@@ -43,13 +65,16 @@
 <script>
 import {removeToken} from '../../utils/cache';
 import MultiMenu from '../../components/multi-menu.vue';
-
+const WIDTH = 992;
 export default {
   name: 'Layout',
   components: {MultiMenu},
   data() {
     return {
       menus: [],
+      device: 'desktop',
+      hiddenMenu: false,
+      timer: null,
       dropdownVisible: false
     };
   },
@@ -78,6 +103,20 @@ export default {
       return it;
     });
   },
+  watch: {
+    $route() {
+      this.resizeHandler();
+    }
+  },
+  beforeMount() {
+    window.addEventListener('resize', this.resizeHandler);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.resizeHandler);
+  },
+  mounted() {
+    this.resizeHandler();
+  },
   methods: {
     handCommand(command) {
       if (command === 'profile') this.profile();
@@ -91,11 +130,33 @@ export default {
       this.$router.push({
         path: 'profile'
       });
+    },
+    isMobile() {
+      const rect = window.document.body.getBoundingClientRect();
+      return rect.width - 1 < WIDTH;
+    },
+    resizeHandler() {
+      this.timer && clearTimeout(this.timer);
+      if (!document.hidden) {
+        this.timer = setTimeout(() => {
+          this.device = this.isMobile() ? 'mobile' : 'desktop';
+          this.hiddenMenu = this.isMobile();
+          localStorage.setItem('isMobile', this.isMobile());
+        }, 300);
+      }
+    },
+    toggleMenu() {
+      this.hiddenMenu = !this.hiddenMenu;
     }
   }
 };
 </script>
 
+<style>
+.el-main {
+  padding: 10px;
+}
+</style>
 <style lang="scss" scoped>
 @import '../../styles/vars';
 
@@ -119,5 +180,23 @@ export default {
   padding: 0 25px;
   color: #fff;
   cursor: pointer;
+}
+.mobile {
+  position: absolute;
+  height: 100%;
+  z-index: 999;
+}
+.hiddenMenu {
+  display: none;
+}
+.mask {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(100, 100, 100, 0.5);
+  z-index: 9;
+  ul {
+    width: 200px;
+  }
 }
 </style>
