@@ -1327,4 +1327,154 @@ export default class Person {
         urineBloodCode.find(it => it.code === item.urineBlood)?.codename || ''
     }));
   }
+
+  /***
+   * 个人档案详情
+   * @param id
+   * @return {
+   *  id: id
+   *  name: 姓名
+   *  gender: 性别
+   *  voucher: 证件类型
+   *  idCard: 身份证号
+   *  birth: 出生日期
+   *  phone: 电话
+   *  regionCode: 行政区域code(现住址)
+   *  address: 居住地址
+   *  census: 户籍地址
+   *  workUnit: 工作单位
+   *  houseHold: 家庭关系
+   *  contactName: 联系人姓名
+   *  contactPhone: 联系人电话
+   *  contactRelationship: 联系人与本人关系
+   *  livingConditions: 常住类型
+   *  accountType: 户口类型
+   *  blood: 血型
+   *  national: 民族
+   *  RH: RH
+   *  education: 文化程度
+   *  profession: 职业
+   *  marrage: 婚姻状况
+   *  doctor: 责任医生
+   *  createdAt: 建档日期
+   *  XNHCard: 新农合卡号
+   *  medicareCard: 医保卡号
+   *  medicalPayType: 医疗费用支付
+   *  medicalCard: 医疗卡号
+   *  isLowWarranty: 是否低保
+   *  lowWarrantyCard: 低保卡号
+   *  drugAllergy: 药物过敏
+   *  ancestralHistory: 祖辈病史
+   *  fatherHistory: 父亲病史
+   *  motherHistory: 母亲病史
+   *  siblingHistory: 兄弟姐妹病史
+   *  childrenHistory: 子女病史
+   *  isGeneticHistory: 有无遗传病史
+   *  geneticDisease: 遗传病名
+   *  isDisability: 有无残疾
+   *  exposureHistory: 暴露史
+   *  diseaseHistory: 有无疾病史
+   *  isSurgeryHistory: 有无手术史
+   *  isTraumaticHistory: 有无外伤史
+   *  isTransfusionHistory: 有无输血史
+   *  kitchenVentilation: 厨房排风设施
+   *  FuelType: 燃料类型
+   *  water: 饮水
+   *  toilet: 厕所
+   *  livestock: 禽畜栏
+   *  contractStaff: 重点人群类型
+   *  managementHospital: 管理机构
+   *  hospital: 录入机构
+   *  hospitalId: 录入账号
+   *  updatedAt: 录入时间
+   * }
+   */
+  async personDetail(id) {
+    const [
+      genderCode, //性别字典
+      voucherCode, //证件类型
+      houseHoldCode, //家庭关系
+      contractStaffCode //重点人群
+    ] = await Promise.all([
+      dictionaryQuery('001'), //性别字典
+      dictionaryQuery('674'), //证件类型
+      dictionaryQuery('548'), //家庭关系
+      dictionaryQuery('100007') //contractStaff
+    ]);
+    console.log(contractStaffCode);
+    const result = await etlQuery(
+      `select
+        vp.PersonNum as "id",
+        vp.name as "name",
+        vp.Sex as "gender",
+        vp.VoucherType as "voucher",
+        vp.IdCardNo as "idCard",
+        vp.Birth as "birth",
+        vp.Phone as "phone",
+        vp.RegionCode as "regionCode",
+        vp.Address as "address",
+        vp.Residencestring as "census",
+        vp.WorkUnit as "workUnit",
+        vp.RHeadHousehold as "houseHold",
+        vp.ContactName as "contactName",
+        vp.ContactPhone as "contactPhone",
+        vp.Relationship as "contactRelationship",
+        vp.LivingConditions as "livingConditions",
+        vp.AccountType as "accountType",
+        vp.BloodABO as blood,
+        vp.national as "national",
+        vp.RH as "RH",
+        vp.Education as "education",
+        vp.Occupation as "profession",
+        vp.MaritalStatus as "marrage",
+        vp.Responsibility as "doctor",
+        vp.FileDate as "createdAt",
+        vp.XNHCardNo as "XNHCard",
+        vp.YBCardNo as "medicareCard",
+        vp.MedicalExpensesPayKind as "medicalPayType",
+        vp.PaymentCard as "medicalCard",
+        vp.IsLowWarranty as "isLowWarranty",
+        vp.LowWarrantyCardNo as "lowWarrantyCard",
+        vp.DrugAllergy as "drugAllergy",
+        vp.AncestralHistory as "ancestralHistory",
+        vp.FatherHistory as "fatherHistory",
+        vp.MotherHistory as "motherHistory",
+        vp.SiblingHistory as "siblingHistory",
+        vp.ChildrenHistory as "childrenHistory",
+        vp.IsGeneticHistory as "isGeneticHistory",
+        vp.GeneticDisease as "geneticDisease",
+        vp.WhetherDisability as "isDisability",
+        vp.ExposureHistory as "exposureHistory",
+        vp.PastHistory as "diseaseHistory",
+        vp.IsSurgicalHistory as "isSurgeryHistory",
+        vp.IsTraumaticHistory as "isTraumaticHistory",
+        vp.IsTransfusionHistory as "isTransfusionHistory",
+        vp.shhjcf as "kitchenVentilation",
+        vp.shhjrl as "fuelType",
+        vp.shhjys as "water",
+        vp.shhjcs as "toilet",
+        vp.shhjscl as "livestock",
+        vp.ContractStaff as "contractStaff",
+        vp.AdminOrganization as "managementHospital",
+        vp.OperateOrganization as "hospital",
+        vc_hos.hospname as "hospital",
+        vp.OperatorId as "hospitalId",
+        vp.OperateTime as "updatedAt"
+        from view_personinfo vp
+        left join view_hospital vc_hos on vc_hos.hospid=vp.OperateOrganization
+        where personnum=?`,
+      [id]
+    );
+
+    return result.map(item => ({
+      ...item,
+      gender: genderCode.find(it => it.code === item.gender)?.codename || '',
+      voucher: voucherCode.find(it => it.code === item.voucher)?.codename || '',
+      houseHold:
+        houseHoldCode.find(it => it.code === item.houseHold)?.codename || '',
+      contractStaff:
+        contractStaffCode.find(it => it.code === item.contractStaff)
+          ?.codename || ''
+    }));
+  }
 }
