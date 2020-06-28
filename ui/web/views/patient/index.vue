@@ -19,7 +19,11 @@
             >返回
           </el-button>
           <el-tabs v-model="activeTab" class="patient-tab-list">
-            <el-tab-pane label="个人基本信息表" name="personal">
+            <el-tab-pane
+              label="个人基本信息表"
+              name="personal"
+              v-if="personDetailSeverData.length"
+            >
               {{ personDetailData }}
             </el-tab-pane>
             <el-tab-pane
@@ -182,6 +186,12 @@ export default {
           : '';
         return it;
       });
+    },
+    personDetailData() {
+      return this.personDetailSeverData.map(it => {
+        it.birth = it.birth.$format('YYYY-MM-DD');
+        return it;
+      })[0];
     }
   },
   asyncComputed: {
@@ -231,6 +241,14 @@ export default {
       //糖尿病随访
       async get() {
         return await this.$api.Person.diabetes(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    personDetailSeverData: {
+      async get() {
+        return await this.$api.Person.personDetail(this.id);
       },
       default() {
         return [];
