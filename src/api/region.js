@@ -6,6 +6,7 @@ import {
 import {should, validate} from 'kato-server';
 import Score from './score';
 import {Op} from 'sequelize';
+import {appDB} from '../app';
 
 const scoreAPI = new Score();
 
@@ -73,14 +74,15 @@ export default class Region {
       .description('地区code')
   )
   async listAllHospital(code) {
-    return (
-      await HospitalModel.findAll({
-        where: {region: {[Op.like]: `${code}%`}},
-        include: [ReportHospitalModel]
-      })
-    ).map(item => ({
-      ...item.toJSON(),
-      budget: item.report.budget ?? 0
-    }));
+    return HospitalModel.findAll({
+      where: {region: {[Op.like]: `${code}%`}},
+      attributes: {
+        include: [[appDB.col('budget'), 'budget']]
+      },
+      include: {
+        model: ReportHospitalModel,
+        attributes: []
+      }
+    });
   }
 }
