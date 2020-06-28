@@ -1394,12 +1394,14 @@ export default class Person {
       genderCode, //性别字典
       voucherCode, //证件类型
       houseHoldCode, //家庭关系
-      contractStaffCode //重点人群
+      contractStaffCode, //重点人群
+      nationalCode //民族
     ] = await Promise.all([
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('674'), //证件类型
       dictionaryQuery('548'), //家庭关系
-      dictionaryQuery('100007') //contractStaff
+      dictionaryQuery('100007'), //contractStaff
+      dictionaryQuery('002') //contractStaff
     ]);
     console.log(contractStaffCode);
     const result = await etlQuery(
@@ -1470,6 +1472,8 @@ export default class Person {
       ...item,
       gender: genderCode.find(it => it.code === item.gender)?.codename || '',
       voucher: voucherCode.find(it => it.code === item.voucher)?.codename || '',
+      national:
+        nationalCode.find(it => it.code === item.national)?.codename || '',
       houseHold:
         houseHoldCode.find(it => it.code === item.houseHold)?.codename || '',
       contractStaff:
