@@ -80,7 +80,7 @@ export default class Region {
       })
     ).map(item => ({
       ...item.toJSON(),
-      budget: item.report.budget
+      budget: item.report.budget ?? 0
     }));
   }
 }
