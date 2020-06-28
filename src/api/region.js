@@ -1,6 +1,11 @@
-import {RegionModel, HospitalModel} from '../database/model';
+import {
+  RegionModel,
+  HospitalModel,
+  ReportHospitalModel
+} from '../database/model';
 import {should, validate} from 'kato-server';
 import Score from './score';
+import {Op} from 'sequelize';
 
 const scoreAPI = new Score();
 
@@ -58,5 +63,20 @@ export default class Region {
 
     // 分配金额
     await scoreAPI.setBudget();
+  }
+
+  //地区下所有的机构
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code')
+  )
+  async listAllHospital(code) {
+    return HospitalModel.findAll({
+      where: {region: {[Op.like]: `${code}%`}},
+      paranoid: false,
+      include: [ReportHospitalModel]
+    });
   }
 }
