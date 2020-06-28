@@ -82,7 +82,7 @@ export default class Person {
   async list(params) {
     const {pageSize, pageNo, hospital, idCard, tags, include} = params;
     const limit = pageSize;
-    const offset = (pageNo - 1 || 0) * limit;
+    const offset = (pageNo - 1 ?? 0) * limit;
     const his = '340203';
     let {name} = params;
     if (name) name = `%${name}%`;
@@ -1248,11 +1248,11 @@ export default class Person {
     return result.map(item => ({
       ...item,
       checkDate: dayjs(item.checkDate).toDate(),
-      gender: genderCode.find(it => it.code === item.gender)?.codename || '',
-      marrage: marrageCode.find(it => it.code === item.marrage)?.codename || '',
+      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
+      marrage: marrageCode.find(it => it.code === item.marrage)?.codename ?? '',
       professionType:
         jobTypeCode.find(it => `0${it.code}` === item.professionType)
-          ?.codename || '',
+          ?.codename ?? '',
       // oldManHealthSelf:
       //   oldManHealthSelfCode.find(it => it.code === item.professionType)
       //     ?.codename || '',
@@ -1283,19 +1283,19 @@ export default class Person {
       //     ?.codename || '',
       dustProtection:
         professionExposeCode.find(it => it.code === item.dustProtection)
-          ?.codename || '',
+          ?.codename ?? '',
       physicalProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename || '',
+          ?.codename ?? '',
       chemicalsProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename || '',
+          ?.codename ?? '',
       radiationProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename || '',
+          ?.codename ?? '',
       otherProtection:
         professionExposeCode.find(it => it.code === item.otherProtection)
-          ?.codename || '',
+          ?.codename ?? '',
       // abdominalBag:
       //   abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
       // abdominalLiver:
@@ -1316,15 +1316,15 @@ export default class Person {
       // uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
       // attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
       urineProtein:
-        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ||
+        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ??
         '',
       urineSugar:
-        urineSugarCode.find(it => it.code === item.urineSugar)?.codename || '',
+        urineSugarCode.find(it => it.code === item.urineSugar)?.codename ?? '',
       urineKetone:
-        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ||
+        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ??
         '',
       urineBlood:
-        urineBloodCode.find(it => it.code === item.urineBlood)?.codename || ''
+        urineBloodCode.find(it => it.code === item.urineBlood)?.codename ?? ''
     }));
   }
 
@@ -1470,15 +1470,15 @@ export default class Person {
 
     return result.map(item => ({
       ...item,
-      gender: genderCode.find(it => it.code === item.gender)?.codename || '',
-      voucher: voucherCode.find(it => it.code === item.voucher)?.codename || '',
+      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
+      voucher: voucherCode.find(it => it.code === item.voucher)?.codename ?? '',
       national:
-        nationalCode.find(it => it.code === item.national)?.codename || '',
+        nationalCode.find(it => it.code === item.national)?.codename ?? '',
       houseHold:
-        houseHoldCode.find(it => it.code === item.houseHold)?.codename || '',
+        houseHoldCode.find(it => it.code === item.houseHold)?.codename ?? '',
       contractStaff:
         contractStaffCode.find(it => it.code === item.contractStaff)
-          ?.codename || ''
+          ?.codename ?? ''
     }));
   }
 }
