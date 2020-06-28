@@ -18,13 +18,121 @@
             @click="$router.go(-1)"
             >返回
           </el-button>
-          <el-tabs v-model="activeTab" class="patient-tab-list">
+          <el-tabs v-model="activeTab">
             <el-tab-pane
               label="个人基本信息表"
               name="personal"
               v-if="personDetailSeverData.length"
             >
-              {{ personDetailData }}
+              <el-row type="flex" class="record-head" justify="space-between">
+                <el-col :span="6">
+                  姓名：<strong>{{ personDetailData.name }}</strong>
+                </el-col>
+                <el-col :span="6">编号：{{ personDetailData.id }}</el-col>
+              </el-row>
+              <table class="record-he-table">
+                <tbody>
+                  <tr>
+                    <td colspan="2">性别</td>
+                    <td colspan="3">
+                      <em>
+                        {{ personDetailData.gender }}
+                      </em>
+                    </td>
+                    <td colspan="1">出生日期</td>
+                    <td colspan="1">
+                      <em>
+                        {{ personDetailData.birth }}
+                      </em>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">身份证号</td>
+                    <td colspan="2">
+                      <em>
+                        {{ personDetailData.idCard }}
+                      </em>
+                    </td>
+                    <td colspan="1">工作单位</td>
+                    <td colspan="2">
+                      <em>
+                        {{ personDetailData.workUnit }}
+                      </em>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">本人电话</td>
+                    <td>
+                      <em>
+                        {{ personDetailData.phone }}
+                      </em>
+                    </td>
+                    <td>联系人姓名</td>
+                    <td>
+                      <em>
+                        {{ personDetailData.contactName }}
+                      </em>
+                    </td>
+                    <td>联系人电话</td>
+                    <td>
+                      <em>
+                        {{ personDetailData.contactPhone }}
+                      </em>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">常住类型</td>
+                    <td colspan="2"></td>
+                    <td>名族</td>
+                    <td colspan="2"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">血型</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">文化程度</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">职业</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">婚姻状况</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">医疗费用支付方式</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">药物过敏史</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">暴露史</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td rowspan="4">既往史</td>
+                    <td>疾病</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td>手术</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td>外伤</td>
+                    <td colspan="5"></td>
+                  </tr>
+                  <tr>
+                    <td>输血</td>
+                    <td colspan="5"></td>
+                  </tr>
+                </tbody>
+              </table>
             </el-tab-pane>
             <el-tab-pane
               label="体检记录"
@@ -141,7 +249,7 @@ export default {
       id: null,
       tags: [],
       personTags: [],
-      activeTab: 'hypertension'
+      activeTab: 'personal'
     };
   },
   created() {
@@ -303,6 +411,38 @@ export default {
     .visitTime {
       font-size: 12px;
       color: #777;
+    }
+  }
+}
+.record-he-table {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #fff;
+  border-collapse: collapse;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  line-height: 2;
+  tr {
+    td {
+      padding: 3px 10px;
+      border-top: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+      em {
+        color: #409eff;
+      }
+      sub {
+        vertical-align: bottom;
+      }
+      &[rowspan] + td {
+        text-align: center;
+      }
+    }
+    :first-child {
+      text-align: center;
+      line-height: normal;
+    }
+    :last-child {
+      text-align: left;
     }
   }
 }
