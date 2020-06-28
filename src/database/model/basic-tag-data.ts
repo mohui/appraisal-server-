@@ -37,7 +37,7 @@ export class BasicTagData extends Model<BasicTagData> {
   @Comment('基础数据值')
   @Default(0)
   @AllowNull(false)
-  @Column
+  @Column(DataType.FLOAT)
   value: number;
 
   @Comment('基础数据年度')
