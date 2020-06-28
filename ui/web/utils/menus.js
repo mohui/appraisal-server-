@@ -33,7 +33,7 @@ module.exports = [
         index: 'hospital',
         permission: [Permission.HOSPITAL],
         router: '/hospital',
-        label: '机构列表'
+        label: '金额列表'
       }
     ]
   },
