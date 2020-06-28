@@ -73,10 +73,14 @@ export default class Region {
       .description('地区code')
   )
   async listAllHospital(code) {
-    return HospitalModel.findAll({
-      where: {region: {[Op.like]: `${code}%`}},
-      paranoid: false,
-      include: [ReportHospitalModel]
-    });
+    return (
+      await HospitalModel.findAll({
+        where: {region: {[Op.like]: `${code}%`}},
+        include: [ReportHospitalModel]
+      })
+    ).map(item => ({
+      ...item.toJSON(),
+      budget: item.report.budget
+    }));
   }
 }
