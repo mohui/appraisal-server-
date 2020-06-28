@@ -158,7 +158,7 @@ export default {
 
 .login-card {
   text-align: center;
-  padding: 10% 5% 0 0;
+  padding: 20% 5% 0 5%;
 }
 
 .item {
@@ -179,5 +179,6 @@ export default {
   margin-left: auto;
   margin-right: auto;
   width: 480px;
+  max-width: 100%;
 }
 </style>
