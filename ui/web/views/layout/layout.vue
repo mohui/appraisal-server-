@@ -36,7 +36,7 @@
         <div
           :class="{mask: device === 'mobile'}"
           style="height: 100%;"
-          @click="toggleMenu"
+          @click.self="toggleMenu"
         >
           <el-menu
             class="layout-side-menu"
