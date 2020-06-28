@@ -37,7 +37,7 @@ export const PermissionDetail = [
   },
   {
     key: 'hospital',
-    name: '机构列表'
+    name: '金额列表'
   },
   {
     key: 'check-add',
