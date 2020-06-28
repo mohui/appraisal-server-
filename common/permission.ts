@@ -36,6 +36,10 @@ export const PermissionDetail = [
     name: '基础数据'
   },
   {
+    key: 'hospital',
+    name: '金额列表'
+  },
+  {
     key: 'check-add',
     name: '新建规则'
   },
@@ -95,6 +99,7 @@ export const Permission = {
   APPRAISAL_RESULT: 'appraisal-result',
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
+  HOSPITAL: 'hospital',
   CHECK_ADD: 'check-add',
   CHECK_UPDATE: 'check-update',
   CHECK_SELECT_HOSPITAL: 'check-select-hospital',

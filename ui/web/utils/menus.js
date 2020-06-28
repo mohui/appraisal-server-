@@ -28,6 +28,12 @@ module.exports = [
         permission: [Permission.APPRAISAL_BASIC_DATA],
         router: '/basic-data',
         label: '基础数据'
+      },
+      {
+        index: 'hospital',
+        permission: [Permission.HOSPITAL],
+        router: '/hospital',
+        label: '金额列表'
       }
     ]
   },
