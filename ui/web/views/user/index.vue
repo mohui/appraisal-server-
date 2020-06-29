@@ -7,7 +7,8 @@
       :body-style="{
         height: 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -21,64 +22,70 @@
           >新建用户
         </el-button>
       </div>
-      <el-form
-        ref="ruleForm"
-        :model="searchForm"
-        label-width="100px"
-        size="mini"
+      <kn-collapse
+        :is-show="$settings.isMobile"
+        :is-collapsed="isCollapsed"
+        @toggle="is => (isCollapsed = is)"
       >
-        <el-row>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="登录名：">
-              <el-input
-                v-model="searchForm.account"
-                size="mini"
-                clearable
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="用户名：">
-              <el-input
-                v-model="searchForm.name"
-                size="mini"
-                clearable
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="角色：">
-              <el-select
-                clearable
-                v-model="searchForm.roleId"
-                placeholder="请选择"
-                style="width: 100%;"
-              >
-                <el-option
-                  v-for="item in roleList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
+        <el-form
+          ref="ruleForm"
+          :model="searchForm"
+          label-width="100px"
+          size="mini"
+        >
+          <el-row>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+              <el-form-item label="登录名：">
+                <el-input
+                  v-model="searchForm.account"
+                  size="mini"
+                  clearable
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+              <el-form-item label="用户名：">
+                <el-input
+                  v-model="searchForm.name"
+                  size="mini"
+                  clearable
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+              <el-form-item label="角色：">
+                <el-select
+                  clearable
+                  v-model="searchForm.roleId"
+                  placeholder="请选择"
+                  style="width: 100%;"
                 >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-            <el-form-item label="">
-              <el-button
-                type="primary"
-                size="mini"
-                @click="$asyncComputed.listUser.update()"
-                >查询</el-button
-              >
-              <el-button type="primary" size="mini" @click="reset">
-                重置条件
-              </el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+                  <el-option
+                    v-for="item in roleList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  >
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+              <el-form-item label="">
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="$asyncComputed.listUser.update()"
+                  >查询</el-button
+                >
+                <el-button type="primary" size="mini" @click="reset">
+                  重置条件
+                </el-button>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </kn-collapse>
       <el-table
         stripe
         size="small"
@@ -93,8 +100,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="account" label="登录名"></el-table-column>
-        <el-table-column prop="name" label="用户名"></el-table-column>
-        <el-table-column label="角色">
+        <el-table-column
+          prop="name"
+          label="用户名"
+          min-width="200"
+        ></el-table-column>
+        <el-table-column label="角色" min-width="180">
           <template slot-scope="scope">
             <el-tag
               v-for="role in scope.row.rolesName"
@@ -105,10 +116,19 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间"></el-table-column>
-        <el-table-column prop="updated_at" label="更新时间"></el-table-column>
+        <el-table-column
+          prop="created_at"
+          label="创建时间"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          prop="updated_at"
+          label="更新时间"
+          min-width="100"
+        ></el-table-column>
         <el-table-column
           label="操作"
+          min-width="160"
           v-if="
             $settings.permissions.includes(permission.USER_UPDATE) ||
               $settings.permissions.includes(permission.USER_REMOVE)
@@ -158,7 +178,11 @@
       >
       </el-pagination>
     </el-card>
-    <el-dialog title="新建用户" :visible.sync="dialogFormAddUsersVisible">
+    <el-dialog
+      title="新建用户"
+      :visible.sync="dialogFormAddUsersVisible"
+      :width="$settings.isMobile ? '99%' : '50%'"
+    >
       <el-form ref="userFormAdd" :model="userForm" :rules="rulesAdd">
         <el-form-item
           label="登录名"
@@ -253,7 +277,11 @@
         </el-button>
       </div>
     </el-dialog>
-    <el-dialog title="修改用户" :visible.sync="dialogFormEditUsersVisible">
+    <el-dialog
+      title="修改用户"
+      :visible.sync="dialogFormEditUsersVisible"
+      :width="$settings.isMobile ? '99%' : '50%'"
+    >
       <el-form ref="userFormEdit" :model="userForm" :rules="rulesEdit">
         <el-form-item label="登录名" :label-width="formLabelWidth">
           <el-input
@@ -371,6 +399,7 @@ export default {
   data() {
     const that = this;
     return {
+      isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
       permission: Permission,
       dialogFormAddUsersVisible: false,
