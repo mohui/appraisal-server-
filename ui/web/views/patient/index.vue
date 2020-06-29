@@ -33,103 +33,109 @@
               <table class="record-he-table">
                 <tbody>
                   <tr>
-                    <td colspan="2">性别</td>
-                    <td colspan="3">
+                    <td colspan="4">性别</td>
+                    <td colspan="6">
                       <em>
                         {{ personDetailData.gender }}
                       </em>
                     </td>
-                    <td colspan="1">出生日期</td>
-                    <td colspan="1">
+                    <td colspan="2">出生日期</td>
+                    <td colspan="2">
                       <em>
                         {{ personDetailData.birth }}
                       </em>
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="2">身份证号</td>
-                    <td colspan="2">
+                    <td colspan="4">身份证号</td>
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.idCard }}
                       </em>
                     </td>
-                    <td colspan="1">工作单位</td>
-                    <td colspan="2">
+                    <td colspan="2">工作单位</td>
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.workUnit }}
                       </em>
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="2">本人电话</td>
-                    <td>
+                    <td colspan="4">本人电话</td>
+                    <td colspan="2">
                       <em>
                         {{ personDetailData.phone }}
                       </em>
                     </td>
-                    <td>联系人姓名</td>
-                    <td>
+                    <td colspan="2">联系人姓名</td>
+                    <td colspan="2">
                       <em>
                         {{ personDetailData.contactName }}
                       </em>
                     </td>
-                    <td>联系人电话</td>
-                    <td>
+                    <td colspan="2">联系人电话</td>
+                    <td colspan="2">
                       <em>
                         {{ personDetailData.contactPhone }}
                       </em>
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="2">常住类型</td>
-                    <td colspan="2"></td>
-                    <td>名族</td>
-                    <td colspan="2"></td>
+                    <td colspan="4">常住类型</td>
+                    <td colspan="4"></td>
+                    <td colspan="2">民族</td>
+                    <td colspan="4"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">血型</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">血型</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">文化程度</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">文化程度</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">职业</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">职业</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">婚姻状况</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">婚姻状况</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">医疗费用支付方式</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">医疗费用支付方式</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">药物过敏史</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">药物过敏史</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td colspan="2">暴露史</td>
-                    <td colspan="5"></td>
+                    <td colspan="4">暴露史</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td rowspan="4">既往史</td>
-                    <td>疾病</td>
-                    <td colspan="5"></td>
+                    <td rowspan="4" colspan="2">既往史</td>
+                    <td colspan="2">疾病</td>
+                    <td colspan="10">
+                      1 无 2 高血压 3 糖尿病 4 冠心病 5 慢性阻塞性肺疾病 6
+                      恶性肿瘤 7 脑卒中 8 严重精神障碍 9 结核病 10 肝炎 11
+                      其他法定传染病 12 职业病 13 其他 □ 确诊时间 年 月/ □
+                      确诊时间 年 月/ □ 确诊时间 年 月 □ 确诊时间 年 月/ □
+                      确诊时间 年 月/ □ 确诊时间 年 月
+                    </td>
                   </tr>
                   <tr>
-                    <td>手术</td>
-                    <td colspan="5"></td>
+                    <td colspan="2">手术</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td>外伤</td>
-                    <td colspan="5"></td>
+                    <td colspan="2">外伤</td>
+                    <td colspan="10"></td>
                   </tr>
                   <tr>
-                    <td>输血</td>
-                    <td colspan="5"></td>
+                    <td colspan="2">输血</td>
+                    <td colspan="10"></td>
                   </tr>
                 </tbody>
               </table>
