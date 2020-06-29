@@ -24,13 +24,17 @@
               name="personal"
               v-if="personDetailSeverData.length"
             >
-              <el-row type="flex" class="record-head" justify="space-between">
+              <el-row
+                type="flex"
+                class="base-info-head"
+                justify="space-between"
+              >
                 <el-col :span="6">
                   姓名：<strong>{{ personDetailData.name }}</strong>
                 </el-col>
                 <el-col :span="6">编号：{{ personDetailData.id }}</el-col>
               </el-row>
-              <table class="record-he-table">
+              <table class="base-info-table">
                 <tbody>
                   <tr>
                     <td colspan="4">性别</td>
@@ -611,7 +615,13 @@ export default {
     }
   }
 }
-.record-he-table {
+.base-info-head {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 10px;
+}
+
+.base-info-table {
   width: 100%;
   max-width: 1200px;
   background-color: #fff;
