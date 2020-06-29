@@ -35,17 +35,7 @@ export default {
         checkStrictly: true,
         lazyLoad: async (node, resolve) => {
           const {level, value = this.code} = node;
-          if (value) {
-            const dataList = (level === 0
-              ? await this.$api.Region.listHospital(value)
-              : await this.$api.Hospital.list(value)
-            ).map(it => ({
-              value: it.code || it.id,
-              label: it.name,
-              leaf: level >= 2
-            }));
-            resolve(dataList);
-          } else
+          if (!value) {
             resolve([
               {
                 value: 'err',
@@ -54,6 +44,18 @@ export default {
                 leaf: true
               }
             ]);
+            return;
+          }
+
+          const dataList = (level === 0
+            ? await this.$api.Region.listHospital(value)
+            : await this.$api.Hospital.list(value)
+          ).map(it => ({
+            value: it.code || it.id,
+            label: it.name,
+            leaf: level >= 2
+          }));
+          resolve(dataList);
         }
       },
       inputValue: this.value
