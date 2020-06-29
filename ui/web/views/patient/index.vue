@@ -35,150 +35,298 @@
                   <tr>
                     <td colspan="4">性别</td>
                     <td colspan="12">
-                      <em>
-                        {{ personDetailData.gender }}
-                      </em>
+                      1男 2女 9未说明的性别 0未知的性别
+                      <em>{{ personDetailData.gender }}</em>
                     </td>
                     <td colspan="4">出生日期</td>
                     <td colspan="4">
-                      <em>
-                        {{ personDetailData.birth }}
-                      </em>
+                      <em>{{ personDetailData.birth }}</em>
                     </td>
                   </tr>
                   <tr>
                     <td colspan="4">身份证号</td>
                     <td colspan="8">
-                      <em>
-                        {{ personDetailData.idCard }}
-                      </em>
+                      <em>{{ personDetailData.idCard }}</em>
                     </td>
                     <td colspan="4">工作单位</td>
                     <td colspan="8">
-                      <em>
-                        {{ personDetailData.workUnit }}
-                      </em>
+                      <em>{{ personDetailData.workUnit }}</em>
                     </td>
                   </tr>
                   <tr>
                     <td colspan="4">本人电话</td>
                     <td colspan="4">
-                      <em>
-                        {{ personDetailData.phone }}
-                      </em>
+                      <em>{{ personDetailData.phone }}</em>
                     </td>
                     <td colspan="4">联系人姓名</td>
                     <td colspan="4">
-                      <em>
-                        {{ personDetailData.contactName }}
-                      </em>
+                      <em>{{ personDetailData.contactName }}</em>
                     </td>
                     <td colspan="4">联系人电话</td>
                     <td colspan="4">
-                      <em>
-                        {{ personDetailData.contactPhone }}
-                      </em>
+                      <em>{{ personDetailData.contactPhone }}</em>
                     </td>
                   </tr>
                   <tr>
                     <td colspan="4">常住类型</td>
-                    <td colspan="8"></td>
+                    <td colspan="8">
+                      <el-radio-group
+                        v-model="personDetailData.livingConditions"
+                      >
+                        <el-radio label="1">1户籍</el-radio>
+                        <el-radio label="2">2非户籍</el-radio>
+                      </el-radio-group>
+                    </td>
                     <td colspan="4">民族</td>
-                    <td colspan="8"></td>
+                    <td colspan="8">
+                      1汉族 2少数民族
+                      <em>{{ personDetailData.national }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">血型</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group v-model="personDetailData.blood">
+                        <el-radio label="1">A型</el-radio>
+                        <el-radio label="2">B型</el-radio>
+                        <el-radio label="3">O型</el-radio>
+                        <el-radio label="4">AB型</el-radio>
+                        <el-radio label="5">不详</el-radio>
+                      </el-radio-group>
+                      /
+                      <el-radio-group v-model="personDetailData.RH">
+                        <el-radio label="1">阴性</el-radio>
+                        <el-radio label="2">阳性</el-radio>
+                        <el-radio label="3">不详</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">文化程度</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group v-model="personDetailData.education">
+                        <el-radio label="1">研究生</el-radio>
+                        <el-radio label="2">大学本科</el-radio>
+                        <el-radio label="3">大学专科和专科学校</el-radio>
+                        <el-radio label="4">中等专业学校</el-radio>
+                        <el-radio label="5">技工学校</el-radio>
+                        <el-radio label="6">高中</el-radio>
+                        <el-radio label="7">初中</el-radio>
+                        <el-radio label="8">小学</el-radio>
+                        <el-radio label="9">文盲或半文盲</el-radio>
+                        <el-radio label="10">不详</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">职业</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group v-model="personDetailData.education">
+                        <el-radio label="0"
+                          >国家机关、党群组织、企业、事业单位负责人</el-radio
+                        >
+                        <el-radio label="1">专业技术人员</el-radio>
+                        <el-radio label="2">办事人员和有关人员</el-radio>
+                        <el-radio label="3">商业、服务业人员</el-radio>
+                        <el-radio label="4"
+                          >农、林、牧、渔、水利业生产人员</el-radio
+                        >
+                        <el-radio label="5">
+                          生产、运输设备操作人 员及有关人员</el-radio
+                        >
+                        <el-radio label="6">军人</el-radio>
+                        <el-radio label="7">不便分类的其他从业人员</el-radio>
+                        <el-radio label="8">无职业</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">婚姻状况</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group v-model="personDetailData.marrage">
+                        <el-radio label="1">未婚</el-radio>
+                        <el-radio label="2">已婚</el-radio>
+                        <el-radio label="3">丧偶</el-radio>
+                        <el-radio label="4">离婚</el-radio>
+                        <el-radio label="5">未说明婚姻状况</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">医疗费用支付方式</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      1城镇职工基本医疗保险 2城镇居民基本医疗保险
+                      3新型农村合作医疗 4贫困救助 5商业医疗保险 6全公费 7全自费
+                      8其他
+                      <em>{{ personDetailData.medicalPayType }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">药物过敏史</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      1无 2青霉素 3磺胺 4链霉素 5其他
+                      <em>{{ personDetailData.drugAllergy }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">暴露史</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      1无 2化学品 3毒物 4射线
+                      <em>{{ personDetailData.exposureHistory }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td rowspan="4" colspan="2">既往史</td>
                     <td colspan="2">疾病</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      1无 2高血压 3糖尿病 4冠心病 5慢性阻塞性肺疾病 6恶性肿瘤
+                      7脑卒中 8严重精神障碍 9结核病 10肝炎 11其他法定传染病
+                      12职业病 13其他
+                      <em>{{ personDetailData.diseaseHistory }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="2">手术</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group
+                        v-model="personDetailData.isSurgeryHistory"
+                      >
+                        <el-radio :label="false">1无</el-radio>
+                        <el-radio :label="true">2有</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="2">外伤</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group
+                        v-model="personDetailData.isTraumaticHistory"
+                      >
+                        <el-radio :label="false">1无</el-radio>
+                        <el-radio :label="true">2有</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="2">输血</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group
+                        v-model="personDetailData.isTransfusionHistory"
+                      >
+                        <el-radio :label="false">1无</el-radio>
+                        <el-radio :label="true">2有</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td rowspan="3" colspan="4">家族史</td>
                     <td colspan="4">父亲</td>
-                    <td colspan="6"></td>
+                    <td colspan="6">
+                      <em>{{ personDetailData.fatherHistory }}</em>
+                    </td>
                     <td colspan="4">母亲</td>
-                    <td colspan="6"></td>
+                    <td colspan="6">
+                      <em>{{ personDetailData.motherHistory }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">兄弟姐妹</td>
-                    <td colspan="6"></td>
+                    <td colspan="6">
+                      <em>{{ personDetailData.siblingHistory }}</em>
+                    </td>
                     <td colspan="4">子女</td>
-                    <td colspan="6"></td>
+                    <td colspan="6">
+                      <em>{{ personDetailData.childrenHistory }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="20">
-                      1 无 2 高血压 3 糖尿病 4 冠心病 5 慢性阻塞性肺疾病 6
-                      恶性肿瘤 7 脑卒中 8 严重精神障碍 9 结核病 10 肝炎 11
-                      先天畸形 12 其他
+                      1无 2高血压 3糖尿病 4冠心病 5慢性阻塞性肺疾病 6恶性肿瘤
+                      7脑卒中 8严重精神障碍 9结核病 10肝炎 11先天畸形 12其他
                     </td>
                   </tr>
                   <tr>
                     <td colspan="4">遗传病史</td>
-                    <td colspan="20"></td>
+                    <td colspan="20">
+                      <el-radio-group
+                        v-model="personDetailData.isGeneticHistory"
+                      >
+                        <el-radio :label="false">1无</el-radio>
+                        <el-radio :label="true">2有</el-radio>
+                      </el-radio-group>
+                      疾病名称：<em>{{ personDetailData.geneticDisease }}</em>
+                    </td>
                   </tr>
                   <tr>
-                    <td colspan="4">疾病情况</td>
-                    <td colspan="20"></td>
+                    <td colspan="4">残疾情况</td>
+                    <td colspan="20">
+                      1无残疾 2视力残疾 3听力残疾 4言语残疾 5肢体残疾 6智力残疾
+                      7精神残疾 8其他残疾
+                      <em>{{ personDetailData.isDisability }}</em>
+                    </td>
                   </tr>
                   <tr>
                     <td rowspan="5" colspan="4">生活环境*</td>
                     <td colspan="4">厨房排风措施</td>
-                    <td colspan="16"></td>
+                    <td colspan="16">
+                      <el-radio-group
+                        v-model="personDetailData.kitchenVentilation"
+                      >
+                        <el-radio label="1">1无</el-radio>
+                        <el-radio label="2">2油烟机</el-radio>
+                        <el-radio label="3">3换气扇</el-radio>
+                        <el-radio label="4">4烟囱</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">燃料类型</td>
-                    <td colspan="16"></td>
+                    <td colspan="16">
+                      <el-radio-group v-model="personDetailData.FuelType">
+                        <el-radio label="1">1液化气</el-radio>
+                        <el-radio label="2">2煤</el-radio>
+                        <el-radio label="3">3天然气</el-radio>
+                        <el-radio label="4">4沼气</el-radio>
+                        <el-radio label="5">5柴火</el-radio>
+                        <el-radio label="6">6其他</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">饮水</td>
-                    <td colspan="16"></td>
+                    <td colspan="16">
+                      <el-radio-group v-model="personDetailData.water">
+                        <el-radio label="1">1自来水</el-radio>
+                        <el-radio label="2">2经净化过滤的水</el-radio>
+                        <el-radio label="3">3井水</el-radio>
+                        <el-radio label="4">4河湖水</el-radio>
+                        <el-radio label="5">5塘水</el-radio>
+                        <el-radio label="5">6其他</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">厕所</td>
-                    <td colspan="16"></td>
+                    <td colspan="16">
+                      <el-radio-group v-model="personDetailData.toilet">
+                        <el-radio label="1">1卫生厕所</el-radio>
+                        <el-radio label="2">2一格或二格粪池式</el-radio>
+                        <el-radio label="3">3马桶</el-radio>
+                        <el-radio label="4">4露天粪坑</el-radio>
+                        <el-radio label="5">5简易棚厕</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="4">禽畜栏</td>
-                    <td colspan="16"></td>
+                    <td colspan="16">
+                      <el-radio-group v-model="personDetailData.livestock">
+                        <el-radio label="1">1无</el-radio>
+                        <el-radio label="2">2单设</el-radio>
+                        <el-radio label="2">3室内</el-radio>
+                        <el-radio label="2">4室外</el-radio>
+                      </el-radio-group>
+                    </td>
                   </tr>
                 </tbody>
               </table>
