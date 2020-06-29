@@ -26,7 +26,7 @@ export default {
   data() {
     const that = this;
     return {
-      code: this.$settings.user.code,
+      code: this.$settings.user.regionId,
       dataOptions: {
         lazy: true,
         emitPath: false,
