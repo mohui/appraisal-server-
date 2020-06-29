@@ -34,13 +34,13 @@
                 <tbody>
                   <tr>
                     <td colspan="4">性别</td>
-                    <td colspan="6">
+                    <td colspan="12">
                       <em>
                         {{ personDetailData.gender }}
                       </em>
                     </td>
-                    <td colspan="2">出生日期</td>
-                    <td colspan="2">
+                    <td colspan="4">出生日期</td>
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.birth }}
                       </em>
@@ -48,13 +48,13 @@
                   </tr>
                   <tr>
                     <td colspan="4">身份证号</td>
-                    <td colspan="4">
+                    <td colspan="8">
                       <em>
                         {{ personDetailData.idCard }}
                       </em>
                     </td>
-                    <td colspan="2">工作单位</td>
-                    <td colspan="4">
+                    <td colspan="4">工作单位</td>
+                    <td colspan="8">
                       <em>
                         {{ personDetailData.workUnit }}
                       </em>
@@ -62,19 +62,19 @@
                   </tr>
                   <tr>
                     <td colspan="4">本人电话</td>
-                    <td colspan="2">
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.phone }}
                       </em>
                     </td>
-                    <td colspan="2">联系人姓名</td>
-                    <td colspan="2">
+                    <td colspan="4">联系人姓名</td>
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.contactName }}
                       </em>
                     </td>
-                    <td colspan="2">联系人电话</td>
-                    <td colspan="2">
+                    <td colspan="4">联系人电话</td>
+                    <td colspan="4">
                       <em>
                         {{ personDetailData.contactPhone }}
                       </em>
@@ -82,42 +82,42 @@
                   </tr>
                   <tr>
                     <td colspan="4">常住类型</td>
-                    <td colspan="4"></td>
-                    <td colspan="2">民族</td>
-                    <td colspan="4"></td>
+                    <td colspan="8"></td>
+                    <td colspan="4">民族</td>
+                    <td colspan="8"></td>
                   </tr>
                   <tr>
                     <td colspan="4">血型</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">文化程度</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">职业</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">婚姻状况</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">医疗费用支付方式</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">药物过敏史</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="4">暴露史</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td rowspan="4" colspan="2">既往史</td>
                     <td colspan="2">疾病</td>
-                    <td colspan="10">
+                    <td colspan="20">
                       1 无 2 高血压 3 糖尿病 4 冠心病 5 慢性阻塞性肺疾病 6
                       恶性肿瘤 7 脑卒中 8 严重精神障碍 9 结核病 10 肝炎 11
                       其他法定传染病 12 职业病 13 其他 □ 确诊时间 年 月/ □
@@ -127,15 +127,15 @@
                   </tr>
                   <tr>
                     <td colspan="2">手术</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="2">外伤</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="2">输血</td>
-                    <td colspan="10"></td>
+                    <td colspan="20"></td>
                   </tr>
                 </tbody>
               </table>
