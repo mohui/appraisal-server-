@@ -141,7 +141,7 @@ export default {
         this.timer = setTimeout(() => {
           this.device = this.isMobile() ? 'mobile' : 'desktop';
           this.hiddenMenu = this.isMobile();
-          localStorage.setItem('isMobile', this.isMobile());
+          this.$settings.isMobile = this.isMobile();
         }, 300);
       }
     },
