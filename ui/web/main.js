@@ -12,6 +12,7 @@ import {settingPlugin} from './plugins/setting';
 import echarts from 'echarts';
 import './directive';
 import KnDebounceInputComponent from './components/kn-debounce-input';
+import KnCollapse from './components/kn-collapse';
 
 (async () => {
   Vue.config.productionTip = false;
@@ -23,6 +24,7 @@ import KnDebounceInputComponent from './components/kn-debounce-input';
   Vue.use(dayjs);
   Vue.prototype.$echarts = echarts;
   Vue.component('kn-debounce-input', KnDebounceInputComponent);
+  Vue.component('kn-collapse', KnCollapse);
 
   new Vue({
     router,
