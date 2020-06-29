@@ -296,6 +296,10 @@ export default {
             {
               key: 'appraisal-basic-data',
               label: '基础数据'
+            },
+            {
+              key: 'hospital',
+              label: '金额列表'
             }
           ]
         },
