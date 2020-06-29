@@ -117,13 +117,7 @@
                   <tr>
                     <td rowspan="4" colspan="2">既往史</td>
                     <td colspan="2">疾病</td>
-                    <td colspan="20">
-                      1 无 2 高血压 3 糖尿病 4 冠心病 5 慢性阻塞性肺疾病 6
-                      恶性肿瘤 7 脑卒中 8 严重精神障碍 9 结核病 10 肝炎 11
-                      其他法定传染病 12 职业病 13 其他 □ 确诊时间 年 月/ □
-                      确诊时间 年 月/ □ 确诊时间 年 月 □ 确诊时间 年 月/ □
-                      确诊时间 年 月/ □ 确诊时间 年 月
-                    </td>
+                    <td colspan="20"></td>
                   </tr>
                   <tr>
                     <td colspan="2">手术</td>
@@ -136,6 +130,55 @@
                   <tr>
                     <td colspan="2">输血</td>
                     <td colspan="20"></td>
+                  </tr>
+                  <tr>
+                    <td rowspan="3" colspan="4">家族史</td>
+                    <td colspan="4">父亲</td>
+                    <td colspan="6"></td>
+                    <td colspan="4">母亲</td>
+                    <td colspan="6"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">兄弟姐妹</td>
+                    <td colspan="6"></td>
+                    <td colspan="4">子女</td>
+                    <td colspan="6"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="20">
+                      1 无 2 高血压 3 糖尿病 4 冠心病 5 慢性阻塞性肺疾病 6
+                      恶性肿瘤 7 脑卒中 8 严重精神障碍 9 结核病 10 肝炎 11
+                      先天畸形 12 其他
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">遗传病史</td>
+                    <td colspan="20"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">疾病情况</td>
+                    <td colspan="20"></td>
+                  </tr>
+                  <tr>
+                    <td rowspan="5" colspan="4">生活环境*</td>
+                    <td colspan="4">厨房排风措施</td>
+                    <td colspan="16"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">燃料类型</td>
+                    <td colspan="16"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">饮水</td>
+                    <td colspan="16"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">厕所</td>
+                    <td colspan="16"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">禽畜栏</td>
+                    <td colspan="16"></td>
                   </tr>
                 </tbody>
               </table>
