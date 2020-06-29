@@ -36,31 +36,6 @@ export default {
             level: it.level,
             leaf: data?.level >= 4
           }));
-          //机构用户,只查询其机构的下属机构
-          // if (!that.$settings.user.isRegion) {
-          //   dataList = (await that.$api.Hospital.list(value)).map(it => ({
-          //     label: it.name,
-          //     value: it.id,
-          //     level: it.level,
-          //     leaf: level < 1
-          //   }));
-          // } else {
-          //   //地区用户,分情况查询下级数据
-          //   const nextLevel = level === 0 || (data?.level ?? 0) < 5;
-          //   dataList = nextLevel
-          //     ? (await that.$api.Region.list(value)).map(it => ({
-          //         label: it.name,
-          //         value: it.code,
-          //         level: it.level,
-          //         leaf: level > 4
-          //       }))
-          //     : (await that.$api.Region.listHospital(value)).map(it => ({
-          //         label: it.name,
-          //         value: it.id,
-          //         level: it.level,
-          //         leaf: level > 2
-          //       }));
-          // }
           resolve(dataList);
         }
       },
