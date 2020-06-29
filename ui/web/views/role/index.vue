@@ -7,7 +7,8 @@
       :body-style="{
         height: 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -37,7 +38,7 @@
           :key="index"
           :prop="it.prop"
           :label="it.label"
-          :min-width="it.width"
+          :min-width="it.width + 40"
           align="center"
         >
           <template slot-scope="scope">
@@ -75,7 +76,7 @@
         :current-page="pageNo"
         :page-sizes="[10, 20, 30, 50, 100]"
         :page-size="pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
+        layout="total, sizes, prev, pager, next"
         style="margin:10px 0 -20px 0;"
         :total="serverData.count"
         @size-change="
@@ -94,6 +95,7 @@
       <el-dialog
         title="拥有的权限"
         :visible.sync="dialogPermissionsListTableViewVisible"
+        :width="$settings.isMobile ? '99%' : '50%'"
       >
         <el-tag
           style="margin: 8px 10px"
@@ -107,6 +109,7 @@
       <el-dialog
         :visible.sync="dialogVisible"
         :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
+        :width="$settings.isMobile ? '99%' : '50%'"
       >
         <el-form
           ref="ruleForm"

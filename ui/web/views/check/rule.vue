@@ -7,14 +7,16 @@
       :body-style="{
         height: 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
         <span>《{{ checkName }}》 规则详情</span>
         <el-button
-          style="float: right;margin: -9px;"
+          style="float: right;margin:0 -9px;"
           type="primary"
+          size="small"
           @click="
             $router.push({
               name: 'check'
@@ -80,7 +82,7 @@
             align="center"
             label="序号"
           ></el-table-column>
-          <el-table-column align="center" label="考核内容">
+          <el-table-column align="center" label="考核内容" min-width="200">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-input
@@ -95,7 +97,7 @@
               <span v-else>{{ scope.row.ruleName }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="分值">
+          <el-table-column align="center" label="分值" min-width="140">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-input-number
@@ -109,7 +111,7 @@
               <span v-else>{{ scope.row.ruleScore }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="考核标准">
+          <el-table-column align="center" label="考核标准" min-width="300">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-input
@@ -124,7 +126,7 @@
               <span v-else>{{ scope.row.checkStandard }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="考核方法">
+          <el-table-column align="center" label="考核方法" min-width="200">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-input
@@ -139,7 +141,7 @@
               <span v-else>{{ scope.row.checkMethod }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="评分标准">
+          <el-table-column align="center" label="评分标准" min-width="200">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-input
@@ -154,7 +156,7 @@
               <span v-else>{{ scope.row.evaluateStandard }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="关联关系">
+          <el-table-column align="center" label="关联关系" min-width="200">
             <template slot-scope="scope">
               <span v-if="scope.row.isEdit">
                 <el-button
@@ -169,7 +171,7 @@
               <span v-else>{{ scope.row.ruleTagName }}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" label="操作">
+          <el-table-column align="center" label="操作" min-width="200">
             <template slot-scope="scope">
               <div v-if="scope.row.isEdit">
                 <el-button

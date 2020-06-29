@@ -7,129 +7,136 @@
       :body-style="{
         height: 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
         <span>个人档案列表</span>
       </div>
-      <el-form :model="queryForm" label-width="100px" size="mini">
-        <el-row>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-            <el-form-item label="姓名:">
-              <kn-debounce-input
-                v-model.trim="queryForm.name"
-                placeholder="请输入要查询的姓名"
-                clearable
-              ></kn-debounce-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-            <el-form-item label="身份证号码:">
-              <kn-debounce-input
-                v-model.trim="queryForm.idCard"
-                placeholder="请输入要查询的身份证号码"
-                clearable
-              ></kn-debounce-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-            <el-form-item label="管理机构:">
-              <el-select
-                v-model="queryForm.hospital"
-                filterable
-                clearable
-                placeholder="请选择"
-                style="width: 100%;"
-              >
-                <el-option
-                  v-for="item in hospitals"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
+      <kn-collapse
+        :is-show="$settings.isMobile"
+        :is-collapsed="isCollapsed"
+        @toggle="is => (isCollapsed = is)"
+      >
+        <el-form :model="queryForm" label-width="100px" size="mini">
+          <el-row>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+              <el-form-item label="姓名:">
+                <kn-debounce-input
+                  v-model.trim="queryForm.name"
+                  placeholder="请输入要查询的姓名"
+                  clearable
+                ></kn-debounce-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+              <el-form-item label="身份证号码:">
+                <kn-debounce-input
+                  v-model.trim="queryForm.idCard"
+                  placeholder="请输入要查询的身份证号码"
+                  clearable
+                ></kn-debounce-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+              <el-form-item label="管理机构:">
+                <el-select
+                  v-model="queryForm.hospital"
+                  filterable
+                  clearable
+                  placeholder="请选择"
+                  style="width: 100%;"
                 >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col
-            style="margin-left: -80px"
-            :span="3"
-            :xs="24"
-            :sm="12"
-            :md="6"
-            :lg="6"
-            :xl="3"
-          >
-            <el-form-item>
-              <div style="margin-bottom: 1px">
-                <el-checkbox
-                  v-model="queryForm.include"
-                  :disabled="!queryForm.hospital"
-                  >包含下属机构</el-checkbox
+                  <el-option
+                    v-for="item in hospitals"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  >
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col
+              style="margin-left: -80px"
+              :span="3"
+              :xs="24"
+              :sm="12"
+              :md="6"
+              :lg="6"
+              :xl="3"
+            >
+              <el-form-item>
+                <div style="margin-bottom: 1px">
+                  <el-checkbox
+                    v-model="queryForm.include"
+                    :disabled="!queryForm.hospital"
+                    >包含下属机构</el-checkbox
+                  >
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+              <el-form-item label="人群分类:">
+                <el-select
+                  v-model="queryForm.personTags"
+                  clearable
+                  multiple
+                  collapse-tags
+                  placeholder="未选择代表默认全人群"
+                  style="width: 100%;"
                 >
-              </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-            <el-form-item label="人群分类:">
-              <el-select
-                v-model="queryForm.personTags"
-                clearable
-                multiple
-                collapse-tags
-                placeholder="未选择代表默认全人群"
-                style="width: 100%;"
-              >
-                <el-option
-                  v-for="item in personTagList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
+                  <el-option
+                    v-for="item in personTagList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  >
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+              <el-form-item label="档案问题:">
+                <el-select
+                  v-model="queryForm.tags"
+                  clearable
+                  multiple
+                  collapse-tags
+                  placeholder="请选择"
+                  style="width: 100%;"
                 >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-            <el-form-item label="档案问题:">
-              <el-select
-                v-model="queryForm.tags"
-                clearable
-                multiple
-                collapse-tags
-                placeholder="请选择"
-                style="width: 100%;"
-              >
-                <el-option
-                  v-for="item in tagList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
+                  <el-option
+                    v-for="item in tagList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  >
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
+              <el-form-item label="">
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="$asyncComputed.serverData.update()"
+                  >查询</el-button
                 >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
-            <el-form-item label="">
-              <el-button
-                type="primary"
-                size="mini"
-                @click="$asyncComputed.serverData.update()"
-                >查询</el-button
-              >
-              <el-button
-                type="primary"
-                size="mini"
-                @click="handleResetCondition"
-              >
-                重置条件
-              </el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="handleResetCondition"
+                >
+                  重置条件
+                </el-button>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </kn-collapse>
       <el-table
         v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
@@ -142,21 +149,21 @@
         height="100%"
         style="flex-grow: 1;"
       >
-        <el-table-column prop="name" label="姓名" min-width="50" align="center">
+        <el-table-column prop="name" label="姓名" min-width="80" align="center">
         </el-table-column>
         <el-table-column
           prop="idCardfFormat"
           label="身份证"
-          min-width="80"
+          min-width="180"
           align="center"
         ></el-table-column>
         <el-table-column
           prop="hospitalName"
           label="管理机构"
-          min-width="100"
+          min-width="220"
           align="center"
         ></el-table-column>
-        <el-table-column label="人群分类" min-width="100" align="center">
+        <el-table-column label="人群分类" min-width="200" align="center">
           <template slot-scope="scope">
             <el-tag
               v-for="tag of scope.row.personTags"
@@ -168,7 +175,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="档案问题" min-width="400" align="center">
+        <el-table-column label="档案问题" min-width="300" align="center">
           <template slot-scope="scope">
             <el-tag
               v-for="tag of scope.row.tags"
@@ -181,7 +188,22 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-scrollbar class="scrollbar" v-if="$settings.isMobile">
+        <el-pagination
+          background
+          :page-size="pageSize"
+          :current-page="pageNo"
+          layout="total, sizes, prev, pager, next"
+          style="margin:10px 0 -20px;"
+          :page-sizes="[50, 100, 200, 400]"
+          :total="serverData.count"
+          @current-change="handlePageNoChange"
+          @size-change="handlePageSizeChange"
+        >
+        </el-pagination>
+      </el-scrollbar>
       <el-pagination
+        v-else
         background
         :page-size="pageSize"
         :current-page="pageNo"
@@ -191,8 +213,7 @@
         :total="serverData.count"
         @current-change="handlePageNoChange"
         @size-change="handlePageSizeChange"
-      >
-      </el-pagination>
+      ></el-pagination>
     </el-card>
   </div>
 </template>
@@ -212,6 +233,7 @@ export default {
   },
   data() {
     return {
+      isCollapsed: !!this.$settings.isMobile,
       pageSize: 50,
       pageNo: 1,
       hospitals: this.$settings.user.hospitals,
@@ -369,6 +391,12 @@ export default {
 </script>
 
 <style lang="scss">
+.scrollbar {
+  height: 52px;
+  .el-scrollbar__wrap {
+    overflow-y: hidden !important;
+  }
+}
 .person-name {
   cursor: pointer;
 

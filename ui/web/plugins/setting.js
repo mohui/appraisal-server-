@@ -4,7 +4,8 @@ export const settingPlugin = {
       data() {
         return {
           user: null,
-          permissions: []
+          permissions: [],
+          isMobile: false
         };
       },
       methods: {
