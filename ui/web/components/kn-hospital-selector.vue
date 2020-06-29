@@ -2,7 +2,7 @@
   <el-cascader
     ref="areaCascader"
     :value="inputValue"
-    :placeholder="'请选择机构'"
+    :placeholder="placeholder || '请选择机构'"
     style="width: 100%"
     :props="dataOptions"
     collapse-tags
@@ -22,6 +22,9 @@ export default {
     code: {
       type: String,
       default: ''
+    },
+    placeholder: {
+      type: String
     }
   },
   data() {

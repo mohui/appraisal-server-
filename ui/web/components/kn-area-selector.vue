@@ -2,7 +2,7 @@
   <el-cascader
     ref="areaCascader"
     :value="inputValue"
-    :placeholder="'请选择地区'"
+    :placeholder="placeholder || '请选择地区'"
     style="width: 100%"
     :props="dataOptions"
     collapse-tags
@@ -17,6 +17,9 @@ export default {
   name: 'KnAreaSelector',
   props: {
     value: {
+      type: String
+    },
+    placeholder: {
       type: String
     }
   },
