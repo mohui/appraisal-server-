@@ -7,7 +7,8 @@
       :body-style="{
         height: 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -198,6 +199,7 @@
     <el-dialog
       :title="checkForm.id ? '修改规则' : '新建规则'"
       :visible.sync="dialogFormAddChecksVisible"
+      :width="$settings.isMobile ? '99%' : '50%'"
     >
       <el-form :model="checkForm" label-position="right" label-width="120px">
         <el-form-item label="考核名称：">
@@ -215,7 +217,11 @@
         </el-button>
       </div>
     </el-dialog>
-    <el-dialog title="快速复制" :visible.sync="dialogFormCloneChecksVisible">
+    <el-dialog
+      title="快速复制"
+      :visible.sync="dialogFormCloneChecksVisible"
+      :width="$settings.isMobile ? '99%' : '50%'"
+    >
       <el-form :model="checkForm" label-position="right" label-width="120px">
         <el-form-item label="复制考核名称：">
           {{ checkForm.checkName }}
@@ -241,7 +247,7 @@
       title="批量导入细则"
       :visible.sync="dialogUploadFormVisible"
       :before-close="handleClose"
-      width="30%"
+      :width="$settings.isMobile ? '99%' : '50%'"
     >
       <el-form :model="checkForm" label-position="right" label-width="120px">
         <el-form-item label="考核名称：">
@@ -303,7 +309,11 @@
         >
       </div>
     </el-dialog>
-    <el-dialog title="选择机构" :visible.sync="dialogSelectVisible">
+    <el-dialog
+      title="选择机构"
+      :visible.sync="dialogSelectVisible"
+      :width="$settings.isMobile ? '99%' : '50%'"
+    >
       <div class="hos-box">
         <div v-for="(item, i) of hospitalList" :key="i">
           <div class="center-title">
