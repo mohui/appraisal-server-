@@ -30,7 +30,7 @@
         <el-button
           size="small"
           plain
-          style="float:right; margin: 4px 0 0 30px"
+          style="float:right; margin: 4px 0 10px 30px"
           type="primary"
           @click="handleBack"
           v-if="showBackButton()"
@@ -39,7 +39,7 @@
       </div>
     </el-card>
     <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8">
+      <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
         <el-card
           shadow="hover"
           v-loading="$asyncComputed.totalServerData.updating"
@@ -91,7 +91,15 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="16" v-if="params.listFlag === 'quality'">
+      <el-col
+        :span="16"
+        :xs="24"
+        :sm="12"
+        :md="16"
+        :lg="16"
+        :xl="16"
+        v-if="params.listFlag === 'quality'"
+      >
         <el-card shadow="hover">
           <div class="score-detail">
             <div class="second-title" style="float: left">
@@ -101,7 +109,7 @@
         </el-card>
       </el-col>
       <div v-else>
-        <el-col :span="10">
+        <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
           <el-card
             shadow="hover"
             v-loading="
@@ -117,7 +125,7 @@
             </div>
           </el-card>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-card shadow="hover">
             <div class="score-detail">
               <div class="second-title" style="float: left">
@@ -228,7 +236,7 @@
         v-loading="$asyncComputed.workpointRankServerData.updating"
       >
         <!--一级机构排行-->
-        <el-col :span="12">
+        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
           <el-card shadow="hover">
             <h3 class="ins-ranking-title">一级机构排行</h3>
             <div
@@ -277,7 +285,7 @@
           </el-card>
         </el-col>
         <!--二级机构排行-->
-        <el-col :span="12">
+        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
           <el-card shadow="hover">
             <h3 class="ins-ranking-title">二级机构排行</h3>
             <div
@@ -569,7 +577,7 @@
       :gutter="20"
       style="margin-top: 20px"
     >
-      <el-col :span="12">
+      <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
         <el-card shadow="hover">
           <p style="color:#1096d0; font-size:20px; font-weight:500;">
             医生工分
@@ -609,7 +617,7 @@
           </el-table>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
         <el-card shadow="hover">
           <p style="color:#1096d0; font-size:20px; font-weight:500;">
             工分项目
