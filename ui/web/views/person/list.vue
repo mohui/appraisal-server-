@@ -40,17 +40,19 @@
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
-              <el-form-item label="地区:">
-                <kn-area-selector v-model="queryForm.region"></kn-area-selector>
-              </el-form-item>
-            </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
-              <el-form-item label="管理机构:">
+              <el-form-item label="地区机构:">
                 <div style="display: flex">
-                  <kn-hospital-selector
-                    v-model="queryForm.hospital"
-                    :code="queryForm.region"
-                  ></kn-hospital-selector>
+                  <kn-area-cascader
+                    style="width: 100%"
+                    :code="queryForm.region || $settings.user.regionId"
+                    :hospital="queryForm.hospital"
+                    @outValue="
+                      value => {
+                        queryForm.region = value.regionId;
+                        queryForm.hospital = value.hospitalId;
+                      }
+                    "
+                  ></kn-area-cascader>
                   <el-tooltip content="包含下属机构">
                     <el-checkbox
                       v-model="queryForm.include"
