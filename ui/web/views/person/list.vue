@@ -312,6 +312,7 @@ export default {
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
           hospital: this.queryForm.hospital,
+          region: this.queryForm.region,
           tags: this.queryForm.tags
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
