@@ -2,11 +2,12 @@
   <el-cascader
     ref="areaCascader"
     :value="inputValue"
-    :placeholder="placeholder || '请选择地区'"
+    :placeholder="placeholderComputed"
     style="width: 100%"
     :props="dataOptions"
     collapse-tags
     filterable
+    clearable
     @input="value => this.$emit('input', value)"
     @change="handleChange()"
   ></el-cascader>
@@ -26,6 +27,7 @@ export default {
   data() {
     const that = this;
     return {
+      dataList: [],
       code: this.$settings.user.regionId,
       dataOptions: {
         lazy: true,
@@ -33,17 +35,24 @@ export default {
         checkStrictly: true,
         async lazyLoad(node, resolve) {
           const {value = that.code, data} = node;
-          const dataList = (await that.$api.Region.list(value)).map(it => ({
+          that.dataList = (await that.$api.Region.list(value)).map(it => ({
             label: it.name,
             value: it.code,
             level: it.level,
             leaf: data?.level >= 4
           }));
-          resolve(dataList);
+          resolve(that.dataList);
         }
       },
       inputValue: this.value
     };
+  },
+  computed: {
+    placeholderComputed() {
+      if (this.value)
+        return this.dataList.find(it => it.value === this.value)?.label ?? '';
+      return this.placeholder ?? '请选择地区';
+    }
   },
   watch: {
     value(newValue) {

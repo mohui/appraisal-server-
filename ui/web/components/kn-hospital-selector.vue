@@ -2,11 +2,12 @@
   <el-cascader
     ref="areaCascader"
     :value="inputValue"
-    :placeholder="placeholder || '请选择机构'"
+    :placeholder="placeholderComputed"
     style="width: 100%"
     :props="dataOptions"
     collapse-tags
     filterable
+    clearable
     @input="value => this.$emit('input', value)"
     @change="handleChange()"
   ></el-cascader>
@@ -29,6 +30,7 @@ export default {
   },
   data() {
     return {
+      dataList: [],
       dataOptions: {
         lazy: true,
         emitPath: false,
@@ -38,7 +40,7 @@ export default {
           if (!value) {
             resolve([
               {
-                value: 'err',
+                value: '',
                 label: '请先选择所属地区',
                 disabled: true,
                 leaf: true
@@ -47,7 +49,7 @@ export default {
             return;
           }
 
-          const dataList = (level === 0
+          this.dataList = (level === 0
             ? await this.$api.Region.listHospital(value)
             : await this.$api.Hospital.list(value)
           ).map(it => ({
@@ -55,11 +57,18 @@ export default {
             label: it.name,
             leaf: level >= 2
           }));
-          resolve(dataList);
+          resolve(this.dataList);
         }
       },
       inputValue: this.value
     };
+  },
+  computed: {
+    placeholderComputed() {
+      if (this.value)
+        return this.dataList.find(it => it.value === this.value)?.label ?? '';
+      return this.placeholder ?? '请选择机构';
+    }
   },
   watch: {
     code() {
