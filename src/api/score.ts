@@ -614,7 +614,7 @@ export default class Score {
       where: {
         code,
         level: {
-          [Op.lt]: 3
+          [Op.lte]: 3
         }
       }
     });
