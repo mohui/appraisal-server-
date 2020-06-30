@@ -21,7 +21,7 @@
       >
         <el-form :model="queryForm" label-width="100px" size="mini">
           <el-row>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="姓名:">
                 <kn-debounce-input
                   v-model.trim="queryForm.name"
@@ -30,7 +30,7 @@
                 ></kn-debounce-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="身份证号码:">
                 <kn-debounce-input
                   v-model.trim="queryForm.idCard"
@@ -39,45 +39,29 @@
                 ></kn-debounce-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-              <el-form-item label="管理机构:">
-                <el-select
-                  v-model="queryForm.hospital"
-                  filterable
-                  clearable
-                  placeholder="请选择"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in hospitals"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  >
-                  </el-option>
-                </el-select>
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
+              <el-form-item label="地区:">
+                <kn-area-selector v-model="queryForm.region"></kn-area-selector>
               </el-form-item>
             </el-col>
-            <el-col
-              style="margin-left: -80px"
-              :span="3"
-              :xs="24"
-              :sm="12"
-              :md="6"
-              :lg="6"
-              :xl="3"
-            >
-              <el-form-item>
-                <div style="margin-bottom: 1px">
-                  <el-checkbox
-                    v-model="queryForm.include"
-                    :disabled="!queryForm.hospital"
-                    >包含下属机构</el-checkbox
-                  >
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
+              <el-form-item label="管理机构:">
+                <div style="display: flex">
+                  <kn-hospital-selector
+                    v-model="queryForm.hospital"
+                    :code="queryForm.region"
+                  ></kn-hospital-selector>
+                  <el-tooltip content="包含下属机构">
+                    <el-checkbox
+                      v-model="queryForm.include"
+                      style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.hospital"
+                    ></el-checkbox>
+                  </el-tooltip>
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="人群分类:">
                 <el-select
                   v-model="queryForm.personTags"
@@ -97,7 +81,7 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="档案问题:">
                 <el-select
                   v-model="queryForm.tags"
@@ -242,6 +226,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        region: '',
         include: false,
         personTags: []
       },
@@ -301,6 +286,7 @@ export default {
         let query = {};
         if (this.queryForm.name) query.name = this.queryForm.name;
         if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
+        if (this.queryForm.region) query.region = this.queryForm.region;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
@@ -347,6 +333,7 @@ export default {
     initParams(route) {
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
+      if (route.query.region) this.queryForm.region = route.query.region;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
       if (route.query.include) this.queryForm.include = route.query.include;
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
