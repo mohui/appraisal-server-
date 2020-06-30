@@ -27,7 +27,6 @@ export default {
   data() {
     const that = this;
     return {
-      dataList: [],
       code: this.$settings.user.regionId,
       dataOptions: {
         lazy: true,
@@ -35,22 +34,22 @@ export default {
         checkStrictly: true,
         async lazyLoad(node, resolve) {
           const {value = that.code, data} = node;
-          that.dataList = (await that.$api.Region.list(value)).map(it => ({
-            label: it.name,
-            value: it.code,
-            level: it.level,
-            leaf: data?.level >= 4
-          }));
-          resolve(that.dataList);
+          resolve(
+            (await that.$api.Region.list(value)).map(it => ({
+              label: it.name,
+              value: it.code,
+              level: it.level,
+              leaf: data?.level >= 4
+            }))
+          );
         }
       },
       inputValue: this.value
     };
   },
-  computed: {
-    placeholderComputed() {
-      if (this.value)
-        return this.dataList.find(it => it.value === this.value)?.label ?? '';
+  asyncComputed: {
+    async placeholderComputed() {
+      if (this.value) return (await this.$api.Region.info(this.value))?.name;
       return this.placeholder ?? '请选择地区';
     }
   },

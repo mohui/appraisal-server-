@@ -30,7 +30,6 @@ export default {
   },
   data() {
     return {
-      dataList: [],
       dataOptions: {
         lazy: true,
         emitPath: false,
@@ -49,24 +48,25 @@ export default {
             return;
           }
 
-          this.dataList = (level === 0
-            ? await this.$api.Region.listHospital(value)
-            : await this.$api.Hospital.list(value)
-          ).map(it => ({
-            value: it.code || it.id,
-            label: it.name,
-            leaf: level >= 2
-          }));
-          resolve(this.dataList);
+          resolve(
+            (level === 0
+              ? await this.$api.Region.listHospital(value)
+              : await this.$api.Hospital.list(value)
+            ).map(it => ({
+              value: it.code || it.id,
+              label: it.name,
+              leaf: level >= 2
+            }))
+          );
         }
       },
       inputValue: this.value
     };
   },
-  computed: {
-    placeholderComputed() {
-      if (this.value)
-        return this.dataList.find(it => it.value === this.value)?.label ?? '';
+  asyncComputed: {
+    async placeholderComputed() {
+      if (this.value && this.code)
+        return (await this.$api.Hospital.info(this.value))?.name;
       return this.placeholder ?? '请选择机构';
     }
   },
