@@ -468,7 +468,7 @@
                   </span>
                   <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                   <i
-                    v-if="!$settings.user.isRegion && scope.row.isAttach"
+                    v-if="scope.row.isAttach"
                     style="padding-left:5px; color:#ff9800"
                     class="el-icon-document"
                     @click="handleDialogAppraisalFileListVisible(scope.row)"
