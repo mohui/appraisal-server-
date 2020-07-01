@@ -44,7 +44,7 @@
                 <div style="display: flex">
                   <kn-area-cascader
                     style="width: 100%"
-                    :code="queryForm.region || $settings.user.regionId"
+                    :code="queryForm.region"
                     :hospital="queryForm.hospital"
                     @outValue="
                       value => {
@@ -370,6 +370,7 @@ export default {
       this.queryForm = {
         name: '',
         hospital: '',
+        region: '',
         idCard: '',
         tags: [],
         include: false,
