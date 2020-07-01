@@ -456,19 +456,6 @@ export default {
     if (!id) this.$router.push('/person');
     this.id = id;
   },
-  mounted() {
-    if (this.healthyList.length > 0) {
-      this.activeTab = 'physical';
-      return;
-    }
-    if (this.hypertensions.length > 0) {
-      this.activeTab = 'hypertension';
-      return;
-    }
-    if (this.diabetesList.length > 0) {
-      this.activeTab = 'diabetes';
-    }
-  },
   computed: {
     tags() {
       let it = this.document;
