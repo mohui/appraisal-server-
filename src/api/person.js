@@ -236,17 +236,44 @@ export default class Person {
       await etlQuery(
         // language=PostgreSQL
         `
-          select personnum       as id,
-                 name,
-                 address,
-                 Residencestring as "census",
-                 phone,
-                 filedate        as "fileDate",
-                 adminorganization,
-                 operateorganization,
-                 operatetime as "updateAt"
-          from view_personinfo
-          where personnum = ?
+          select vp.personnum as id,
+                 vp.name,
+                 vp.address,
+                 vp.Residencestring as "census",
+                 vp.phone,
+                 vp.filedate        as "fileDate",
+                 vp.adminorganization,
+                 vp.operateorganization,
+                 mp."S03",
+                 mp."S23",
+                 mp."O00",
+                 mp."O01",
+                 mp."O02",
+                 mp."H00",
+                 mp."H01",
+                 mp."H02",
+                 mp."D00",
+                 mp."D01",
+                 mp."D02",
+                 mp."C01",
+                 mp."C02",
+                 mp."C03",
+                 mp."C04",
+                 mp."C05",
+                 mp."C00",
+                 mp."C06",
+                 mp."C07",
+                 mp."C08",
+                 mp."C09",
+                 mp."C10",
+                 mp."C11",
+                 mp."C13",
+                 mp."C14",
+                 mp."E00",
+                 vp.operatetime as "updateAt"
+          from view_personinfo vp
+             inner join mark_person mp on mp.personnum = vp.personnum
+          where vp.personnum = ?
           limit 1
         `,
         [id]
