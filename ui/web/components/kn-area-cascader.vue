@@ -39,7 +39,6 @@
     </el-form>
     <el-input
       slot="reference"
-      v-model="inputText"
       :placeholder="placeholderInputText || '请选择'"
       style="width:100%"
     ></el-input>
@@ -60,8 +59,7 @@ export default {
   },
   data() {
     return {
-      inputText: '',
-      regionId: this.code || '',
+      regionId: this.code || this.$settings.user.regionId,
       hospitalId: this.hospital || '',
       areaOptions: {
         lazy: true,
@@ -112,15 +110,17 @@ export default {
   },
   watch: {
     regionId() {
-      //code更变后清除机构的所选
+      //清掉一波placeholder
       this.placeholderHospital = '';
+      this.placeholderArea = '';
+      //重新加载lazyLoad
+      if (this.regionId) this.$refs['hospitalCascader']?.panel?.lazyLoad();
       if (!this.regionId) {
         this.placeholderArea = '';
         this.regionId = this.$settings.user.regionId;
       }
+      //code更变后清除机构的所选
       this.$refs['hospitalCascader']?.panel?.clearCheckedNodes();
-      //重新加载lazyLoad
-      this.$refs['hospitalCascader']?.panel?.lazyLoad();
     },
     hospitalId() {
       //hospitalId===''时清除机构的placeholder
@@ -130,6 +130,9 @@ export default {
   asyncComputed: {
     placeholderArea: {
       async get() {
+        if (!this.code)
+          //若父组件的code为空了,则要清除所选
+          this.$refs['areaCascader']?.panel?.clearCheckedNodes();
         if (this.code) return (await this.$api.Region.info(this.code))?.name;
         return '';
       },
@@ -137,6 +140,9 @@ export default {
     },
     placeholderHospital: {
       async get() {
+        if (!this.hospital)
+          //若父组件的hospital为空了,则要清除所选
+          this.$refs['hospitalCascader']?.panel?.clearCheckedNodes();
         if (this.hospital)
           return (await this.$api.Hospital.info(this.hospital))?.name;
         return '';
@@ -146,20 +152,11 @@ export default {
   },
   computed: {
     placeholderInputText() {
-      return `${this.placeholderArea}${
-        this.placeholderArea && this.placeholderHospital ? '/' : ''
-      }${this.placeholderHospital}`;
+      return this.placeholderHospital || this.placeholderArea || '';
     }
   },
   methods: {
     click() {
-      const regionText =
-        this.$refs['areaCascader']?.getCheckedNodes()[0]?.label ?? '';
-      const hospitalText =
-        this.$refs['hospitalCascader']?.getCheckedNodes()[0]?.label ?? '';
-      this.inputText = `${regionText}${
-        regionText && hospitalText ? '/' : ''
-      }${hospitalText}`;
       this.$emit('outValue', {
         regionId: this.regionId,
         hospitalId: this.hospitalId
