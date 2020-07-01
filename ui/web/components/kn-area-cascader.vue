@@ -117,6 +117,10 @@ export default {
       this.$refs['hospitalCascader']?.panel?.clearCheckedNodes();
       //重新加载lazyLoad
       this.$refs['hospitalCascader']?.panel?.lazyLoad();
+    },
+    hospitalId() {
+      //hospitalId===''时清除机构的placeholder
+      if (!this.hospitalId) this.placeholderHospital = '';
     }
   },
   asyncComputed: {
