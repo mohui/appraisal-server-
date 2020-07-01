@@ -34,7 +34,6 @@
         <el-button size="mini" @click="$refs.pop.showPopper = false"
           >取消</el-button
         >
-        <el-button size="mini" type="warning" @click="clear()">清空</el-button>
       </el-form-item>
     </el-form>
     <el-input
@@ -157,13 +156,6 @@ export default {
       });
       this.$refs.pop.showPopper = false;
     },
-    clear() {
-      this.code = '';
-      this.hospital = '';
-      this.regionId = '';
-      this.hospitalId = '';
-      this.inputText = '';
-    },
     handleChange() {
       this.$refs['areaCascader'].toggleDropDownVisible(false);
       this.$refs['hospitalCascader'].toggleDropDownVisible(false);
@@ -175,7 +167,5 @@ export default {
 <style scoped>
 .el-form-item {
   margin-bottom: 10px;
-}
-.input-clear {
 }
 </style>
