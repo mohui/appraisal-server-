@@ -6,6 +6,7 @@
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
+          v-loading="$asyncComputed.personDetailSeverData.updating"
           shadow="never"
           style="height: 100%;"
           :body-style="{
@@ -457,19 +458,6 @@ export default {
     const id = this.$route.query.id;
     if (!id) this.$router.push('/person');
     this.id = id;
-  },
-  mounted() {
-    if (this.healthyList.length > 0) {
-      this.activeTab = 'physical';
-      return;
-    }
-    if (this.hypertensions.length > 0) {
-      this.activeTab = 'hypertension';
-      return;
-    }
-    if (this.diabetesList.length > 0) {
-      this.activeTab = 'diabetes';
-    }
   },
   computed: {
     tags() {
