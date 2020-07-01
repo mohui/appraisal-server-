@@ -112,6 +112,8 @@ export default {
   watch: {
     regionId() {
       //code更变后清除机构的所选
+      this.placeholderHospital = '';
+      if (!this.regionId) this.placeholderArea = '';
       this.$refs['hospitalCascader']?.panel?.clearCheckedNodes();
       //重新加载lazyLoad
       this.$refs['hospitalCascader']?.panel?.lazyLoad();
