@@ -12,6 +12,7 @@
           filterable
           clearable
           size="mini"
+          :disabled="!$settings.user.isRegion"
           @change="handleChange()"
         ></el-cascader>
       </el-form-item>
