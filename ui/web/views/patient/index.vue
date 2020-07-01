@@ -6,6 +6,7 @@
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
+          v-loading="$asyncComputed.personDetailSeverData.updating"
           shadow="never"
           style="height: 100%;"
           :body-style="{
