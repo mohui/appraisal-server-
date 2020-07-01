@@ -125,7 +125,7 @@
                   <tr>
                     <td colspan="4">职业</td>
                     <td colspan="20">
-                      <el-radio-group v-model="personDetailData.education">
+                      <el-radio-group v-model="personDetailData.profession">
                         <el-radio label="0"
                           >国家机关、党群组织、企业、事业单位负责人</el-radio
                         >
