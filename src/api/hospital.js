@@ -411,4 +411,12 @@ export default class Hospital {
     res.send(buffer);
     res.end();
   }
+
+  /***
+   * 机构信息
+   * @param id
+   */
+  async info(id) {
+    return HospitalModel.findOne({where: {id}});
+  }
 }

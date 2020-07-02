@@ -4,6 +4,8 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
+import {HospitalModel} from '../database/model';
+import {Op} from 'sequelize';
 
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
@@ -68,6 +70,10 @@ export default class Person {
         .string()
         .required()
         .allow('', null),
+      region: should
+        .string()
+        .required()
+        .allow('', null),
       idCard: should
         .string()
         .required()
@@ -80,13 +86,24 @@ export default class Person {
     })
   )
   async list(params) {
-    const {pageSize, pageNo, hospital, idCard, tags, include} = params;
+    const {pageSize, pageNo, hospital, region, idCard, tags, include} = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
     const his = '340203';
     let {name} = params;
     if (name) name = `%${name}%`;
-    let hospitals = Context.current.user.hospitals.map(it => it.id);
+    let hospitals = [];
+    //没有选机构和地区,则默认查询当前用户所拥有的机构
+    if (!region && !hospital)
+      hospitals = Context.current.user.hospitals.map(it => it.id);
+    //仅有地区,则查询该地区下的所有机构
+    if (region && !hospital) {
+      hospitals = (
+        await HospitalModel.findAll({
+          where: {region: {[Op.like]: `${region}%`}}
+        })
+      ).map(it => it.id);
+    }
     if (hospital) hospitals = [hospital];
     // language=PostgreSQL
     hospitals = (

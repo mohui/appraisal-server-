@@ -21,7 +21,7 @@
       >
         <el-form :model="queryForm" label-width="100px" size="mini">
           <el-row>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="姓名:">
                 <kn-debounce-input
                   v-model.trim="queryForm.name"
@@ -30,7 +30,7 @@
                 ></kn-debounce-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="身份证号码:">
                 <kn-debounce-input
                   v-model.trim="queryForm.idCard"
@@ -39,45 +39,31 @@
                 ></kn-debounce-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
-              <el-form-item label="管理机构:">
-                <el-select
-                  v-model="queryForm.hospital"
-                  filterable
-                  clearable
-                  placeholder="请选择"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in hospitals"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  >
-                  </el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col
-              style="margin-left: -80px"
-              :span="3"
-              :xs="24"
-              :sm="12"
-              :md="6"
-              :lg="6"
-              :xl="3"
-            >
-              <el-form-item>
-                <div style="margin-bottom: 1px">
-                  <el-checkbox
-                    v-model="queryForm.include"
-                    :disabled="!queryForm.hospital"
-                    >包含下属机构</el-checkbox
-                  >
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
+              <el-form-item label="地区机构:">
+                <div style="display: flex">
+                  <kn-area-cascader
+                    style="width: 100%"
+                    :code="queryForm.region"
+                    :hospital="queryForm.hospital"
+                    @outValue="
+                      value => {
+                        queryForm.region = value.regionId;
+                        queryForm.hospital = value.hospitalId;
+                      }
+                    "
+                  ></kn-area-cascader>
+                  <el-tooltip content="包含下属机构">
+                    <el-checkbox
+                      v-model="queryForm.include"
+                      style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.hospital"
+                    ></el-checkbox>
+                  </el-tooltip>
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="人群分类:">
                 <el-select
                   v-model="queryForm.personTags"
@@ -97,7 +83,7 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="档案问题:">
                 <el-select
                   v-model="queryForm.tags"
@@ -152,7 +138,7 @@
         <el-table-column prop="name" label="姓名" min-width="80" align="center">
         </el-table-column>
         <el-table-column
-          prop="idCardfFormat"
+          prop="idCard"
           label="身份证"
           min-width="180"
           align="center"
@@ -220,9 +206,10 @@
 
 <script>
 import {
+  personTags,
   personTagList,
   documentTagList,
-  getTagsList
+  documentTags
 } from '../../../../common/person-tag.ts';
 
 export default {
@@ -241,6 +228,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        region: '',
         include: false,
         personTags: []
       },
@@ -251,11 +239,38 @@ export default {
   computed: {
     tableData() {
       return this.serverData.rows.map(it => {
-        it = getTagsList(it);
-        it.idCardfFormat = it.idCard.replace(
-          /^(.{10})(?:\d+)(.{2})$/,
-          '$1******$2'
-        );
+        it.tags = [];
+        it.personTags = [];
+        //重点人群
+        if (it.C00) it.personTags.push(personTags.C00);
+        if (it.C01) it.personTags.push(personTags.C01);
+        if (it.C02) it.personTags.push(personTags.C02);
+        if (it.C03) it.personTags.push(personTags.C03);
+        if (it.C04) it.personTags.push(personTags.C04);
+        if (it.C05) it.personTags.push(personTags.C05);
+        if (it.C06) it.personTags.push(personTags.C06);
+        if (it.C07) it.personTags.push(personTags.C07);
+        if (it.C08) it.personTags.push(personTags.C08);
+        if (it.C09) it.personTags.push(personTags.C09);
+        if (it.C10) it.personTags.push(personTags.C10);
+        if (it.C11) it.personTags.push(personTags.C11);
+        if (it.C13) it.personTags.push(personTags.C13);
+        if (it.C14) it.personTags.push(personTags.C14);
+        // 健康档案标记
+        if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
+        if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
+        // 人群标记错误
+        if (it.E00) it.tags.push(documentTags.E00);
+        // 老年人标记
+        if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
+        if (it.O01 !== null) it.tags.push(documentTags.O01(it.O01));
+        if (it.O02 !== null) it.tags.push(documentTags.O02(it.O02));
+        // 高血压标记
+        if (it.H01 !== null) it.tags.push(documentTags.H01(it.H01));
+        if (it.H02 !== null) it.tags.push(documentTags.H02(it.H02));
+        // 糖尿病标记
+        if (it.D01 !== null) it.tags.push(documentTags.D01(it.D01));
+        if (it.D02 !== null) it.tags.push(documentTags.D02(it.D02));
         return it;
       });
     }
@@ -269,6 +284,7 @@ export default {
         let query = {};
         if (this.queryForm.name) query.name = this.queryForm.name;
         if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
+        if (this.queryForm.region) query.region = this.queryForm.region;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
@@ -294,6 +310,7 @@ export default {
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
           hospital: this.queryForm.hospital,
+          region: this.queryForm.region,
           tags: this.queryForm.tags
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
@@ -315,6 +332,7 @@ export default {
     initParams(route) {
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
+      if (route.query.region) this.queryForm.region = route.query.region;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
       if (route.query.include) this.queryForm.include = route.query.include;
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
@@ -346,6 +364,7 @@ export default {
       this.queryForm = {
         name: '',
         hospital: '',
+        region: '',
         idCard: '',
         tags: [],
         include: false,
