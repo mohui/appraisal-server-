@@ -82,7 +82,7 @@ export default {
         emitPath: false,
         checkStrictly: true,
         lazyLoad: async (node, resolve) => {
-          const {level, value = this.regionId} = node;
+          const {level, value = this.regionId, data} = node;
           if (!value) {
             resolve([
               {
@@ -101,7 +101,8 @@ export default {
             ).map(it => ({
               value: it.code || it.id,
               label: it.name,
-              leaf: level >= 2
+              level: it?.region?.level,
+              leaf: data?.level >= 4 || level >= 3
             }))
           );
         }
