@@ -152,7 +152,7 @@
         <el-table-column prop="name" label="姓名" min-width="80" align="center">
         </el-table-column>
         <el-table-column
-          prop="idCardfFormat"
+          prop="idCard"
           label="身份证"
           min-width="180"
           align="center"
@@ -284,10 +284,6 @@ export default {
         // 糖尿病标记
         if (it.D01 !== null) it.tags.push(documentTags.D01(it.D01));
         if (it.D02 !== null) it.tags.push(documentTags.D02(it.D02));
-        it.idCardfFormat = it.idCard.replace(
-          /^(.{10})(?:\d+)(.{2})$/,
-          '$1******$2'
-        );
         return it;
       });
     }
