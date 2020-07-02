@@ -29,7 +29,7 @@
       </div>
       <div class="patient-tag-body">
         <el-tag
-          v-for="tag of personTags"
+          v-for="tag of patient.personTags"
           :key="tag.label"
           style="margin:0 5px 5px 0"
           size="mini"
@@ -44,7 +44,7 @@
       </div>
       <div class="patient-tag-body">
         <el-tag
-          v-for="tag of tags"
+          v-for="tag of patient.tags"
           :key="tag.label"
           style="margin:0 5px 5px 0"
           size="mini"
@@ -64,8 +64,7 @@ export default {
       default: () => {
         return {
           id: '',
-          avatar:
-            'https://pic4.zhimg.com/80/v2-3cdfb5a464dc931630dd359b71a10587_1440w.jpg',
+          avatar: '',
           name: '',
           address: '',
           census: '', //户籍地址
@@ -82,12 +81,6 @@ export default {
           fileDate: '' //建档日期
         };
       }
-    },
-    tags: {
-      type: Array
-    },
-    personTags: {
-      type: Array
     }
   }
 };

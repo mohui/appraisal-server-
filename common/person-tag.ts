@@ -199,3 +199,42 @@ export const documentTagList = [
     name: documentTags.E00.label
   }
 ];
+
+/**
+ * 返回标记
+ */
+export function getTagsList(it) {
+  it.tags = [];
+  it.personTags = [];
+  //重点人群
+  if (it.C00) it.personTags.push(personTags.C00);
+  if (it.C01) it.personTags.push(personTags.C01);
+  if (it.C02) it.personTags.push(personTags.C02);
+  if (it.C03) it.personTags.push(personTags.C03);
+  if (it.C04) it.personTags.push(personTags.C04);
+  if (it.C05) it.personTags.push(personTags.C05);
+  if (it.C06) it.personTags.push(personTags.C06);
+  if (it.C07) it.personTags.push(personTags.C07);
+  if (it.C08) it.personTags.push(personTags.C08);
+  if (it.C09) it.personTags.push(personTags.C09);
+  if (it.C10) it.personTags.push(personTags.C10);
+  if (it.C11) it.personTags.push(personTags.C11);
+  if (it.C13) it.personTags.push(personTags.C13);
+  if (it.C14) it.personTags.push(personTags.C14);
+  // 健康档案标记
+  if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
+  if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
+  // 人群标记错误
+  if (it.E00) it.tags.push(documentTags.E00);
+  // 老年人标记
+  if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
+  if (it.O01 !== null) it.tags.push(documentTags.O01(it.O01));
+  if (it.O02 !== null) it.tags.push(documentTags.O02(it.O02));
+  // 高血压标记
+  if (it.H01 !== null) it.tags.push(documentTags.H01(it.H01));
+  if (it.H02 !== null) it.tags.push(documentTags.H02(it.H02));
+  // 糖尿病标记
+  if (it.D01 !== null) it.tags.push(documentTags.D01(it.D01));
+  if (it.D02 !== null) it.tags.push(documentTags.D02(it.D02));
+  return it;
+}
