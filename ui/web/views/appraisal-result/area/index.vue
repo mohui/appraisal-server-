@@ -1,138 +1,146 @@
 <template>
-  <div>
-    <!--顶部表头-->
-    <el-card class="header-box-card" shadow="never">
-      <div class="header-title" style="float: left">
-        {{ totalData.name }}两卡制管理
-      </div>
-      <div class="kpiSum-select">
-        <el-button-group style="margin-left: 20px">
-          <el-button
-            size="small"
-            :class="{'el-button--primary': params.listFlag === 'quality'}"
-            @click="latTypeChanged('quality')"
-          >
-            质量系数
-          </el-button>
-          <el-button
-            size="small"
-            :class="{'el-button--primary': params.listFlag === 'score'}"
-            @click="latTypeChanged('score')"
-          >
-            工分值
-          </el-button>
-        </el-button-group>
-      </div>
-    </el-card>
-    <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
-        <el-card shadow="hover">
-          <div class="score-detail" v-if="params.listFlag === 'score'">
-            <p class="second-title" style="margin:0; text-align:left;">
+  <div class="wrapper">
+    <div>
+      <!--顶部表头-->
+      <el-card class="header-box-card" shadow="never">
+        <div class="header-title" style="float: left">
+          {{ totalData.name }}两卡制管理
+        </div>
+        <div class="kpiSum-select">
+          <el-button-group style="margin-left: 20px">
+            <el-button
+              size="small"
+              :class="{'el-button--primary': params.listFlag === 'quality'}"
+              @click="latTypeChanged('quality')"
+            >
+              质量系数
+            </el-button>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': params.listFlag === 'score'}"
+              @click="latTypeChanged('score')"
+            >
               工分值
-            </p>
-            <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
-            <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ totalData.score }}
-            </h3>
-            <span>分</span>
-            <p style="margin:10px 0;">{{ date }}</p>
-            <p style="font-size:13px;">{{ totalData.name }}</p>
-            <div style="padding-top: 40px">
-              <p>校正前 {{ totalData.originalScore }}分</p>
+            </el-button>
+          </el-button-group>
+        </div>
+      </el-card>
+      <el-row :gutter="20" style="margin: 20px -10px">
+        <el-col :span="8" v-loading="$asyncComputed.totalServerData.updating">
+          <el-card shadow="hover">
+            <div class="score-detail" v-if="params.listFlag === 'score'">
+              <p class="second-title" style="margin:0; text-align:left;">
+                工分值
+              </p>
+              <p style="color: #6C7177; font-size:16px; margin:10px 0;">
+                校正后
+              </p>
+              <h3 style="font-size: 30px; margin:0; display:inline-block">
+                {{ totalData.score }}
+              </h3>
+              <span>分</span>
+              <p style="margin:10px 0;">{{ date }}</p>
+              <p style="font-size:13px;">{{ totalData.name }}</p>
+              <div style="padding-top: 40px">
+                <p>校正前 {{ totalData.originalScore }}分</p>
+              </div>
             </div>
-          </div>
-          <div class=" score-detail" v-if="params.listFlag === 'quality'">
-            <two-card-circle
-              :coefficient="totalData.fixedDecimalRate"
-              :pointDate="date"
-            ></two-card-circle>
-            <span style="position: absolute; bottom: 20px; left: 31%;">
-              (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
-            </span>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="16" v-if="params.listFlag === 'quality'">
-        <el-card shadow="hover">
-          <div class="score-detail">
-            <div class="second-title" style="float: left">
-              历史趋势（待实现）
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <div v-else>
-        <el-col :span="10">
-          <el-card
-            shadow="hover"
-            v-loading="$asyncComputed.areaRankServerData.updating"
-          >
-            <div class="score-detail">
-              <two-card-bar
-                :barxAxisData="workpointBarData.xAxisData"
-                :baryAxisData="workpointBarData.yAxisData"
-              ></two-card-bar>
+            <div class=" score-detail" v-if="params.listFlag === 'quality'">
+              <two-card-circle
+                :coefficient="totalData.fixedDecimalRate"
+                :pointDate="date"
+              ></two-card-circle>
+              <span style="position: absolute; bottom: 20px; left: 31%;">
+                (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
+              </span>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="16" v-if="params.listFlag === 'quality'">
           <el-card shadow="hover">
             <div class="score-detail">
               <div class="second-title" style="float: left">
-                人脸采集信息（待实现）
+                历史趋势（待实现）
               </div>
             </div>
           </el-card>
         </el-col>
-      </div>
-    </el-row>
-    <el-col :span="24">
-      <el-card
-        shadow="hover"
-        v-loading="$asyncComputed.areaRankServerData.updating"
-      >
-        <h3 class="area-ranking-title">下级地区排行</h3>
-        <div v-for="(item, index) of areaRankData" :key="item.id">
-          <!--下级质量系数排行-->
-          <div
-            v-if="params.listFlag === 'quality'"
-            class="pointer"
-            @click="handleClickSubordinateArea(item.id, item.level)"
-          >
-            <p>
-              {{ index + 1 }}、{{ item.name }}
-              <span style="float:right"
-                >{{ Math.round(item.rate * 100) }}% 考核办法</span
-              >
-            </p>
-            <el-progress
-              :text-inside="true"
-              :stroke-width="18"
-              :percentage="Math.round(item.rate * 100)"
+        <div v-else>
+          <el-col :span="10">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.areaRankServerData.updating"
             >
-            </el-progress>
-          </div>
-          <!--一级机构工分值排行-->
-          <div
-            class="pointer"
-            v-else-if="params.listFlag === 'score'"
-            @click="handleClickSubordinateArea(item.id, item.level)"
-          >
-            <p>{{ index + 1 }}、{{ item.name }}</p>
-            <progress-score
-              :label="item.score"
-              :height="18"
-              :percentage="
-                item.score != 0 ? Math.round((item.score / maxScore) * 100) : 0
-              "
-              style="padding:0 20px;"
-            >
-            </progress-score>
-          </div>
+              <div class="score-detail">
+                <two-card-bar
+                  :barxAxisData="workpointBarData.xAxisData"
+                  :baryAxisData="workpointBarData.yAxisData"
+                ></two-card-bar>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="6">
+            <el-card shadow="hover">
+              <div class="score-detail">
+                <div class="second-title" style="float: left">
+                  人脸采集信息（待实现）
+                </div>
+              </div>
+            </el-card>
+          </el-col>
         </div>
-      </el-card>
-    </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <el-card
+            shadow="hover"
+            v-loading="$asyncComputed.areaRankServerData.updating"
+          >
+            <h3 class="area-ranking-title">下级地区排行</h3>
+            <div v-for="(item, index) of areaRankData" :key="item.id">
+              <!--下级质量系数排行-->
+              <div
+                v-if="params.listFlag === 'quality'"
+                class="pointer"
+                @click="handleClickSubordinateArea(item.id, item.level)"
+              >
+                <p>
+                  {{ index + 1 }}、{{ item.name }}
+                  <span style="float:right"
+                    >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                  >
+                </p>
+                <el-progress
+                  :text-inside="true"
+                  :stroke-width="18"
+                  :percentage="Math.round(item.rate * 100)"
+                >
+                </el-progress>
+              </div>
+              <!--一级机构工分值排行-->
+              <div
+                class="pointer"
+                v-else-if="params.listFlag === 'score'"
+                @click="handleClickSubordinateArea(item.id, item.level)"
+              >
+                <p>{{ index + 1 }}、{{ item.name }}</p>
+                <progress-score
+                  :label="item.score"
+                  :height="18"
+                  :percentage="
+                    item.score != 0
+                      ? Math.round((item.score / maxScore) * 100)
+                      : 0
+                  "
+                  style="padding:0 20px;"
+                >
+                </progress-score>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 <script>
@@ -264,10 +272,26 @@ export default {
 <style scoped lang="scss">
 @import '../../../styles/vars';
 
+.wrapper {
+  height: 100%;
+  position: relative;
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
 .second-title {
   font-size: 18px;
   font-weight: bold;
 }
+
 .header-box-card {
   width: auto;
 
@@ -275,12 +299,14 @@ export default {
     font: bold 20px/2 Arial;
     color: $color-primary;
   }
+
   .kpiSum-select {
     width: 100%;
     height: 35px;
     line-height: 40px;
   }
 }
+
 .score-detail {
   position: relative;
   height: 300px;
