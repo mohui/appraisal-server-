@@ -1532,6 +1532,7 @@ export default class Person {
    * @returns[{
    * id: id
    * healthyID:体验表id
+   * checkDate: 检查时间
    * mealScore:进餐得分
    * washScore:梳洗得分
    * dressScore:穿衣得分
@@ -1545,6 +1546,7 @@ export default class Person {
       `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
+            vh.checkupDate as "checkDate",
             vhc.jcScore as "mealScore",
             vhc.sxScore as "washScore",
             vhc.cyScore as "dressScore",
@@ -1564,6 +1566,8 @@ export default class Person {
    * @returns[{
    * id: id
    * healthyID:体验表id
+   * checkDate:体检时间
+   * name:姓名
    * mealNormal: 进餐可以自理
    * mealModerate:进餐中度依赖
    * mealDisable:进餐不能自理
@@ -1595,6 +1599,8 @@ export default class Person {
       `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
+            vh.checkupDate as "checkDate",
+            vh.name as "name",
             vhc.jckzl as "mealNormal",
             vhc.jczdyl as "mealModerate",
             vhc.jcbnzl as "mealDisable",
@@ -1620,6 +1626,7 @@ export default class Person {
             vhc.hdScore as "activityScore",
             vhc.AllScore as "total"
         from view_healthchecktablescore vhc
+        left join view_healthy vh on vh.incrementno=vhc.incrementno
         where vhc.scoreID=?`,
       [id]
     );
