@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card class="box-card" shadow="never">
+      <el-card v-sticky class="box-card" shadow="never">
         <div class="header-title" style="float: left">
           {{ totalData.name }}两卡制管理
           <span
@@ -746,6 +746,7 @@ import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
 import decimal from 'decimal.js';
+import VueSticky from 'vue-sticky';
 
 export default {
   name: 'index',
@@ -783,6 +784,9 @@ export default {
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false //单项指标考核结果说明
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   filters: {
     //过滤器，保留两位小数
