@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card class="header-box-card" shadow="never">
+      <el-card v-sticky class="header-box-card" shadow="never">
         <div class="header-title" style="float: left">
           {{ totalData.name }}两卡制管理
         </div>
@@ -148,6 +148,7 @@ import twoCardCircle from '../components/twocardCircle';
 import twoCardBar from '../components/twocardBar';
 import ProgressScore from '../components/progressScore';
 import decimal from 'decimal.js';
+import VueSticky from 'vue-sticky';
 
 export default {
   name: 'index',
@@ -173,6 +174,9 @@ export default {
         'YYYY-MM-DD'
       )
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   computed: {
     //工分值数据，用于柱状图显示
