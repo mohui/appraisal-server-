@@ -1542,8 +1542,9 @@ export default class Person {
    * }]
    */
   async oldManSelfCare(id) {
-    return etlQuery(
-      `select
+    return (
+      await etlQuery(
+        `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
             vh.checkupDate as "checkDate",
@@ -1556,8 +1557,12 @@ export default class Person {
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
         where vh.personnum=?`,
-      [id]
-    );
+        [id]
+      )
+    ).map(it => ({
+      ...it,
+      checkDate: dayjs(it.checkDate).toDate()
+    }));
   }
 
   /***
@@ -1595,8 +1600,9 @@ export default class Person {
    * }]
    */
   async oldManSelfCareDetail(id) {
-    let result = await etlQuery(
-      `select
+    return (
+      await etlQuery(
+        `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
             vh.checkupDate as "checkDate",
@@ -1628,8 +1634,11 @@ export default class Person {
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
         where vhc.scoreID=?`,
-      [id]
-    );
-    return result;
+        [id]
+      )
+    ).map(it => ({
+      ...it,
+      checkDate: dayjs(it.checkDate).toDate()
+    }));
   }
 }
