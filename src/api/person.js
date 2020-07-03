@@ -1525,4 +1525,111 @@ export default class Person {
           ?.codename ?? ''
     }));
   }
+
+  /***
+   * 老年人生活自理评分
+   * @param id
+   * @returns[{
+   * id: id
+   * healthyID:体验表id
+   * checkDate: 检查时间
+   * mealScore:进餐得分
+   * washScore:梳洗得分
+   * dressScore:穿衣得分
+   * toiletScore:如厕得分
+   * activityScore:活动得分
+   * total:总分
+   * }]
+   */
+  async oldManSelfCare(id) {
+    return etlQuery(
+      `select
+            vhc.scoreID as "id",
+            vhc.IncrementNo as "healthyID",
+            vh.checkupDate as "checkDate",
+            vhc.jcScore as "mealScore",
+            vhc.sxScore as "washScore",
+            vhc.cyScore as "dressScore",
+            vhc.rcScore as "toiletScore",
+            vhc.hdScore as "activityScore",
+            vhc.AllScore as "total"
+        from view_healthchecktablescore vhc
+        left join view_healthy vh on vh.incrementno=vhc.incrementno
+        where vh.personnum=?`,
+      [id]
+    );
+  }
+
+  /***
+   * 老年人生活自理评分详情
+   * @param id
+   * @returns[{
+   * id: id
+   * healthyID:体验表id
+   * checkDate:体检时间
+   * name:姓名
+   * mealNormal: 进餐可以自理
+   * mealModerate:进餐中度依赖
+   * mealDisable:进餐不能自理
+   * mealScore:进餐得分
+   * washNormal:梳洗可以自理
+   * washMild:梳洗轻度依赖
+   * washModerate:梳洗中度依赖
+   * washDisable:梳洗不能自理
+   * washScore:梳洗得分
+   * dressNormal:穿衣可以自理
+   * dressModerate:穿衣中度依赖
+   * dressDisable:穿衣不能自理
+   * dressScore:穿衣得分
+   * toiletNormal:如厕可以自理
+   * toiletMild:如厕轻度依赖
+   * toiletModerate:如厕中度依赖
+   * toiletDisable:如厕不能自理
+   * toiletScore:如厕得分
+   * activityNormal:活动可以自理
+   * activityMild:活动轻度依赖
+   * activityModerate:活动中度依赖
+   * activityDisable:活动不能自理
+   * activityScore:活动得分
+   * total:总分
+   * }]
+   */
+  async oldManSelfCareDetail(id) {
+    let result = await etlQuery(
+      `select
+            vhc.scoreID as "id",
+            vhc.IncrementNo as "healthyID",
+            vh.checkupDate as "checkDate",
+            vh.name as "name",
+            vhc.jckzl as "mealNormal",
+            vhc.jczdyl as "mealModerate",
+            vhc.jcbnzl as "mealDisable",
+            vhc.jcScore as "mealScore",
+            vhc.sxkzl as "washNormal",
+            vhc.sxqdyl as "washMild",
+            vhc.sxzdyl as "washModerate",
+            vhc.sxbnzl as "washDisable",
+            vhc.sxScore as "washScore",
+            vhc.cykzl as "dressNormal",
+            vhc.cyzdyl as "dressModerate",
+            vhc.cybnzl as "dressDisable",
+            vhc.cyScore as "dressScore",
+            vhc.rckzl as "toiletNormal",
+            vhc.rcqdyl as "toiletMild",
+            vhc.rczdyl as "toiletModerate",
+            vhc.rcbnzl as "toiletDisable",
+            vhc.rcScore as "toiletScore",
+            vhc.hdkzl as "activityNormal",
+            vhc.hdqdyl as "activityMild",
+            vhc.hdzdyl as "activityModerate",
+            vhc.hdbnzl as "activityDisable",
+            vhc.hdScore as "activityScore",
+            vhc.AllScore as "total"
+        from view_healthchecktablescore vhc
+        left join view_healthy vh on vh.incrementno=vhc.incrementno
+        where vhc.scoreID=?`,
+      [id]
+    );
+    return result;
+  }
 }
