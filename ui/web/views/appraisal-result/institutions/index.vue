@@ -1,667 +1,683 @@
 <template>
-  <div>
-    <!--顶部表头-->
-    <el-card class="box-card" shadow="never">
-      <div class="header-title" style="float: left">
-        {{ totalData.name }}两卡制管理
-        <span
-          v-if="params.isInstitution && totalData.budget"
-          style="color: #606266;"
-          >({{ totalData.budget }}元)</span
-        >
-      </div>
-      <div class="kpiSum-select">
-        <el-button-group style="margin-left:20px">
-          <el-button
-            size="small"
-            :class="{'el-button--primary': params.listFlag === 'quality'}"
-            @click="latTypeChanged('quality')"
+  <div class="wrapper">
+    <div>
+      <!--顶部表头-->
+      <el-card v-sticky class="box-card" shadow="never">
+        <div class="header-title" style="float: left">
+          {{ totalData.name }}两卡制管理
+          <span
+            v-if="params.isInstitution && totalData.budget"
+            style="color: #606266;"
+            >({{ totalData.budget }}元)</span
           >
-            质量系数
-          </el-button>
-          <el-button
-            size="small"
-            :class="{'el-button--primary': params.listFlag === 'score'}"
-            @click="latTypeChanged('score')"
-          >
-            工分值
-          </el-button>
-        </el-button-group>
-        <el-button
-          size="small"
-          plain
-          style="float:right; margin: 4px 0 10px 30px"
-          type="primary"
-          @click="handleBack"
-          v-if="showBackButton()"
-          >返回
-        </el-button>
-      </div>
-    </el-card>
-    <el-row :gutter="20" style="margin: 20px -10px">
-      <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-        <el-card
-          shadow="hover"
-          v-loading="$asyncComputed.totalServerData.updating"
-        >
-          <div class="score-detail" v-if="params.listFlag === 'score'">
-            <div class="second-title" style="text-align:left">
-              工分值
-            </div>
-            <p style="color: #6C7177; font-size:16px; margin:10px 0;">校正后</p>
-            <h3 style="font-size: 30px; margin:0; display:inline-block">
-              {{ totalData.score }}
-            </h3>
-            <span>分</span>
-            <p style="margin:10px 0;">{{ date }}</p>
-            <p style="font-size:13px;">{{ totalData.name }}</p>
-            <table
-              v-if="params.isInstitution"
-              style="width: 100%;margin-top: 20px;color: #666;"
+        </div>
+        <div class="kpiSum-select">
+          <el-button-group style="margin-left:20px">
+            <el-button
+              size="small"
+              :class="{'el-button--primary': params.listFlag === 'quality'}"
+              @click="latTypeChanged('quality')"
             >
-              <tr>
-                <td style="width: 33%;text-align: center">
-                  <p>{{ totalData.originalScore }}分</p>
-                  <p>校正前</p>
-                </td>
-                <td
-                  style="width: 33%;text-align: center;vertical-align: middle;"
-                >
-                  X
-                </td>
-                <td style="text-align: center">
-                  <p>{{ totalData.fixedDecimalRate }}%</p>
-                  <p>质量系数</p>
-                </td>
-              </tr>
-            </table>
-
-            <div style="padding-top: 40px;" v-else>
-              <p>校正前 {{ totalData.originalScore }}分</p>
-            </div>
-          </div>
-          <div class=" score-detail" v-if="params.listFlag === 'quality'">
-            <two-card-circle
-              :coefficient="totalData.fixedDecimalRate"
-              :pointDate="date"
-            ></two-card-circle>
-            <span style="position: absolute; bottom: 20px; left: 31%;">
-              (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
-            </span>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col
-        :span="16"
-        :xs="24"
-        :sm="12"
-        :md="16"
-        :lg="16"
-        :xl="16"
-        v-if="params.listFlag === 'quality'"
-      >
-        <el-card shadow="hover">
-          <div class="score-detail">
-            <div class="second-title" style="float: left">
-              历史趋势（待实现）
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <div v-else>
-        <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+              质量系数
+            </el-button>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': params.listFlag === 'score'}"
+              @click="latTypeChanged('score')"
+            >
+              工分值
+            </el-button>
+          </el-button-group>
+          <el-button
+            size="small"
+            plain
+            style="float:right; margin: 4px 0 10px 30px"
+            type="primary"
+            @click="handleBack"
+            v-if="showBackButton()"
+            >返回
+          </el-button>
+        </div>
+      </el-card>
+      <el-row :gutter="20" style="margin: 20px -10px">
+        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
           <el-card
             shadow="hover"
-            v-loading="
-              $asyncComputed.doctorWorkpointRankServerData.updating ||
-                $asyncComputed.workpointRankServerData.updating
-            "
+            v-loading="$asyncComputed.totalServerData.updating"
           >
-            <div class="score-detail">
-              <two-card-bar
-                :barxAxisData="workpointBarData.xAxisData"
-                :baryAxisData="workpointBarData.yAxisData"
-              ></two-card-bar>
+            <div class="score-detail" v-if="params.listFlag === 'score'">
+              <div class="second-title" style="text-align:left">
+                工分值
+              </div>
+              <p style="color: #6C7177; font-size:16px; margin:10px 0;">
+                校正后
+              </p>
+              <h3 style="font-size: 30px; margin:0; display:inline-block">
+                {{ totalData.score }}
+              </h3>
+              <span>分</span>
+              <p style="margin:10px 0;">{{ date }}</p>
+              <p style="font-size:13px;">{{ totalData.name }}</p>
+              <table
+                v-if="params.isInstitution"
+                style="width: 100%;margin-top: 20px;color: #666;"
+              >
+                <tr>
+                  <td style="width: 33%;text-align: center">
+                    <p>{{ totalData.originalScore }}分</p>
+                    <p>校正前</p>
+                  </td>
+                  <td
+                    style="width: 33%;text-align: center;vertical-align: middle;"
+                  >
+                    X
+                  </td>
+                  <td style="text-align: center">
+                    <p>{{ totalData.fixedDecimalRate }}%</p>
+                    <p>质量系数</p>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="padding-top: 40px;" v-else>
+                <p>校正前 {{ totalData.originalScore }}分</p>
+              </div>
+            </div>
+            <div class=" score-detail" v-if="params.listFlag === 'quality'">
+              <two-card-circle
+                :coefficient="totalData.fixedDecimalRate"
+                :pointDate="date"
+              ></two-card-circle>
+              <span style="position: absolute; bottom: 20px; left: 31%;">
+                (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
+              </span>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+        <el-col
+          :span="16"
+          :xs="24"
+          :sm="12"
+          :md="16"
+          :lg="16"
+          :xl="16"
+          v-if="params.listFlag === 'quality'"
+        >
           <el-card shadow="hover">
             <div class="score-detail">
               <div class="second-title" style="float: left">
-                人脸采集信息（待实现）
+                历史趋势（待实现）
               </div>
             </div>
           </el-card>
         </el-col>
-      </div>
-    </el-row>
-    <!--机构排行-->
-    <div v-if="!params.isInstitution">
-      <el-card
-        v-loading="$asyncComputed.workpointRankServerData.updating"
-        shadow="hover"
-        :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
-      >
-        <h3 class="ins-ranking-title">
-          机构排行（含一级机构及下属二级机构）
-        </h3>
-        <div v-for="(item, index) of workpointRankData" :key="item.code">
-          <!--质量系数机构排行-->
-          <accordion
-            v-if="params.listFlag === 'quality'"
-            :Accordionindex="0"
-            :AccordionData="`${index + 1}、${item.name}`"
-          >
-            <div
-              slot="Sizes"
-              style="float: right; width: 80px; text-align: right;"
+        <div v-else>
+          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+            <el-card
+              shadow="hover"
+              v-loading="
+                $asyncComputed.doctorWorkpointRankServerData.updating ||
+                  $asyncComputed.workpointRankServerData.updating
+              "
             >
-              {{ item.child.length }}家
-            </div>
-            <div slot="Progress" style="padding: 10px 20px 0;">
-              <el-progress
-                :text-inside="true"
-                :stroke-width="18"
-                :percentage="Math.round(item.rate * 100)"
-              >
-              </el-progress>
-            </div>
-            <div slot="First" style="padding: 0 20px">
-              <ul>
-                <li
-                  class="pointer"
-                  v-for="(i, index) of item.child"
-                  :key="index"
-                  @click="handleClickInstitution(i.id)"
-                >
-                  {{ i.name }} {{ Math.round(i.rate * 100) }}%
-                </li>
-              </ul>
-            </div>
-          </accordion>
-          <!--工分值机构排行-->
-          <accordion
-            v-if="params.listFlag === 'score'"
-            :Accordionindex="0"
-            :AccordionData="`${index + 1}、${item.name}`"
-          >
-            <div
-              slot="Sizes"
-              style="float: right; width: 80px; text-align: right;"
-            >
-              {{ item.child.length }}家
-            </div>
-            <div slot="Progress" style="padding: 10px 20px 0;">
-              <progress-score
-                :label="item.score"
-                :height="18"
-                :percentage="
-                  item.score != 0
-                    ? Math.round((item.score / maxScore) * 100)
-                    : 0
-                "
-                style="padding:0 20px;"
-              >
-              </progress-score>
-            </div>
-            <div slot="First" style="padding: 0 20px">
-              <ul>
-                <li
-                  class="pointer"
-                  style="margin: 8px 0; font-size: 14px"
-                  v-for="(i, index) of item.child"
-                  :key="index"
-                  @click="handleClickInstitution(i.id)"
-                >
-                  {{ i.name }} {{ i.score }}分
-                </li>
-              </ul>
-            </div>
-          </accordion>
+              <div class="score-detail">
+                <two-card-bar
+                  :barxAxisData="workpointBarData.xAxisData"
+                  :baryAxisData="workpointBarData.yAxisData"
+                ></two-card-bar>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-card shadow="hover">
+              <div class="score-detail">
+                <div class="second-title" style="float: left">
+                  人脸采集信息（待实现）
+                </div>
+              </div>
+            </el-card>
+          </el-col>
         </div>
-      </el-card>
-      <!--机构排行底部【收起】/【显示更多】按钮-->
-      <div
-        v-show="workpointRankData.length > 3"
-        class="show-more"
-        @click="totalShowMore = !totalShowMore"
-      >
-        {{ totalShowMore ? '收起' : '显示更多' }}
+      </el-row>
+      <!--机构排行-->
+      <div v-if="!params.isInstitution">
+        <el-card
+          v-loading="$asyncComputed.workpointRankServerData.updating"
+          shadow="hover"
+          :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
+        >
+          <h3 class="ins-ranking-title">
+            机构排行（含一级机构及下属二级机构）
+          </h3>
+          <div v-for="(item, index) of workpointRankData" :key="item.code">
+            <!--质量系数机构排行-->
+            <accordion
+              v-if="params.listFlag === 'quality'"
+              :Accordionindex="0"
+              :AccordionData="`${index + 1}、${item.name}`"
+            >
+              <div
+                slot="Sizes"
+                style="float: right; width: 80px; text-align: right;"
+              >
+                {{ item.child.length }}家
+              </div>
+              <div slot="Progress" style="padding: 10px 20px 0;">
+                <el-progress
+                  :text-inside="true"
+                  :stroke-width="18"
+                  :percentage="Math.round(item.rate * 100)"
+                >
+                </el-progress>
+              </div>
+              <div slot="First" style="padding: 0 20px">
+                <ul>
+                  <li
+                    class="pointer"
+                    v-for="(i, index) of item.child"
+                    :key="index"
+                    @click="handleClickInstitution(i.id)"
+                  >
+                    {{ i.name }} {{ Math.round(i.rate * 100) }}%
+                  </li>
+                </ul>
+              </div>
+            </accordion>
+            <!--工分值机构排行-->
+            <accordion
+              v-if="params.listFlag === 'score'"
+              :Accordionindex="0"
+              :AccordionData="`${index + 1}、${item.name}`"
+            >
+              <div
+                slot="Sizes"
+                style="float: right; width: 80px; text-align: right;"
+              >
+                {{ item.child.length }}家
+              </div>
+              <div slot="Progress" style="padding: 10px 20px 0;">
+                <progress-score
+                  :label="item.score"
+                  :height="18"
+                  :percentage="
+                    item.score != 0
+                      ? Math.round((item.score / maxScore) * 100)
+                      : 0
+                  "
+                  style="padding:0 20px;"
+                >
+                </progress-score>
+              </div>
+              <div slot="First" style="padding: 0 20px">
+                <ul>
+                  <li
+                    class="pointer"
+                    style="margin: 8px 0; font-size: 14px"
+                    v-for="(i, index) of item.child"
+                    :key="index"
+                    @click="handleClickInstitution(i.id)"
+                  >
+                    {{ i.name }} {{ i.score }}分
+                  </li>
+                </ul>
+              </div>
+            </accordion>
+          </div>
+        </el-card>
+        <!--机构排行底部【收起】/【显示更多】按钮-->
+        <div
+          v-show="workpointRankData.length > 3"
+          class="show-more"
+          @click="totalShowMore = !totalShowMore"
+        >
+          {{ totalShowMore ? '收起' : '显示更多' }}
+        </div>
+        <!--一、二级机构排行-->
+        <el-row
+          :gutter="20"
+          style="margin-top: 20px"
+          v-loading="$asyncComputed.workpointRankServerData.updating"
+        >
+          <!--一级机构排行-->
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-card shadow="hover">
+              <h3 class="ins-ranking-title">一级机构排行</h3>
+              <div
+                v-for="(item, index) of firstLevelWorkpointRankData"
+                :key="item.id"
+              >
+                <!--一级机构质量系数排行-->
+                <div
+                  v-if="params.listFlag === 'quality'"
+                  class="pointer"
+                  @click="handleClickInstitution(item.id)"
+                >
+                  <p>
+                    {{ index + 1 }}、{{ item.name }}
+                    <span style="float:right"
+                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                    >
+                  </p>
+                  <el-progress
+                    :text-inside="true"
+                    :stroke-width="18"
+                    :percentage="Math.round(item.rate * 100)"
+                  >
+                  </el-progress>
+                </div>
+                <!--一级机构工分值排行-->
+                <div
+                  class="pointer"
+                  v-else-if="params.listFlag === 'score'"
+                  @click="handleClickInstitution(item.id)"
+                >
+                  <p>{{ index + 1 }}、{{ item.name }}</p>
+                  <progress-score
+                    :label="item.score"
+                    :height="18"
+                    :percentage="
+                      item.score != 0
+                        ? Math.round((item.score / maxScore) * 100)
+                        : 0
+                    "
+                    style="padding:0 20px;"
+                  >
+                  </progress-score>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+          <!--二级机构排行-->
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-card shadow="hover">
+              <h3 class="ins-ranking-title">二级机构排行</h3>
+              <div
+                v-for="(item, index) of secondLevelWorkpointRankData"
+                :key="item.id"
+              >
+                <!--二级机构质量系数排行-->
+                <div
+                  v-if="params.listFlag === 'quality'"
+                  class="pointer"
+                  @click="handleClickInstitution(item.id)"
+                >
+                  <p>
+                    {{ index + 1 }}、{{ item.name }}
+                    <span style="float:right"
+                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                    >
+                  </p>
+                  <el-progress
+                    :text-inside="true"
+                    :stroke-width="18"
+                    :percentage="Math.round(item.rate * 100)"
+                  >
+                  </el-progress>
+                </div>
+                <!--二级机构工分值排行-->
+                <div
+                  class="pointer"
+                  v-else-if="params.listFlag === 'score'"
+                  @click="handleClickInstitution(item.id)"
+                >
+                  <p>{{ index + 1 }}、{{ item.name }}</p>
+                  <progress-score
+                    :label="item.score"
+                    :height="18"
+                    :percentage="
+                      item.score != 0
+                        ? Math.round((item.score / maxScore) * 100)
+                        : 0
+                    "
+                    style="padding:0 20px;"
+                  >
+                  </progress-score>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
-      <!--一、二级机构排行-->
+      <!--考核指标规则-->
       <el-row
+        v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
+        class="appraisal-indicators-rule"
+        v-if="params.isInstitution && params.listFlag === 'quality'"
+      >
+        <el-col :span="24">
+          <div>
+            <div style="width: 100%; height:40px;">
+              <div class="appraisal-indicators-rule-title" style="float:left">
+                {{ appraisalIndicatorsData.checkName }}
+                <span style="color: #666;font-size: 14px;"
+                  >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+                    appraisalIndicatorsData.ruleScore
+                  }}分</span
+                >
+                <el-button
+                  style="margin-left: 30px;"
+                  size="mini"
+                  plain
+                  type="primary"
+                  @click="handleAppraisalResultsDownload()"
+                  >考核结果下载</el-button
+                >
+              </div>
+              <div style="float: right" v-if="$settings.user.isRegion">
+                <span style="font-size: 14px">系统自动打分：</span>
+                <el-switch
+                  v-model="appraisalIndicatorsData.auto"
+                  @change="handleSystemAllAutoScore"
+                  style="padding-right: 20px;"
+                  active-text="开启"
+                  inactive-text="关闭"
+                >
+                </el-switch>
+              </div>
+            </div>
+            <div
+              v-for="(item, index) in appraisalIndicatorsData.children"
+              :key="index"
+            >
+              <div class="check-table-title">
+                <span>{{ item.ruleName }}</span>
+              </div>
+              <el-table
+                :data="item.children"
+                show-summary
+                :summary-method="handleSummaries"
+                style="width: 100%"
+              >
+                <el-table-column
+                  type="index"
+                  align="center"
+                  label="序号"
+                ></el-table-column>
+                <el-table-column
+                  prop="ruleName"
+                  header-align="center"
+                  align="left"
+                  min-width="150px"
+                  label="考核内容"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="ruleScore"
+                  align="center"
+                  width="100px"
+                  label="分值"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="checkStandard"
+                  header-align="center"
+                  align="left"
+                  min-width="200px"
+                  label="考核标准"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="checkMethod"
+                  header-align="center"
+                  align="left"
+                  min-width="100px"
+                  label="考核方法"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="evaluateStandard"
+                  header-align="center"
+                  align="left"
+                  min-width="150px"
+                  label="评分标准"
+                >
+                </el-table-column>
+                <el-table-column
+                  v-if="$settings.user.isRegion"
+                  prop="isLock"
+                  align="center"
+                  width="160px"
+                  label="系统打分"
+                >
+                  <template slot-scope="scope">
+                    <el-switch
+                      v-model="scope.row.auto"
+                      active-text="开启"
+                      inactive-text="关闭"
+                      @change="handleChangeSystemAutoScore(scope.row)"
+                    >
+                    </el-switch>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="score"
+                  :formatter="fixedDecimal"
+                  align="center"
+                  width="170px"
+                  label="得分"
+                >
+                  <template slot-scope="scope">
+                    <span v-if="scope.row.isGradeScore">
+                      <el-input-number
+                        v-model="scope.row.score"
+                        size="mini"
+                        :min="0"
+                        :step="1"
+                        :precision="2"
+                        style="width:84%"
+                        :max="scope.row.ruleScore"
+                      >
+                      </el-input-number>
+                    </span>
+                    <span v-else>{{ scope.row.score | fixedDecimal }}</span>
+                    <i
+                      v-if="scope.row.isAttach"
+                      style="padding-left:5px; color:#ff9800"
+                      class="el-icon-document"
+                      @click="handleDialogAppraisalFileListVisible(scope.row)"
+                    ></i>
+                    <el-popover
+                      v-if="!scope.row.isAttach"
+                      :ref="scope.row.ruleId"
+                      :popper-options="{
+                        boundariesElement: 'viewport',
+                        removeOnDestroy: true
+                      }"
+                      placement="top"
+                      title="指标结果"
+                      width="500"
+                      trigger="hover"
+                      @show="
+                        handleAppraisalResultInstructionsPopoverVisible(
+                          scope.row
+                        )
+                      "
+                    >
+                      <div
+                        v-loading="
+                          $asyncComputed.appraisalResultInstructionsServerData
+                            .updating
+                        "
+                      >
+                        <p
+                          style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
+                        >
+                          评分标准：{{ curRule.evaluateStandard }}
+                        </p>
+                        <ul>
+                          <li
+                            style="margin-left: -20px"
+                            v-for="item of appraisalResultInstructionsData"
+                            :key="item"
+                          >
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                      <i
+                        slot="reference"
+                        class="el-icon-warning"
+                        style="padding-left:5px; color:#ff9800"
+                      ></i>
+                    </el-popover>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  v-if="$settings.user.isRegion"
+                  align="center"
+                  label="操作"
+                  width="184px"
+                >
+                  <template slot-scope="scope">
+                    <el-button
+                      v-if="scope.row.isGradeScore"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="handleSaveScore(scope.row)"
+                      :loading="scope.row.isSaveScoreLoaing"
+                      >保存
+                    </el-button>
+                    <el-button
+                      v-if="!scope.row.isGradeScore"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="handleScore(scope.row)"
+                      >打分
+                    </el-button>
+                    <el-button
+                      v-if="scope.row.isGradeScore"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="cancelScore(scope.row)"
+                      >取消
+                    </el-button>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  v-else
+                  align="center"
+                  label="操作"
+                  width="150px"
+                >
+                  <template slot-scope="scope">
+                    <el-button
+                      v-if="scope.row.isAttach"
+                      :disabled="!scope.row.isUploadAttach"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="handleUploadAppraisalFile(scope.row)"
+                      >{{
+                        scope.row.isUploadAttach
+                          ? '上传考核资料'
+                          : '超出上传时间'
+                      }}
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row
+        v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
+        v-if="params.isInstitution && params.listFlag === 'score'"
         :gutter="20"
         style="margin-top: 20px"
-        v-loading="$asyncComputed.workpointRankServerData.updating"
       >
-        <!--一级机构排行-->
         <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
           <el-card shadow="hover">
-            <h3 class="ins-ranking-title">一级机构排行</h3>
-            <div
-              v-for="(item, index) of firstLevelWorkpointRankData"
-              :key="item.id"
+            <p style="color:#1096d0; font-size:20px; font-weight:500;">
+              医生工分
+            </p>
+            <el-table
+              :data="doctorWorkpointRankData"
+              :header-cell-style="{background: '#e4e2df', color: '#333'}"
             >
-              <!--一级机构质量系数排行-->
-              <div
-                v-if="params.listFlag === 'quality'"
-                class="pointer"
-                @click="handleClickInstitution(item.id)"
-              >
-                <p>
-                  {{ index + 1 }}、{{ item.name }}
-                  <span style="float:right"
-                    >{{ Math.round(item.rate * 100) }}% 考核办法</span
-                  >
-                </p>
-                <el-progress
-                  :text-inside="true"
-                  :stroke-width="18"
-                  :percentage="Math.round(item.rate * 100)"
-                >
-                </el-progress>
-              </div>
-              <!--一级机构工分值排行-->
-              <div
-                class="pointer"
-                v-else-if="params.listFlag === 'score'"
-                @click="handleClickInstitution(item.id)"
-              >
-                <p>{{ index + 1 }}、{{ item.name }}</p>
-                <progress-score
-                  :label="item.score"
-                  :height="18"
-                  :percentage="
-                    item.score != 0
-                      ? Math.round((item.score / maxScore) * 100)
-                      : 0
-                  "
-                  style="padding:0 20px;"
-                >
-                </progress-score>
-              </div>
-            </div>
+              <el-table-column type="expand" prop="children">
+                <template slot-scope="scope">
+                  <el-table :data="scope.row.children" :show-header="false">
+                    <el-table-column type="index" align="center">
+                    </el-table-column>
+                    <el-table-column
+                      prop="name"
+                      align="center"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="score"
+                      align="center"
+                    ></el-table-column>
+                  </el-table>
+                </template>
+              </el-table-column>
+              <el-table-column label="序号" align="center">
+                <template slot-scope="scope">
+                  <span>【{{ scope.$index + 1 }}】</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="医生" align="center">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.doctorname }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="工分值">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.score }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
           </el-card>
         </el-col>
-        <!--二级机构排行-->
         <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
           <el-card shadow="hover">
-            <h3 class="ins-ranking-title">二级机构排行</h3>
-            <div
-              v-for="(item, index) of secondLevelWorkpointRankData"
-              :key="item.id"
+            <p style="color:#1096d0; font-size:20px; font-weight:500;">
+              工分项目
+            </p>
+            <el-table
+              :data="categoryWorkpointRankData"
+              :header-cell-style="{background: '#e4e2df', color: '#333'}"
+              ref="refTable"
             >
-              <!--二级机构质量系数排行-->
-              <div
-                v-if="params.listFlag === 'quality'"
-                class="pointer"
-                @click="handleClickInstitution(item.id)"
-              >
-                <p>
-                  {{ index + 1 }}、{{ item.name }}
-                  <span style="float:right"
-                    >{{ Math.round(item.rate * 100) }}% 考核办法</span
-                  >
-                </p>
-                <el-progress
-                  :text-inside="true"
-                  :stroke-width="18"
-                  :percentage="Math.round(item.rate * 100)"
-                >
-                </el-progress>
-              </div>
-              <!--二级机构工分值排行-->
-              <div
-                class="pointer"
-                v-else-if="params.listFlag === 'score'"
-                @click="handleClickInstitution(item.id)"
-              >
-                <p>{{ index + 1 }}、{{ item.name }}</p>
-                <progress-score
-                  :label="item.score"
-                  :height="18"
-                  :percentage="
-                    item.score != 0
-                      ? Math.round((item.score / maxScore) * 100)
-                      : 0
-                  "
-                  style="padding:0 20px;"
-                >
-                </progress-score>
-              </div>
-            </div>
+              <el-table-column type="expand" prop="children">
+                <template slot-scope="scope">
+                  <el-table :data="scope.row.children" :show-header="false">
+                    <el-table-column type="index" align="center">
+                    </el-table-column>
+                    <el-table-column
+                      prop="doctorname"
+                      align="center"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="score"
+                      align="center"
+                    ></el-table-column>
+                  </el-table>
+                </template>
+              </el-table-column>
+              <el-table-column label="序号" align="center">
+                <template slot-scope="scope">
+                  <span>【{{ scope.$index + 1 }}】</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="工分目录" align="center">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.name }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="工分值">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.score }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
           </el-card>
         </el-col>
       </el-row>
     </div>
-    <!--考核指标规则-->
-    <el-row
-      v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
-      class="appraisal-indicators-rule"
-      v-if="params.isInstitution && params.listFlag === 'quality'"
-    >
-      <el-col :span="24">
-        <div>
-          <div style="width: 100%; height:40px;">
-            <div class="appraisal-indicators-rule-title" style="float:left">
-              {{ appraisalIndicatorsData.checkName }}
-              <span style="color: #666;font-size: 14px;"
-                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
-                  appraisalIndicatorsData.ruleScore
-                }}分</span
-              >
-              <el-button
-                style="margin-left: 30px;"
-                size="mini"
-                plain
-                type="primary"
-                @click="handleAppraisalResultsDownload()"
-                >考核结果下载</el-button
-              >
-            </div>
-            <div style="float: right" v-if="$settings.user.isRegion">
-              <span style="font-size: 14px">系统自动打分：</span>
-              <el-switch
-                v-model="appraisalIndicatorsData.auto"
-                @change="handleSystemAllAutoScore"
-                style="padding-right: 20px;"
-                active-text="开启"
-                inactive-text="关闭"
-              >
-              </el-switch>
-            </div>
-          </div>
-          <div
-            v-for="(item, index) in appraisalIndicatorsData.children"
-            :key="index"
-          >
-            <div class="check-table-title">
-              <span>{{ item.ruleName }}</span>
-            </div>
-            <el-table
-              :data="item.children"
-              show-summary
-              :summary-method="handleSummaries"
-              style="width: 100%"
-            >
-              <el-table-column
-                type="index"
-                align="center"
-                label="序号"
-              ></el-table-column>
-              <el-table-column
-                prop="ruleName"
-                header-align="center"
-                align="left"
-                min-width="150px"
-                label="考核内容"
-              >
-              </el-table-column>
-              <el-table-column
-                prop="ruleScore"
-                align="center"
-                width="100px"
-                label="分值"
-              >
-              </el-table-column>
-              <el-table-column
-                prop="checkStandard"
-                header-align="center"
-                align="left"
-                min-width="200px"
-                label="考核标准"
-              >
-              </el-table-column>
-              <el-table-column
-                prop="checkMethod"
-                header-align="center"
-                align="left"
-                min-width="100px"
-                label="考核方法"
-              >
-              </el-table-column>
-              <el-table-column
-                prop="evaluateStandard"
-                header-align="center"
-                align="left"
-                min-width="150px"
-                label="评分标准"
-              >
-              </el-table-column>
-              <el-table-column
-                v-if="$settings.user.isRegion"
-                prop="isLock"
-                align="center"
-                width="160px"
-                label="系统打分"
-              >
-                <template slot-scope="scope">
-                  <el-switch
-                    v-model="scope.row.auto"
-                    active-text="开启"
-                    inactive-text="关闭"
-                    @change="handleChangeSystemAutoScore(scope.row)"
-                  >
-                  </el-switch>
-                </template>
-              </el-table-column>
-              <el-table-column
-                prop="score"
-                :formatter="fixedDecimal"
-                align="center"
-                width="170px"
-                label="得分"
-              >
-                <template slot-scope="scope">
-                  <span v-if="scope.row.isGradeScore">
-                    <el-input-number
-                      v-model="scope.row.score"
-                      size="mini"
-                      :min="0"
-                      :step="1"
-                      :precision="2"
-                      style="width:84%"
-                      :max="scope.row.ruleScore"
-                    >
-                    </el-input-number>
-                  </span>
-                  <span v-else>{{ scope.row.score | fixedDecimal }}</span>
-                  <i
-                    v-if="scope.row.isAttach"
-                    style="padding-left:5px; color:#ff9800"
-                    class="el-icon-document"
-                    @click="handleDialogAppraisalFileListVisible(scope.row)"
-                  ></i>
-                  <el-popover
-                    v-if="!scope.row.isAttach"
-                    :ref="scope.row.ruleId"
-                    :popper-options="{
-                      boundariesElement: 'viewport',
-                      removeOnDestroy: true
-                    }"
-                    placement="top"
-                    title="指标结果"
-                    width="500"
-                    trigger="hover"
-                    @show="
-                      handleAppraisalResultInstructionsPopoverVisible(scope.row)
-                    "
-                  >
-                    <div
-                      v-loading="
-                        $asyncComputed.appraisalResultInstructionsServerData
-                          .updating
-                      "
-                    >
-                      <p
-                        style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
-                      >
-                        评分标准：{{ curRule.evaluateStandard }}
-                      </p>
-                      <ul>
-                        <li
-                          style="margin-left: -20px"
-                          v-for="item of appraisalResultInstructionsData"
-                          :key="item"
-                        >
-                          {{ item }}
-                        </li>
-                      </ul>
-                    </div>
-                    <i
-                      slot="reference"
-                      class="el-icon-warning"
-                      style="padding-left:5px; color:#ff9800"
-                    ></i>
-                  </el-popover>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-if="$settings.user.isRegion"
-                align="center"
-                label="操作"
-                width="184px"
-              >
-                <template slot-scope="scope">
-                  <el-button
-                    v-if="scope.row.isGradeScore"
-                    plain
-                    type="primary"
-                    size="mini"
-                    @click="handleSaveScore(scope.row)"
-                    :loading="scope.row.isSaveScoreLoaing"
-                    >保存
-                  </el-button>
-                  <el-button
-                    v-if="!scope.row.isGradeScore"
-                    plain
-                    type="primary"
-                    size="mini"
-                    @click="handleScore(scope.row)"
-                    >打分
-                  </el-button>
-                  <el-button
-                    v-if="scope.row.isGradeScore"
-                    plain
-                    type="primary"
-                    size="mini"
-                    @click="cancelScore(scope.row)"
-                    >取消
-                  </el-button>
-                </template>
-              </el-table-column>
-              <el-table-column v-else align="center" label="操作" width="150px">
-                <template slot-scope="scope">
-                  <el-button
-                    v-if="scope.row.isAttach"
-                    :disabled="!scope.row.isUploadAttach"
-                    plain
-                    type="primary"
-                    size="mini"
-                    @click="handleUploadAppraisalFile(scope.row)"
-                    >{{
-                      scope.row.isUploadAttach ? '上传考核资料' : '超出上传时间'
-                    }}
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </div>
-      </el-col>
-    </el-row>
-    <el-row
-      v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
-      v-if="params.isInstitution && params.listFlag === 'score'"
-      :gutter="20"
-      style="margin-top: 20px"
-    >
-      <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-        <el-card shadow="hover">
-          <p style="color:#1096d0; font-size:20px; font-weight:500;">
-            医生工分
-          </p>
-          <el-table
-            :data="doctorWorkpointRankData"
-            :header-cell-style="{background: '#e4e2df', color: '#333'}"
-          >
-            <el-table-column type="expand" prop="children">
-              <template slot-scope="scope">
-                <el-table :data="scope.row.children" :show-header="false">
-                  <el-table-column type="index" align="center">
-                  </el-table-column>
-                  <el-table-column prop="name" align="center"></el-table-column>
-                  <el-table-column
-                    prop="score"
-                    align="center"
-                  ></el-table-column>
-                </el-table>
-              </template>
-            </el-table-column>
-            <el-table-column label="序号" align="center">
-              <template slot-scope="scope">
-                <span>【{{ scope.$index + 1 }}】</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="医生" align="center">
-              <template slot-scope="scope">
-                <span>{{ scope.row.doctorname }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column align="center" label="工分值">
-              <template slot-scope="scope">
-                <span>{{ scope.row.score }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
-      <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-        <el-card shadow="hover">
-          <p style="color:#1096d0; font-size:20px; font-weight:500;">
-            工分项目
-          </p>
-          <el-table
-            :data="categoryWorkpointRankData"
-            :header-cell-style="{background: '#e4e2df', color: '#333'}"
-            ref="refTable"
-          >
-            <el-table-column type="expand" prop="children">
-              <template slot-scope="scope">
-                <el-table :data="scope.row.children" :show-header="false">
-                  <el-table-column type="index" align="center">
-                  </el-table-column>
-                  <el-table-column
-                    prop="doctorname"
-                    align="center"
-                  ></el-table-column>
-                  <el-table-column
-                    prop="score"
-                    align="center"
-                  ></el-table-column>
-                </el-table>
-              </template>
-            </el-table-column>
-            <el-table-column label="序号" align="center">
-              <template slot-scope="scope">
-                <span>【{{ scope.$index + 1 }}】</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="工分目录" align="center">
-              <template slot-scope="scope">
-                <span>{{ scope.row.name }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column align="center" label="工分值">
-              <template slot-scope="scope">
-                <span>{{ scope.row.score }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
-    </el-row>
     <el-dialog
       title="上传考核资料"
       :visible.sync="dialogUploadAppraisalFileVisible"
@@ -730,6 +746,7 @@ import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
 import decimal from 'decimal.js';
+import VueSticky from 'vue-sticky';
 
 export default {
   name: 'index',
@@ -767,6 +784,9 @@ export default {
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false //单项指标考核结果说明
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   filters: {
     //过滤器，保留两位小数
@@ -1296,6 +1316,21 @@ export default {
 
 <style scoped lang="scss">
 @import '../../../styles/vars';
+
+.wrapper {
+  height: 100%;
+  position: relative;
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
 
 .second-title {
   font-size: 18px;
