@@ -131,36 +131,32 @@ export default class Hospital {
 
   async workpoints(code) {
     // language=PostgreSQL
-    return (
-      await etlDB.query(
-        `select vws.score, vws.operatorid as doctorId, vws.doctor as doctorName, vws.projectname as name
+    return etlDB.query(
+      `select cast(sum(vws.score) as int) as score,
+              vws.operatorid as doctorId,
+              vws.doctor as doctorName,
+              vws.projectname as name
            from view_workscoretotal vws
                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
            where hm.h_id = ?
              and missiontime >= ?
-             and missiontime < ?`,
-        {
-          replacements: [
-            code,
-            dayjs()
-              .startOf('y')
-              .toDate(),
-            dayjs()
-              .startOf('y')
-              .add(1, 'y')
-              .toDate()
-          ],
-          type: QueryTypes.SELECT
-        }
-      )
-    ).reduce((prev, current) => {
-      const item = prev.find(
-        it => it.doctorId === current.doctorId && it.name === current.name
-      );
-      if (item) item.score += current.score;
-      else prev.push(current);
-      return prev;
-    }, []);
+             and missiontime < ?
+         group by vws.operatorid, vws.doctor,vws.projectname
+      `,
+      {
+        replacements: [
+          code,
+          dayjs()
+            .startOf('y')
+            .toDate(),
+          dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        ],
+        type: QueryTypes.SELECT
+      }
+    );
   }
 
   /**
