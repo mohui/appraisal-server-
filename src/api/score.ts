@@ -223,7 +223,7 @@ export default class Score {
           if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.H00)
             score += tagModel.score;
           if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.H00) {
-            const rate = mark.O00 / basicData.value;
+            const rate = mark.H00 / basicData.value;
             score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
           }
         }
