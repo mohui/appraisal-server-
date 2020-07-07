@@ -3,12 +3,14 @@ import {
   CheckRuleModel,
   CheckSystemModel,
   RuleHospitalModel,
+  RuleProjectModel,
   RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
+import {Projects} from '../../common/project';
 import {Context} from './context';
 
 export default class CheckSystem {
@@ -124,32 +126,74 @@ export default class CheckSystem {
       ruleName: should
         .string()
         .required()
-        .description('规则组的名称')
+        .description('规则组的名称'),
+      budget: should.number().description('规则组分配的金额'),
+      projects: should
+        .array()
+        .items(should.string())
+        .description('工分项')
     })
   )
   async addRuleGroup(params) {
-    return await CheckRuleModel.create(params);
+    const {projects} = params;
+    const rule = await CheckRuleModel.create(params);
+
+    if (projects?.length > 0) {
+      await RuleProjectModel.bulkCreate(
+        projects.map(item => ({
+          ruleId: rule.ruleId,
+          projectId: item
+        }))
+      );
+    }
+    return rule;
   }
 
   //更新规则组
   @validate(
     should.object({
       ruleId: should.string().required(),
-      ruleName: should.string()
+      ruleName: should.string(),
+      budget: should.number(),
+      projects: should
+        .array()
+        .items(should.string())
+        .description('工分项')
     })
   )
   async updateRuleGroup(params) {
     return appDB.transaction(async () => {
+      const {ruleId, projects} = params;
       const group = await CheckRuleModel.findOne({
-        where: {ruleId: params.ruleId},
+        where: {ruleId: ruleId},
         lock: true
       });
       if (!group) throw new KatoCommonError('该规则组不存在');
+      if (group.parent) throw new KatoCommonError('该规则是一个细则');
+      let options = {};
+      if (params?.ruleName) options['ruleName'] = params.ruleName;
+      if (params?.budget) options['budget'] = params.budget;
+      if (projects?.length > 0) {
+        //删除原有的project绑定关系
+        await Promise.all(
+          (
+            await RuleProjectModel.findAll({
+              where: {rule: ruleId}
+            })
+          ).map(async del => del.destroy())
+        );
+        //重新绑定project关系
+        await RuleProjectModel.bulkCreate(
+          projects.map(item => ({
+            ruleId: ruleId,
+            projectId: item
+          }))
+        );
+      }
       //修改规则组
-      return await CheckRuleModel.update(
-        {ruleName: params.ruleName},
-        {where: {ruleId: params.ruleId}}
-      );
+      return CheckRuleModel.update(options, {
+        where: {ruleId: params.ruleId}
+      });
     });
   }
 
@@ -296,6 +340,8 @@ export default class CheckSystem {
       await RuleTagModel.destroy({where: {ruleId: rule.ruleId}});
       //删除与该规则绑定的机构关系
       await RuleHospitalModel.destroy({where: {ruleId: rule.ruleId}});
+      //删除与该规则绑定的工分项关系
+      await RuleProjectModel.destroy({where: {ruleId: rule.ruleId}});
 
       return await rule.destroy({force: true});
     });
@@ -334,11 +380,26 @@ export default class CheckSystem {
     });
 
     //rule进行分组
-    const ruleGroup = allRules.filter(row => !row.parentRuleId);
+    const ruleGroup = await Promise.all(
+      allRules
+        .filter(row => !row.parentRuleId)
+        .map(async group => {
+          //规则组绑定的工分项
+          group.projects = (
+            await RuleProjectModel.findAll({
+              where: {ruleId: group.ruleId},
+              attributes: ['projectId']
+            })
+          ).map(it => Projects.find(p => p.id === it.projectId));
+          return group;
+        })
+    );
     allRules = ruleGroup.map(group => ({
       ruleId: group.ruleId,
       ruleName: group.ruleName,
       checkId: group.checkId,
+      budget: group.budget,
+      projects: group.projects,
       group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())

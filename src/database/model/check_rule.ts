@@ -16,6 +16,7 @@ import {CheckSystem} from './check_system';
 import {RuleTag} from './rule-tag';
 import {RuleHospitalScore} from './rule-hospital-score';
 import {RuleHospital} from './rule-hospital';
+import {RuleProject} from './rule-project';
 
 @Table({tableName: 'check_rule'})
 export class CheckRule extends Model<CheckRule> {
@@ -71,6 +72,11 @@ export class CheckRule extends Model<CheckRule> {
   @Column
   status: boolean;
 
+  @Comment('金额')
+  @Default(0)
+  @Column({type: DataType.DECIMAL(15, 4)})
+  budget: number;
+
   @HasMany(() => RuleTag)
   ruleTags: RuleTag[];
 
@@ -79,4 +85,7 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => RuleHospital)
   ruleHospitals: RuleHospital[];
+
+  @HasMany(() => RuleProject)
+  ruleProject: RuleProject[];
 }
