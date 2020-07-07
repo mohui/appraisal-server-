@@ -346,6 +346,8 @@ export default class CheckSystem {
       await RuleTagModel.destroy({where: {ruleId: rule.ruleId}});
       //删除与该规则绑定的机构关系
       await RuleHospitalModel.destroy({where: {ruleId: rule.ruleId}});
+      //删除与该规则绑定的工分项关系
+      await RuleProjectModel.destroy({where: {ruleId: rule.ruleId}});
 
       return await rule.destroy({force: true});
     });
