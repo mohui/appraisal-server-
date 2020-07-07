@@ -546,10 +546,9 @@ export default class CheckSystem {
   async listProject() {
     return etlQuery(
       `select
-        projectname as name,
-        projecttype as id
+        projectname as name
         from view_workscoretotal
-        group by projectname,projecttype`
+        group by projectname`
     );
   }
 }
