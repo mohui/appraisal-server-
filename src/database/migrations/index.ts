@@ -14,6 +14,7 @@ import {RuleHospitalAttachMigration} from './011_rule_hospital_attatch';
 import {RuleAttachDateRangeMigration} from './012_rule_attach_daterange';
 import {BudgetMigration} from './013_area_budget';
 import {BasicTagValueMigration} from './014_basic_tag_value';
+import {RuleBudgetMigration} from './015_rule_budget';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -31,5 +32,6 @@ export const migrations: IMigration[] = [
   new RuleHospitalAttachMigration(),
   new RuleAttachDateRangeMigration(),
   new BudgetMigration(),
-  new BasicTagValueMigration()
+  new BasicTagValueMigration(),
+  new RuleBudgetMigration()
 ];
