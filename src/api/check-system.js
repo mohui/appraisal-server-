@@ -3,6 +3,7 @@ import {
   CheckRuleModel,
   CheckSystemModel,
   RuleHospitalModel,
+  RuleProjectModel,
   RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
@@ -132,11 +133,26 @@ export default class CheckSystem {
         .string()
         .required()
         .description('规则组的名称'),
-      budget: should.number().description('规则组分配的金额')
+      budget: should.number().description('规则组分配的金额'),
+      projects: should
+        .array()
+        .items(should.string())
+        .description('工分项')
     })
   )
   async addRuleGroup(params) {
-    return await CheckRuleModel.create(params);
+    const {projects} = params;
+    const rule = await CheckRuleModel.create(params);
+
+    if (projects?.length > 0) {
+      await RuleProjectModel.bulkCreate(
+        projects.map(item => ({
+          ruleId: rule.ruleId,
+          projectName: item
+        }))
+      );
+    }
+    return rule;
   }
 
   //更新规则组
