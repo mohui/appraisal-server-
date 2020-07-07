@@ -148,7 +148,7 @@ export default class CheckSystem {
       await RuleProjectModel.bulkCreate(
         projects.map(item => ({
           ruleId: rule.ruleId,
-          projectName: item
+          projectId: item
         }))
       );
     }
@@ -160,13 +160,18 @@ export default class CheckSystem {
     should.object({
       ruleId: should.string().required(),
       ruleName: should.string(),
-      budget: should.number()
+      budget: should.number(),
+      projects: should
+        .array()
+        .items(should.string())
+        .description('工分项')
     })
   )
   async updateRuleGroup(params) {
     return appDB.transaction(async () => {
+      const {ruleId, projects} = params;
       const group = await CheckRuleModel.findOne({
-        where: {ruleId: params.ruleId},
+        where: {ruleId: ruleId},
         lock: true
       });
       if (!group) throw new KatoCommonError('该规则组不存在');
@@ -174,6 +179,23 @@ export default class CheckSystem {
       let options = {};
       if (params?.ruleName) options['ruleName'] = params.ruleName;
       if (params?.budget) options['budget'] = params.budget;
+      if (projects?.length > 0) {
+        //删除原有的project绑定关系
+        await Promise.all(
+          (
+            await RuleProjectModel.findAll({
+              where: {rule: ruleId}
+            })
+          ).map(async del => del.destroy())
+        );
+        //重新绑定project关系
+        await RuleProjectModel.bulkCreate(
+          projects.map(item => ({
+            ruleId: ruleId,
+            projectId: item
+          }))
+        );
+      }
       //修改规则组
       return CheckRuleModel.update(options, {
         where: {ruleId: params.ruleId}
