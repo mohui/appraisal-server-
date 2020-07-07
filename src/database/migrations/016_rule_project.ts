@@ -11,14 +11,12 @@ export class RuleProjectMigration implements IMigration {
       (
         "rule" UUID NOT NULL  REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE ,
         "projectType" VARCHAR(255) NOT NULL  ,
-        "projectName" VARCHAR(255) ,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         PRIMARY KEY ("rule","projectType")
       );
       COMMENT ON COLUMN "rule_project"."rule" IS '考核小则id';
-      COMMENT ON COLUMN "rule_project"."projectType" IS '工分项';
-      COMMENT ON COLUMN "rule_project"."projectName" IS '工分名';`
+      COMMENT ON COLUMN "rule_project"."projectType" IS '工分项';`
     );
   }
 

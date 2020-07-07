@@ -28,8 +28,4 @@ export class RuleProject extends Model<RuleProject> {
   @PrimaryKey
   @Column({field: 'projectType', type: DataType.STRING})
   projectId;
-
-  @Comment('工分名')
-  @Column({field: 'projectName', type: DataType.STRING})
-  projectName;
 }
