@@ -142,7 +142,8 @@ export default class CheckSystem {
   @validate(
     should.object({
       ruleId: should.string().required(),
-      ruleName: should.string()
+      ruleName: should.string(),
+      budget: should.number()
     })
   )
   async updateRuleGroup(params) {
@@ -152,11 +153,14 @@ export default class CheckSystem {
         lock: true
       });
       if (!group) throw new KatoCommonError('该规则组不存在');
+      if (group.parent) throw new KatoCommonError('该规则是一个细则');
+      let options = {};
+      if (params?.ruleName) options['ruleName'] = params.ruleName;
+      if (params?.budget) options['budget'] = params.budget;
       //修改规则组
-      return await CheckRuleModel.update(
-        {ruleName: params.ruleName},
-        {where: {ruleId: params.ruleId}}
-      );
+      return CheckRuleModel.update(options, {
+        where: {ruleId: params.ruleId}
+      });
     });
   }
 
@@ -346,6 +350,7 @@ export default class CheckSystem {
       ruleId: group.ruleId,
       ruleName: group.ruleName,
       checkId: group.checkId,
+      budget: group.budget,
       group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())
