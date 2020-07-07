@@ -9,6 +9,7 @@ import {
   RuleHospitalAttachModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
+  RuleProjectModel,
   RuleTagModel
 } from '../database';
 import {KatoCommonError} from 'kato-server';
@@ -413,6 +414,44 @@ export default class Score {
 
     // 分配金额
     await this.setBudget();
+  }
+
+  /***
+   * 根据考核结果进行金额分配
+   */
+  async checkBudget() {
+    //所有的考核组
+    //考核组下绑定的工分项
+    //质量系数: 得分/规则总分
+    //机构在这些工分项所有的工分*质量系数.
+    //这个考核组下所有机构的所有矫正后工分
+    const ruleGroup = (
+      await CheckRuleModel.findAll({
+        where: {parentRuleId: {[Op.eq]: null}, budget: {[Op.gt]: 0}},
+        attributes: ['ruleId', 'ruleName', 'budget'],
+        include: [{model: RuleProjectModel, attributes: ['projectId']}]
+      })
+    ).map(r => r.toJSON());
+
+    for (const group of ruleGroup) {
+      const rules = await CheckRuleModel.findAll({
+        where: {parentRuleId: group.ruleId},
+        attributes: ['ruleId', 'budget', 'ruleScore', 'parentRuleId'],
+        include: [RuleHospitalModel]
+      });
+      group.rules = rules.map(r => r.toJSON());
+      console.log(group);
+    }
+
+    // const rules = await Promise.all(
+    //   ruleGroup.map(async it => {
+    //     it.rules = await CheckRuleModel.findAll({
+    //       where: {parentRuleId: it.ruleId},
+    //       attributes: ['ruleId', 'ruleScore', 'parentRuleId']
+    //     });
+    //     return it;
+    //   })
+    // );
   }
 
   /**
