@@ -10,6 +10,7 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
+import {Projects} from '../../common/project';
 import {Context} from './context';
 
 export default class CheckSystem {
@@ -379,12 +380,26 @@ export default class CheckSystem {
     });
 
     //rule进行分组
-    const ruleGroup = allRules.filter(row => !row.parentRuleId);
+    const ruleGroup = await Promise.all(
+      allRules
+        .filter(row => !row.parentRuleId)
+        .map(async group => {
+          //规则组绑定的工分项
+          group.projects = (
+            await RuleProjectModel.findAll({
+              where: {ruleId: group.ruleId},
+              attributes: ['projectId']
+            })
+          ).map(it => Projects.find(p => p.id === it.projectId));
+          return group;
+        })
+    );
     allRules = ruleGroup.map(group => ({
       ruleId: group.ruleId,
       ruleName: group.ruleName,
       checkId: group.checkId,
       budget: group.budget,
+      projects: group.projects,
       group: allRules
         .filter(rule => rule.parentRuleId === group.ruleId)
         .map(it => it.toJSON())
