@@ -71,6 +71,11 @@ export class CheckRule extends Model<CheckRule> {
   @Column
   status: boolean;
 
+  @Comment('金额')
+  @Default(0)
+  @Column({type: DataType.DECIMAL(15, 4)})
+  budget: number;
+
   @HasMany(() => RuleTag)
   ruleTags: RuleTag[];
 
