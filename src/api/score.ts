@@ -111,8 +111,8 @@ export default class Score {
             score += tagModel.score;
           }
           if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.S00) {
-            const rate = mark?.S00 / basicData.value;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark?.S00 / basicData.value / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -127,8 +127,8 @@ export default class Score {
             mark?.S23 &&
             mark?.S00
           ) {
-            const rate = mark.S23 / mark.S00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.S23 / mark.S00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -143,8 +143,8 @@ export default class Score {
             mark?.S03 &&
             mark?.S00
           ) {
-            const rate = mark.S03 / mark.S00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.S03 / mark.S00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -167,8 +167,8 @@ export default class Score {
           if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O00)
             score += tagModel.score;
           if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.O00) {
-            const rate = mark.O00 / basicData.value;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.O00 / basicData.value / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -183,8 +183,8 @@ export default class Score {
             mark?.O00 &&
             mark?.O01
           ) {
-            const rate = mark.O01 / mark.O00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.O01 / mark.O00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -199,8 +199,8 @@ export default class Score {
             mark?.O00 &&
             mark?.O02
           ) {
-            const rate = mark.O02 / mark.O00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.O02 / mark.O00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -223,8 +223,8 @@ export default class Score {
           if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.H00)
             score += tagModel.score;
           if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.H00) {
-            const rate = mark.H00 / basicData.value;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.H00 / basicData.value / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -239,8 +239,8 @@ export default class Score {
             mark?.H00 &&
             mark?.H01
           ) {
-            const rate = mark.H01 / mark.H00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.H01 / mark.H00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -255,8 +255,8 @@ export default class Score {
             mark?.H00 &&
             mark?.H02
           ) {
-            const rate = mark.H02 / mark.H00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.H02 / mark.H00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -279,8 +279,8 @@ export default class Score {
           if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.D00)
             score += tagModel.score;
           if (tagModel.algorithm === TagAlgorithmUsages.egt.code && mark?.D00) {
-            const rate = mark.D00 / basicData.value;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.D00 / basicData.value / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -295,8 +295,8 @@ export default class Score {
             mark?.D00 &&
             mark?.D01
           ) {
-            const rate = mark.D01 / mark.D00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.D01 / mark.D00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
 
@@ -311,8 +311,8 @@ export default class Score {
             mark?.D00 &&
             mark?.D02
           ) {
-            const rate = mark.D02 / mark.D00;
-            score += tagModel.score * (rate > tagModel.baseline ? 1 : rate);
+            const rate = mark.D02 / mark.D00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
         // 定性指标得分
