@@ -10,13 +10,13 @@ export class RuleProjectMigration implements IMigration {
       `  CREATE TABLE IF NOT EXISTS "rule_project"
       (
         "rule" UUID NOT NULL  REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE ,
-        "projectType" VARCHAR(255) NOT NULL  ,
+        "projectId" VARCHAR(255) NOT NULL  ,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        PRIMARY KEY ("rule","projectType")
+        PRIMARY KEY ("rule","projectId")
       );
       COMMENT ON COLUMN "rule_project"."rule" IS '考核小则id';
-      COMMENT ON COLUMN "rule_project"."projectType" IS '工分项';`
+      COMMENT ON COLUMN "rule_project"."projectId" IS '工分项';`
     );
   }
 
