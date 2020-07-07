@@ -131,7 +131,8 @@ export default class CheckSystem {
       ruleName: should
         .string()
         .required()
-        .description('规则组的名称')
+        .description('规则组的名称'),
+      budget: should.number().description('规则组分配的金额')
     })
   )
   async addRuleGroup(params) {
