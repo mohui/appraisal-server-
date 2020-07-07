@@ -7,10 +7,17 @@ import {
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
-import {Op} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Context} from './context';
+import {etlDB} from '../app';
 
+async function etlQuery(sql, params) {
+  return etlDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
+}
 export default class CheckSystem {
   //添加考核系统
   @validate(
@@ -524,5 +531,19 @@ export default class CheckSystem {
       //批量添加规则与机构的关系数据
       return RuleHospitalModel.bulkCreate(newRuleHospitals);
     });
+  }
+
+  /***
+   * 考核的工分项
+   * @returns
+   */
+  async listProject() {
+    return etlQuery(
+      `select
+        projectname as name,
+        projecttype as id
+        from view_workscoretotal
+        group by projectname,projecttype`
+    );
   }
 }
