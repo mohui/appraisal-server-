@@ -987,6 +987,9 @@ export default {
     em {
       color: #409eff;
     }
+    & > div {
+      margin: 0 10px;
+    }
   }
   & > div {
     padding: 0 20px;
