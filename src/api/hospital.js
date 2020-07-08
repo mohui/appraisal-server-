@@ -201,6 +201,7 @@ export default class Hospital {
       ).map(async rule => {
         const children = (
           await CheckRuleModel.findAll({
+            attributes: {exclude: ['budget']},
             where: {parentRuleId: rule.ruleId},
             include: [
               {
@@ -243,6 +244,7 @@ export default class Hospital {
           ruleId: rule.ruleId,
           ruleName: rule.ruleName,
           ruleScore: rule.ruleScore,
+          budget: rule.budget,
           children
         };
       })
