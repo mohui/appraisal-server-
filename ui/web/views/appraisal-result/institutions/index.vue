@@ -1194,6 +1194,9 @@ export default {
               isAttach: isAttach
             };
           });
+          item.budget = decimal(
+            Number(Number(item.budget).toFixed(2))
+          ).toNumber();
           return item;
         }) ?? [];
       returnValue.score = returnValue.children.reduce(
