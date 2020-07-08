@@ -173,7 +173,7 @@ export default class CheckSystem {
       let options = {};
       if (params?.ruleName) options['ruleName'] = params.ruleName;
       if (params?.budget) options['budget'] = params.budget;
-      if (projects?.length > 0) {
+      if (projects) {
         //删除原有的project绑定关系
         await Promise.all(
           (
