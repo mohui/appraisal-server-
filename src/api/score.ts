@@ -473,7 +473,7 @@ export default class Score {
         })
       ).map(r => r.toJSON());
 
-      const hospitals = rules[0].ruleHospitals.splice(1, 2);
+      const hospitals = rules[0].ruleHospitals;
       //规则满分
       const totalScore = rules.reduce(
         (result, next) => (result += next.ruleScore),
@@ -482,8 +482,8 @@ export default class Score {
       //所有机构的在这个小项的工分情况
       // const allHospitalWorkPoint = [];
       //工分项
-      const projectIds = group.ruleProject.map(p => p.projectId).join(',');
-      const ids = hospitals.map(it => it.hospitalId).join(',');
+      const projectIds = group.ruleProject.map(p => p.projectId);
+      const ids = hospitals.map(it => it.hospitalId);
       const sql = listRender({
         ids,
         projectIds,
@@ -495,8 +495,7 @@ export default class Score {
           .add(1, 'y')
           .toDate()
       });
-      const allHospitalWorkPoint = await etlQuery(sql, []);
-      console.log(sql);
+      const allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
       for (const hospital of hospitals) {
         //机构在这个小项下的得分
         const hospitalScore = (
