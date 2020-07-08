@@ -380,7 +380,10 @@
               :key="index"
             >
               <div class="check-table-title">
-                <span>{{ item.ruleName }}</span>
+                <div>
+                  {{ item.ruleName }}
+                  <span style="color: #606266">({{ item.budget || 0 }}元)</span>
+                </div>
               </div>
               <el-table
                 :data="item.children"
