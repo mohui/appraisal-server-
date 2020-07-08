@@ -34,6 +34,23 @@
               placeholder="请输入考核分类名称"
             >
             </el-input>
+            <el-input-number
+              v-model="item.budget"
+              :precision="4"
+              style="width: 300px;"
+              size="mini"
+              placeholder="请输入金额"
+            ></el-input-number>
+            <el-tooltip content="选择工分项" :enterable="false">
+              <el-button
+                icon="el-icon-s-claim"
+                circle
+                type="primary"
+                size="mini"
+                @click.stop="selectWorkPoint(item)"
+              >
+              </el-button>
+            </el-tooltip>
             <el-button plain type="success" size="mini" @click="saveGroup(item)"
               >保存
             </el-button>
@@ -46,7 +63,27 @@
               >取消
             </el-button>
           </span>
-          <span v-else>{{ item.ruleName }} （{{ item.ruleScores }}分）</span>
+          <span v-else>
+            {{ item.ruleName }} （{{ item.ruleScores }}分）分配金额：{{
+              item.budget
+            }}
+            <span v-if="item.projects.length > 0">
+              <el-tooltip
+                :content="
+                  '绑定工分项：' + item.projects.map(it => it.name).join('，')
+                "
+                :enterable="false"
+              >
+                <el-button
+                  icon="el-icon-s-claim"
+                  circle
+                  type="primary"
+                  size="mini"
+                >
+                </el-button>
+              </el-tooltip>
+            </span>
+          </span>
           <div>
             <el-button
               v-if="!item.isEdit && index === ruleList.length - 1"
@@ -353,6 +390,31 @@
         </el-button>
       </div>
     </el-dialog>
+    <el-dialog title="工分项" :visible.sync="workPointVisible">
+      <el-table
+        border
+        :data="tableData"
+        ref="multipleTable"
+        height="300"
+        size="small"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="55" :selectable="isDisabled">
+        </el-table-column>
+        <el-table-column prop="name" label="名称"> </el-table-column>
+        <el-table-column label="考核项">
+          <template slot-scope="scope">
+            {{ getRuleName(scope.row.id) }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelWorkPoint">取 消</el-button>
+        <el-button type="primary" @click="saveWorkPoint">
+          确 定
+        </el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -366,10 +428,15 @@ import {
   TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
+import {Projects} from '../../../../common/project.ts';
 export default {
   name: 'rule',
   data() {
     return {
+      workPointVisible: false,
+      multipleSelection: [],
+      curRuleGroupID: '',
+      tableData: Projects,
       permission: Permission,
       checkId: '',
       checkName: '',
@@ -392,6 +459,69 @@ export default {
     this.getRuleList();
   },
   methods: {
+    //选择工分项，已选项保持选择状态
+    selectWorkPoint(item) {
+      this.workPointVisible = true;
+      this.curRuleGroupID = item.ruleId;
+
+      if (item.projects.length > 0) {
+        let arr = [];
+        this.tableData.forEach(it => {
+          if (item.projects.some(its => its.id === it.id)) {
+            arr.push(it);
+          }
+        });
+        this.$nextTick(() => {
+          this.$refs.multipleTable.clearSelection();
+          arr.forEach(row => {
+            this.$refs.multipleTable.toggleRowSelection(row, true);
+          });
+        });
+      } else {
+        if (this.multipleSelection.length > 0) {
+          this.$refs.multipleTable.clearSelection();
+        }
+      }
+    },
+    //取消选择工分项
+    cancelWorkPoint() {
+      this.workPointVisible = false;
+    },
+    //保存所选工分项到所属考核项
+    saveWorkPoint() {
+      this.workPointVisible = false;
+      this.ruleList.forEach(it => {
+        if (it.ruleId === this.curRuleGroupID) {
+          it.projects = this.multipleSelection;
+        }
+      });
+      if (this.multipleSelection.length > 0) {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    //已被选择工分项不能再选择
+    isDisabled(row) {
+      const is = this.ruleList
+        .filter(item => item.ruleId !== this.curRuleGroupID)
+        .map(it => it.projects)
+        .flat()
+        .some(item => item.id === row.id);
+      if (is) {
+        return 0;
+      } else {
+        return 1;
+      }
+    },
+    //获取已被选择工分项的所属考核项名称
+    getRuleName(item) {
+      const obj = this.ruleList
+        .filter(item => item.ruleId !== this.curRuleGroupID)
+        .find(it => it.projects.some(its => its.id === item));
+      return obj?.ruleName;
+    },
     //获取细则列表
     async getRuleList() {
       try {
@@ -590,7 +720,7 @@ export default {
     },
     //保存细则分类
     async saveGroup(row) {
-      const {checkId, ruleId, ruleName} = row;
+      const {checkId, ruleId, ruleName, budget, projects} = row;
       if (ruleName === '') {
         return this.$message({
           message: '请输入考核分类',
@@ -599,8 +729,18 @@ export default {
       }
       try {
         let result = ruleId
-          ? await this.$api.CheckSystem.updateRuleGroup({ruleId, ruleName})
-          : await this.$api.CheckSystem.addRuleGroup({checkId, ruleName});
+          ? await this.$api.CheckSystem.updateRuleGroup({
+              ruleId,
+              ruleName,
+              budget,
+              projects: projects.map(it => it.id)
+            })
+          : await this.$api.CheckSystem.addRuleGroup({
+              checkId,
+              ruleName,
+              budget,
+              projects: projects.map(it => it.id)
+            });
         this.$message({
           type: 'success',
           message: '保存成功!'
@@ -832,11 +972,11 @@ export default {
   background-color: #dee2e6;
   line-height: 26px;
   padding: 5px 0;
-  span {
+  & > span {
     padding: 0 20px;
     display: flex;
   }
-  div {
+  & > div {
     padding: 0 20px;
   }
 }
