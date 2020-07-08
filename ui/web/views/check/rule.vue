@@ -64,10 +64,12 @@
             </el-button>
           </span>
           <span v-else>
-            {{ item.ruleName }} （{{ item.ruleScores }}分）分配金额：{{
-              item.budget
-            }}
-            <span v-if="item.projects.length > 0">
+            {{ item.ruleName }}（<em> {{ item.ruleScores }}分</em>）
+            <span class="sub-attr">
+              分配金额：
+              <em> {{ item.budget }} 元 </em>
+            </span>
+            <span v-if="item.projects.length > 0" class="sub-tip">
               <el-tooltip
                 :content="
                   '绑定工分项：' + item.projects.map(it => it.name).join('，')
@@ -975,6 +977,16 @@ export default {
   & > span {
     padding: 0 20px;
     display: flex;
+    .sub-attr {
+      padding-left: 10px;
+      font-size: 14px;
+    }
+    .sub-tip {
+      padding-left: 20px;
+    }
+    em {
+      color: #409eff;
+    }
   }
   & > div {
     padding: 0 20px;
