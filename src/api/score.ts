@@ -42,6 +42,12 @@ function percentString(numerator: number, denominator: number): string {
     return '0';
   }
 }
+async function etlQuery(sql, params) {
+  return etlDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
+}
 
 export default class Score {
   async autoScoreAll() {
@@ -423,35 +429,99 @@ export default class Score {
     //所有的考核组
     //考核组下绑定的工分项
     //质量系数: 得分/规则总分
-    //机构在这些工分项所有的工分*质量系数.
+    //机构在这些工分项所有的工分*质量系数
     //这个考核组下所有机构的所有矫正后工分
     const ruleGroup = (
       await CheckRuleModel.findAll({
         where: {parentRuleId: {[Op.eq]: null}, budget: {[Op.gt]: 0}},
         attributes: ['ruleId', 'ruleName', 'budget'],
-        include: [{model: RuleProjectModel, attributes: ['projectId']}]
+        include: [
+          {
+            model: RuleProjectModel,
+            where: {projectId: {[Op.not]: []}},
+            attributes: ['projectId']
+          }
+        ]
       })
     ).map(r => r.toJSON());
-
     for (const group of ruleGroup) {
-      const rules = await CheckRuleModel.findAll({
-        where: {parentRuleId: group.ruleId},
-        attributes: ['ruleId', 'budget', 'ruleScore', 'parentRuleId'],
-        include: [RuleHospitalModel]
-      });
-      group.rules = rules.map(r => r.toJSON());
-      console.log(group);
-    }
+      const rules = (
+        await CheckRuleModel.findAll({
+          where: {parentRuleId: group.ruleId},
+          attributes: ['ruleId', 'budget', 'ruleScore', 'parentRuleId'],
+          include: [RuleHospitalModel]
+        })
+      ).map(r => r.toJSON());
 
-    // const rules = await Promise.all(
-    //   ruleGroup.map(async it => {
-    //     it.rules = await CheckRuleModel.findAll({
-    //       where: {parentRuleId: it.ruleId},
-    //       attributes: ['ruleId', 'ruleScore', 'parentRuleId']
-    //     });
-    //     return it;
-    //   })
-    // );
+      const hospitals = rules[0].ruleHospitals;
+      //规则满分
+      const totalScore = rules.reduce(
+        (result, next) => (result += next.ruleScore),
+        0
+      );
+      //所有机构的在这个小项的工分情况
+      const allHospitalWorkPoint = [];
+      for (const hospital of hospitals) {
+        //机构在这个小项下的得分
+        const hospitalScore = (
+          await RuleHospitalScoreModel.findAll({
+            where: {
+              hospitalId: hospital.hospitalId,
+              ruleId: {[Op.in]: rules.map(r => r.ruleId)}
+            }
+          })
+        )
+          .reduce((result, next) => new Decimal(result).add(next.score), 0)
+          .toNumber();
+        //求机构的质量系数
+        const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
+        //算工分
+        //机构的hospId
+        const hospId = (
+          await etlQuery(
+            `select hishospid as id from hospital_mapping where h_id=?`,
+            [hospital.hospitalId]
+          )
+        )[0]?.id;
+
+        const projectIds = group.ruleProject.map(p => p.projectId).join(',');
+
+        //查询工分
+        allHospitalWorkPoint.push(
+          (
+            await etlQuery(
+              `select
+            cast(sum(score) as int) as score
+            from view_workscoretotal
+            where operateorganization=? and projecttype in (?)
+             and missiontime >= ?
+             and missiontime < ?`,
+              [
+                hospId,
+                projectIds,
+                dayjs()
+                  .startOf('y')
+                  .toDate(),
+                dayjs()
+                  .startOf('y')
+                  .add(1, 'y')
+                  .toDate()
+              ]
+            )
+          ).map(it => ({
+            id: hospId,
+            score: it.score ?? 0,
+            rate: rate,
+            correctWorkPoint: (it.score ?? 0) * rate
+          }))
+        );
+      }
+      return allHospitalWorkPoint;
+
+      // console.log('机构算分.....', hospitals);
+      //机构的mapping
+      //机构在这几项工分项的总分
+    }
   }
 
   /**
