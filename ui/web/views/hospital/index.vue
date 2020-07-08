@@ -51,6 +51,8 @@
         border
         size="mini"
         :data="listHospital"
+        @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{
@@ -116,6 +118,22 @@ export default {
     }
   },
   methods: {
+    //设置标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'hospital-name';
+    },
+    //点击标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'name')
+        return this.$router.push({
+          name: 'appraisal-result-institutions',
+          query: {
+            id: row.id,
+            listFlag: 'quality',
+            isInstitution: 'true'
+          }
+        });
+    },
     reset() {
       this.searchForm = {
         region: this.$settings.user.region.code
@@ -129,4 +147,12 @@ export default {
 };
 </script>
 
-<style scoped lang="scss"></style>
+<style lang="scss">
+.hospital-name {
+  cursor: pointer;
+
+  :hover {
+    color: #1a95d7;
+  }
+}
+</style>
