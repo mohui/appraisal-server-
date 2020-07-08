@@ -10,7 +10,8 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
-  RuleTagModel
+  RuleTagModel,
+  sql as sqlRender
 } from '../database';
 import {KatoCommonError} from 'kato-server';
 import {
@@ -42,6 +43,25 @@ function percentString(numerator: number, denominator: number): string {
     return '0';
   }
 }
+
+function listRender(params) {
+  return sqlRender(
+    `
+            select
+            cast(sum(vw.score) as int) as score
+            from view_workscoretotal vw
+            right join hospital_mapping vh on vw.operateorganization = vh.hishospid
+            and
+             vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+            group by vw.operateorganization
+    `,
+    params
+  );
+}
+
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
     replacements: params,
@@ -453,14 +473,30 @@ export default class Score {
         })
       ).map(r => r.toJSON());
 
-      const hospitals = rules[0].ruleHospitals;
+      const hospitals = rules[0].ruleHospitals.splice(1, 2);
       //规则满分
       const totalScore = rules.reduce(
         (result, next) => (result += next.ruleScore),
         0
       );
       //所有机构的在这个小项的工分情况
-      const allHospitalWorkPoint = [];
+      // const allHospitalWorkPoint = [];
+      //工分项
+      const projectIds = group.ruleProject.map(p => p.projectId).join(',');
+      const ids = hospitals.map(it => it.hospitalId).join(',');
+      const sql = listRender({
+        ids,
+        projectIds,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      });
+      const allHospitalWorkPoint = await etlQuery(sql, []);
+      console.log(sql);
       for (const hospital of hospitals) {
         //机构在这个小项下的得分
         const hospitalScore = (
@@ -475,52 +511,39 @@ export default class Score {
           .toNumber();
         //求机构的质量系数
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
-        //算工分
-        //机构的hospId
-        const hospId = (
-          await etlQuery(
-            `select hishospid as id from hospital_mapping where h_id=?`,
-            [hospital.hospitalId]
-          )
-        )[0]?.id;
 
-        const projectIds = group.ruleProject.map(p => p.projectId).join(',');
-
-        //查询工分
-        allHospitalWorkPoint.push(
-          (
-            await etlQuery(
-              `select
-            cast(sum(score) as int) as score
-            from view_workscoretotal
-            where operateorganization=? and projecttype in (?)
-             and missiontime >= ?
-             and missiontime < ?`,
-              [
-                hospId,
-                projectIds,
-                dayjs()
-                  .startOf('y')
-                  .toDate(),
-                dayjs()
-                  .startOf('y')
-                  .add(1, 'y')
-                  .toDate()
-              ]
-            )
-          ).map(it => ({
-            id: hospId,
-            score: it.score ?? 0,
-            rate: rate,
-            correctWorkPoint: (it.score ?? 0) * rate
-          }))
-        );
+        // //查询工分
+        // allHospitalWorkPoint.push(
+        //   (
+        //     await etlQuery(
+        //       `select
+        //     cast(sum(vw.score) as int) as score
+        //     from view_workscoretotal vw
+        //     right join hospital_mapping vh on vw.operateorganization = vh.hishospid and vh.h_id=?
+        //     where projecttype in (?)
+        //      and missiontime >= ?
+        //      and missiontime < ?`,
+        //       [
+        //         hospital.hospitalId,
+        //         projectIds,
+        //         dayjs()
+        //           .startOf('y')
+        //           .toDate(),
+        //         dayjs()
+        //           .startOf('y')
+        //           .add(1, 'y')
+        //           .toDate()
+        //       ]
+        //     )
+        //   ).map(it => ({
+        //     id: hospital.hospitalId,
+        //     workPoint: it.score ?? 0,
+        //     rate: rate,
+        //     correctWorkPoint: (it.score ?? 0) * rate
+        //   }))
+        // );
       }
       return allHospitalWorkPoint;
-
-      // console.log('机构算分.....', hospitals);
-      //机构的mapping
-      //机构在这几项工分项的总分
     }
   }
 
