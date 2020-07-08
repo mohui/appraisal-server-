@@ -12,13 +12,6 @@
     >
       <div slot="header" class="clearfix">
         <span>机构列表</span>
-        <el-button
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          @click="dialogSetVisible = true"
-          >配置
-        </el-button>
       </div>
       <el-form
         ref="ruleForm"
@@ -77,28 +70,6 @@
         </el-table-column>
       </el-table>
     </el-card>
-    <el-dialog title="选择机构" :visible.sync="dialogSetVisible">
-      <p>
-        <el-cascader
-          style="width: 100%"
-          :props="regionList"
-          v-model="saveForm.code"
-          @change="changeRegion"
-        ></el-cascader>
-      </p>
-      <p>
-        <el-input-number
-          v-model="saveForm.budget"
-          :precision="4"
-          style="width: 50%;"
-          placeholder="请输入金额"
-        ></el-input-number>
-      </p>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogSetVisible = false">取 消</el-button>
-        <el-button type="primary" @click="setBudget">确 定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -110,7 +81,6 @@ export default {
     const that = this;
     return {
       permission: Permission,
-      dialogSetVisible: false,
       saveForm: {
         budget: '',
         code: ''
@@ -122,7 +92,7 @@ export default {
         lazy: true,
         checkStrictly: true,
         async lazyLoad(node, resolve) {
-          const {level, value = null} = node;
+          const {level, value = that.$settings.user.region.code || null} = node;
           const region = (await that.region(value)).map(it => ({
             value: it.code,
             label: it.name,
@@ -154,26 +124,6 @@ export default {
     //异步加载地区列表
     async region(code) {
       return await this.$api.Region.list(code);
-    },
-    async changeRegion(code) {
-      let regionId = Array.isArray(code) ? code[code.length - 1] : code;
-      let result = await this.$api.Region.info(regionId);
-      this.saveForm.budget = result.budget;
-    },
-    async setBudget() {
-      const {budget, code} = this.saveForm;
-      let regionId = Array.isArray(code) ? code[code.length - 1] : code;
-      if (!regionId) {
-        this.$message.warning('请选择地区！');
-        return;
-      }
-      try {
-        await this.$api.Region.setBudget(budget, regionId);
-      } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        this.dialogSetVisible = false;
-      }
     }
   }
 };
