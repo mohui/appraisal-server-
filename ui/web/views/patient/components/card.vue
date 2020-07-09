@@ -51,8 +51,13 @@
           :type="tag.type ? 'primary' : 'danger'"
         >
           <el-popover
+            :ref="tag.code"
             @show="code = tag.code"
             :disabled="tag.type"
+            :popper-options="{
+              boundariesElement: 'viewport',
+              removeOnDestroy: true
+            }"
             placement="top-start"
             width="200"
             trigger="hover"
@@ -101,6 +106,7 @@ export default {
   computed: {
     //居民标签不规范的具体原因
     nonstandardCauseList() {
+      if (!this.nonstandardCauseListSeverData) return [];
       return this.nonstandardCauseListSeverData
         .map(it => {
           return it.content;
@@ -118,6 +124,17 @@ export default {
       },
       default() {
         return [];
+      }
+    }
+  },
+  watch: {
+    //指标得分解读详情数据
+    nonstandardCauseList() {
+      if (this.$refs[this.code]) {
+        //数据返回后更新popper，重新修正定位
+        this.$nextTick(() => {
+          this.$refs[this.code][0].updatePopper();
+        });
       }
     }
   }
