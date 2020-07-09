@@ -112,7 +112,7 @@
           </el-card>
         </el-col>
         <div v-else>
-          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+          <el-col :span="10" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
             <el-card
               shadow="hover"
               v-loading="
@@ -128,12 +128,15 @@
               </div>
             </el-card>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-card shadow="hover">
+          <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+            <el-card
+              shadow="hover"
+              v-loading="
+                $asyncComputed.doctorWorkpointRankServerData.updating ||
+                  $asyncComputed.workpointRankServerData.updating
+              ">
               <div class="score-detail">
-                <div class="second-title" style="float: left">
-                  人脸采集信息（待实现）
-                </div>
+                <two-card-tree-map :mapData="mapData"></two-card-tree-map>
               </div>
             </el-card>
           </el-col>
@@ -745,6 +748,7 @@
 </template>
 <script>
 import twoCardBar from '../components/twocardBar';
+import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
@@ -755,6 +759,7 @@ export default {
   name: 'index',
   components: {
     twoCardBar,
+    twoCardTreeMap,
     twoCardCircle,
     accordion,
     progressScore
@@ -1018,6 +1023,16 @@ export default {
     }
   },
   computed: {
+    mapData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.score)
+        .map(it => ({
+          name: it.name,
+          value: it.score
+        }));
+      console.log(arr);
+      return arr;
+    },
     //工分值数据，用于柱状图显示
     workpointBarData() {
       let value = {xAxisData: [], yAxisData: []};
