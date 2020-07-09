@@ -1641,4 +1641,26 @@ export default class Person {
       checkDate: dayjs(it.checkDate).toDate()
     }));
   }
+
+  /***
+   * 标签的具体内容
+   * @param id
+   * @param code
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('个人id'),
+    should
+      .string()
+      .required()
+      .description('标签code')
+  )
+  async markContent(id, code) {
+    return etlQuery(`select * from mark_content where id=? and name=?`, [
+      id,
+      code
+    ]);
+  }
 }
