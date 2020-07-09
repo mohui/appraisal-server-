@@ -7,6 +7,7 @@ import {
   RegionModel,
   ReportHospitalModel,
   RuleHospitalAttachModel,
+  RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
@@ -48,15 +49,16 @@ function listRender(params) {
   return sqlRender(
     `
             select
-            cast(sum(vw.score) as int) as score
+            vh.h_id as "hospitalId",
+            cast(sum(vw.score) as int) as workPoint
             from view_workscoretotal vw
-            right join hospital_mapping vh on vw.operateorganization = vh.hishospid
+            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
             and
              vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
             where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
-            group by vw.operateorganization
+            group by vh.h_id,vw.operateorganization
     `,
     params
   );
@@ -468,7 +470,7 @@ export default class Score {
       const rules = (
         await CheckRuleModel.findAll({
           where: {parentRuleId: group.ruleId},
-          attributes: ['ruleId', 'budget', 'ruleScore', 'parentRuleId'],
+          attributes: ['ruleId', 'ruleScore', 'parentRuleId'],
           include: [RuleHospitalModel]
         })
       ).map(r => r.toJSON());
@@ -479,8 +481,6 @@ export default class Score {
         (result, next) => (result += next.ruleScore),
         0
       );
-      //所有机构的在这个小项的工分情况
-      // const allHospitalWorkPoint = [];
       //工分项
       const projectIds = group.ruleProject.map(p => p.projectId);
       const ids = hospitals.map(it => it.hospitalId);
@@ -495,8 +495,11 @@ export default class Score {
           .add(1, 'y')
           .toDate()
       });
-      const allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
-      for (const hospital of hospitals) {
+      //所有机构的在这个小项的工分情况
+      let allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+      //总的矫正后工分值
+      let totalWorkPoint = 0;
+      for (const hospital of allHospitalWorkPoint) {
         //机构在这个小项下的得分
         const hospitalScore = (
           await RuleHospitalScoreModel.findAll({
@@ -510,39 +513,32 @@ export default class Score {
           .toNumber();
         //求机构的质量系数
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
-
-        // //查询工分
-        // allHospitalWorkPoint.push(
-        //   (
-        //     await etlQuery(
-        //       `select
-        //     cast(sum(vw.score) as int) as score
-        //     from view_workscoretotal vw
-        //     right join hospital_mapping vh on vw.operateorganization = vh.hishospid and vh.h_id=?
-        //     where projecttype in (?)
-        //      and missiontime >= ?
-        //      and missiontime < ?`,
-        //       [
-        //         hospital.hospitalId,
-        //         projectIds,
-        //         dayjs()
-        //           .startOf('y')
-        //           .toDate(),
-        //         dayjs()
-        //           .startOf('y')
-        //           .add(1, 'y')
-        //           .toDate()
-        //       ]
-        //     )
-        //   ).map(it => ({
-        //     id: hospital.hospitalId,
-        //     workPoint: it.score ?? 0,
-        //     rate: rate,
-        //     correctWorkPoint: (it.score ?? 0) * rate
-        //   }))
-        // );
+        hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
+        hospital.rate = rate;
+        hospital.score = hospitalScore;
+        hospital.ruleId = group.ruleId;
+        //累加矫正后的总共分
+        totalWorkPoint += hospital.correctWorkPoint;
       }
-      return allHospitalWorkPoint;
+      //分钱
+      allHospitalWorkPoint = allHospitalWorkPoint.map(h => ({
+        ...h,
+        budget: new Decimal(group.budget)
+          .mul(new Decimal(h.correctWorkPoint).div(totalWorkPoint))
+          .toNumber()
+      }));
+      //存起来
+      await Promise.all(
+        allHospitalWorkPoint.map(async it => {
+          const current = await RuleHospitalBudgetModel.findOne({
+            where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
+          });
+          if (current) {
+            current.budget = it.budget;
+            await current.save();
+          } else await RuleHospitalBudgetModel.create(it);
+        })
+      );
     }
   }
 
