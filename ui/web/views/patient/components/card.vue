@@ -49,7 +49,15 @@
           style="margin:0 5px 5px 0"
           size="mini"
           :type="tag.type ? 'primary' : 'danger'"
-          >{{ tag.label }}
+        >
+          <el-popover
+            placement="top-start"
+            width="200"
+            trigger="hover"
+            :content="details"
+          >
+            <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
+          </el-popover>
         </el-tag>
       </div>
     </div>
@@ -58,6 +66,11 @@
 
 <script>
 export default {
+  data() {
+    return {
+      details: '血型未填写'
+    };
+  },
   props: {
     patient: {
       type: Object,
