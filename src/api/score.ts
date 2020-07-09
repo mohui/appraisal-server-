@@ -681,7 +681,7 @@ export default class Score {
 
     const hospitalModel = await HospitalModel.findOne({
       where: {id: code},
-      include: [ReportHospitalModel]
+      include: [ReportHospitalModel, RuleHospitalBudgetModel]
     });
     if (hospitalModel) {
       return {
@@ -696,7 +696,13 @@ export default class Score {
         rate:
           (hospitalModel?.report?.scores ?? 0) /
           (hospitalModel?.report?.total ?? 0),
-        budget: Number(hospitalModel.report.budget || 0)
+        budget:
+          hospitalModel.ruleHospitalBudget
+            .reduce(
+              (res, next) => new Decimal(res).add(next.budget),
+              new Decimal(0)
+            )
+            .toNumber() ?? 0
       };
     }
 
