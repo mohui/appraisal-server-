@@ -88,13 +88,14 @@
           </span>
           <div>
             <el-button
-              v-if="!item.isEdit && index === ruleList.length - 1"
               plain
               type="primary"
               size="mini"
-              @click="addGroup"
+              v-show="!item.isEdit && !item.group.some(it => it.isEdit)"
+              @click="addRule(item)"
+              v-permission="permission.RULE_ADD"
             >
-              新增
+              新增细则
             </el-button>
             <el-button
               plain
@@ -255,12 +256,8 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-col :span="24" v-show="!item.isEdit">
-          <div
-            class="add-rule"
-            @click="addRule(item)"
-            v-permission="permission.RULE_ADD"
-          >
+        <el-col :span="24" v-if="!item.isEdit && index === ruleList.length - 1">
+          <div class="add-rule" @click="addGroup">
             <span>+ 新增考核项</span>
           </div>
         </el-col>
