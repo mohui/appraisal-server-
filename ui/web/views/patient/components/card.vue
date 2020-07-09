@@ -51,12 +51,17 @@
           :type="tag.type ? 'primary' : 'danger'"
         >
           <el-popover
+            @show="code = tag.code"
             :disabled="tag.type"
             placement="top-start"
             width="200"
             trigger="hover"
-            :content="details"
           >
+            <ol>
+              <li v-for="item in nonstandardCauseList" :key="item.code">
+                {{ item.content }}
+              </li>
+            </ol>
             <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
           </el-popover>
         </el-tag>
@@ -69,7 +74,7 @@
 export default {
   data() {
     return {
-      details: '血型未填写'
+      code: ''
     };
   },
   props: {
@@ -94,6 +99,25 @@ export default {
           },
           fileDate: '' //建档日期
         };
+      }
+    }
+  },
+  computed: {
+    //居民标签不规范的具体原因
+    nonstandardCauseList() {
+      return this.nonstandardCauseListSeverData;
+    }
+  },
+  asyncComputed: {
+    nonstandardCauseListSeverData: {
+      async get() {
+        return await this.$api.Person.markContent(this.patient.id, this.code);
+      },
+      shouldUpdate() {
+        return this.code;
+      },
+      default() {
+        return [];
       }
     }
   }
