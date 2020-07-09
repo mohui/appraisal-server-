@@ -382,7 +382,7 @@
               <div class="check-table-title">
                 <div>
                   {{ item.ruleName }}
-                  <span style="color: #606266">({{ item.budget || 0 }}元)</span>
+                  <span style="color: #606266">({{ item.budget }}元)</span>
                 </div>
               </div>
               <el-table
@@ -1194,9 +1194,6 @@ export default {
               isAttach: isAttach
             };
           });
-          item.budget = decimal(
-            Number(Number(item.budget).toFixed(2))
-          ).toNumber();
           return item;
         }) ?? [];
       returnValue.score = returnValue.children.reduce(
