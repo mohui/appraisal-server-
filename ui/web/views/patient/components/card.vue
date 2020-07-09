@@ -57,11 +57,7 @@
             width="200"
             trigger="hover"
           >
-            <ol>
-              <li v-for="item in nonstandardCauseList" :key="item.code">
-                {{ item.content }}
-              </li>
-            </ol>
+            <div v-html="nonstandardCauseList"></div>
             <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
           </el-popover>
         </el-tag>
@@ -105,7 +101,11 @@ export default {
   computed: {
     //居民标签不规范的具体原因
     nonstandardCauseList() {
-      return this.nonstandardCauseListSeverData;
+      return this.nonstandardCauseListSeverData
+        .map(it => {
+          return it.content;
+        })
+        .join('<br>');
     }
   },
   asyncComputed: {
