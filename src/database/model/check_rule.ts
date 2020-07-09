@@ -17,6 +17,7 @@ import {RuleTag} from './rule-tag';
 import {RuleHospitalScore} from './rule-hospital-score';
 import {RuleHospital} from './rule-hospital';
 import {RuleProject} from './rule-project';
+import {RuleHospitalBudget} from './rule-hospital-budget';
 
 @Table({tableName: 'check_rule'})
 export class CheckRule extends Model<CheckRule> {
@@ -88,4 +89,7 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => RuleProject)
   ruleProject: RuleProject[];
+
+  @HasMany(() => RuleHospitalBudget)
+  ruleHospitalBudget: RuleHospitalBudget[];
 }
