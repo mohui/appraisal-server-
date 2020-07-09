@@ -1,12 +1,9 @@
-import {
-  RegionModel,
-  HospitalModel,
-  ReportHospitalModel
-} from '../database/model';
+import {RegionModel, HospitalModel} from '../database/model';
 import {should, validate} from 'kato-server';
 import Score from './score';
 import {Op} from 'sequelize';
-import {appDB} from '../app';
+import {RuleHospitalBudget} from '../database/model/rule-hospital-budget';
+import {Decimal} from 'decimal.js';
 
 const scoreAPI = new Score();
 
@@ -76,13 +73,20 @@ export default class Region {
   async listAllHospital(code) {
     return HospitalModel.findAll({
       where: {region: {[Op.like]: `${code}%`}},
-      attributes: {
-        include: [[appDB.col('budget'), 'budget']]
-      },
       include: {
-        model: ReportHospitalModel,
-        attributes: []
+        model: RuleHospitalBudget,
+        attributes: ['budget']
       }
+    }).map(it => {
+      it = it.toJSON();
+      it.budget = it.ruleHospitalBudget
+        .reduce(
+          (res, next) => new Decimal(res).add(next.budget),
+          new Decimal(0)
+        )
+        .toNumber();
+      delete it.ruleHospitalBudget;
+      return it;
     });
   }
 }

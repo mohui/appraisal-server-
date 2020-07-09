@@ -15,3 +15,4 @@ export {ReportHospital as ReportHospitalModel} from './report-hospital';
 export {CheckHospital as CheckHospitalModel} from './check-hospital';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
 export {RuleProject as RuleProjectModel} from './rule-project';
+export {RuleHospitalBudget as RuleHospitalBudgetModel} from './rule-hospital-budget';

@@ -12,6 +12,8 @@ import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
+import Score from './score';
+const scoreAPI = new Score();
 
 export default class CheckSystem {
   //添加考核系统
@@ -145,6 +147,8 @@ export default class CheckSystem {
           projectId: item
         }))
       );
+      //同步更新金额的分配情况
+      await scoreAPI.checkBudget();
     }
     return rule;
   }
@@ -162,39 +166,40 @@ export default class CheckSystem {
     })
   )
   async updateRuleGroup(params) {
-    return appDB.transaction(async () => {
-      const {ruleId, projects} = params;
-      const group = await CheckRuleModel.findOne({
-        where: {ruleId: ruleId},
-        lock: true
-      });
-      if (!group) throw new KatoCommonError('该规则组不存在');
-      if (group.parent) throw new KatoCommonError('该规则是一个细则');
-      let options = {};
-      if (params?.ruleName) options['ruleName'] = params.ruleName;
-      if (params?.budget) options['budget'] = params.budget;
-      if (projects?.length > 0) {
-        //删除原有的project绑定关系
-        await Promise.all(
-          (
-            await RuleProjectModel.findAll({
-              where: {rule: ruleId}
-            })
-          ).map(async del => del.destroy())
-        );
-        //重新绑定project关系
-        await RuleProjectModel.bulkCreate(
-          projects.map(item => ({
-            ruleId: ruleId,
-            projectId: item
-          }))
-        );
-      }
-      //修改规则组
-      return CheckRuleModel.update(options, {
-        where: {ruleId: params.ruleId}
-      });
+    const {ruleId, projects} = params;
+    const group = await CheckRuleModel.findOne({
+      where: {ruleId: ruleId},
+      lock: true
     });
+    if (!group) throw new KatoCommonError('该规则组不存在');
+    if (group.parent) throw new KatoCommonError('该规则是一个细则');
+    let options = {};
+    if (params?.ruleName) options['ruleName'] = params.ruleName;
+    if (params?.budget) options['budget'] = params.budget;
+    if (projects) {
+      //删除原有的project绑定关系
+      await Promise.all(
+        (
+          await RuleProjectModel.findAll({
+            where: {rule: ruleId}
+          })
+        ).map(async del => del.destroy())
+      );
+      //重新绑定project关系
+      await RuleProjectModel.bulkCreate(
+        projects.map(item => ({
+          ruleId: ruleId,
+          projectId: item
+        }))
+      );
+    }
+    //修改规则组
+    const result = await CheckRuleModel.update(options, {
+      where: {ruleId: params.ruleId}
+    });
+    //同步更新金额分配情况
+    await scoreAPI.checkBudget();
+    return result;
   }
 
   //删除考核系统
@@ -508,82 +513,83 @@ export default class CheckSystem {
     })
   )
   async setHospitals(params) {
-    return appDB.transaction(async () => {
-      const {checkId, hospitals} = params;
-      //查询该体系下所有细则
-      const allRules = await CheckRuleModel.findAll({
-        where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
-      });
-      if (allRules.length === 0)
-        throw new KatoCommonError('该考核系统下没有细则');
-      //当前用户所拥有的机构
-      const userHospital = Context.current.user.hospitals.map(it => it.id);
+    const {checkId, hospitals} = params;
+    //查询该体系下所有细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
+    });
+    if (allRules.length === 0)
+      throw new KatoCommonError('该考核系统下没有细则');
+    //当前用户所拥有的机构
+    const userHospital = Context.current.user.hospitals.map(it => it.id);
 
-      //查询这些细则原有的机构关系
-      const ruleHospital = (
-        await Promise.all(
-          allRules.map(
-            async rule =>
-              await RuleHospitalModel.findAll({
-                where: {
-                  ruleId: rule.ruleId,
-                  hospitalId: {[Op.in]: userHospital}
-                } //过滤出不属于该用户管的机构
-              })
-          )
-        )
-      ).reduce((pre, next) => pre.concat(next), []);
-
-      if (hospitals.find(h => !userHospital.find(u => u === h)))
-        throw new KatoCommonError('权限不足');
-      //删除被解绑的机构
+    //查询这些细则原有的机构关系
+    const ruleHospital = (
       await Promise.all(
-        ruleHospital
-          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-          .map(async it => await it.destroy())
-      );
-      //查询原有的考核与机构的关系
-      const checkHospitals = await CheckHospitalModel.findAll({
-        where: {
-          checkId,
-          hospitalId: {[Op.in]: userHospital}
-        }
-      });
-      //删除被解绑的考核体系和机构的关系
-      await Promise.all(
-        checkHospitals
-          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-          .map(async it => await it.destroy())
-      );
-
-      //添加新增的机构和规则对应关系
-      let newRuleHospitals = [];
-      hospitals
-        .filter(
-          //过滤出新增的机构
-          hospitalId => !ruleHospital.find(r => r.hospitalId === hospitalId)
+        allRules.map(
+          async rule =>
+            await RuleHospitalModel.findAll({
+              where: {
+                ruleId: rule.ruleId,
+                hospitalId: {[Op.in]: userHospital}
+              } //过滤出不属于该用户管的机构
+            })
         )
-        .forEach(hId => {
-          allRules.forEach(rule => {
-            //新增的机构与各个规则相对于的数据
-            newRuleHospitals.push({
-              hospitalId: hId,
-              ruleId: rule.ruleId,
-              auto: true
-            });
+      )
+    ).reduce((pre, next) => pre.concat(next), []);
+
+    if (hospitals.find(h => !userHospital.find(u => u === h)))
+      throw new KatoCommonError('权限不足');
+    //删除被解绑的机构
+    await Promise.all(
+      ruleHospital
+        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+        .map(async it => await it.destroy())
+    );
+    //查询原有的考核与机构的关系
+    const checkHospitals = await CheckHospitalModel.findAll({
+      where: {
+        checkId,
+        hospitalId: {[Op.in]: userHospital}
+      }
+    });
+    //删除被解绑的考核体系和机构的关系
+    await Promise.all(
+      checkHospitals
+        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+        .map(async it => await it.destroy())
+    );
+
+    //添加新增的机构和规则对应关系
+    let newRuleHospitals = [];
+    hospitals
+      .filter(
+        //过滤出新增的机构
+        hospitalId => !ruleHospital.find(r => r.hospitalId === hospitalId)
+      )
+      .forEach(hId => {
+        allRules.forEach(rule => {
+          //新增的机构与各个规则相对于的数据
+          newRuleHospitals.push({
+            hospitalId: hId,
+            ruleId: rule.ruleId,
+            auto: true
           });
         });
-      //批量添加考核系统和机构的关系
-      CheckHospitalModel.bulkCreate(
-        hospitals
-          .filter(hId => !checkHospitals.find(h => h.hospitalId === hId))
-          .map(item => ({
-            hospitalId: item,
-            checkId: checkId
-          }))
-      );
-      //批量添加规则与机构的关系数据
-      return RuleHospitalModel.bulkCreate(newRuleHospitals);
-    });
+      });
+    //批量添加考核系统和机构的关系
+    CheckHospitalModel.bulkCreate(
+      hospitals
+        .filter(hId => !checkHospitals.find(h => h.hospitalId === hId))
+        .map(item => ({
+          hospitalId: item,
+          checkId: checkId
+        }))
+    );
+    //批量添加规则与机构的关系数据
+    const result = await RuleHospitalModel.bulkCreate(newRuleHospitals);
+    //同步更新金额分配的情况
+    await scoreAPI.checkBudget();
+    return result;
   }
 }

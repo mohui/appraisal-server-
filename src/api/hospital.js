@@ -4,6 +4,7 @@ import {
   CheckSystemModel,
   HospitalModel,
   RegionModel,
+  RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleTagModel
@@ -16,6 +17,8 @@ import * as dayjs from 'dayjs';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
 import {MarkTagUsages} from '../../common/rule-score';
+import {Decimal} from 'decimal.js';
+
 export default class Hospital {
   @validate(
     should
@@ -196,7 +199,8 @@ export default class Hospital {
     const children = await Promise.all(
       (
         await CheckRuleModel.findAll({
-          where: {checkId: checkSystemModel.checkId, parentRuleId: null}
+          where: {checkId: checkSystemModel.checkId, parentRuleId: null},
+          include: [RuleHospitalBudgetModel]
         })
       ).map(async rule => {
         const children = (
@@ -244,7 +248,14 @@ export default class Hospital {
           ruleId: rule.ruleId,
           ruleName: rule.ruleName,
           ruleScore: rule.ruleScore,
-          budget: rule.budget,
+          budget:
+            rule.ruleHospitalBudget
+              .filter(it => it.hospitalId === id)
+              .reduce(
+                (res, next) => new Decimal(res).add(next.budget),
+                new Decimal(0)
+              )
+              .toNumber() ?? 0,
           children
         };
       })

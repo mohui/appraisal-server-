@@ -18,6 +18,7 @@ import {User} from './user';
 import {UserHospital} from './user_hospital';
 import {BasicTagData} from './basic-tag-data';
 import {ReportHospital} from './report-hospital';
+import {RuleHospitalBudget} from './rule-hospital-budget';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -53,6 +54,10 @@ export class Hospital extends Model<Hospital> {
   //多个基础数据
   @HasMany(() => BasicTagData)
   basicTagData: BasicTagData[];
+
+  //多个小项金额
+  @HasMany(() => RuleHospitalBudget)
+  ruleHospitalBudget: RuleHospitalBudget[];
 
   @HasOne(() => ReportHospital)
   report: ReportHospital;

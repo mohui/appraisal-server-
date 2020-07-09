@@ -7,9 +7,12 @@ import {
   RegionModel,
   ReportHospitalModel,
   RuleHospitalAttachModel,
+  RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
-  RuleTagModel
+  RuleProjectModel,
+  RuleTagModel,
+  sql as sqlRender
 } from '../database';
 import {KatoCommonError} from 'kato-server';
 import {
@@ -40,6 +43,32 @@ function percentString(numerator: number, denominator: number): string {
   } else {
     return '0';
   }
+}
+
+function listRender(params) {
+  return sqlRender(
+    `
+            select
+            vh.h_id as "hospitalId",
+            cast(sum(vw.score) as int) as workPoint
+            from view_workscoretotal vw
+            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
+            and
+             vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+            group by vh.h_id,vw.operateorganization
+    `,
+    params
+  );
+}
+
+async function etlQuery(sql, params) {
+  return etlDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
 }
 
 export default class Score {
@@ -413,6 +442,104 @@ export default class Score {
 
     // 分配金额
     await this.setBudget();
+  }
+
+  /***
+   * 根据考核结果进行金额分配
+   */
+  async checkBudget() {
+    //所有的考核组
+    //考核组下绑定的工分项
+    //质量系数: 得分/规则总分
+    //机构在这些工分项所有的工分*质量系数
+    //这个考核组下所有机构的所有矫正后工分
+    const ruleGroup = (
+      await CheckRuleModel.findAll({
+        where: {parentRuleId: {[Op.eq]: null}, budget: {[Op.gt]: 0}},
+        attributes: ['ruleId', 'ruleName', 'budget'],
+        include: [
+          {
+            model: RuleProjectModel,
+            where: {projectId: {[Op.not]: []}},
+            attributes: ['projectId']
+          }
+        ]
+      })
+    ).map(r => r.toJSON());
+    for (const group of ruleGroup) {
+      const rules = (
+        await CheckRuleModel.findAll({
+          where: {parentRuleId: group.ruleId},
+          attributes: ['ruleId', 'ruleScore', 'parentRuleId'],
+          include: [RuleHospitalModel]
+        })
+      ).map(r => r.toJSON());
+
+      const hospitals = rules[0].ruleHospitals;
+      //规则满分
+      const totalScore = rules.reduce(
+        (result, next) => (result += next.ruleScore),
+        0
+      );
+      //工分项
+      const projectIds = group.ruleProject.map(p => p.projectId);
+      const ids = hospitals.map(it => it.hospitalId);
+      const sql = listRender({
+        ids,
+        projectIds,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      });
+      //所有机构的在这个小项的工分情况
+      let allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+      //总的矫正后工分值
+      let totalWorkPoint = 0;
+      for (const hospital of allHospitalWorkPoint) {
+        //机构在这个小项下的得分
+        const hospitalScore = (
+          await RuleHospitalScoreModel.findAll({
+            where: {
+              hospitalId: hospital.hospitalId,
+              ruleId: {[Op.in]: rules.map(r => r.ruleId)}
+            }
+          })
+        )
+          .reduce((result, next) => new Decimal(result).add(next.score), 0)
+          .toNumber();
+        //求机构的质量系数
+        const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
+        hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
+        hospital.rate = rate;
+        hospital.score = hospitalScore;
+        hospital.ruleId = group.ruleId;
+        //累加矫正后的总共分
+        totalWorkPoint += hospital.correctWorkPoint;
+      }
+      //分钱
+      allHospitalWorkPoint = allHospitalWorkPoint.map(h => ({
+        ...h,
+        budget: new Decimal(group.budget)
+          .mul(new Decimal(h.correctWorkPoint).div(totalWorkPoint))
+          .toNumber()
+      }));
+      //存起来
+      await Promise.all(
+        allHospitalWorkPoint.map(async it => {
+          const current = await RuleHospitalBudgetModel.findOne({
+            where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
+          });
+          if (current) {
+            current.budget = it.budget;
+            await current.save();
+          } else await RuleHospitalBudgetModel.create(it);
+        })
+      );
+    }
   }
 
   /**
