@@ -51,6 +51,7 @@
           :type="tag.type ? 'primary' : 'danger'"
         >
           <el-popover
+            :disabled="tag.type"
             placement="top-start"
             width="200"
             trigger="hover"
