@@ -51,6 +51,10 @@
           :type="tag.type ? 'primary' : 'danger'"
         >
           <el-popover
+            v-loading="
+              code === tag.code &&
+                $asyncComputed.nonstandardCauseListSeverData.updating
+            "
             :ref="tag.code"
             @show="code = tag.code"
             :disabled="tag.type"
