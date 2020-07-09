@@ -474,6 +474,8 @@ export default class Score {
           include: [RuleHospitalModel]
         })
       ).map(r => r.toJSON());
+      //如果小项下面没有细则,则跳过不计算
+      if (rules.length === 0) continue;
 
       const hospitals = rules[0].ruleHospitals;
       //规则满分
@@ -484,6 +486,9 @@ export default class Score {
       //工分项
       const projectIds = group.ruleProject.map(p => p.projectId);
       const ids = hospitals.map(it => it.hospitalId);
+
+      //没有配置工分项或没有分配机构则跳过不计算
+      if (projectIds.length === 0 || ids.length === 0) continue;
       const sql = listRender({
         ids,
         projectIds,
