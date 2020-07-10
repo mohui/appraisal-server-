@@ -111,9 +111,9 @@ export default {
   },
   computed: {
     //居民标签不规范的具体原因
-    nonstandardCauseList() {
-      if (!this.nonstandardCauseListSeverData) return [];
-      return this.nonstandardCauseListSeverData
+    nonstandardCauses() {
+      if (!this.nonstandardCausesSeverData) return '数据出错了';
+      return this.nonstandardCausesSeverData
         .map(it => {
           return it.content;
         })
@@ -121,9 +121,16 @@ export default {
     }
   },
   asyncComputed: {
-    nonstandardCauseListSeverData: {
+    nonstandardCausesSeverData: {
       async get() {
-        return await this.$api.Person.markContent(this.patient.id, this.code);
+        let result = await this.$api.Person.markContent(
+          this.patient.id,
+          this.code
+        );
+        if (result.length === 0) {
+          result = [{content: '暂无数据'}];
+        }
+        return result;
       },
       shouldUpdate() {
         return this.code;
@@ -135,7 +142,7 @@ export default {
   },
   watch: {
     //指标得分解读详情数据
-    nonstandardCauseList() {
+    nonstandardCauses() {
       if (this.$refs[this.code]) {
         //数据返回后更新popper，重新修正定位
         this.$nextTick(() => {
