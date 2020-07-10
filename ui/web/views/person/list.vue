@@ -178,9 +178,9 @@
                   boundariesElement: 'viewport',
                   removeOnDestroy: true
                 }"
-                placement="top-start"
+                placement="top"
                 width="200"
-                trigger="hover"
+                trigger="click"
               >
                 <div
                   v-loading="

@@ -58,9 +58,9 @@
               boundariesElement: 'viewport',
               removeOnDestroy: true
             }"
-            placement="top-start"
+            placement="top"
             width="200"
-            trigger="hover"
+            trigger="click"
           >
             <div
               v-loading="
@@ -144,6 +144,8 @@ export default {
     //指标得分解读详情数据
     nonstandardCauses() {
       if (this.$refs[this.code]) {
+        console.log('card fa', this.$refs);
+
         //数据返回后更新popper，重新修正定位
         this.$nextTick(() => {
           this.$refs[this.code][0].updatePopper();
