@@ -69,7 +69,14 @@
               "
               v-html="nonstandardCauses"
             ></div>
-            <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
+            <i
+              :style="{
+                cursor: !tag.type ? 'pointer' : 'auto',
+                'font-style': 'normal'
+              }"
+              slot="reference"
+              >{{ tag.label }}</i
+            >
           </el-popover>
         </el-tag>
       </div>
