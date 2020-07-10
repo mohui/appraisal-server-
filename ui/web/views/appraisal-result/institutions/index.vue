@@ -112,7 +112,15 @@
           </el-card>
         </el-col>
         <div v-else>
-          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+          <el-col
+            :span="10"
+            :xs="24"
+            :sm="12"
+            :md="8"
+            :lg="8"
+            :xl="8"
+            v-if="!params.isInstitution"
+          >
             <el-card
               shadow="hover"
               v-loading="
@@ -121,19 +129,46 @@
               "
             >
               <div class="score-detail">
-                <two-card-bar
-                  :barxAxisData="workpointBarData.xAxisData"
-                  :baryAxisData="workpointBarData.yAxisData"
-                ></two-card-bar>
+                <two-card-tree-map
+                  :mapData="budgetData"
+                  :color="color"
+                ></two-card-tree-map>
               </div>
             </el-card>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <el-col
+            :span="6"
+            :xs="24"
+            :sm="12"
+            :md="8"
+            :lg="8"
+            :xl="8"
+            v-if="!params.isInstitution"
+          >
+            <el-card
+              shadow="hover"
+              v-loading="
+                $asyncComputed.doctorWorkpointRankServerData.updating ||
+                  $asyncComputed.workpointRankServerData.updating
+              "
+            >
+              <div class="score-detail">
+                <two-card-tree-map :mapData="mapData"></two-card-tree-map>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col
+            :span="16"
+            :xs="24"
+            :sm="12"
+            :md="16"
+            :lg="16"
+            :xl="16"
+            v-if="params.isInstitution"
+          >
             <el-card shadow="hover">
               <div class="score-detail">
-                <div class="second-title" style="float: left">
-                  人脸采集信息（待实现）
-                </div>
+                （待实现）
               </div>
             </el-card>
           </el-col>
@@ -744,7 +779,7 @@
   </div>
 </template>
 <script>
-import twoCardBar from '../components/twocardBar';
+import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
@@ -754,7 +789,7 @@ import VueSticky from 'vue-sticky';
 export default {
   name: 'index',
   components: {
-    twoCardBar,
+    twoCardTreeMap,
     twoCardCircle,
     accordion,
     progressScore
@@ -768,6 +803,36 @@ export default {
   },
   data() {
     return {
+      color: [
+        '#37a2da',
+        '#32c5e9',
+        '#9fe6b8',
+        '#ffdb5c',
+        '#ff9f7f',
+        '#fb7293',
+        '#e7bcf3',
+        '#8378ea',
+        '#ff7f50',
+        '#87cefa',
+        '#da70d6',
+        '#32cd32',
+        '#6495ed',
+        '#ff69b4',
+        '#ba55d3',
+        '#cd5c5c',
+        '#ffa500',
+        '#40e0d0',
+        '#1e90ff',
+        '#ff6347',
+        '#7b68ee',
+        '#d0648a',
+        '#ffd700',
+        '#6b8e23',
+        '#4ea397',
+        '#3cb371',
+        '#b8860b',
+        '#7bd9a5'
+      ],
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
@@ -1018,6 +1083,34 @@ export default {
     }
   },
   computed: {
+    //金额：矩形树状图
+    budgetData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.budget)
+        .map(it => ({
+          name: it.name,
+          budget: it.budget.toFixed(2)
+        }))
+        .map(it => ({
+          name: `${it.name} 金额：${it.budget}元`,
+          value: it.budget,
+          target: '_self',
+          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
+        }));
+      return arr;
+    },
+    //工分：矩形树状图
+    mapData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.score)
+        .map(it => ({
+          name: `${it.name} 工分值：${it.score}`,
+          value: it.score,
+          target: '_self',
+          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
+        }));
+      return arr;
+    },
     //工分值数据，用于柱状图显示
     workpointBarData() {
       let value = {xAxisData: [], yAxisData: []};
