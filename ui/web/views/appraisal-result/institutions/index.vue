@@ -129,7 +129,10 @@
               "
             >
               <div class="score-detail">
-                <budget-tree-map :mapData="budgetData"></budget-tree-map>
+                <two-card-tree-map
+                  :mapData="budgetData"
+                  :color="color"
+                ></two-card-tree-map>
               </div>
             </el-card>
           </el-col>
@@ -777,7 +780,6 @@
 </template>
 <script>
 import twoCardTreeMap from '../components/twocardTreemap';
-import budgetTreeMap from '../components/budgetTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
@@ -788,7 +790,6 @@ export default {
   name: 'index',
   components: {
     twoCardTreeMap,
-    budgetTreeMap,
     twoCardCircle,
     accordion,
     progressScore
@@ -802,6 +803,36 @@ export default {
   },
   data() {
     return {
+      color: [
+        '#37a2da',
+        '#32c5e9',
+        '#9fe6b8',
+        '#ffdb5c',
+        '#ff9f7f',
+        '#fb7293',
+        '#e7bcf3',
+        '#8378ea',
+        '#ff7f50',
+        '#87cefa',
+        '#da70d6',
+        '#32cd32',
+        '#6495ed',
+        '#ff69b4',
+        '#ba55d3',
+        '#cd5c5c',
+        '#ffa500',
+        '#40e0d0',
+        '#1e90ff',
+        '#ff6347',
+        '#7b68ee',
+        '#d0648a',
+        '#ffd700',
+        '#6b8e23',
+        '#4ea397',
+        '#3cb371',
+        '#b8860b',
+        '#7bd9a5'
+      ],
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
@@ -1055,9 +1086,13 @@ export default {
     //金额：矩形树状图
     budgetData() {
       let arr = this.workpointRankServerData
-        .filter(it => it.score)
+        .filter(it => it.budget)
         .map(it => ({
-          name: `${it.name} 金额：${it.budget}`,
+          name: it.name,
+          budget: it.budget.toFixed(2)
+        }))
+        .map(it => ({
+          name: `${it.name} 金额：${it.budget}元`,
           value: it.budget,
           target: '_self',
           link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`

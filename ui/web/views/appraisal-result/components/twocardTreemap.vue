@@ -1,8 +1,6 @@
 <template>
-  <div>
-    <div class="grid-content bg-fff">
-      <div id="twoCardTreeMap" :style="{width: '100%', height: '300px'}"></div>
-    </div>
+  <div style="height: 100%;">
+    <div ref="treeMap" :style="{width: '100%', height: '100%'}"></div>
   </div>
 </template>
 
@@ -10,10 +8,17 @@
 export default {
   name: 'twoCardTreeMap',
   props: {
-    mapData: Array
+    mapData: Array,
+    color: {
+      type: Array,
+      default() {
+        return [];
+      }
+    }
   },
   data() {
     return {
+      chart: {},
       barOption: {
         tooltip: {
           trigger: 'item',
@@ -47,21 +52,27 @@ export default {
     };
   },
   mounted() {
-    this.barChart();
+    this.chart = this.$echarts.init(this.$refs['treeMap']);
+    this.updataChart();
+  },
+  beforeMount() {
+    window.addEventListener('resize', this.chart.resize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.chart.resize);
   },
   methods: {
-    barChart() {
+    updataChart() {
       this.barOption.series[0].data = this.mapData;
-      let chart = this.$echarts.init(document.getElementById('twoCardTreeMap'));
-      window.addEventListener('resize', function() {
-        chart.resize(); //使图表适应
-      });
-      chart.setOption(this.barOption);
+      if (this.color.length > 0) {
+        this.barOption.color = this.color;
+      }
+      this.chart.setOption(this.barOption);
     }
   },
   watch: {
     mapData: function() {
-      this.barChart();
+      this.updataChart();
     }
   }
 };
