@@ -112,7 +112,15 @@
           </el-card>
         </el-col>
         <div v-else>
-          <el-col :span="10" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-col
+            :span="10"
+            :xs="24"
+            :sm="12"
+            :md="8"
+            :lg="8"
+            :xl="8"
+            v-if="!params.isInstitution"
+          >
             <el-card
               shadow="hover"
               v-loading="
@@ -121,22 +129,43 @@
               "
             >
               <div class="score-detail">
-                <two-card-bar
-                  :barxAxisData="workpointBarData.xAxisData"
-                  :baryAxisData="workpointBarData.yAxisData"
-                ></two-card-bar>
+                <budget-tree-map :mapData="budgetData"></budget-tree-map>
               </div>
             </el-card>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-col
+            :span="6"
+            :xs="24"
+            :sm="12"
+            :md="8"
+            :lg="8"
+            :xl="8"
+            v-if="!params.isInstitution"
+          >
             <el-card
               shadow="hover"
               v-loading="
                 $asyncComputed.doctorWorkpointRankServerData.updating ||
                   $asyncComputed.workpointRankServerData.updating
-              ">
+              "
+            >
               <div class="score-detail">
                 <two-card-tree-map :mapData="mapData"></two-card-tree-map>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col
+            :span="16"
+            :xs="24"
+            :sm="12"
+            :md="16"
+            :lg="16"
+            :xl="16"
+            v-if="params.isInstitution"
+          >
+            <el-card shadow="hover">
+              <div class="score-detail">
+                （待实现）
               </div>
             </el-card>
           </el-col>
@@ -747,8 +776,8 @@
   </div>
 </template>
 <script>
-import twoCardBar from '../components/twocardBar';
 import twoCardTreeMap from '../components/twocardTreemap';
+import budgetTreeMap from '../components/budgetTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
@@ -758,8 +787,8 @@ import VueSticky from 'vue-sticky';
 export default {
   name: 'index',
   components: {
-    twoCardBar,
     twoCardTreeMap,
+    budgetTreeMap,
     twoCardCircle,
     accordion,
     progressScore
@@ -1023,14 +1052,28 @@ export default {
     }
   },
   computed: {
+    //金额：矩形树状图
+    budgetData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.score)
+        .map(it => ({
+          name: `${it.name} 金额：${it.budget}`,
+          value: it.budget,
+          target: '_self',
+          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
+        }));
+      return arr;
+    },
+    //工分：矩形树状图
     mapData() {
       let arr = this.workpointRankServerData
         .filter(it => it.score)
         .map(it => ({
-          name: it.name,
-          value: it.score
+          name: `${it.name} 工分值：${it.score}`,
+          value: it.score,
+          target: '_self',
+          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
         }));
-      console.log(arr);
       return arr;
     },
     //工分值数据，用于柱状图显示
