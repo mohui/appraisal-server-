@@ -49,7 +49,26 @@
           style="margin:0 5px 5px 0"
           size="mini"
           :type="tag.type ? 'primary' : 'danger'"
-          >{{ tag.label }}
+        >
+          <el-popover
+            v-loading="
+              code === tag.code &&
+                $asyncComputed.nonstandardCauseListSeverData.updating
+            "
+            :ref="tag.code"
+            @show="code = tag.code"
+            :disabled="tag.type"
+            :popper-options="{
+              boundariesElement: 'viewport',
+              removeOnDestroy: true
+            }"
+            placement="top-start"
+            width="200"
+            trigger="hover"
+          >
+            <div v-html="nonstandardCauseList"></div>
+            <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
+          </el-popover>
         </el-tag>
       </div>
     </div>
@@ -58,6 +77,11 @@
 
 <script>
 export default {
+  data() {
+    return {
+      code: ''
+    };
+  },
   props: {
     patient: {
       type: Object,
@@ -80,6 +104,41 @@ export default {
           },
           fileDate: '' //建档日期
         };
+      }
+    }
+  },
+  computed: {
+    //居民标签不规范的具体原因
+    nonstandardCauseList() {
+      if (!this.nonstandardCauseListSeverData) return [];
+      return this.nonstandardCauseListSeverData
+        .map(it => {
+          return it.content;
+        })
+        .join('<br>');
+    }
+  },
+  asyncComputed: {
+    nonstandardCauseListSeverData: {
+      async get() {
+        return await this.$api.Person.markContent(this.patient.id, this.code);
+      },
+      shouldUpdate() {
+        return this.code;
+      },
+      default() {
+        return [];
+      }
+    }
+  },
+  watch: {
+    //指标得分解读详情数据
+    nonstandardCauseList() {
+      if (this.$refs[this.code]) {
+        //数据返回后更新popper，重新修正定位
+        this.$nextTick(() => {
+          this.$refs[this.code][0].updatePopper();
+        });
       }
     }
   }

@@ -2,20 +2,20 @@
  * 人群分类的标记
  */
 export const personTags = {
-  C00: {label: '普通居民', type: true},
-  C01: {label: '老年人', type: true},
-  C02: {label: '高血压', type: true},
-  C03: {label: '糖尿病', type: true},
-  C04: {label: '孕产妇', type: true},
-  C05: {label: '0~6岁儿童', type: true},
-  C06: {label: '脑卒中', type: true},
-  C07: {label: '计划生育特殊家庭对象', type: true},
-  C08: {label: '严重精神病', type: true},
-  C09: {label: '肺结核患者', type: true},
-  C10: {label: '残疾人', type: true},
-  C11: {label: '其他慢病', type: true},
-  C13: {label: '高危人群', type: true},
-  C14: {label: '高校', type: true}
+  C00: {label: '普通居民', type: true, code: 'C00'},
+  C01: {label: '老年人', type: true, code: 'C01'},
+  C02: {label: '高血压', type: true, code: 'C02'},
+  C03: {label: '糖尿病', type: true, code: 'C03'},
+  C04: {label: '孕产妇', type: true, code: 'C04'},
+  C05: {label: '0~6岁儿童', type: true, code: 'C05'},
+  C06: {label: '脑卒中', type: true, code: 'C06'},
+  C07: {label: '计划生育特殊家庭对象', type: true, code: 'C07'},
+  C08: {label: '严重精神病', type: true, code: 'C08'},
+  C09: {label: '肺结核患者', type: true, code: 'C09'},
+  C10: {label: '残疾人', type: true, code: 'C10'},
+  C11: {label: '其他慢病', type: true, code: 'C11'},
+  C13: {label: '高危人群', type: true, code: 'C13'},
+  C14: {label: '高校', type: true, code: 'C14'}
 };
 /***
  * 人群分类的选项框options
@@ -100,58 +100,67 @@ export const documentTags = {
   S03(value) {
     return {
       label: `${value ? '' : '非'}动态使用`,
-      type: !!value
+      type: !!value,
+      code: 'S03'
     };
   },
   S23(value) {
     return {
       label: `个人基本信息填写${value ? '' : '不'}规范`,
-      type: !!value
+      type: !!value,
+      code: 'S23'
     };
   },
   O00(value) {
     return {
       label: `老年人健康管理${value ? '' : '不'}规范`,
-      type: !!value
+      type: !!value,
+      code: 'O00'
     };
   },
   O01(value) {
     return {
       label: `老年人体检${value ? '' : '不'}完整`,
-      type: !!value
+      type: !!value,
+      code: 'O01'
     };
   },
   O02(value) {
     return {
       label: `${value ? '' : '无'}老年人中医药管理`,
-      type: !!value
+      type: !!value,
+      code: 'O02'
     };
   },
   H01(value) {
     return {
       label: `高血压管理${value ? '' : '不'}规范`,
-      type: !!value
+      type: !!value,
+      code: 'H01'
     };
   },
   H02(value) {
     return {
       label: `高血压${value ? '已' : '未'}控制`,
-      type: !!value
+      type: !!value,
+      code: 'H02'
     };
   },
   D01(value) {
     return {
       label: `糖尿病管理${value ? '' : '不'}规范`,
-      type: !!value
+      type: !!value,
+      code: 'D01'
     };
   },
   D02(value) {
     return {
       label: `糖尿病${value ? '已' : '未'}控制`,
-      type: !!value
+      type: !!value,
+      code: 'D02'
     };
   },
-  E00: {label: '人群标记错误', type: false}
+  E00: {label: '人群标记错误', type: false, code: 'E00'}
 };
 
 /**
