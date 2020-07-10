@@ -65,7 +65,7 @@
                 <tr>
                   <td style="width: 33%;text-align: center">
                     <p>{{ totalData.originalScore }}分</p>
-                    <p>总共分值</p>
+                    <p>总工分值</p>
                   </td>
                   <td
                     style="width: 33%;text-align: center;vertical-align: middle;"
