@@ -684,15 +684,55 @@ export default class Score {
       include: [ReportHospitalModel, RuleHospitalBudgetModel]
     });
     if (hospitalModel) {
+      //机构所绑定的小项下的工分项
+      const projects = (
+        await RuleProjectModel.findAll({
+          attributes: ['projectId'],
+          where: {
+            ruleId: {
+              [Op.in]: hospitalModel.ruleHospitalBudget.map(it => it.ruleId)
+            }
+          }
+        })
+      ).map(it => it.toJSON());
+      //矫正的工分值
+      let score = 0;
+      if (projects.length > 0) {
+        const sql = listRender({
+          ids: [code],
+          projectIds: projects.map(p => p.projectId),
+          start: dayjs()
+            .startOf('y')
+            .toDate(),
+          end: dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        });
+        //所有机构的所有小项的工分情况
+        const workpoint =
+          projects.length === 0
+            ? 0
+            : (await etlQuery(sql[0], sql[1]))
+                .reduce(
+                  (res, next) => new Decimal(res).add(next.workpoint),
+                  new Decimal(0)
+                )
+                .toNumber();
+        //矫正的工分值
+        score = new Decimal(workpoint)
+          .mul(
+            new Decimal(hospitalModel?.report?.scores ?? 0).div(
+              hospitalModel?.report?.total ?? 0
+            )
+          )
+          .toNumber();
+      }
       return {
         id: hospitalModel.id,
         name: hospitalModel.name,
         originalScore: hospitalModel?.report?.workpoints ?? 0,
-        score: Math.round(
-          (hospitalModel?.report?.workpoints ?? 0) *
-            ((hospitalModel?.report?.scores ?? 0) /
-              (hospitalModel?.report?.total ?? 0))
-        ),
+        score: score,
         rate:
           (hospitalModel?.report?.scores ?? 0) /
           (hospitalModel?.report?.total ?? 0),
