@@ -36,6 +36,6 @@ export class RuleHospitalBudget extends Model<RuleHospitalBudget> {
 
   @Comment('分配金额')
   @AllowNull(false)
-  @Column(DataType.FLOAT)
+  @Column(DataType.DECIMAL(15, 4))
   budget: number;
 }
