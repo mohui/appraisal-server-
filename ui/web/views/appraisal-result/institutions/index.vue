@@ -166,7 +166,34 @@
           >
             <el-card shadow="hover">
               <div class="score-detail">
-                （待实现）
+                <el-table :data="scoreList" size="mini" height="100%">
+                  <el-table-column
+                    prop="projectName"
+                    label="工分项"
+                    :min-width="computedColWidth('projectName')"
+                  >
+                  </el-table-column>
+                  <el-table-column
+                    prop="workpoint"
+                    label="工分"
+                    :min-width="computedColWidth('workpoint')"
+                  >
+                  </el-table-column>
+                  <el-table-column
+                    prop="ruleName"
+                    label="考核项"
+                    :min-width="computedColWidth('ruleName')"
+                  >
+                  </el-table-column>
+                  <el-table-column prop="rate" label="质量系数" min-width="80">
+                  </el-table-column>
+                  <el-table-column
+                    prop="correctWorkpoint"
+                    label="得分"
+                    :min-width="computedColWidth('correctWorkpoint')"
+                  >
+                  </el-table-column>
+                </el-table>
               </div>
             </el-card>
           </el-col>
@@ -862,6 +889,11 @@ export default {
     }
   },
   methods: {
+    computedColWidth(field) {
+      if (this.scoreList.length > 0) {
+        return this.$widthCompute(this.scoreList.map(item => item[field]));
+      }
+    },
     //系统自动打分开关事件
     async handleSystemAllAutoScore() {
       await this.$api.Hospital.setCheckAuto(
@@ -1081,6 +1113,15 @@ export default {
     }
   },
   computed: {
+    scoreList() {
+      return this.totalServerData.detail.map(it =>
+        Object.assign({}, it, {
+          rate: (it.rate * 100).toFixed(2) + '%',
+          workpoint: it.workpoint ?? 0,
+          correctWorkpoint: Number.parseInt(it.correctWorkpoint)
+        })
+      );
+    },
     //金额：矩形树状图
     budgetData() {
       let arr = this.workpointRankServerData
