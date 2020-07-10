@@ -18,6 +18,7 @@ import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Decimal} from 'decimal.js';
+import {Projects} from '../../common/project';
 
 export default class Hospital {
   @validate(
@@ -134,32 +135,37 @@ export default class Hospital {
 
   async workpoints(code) {
     // language=PostgreSQL
-    return etlDB.query(
-      `select cast(sum(vws.score) as int) as score,
+    return (
+      await etlDB.query(
+        `select cast(sum(vws.score) as int) as score,
               vws.operatorid as doctorId,
               vws.doctor as doctorName,
-              vws.projectname as name
+              vws.projecttype as "projectId"
            from view_workscoretotal vws
                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
            where hm.h_id = ?
              and missiontime >= ?
              and missiontime < ?
-         group by vws.operatorid, vws.doctor,vws.projectname
+         group by vws.operatorid, vws.doctor,vws.projecttype
       `,
-      {
-        replacements: [
-          code,
-          dayjs()
-            .startOf('y')
-            .toDate(),
-          dayjs()
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        ],
-        type: QueryTypes.SELECT
-      }
-    );
+        {
+          replacements: [
+            code,
+            dayjs()
+              .startOf('y')
+              .toDate(),
+            dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          ],
+          type: QueryTypes.SELECT
+        }
+      )
+    ).map(it => ({
+      ...it,
+      name: Projects.find(p => p.id === it.projectId)?.name
+    }));
   }
 
   /**
