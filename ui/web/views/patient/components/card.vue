@@ -51,10 +51,6 @@
           :type="tag.type ? 'primary' : 'danger'"
         >
           <el-popover
-            v-loading="
-              code === tag.code &&
-                $asyncComputed.nonstandardCauseListSeverData.updating
-            "
             :ref="tag.code"
             @show="code = tag.code"
             :disabled="tag.type"
@@ -66,7 +62,13 @@
             width="200"
             trigger="hover"
           >
-            <div v-html="nonstandardCauseList"></div>
+            <div
+              v-loading="
+                code === tag.code &&
+                  $asyncComputed.nonstandardCausesSeverData.updating
+              "
+              v-html="nonstandardCauses"
+            ></div>
             <i style="font-style: normal" slot="reference">{{ tag.label }}</i>
           </el-popover>
         </el-tag>
