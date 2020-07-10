@@ -172,7 +172,7 @@
             >
               <el-popover
                 :ref="tag.code"
-                @show="(code = tag.code), (idCard = scope.row.idCard)"
+                @show="(code = tag.code), (archivesID = scope.row.id)"
                 :disabled="tag.type"
                 :popper-options="{
                   boundariesElement: 'viewport',
@@ -256,7 +256,7 @@ export default {
       },
       personTagList: personTagList,
       tagList: documentTagList,
-      idCard: '', //身份证id
+      archivesID: '', //档案id
       code: '' //tag code
     };
   },
@@ -339,7 +339,10 @@ export default {
     },
     nonstandardCausesSeverData: {
       async get() {
-        let result = await this.$api.Person.markContent(this.idCard, this.code);
+        let result = await this.$api.Person.markContent(
+          this.archivesID,
+          this.code
+        );
         if (result.length === 0) {
           result = [{content: '暂无数据'}];
         }
