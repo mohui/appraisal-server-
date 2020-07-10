@@ -1089,6 +1089,7 @@ export default {
         .filter(it => it.budget)
         .map(it => ({
           name: it.name,
+          id: it.id,
           budget: it.budget.toFixed(2)
         }))
         .map(it => ({
