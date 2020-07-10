@@ -169,7 +169,30 @@
               style="margin-right: 5px"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
-              >{{ tag.label }}
+            >
+              <el-popover
+                :ref="tag.code"
+                @show="(code = tag.code), (idCard = scope.row.idCard)"
+                :disabled="tag.type"
+                :popper-options="{
+                  boundariesElement: 'viewport',
+                  removeOnDestroy: true
+                }"
+                placement="top-start"
+                width="200"
+                trigger="hover"
+              >
+                <div
+                  v-loading="
+                    code === tag.code &&
+                      $asyncComputed.nonstandardCausesSeverData.updating
+                  "
+                  v-html="nonstandardCauses"
+                ></div>
+                <i style="font-style: normal" slot="reference">{{
+                  tag.label
+                }}</i>
+              </el-popover>
             </el-tag>
           </template>
         </el-table-column>
@@ -232,7 +255,9 @@ export default {
         personTags: []
       },
       personTagList: personTagList,
-      tagList: documentTagList
+      tagList: documentTagList,
+      idCard: '', //身份证id
+      code: '' //tag code
     };
   },
   computed: {
@@ -240,6 +265,15 @@ export default {
       return this.serverData.rows.map(it => {
         return getTagsList(it);
       });
+    },
+    //居民标签不规范的具体原因
+    nonstandardCauses() {
+      if (!this.nonstandardCausesSeverData) return '数据出错了';
+      return this.nonstandardCausesSeverData
+        .map(it => {
+          return it.content;
+        })
+        .join('<br>');
     }
   },
   watch: {
@@ -266,6 +300,15 @@ export default {
     },
     'queryForm.hospital'() {
       this.queryForm.include = false;
+    },
+    //指标得分解读详情数据
+    nonstandardCauses() {
+      if (this.$refs[this.code]) {
+        //数据返回后更新popper，重新修正定位
+        this.$nextTick(() => {
+          this.$refs[this.code][0].updatePopper();
+        });
+      }
     }
   },
   asyncComputed: {
@@ -292,6 +335,21 @@ export default {
           count: 0,
           rows: []
         };
+      }
+    },
+    nonstandardCausesSeverData: {
+      async get() {
+        let result = await this.$api.Person.markContent(this.idCard, this.code);
+        if (result.length === 0) {
+          result = [{content: '暂无数据'}];
+        }
+        return result;
+      },
+      shouldUpdate() {
+        return this.code;
+      },
+      default() {
+        return [];
       }
     }
   },
