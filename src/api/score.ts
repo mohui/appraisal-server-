@@ -28,6 +28,7 @@ import * as path from 'path';
 import {ossClient} from '../../util/oss';
 import {Context} from './context';
 import {Decimal} from 'decimal.js';
+import {Projects} from '../../common/project';
 
 /**
  * 获取百分数字符串, 默认返回'0'
@@ -692,42 +693,80 @@ export default class Score {
             ruleId: {
               [Op.in]: hospitalModel.ruleHospitalBudget.map(it => it.ruleId)
             }
-          }
+          },
+          include: [CheckRuleModel]
         })
       ).map(it => it.toJSON());
       //矫正的工分值
       let score = 0;
+      let detail = [];
       if (projects.length > 0) {
-        const sql = listRender({
-          ids: [code],
-          projectIds: projects.map(p => p.projectId),
-          start: dayjs()
-            .startOf('y')
-            .toDate(),
-          end: dayjs()
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        });
-        //所有机构的所有小项的工分情况
-        const workpoint =
-          projects.length === 0
-            ? 0
-            : (await etlQuery(sql[0], sql[1]))
-                .reduce(
-                  (res, next) => new Decimal(res).add(next.workpoint),
-                  new Decimal(0)
-                )
-                .toNumber();
-        //矫正的工分值
-        score = new Decimal(workpoint)
-          .mul(
-            new Decimal(hospitalModel?.report?.scores ?? 0).div(
-              hospitalModel?.report?.total ?? 0
-            )
-          )
-          .toNumber();
+        detail = await Promise.all(
+          projects.map(async it => {
+            const current = {};
+            current['projectName'] = Projects.find(
+              p => p.id === it.projectId
+            )?.name;
+            current['ruleName'] = it.rule.ruleName;
+            current['projectId'] = it.projectId;
+            current['workpoint'] = (
+              await etlQuery(
+                ` select
+            cast(sum(vw.score) as int) as workPoint
+            from view_workscoretotal vw
+            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
+            and
+             vh.h_id = ?
+            where projecttype=?
+             and missiontime >= ?
+             and missiontime < ?
+             `,
+                [
+                  code,
+                  it.projectId,
+                  dayjs()
+                    .startOf('y')
+                    .toDate(),
+                  dayjs()
+                    .startOf('y')
+                    .add(1, 'y')
+                    .toDate()
+                ]
+              )
+            )[0].workpoint;
+            //小项对应的细则
+            const rules = await CheckRuleModel.findAll({
+              where: {parentRuleId: it.rule.ruleId},
+              include: [
+                {model: RuleHospitalScoreModel, where: {hospitalId: code}}
+              ]
+            });
+            //细则满分
+            const ruleTotal = rules.reduce(
+              (res, next) => (res += next.ruleScore),
+              0
+            );
+            //细则得分
+            const ruleScore = rules.reduce(
+              (res, next) => (res += next.ruleHospitalScores[0]?.score ?? 0),
+              0
+            );
+            //小项质量系数
+            const ruleRate = ruleScore / ruleTotal;
+            //校正工分
+            current['correctWorkpoint'] = current['workpoint'] * ruleRate;
+            current['rate'] = ruleRate;
+            return current;
+          })
+        );
       }
+      //矫正的总工分值
+      score = detail
+        .reduce(
+          (res, next) => new Decimal(res).add(next.correctWorkpoint),
+          new Decimal(0)
+        )
+        .toNumber();
       return {
         id: hospitalModel.id,
         name: hospitalModel.name,
@@ -742,7 +781,8 @@ export default class Score {
               (res, next) => new Decimal(res).add(next.budget),
               new Decimal(0)
             )
-            .toNumber() ?? 0
+            .toNumber() ?? 0,
+        detail
       };
     }
 
