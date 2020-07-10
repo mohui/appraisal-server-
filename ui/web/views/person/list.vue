@@ -171,16 +171,16 @@
               :type="tag.type ? 'primary' : 'danger'"
             >
               <el-popover
-                :ref="tag.code"
-                @show="(code = tag.code), (idCard = scope.row.idCard)"
+                :ref="tag.code + scope.row.id"
+                @show="(code = tag.code), (archivesID = scope.row.id)"
                 :disabled="tag.type"
                 :popper-options="{
                   boundariesElement: 'viewport',
                   removeOnDestroy: true
                 }"
-                placement="top-start"
+                placement="top"
                 width="200"
-                trigger="hover"
+                trigger="click"
               >
                 <div
                   v-loading="
@@ -189,9 +189,14 @@
                   "
                   v-html="nonstandardCauses"
                 ></div>
-                <i style="font-style: normal" slot="reference">{{
-                  tag.label
-                }}</i>
+                <i
+                  :style="{
+                    cursor: !tag.type ? 'pointer' : 'auto',
+                    'font-style': 'normal'
+                  }"
+                  slot="reference"
+                  >{{ tag.label }}</i
+                >
               </el-popover>
             </el-tag>
           </template>
@@ -256,7 +261,7 @@ export default {
       },
       personTagList: personTagList,
       tagList: documentTagList,
-      idCard: '', //身份证id
+      archivesID: '', //档案id
       code: '' //tag code
     };
   },
@@ -303,10 +308,10 @@ export default {
     },
     //指标得分解读详情数据
     nonstandardCauses() {
-      if (this.$refs[this.code]) {
+      if (this.$refs[this.code + this.archivesID]) {
         //数据返回后更新popper，重新修正定位
         this.$nextTick(() => {
-          this.$refs[this.code][0].updatePopper();
+          this.$refs[this.code + this.archivesID][0].updatePopper();
         });
       }
     }
@@ -339,7 +344,10 @@ export default {
     },
     nonstandardCausesSeverData: {
       async get() {
-        let result = await this.$api.Person.markContent(this.idCard, this.code);
+        let result = await this.$api.Person.markContent(
+          this.archivesID,
+          this.code
+        );
         if (result.length === 0) {
           result = [{content: '暂无数据'}];
         }
