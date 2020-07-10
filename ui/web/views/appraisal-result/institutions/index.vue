@@ -53,7 +53,7 @@
                 校正后
               </p>
               <h3 style="font-size: 30px; margin:0; display:inline-block">
-                {{ totalData.score }}
+                {{ totalData.score | fixedDecimal }}
               </h3>
               <span>分</span>
               <p style="margin:10px 0;">{{ date }}</p>
@@ -65,13 +65,11 @@
                 <tr>
                   <td style="width: 33%;text-align: center">
                     <p>{{ totalData.originalScore }}分</p>
-                    <p>校正前</p>
+                    <p>总工分值</p>
                   </td>
                   <td
                     style="width: 33%;text-align: center;vertical-align: middle;"
-                  >
-                    X
-                  </td>
+                  ></td>
                   <td style="text-align: center">
                     <p>{{ totalData.fixedDecimalRate }}%</p>
                     <p>质量系数</p>
