@@ -171,7 +171,7 @@
               :type="tag.type ? 'primary' : 'danger'"
             >
               <el-popover
-                :ref="tag.code"
+                :ref="tag.code + scope.row.id"
                 @show="(code = tag.code), (archivesID = scope.row.id)"
                 :disabled="tag.type"
                 :popper-options="{
@@ -303,10 +303,10 @@ export default {
     },
     //指标得分解读详情数据
     nonstandardCauses() {
-      if (this.$refs[this.code]) {
+      if (this.$refs[this.code + this.archivesID]) {
         //数据返回后更新popper，重新修正定位
         this.$nextTick(() => {
-          this.$refs[this.code][0].updatePopper();
+          this.$refs[this.code + this.archivesID][0].updatePopper();
         });
       }
     }
