@@ -11,8 +11,10 @@ export class RuleHospitalBudgetMigration implements IMigration {
         (
             "rule" UUID NOT NULL  REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE ,
             "hospital" UUID NOT NULL  REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE ,
-            "budget" FLOAT NOT NULL , "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-            "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("rule","hospital"));
+            "budget"  DECIMAL(15, 4) DEFAULT 0,
+            "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+            "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+            PRIMARY KEY ("rule","hospital"));
             COMMENT ON COLUMN "rule_hospital_budget"."rule" IS '考核小项id';
             COMMENT ON COLUMN "rule_hospital_budget"."hospital" IS '机构id';
             COMMENT ON COLUMN "rule_hospital_budget"."budget" IS '分配金额';
