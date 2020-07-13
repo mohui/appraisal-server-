@@ -1368,6 +1368,7 @@ export default {
       default() {
         return {
           id: '',
+          detail: [],
           name: '',
           originalScore: 0,
           score: 0,
