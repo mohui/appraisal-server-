@@ -164,7 +164,10 @@
             :xl="16"
             v-if="params.isInstitution"
           >
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.totalServerData.updating"
+            >
               <div class="score-detail">
                 <el-table :data="scoreList" size="mini" height="100%">
                   <el-table-column
@@ -1368,6 +1371,7 @@ export default {
       default() {
         return {
           id: '',
+          detail: [],
           name: '',
           originalScore: 0,
           score: 0,
