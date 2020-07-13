@@ -521,7 +521,7 @@ export default class Score {
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
         hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
         hospital.rate = rate;
-        hospital.score = hospitalScore;
+        hospital.ruleScore = hospitalScore;
         hospital.ruleId = group.ruleId;
         //累加矫正后的总共分
         totalWorkPoint += hospital.correctWorkPoint;
@@ -820,6 +820,61 @@ export default class Score {
         };
       })
     );
+  }
+  //
+  async hospitalTotal(ids) {
+    const hospitalModel = await HospitalModel.findAll({
+      where: {id: {[Op.in]: ids}},
+      include: [ReportHospitalModel, RuleHospitalBudgetModel]
+    });
+    const hospitalTotal = [];
+    for (const hospital of hospitalModel) {
+      //机构所绑定的小项下的工分项
+      const projects = (
+        await RuleProjectModel.findAll({
+          attributes: ['ruleId', 'projectId'],
+          where: {
+            ruleId: {
+              [Op.in]: hospital.ruleHospitalBudget.map(it => it.ruleId)
+            }
+          },
+          include: [CheckRuleModel]
+        })
+      )
+        .map(it => it.toJSON())
+        .reduce((res, next) => {
+          const current = res.find(it => it.ruleId === next.ruleId);
+          if (current) {
+            current.projectIds.push(next.projectId);
+          } else
+            res.push({
+              ruleId: next.ruleId,
+              projectIds: [next.projectId],
+              ruleName: next.ruleName,
+              budget: next.budget
+            });
+          return res;
+        }, []);
+      //所有小项的得分
+      const ruleScore = await CheckRuleModel.findAll({
+        where: {parentRuleId: {[Op.in]: projects.map(it => it.ruleId)}},
+        attributes: ['ruleId', 'ruleScore'],
+        include: [
+          {
+            model: RuleHospitalScoreModel,
+            attributes: ['score'],
+            where: {hospitalId: hospital.id}
+          }
+        ]
+      });
+      hospitalTotal.push({
+        id: hospital.id,
+        projects,
+        ruleScore
+      });
+    }
+
+    return hospitalTotal;
   }
 
   /**
