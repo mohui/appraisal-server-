@@ -65,6 +65,28 @@ function listRender(params) {
   );
 }
 
+function rankRender(params) {
+  return sqlRender(
+    `       select
+            cast(sum(vw.score) as int) as workPoint,
+            vh.h_id as "hospitalId",
+            vho.hospname as "name"
+            from view_workscoretotal vw
+                 left join hospital_mapping vh on vw.operateorganization = vh.hishospid
+                 left join view_hospital vho on vho.hospid = vh.hishospid
+            where
+                vho.regioncode like {{? code}}
+                 and
+                vw.projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+                 and
+                vw.missiontime >= {{? start}}
+                 and
+                vw.missiontime < {{? end}}
+        group by vh.h_id, vho.hospname`,
+    params
+  );
+}
+
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
     replacements: params,
@@ -797,29 +819,150 @@ export default class Score {
   async rank(code) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
-    return await Promise.all(
-      (
-        await CheckHospitalModel.findAll({
-          where: {
-            hospitalId: {
-              [Op.in]: Context.current.user.hospitals.map(it => it.id)
-            }
-          },
-          include: [
-            {
-              model: HospitalModel,
-              where: {region: {[Op.like]: `${regionModel.code}%`}}
-            }
-          ]
-        })
-      ).map(async checkHospital => {
-        const item = await this.total(checkHospital.hospitalId);
-        return {
-          ...item,
-          parent: checkHospital?.hospital?.parent
-        };
+    //地区的考核体系
+    const checks = await CheckHospitalModel.findOne({
+      where: {
+        hospitalId: {
+          [Op.in]: Context.current.user.hospitals.map(it => it.id)
+        }
+      }
+    });
+    if (!checks) throw new KatoCommonError(`地区未绑定任何考核`);
+    //工分项按小项分组
+    const rules = (
+      await CheckRuleModel.findAll({
+        attributes: ['budget', 'ruleId', 'ruleName'],
+        where: {
+          parentRuleId: {[Op.eq]: null},
+          checkId: checks.checkId
+        },
+        include: [
+          {model: RuleProjectModel, attributes: ['projectId']},
+          {
+            model: RuleHospitalBudgetModel,
+            attributes: ['budget', 'hospitalId'],
+            include: [
+              {model: HospitalModel, as: 'hospital', attributes: ['parent']}
+            ]
+          }
+        ]
+      })
+    )
+      .filter(it => it.ruleProject.length > 0)
+      .map(it => ({
+        ruleId: it.ruleId,
+        budget: it.budget,
+        ruleName: it.ruleName,
+        ruleHospitalBudget: it.ruleHospitalBudget,
+        projectIds: it.ruleProject.map(r => r.projectId)
+      }));
+    const allHospitalData = await Promise.all(
+      rules.map(async it => {
+        //查询相应的工分总分
+        const sql = rankRender({
+          code: `${code}%`,
+          projectIds: it.projectIds,
+          start: dayjs()
+            .startOf('y')
+            .toDate(),
+          end: dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        });
+        //hospitalWorkPointScoreBudget:机构对于的小项工分,得分,金额 三项数据集合
+        it.hospitalWorkPointScoreBudget = await etlQuery(sql[0], sql[1]);
+        //机构的得分与质量系数
+        it.hospitalWorkPointScoreBudget = await Promise.all(
+          it.hospitalWorkPointScoreBudget.map(async h => {
+            const ruleScore = (
+              await CheckRuleModel.findAll({
+                attributes: ['ruleScore'],
+                where: {parentRuleId: it.ruleId},
+                include: [
+                  {
+                    model: RuleHospitalScoreModel,
+                    attributes: ['score'],
+                    where: {hospitalId: h.hospitalId}
+                  }
+                ]
+              })
+            ).map(res => res.toJSON());
+            //小项满分
+            const groupTotal = ruleScore.reduce(
+              (res, next) => (res += next.ruleScore),
+              0
+            );
+            //小项得分
+            const groupScore = ruleScore
+              .reduce(
+                (res, next) =>
+                  new Decimal(res).add(next.ruleHospitalScores[0].score),
+                new Decimal(0)
+              )
+              .toNumber();
+            //小项质量系数
+            const rate =
+              groupScore === 0
+                ? 0
+                : new Decimal(groupScore).div(groupTotal).toNumber() ?? 0;
+            //小项的矫正工分
+            const correctWorkPoint =
+              new Decimal(h.workpoint).mul(rate).toNumber() ?? 0;
+            h.groupTotal = groupTotal;
+            h.groupScore = groupScore;
+            h.rate = rate;
+            h.score = correctWorkPoint;
+            return h;
+          })
+        );
+        //机构的金额
+        it.hospitalWorkPointScoreBudget = it.hospitalWorkPointScoreBudget.map(
+          hw => ({
+            ...hw,
+            parent:
+              it.ruleHospitalBudget.find(rh => rh.hospitalId === hw.hospitalId)
+                ?.hospital?.parent ?? '',
+            budget: Number(
+              it.ruleHospitalBudget.find(rh => rh.hospitalId === hw.hospitalId)
+                ?.budget ?? 0
+            )
+          })
+        );
+        delete it.ruleHospitalBudget;
+        return it;
       })
     );
+    //数据合算
+    return allHospitalData
+      .map(({hospitalWorkPointScoreBudget}) => hospitalWorkPointScoreBudget)
+      .reduce((res, next) => [...res, ...next], [])
+      .filter(it => it.score > 0)
+      .reduce((res, next) => {
+        const current = res.find(r => r.id === next.hospitalId);
+        if (current) {
+          current.originalScore = new Decimal(current.originalScore)
+            .add(next.workpoint)
+            .toNumber();
+          current.score = new Decimal(current.score).add(next.score).toNumber();
+          current.budget = new Decimal(current.budget)
+            .add(next.budget)
+            .toNumber();
+        } else
+          res.push({
+            budget: next.budget,
+            id: next.hospitalId,
+            name: next.name,
+            parent: next.parent,
+            originalScore: next.workpoint,
+            score: next.score
+          });
+        return res;
+      }, [])
+      .map(it => ({
+        ...it,
+        rate: new Decimal(it.score).div(it.originalScore).toNumber()
+      }));
   }
 
   /**
