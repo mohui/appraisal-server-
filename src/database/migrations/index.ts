@@ -17,6 +17,7 @@ import {BasicTagValueMigration} from './014_basic_tag_value';
 import {RuleBudgetMigration} from './015_rule_budget';
 import {RuleProjectMigration} from './016_rule_project';
 import {RuleHospitalBudgetMigration} from './017_rule_hospital_budget';
+import {CheckConstraintMigration} from './018_check_constraint';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -37,5 +38,6 @@ export const migrations: IMigration[] = [
   new BasicTagValueMigration(),
   new RuleBudgetMigration(),
   new RuleProjectMigration(),
-  new RuleHospitalBudgetMigration()
+  new RuleHospitalBudgetMigration(),
+  new CheckConstraintMigration()
 ];
