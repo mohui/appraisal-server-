@@ -28,6 +28,7 @@
             plain
             style="float:right; margin: 4px 0 10px 30px"
             type="primary"
+            @click="handleBack"
             >返回
           </el-button>
         </div>
@@ -276,6 +277,10 @@ export default {
           query: {id: id}
         });
       }
+    },
+    //返回
+    handleBack() {
+      this.$router.go(-1);
     }
   }
 };
