@@ -543,7 +543,7 @@ export default class Score {
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
         hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
         hospital.rate = rate;
-        hospital.ruleScore = hospitalScore;
+        hospital.score = hospitalScore;
         hospital.ruleId = group.ruleId;
         //累加矫正后的总共分
         totalWorkPoint += hospital.correctWorkPoint;
