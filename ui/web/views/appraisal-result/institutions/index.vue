@@ -893,7 +893,7 @@ export default {
   },
   methods: {
     computedColWidth(field) {
-      if (this.scoreList.length > 0) {
+      if (this.scoreList?.length > 0) {
         return this.$widthCompute(this.scoreList.map(item => item[field]));
       }
     },
@@ -1117,7 +1117,7 @@ export default {
   },
   computed: {
     scoreList() {
-      return this.totalServerData.detail.map(it =>
+      return this.totalServerData?.detail?.map(it =>
         Object.assign({}, it, {
           rate: (it.rate * 100).toFixed(2) + '%',
           workpoint: it.workpoint ?? 0,
