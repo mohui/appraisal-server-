@@ -23,6 +23,13 @@
               工分值
             </el-button>
           </el-button-group>
+          <el-button
+            size="small"
+            plain
+            style="float:right; margin: 4px 0 10px 30px"
+            type="primary"
+            >返回
+          </el-button>
         </div>
       </el-card>
       <el-row :gutter="20" style="margin: 20px -10px">
