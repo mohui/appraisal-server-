@@ -20,7 +20,11 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div
+        v-loading="isLoading"
+        v-show="!isError"
+        style="flex-grow: 1;height: 0; overflow-y: auto;"
+      >
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
             姓名：<strong>{{ person.name }}</strong>
@@ -387,6 +391,9 @@
           <p>12．随访医生签名：随访完毕，核查无误后随访医生签署其姓名。</p>
         </div>
       </div>
+      <div v-show="isError">
+        数据请求出错，请及时联系管理员。
+      </div>
     </el-card>
   </div>
 </template>
@@ -397,6 +404,8 @@ export default {
   data() {
     return {
       id: null,
+      isLoading: false,
+      isError: false,
       person: {
         BMI: '',
         BMISuggest: '',
@@ -443,18 +452,21 @@ export default {
   },
   methods: {
     async getDiabetesDetail(id) {
+      this.isLoading = true;
       try {
         let result = await this.$api.Person.diabetesDetail(id);
-        console.log(result);
         if (result.length > 0) {
           this.person = Object.assign({}, result[0], {
-            followDate: result[0].followDate.$format('YYYY-MM-DD'),
-            nextVisitDate: result[0].nextVisitDate.$format('YYYY-MM-DD'),
-            updateAt: result[0].updateAt.$format()
+            followDate: result[0]?.followDate?.$format('YYYY-MM-DD'),
+            nextVisitDate: result[0]?.nextVisitDate?.$format('YYYY-MM-DD'),
+            updateAt: result[0]?.updateAt?.$format()
           });
         }
       } catch (e) {
         this.$message.error(e.message);
+        this.isError = true;
+      } finally {
+        this.isLoading = false;
       }
     }
   }
