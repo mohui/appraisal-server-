@@ -1663,4 +1663,61 @@ export default class Person {
       code
     ]);
   }
+
+  /***
+   * 问卷选项表
+   * @returns {Promise<unknown[]>}
+   */
+  async questionnaire() {
+    const questions = await etlQuery(
+      `
+        select
+            questionsn,
+            questioncode,
+            questioncontent,
+            hisid
+        from view_questionlib order by questionsn`,
+      []
+    );
+    return Promise.all(
+      questions.map(async q => {
+        q.options = await etlQuery(
+          `
+        select
+            vql.optionsn,
+            vql.questionsn,
+            vql.optioncode,
+            vql.optioncontent,
+            vql.score,
+            vql.hisid
+         from view_questionoptionslib vql where vql.questionsn=? and vql.hisid=? order by vql.optioncode
+        `,
+          [q.questionsn, q.hisid]
+        );
+        return q;
+      })
+    );
+  }
+
+  /***
+   * 个人体质表
+   * @param id
+   * @returns
+   */
+  async constitution(id) {
+    return etlQuery(
+      `select
+            vp.name,
+            vq.constitutiontype,
+            vq.constitutiontypepossible,
+            vq.OperateTime as "date",
+            vh.hospname as "hospitalName",
+            vq.doctor
+        from view_questionnaireguide  vq
+        left join view_personinfo vp on vq.personnum = vp.personnum
+        left join view_hospital vh on vp.operateorganization = vh.hospid
+        where vq.personnum=?`,
+      [id]
+    );
+  }
 }
