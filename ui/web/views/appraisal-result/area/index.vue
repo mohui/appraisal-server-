@@ -29,6 +29,7 @@
             style="float:right; margin: 4px 0 10px 30px"
             type="primary"
             @click="handleBack"
+            v-if="this.params.id !== this.$settings.user.code"
             >返回
           </el-button>
         </div>
