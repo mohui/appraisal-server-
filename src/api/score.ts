@@ -22,7 +22,7 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
-import {etlDB} from '../app';
+import {appDB, etlDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
@@ -555,18 +555,20 @@ export default class Score {
           .mul(new Decimal(h.correctWorkPoint).div(totalWorkPoint))
           .toNumber()
       }));
-      //存起来
-      await Promise.all(
-        allHospitalWorkPoint.map(async it => {
-          const current = await RuleHospitalBudgetModel.findOne({
-            where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
-          });
-          if (current) {
-            current.budget = it.budget;
-            await current.save();
-          } else await RuleHospitalBudgetModel.create(it);
-        })
-      );
+      await appDB.transaction(async () => {
+        //存起来
+        await Promise.all(
+          allHospitalWorkPoint.map(async it => {
+            const current = await RuleHospitalBudgetModel.findOne({
+              where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
+            });
+            if (current) {
+              current.budget = it.budget;
+              await current.save();
+            } else await RuleHospitalBudgetModel.create(it);
+          })
+        );
+      });
     }
   }
 
