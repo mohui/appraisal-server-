@@ -114,6 +114,8 @@ export default class CheckSystem {
           ruleId: rule.ruleId
         }))
       );
+      //同步更新金额的分配情况
+      scoreAPI.checkBudget();
       return rule;
     });
   }
@@ -148,7 +150,7 @@ export default class CheckSystem {
         }))
       );
       //同步更新金额的分配情况
-      await scoreAPI.checkBudget();
+      scoreAPI.checkBudget();
     }
     return rule;
   }
@@ -198,7 +200,7 @@ export default class CheckSystem {
       where: {ruleId: params.ruleId}
     });
     //同步更新金额分配情况
-    await scoreAPI.checkBudget();
+    scoreAPI.checkBudget();
     return result;
   }
 
@@ -307,7 +309,7 @@ export default class CheckSystem {
       .description('规则id')
   )
   async removeRule(id) {
-    return appDB.transaction(async () => {
+    await appDB.transaction(async () => {
       //查询并锁定
       const rule = await CheckRuleModel.findOne({
         where: {ruleId: id},
@@ -321,8 +323,10 @@ export default class CheckSystem {
         });
         await Promise.all(childRules.map(async it => await it.destroy()));
       }
-      return await rule.destroy({force: true});
+      await rule.destroy({force: true});
     });
+    //同步更新金额的分配情况
+    scoreAPI.checkBudget();
   }
 
   //查询规则
@@ -562,7 +566,7 @@ export default class CheckSystem {
     //批量添加规则与机构的关系数据
     const result = await RuleHospitalModel.bulkCreate(newRuleHospitals);
     //同步更新金额分配的情况
-    await scoreAPI.checkBudget();
+    scoreAPI.checkBudget();
     return result;
   }
 }
