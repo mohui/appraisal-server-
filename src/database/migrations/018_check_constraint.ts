@@ -38,6 +38,12 @@ export class CheckConstraintMigration implements IMigration {
               foreign key ("rule")
                 references "check_rule"("rule_id")
                 on delete cascade on update cascade;
+            --规则,基础数据关系表
+            alter table rule_tag drop constraint rule_tag_rule_fkey;
+            alter table rule_tag add constraint rule_tag_rule_fkey
+              foreign key ("rule")
+                references "check_rule"("rule_id")
+                on delete cascade on update cascade;
           `
     );
   }
