@@ -20,7 +20,11 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div
+        style="flex-grow: 1;height: 0; overflow-y: auto;"
+        v-loading="isLoading"
+        v-show="!isError"
+      >
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
             姓名：<strong>{{ person.name }}</strong>
@@ -1398,6 +1402,9 @@
           </p>
         </div>
       </div>
+      <div v-show="isError">
+        数据请求出错，请及时联系管理员。
+      </div>
     </el-card>
   </div>
 </template>
@@ -1408,6 +1415,8 @@ export default {
   data() {
     return {
       id: null,
+      isLoading: false,
+      isError: false,
       person: {
         id: '',
         checkupNo: '',
@@ -1655,17 +1664,20 @@ export default {
   },
   methods: {
     async getHealthyDetail(id) {
+      this.isLoading = true;
       try {
         let result = await this.$api.Person.healthyDetail(id);
-        console.log(result);
         if (result.length > 0) {
           this.person = Object.assign({}, result[0], {
-            updateAt: result[0].updateAt.$format(),
-            checkDate: result[0].checkDate.$format('YYYY-MM-DD')
+            updateAt: result[0]?.updateAt?.$format(),
+            checkDate: result[0]?.checkDate?.$format('YYYY-MM-DD')
           });
         }
       } catch (e) {
         this.$message.error(e.message);
+        this.isError = true;
+      } finally {
+        this.isLoading = false;
       }
     }
   }
