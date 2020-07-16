@@ -304,6 +304,10 @@ export default {
   }
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 .second-title {
   font-size: 18px;
   font-weight: bold;
