@@ -435,6 +435,41 @@
                 </div>
               </div>
             </el-tab-pane>
+            <el-tab-pane
+              label="老年人生活自理评分"
+              name="oldManSelfCare"
+              v-if="oldManSelfCareList.length"
+            >
+              <div>
+                <div
+                  class="notes"
+                  v-for="(item, index) of oldManSelfCareList"
+                  :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-oldManSelfCare',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
+                >
+                  <div class="notes-block">
+                    <span class="hospital">总分：{{ item.total }}</span>
+                    <span class="visitTime">
+                      评估时间：{{ item.checkDate }}
+                    </span>
+                  </div>
+                  <p>
+                    进餐得分：{{ item.mealScore }}；梳洗得分：{{
+                      item.washScore
+                    }}；穿衣得分：{{ item.dressScore }}；如厕得分：{{
+                      item.toiletScore
+                    }}；活动得分：{{ item.activityScore }}
+                  </p>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -490,6 +525,12 @@ export default {
         it.birth = it.birth.$format('YYYY-MM-DD');
         return it;
       })[0];
+    },
+    oldManSelfCareList() {
+      return this.oldManSelfCare.map(it => {
+        it.checkDate = it.checkDate ? it.checkDate.$format('YYYY-MM-DD') : '';
+        return it;
+      });
     }
   },
   asyncComputed: {
@@ -547,6 +588,14 @@ export default {
     personDetailSeverData: {
       async get() {
         return await this.$api.Person.personDetail(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    oldManSelfCare: {
+      async get() {
+        return await this.$api.Person.oldManSelfCare(this.id);
       },
       default() {
         return [];
