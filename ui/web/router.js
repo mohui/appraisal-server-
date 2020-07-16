@@ -91,9 +91,14 @@ const router = new Router({
           component: () => import('./views/patient/record-hypertension')
         },
         {
-          path: 'record-old',
-          name: 'record-old',
-          component: () => import('./views/patient/record-old')
+          path: 'record-old-constitution',
+          name: 'record-old-constitution',
+          component: () => import('./views/patient/record-old-constitution')
+        },
+        {
+          path: 'record-oldManSelfCare',
+          name: 'record-oldManSelfCare',
+          component: () => import('./views/patient/record-old-man-self-care')
         },
         {
           path: 'person',
