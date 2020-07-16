@@ -27,9 +27,9 @@
       >
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
-            姓名：<strong>{{ person.name }}</strong>
+            姓名：<strong>{{ person.constitution.name }}</strong>
           </el-col>
-          <el-col :span="6">评估时间：{{ person.checkDate }}</el-col>
+          <el-col :span="6">编号：{{ id }}</el-col>
         </el-row>
         <table class="record-old-table">
           <thead>
@@ -43,342 +43,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>(1)您精力充沛吗？（指精神头足，乐于做事）</td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (2)您容易疲乏吗？（指体力如何，是否稍微活动一下或做一点家务劳动
-                就感到累）
+            <tr v-for="(item, index) of person.questionnaire" :key="index">
+              <td>{{ item.question }}</td>
+              <td :class="{selected: item.optionCode === '1'}">
+                1
               </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (3)您容易气短，呼吸短促，接不上气吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (4)您说话声音低弱无力吗?（指说话没有力气）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (5)您感到闷闷不乐、情绪低沉吗?（指心情不愉快，情绪低落）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (6)您容易精神紧张、焦虑不安吗?（指遇事是否心情紧张）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (7)您因为生活状态改变而感到孤独、失落吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (8)您容易感到害怕或受到惊吓吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (9)您感到身体超重不轻松吗?(感觉身体沉重) [BMI
-                指数=体重（kg）/身高 2（m）]
-              </td>
-              <td>1 <br />(BMI＜24)</td>
-              <td>2 <br />(24≤BMI＜25)</td>
-              <td>3 <br />(25≤BMI＜26)</td>
-              <td>4 <br />(26≤BMI＜28)</td>
-              <td>5 <br />(BMI≥28)</td>
-            </tr>
-            <tr>
-              <td>
-                (10)您眼睛干涩吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (11)您手脚发凉吗?（不包含因周围温度低或穿的少导致的手脚发冷）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (12)您胃脘部、背部或腰膝部怕冷吗？（指上腹部、背部、腰部或膝关
-                节等，有一处或多处怕冷）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (13)您比一般人耐受不了寒冷吗？（指比别人容易害怕冬天或是夏天的
-                冷空调、电扇等）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (14)您容易患感冒吗?（指每年感冒的次数）
-              </td>
-              <td>1 <br />一年＜2 次</td>
-              <td>2 <br />一年感冒2-4 次</td>
-              <td>3 <br />一年感冒5-6 次</td>
-              <td>4 <br />一年 8 次以上</td>
-              <td>5 <br />几乎每月</td>
-            </tr>
-            <tr>
-              <td>
-                (15)您没有感冒时也会鼻塞、流鼻涕吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (16)您有口粘口腻，或睡眠打鼾吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (17)您容易过敏(对药物、食物、气味、花粉或在季节交替、气候变化时)
-                吗?
-              </td>
-              <td>1 <br />从来没有</td>
-              <td>2 <br />一年 1、2 次</td>
-              <td>3 <br />一年 3、4 次</td>
-              <td>4 <br />一年 5、6 次</td>
-              <td>5 <br />每次遇到上述原因都过敏</td>
-            </tr>
-            <tr>
-              <td>
-                (18)您的皮肤容易起荨麻疹吗? (包括风团、风疹块、风疙瘩)
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (19)您的皮肤在不知不觉中会出现青紫瘀斑、皮下出血吗?（指皮肤在没
-                有外伤的情况下出现青一块紫一块的情况）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (20)您的皮肤一抓就红，并出现抓痕吗?（指被指甲或钝物划过后皮肤的反应）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (21)您皮肤或口唇干吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (22)您有肢体麻木或固定部位疼痛的感觉吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (23)您面部或鼻部有油腻感或者油亮发光吗?（指脸上或鼻子）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (24)您面色或目眶晦黯，或出现褐色斑块/斑点吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (25)您有皮肤湿疹、疮疖吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (26)您感到口干咽燥、总想喝水吗？
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (27)您感到口苦或嘴里有异味吗?（指口苦或口臭）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (28)您腹部肥大吗?（指腹部脂肪肥厚）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (29)您吃(喝)凉的东西会感到不舒服或者怕吃(喝)凉的东西吗？（指不喜
-                欢吃凉的食物，或吃了凉的食物后会不舒服）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (30)您有大便黏滞不爽、解不尽的感觉吗?(大便容易粘在马桶或便坑壁
-                上)
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (31)您容易大便干燥吗?
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (32)您舌苔厚腻或有舌苔厚厚的感觉吗?（如果自我感觉不清楚可由调查
-                员观察后填写）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-            </tr>
-            <tr>
-              <td>
-                (33)您舌下静脉瘀紫或增粗吗？（可由调查员辅助观察后填写）
-              </td>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
+              <td :class="{selected: item.optionCode === '2'}">2</td>
+              <td :class="{selected: item.optionCode === '3'}">3</td>
+              <td :class="{selected: item.optionCode === '4'}">4</td>
+              <td :class="{selected: item.optionCode === '5'}">5</td>
             </tr>
           </tbody>
         </table>
@@ -386,29 +59,31 @@
           <thead>
             <tr>
               <th>体质类型</th>
-              <th>气虚质</th>
-              <th>阳虚质</th>
-              <th>阴虚质</th>
-              <th>痰湿质</th>
-              <th>湿热质</th>
-              <th>血瘀质</th>
-              <th>气郁质</th>
-              <th>特禀质</th>
-              <th>平和质</th>
+              <th
+                v-for="(item, index) of typeList"
+                :key="index"
+                :class="{selected: item.isTrue || item.possible}"
+              >
+                {{ item.name }}
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <th>体质辨识</th>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
-              <td>1．得分 2．是 3．倾向是</td>
+              <td v-for="(item, index) of typeList" :key="index">
+                1．得分
+                <span class="selected">
+                  {{ item.total }}
+                </span>
+                <br />
+                <span :class="{selected: item.isTrue}">
+                  2．是
+                </span>
+                <br /><span :class="{selected: item.possible}">
+                  3．倾向是
+                </span>
+              </td>
             </tr>
             <tr>
               <th>中医药保健指导</th>
@@ -451,9 +126,9 @@
             </tr>
             <tr>
               <td colspan="2">填表日期</td>
-              <td colspan="3">年 月 日</td>
+              <td colspan="3">{{ person.constitution.date }}</td>
               <td colspan="2">医生签名</td>
-              <td colspan="3"></td>
+              <td colspan="3">{{ person.constitution.doctor }}</td>
             </tr>
           </tbody>
         </table>
@@ -572,35 +247,320 @@ export default {
       id: null,
       isLoading: false,
       isError: false,
+      typeList: [
+        {
+          name: '气虚质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [2, 3, 4, 14]
+        },
+        {
+          name: '阳虚质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [11, 12, 13, 29]
+        },
+        {
+          name: '阴虚质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [10, 21, 26, 31]
+        },
+        {
+          name: '痰湿质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [9, 16, 28, 32]
+        },
+        {
+          name: '湿热质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [23, 25, 27, 30]
+        },
+        {
+          name: '血瘀质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [19, 22, 24, 33]
+        },
+        {
+          name: '气郁质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [5, 6, 7, 8]
+        },
+        {
+          name: '特禀质',
+          also: '特秉质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [15, 17, 18, 20]
+        },
+        {
+          name: '平和质',
+          isTrue: false,
+          possible: false,
+          total: 0,
+          range: [1, 2, 4, 5, 13]
+        }
+      ],
       person: {
-        id: '',
-        healthyID: '',
-        checkDate: '',
-        name: '',
-        mealNormal: false,
-        mealModerate: false,
-        mealDisable: false,
-        mealScore: 0,
-        washNormal: false,
-        washMild: false,
-        washModerate: false,
-        washDisable: false,
-        washScore: 0,
-        dressNormal: false,
-        dressModerate: false,
-        dressDisable: false,
-        dressScore: 0,
-        toiletNormal: false,
-        toiletMild: false,
-        toiletModerate: false,
-        toiletDisable: false,
-        toiletScore: 0,
-        activityNormal: false,
-        activityMild: false,
-        activityModerate: false,
-        activityDisable: false,
-        activityScore: 0,
-        total: 0
+        questionnaire: [
+          {
+            option: '',
+            optionCode: '',
+            question: '(1)您精力充沛吗？（指精神头足，乐于做事）',
+            questionCode: '1',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(2)您容易疲乏吗？（指体力如何，是否稍微活动一下或做一点家务劳动就感到累）',
+            questionCode: '2',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(3)您容易气短，呼吸短促，接不上气吗？',
+            questionCode: '3',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(4)您说话声音低弱无力吗?（指说话没有力气）',
+            questionCode: '4',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(5)您感到闷闷不乐、情绪低沉吗?（指心情不愉快，情绪低落）',
+            questionCode: '5',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(6)您容易精神紧张、焦虑不安吗?（指遇事是否心情紧张）',
+            questionCode: '6',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(7)您因为生活状态改变而感到孤独、失落吗？',
+            questionCode: '7',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(8)您容易感到害怕或受到惊吓吗?',
+            questionCode: '8',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(9)您感到身体超重不轻松吗?(感觉身体沉重) [BMI指数=体重（kg）/身高 2（m）]',
+            questionCode: '9',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(10)您眼睛干涩吗?',
+            questionCode: '10',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(11)您手脚发凉吗?（不包含因周围温度低或穿的少导致的手脚发冷）',
+            questionCode: '11',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              ' (12)您胃脘部、背部或腰膝部怕冷吗？（指上腹部、背部、腰部或膝关节等，有一处或多处怕冷）',
+            questionCode: '12',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(13)您比一般人耐受不了寒冷吗？（指比别人容易害怕冬天或是夏天的冷空调、电扇等）',
+            questionCode: '13',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(14)您容易患感冒吗?（指每年感冒的次数）',
+            questionCode: '14',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(15)您没有感冒时也会鼻塞、流鼻涕吗?',
+            questionCode: '15',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(16)您有口粘口腻，或睡眠打鼾吗？',
+            questionCode: '16',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(17)您容易过敏(对药物、食物、气味、花粉或在季节交替、气候变化时)吗?',
+            questionCode: '17',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(18)您的皮肤容易起荨麻疹吗? (包括风团、风疹块、风疙瘩)',
+            questionCode: '18',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(19)您的皮肤在不知不觉中会出现青紫瘀斑、皮下出血吗?（指皮肤在没有外伤的情况下出现青一块紫一块的情况）',
+            questionCode: '19',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(20)您的皮肤一抓就红，并出现抓痕吗?（指被指甲或钝物划过后皮肤的反应）',
+            questionCode: '20',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(21)您皮肤或口唇干吗?',
+            questionCode: '21',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(22)您有肢体麻木或固定部位疼痛的感觉吗？',
+            questionCode: '22',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(23)您面部或鼻部有油腻感或者油亮发光吗?（指脸上或鼻子）',
+            questionCode: '23',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(24)您面色或目眶晦黯，或出现褐色斑块/斑点吗?',
+            questionCode: '24',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(25)您有皮肤湿疹、疮疖吗？',
+            questionCode: '25',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(26)您感到口干咽燥、总想喝水吗？',
+            questionCode: '26',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(27)您感到口苦或嘴里有异味吗?（指口苦或口臭）',
+            questionCode: '27',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(28)您腹部肥大吗?（指腹部脂肪肥厚）',
+            questionCode: '28',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(29)您吃(喝)凉的东西会感到不舒服或者怕吃(喝)凉的东西吗？（指不喜欢吃凉的食物，或吃了凉的食物后会不舒服）',
+            questionCode: '29',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(30)您有大便黏滞不爽、解不尽的感觉吗?(大便容易粘在马桶或便坑壁上)',
+            questionCode: '30',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question: '(31)您容易大便干燥吗?',
+            questionCode: '31',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(32)您舌苔厚腻或有舌苔厚厚的感觉吗?（如果自我感觉不清楚可由调查员观察后填写）',
+            questionCode: '32',
+            score: 0
+          },
+          {
+            option: '',
+            optionCode: '',
+            question:
+              '(33)您舌下静脉瘀紫或增粗吗？（可由调查员辅助观察后填写）',
+            questionCode: '33',
+            score: 0
+          }
+        ],
+        constitution: {}
       }
     };
   },
@@ -608,18 +568,54 @@ export default {
     const id = this.$route.query.id;
     if (!id) this.$router.go(-1);
     this.id = id;
-    this.getOldManSelfCareDetail(id);
+    this.getQuestionnaireDetail(id);
   },
   methods: {
-    async getOldManSelfCareDetail(id) {
+    async getQuestionnaireDetail(id) {
       this.isLoading = true;
       try {
-        let result = await this.$api.Person.oldManSelfCareDetail(id);
-        if (result.length > 0) {
-          this.person = Object.assign({}, result[0], {
-            checkDate: result[0].checkDate.$format('YYYY-MM-DD')
-          });
-        }
+        const {
+          questionnaire,
+          constitution
+        } = await this.$api.Person.questionnaireDetail(id);
+
+        this.person.constitution = Object.assign({}, constitution, {
+          date: constitution?.date?.$format('YYYY-MM-DD')
+        });
+
+        this.person.questionnaire = this.person.questionnaire.map(it => {
+          let cur = questionnaire.filter(
+            item => item.questionCode === it.questionCode
+          );
+          if (cur.length > 0) {
+            it.option = cur[0].option;
+            it.optionCode = cur[0].optionCode;
+            it.score = cur[0].score;
+            it.secondScore = cur[0].secondScore;
+          }
+          return it;
+        });
+        this.typeList = this.typeList.map(it => {
+          it.isTrue =
+            constitution?.constitutiontype?.indexOf(it.name) > -1 ||
+            constitution?.constitutiontype?.indexOf(it.also) > -1;
+
+          it.possible =
+            constitution?.constitutiontypepossible?.indexOf(it.name) > -1 ||
+            constitution?.constitutiontypepossible?.indexOf(it.also) > -1;
+
+          it.total = it.range
+            .map(its => {
+              return questionnaire
+                .filter(item => +item.questionCode === its)
+                .map(item =>
+                  it.name !== '平和质' ? +item.score : +item.secondScore
+                );
+            })
+            .flat()
+            .reduce((acc, cur) => acc + cur, 0);
+          return it;
+        });
       } catch (e) {
         this.$message.error(e.message);
         this.isError = true;
@@ -653,6 +649,10 @@ export default {
       border-left: 1px solid #ccc;
       sub {
         vertical-align: bottom;
+      }
+      &.selected,
+      .selected {
+        color: #409eff;
       }
     }
   }

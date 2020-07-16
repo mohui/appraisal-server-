@@ -436,9 +436,9 @@
               </div>
             </el-tab-pane>
             <el-tab-pane
-              label="老年人生活自理评分"
+              label="老年人特殊健康管理服务记录"
               name="oldManSelfCare"
-              v-if="oldManSelfCareList.length"
+              v-if="oldManSelfCareList.length || questionnaireList.length"
             >
               <div>
                 <div
@@ -455,7 +455,9 @@
                   "
                 >
                   <div class="notes-block">
-                    <span class="hospital">总分：{{ item.total }}</span>
+                    <span class="hospital">
+                      [老年人生活自理评分] 总分：{{ item.total }}
+                    </span>
                     <span class="visitTime">
                       评估时间：{{ item.checkDate }}
                     </span>
@@ -466,6 +468,32 @@
                     }}；穿衣得分：{{ item.dressScore }}；如厕得分：{{
                       item.toiletScore
                     }}；活动得分：{{ item.activityScore }}
+                  </p>
+                </div>
+
+                <div
+                  class="notes"
+                  v-for="(item, index) of questionnaireList"
+                  :key="index"
+                  @click="
+                    $router.push({
+                      name: 'record-old-constitution',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
+                >
+                  <div class="notes-block">
+                    <span class="hospital">
+                      [老年人中医药健康管理服务记录表] 姓名：{{ item.name }}
+                    </span>
+                    <span class="visitTime"> 问卷时间：{{ item.date }} </span>
+                  </div>
+                  <p>
+                    机构名称：{{ item.hospitalName }}； 医生姓名：{{
+                      item.doctor
+                    }}
                   </p>
                 </div>
               </div>
@@ -525,6 +553,12 @@ export default {
         it.birth = it.birth.$format('YYYY-MM-DD');
         return it;
       })[0];
+    },
+    questionnaireList() {
+      return this.questionnaire.map(it => {
+        it.date = it.date ? it.date.$format('YYYY-MM-DD') : '';
+        return it;
+      });
     },
     oldManSelfCareList() {
       return this.oldManSelfCare.map(it => {
@@ -588,6 +622,14 @@ export default {
     personDetailSeverData: {
       async get() {
         return await this.$api.Person.personDetail(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    questionnaire: {
+      async get() {
+        return await this.$api.Person.questionnaire(this.id);
       },
       default() {
         return [];
