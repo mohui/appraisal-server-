@@ -1707,7 +1707,6 @@ export default class Person {
    *      option:       选择描述
    *      optionCode:   选项编号
    *      score:        选项分数
-   *      hospitalName: 机构名称
    *      secondScore:  选项反向分数
    *    }
    *   constitution: 体质结果
@@ -1738,12 +1737,10 @@ export default class Person {
             vqd.questionnairedetailcontent as "question",
             vq.optioncontent as "option",
             vq.optioncode as "optionCode",
-            vq.score,
-            vh.hospname as "hospitalName"
+            vq.score
             from view_questionnairedetail vqd
             inner join view_questionoptionslib vq on
             cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-            left join view_hospital vh on vqd.operateorganization = vh.hospid
             inner join view_questionlib vb on
                 vb.questionsn = vq.questionsn and vb.hisid = vq.hisid
             where vqd.QuestionnaireMainSN = ?
