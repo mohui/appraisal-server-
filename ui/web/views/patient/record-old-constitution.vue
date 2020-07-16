@@ -20,8 +20,18 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
-        <table class="record-table">
+      <div
+        v-loading="isLoading"
+        v-show="!isError"
+        style="flex-grow: 1;height: 0; overflow-y: auto;"
+      >
+        <el-row type="flex" class="record-head" justify="space-between">
+          <el-col :span="6">
+            姓名：<strong>{{ person.name }}</strong>
+          </el-col>
+          <el-col :span="6">评估时间：{{ person.checkDate }}</el-col>
+        </el-row>
+        <table class="record-old-table">
           <thead>
             <tr>
               <th>请根据近一年的体验和感觉，回答以下问题。</th>
@@ -468,7 +478,7 @@
         </div>
 
         <p>（附件 2）体质判定标准表</p>
-        <table class="record-table">
+        <table class="record-old-table">
           <thead>
             <tr>
               <th>体质类型及对应条目</th>
@@ -500,7 +510,7 @@
             </tr>
             <tr>
               <td rowspan="3">
-                平和质（1）（2）（4）（5）（13）
+                平和质（1）（2）（4）（5）（13）<br />
                 （其中，（2）（4）（5）（13）反向计分， 即
                 1→5，2→4，3→3，4→2，5→1）
               </td>
@@ -547,12 +557,78 @@
           </p>
         </div>
       </div>
+      <div v-show="isError">
+        数据请求出错，请及时联系管理员。
+      </div>
     </el-card>
   </div>
 </template>
 
 <script>
-//script
+export default {
+  name: 'record-old-constitution',
+  data() {
+    return {
+      id: null,
+      isLoading: false,
+      isError: false,
+      person: {
+        id: '',
+        healthyID: '',
+        checkDate: '',
+        name: '',
+        mealNormal: false,
+        mealModerate: false,
+        mealDisable: false,
+        mealScore: 0,
+        washNormal: false,
+        washMild: false,
+        washModerate: false,
+        washDisable: false,
+        washScore: 0,
+        dressNormal: false,
+        dressModerate: false,
+        dressDisable: false,
+        dressScore: 0,
+        toiletNormal: false,
+        toiletMild: false,
+        toiletModerate: false,
+        toiletDisable: false,
+        toiletScore: 0,
+        activityNormal: false,
+        activityMild: false,
+        activityModerate: false,
+        activityDisable: false,
+        activityScore: 0,
+        total: 0
+      }
+    };
+  },
+  created() {
+    const id = this.$route.query.id;
+    if (!id) this.$router.go(-1);
+    this.id = id;
+    this.getOldManSelfCareDetail(id);
+  },
+  methods: {
+    async getOldManSelfCareDetail(id) {
+      this.isLoading = true;
+      try {
+        let result = await this.$api.Person.oldManSelfCareDetail(id);
+        if (result.length > 0) {
+          this.person = Object.assign({}, result[0], {
+            checkDate: result[0].checkDate.$format('YYYY-MM-DD')
+          });
+        }
+      } catch (e) {
+        this.$message.error(e.message);
+        this.isError = true;
+      } finally {
+        this.isLoading = false;
+      }
+    }
+  }
+};
 </script>
 
 <style lang="scss">
