@@ -9,6 +9,7 @@
         display: 'flex',
         'flex-direction': 'column'
       }"
+      v-loading="isLoading"
     >
       <div slot="header" class="clearfix">
         <span>老年人中医药健康管理服务记录表</span>
@@ -20,11 +21,7 @@
           >返回
         </el-button>
       </div>
-      <div
-        v-loading="isLoading"
-        v-show="!isError"
-        style="flex-grow: 1;height: 0; overflow-y: auto;"
-      >
+      <div v-show="!isError" style="flex-grow: 1;height: 0; overflow-y: auto;">
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
             姓名：<strong>{{ person.constitution.name }}</strong>
