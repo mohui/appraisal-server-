@@ -1663,4 +1663,141 @@ export default class Person {
       code
     ]);
   }
+
+  /***
+   * 问卷选项表
+   * @returns {
+   *   id: 问卷id
+   *   name: 姓名
+   *   date: 问卷时间
+   *   doctor: 医生姓名
+   *   hospitalName:机构名称
+   * }
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('个人id')
+  )
+  async questionnaire(id) {
+    return etlQuery(
+      `
+       select
+     vq.QuestionnaireMainSN as "id",
+     vp.name,
+     vq.questionnairemaindate as "date",
+     vq.doctorname as "doctor",
+     vh.hospname as "hospitalName"
+     from view_questionnairemain vq
+     left join view_personinfo vp on vq.personnum = vp.personnum
+     left join view_hospital vh on vp.operateorganization = vh.hospid
+     where vp.personnum=?;`,
+      [id]
+    );
+  }
+
+  /***
+   * 老年人中医药健康管理服务记录表
+   * return {
+   *   questionnaire: 问卷详情
+   *    {
+   *      questionCode: 问题编号
+   *      question:     问题描述
+   *      option:       选择描述
+   *      optionCode:   选项编号
+   *      score:        选项分数
+   *      secondScore:  选项反向分数
+   *    }
+   *   constitution: 体质结果
+   *    {
+   *      name: 姓名
+   *      constitutiontype:  体质
+   *      constitutiontypepossible: 倾向体质
+   *      date: 问卷时间
+   *      hospitalName: 机构名称
+   *      doctor: 医生名称
+   *      guide: 指导建议 (TODO:目前无数据)
+   *    }
+   * }
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('问卷表id')
+  )
+  async questionnaireDetail(id) {
+    const questionnaire = (
+      await etlQuery(
+        `select
+            cast(vb.questioncode as int) as "questionCode",
+            vb.questioncode as "questionCode",
+            vqd.questionnairemainsn as "detailId",
+            vqd.questionnairedetailcontent as "question",
+            vq.optioncontent as "option",
+            vq.optioncode as "optionCode",
+            vq.score
+            from view_questionnairedetail vqd
+            inner join view_questionoptionslib vq on
+            cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+            inner join view_questionlib vb on
+                vb.questionsn = vq.questionsn and vb.hisid = vq.hisid
+            where vqd.QuestionnaireMainSN = ?
+        order by cast(vb.questioncode as int)`,
+        [id]
+      )
+    ).reduce((res, next) => {
+      let current = res.find(it => it.questionCode === next.questionCode);
+      if (current) {
+        //正向分数排在前面
+        if (current.optionCode === current.score.toString()) {
+          current.secondScore = next.score;
+        } else {
+          //分数和选项序号相反,则交换位置
+          const score = current.score;
+          current.score = next.score;
+          current.secondScore = score;
+        }
+      } else {
+        next.secondScore = null;
+        res.push(next);
+      }
+      return res;
+    }, []);
+    //找人名:
+    const name =
+      (
+        await etlQuery(
+          `
+        select vp.name from view_questionnairedetail vqd
+            left join view_questionnairemain vm on
+            cast(vm.questionnairemainsn as varchar) = cast(vqd.questionnairemainsn as varchar)
+            right join view_personinfo vp on vm.personnum = vp.personnum
+        where vqd.questionnairemainsn = ? limit 1;`,
+          [id]
+        )
+      )[0]?.name ?? '';
+    //体质结果
+    const constitution =
+      (
+        await etlQuery(
+          `select
+            vp.name,
+            vq.constitutiontype,
+            vq.constitutiontypepossible,
+            vq.OperateTime as "date",
+            vh.hospname as "hospitalName",
+            vq.doctor
+            from view_questionnaireguide  vq
+            left join view_personinfo vp on vq.personnum = vp.personnum
+            left join view_hospital vh on vp.operateorganization = vh.hospid
+            where vq.questionnairemainsn = ?`,
+          [questionnaire[0]?.detailId]
+        )
+      )[0] ?? [];
+    //TODO 指定建议暂时无数据
+    constitution.guide = '';
+    return {name, questionnaire, constitution};
+  }
 }
