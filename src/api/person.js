@@ -1749,8 +1749,17 @@ export default class Person {
       )
     ).reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
-      if (current) current.secondScore = next.score;
-      else {
+      if (current) {
+        //正向分数排在前面
+        if (current.optionCode === current.score.toString()) {
+          current.secondScore = next.score;
+        } else {
+          //分数和选项序号相反,则交换位置
+          const score = current.score;
+          current.score = next.score;
+          current.secondScore = score;
+        }
+      } else {
         next.secondScore = null;
         res.push(next);
       }
