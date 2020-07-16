@@ -486,7 +486,7 @@
                 >
                   <div class="notes-block">
                     <span class="hospital">
-                      [老年人中医药健康管理服务记录表] 姓名：{{ item.name }}
+                      [老年人中医药健康管理服务记录表]
                     </span>
                     <span class="visitTime"> 问卷时间：{{ item.date }} </span>
                   </div>
