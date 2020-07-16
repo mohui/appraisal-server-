@@ -1668,56 +1668,101 @@ export default class Person {
    * 问卷选项表
    * @returns {Promise<unknown[]>}
    */
-  async questionnaire() {
-    const questions = await etlQuery(
+  async questionnaire(id) {
+    return etlQuery(
       `
-        select
-            questionsn,
-            questioncode,
-            questioncontent,
-            hisid
-        from view_questionlib order by questionsn`,
-      []
-    );
-    return Promise.all(
-      questions.map(async q => {
-        q.options = await etlQuery(
-          `
-        select
-            vql.optionsn,
-            vql.questionsn,
-            vql.optioncode,
-            vql.optioncontent,
-            vql.score,
-            vql.hisid
-         from view_questionoptionslib vql where vql.questionsn=? and vql.hisid=? order by vql.optioncode
-        `,
-          [q.questionsn, q.hisid]
-        );
-        return q;
-      })
+       select
+     vq.QuestionnaireMainSN as "id",
+     vp.name,
+     vq.questionnairemaindate as "date",
+     vq.doctorname as "doctor",
+     vh.hospname as "hospitalName"
+     from view_questionnairemain vq
+     left join view_personinfo vp on vq.personnum = vp.personnum
+     left join view_hospital vh on vp.operateorganization = vh.hospid
+     where vp.personnum=?;`,
+      [id]
     );
   }
 
   /***
-   * 个人体质表
-   * @param id
-   * @returns
+   * 老年人中医药健康管理服务记录表
+   * return {
+   *   name : 姓名
+   *   questionnaire: 问卷详情
+   *   constitution: 体质结果
+   * }
    */
-  async constitution(id) {
-    return etlQuery(
-      `select
+  @validate(
+    should
+      .string()
+      .required()
+      .description('问卷表id')
+  )
+  async questionnaireDetail(id) {
+    const questionnaire = (
+      await etlQuery(
+        `select
+            cast(vb.questioncode as int) as "questionCode",
+            vb.questioncode as "questionCode",
+            vqd.questionnairemainsn as "detailId",
+            vqd.questionnairedetailcontent as "question",
+            vq.optioncontent as "option",
+            vq.optioncode as "optionCode",
+            vq.score,
+            vh.hospname as "hospitalName"
+            from view_questionnairedetail vqd
+            inner join view_questionoptionslib vq on
+            cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+            left join view_hospital vh on vqd.operateorganization = vh.hospid
+            inner join view_questionlib vb on
+                vb.questionsn = vq.questionsn and vb.hisid = vq.hisid
+            where vqd.QuestionnaireMainSN = ?
+        order by cast(vb.questioncode as int)`,
+        [id]
+      )
+    ).reduce((res, next) => {
+      let current = res.find(it => it.questionCode === next.questionCode);
+      if (current) current.secondScore = next.score;
+      else {
+        next.secondScore = null;
+        res.push(next);
+      }
+      return res;
+    }, []);
+    //找人名:
+    const name =
+      (
+        await etlQuery(
+          `
+        select vp.name from view_questionnairedetail vqd
+            left join view_questionnairemain vm on
+            cast(vm.questionnairemainsn as varchar) = cast(vqd.questionnairemainsn as varchar)
+            right join view_personinfo vp on vm.personnum = vp.personnum
+        where vqd.questionnairemainsn = ? limit 1;`,
+          [id]
+        )
+      )[0]?.name ?? '';
+    //体质结果
+    const constitution =
+      (
+        await etlQuery(
+          `select
             vp.name,
             vq.constitutiontype,
             vq.constitutiontypepossible,
             vq.OperateTime as "date",
             vh.hospname as "hospitalName",
             vq.doctor
-        from view_questionnaireguide  vq
-        left join view_personinfo vp on vq.personnum = vp.personnum
-        left join view_hospital vh on vp.operateorganization = vh.hospid
-        where vq.personnum=?`,
-      [id]
-    );
+            from view_questionnaireguide  vq
+            left join view_personinfo vp on vq.personnum = vp.personnum
+            left join view_hospital vh on vp.operateorganization = vh.hospid
+            where vq.questionnairemainsn = ?`,
+          [questionnaire[0]?.detailId]
+        )
+      )[0] ?? [];
+    //TODO 指定建议暂时无数据
+    constitution.guide = '';
+    return {name, questionnaire, constitution};
   }
 }
