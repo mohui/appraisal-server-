@@ -1666,7 +1666,13 @@ export default class Person {
 
   /***
    * 问卷选项表
-   * @returns
+   * @returns {
+   *   id: 问卷id
+   *   name: 姓名
+   *   date: 问卷时间
+   *   doctor: 医生姓名
+   *   hospitalName:机构名称
+   * }
    */
   @validate(
     should
@@ -1694,9 +1700,26 @@ export default class Person {
   /***
    * 老年人中医药健康管理服务记录表
    * return {
-   *   name : 姓名
    *   questionnaire: 问卷详情
+   *    {
+   *      questionCode: 问题编号
+   *      question:     问题描述
+   *      option:       选择描述
+   *      optionCode:   选项编号
+   *      score:        选项分数
+   *      hospitalName: 机构名称
+   *      secondScore:  选项反向分数
+   *    }
    *   constitution: 体质结果
+   *    {
+   *      name: 姓名
+   *      constitutiontype:  体质
+   *      constitutiontypepossible: 倾向体质
+   *      date: 问卷时间
+   *      hospitalName: 机构名称
+   *      doctor: 医生名称
+   *      guide: 指导建议 (TODO:目前无数据)
+   *    }
    * }
    */
   @validate(
