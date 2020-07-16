@@ -1666,8 +1666,14 @@ export default class Person {
 
   /***
    * 问卷选项表
-   * @returns {Promise<unknown[]>}
+   * @returns
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('个人id')
+  )
   async questionnaire(id) {
     return etlQuery(
       `
