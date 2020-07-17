@@ -540,8 +540,9 @@ export default class Score {
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
         hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
         hospital.rate = rate;
-        hospital.score = hospitalScore;
+        hospital.ruleScore = hospitalScore;
         hospital.ruleId = group.ruleId;
+        hospital.ruleTotalScore = totalScore;
         //累加矫正后的总共分
         totalWorkPoint += hospital.correctWorkPoint;
       }
@@ -559,12 +560,19 @@ export default class Score {
             const current = await RuleHospitalBudgetModel.findOne({
               where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
             });
+            if (it.ruleTotalScore === 0) console.log('it----', it);
             if (current) {
               current.budget = it.budget;
+              current.workPoint = it.workpoint;
+              current.correctWorkPoint = it.correctWorkPoint;
+              current.ruleScore = it.ruleScore;
+              current.ruleTotalScore = it.ruleTotalScore;
               await current.save();
             } else await RuleHospitalBudgetModel.create(it);
           })
         );
+        //同步更新reportHospital
+        const reportHospital = await ReportHospitalModel.findAll();
       });
     }
   }
@@ -607,28 +615,62 @@ export default class Score {
   async total(code) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
-      const reduceObject = (
-        await HospitalModel.findAll({
-          where: {
-            regionId: {
-              [Op.like]: `${code}%`
-            }
-          },
-          include: [ReportHospitalModel]
-        })
-      ).reduce(
-        (result, current) => {
-          result.workpoints += current?.report?.workpoints ?? 0;
-          result.scores += current?.report?.scores ?? 0;
-          result.correctWorkPoint += current?.report?.total
-            ? (current?.report?.workpoints ?? 0) *
-              ((current?.report?.scores ?? 0) / current?.report?.total)
-            : 0;
-          result.total += current?.report?.total ?? 0;
-          return result;
+      const reduceObject = await HospitalModel.findAll({
+        where: {
+          regionId: {
+            [Op.like]: `${code}%`
+          }
         },
-        {workpoints: 0, scores: 0, total: 0, correctWorkPoint: 0}
+        include: [RuleHospitalBudgetModel]
+      });
+      return reduceObject.reduce(
+        (res, next) => {
+          res.workpoints = new Decimal(res.workpoints).add(
+            next?.ruleTotalBudget.reduce(
+              (r, n) => (r = new Decimal(r).add(n.workPoint)),
+              new Decimal(0)
+            ) ?? 0
+          );
+          res.scores = new Decimal(res.scores).add(
+            next?.ruleTotalBudget.reduce(
+              (r, n) => (r = new Decimal(r).add(n.ruleScore)),
+              new Decimal(0)
+            ) ?? 0
+          );
+          res.correctWorkPoint = new Decimal(res.correctWorkPoint).add(
+            next?.ruleTotalBudget.reduce(
+              (r, n) => (r = new Decimal(r).add(n.correctWorkPoint)),
+              new Decimal(0)
+            ) ?? 0
+          );
+          res.total = new Decimal(res.total).add(
+            next?.ruleTotalBudget.reduce(
+              (r, n) => (r = new Decimal(r).add(n.ruleTotalScore)),
+              new Decimal(0)
+            ) ?? 0
+          );
+          return res;
+        },
+        {
+          workpoints: 0,
+          scores: 0,
+          total: 0,
+          correctWorkPoint: 0
+        }
       );
+      //   .reduce(
+      //   (result, current) => {
+      //     result.workpoints += current?.report?.workpoints ?? 0;
+      //     result.scores += current?.report?.scores ?? 0;
+      //     result.correctWorkPoint += current?.report?.total
+      //       ? (current?.report?.workpoints ?? 0) *
+      //         ((current?.report?.scores ?? 0) / current?.report?.total)
+      //       : 0;
+      //     result.total += current?.report?.total ?? 0;
+      //     return result;
+      //   },
+      //   {workpoints: 0, scores: 0, total: 0, correctWorkPoint: 0}
+      // );
 
       return {
         id: regionModel.code,
