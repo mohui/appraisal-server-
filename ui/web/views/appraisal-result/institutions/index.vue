@@ -1147,7 +1147,7 @@ export default {
       let arr = this.workpointRankServerData
         .filter(it => it.score)
         .map(it => ({
-          name: `${it.name} 工分值：${it.score}`,
+          name: `${it.name} 工分值：${Math.round(it.score)}分`,
           value: it.score,
           target: '_self',
           link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
