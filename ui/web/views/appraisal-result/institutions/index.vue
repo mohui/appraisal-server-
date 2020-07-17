@@ -260,7 +260,7 @@
               </div>
               <div slot="Progress" style="padding: 10px 20px 0;">
                 <progress-score
-                  :label="item.score"
+                  :label="item.scoreFormat"
                   :height="18"
                   :percentage="
                     item.score != 0
@@ -280,7 +280,7 @@
                     :key="index"
                     @click="handleClickInstitution(i.id)"
                   >
-                    {{ i.name }} {{ i.score }}分
+                    {{ i.name }} {{ i.score | fixedDecimal }}分
                   </li>
                 </ul>
               </div>
@@ -336,7 +336,7 @@
                 >
                   <p>{{ index + 1 }}、{{ item.name }}</p>
                   <progress-score
-                    :label="item.score"
+                    :label="item.scoreFormat"
                     :height="18"
                     :percentage="
                       item.score != 0
@@ -385,7 +385,7 @@
                 >
                   <p>{{ index + 1 }}、{{ item.name }}</p>
                   <progress-score
-                    :label="item.score"
+                    :label="item.scoreFormat"
                     :height="18"
                     :percentage="
                       item.score != 0
@@ -888,7 +888,7 @@ export default {
     //过滤器，保留两位小数
     fixedDecimal: function(value) {
       if (!value) return 0;
-      return value.toFixed(2);
+      return value.toFixed(0);
     }
   },
   methods: {
@@ -1201,6 +1201,8 @@ export default {
             (result, current) => (result += current.score),
             0
           );
+          //格式化取整后的分数，用于页面显示
+          returnValue.scoreFormat = Math.round(returnValue.score);
           //累加质量系数
           returnValue.rate = returnValue.child.reduce(
             (result, current) => (result += current.rate),
@@ -1222,7 +1224,13 @@ export default {
         .reduce((result, current) => result.concat(current), [])
         .filter(item => item.name.includes('中心'));
       if (this.params.listFlag === 'score') {
-        return result.sort((a, b) => b.score - a.score);
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
@@ -1233,7 +1241,13 @@ export default {
         .filter(item => !item.name.includes('中心'))
         .sort((a, b) => b.score - a.score);
       if (this.params.listFlag === 'score') {
-        return result.sort((a, b) => b.score - a.score);
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
