@@ -45,7 +45,7 @@
                 校正后
               </p>
               <h3 style="font-size: 30px; margin:0; display:inline-block">
-                {{ totalData.score }}
+                {{ Math.round(totalData.score) }}
               </h3>
               <span>分</span>
               <p style="margin:10px 0;">{{ date }}</p>
@@ -126,7 +126,7 @@
                 >
                 </el-progress>
               </div>
-              <!--一级机构工分值排行-->
+              <!--下级机构工分值排行-->
               <div
                 class="pointer"
                 v-else-if="params.listFlag === 'score'"
@@ -134,7 +134,7 @@
               >
                 <p>{{ index + 1 }}、{{ item.name }}</p>
                 <progress-score
-                  :label="item.score"
+                  :label="item.scoreFormat"
                   :height="18"
                   :percentage="
                     item.score != 0
@@ -210,7 +210,13 @@ export default {
     areaRankData() {
       const result = this.areaRankServerData.map(item => item);
       if (this.params.listFlag === 'score') {
-        return result.sort((a, b) => b.score - a.score);
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
