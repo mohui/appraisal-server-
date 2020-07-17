@@ -338,11 +338,17 @@
                 </table>
               </div>
             </el-tab-pane>
-            <el-tab-pane
-              label="体检记录"
-              name="physical"
-              v-if="healthyList.length"
-            >
+            <el-tab-pane name="physical" :disabled="!healthyList.length">
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.hypertension.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                体检记录
+              </span>
               <div>
                 <div
                   class="notes"
@@ -369,11 +375,17 @@
                 </div>
               </div>
             </el-tab-pane>
-            <el-tab-pane
-              label="高血压随访记录"
-              name="hypertension"
-              v-if="hypertensions.length"
-            >
+            <el-tab-pane name="hypertension" :disabled="!hypertensions.length">
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.hypertension.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                高血压随访记录
+              </span>
               <div>
                 <div
                   class="notes"
@@ -402,11 +414,17 @@
                 </div>
               </div>
             </el-tab-pane>
-            <el-tab-pane
-              label="糖尿病随访记录"
-              name="diabetes"
-              v-if="diabetesList.length"
-            >
+            <el-tab-pane name="diabetes" :disabled="!diabetesList.length">
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.hypertension.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                糖尿病随访记录
+              </span>
               <div>
                 <div
                   class="notes"
@@ -436,15 +454,26 @@
               </div>
             </el-tab-pane>
             <el-tab-pane
-              label="老年人特殊健康管理服务记录"
               name="oldManSelfCare"
-              v-if="oldManSelfCareList.length || questionnaireList.length"
+              :disabled="
+                !oldManSelfCareList.length && !questionnaireList.length
+              "
             >
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.hypertension.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                老年人特殊健康管理服务记录
+              </span>
               <div>
                 <div
                   class="notes"
                   v-for="(item, index) of oldManSelfCareList"
-                  :key="index"
+                  :key="'old' + index"
                   @click="
                     $router.push({
                       name: 'record-oldManSelfCare',
