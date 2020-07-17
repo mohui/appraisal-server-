@@ -194,7 +194,7 @@ export default {
       let array = [];
       array = this.areaRankData.slice(0, 3);
       value.xAxisData = array.map(it => it.name);
-      value.yAxisData = array.map(it => it.score);
+      value.yAxisData = array.map(it => Math.round(it.score));
       return value;
     },
     //总计工分和质量系数数据
