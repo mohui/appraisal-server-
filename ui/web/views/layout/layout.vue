@@ -55,7 +55,9 @@
 
       <el-main>
         <transition name="fade" mode="out-in">
-          <router-view></router-view>
+          <keep-alive include="person">
+            <router-view></router-view>
+          </keep-alive>
         </transition>
       </el-main>
     </el-container>
