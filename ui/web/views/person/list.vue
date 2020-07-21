@@ -303,9 +303,6 @@ export default {
       },
       deep: true
     },
-    'queryForm.hospital'() {
-      this.queryForm.include = false;
-    },
     //指标得分解读详情数据
     nonstandardCauses() {
       if (this.$refs[this.code + this.archivesID]) {
