@@ -367,7 +367,8 @@ export default {
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.region) this.queryForm.region = route.query.region;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
-      if (route.query.include) this.queryForm.include = route.query.include;
+      if (route.query.include)
+        this.queryForm.include = JSON.parse(route.query.include);
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
