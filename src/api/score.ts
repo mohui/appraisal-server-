@@ -556,23 +556,10 @@ export default class Score {
       await appDB.transaction(async () => {
         //存起来
         await Promise.all(
-          allHospitalWorkPoint.map(async it => {
-            const current = await RuleHospitalBudgetModel.findOne({
-              where: {ruleId: it.ruleId, hospitalId: it.hospitalId}
-            });
-            if (it.ruleTotalScore === 0) console.log('it----', it);
-            if (current) {
-              current.budget = it.budget;
-              current.workPoint = it.workpoint;
-              current.correctWorkPoint = it.correctWorkPoint;
-              current.ruleScore = it.ruleScore;
-              current.ruleTotalScore = it.ruleTotalScore;
-              await current.save();
-            } else await RuleHospitalBudgetModel.create(it);
-          })
+          allHospitalWorkPoint.map(
+            async it => await RuleHospitalBudgetModel.upsert(it)
+          )
         );
-        //同步更新reportHospital
-        const reportHospital = await ReportHospitalModel.findAll();
       });
     }
   }
@@ -621,30 +608,30 @@ export default class Score {
             [Op.like]: `${code}%`
           }
         },
-        include: [RuleHospitalBudgetModel]
+        include: [{model: RuleHospitalBudgetModel, required: true}]
       });
-      return reduceObject.reduce(
+      const resultObject = reduceObject.reduce(
         (res, next) => {
-          res.workpoints = new Decimal(res.workpoints).add(
-            next?.ruleTotalBudget.reduce(
+          res.originalScore = new Decimal(res.originalScore ?? 0).add(
+            next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.workPoint)),
               new Decimal(0)
             ) ?? 0
           );
-          res.scores = new Decimal(res.scores).add(
-            next?.ruleTotalBudget.reduce(
+          res.ruleScore = new Decimal(res.ruleScore ?? 0).add(
+            next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.ruleScore)),
               new Decimal(0)
             ) ?? 0
           );
-          res.correctWorkPoint = new Decimal(res.correctWorkPoint).add(
-            next?.ruleTotalBudget.reduce(
+          res.score = new Decimal(res.score ?? 0).add(
+            next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.correctWorkPoint)),
               new Decimal(0)
             ) ?? 0
           );
-          res.total = new Decimal(res.total).add(
-            next?.ruleTotalBudget.reduce(
+          res.total = new Decimal(res.total ?? 0).add(
+            next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.ruleTotalScore)),
               new Decimal(0)
             ) ?? 0
@@ -652,33 +639,21 @@ export default class Score {
           return res;
         },
         {
-          workpoints: 0,
-          scores: 0,
+          originalScore: 0,
+          ruleScore: 0,
           total: 0,
-          correctWorkPoint: 0
+          score: 0
         }
       );
-      //   .reduce(
-      //   (result, current) => {
-      //     result.workpoints += current?.report?.workpoints ?? 0;
-      //     result.scores += current?.report?.scores ?? 0;
-      //     result.correctWorkPoint += current?.report?.total
-      //       ? (current?.report?.workpoints ?? 0) *
-      //         ((current?.report?.scores ?? 0) / current?.report?.total)
-      //       : 0;
-      //     result.total += current?.report?.total ?? 0;
-      //     return result;
-      //   },
-      //   {workpoints: 0, scores: 0, total: 0, correctWorkPoint: 0}
-      // );
-
-      return {
-        id: regionModel.code,
-        name: regionModel.name,
-        originalScore: reduceObject.workpoints,
-        score: Math.round(reduceObject.correctWorkPoint),
-        rate: reduceObject.correctWorkPoint / reduceObject.workpoints
-      };
+      resultObject.id = regionModel.code;
+      resultObject.name = regionModel.name;
+      resultObject.score = Number(resultObject.score);
+      resultObject.total = Number(resultObject.total);
+      resultObject.originalScore = Number(resultObject.originalScore);
+      resultObject.rate = new Decimal(Number(resultObject.ruleScore))
+        .div(resultObject.total)
+        .toNumber();
+      return resultObject;
     }
 
     const hospitalModel = await HospitalModel.findOne({
