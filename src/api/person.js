@@ -105,6 +105,9 @@ export default class Person {
       ).map(it => it.id);
     }
     if (hospital) hospitals = [hospital];
+
+    //如果查询出来的机构列表为空,则数据都为空
+    if (hospitals.length === 0) return {count: 0, rows: []};
     // language=PostgreSQL
     hospitals = (
       await Promise.all(
