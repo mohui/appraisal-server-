@@ -1031,4 +1031,77 @@ export default class Score {
 
     return result;
   }
+
+  /**
+   * 各个工分项的详情
+   * @param code
+   */
+  async projectDetail(code) {
+    const hospitalModel = await HospitalModel.findOne({
+      where: {id: code},
+      include: [RuleHospitalBudgetModel]
+    });
+    if (hospitalModel) {
+      //机构所绑定的小项下的工分项
+      const projects = (
+        await RuleProjectModel.findAll({
+          attributes: ['projectId'],
+          where: {
+            ruleId: {
+              [Op.in]: hospitalModel.ruleHospitalBudget.map(it => it.ruleId)
+            }
+          },
+          include: [CheckRuleModel]
+        })
+      ).map(it => it.toJSON());
+      let detail = [];
+      if (projects.length > 0) {
+        detail = await Promise.all(
+          projects.map(async it => {
+            const current = {};
+            current['projectName'] = Projects.find(
+              p => p.id === it.projectId
+            )?.name;
+            current['ruleName'] = it.rule.ruleName;
+            current['projectId'] = it.projectId;
+            current['workpoint'] = (
+              await etlQuery(
+                ` select
+            cast(sum(vw.score) as int) as workPoint
+            from view_workscoretotal vw
+            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
+            and
+             vh.h_id = ?
+            where projecttype=?
+             and missiontime >= ?
+             and missiontime < ?
+             `,
+                [
+                  code,
+                  it.projectId,
+                  dayjs()
+                    .startOf('y')
+                    .toDate(),
+                  dayjs()
+                    .startOf('y')
+                    .add(1, 'y')
+                    .toDate()
+                ]
+              )
+            )[0].workpoint;
+            //小项质量系数
+            const ruleRate =
+              hospitalModel?.ruleHospitalBudget.find(
+                rhb => rhb.ruleId === it.rule.ruleId
+              )?.rate ?? 0;
+            //校正工分
+            current['correctWorkpoint'] = current['workpoint'] * ruleRate;
+            current['rate'] = ruleRate;
+            return current;
+          })
+        );
+      }
+      return detail;
+    }
+  }
 }
