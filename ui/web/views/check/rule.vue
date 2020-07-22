@@ -463,7 +463,7 @@ export default {
       this.workPointVisible = true;
       this.curRuleGroupID = item.ruleId;
 
-      if (item?.projects?.length > 0) {
+      if (item.projects.length > 0) {
         let arr = [];
         this.tableData.forEach(it => {
           if (item.projects.some(its => its.id === it.id)) {
@@ -709,6 +709,7 @@ export default {
         ruleScore: 0,
         status: true,
         isEdit: true,
+        projects: [],
         group: []
       });
     },
