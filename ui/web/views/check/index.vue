@@ -128,7 +128,11 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip content="批量导入细则" :enterable="false">
+            <el-tooltip
+              content="批量导入细则"
+              :enterable="false"
+              style="display: none;"
+            >
               <el-button
                 icon="el-icon-download"
                 circle
