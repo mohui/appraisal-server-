@@ -463,7 +463,7 @@ export default {
       this.workPointVisible = true;
       this.curRuleGroupID = item.ruleId;
 
-      if (item.projects.length > 0) {
+      if (item?.projects?.length > 0) {
         let arr = [];
         this.tableData.forEach(it => {
           if (item.projects.some(its => its.id === it.id)) {
@@ -719,7 +719,7 @@ export default {
     },
     //保存细则分类
     async saveGroup(row) {
-      const {checkId, ruleId, ruleName, budget, projects} = row;
+      const {checkId, ruleId, ruleName, budget, projects = []} = row;
       if (ruleName === '') {
         return this.$message({
           message: '请输入考核分类',
@@ -746,6 +746,7 @@ export default {
         });
         if (result.ruleId) {
           row.ruleId = result.ruleId;
+          row.projects = projects;
         }
         row.isEdit = false;
       } catch (e) {
