@@ -262,7 +262,8 @@ export default {
       personTagList: personTagList,
       tagList: documentTagList,
       archivesID: '', //档案id
-      code: '' //tag code
+      code: '', //tag code
+      isInit: false //是否初始化页面
     };
   },
   computed: {
@@ -302,6 +303,17 @@ export default {
         });
       },
       deep: true
+    },
+    'queryForm.hospital'() {
+      //判断是否是初始化页面，刷新过url
+      //ture：保留原有的include
+      //false：说明是手动更改机构，将include置为false（默认不包含下级机构）
+      if (this.isInit) {
+        //设置为默认值的false
+        this.isInit = false;
+      } else {
+        this.queryForm.include = false;
+      }
     },
     //指标得分解读详情数据
     nonstandardCauses() {
@@ -360,6 +372,7 @@ export default {
   },
   methods: {
     initParams(route) {
+      this.isInit = true;
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.region) this.queryForm.region = route.query.region;
