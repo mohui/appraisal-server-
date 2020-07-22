@@ -128,21 +128,6 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip content="批量导入细则" :enterable="false">
-              <el-button
-                icon="el-icon-download"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_IMPORT,
-                  type: 'disabled'
-                }"
-                v-show="scope.row.status"
-                type="info"
-                size="mini"
-                @click.stop="openUploadCheckDialog(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
             <el-tooltip content="全部开启打分" :enterable="false">
               <el-button
                 icon="el-icon-check"

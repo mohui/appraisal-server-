@@ -709,6 +709,7 @@ export default {
         ruleScore: 0,
         status: true,
         isEdit: true,
+        projects: [],
         group: []
       });
     },
@@ -719,7 +720,7 @@ export default {
     },
     //保存细则分类
     async saveGroup(row) {
-      const {checkId, ruleId, ruleName, budget, projects} = row;
+      const {checkId, ruleId, ruleName, budget, projects = []} = row;
       if (ruleName === '') {
         return this.$message({
           message: '请输入考核分类',
@@ -746,6 +747,7 @@ export default {
         });
         if (result.ruleId) {
           row.ruleId = result.ruleId;
+          row.projects = projects;
         }
         row.isEdit = false;
       } catch (e) {
