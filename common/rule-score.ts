@@ -770,7 +770,7 @@ export const TagAlgorithm = [
   },
   {
     code: 'attach',
-    name: '根据件打分（仅输出结果）'
+    name: '根据附件打分（仅输出结果）'
   }
 ];
 
@@ -797,6 +797,6 @@ export const TagAlgorithmUsages = {
   },
   attach: {
     code: 'attach',
-    name: '根据件打分（仅输出结果）'
+    name: '根据附件打分（仅输出结果）'
   }
 };
