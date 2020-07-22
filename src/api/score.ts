@@ -612,25 +612,25 @@ export default class Score {
       });
       const resultObject = reduceObject.reduce(
         (res, next) => {
-          res.originalScore = new Decimal(res.originalScore ?? 0).add(
+          res.originalScore = new Decimal(res?.originalScore ?? 0).add(
             next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.workPoint)),
               new Decimal(0)
             ) ?? 0
           );
-          res.ruleScore = new Decimal(res.ruleScore ?? 0).add(
+          res.ruleScore = new Decimal(res?.ruleScore ?? 0).add(
             next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.ruleScore)),
               new Decimal(0)
             ) ?? 0
           );
-          res.score = new Decimal(res.score ?? 0).add(
+          res.score = new Decimal(res?.score ?? 0).add(
             next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.correctWorkPoint)),
               new Decimal(0)
             ) ?? 0
           );
-          res.total = new Decimal(res.total ?? 0).add(
+          res.total = new Decimal(res?.total ?? 0).add(
             next?.ruleHospitalBudget?.reduce(
               (r, n) => (r = new Decimal(r).add(n.ruleTotalScore)),
               new Decimal(0)
@@ -645,15 +645,15 @@ export default class Score {
           score: 0
         }
       );
-      resultObject.id = regionModel.code;
-      resultObject.name = regionModel.name;
-      resultObject.score = Number(resultObject.score);
-      resultObject.total = Number(resultObject.total);
-      resultObject.originalScore = Number(resultObject.originalScore);
-      resultObject.rate = new Decimal(Number(resultObject.ruleScore))
-        .div(resultObject.total)
-        .toNumber();
-      return resultObject;
+      return {
+        id: regionModel.code,
+        name: regionModel.name,
+        score: Number(resultObject.score),
+        originalScore: Number(resultObject.originalScore),
+        rate: new Decimal(Number(resultObject.ruleScore))
+          .div(Number(resultObject.total))
+          .toNumber()
+      };
     }
 
     const hospitalModel = await HospitalModel.findOne({
@@ -692,9 +692,9 @@ export default class Score {
             )
             .toNumber() ?? 0,
         budget:
-          hospitalModel.ruleHospitalBudget
-            .reduce(
-              (res, next) => new Decimal(res).add(next.budget),
+          hospitalModel?.ruleHospitalBudget
+            ?.reduce(
+              (res, next) => new Decimal(res).add(next?.budget ?? 0),
               new Decimal(0)
             )
             .toNumber() ?? 0
