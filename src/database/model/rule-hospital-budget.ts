@@ -40,11 +40,11 @@ export class RuleHospitalBudget extends Model<RuleHospitalBudget> {
   budget: number;
 
   @Comment('原始工分')
-  @Column({field: 'workpoint', type: DataType.FLOAT})
+  @Column({field: 'workPoint', type: DataType.FLOAT})
   workPoint;
 
   @Comment('矫正工分')
-  @Column({field: 'correctworkpoint', type: DataType.FLOAT})
+  @Column({field: 'correctWorkPoint', type: DataType.FLOAT})
   correctWorkPoint;
 
   @Comment('质量系数')
@@ -52,10 +52,10 @@ export class RuleHospitalBudget extends Model<RuleHospitalBudget> {
   rate;
 
   @Comment('规则得分')
-  @Column({field: 'rulescore', type: DataType.FLOAT})
+  @Column({field: 'ruleScore', type: DataType.FLOAT})
   ruleScore;
 
   @Comment('规则满分')
-  @Column({field: 'ruletotalscore', type: DataType.FLOAT})
+  @Column({field: 'ruleTotalScore', type: DataType.FLOAT})
   ruleTotalScore;
 }
