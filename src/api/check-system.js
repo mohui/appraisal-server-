@@ -7,7 +7,8 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
-  RuleTagModel
+  RuleTagModel,
+  UserModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -16,7 +17,9 @@ import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 import Score from './score';
+import dayjs from 'dayjs';
 const scoreAPI = new Score();
+import {Permission} from '../../common/permission';
 
 export default class CheckSystem {
   //添加考核系统
@@ -30,7 +33,12 @@ export default class CheckSystem {
   )
   async add(params) {
     const {checkName} = params;
-    return await CheckSystemModel.create({checkName, total: 0});
+    return CheckSystemModel.create({
+      checkName,
+      create_by: Context.current.user.id,
+      update_by: Context.current.user.id,
+      checkYear: dayjs().year()
+    });
   }
 
   //更新考核系统名称
@@ -58,7 +66,11 @@ export default class CheckSystem {
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
       await CheckSystemModel.update(
-        {checkName: params.checkName, status: params.status},
+        {
+          checkName: params.checkName,
+          update_by: Context.current.user.id,
+          status: params.status
+        },
         {where: {checkId: params.checkId}}
       );
     });
@@ -412,6 +424,11 @@ export default class CheckSystem {
   async list(params) {
     const {pageSize = 20, pageNo = 1, checkId} = params || {};
     let whereOptions = {};
+
+    //if没有"管理所有考核"的权限,则仅能看当前用户创建的
+    if (!Context.current.user.permissions.some(p => p === Permission.ALL_CHECK))
+      whereOptions['create_by'] = Context.current.user.id;
+
     if (checkId) whereOptions['checkId'] = checkId;
 
     let result = await CheckSystemModel.findAndCountAll({
@@ -450,7 +467,23 @@ export default class CheckSystem {
         if (autoFalse && autoTrue) auto = 'part';
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
-        return {...row, hospitalCount: checkHospitalCount, auto};
+        //考核创建者的名称
+        const createUser = await UserModel.findOne({
+          where: {id: row.create_by},
+          attributes: {exclude: ['password']}
+        });
+        //考核修改者的名称
+        const updateUser = await UserModel.findOne({
+          where: {id: row.update_by},
+          attributes: {exclude: ['password']}
+        });
+        return {
+          ...row,
+          hospitalCount: checkHospitalCount,
+          auto,
+          createUser,
+          updateUser
+        };
       })
     );
     return result;

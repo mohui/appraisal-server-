@@ -239,6 +239,10 @@ export default {
                   label: '配置管理首页'
                 },
                 {
+                  key: 'all-check',
+                  label: '管理所有考核'
+                },
+                {
                   key: 'check',
                   label: '规则管理',
                   children: [
