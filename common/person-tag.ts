@@ -234,7 +234,7 @@ export function getTagsList(it) {
   if (it.S03 != undefined) it.tags.push(documentTags.S03(it.S03));
   if (it.S23 != undefined) it.tags.push(documentTags.S23(it.S23));
   // 人群标记错误
-  if (it.E00 != undefined && it.E00) it.tags.push(documentTags.E00);
+  if (it.E00) it.tags.push(documentTags.E00);
   // 老年人标记
   if (it.O00 != undefined) it.tags.push(documentTags.O00(it.O00));
   if (it.O01 != undefined) it.tags.push(documentTags.O01(it.O01));
