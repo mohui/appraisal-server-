@@ -51,7 +51,7 @@ function listRender(params) {
     `
             select
             vh.h_id as "hospitalId",
-            cast(sum(vw.score) as int) as workPoint
+            cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
             inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
             and
@@ -534,11 +534,14 @@ export default class Score {
             }
           })
         )
-          .reduce((result, next) => new Decimal(result).add(next.score), 0)
+          .reduce(
+            (result, next) => new Decimal(result).add(next?.score ?? 0),
+            new Decimal(0)
+          )
           .toNumber();
         //求机构的质量系数
         const rate = new Decimal(hospitalScore).div(totalScore).toNumber();
-        hospital.correctWorkPoint = (hospital.workpoint ?? 0) * rate;
+        hospital.correctWorkPoint = (hospital?.workPoint ?? 0) * rate;
         hospital.rate = rate;
         hospital.ruleScore = hospitalScore;
         hospital.ruleId = group.ruleId;
@@ -549,9 +552,12 @@ export default class Score {
       //分钱
       allHospitalWorkPoint = allHospitalWorkPoint.map(h => ({
         ...h,
-        budget: new Decimal(group.budget)
-          .mul(new Decimal(h.correctWorkPoint).div(totalWorkPoint))
-          .toNumber()
+        budget:
+          totalWorkPoint === 0
+            ? 0
+            : new Decimal(group.budget)
+                .mul(new Decimal(h.correctWorkPoint).div(totalWorkPoint))
+                .toNumber()
       }));
       await appDB.transaction(async () => {
         //存起来

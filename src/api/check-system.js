@@ -2,7 +2,10 @@ import {
   CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
+  RuleHospitalAttachModel,
+  RuleHospitalBudgetModel,
   RuleHospitalModel,
+  RuleHospitalScoreModel,
   RuleProjectModel,
   RuleTagModel
 } from '../database/model';
@@ -536,6 +539,22 @@ export default class CheckSystem {
         .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
         .map(async it => await it.destroy())
     );
+    //筛选出解绑的机构
+    const unHospitals = ruleHospital
+      .filter(item => !hospitals.find(h => h === item.hospitalId))
+      .map(r => r.hospitalId);
+    //删除机构金额数据
+    await RuleHospitalBudgetModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
+    //删除机构得分数据
+    await RuleHospitalScoreModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
+    //删除机构定性指标文件
+    await RuleHospitalAttachModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
 
     //添加新增的机构和规则对应关系
     let newRuleHospitals = [];
