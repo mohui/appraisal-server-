@@ -16,6 +16,7 @@ import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 import Score from './score';
+import dayjs from 'dayjs';
 const scoreAPI = new Score();
 
 export default class CheckSystem {
@@ -30,7 +31,12 @@ export default class CheckSystem {
   )
   async add(params) {
     const {checkName} = params;
-    return await CheckSystemModel.create({checkName, total: 0});
+    return CheckSystemModel.create({
+      checkName,
+      create_by: Context.current.user.id,
+      update_by: Context.current.user.id,
+      checkYear: dayjs().year()
+    });
   }
 
   //更新考核系统名称
@@ -58,7 +64,11 @@ export default class CheckSystem {
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
       await CheckSystemModel.update(
-        {checkName: params.checkName, status: params.status},
+        {
+          checkName: params.checkName,
+          update_by: Context.current.user.id,
+          status: params.status
+        },
         {where: {checkId: params.checkId}}
       );
     });
