@@ -69,7 +69,7 @@ export default {
       }
       this.chart.setOption(this.barOption);
       this.chart.off('click');
-      this.chart.on('click', params => params.data.onClick());
+      this.chart.on('click', params => params.data.onClick?.());
     }
   },
   watch: {
