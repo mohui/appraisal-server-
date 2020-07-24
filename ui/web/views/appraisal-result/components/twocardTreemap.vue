@@ -68,6 +68,8 @@ export default {
         this.barOption.color = this.color;
       }
       this.chart.setOption(this.barOption);
+      this.chart.off('click');
+      this.chart.on('click', params => params.data.onClick());
     }
   },
   watch: {
