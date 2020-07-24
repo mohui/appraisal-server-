@@ -1121,8 +1121,15 @@ export default {
         .map(it => ({
           name: `${it.name} 金额：${it.budget}元`,
           value: it.budget,
-          target: '_self',
-          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
+          onClick: () =>
+            this.$router.push({
+              name: 'appraisal-result-institutions',
+              query: {
+                id: it.id,
+                listFlag: 'score',
+                isInstitution: 'true'
+              }
+            })
         }));
       return arr;
     },
@@ -1133,8 +1140,15 @@ export default {
         .map(it => ({
           name: `${it.name} 工分值：${Math.round(it.score)}分`,
           value: it.score,
-          target: '_self',
-          link: `/appraisal-result-institutions?id=${it.id}&listFlag=score&isInstitution=true`
+          onClick: () =>
+            this.$router.push({
+              name: 'appraisal-result-institutions',
+              query: {
+                id: it.id,
+                listFlag: 'score',
+                isInstitution: 'true'
+              }
+            })
         }));
       return arr;
     },
