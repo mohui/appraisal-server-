@@ -7,7 +7,8 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
-  RuleTagModel
+  RuleTagModel,
+  UserModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -466,7 +467,27 @@ export default class CheckSystem {
         if (autoFalse && autoTrue) auto = 'part';
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
-        return {...row, hospitalCount: checkHospitalCount, auto};
+        //考核创建者的名称
+        const createName = (
+          await UserModel.findOne({
+            where: {id: row.create_by},
+            attributes: ['name']
+          })
+        )?.name;
+        //考核修改者的名称
+        const updateName = (
+          await UserModel.findOne({
+            where: {id: row.update_by},
+            attributes: ['name']
+          })
+        )?.name;
+        return {
+          ...row,
+          hospitalCount: checkHospitalCount,
+          auto,
+          createName,
+          updateName
+        };
       })
     );
     return result;
