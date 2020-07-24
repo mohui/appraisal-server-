@@ -99,7 +99,7 @@ export default class Score {
     await Promise.all(
       (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
     );
-    return this.checkBudget();
+    await this.checkBudget();
   }
 
   /**
