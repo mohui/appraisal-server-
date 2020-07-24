@@ -96,9 +96,10 @@ async function etlQuery(sql, params) {
 
 export default class Score {
   async autoScoreAll() {
-    return Promise.all(
+    await Promise.all(
       (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
     );
+    return this.checkBudget();
   }
 
   /**
