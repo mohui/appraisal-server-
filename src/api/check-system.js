@@ -18,6 +18,7 @@ import {Context} from './context';
 import Score from './score';
 import dayjs from 'dayjs';
 const scoreAPI = new Score();
+import {Permission} from '../../common/permission';
 
 export default class CheckSystem {
   //添加考核系统
@@ -422,6 +423,11 @@ export default class CheckSystem {
   async list(params) {
     const {pageSize = 20, pageNo = 1, checkId} = params || {};
     let whereOptions = {};
+
+    //if没有"管理所有考核"的权限,则仅能看当前用户创建的
+    if (!Context.current.user.permissions.some(p => p === Permission.ALL_CHECK))
+      whereOptions['create_by'] = Context.current.user.id;
+
     if (checkId) whereOptions['checkId'] = checkId;
 
     let result = await CheckSystemModel.findAndCountAll({
