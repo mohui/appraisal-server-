@@ -231,19 +231,19 @@ export function getTagsList(it) {
   if (it.C13) it.personTags.push(personTags.C13);
   if (it.C14) it.personTags.push(personTags.C14);
   // 健康档案标记
-  if (it.S03 !== null) it.tags.push(documentTags.S03(it.S03));
-  if (it.S23 !== null) it.tags.push(documentTags.S23(it.S23));
+  if (it.S03 != undefined) it.tags.push(documentTags.S03(it.S03));
+  if (it.S23 != undefined) it.tags.push(documentTags.S23(it.S23));
   // 人群标记错误
   if (it.E00) it.tags.push(documentTags.E00);
   // 老年人标记
-  if (it.O00 !== null) it.tags.push(documentTags.O00(it.O00));
-  if (it.O01 !== null) it.tags.push(documentTags.O01(it.O01));
-  if (it.O02 !== null) it.tags.push(documentTags.O02(it.O02));
+  if (it.O00 != undefined) it.tags.push(documentTags.O00(it.O00));
+  if (it.O01 != undefined) it.tags.push(documentTags.O01(it.O01));
+  if (it.O02 != undefined) it.tags.push(documentTags.O02(it.O02));
   // 高血压标记
-  if (it.H01 !== null) it.tags.push(documentTags.H01(it.H01));
-  if (it.H02 !== null) it.tags.push(documentTags.H02(it.H02));
+  if (it.H01 != undefined) it.tags.push(documentTags.H01(it.H01));
+  if (it.H02 != undefined) it.tags.push(documentTags.H02(it.H02));
   // 糖尿病标记
-  if (it.D01 !== null) it.tags.push(documentTags.D01(it.D01));
-  if (it.D02 !== null) it.tags.push(documentTags.D02(it.D02));
+  if (it.D01 != undefined) it.tags.push(documentTags.D01(it.D01));
+  if (it.D02 != undefined) it.tags.push(documentTags.D02(it.D02));
   return it;
 }
