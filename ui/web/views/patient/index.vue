@@ -553,6 +553,7 @@ export default {
   },
   computed: {
     person() {
+      if (!this.document.id) return this.document;
       return getTagsList(this.document);
     },
     hypertensions() {
