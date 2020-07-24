@@ -468,25 +468,21 @@ export default class CheckSystem {
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
         //考核创建者的名称
-        const createName = (
-          await UserModel.findOne({
-            where: {id: row.create_by},
-            attributes: ['name']
-          })
-        )?.name;
+        const createUser = await UserModel.findOne({
+          where: {id: row.create_by},
+          attributes: {exclude: ['password']}
+        });
         //考核修改者的名称
-        const updateName = (
-          await UserModel.findOne({
-            where: {id: row.update_by},
-            attributes: ['name']
-          })
-        )?.name;
+        const updateUser = await UserModel.findOne({
+          where: {id: row.update_by},
+          attributes: {exclude: ['password']}
+        });
         return {
           ...row,
           hospitalCount: checkHospitalCount,
           auto,
-          createName,
-          updateName
+          createUser,
+          updateUser
         };
       })
     );
