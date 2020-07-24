@@ -86,6 +86,10 @@ export const PermissionDetail = [
   {
     key: 'profile',
     name: '个人档案'
+  },
+  {
+    key: 'all-check',
+    name: '管理所有考核'
   }
 ];
 
@@ -111,7 +115,8 @@ export const Permission = {
   RULE_ADD: 'rule-add',
   RULE_UPDATE: 'rule-update',
   RULE_REMOVE: 'rule-remove',
-  PROFILE: 'profile'
+  PROFILE: 'profile',
+  ALL_CHECK: 'all-check'
 };
 
 export function getPermission(key) {
