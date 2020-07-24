@@ -2,7 +2,7 @@
   <div style="height: 100%;">
     <el-row :gutter="20" style="height: 100%;">
       <el-col :span="6" :xs="24">
-        <card :patient="person" />
+        <card v-loading="$asyncComputed.document.updating" :patient="person" />
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
