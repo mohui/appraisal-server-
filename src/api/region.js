@@ -56,18 +56,43 @@ export default class Region {
       where: {region: {[Op.like]: `${code}%`}},
       include: {
         model: RuleHospitalBudget,
-        attributes: ['budget']
+        attributes: [
+          'budget',
+          'correctWorkPoint',
+          'workPoint',
+          'ruleScore',
+          'rate'
+        ]
       }
     }).map(it => {
       it = it.toJSON();
-      it.budget = it.ruleHospitalBudget
-        .reduce(
-          (res, next) => new Decimal(res).add(next.budget),
-          new Decimal(0)
-        )
-        .toNumber();
+      const result = it.ruleHospitalBudget.reduce(
+        (res, next) => {
+          res.budget = new Decimal(res.budget).add(next.budget).toNumber();
+          res.correctWorkPoint = new Decimal(res.correctWorkPoint)
+            .add(next.correctWorkPoint)
+            .toNumber();
+          res.workPoint = new Decimal(res.workPoint)
+            .add(next.workPoint)
+            .toNumber();
+          res.score = new Decimal(res.score).add(next.ruleScore).toNumber();
+          res.rate = new Decimal(res.rate)
+            .add(next.rate)
+            .div(it.ruleHospitalBudget.length)
+            .toNumber();
+          return res;
+        },
+        {
+          budget: new Decimal(0),
+          correctWorkPoint: new Decimal(0),
+          workPoint: new Decimal(0),
+          score: new Decimal(0),
+          rate: new Decimal(0)
+        }
+      );
+
       delete it.ruleHospitalBudget;
-      return it;
+      return {...it, ...result};
     });
   }
 }
