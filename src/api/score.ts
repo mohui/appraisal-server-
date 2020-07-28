@@ -96,9 +96,10 @@ async function etlQuery(sql, params) {
 
 export default class Score {
   async autoScoreAll() {
-    return Promise.all(
+    await Promise.all(
       (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
     );
+    await this.checkBudget();
   }
 
   /**
@@ -475,7 +476,7 @@ export default class Score {
     //这个考核组下所有机构的所有矫正后工分
     const ruleGroup = (
       await CheckRuleModel.findAll({
-        where: {parentRuleId: {[Op.eq]: null}, budget: {[Op.gt]: 0}},
+        where: {parentRuleId: {[Op.eq]: null}},
         attributes: ['ruleId', 'ruleName', 'budget'],
         include: [
           {
