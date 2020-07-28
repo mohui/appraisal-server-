@@ -38,12 +38,7 @@
           style="height: 100%;"
           @click.self="toggleMenu"
         >
-          <el-menu
-            class="layout-side-menu"
-            :default-active="activeMenu"
-            router
-            :unique-opened="true"
-          >
+          <el-menu class="layout-side-menu" :default-active="activeMenu" router>
             <multi-menu
               v-for="menu of menus"
               :key="menu.router"
