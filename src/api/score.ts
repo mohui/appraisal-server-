@@ -481,7 +481,6 @@ export default class Score {
         include: [
           {
             model: RuleProjectModel,
-            where: {projectId: {[Op.not]: []}},
             attributes: ['projectId']
           }
         ]
@@ -508,21 +507,34 @@ export default class Score {
       const projectIds = group.ruleProject.map(p => p.projectId);
       const ids = hospitals.map(it => it.hospitalId);
 
-      //没有配置工分项或没有分配机构则跳过不计算
-      if (projectIds.length === 0 || ids.length === 0) continue;
-      const sql = listRender({
-        ids,
-        projectIds,
-        start: dayjs()
-          .startOf('y')
-          .toDate(),
-        end: dayjs()
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
-      });
-      //所有机构的在这个小项的工分情况
-      let allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+      //没有分配机构则跳过不计算
+      if (ids.length === 0) continue;
+
+      let allHospitalWorkPoint = [];
+      if (projectIds.length === 0) {
+        //如果没有配置工分项, 则该规则组的所有机构的工分,矫正工分为0.
+        allHospitalWorkPoint = ids.map(it => ({
+          hospitalId: it,
+          ruleId: group.ruleId,
+          workPoint: 0,
+          correctWorkPoint: 0
+        }));
+      } else {
+        const sql = listRender({
+          ids,
+          projectIds,
+          start: dayjs()
+            .startOf('y')
+            .toDate(),
+          end: dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        });
+        //所有机构的在这个小项的工分情况
+        allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+      }
+
       //总的矫正后工分值
       let totalWorkPoint = 0;
       for (const hospital of allHospitalWorkPoint) {
