@@ -533,6 +533,15 @@ export default class Score {
         });
         //所有机构的在这个小项的工分情况
         allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+        allHospitalWorkPoint = allHospitalWorkPoint.concat(
+          //过滤出查询结果中工分为空的机构,给他们的工分值设置为0
+          ids
+            .filter(id => !allHospitalWorkPoint.some(h => h.hospitalId === id))
+            .map(it => ({
+              hospitalId: it,
+              workPoint: 0
+            }))
+        );
       }
 
       //总的矫正后工分值
