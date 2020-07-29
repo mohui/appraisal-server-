@@ -409,7 +409,7 @@ export const MarkTags = [
             enabled: true
           },
           {
-            name: '2型糖尿病患者血压控制率',
+            name: '2型糖尿病患者血糖控制率',
             code: 'D02',
             enabled: true
           },
@@ -736,7 +736,7 @@ export const MarkTagUsages = {
   },
   D02: {
     code: 'D02',
-    name: '2型糖尿病患者血压控制率'
+    name: '2型糖尿病患者血糖控制率'
   },
   Attach: {
     name: '定性指标',
