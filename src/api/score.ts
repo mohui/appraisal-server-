@@ -93,7 +93,7 @@ function projectWorkPointRender(params) {
         projecttype as "projectId",
         cast(sum(vw.score) as int) as workPoint
         from view_workscoretotal vw
-        left join hospital_mapping vh on vw.operateorganization = vh.hishospid
+        inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
         and vh.h_id = {{? hospitalId}}
         where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         and missiontime >= {{? start}}
@@ -1146,5 +1146,6 @@ export default class Score {
       }
       return [];
     }
+    throw new KatoCommonError('该机构不存在.');
   }
 }
