@@ -87,6 +87,22 @@ function rankRender(params) {
   );
 }
 
+function projectWorkPointRender(params) {
+  return sqlRender(
+    `select
+        projecttype as "projectId",
+        cast(sum(vw.score) as int) as workPoint
+        from view_workscoretotal vw
+        inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
+        and vh.h_id = {{? hospitalId}}
+        where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        and missiontime >= {{? start}}
+        and missiontime < {{? end}}
+        group by projecttype;`,
+    params
+  );
+}
+
 async function etlQuery(sql, params) {
   return etlDB.query(sql, {
     replacements: params,
@@ -1082,54 +1098,54 @@ export default class Score {
           include: [CheckRuleModel]
         })
       ).map(it => it.toJSON());
-      let detail = [];
       if (projects.length > 0) {
-        detail = await Promise.all(
-          projects.map(async it => {
-            const current = {};
-            current['projectName'] = Projects.find(
-              p => p.id === it.projectId
-            )?.name;
-            current['ruleName'] = it.rule.ruleName;
-            current['projectId'] = it.projectId;
-            current['workpoint'] = (
-              await etlQuery(
-                ` select
-            cast(sum(vw.score) as int) as workPoint
-            from view_workscoretotal vw
-            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
-            and
-             vh.h_id = ?
-            where projecttype=?
-             and missiontime >= ?
-             and missiontime < ?
-             `,
-                [
-                  code,
-                  it.projectId,
-                  dayjs()
-                    .startOf('y')
-                    .toDate(),
-                  dayjs()
-                    .startOf('y')
-                    .add(1, 'y')
-                    .toDate()
-                ]
-              )
-            )[0].workpoint;
-            //小项质量系数
-            const ruleRate =
-              hospitalModel?.ruleHospitalBudget.find(
-                rhb => rhb.ruleId === it.rule.ruleId
-              )?.rate ?? 0;
-            //校正工分
-            current['correctWorkpoint'] = current['workpoint'] * ruleRate;
-            current['rate'] = ruleRate;
-            return current;
-          })
+        //按工分项分类查询工分值
+        const sqlRender = projectWorkPointRender({
+          hospitalId: code,
+          projectIds: projects.map(it => it.projectId),
+          start: dayjs()
+            .startOf('y')
+            .toDate(),
+          end: dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        });
+        let projectWorkPointList = await etlQuery(sqlRender[0], sqlRender[1]);
+        projectWorkPointList = projectWorkPointList.concat(
+          //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
+          projects
+            .filter(
+              pro =>
+                !projectWorkPointList.some(p => p.projectId === pro.projectId)
+            )
+            .map(it => ({
+              projectId: it.projectId,
+              workpoint: 0
+            }))
         );
+        return projectWorkPointList.map(current => {
+          const ruleGroup = projects.find(
+            p => p.projectId === current.projectId
+          )?.rule;
+          current['projectName'] = Projects.find(
+            p => p.id === current.projectId
+          )?.name;
+          //小项名称
+          current['ruleName'] = ruleGroup?.ruleName;
+          //小项质量系数
+          const ruleRate =
+            hospitalModel?.ruleHospitalBudget.find(
+              rhb => rhb.ruleId === ruleGroup.ruleId
+            )?.rate ?? 0;
+          //校正工分
+          current['correctWorkpoint'] = current['workpoint'] * ruleRate;
+          current['rate'] = ruleRate;
+          return current;
+        });
       }
-      return detail;
+      return [];
     }
+    throw new KatoCommonError('该机构不存在.');
   }
 }
