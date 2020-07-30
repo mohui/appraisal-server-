@@ -301,7 +301,7 @@ export default class CheckSystem {
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
       //进行修改操作
-      return await CheckRuleModel.update(
+      const result = await CheckRuleModel.update(
         {
           ruleName,
           parentRuleId,
@@ -313,6 +313,9 @@ export default class CheckSystem {
         },
         {where: {ruleId}}
       );
+      //同步更新金额的分配情况
+      scoreAPI.checkBudget();
+      return result;
     });
   }
 
