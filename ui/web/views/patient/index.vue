@@ -13,7 +13,7 @@
             height: 'calc(100% - 40px)'
           }"
           ><el-button
-            style="position: absolute;top:15px;right:30px;z-index: 99999;"
+            style="position: absolute;top:15px;right:30px;z-index: 9;"
             size="small"
             type="primary"
             @click="$router.go(-1)"
