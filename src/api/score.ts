@@ -1066,7 +1066,7 @@ export default class Score {
           } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
             markHospitalModel.D02
           } / ${markHospitalModel.D00} = ${percentString(
-            markHospitalModel.D01,
+            markHospitalModel.D02,
             markHospitalModel.D00
           )}`
         );
