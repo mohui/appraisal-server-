@@ -884,16 +884,19 @@ export default class Score {
               .toString()
           }
         });
-        result.push(
-          `${
-            MarkTagUsages.S01.name
-          } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
-            markHospitalModel.S00
-          } / ${basicData.value} = ${percentString(
-            markHospitalModel.S00,
-            basicData.value
-          )}`
-        );
+        if (!basicData?.value) result.push('暂无"辖区内常住居民数"');
+        else {
+          result.push(
+            `${
+              MarkTagUsages.S01.name
+            } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
+              markHospitalModel.S00
+            } / ${basicData.value} = ${percentString(
+              markHospitalModel.S00,
+              basicData.value
+            )}`
+          );
+        }
       }
       // 电子档案规范率
       if (ruleTagModel.tag === MarkTagUsages.S23.code) {
@@ -934,16 +937,19 @@ export default class Score {
               .toString()
           }
         });
-        result.push(
-          `${
-            MarkTagUsages.O00.name
-          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
-            markHospitalModel.O00
-          } / ${basicData.value} = ${percentString(
-            markHospitalModel.O00,
-            basicData.value
-          )}`
-        );
+        if (!basicData?.value) result.push('暂无"辖区内65岁及以上常住居民数"');
+        else {
+          result.push(
+            `${
+              MarkTagUsages.O00.name
+            } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+              markHospitalModel.O00
+            } / ${basicData.value} = ${percentString(
+              markHospitalModel.O00,
+              basicData.value
+            )}`
+          );
+        }
       }
       // 老年人体检完整率
       if (ruleTagModel.tag === MarkTagUsages.O01.code) {
@@ -984,16 +990,20 @@ export default class Score {
               .toString()
           }
         });
-        result.push(
-          `${
-            MarkTagUsages.H00.name
-          } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
-            markHospitalModel.H00
-          } / ${basicData.value} = ${percentString(
-            markHospitalModel.H00,
-            basicData.value
-          )}`
-        );
+        if (!basicData?.value)
+          result.push('暂无"年内辖区应管理高血压患者总数"');
+        else {
+          result.push(
+            `${
+              MarkTagUsages.H00.name
+            } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
+              markHospitalModel.H00
+            } / ${basicData.value} = ${percentString(
+              markHospitalModel.H00,
+              basicData.value
+            )}`
+          );
+        }
       }
       // 高血压患者规范管理率
       if (ruleTagModel.tag === MarkTagUsages.H01.code) {
@@ -1034,16 +1044,19 @@ export default class Score {
               .toString()
           }
         });
-        result.push(
-          `${
-            MarkTagUsages.D00.name
-          } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
-            markHospitalModel.D00
-          } / ${basicData.value} = ${percentString(
-            markHospitalModel.D00,
-            basicData.value
-          )}`
-        );
+        if (!basicData?.value) result.push('暂无"年内辖区2型糖尿病患者总数"');
+        else {
+          result.push(
+            `${
+              MarkTagUsages.D00.name
+            } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+              markHospitalModel.D00
+            } / ${basicData.value} = ${percentString(
+              markHospitalModel.D00,
+              basicData.value
+            )}`
+          );
+        }
       }
       // 糖尿病患者规范管理率
       if (ruleTagModel.tag === MarkTagUsages.D01.code) {
