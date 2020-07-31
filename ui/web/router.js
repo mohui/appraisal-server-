@@ -73,6 +73,7 @@ const router = new Router({
         {
           path: 'patient',
           name: 'patient',
+          meta: {activeMenu: 'person'},
           component: () => import('./views/patient/index')
         },
         {
