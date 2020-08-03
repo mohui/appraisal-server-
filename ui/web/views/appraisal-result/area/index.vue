@@ -25,7 +25,6 @@
           </el-button-group>
           <el-button
             size="small"
-            plain
             style="float:right; margin: 4px 0 10px 30px"
             type="primary"
             @click="handleBack"
