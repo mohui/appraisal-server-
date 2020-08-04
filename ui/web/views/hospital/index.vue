@@ -68,6 +68,16 @@
         </el-table-column>
         <el-table-column align="center" label="机构名称" prop="name">
         </el-table-column>
+        <el-table-column align="center" label="校正后总工分值">
+          <template slot-scope="scope">
+            {{ Math.round(scope.row.correctWorkPoint) }}
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="质量系数" prop="rate">
+          <template slot-scope="scope">
+            {{ (scope.row.rate * 100).toFixed(2) }}%
+          </template>
+        </el-table-column>
         <el-table-column align="center" label="金额" prop="budget">
         </el-table-column>
       </el-table>
