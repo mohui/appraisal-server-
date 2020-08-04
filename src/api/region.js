@@ -61,6 +61,7 @@ export default class Region {
           'correctWorkPoint',
           'workPoint',
           'ruleScore',
+          'ruleTotalScore',
           'rate'
         ]
       }
@@ -76,9 +77,8 @@ export default class Region {
             .add(next.workPoint)
             .toNumber();
           res.score = new Decimal(res.score).add(next.ruleScore).toNumber();
-          res.rate = new Decimal(res.rate)
-            .add(next.rate)
-            .div(it.ruleHospitalBudget.length)
+          res.totalScore = new Decimal(res.totalScore)
+            .add(next.ruleTotalScore)
             .toNumber();
           return res;
         },
@@ -87,9 +87,10 @@ export default class Region {
           correctWorkPoint: new Decimal(0),
           workPoint: new Decimal(0),
           score: new Decimal(0),
-          rate: new Decimal(0)
+          totalScore: new Decimal(0)
         }
       );
+      result.rate = new Decimal(result.score).div(result.totalScore).toNumber();
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
