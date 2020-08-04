@@ -56,6 +56,7 @@ export default class Region {
       where: {region: {[Op.like]: `${code}%`}},
       include: {
         model: RuleHospitalBudget,
+        required: true,
         attributes: [
           'budget',
           'correctWorkPoint',
@@ -69,17 +70,13 @@ export default class Region {
       it = it.toJSON();
       const result = it.ruleHospitalBudget.reduce(
         (res, next) => {
-          res.budget = new Decimal(res.budget).add(next.budget).toNumber();
-          res.correctWorkPoint = new Decimal(res.correctWorkPoint)
-            .add(next.correctWorkPoint)
-            .toNumber();
-          res.workPoint = new Decimal(res.workPoint)
-            .add(next.workPoint)
-            .toNumber();
-          res.score = new Decimal(res.score).add(next.ruleScore).toNumber();
-          res.totalScore = new Decimal(res.totalScore)
-            .add(next.ruleTotalScore)
-            .toNumber();
+          res.budget = res.budget.add(next.budget);
+          res.correctWorkPoint = res.correctWorkPoint.add(
+            next.correctWorkPoint
+          );
+          res.workPoint = res.workPoint.add(next.workPoint);
+          res.score = res.score.add(next.ruleScore);
+          res.totalScore = res.totalScore.add(next.ruleTotalScore);
           return res;
         },
         {
@@ -90,6 +87,11 @@ export default class Region {
           totalScore: new Decimal(0)
         }
       );
+      result.budget = result.budget.toNumber();
+      result.correctWorkPoint = result.correctWorkPoint.toNumber();
+      result.workPoint = result.workPoint.toNumber();
+      result.score = result.score.toNumber();
+      result.totalScore = result.totalScore.toNumber();
       result.rate = new Decimal(result.score).div(result.totalScore).toNumber();
 
       delete it.ruleHospitalBudget;
