@@ -21,5 +21,8 @@ module.exports = {
     accessKeySecret: '',
     region: '',
     bucket: ''
+  },
+  report: {
+    prefix: '' // 报告存储key的前缀
   }
 };
