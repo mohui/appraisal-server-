@@ -56,6 +56,7 @@ export default class Region {
       where: {region: {[Op.like]: `${code}%`}},
       include: {
         model: RuleHospitalBudget,
+        required: true,
         attributes: [
           'budget',
           'correctWorkPoint',
