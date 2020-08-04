@@ -69,17 +69,13 @@ export default class Region {
       it = it.toJSON();
       const result = it.ruleHospitalBudget.reduce(
         (res, next) => {
-          res.budget = new Decimal(res.budget).add(next.budget).toNumber();
-          res.correctWorkPoint = new Decimal(res.correctWorkPoint)
-            .add(next.correctWorkPoint)
-            .toNumber();
-          res.workPoint = new Decimal(res.workPoint)
-            .add(next.workPoint)
-            .toNumber();
-          res.score = new Decimal(res.score).add(next.ruleScore).toNumber();
-          res.totalScore = new Decimal(res.totalScore)
-            .add(next.ruleTotalScore)
-            .toNumber();
+          res.budget = new Decimal(res.budget).add(next.budget);
+          res.correctWorkPoint = new Decimal(res.correctWorkPoint).add(
+            next.correctWorkPoint
+          );
+          res.workPoint = new Decimal(res.workPoint).add(next.workPoint);
+          res.score = new Decimal(res.score).add(next.ruleScore);
+          res.totalScore = new Decimal(res.totalScore).add(next.ruleTotalScore);
           return res;
         },
         {
@@ -90,7 +86,13 @@ export default class Region {
           totalScore: new Decimal(0)
         }
       );
-      result.rate = new Decimal(result.score).div(result.totalScore).toNumber();
+      result.budget = Number(result.budget);
+      result.correctWorkPoint = Number(result.correctWorkPoint);
+      result.workPoint = Number(result.workPoint);
+      result.score = Number(result.score);
+      result.totalScore = Number(result.totalScore);
+      result.rate =
+        new Decimal(result.score).div(result.totalScore).toNumber() || 0;
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
