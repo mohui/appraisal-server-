@@ -1,5 +1,6 @@
 <template>
-  <div style="height: 100%;">
+  <div style="height: 100%; position: relative;">
+    <span v-if="!mapData.length" class="no-data">暂无矩形树状图数据</span>
     <div ref="treeMap" :style="{width: '100%', height: '100%'}"></div>
   </div>
 </template>
@@ -54,8 +55,6 @@ export default {
   mounted() {
     this.chart = this.$echarts.init(this.$refs['treeMap']);
     this.updataChart();
-  },
-  beforeMount() {
     window.addEventListener('resize', this.chart.resize);
   },
   beforeDestroy() {
@@ -80,4 +79,12 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.no-data {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -72px;
+  z-index: 9;
+}
+</style>
