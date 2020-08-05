@@ -1,5 +1,6 @@
 <template>
-  <div style="height: 100%;">
+  <div style="height: 100%; position: relative;">
+    <div v-if="!mapData.length" class="no-data">{{ emptyText }}</div>
     <div ref="treeMap" :style="{width: '100%', height: '100%'}"></div>
   </div>
 </template>
@@ -9,6 +10,12 @@ export default {
   name: 'twoCardTreeMap',
   props: {
     mapData: Array,
+    emptyText: {
+      type: String,
+      default() {
+        return '暂无矩形树状图数据';
+      }
+    },
     color: {
       type: Array,
       default() {
@@ -54,8 +61,6 @@ export default {
   mounted() {
     this.chart = this.$echarts.init(this.$refs['treeMap']);
     this.updataChart();
-  },
-  beforeMount() {
     window.addEventListener('resize', this.chart.resize);
   },
   beforeDestroy() {
@@ -80,4 +85,11 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.no-data {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  z-index: 9;
+}
+</style>
