@@ -2,7 +2,15 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card v-sticky class="box-card" shadow="never">
+      <el-card
+        v-sticky
+        class="box-card"
+        shadow="never"
+        v-loading="
+          $asyncComputed.reportListSeverData.updating ||
+            $asyncComputed.totalServerData.updating
+        "
+      >
         <div class="header-title" style="float: left">
           {{ totalData.name }}两卡制管理
           <span
@@ -28,6 +36,33 @@
               工分值
             </el-button>
           </el-button-group>
+          <el-button
+            v-if="reportListData.length === 1"
+            size="small"
+            type="primary"
+            style="margin-left: 30px"
+            @click="handleDownloadReport(reportListData[0].url)"
+          >
+            报告下载
+          </el-button>
+          <el-dropdown
+            v-else-if="reportListData.length > 1"
+            @command="handleDownloadReport"
+            style="margin-left: 30px"
+          >
+            <el-button type="primary" size="small">
+              报告下载<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item
+                v-for="it of reportListData"
+                :command="it.url"
+                :key="it.id"
+              >
+                {{ it.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
           <el-button
             size="small"
             style="float:right; margin: 4px 0 10px 30px"
@@ -797,6 +832,7 @@ import accordion from '../components/twocardAccordion';
 import progressScore from '../components/progressScore';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
+import FileSaver from 'file-saver';
 
 export default {
   name: 'index',
@@ -1086,6 +1122,10 @@ export default {
     //考核结果下载
     async handleAppraisalResultsDownload() {
       await this.$api.Hospital.checkDownload(this.params.id);
+    },
+    //报告下载
+    handleDownloadReport(url) {
+      FileSaver.saveAs(url);
     }
   },
   watch: {
@@ -1372,6 +1412,10 @@ export default {
     //单项考核得分解读数据
     appraisalResultInstructionsData() {
       return this.appraisalResultInstructionsServerData;
+    },
+    //报告下载列表数据
+    reportListData() {
+      return this.reportListSeverData;
     }
   },
   asyncComputed: {
@@ -1470,6 +1514,15 @@ export default {
       default() {
         return [];
       }
+    },
+    //报告下载列表服务器数据
+    reportListSeverData: {
+      async get() {
+        return await this.$api.Report.list(this.params.id);
+      },
+      default() {
+        return [];
+      }
     }
   }
 };
@@ -1564,5 +1617,10 @@ export default {
     float: left;
     box-sizing: border-box;
   }
+}
+
+.el-dropdown-link {
+  cursor: pointer;
+  color: #409eff;
 }
 </style>
