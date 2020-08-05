@@ -40,6 +40,10 @@ export const PermissionDetail = [
     name: '金额列表'
   },
   {
+    key: 'score',
+    name: '推荐工分值'
+  },
+  {
     key: 'check-add',
     name: '新建规则'
   },
@@ -104,6 +108,7 @@ export const Permission = {
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
   HOSPITAL: 'hospital',
+  SCORE: 'SCORE',
   CHECK_ADD: 'check-add',
   CHECK_UPDATE: 'check-update',
   CHECK_SELECT_HOSPITAL: 'check-select-hospital',
