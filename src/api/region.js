@@ -119,7 +119,7 @@ export default class Region {
   @validate(
     should.object({
       code: should.string().description('区code'),
-      scope: should.string().description('区范围'),
+      scope: should.string().description('数据范围'),
       year: should.number().description('年份')
     })
   )

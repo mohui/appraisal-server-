@@ -29,12 +29,4 @@ export class WorkDifficulty extends Model<WorkDifficulty> {
   @Comment('难度系数')
   @Column({field: 'difficulty', type: DataType.FLOAT})
   difficulty: number;
-
-  @Comment('创建时间')
-  @Column({field: 'created_at'})
-  created_at: Date;
-
-  @Comment('更新时间')
-  @Column({field: 'updated_at'})
-  updated_at: Date;
 }
