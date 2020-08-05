@@ -18,6 +18,10 @@ export class WorkDifficulty extends Model<WorkDifficulty> {
   @Column({field: 'scope', type: DataType.STRING})
   scope;
 
+  @Comment('工分项名')
+  @Column({field: 'name', type: DataType.STRING})
+  name;
+
   @Comment('工分code')
   @Column({field: 'code', type: DataType.STRING})
   code;
@@ -28,9 +32,9 @@ export class WorkDifficulty extends Model<WorkDifficulty> {
 
   @Comment('创建时间')
   @Column({field: 'created_at', type: DataType.DATE})
-  createdAt;
+  created_at;
 
   @Comment('更新时间')
-  @Column({field: 'update_at', type: DataType.DATE})
-  updatedAt;
+  @Column({field: 'updated_at', type: DataType.DATE})
+  updated_at;
 }
