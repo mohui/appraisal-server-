@@ -2,7 +2,15 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card v-sticky class="header-box-card" shadow="never">
+      <el-card
+        v-sticky
+        class="header-box-card"
+        shadow="never"
+        v-loading="
+          $asyncComputed.reportListSeverData.updating ||
+            $asyncComputed.totalServerData.updating
+        "
+      >
         <div class="header-title" style="float: left">
           {{ totalData.name }}两卡制管理
         </div>
