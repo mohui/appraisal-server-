@@ -1,6 +1,6 @@
 <template>
   <div style="height: 100%; position: relative;">
-    <span v-if="!mapData.length" class="no-data">暂无矩形树状图数据</span>
+    <div v-if="!mapData.length" class="no-data">{{ emptyText }}</div>
     <div ref="treeMap" :style="{width: '100%', height: '100%'}"></div>
   </div>
 </template>
@@ -10,6 +10,12 @@ export default {
   name: 'twoCardTreeMap',
   props: {
     mapData: Array,
+    emptyText: {
+      type: String,
+      default() {
+        return '暂无矩形树状图数据';
+      }
+    },
     color: {
       type: Array,
       default() {
@@ -82,9 +88,8 @@ export default {
 <style scoped>
 .no-data {
   position: absolute;
-  left: 50%;
   top: 50%;
-  margin-left: -72px;
+  width: 100%;
   z-index: 9;
 }
 </style>

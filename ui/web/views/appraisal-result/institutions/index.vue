@@ -110,6 +110,7 @@
                 <two-card-tree-map
                   :mapData="budgetData"
                   :color="color"
+                  emptyText="尚未配置金额"
                 ></two-card-tree-map>
               </div>
             </el-card>
