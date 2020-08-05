@@ -190,6 +190,18 @@ export default class Region {
     });
   }
 
+  /***
+   * 工分完成次数统计接口
+   * @param params
+   * @returns [{
+   *   projectId: 工分项id
+   *   projectName: 工分项名称
+   *   data:[{
+   *     day: 完成时间,
+   *     count: 完成次数
+   *   }]
+   * }]
+   */
   @validate(
     should.object({
       code: should
