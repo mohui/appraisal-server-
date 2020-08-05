@@ -1,4 +1,8 @@
-import {RegionModel, HospitalModel} from '../database/model';
+import {
+  RegionModel,
+  HospitalModel,
+  WorkDifficultyModel
+} from '../database/model';
 import {should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {RuleHospitalBudget} from '../database/model/rule-hospital-budget';
@@ -96,6 +100,34 @@ export default class Region {
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
+    });
+  }
+
+  /***
+   * 工分的难度列表
+   * @param params
+   * @returns [{
+   *   year:  年份
+   *   districtCode:  地区code
+   *   districtName:  地区name
+   *   scope: 数据范围
+   *   name:  工分code
+   *   code:  工分name
+   *   difficulty:  难度系数
+   * }]
+   */
+  @validate(
+    should.object({
+      code: should.string().description('区code'),
+      scope: should.string().description('数据范围'),
+      year: should.number().description('年份')
+    })
+  )
+  async workDifficultyList(params) {
+    const {code, scope, year} = params;
+    return WorkDifficultyModel.findAll({
+      attributes: {exclude: ['id']},
+      where: {districtCode: code, scope: scope, year: year}
     });
   }
 }
