@@ -47,7 +47,7 @@
           </el-button>
           <el-dropdown
             v-else-if="reportListData.length > 1"
-            @command="handleCommand"
+            @command="handleDownloadReport"
             style="margin-left: 30px"
           >
             <el-button type="primary" size="small">
@@ -1125,9 +1125,6 @@ export default {
     //报告下载
     handleDownloadReport(url) {
       FileSaver.saveAs(url);
-    },
-    handleCommand(command) {
-      this.handleDownloadReport(command);
     }
   },
   watch: {
