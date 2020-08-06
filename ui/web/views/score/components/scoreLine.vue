@@ -8,6 +8,7 @@
 export default {
   name: 'scoreLine',
   props: {
+    title: String,
     lineData: Array,
     days: Array,
     emptyText: {
@@ -29,7 +30,7 @@ export default {
       option: {
         color: [],
         title: {
-          text: '工分值年度记录'
+          text: '图表标题'
         },
         tooltip: {
           trigger: 'axis',
@@ -86,6 +87,7 @@ export default {
   },
   methods: {
     updataChart() {
+      this.option.title.text = this.title;
       this.option.xAxis.data = this.days;
       this.option.legend.data = this.lineData.map(it => it.name);
       this.option.series = this.lineData;
