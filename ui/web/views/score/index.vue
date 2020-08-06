@@ -122,7 +122,7 @@ export default {
       params: {
         scope: 'all',
         code: [this.$settings.user.region.code],
-        year: 2019
+        year: this.$dayjs().year()
       },
       regionList: {
         lazy: true,
@@ -140,7 +140,6 @@ export default {
     };
   },
   async created() {
-    this.params.year = this.$dayjs().year();
     this.yearOptions = Array(this.$dayjs().diff('2018-01-01', 'year'))
       .fill()
       .map((_, i) => {
