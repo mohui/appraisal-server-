@@ -317,7 +317,9 @@ export default {
         active: false
       }));
       let arr = result
-        .filter(it => it.name.indexOf('中心') !== -1)
+        .filter(
+          it => it.name.endsWith('服务中心') || it.name.endsWith('卫生院')
+        )
         .map(it => ({
           ...it,
           child: result.filter(
