@@ -307,6 +307,10 @@ export default {
             {
               key: 'hospital',
               label: '金额列表'
+            },
+            {
+              key: 'score',
+              label: '推荐工分值'
             }
           ]
         },

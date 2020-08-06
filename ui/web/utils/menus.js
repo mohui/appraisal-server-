@@ -34,6 +34,12 @@ module.exports = [
         permission: [Permission.HOSPITAL],
         router: '/hospital',
         label: '金额列表'
+      },
+      {
+        index: 'score',
+        permission: [Permission.SCORE],
+        router: '/score',
+        label: '推荐工分值'
       }
     ]
   },

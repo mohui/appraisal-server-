@@ -66,6 +66,11 @@ const router = new Router({
           component: () => import('./views/hospital/index')
         },
         {
+          path: 'score',
+          name: 'score',
+          component: () => import('./views/score/index')
+        },
+        {
           path: 'profile',
           name: 'profile',
           component: () => import('./views/profile/index')
