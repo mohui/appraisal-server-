@@ -437,7 +437,9 @@ export default {
     async getHospitalList(checkId) {
       const result = await this.$api.CheckSystem.listHospitals(checkId);
       let arr = result
-        .filter(it => it.name.indexOf('中心') !== -1)
+        .filter(
+          it => it.name.endsWith('服务中心') || it.name.endsWith('卫生院')
+        )
         .map(it => ({
           ...it,
           isIndeterminate: false,
