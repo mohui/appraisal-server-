@@ -170,7 +170,7 @@ export default {
       const days =
         this.params.year === this.$dayjs().year()
           ? end.diff(start, 'day')
-          : this.$dayjs(start).isLeapYear()
+          : new Date(this.params.year, 2, 0).getDate() === 29
           ? 366
           : 365;
       return Array(days)
