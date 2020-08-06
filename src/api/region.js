@@ -13,9 +13,12 @@ import {Projects} from '../../common/project';
 
 function countWorkRender(params) {
   return sqlRender(
-    `select projecttype as "projectId", to_char(missiontime, 'yyyy-MM-dd') as day, cast(count(1) as int) as count
+    `select projecttype as "projectId",
+            to_char(missiontime, 'yyyy-MM-dd') as day,
+            cast(count(1) as int) as count,
+            projectname as "projectName"
      from (
-         select w.projecttype, w.missiontime,
+         select w.projecttype, w.missiontime, w.projectname,
                 h.hospname,
                 --1为center, 0为institute
                 case
@@ -55,7 +58,7 @@ function countWorkRender(params) {
      {{#if scope}}
      where hosipitalType={{? scope}}
      {{/if}}
-    group by projecttype, to_char(missiontime, 'yyyy-MM-dd')
+    group by projecttype, to_char(missiontime, 'yyyy-MM-dd'), projectName
     order by projecttype, day;`,
     params
   );
@@ -238,7 +241,9 @@ export default class Region {
       if (!current)
         result.push({
           projectId: next.projectId,
-          projectName: Projects.find(p => p.id === next.projectId)?.name,
+          projectName:
+            Projects.find(p => p.id === next.projectId)?.name ||
+            next.projectName,
           data: [{day: next.day, count: next.count}]
         });
       return result;
