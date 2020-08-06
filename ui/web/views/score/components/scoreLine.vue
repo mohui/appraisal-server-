@@ -27,48 +27,37 @@ export default {
     return {
       chart: {},
       option: {
-        color: [
-          '#73DDFF',
-          '#F56948',
-          '#9E87FF',
-          '#37a2da',
-          '#9fe6b8',
-          '#ffdb5c',
-          '#ff9f7f',
-          '#fb7293',
-          '#e7bcf3',
-          '#8378ea',
-          '#ff7f50',
-          '#87cefa',
-          '#da70d6',
-          '#32cd32',
-          '#6495ed',
-          '#ff69b4',
-          '#ba55d3',
-          '#cd5c5c',
-          '#ffa500',
-          '#40e0d0',
-          '#1e90ff',
-          '#ff6347',
-          '#7b68ee',
-          '#d0648a',
-          '#ffd700',
-          '#6b8e23',
-          '#4ea397',
-          '#3cb371',
-          '#b8860b',
-          '#7bd9a5'
-        ],
+        color: [],
         title: {
           text: '工分值年度记录'
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: 'axis',
+          formatter: function(params) {
+            let astr = '';
+            params.forEach(ele => {
+              astr += `
+                    <div style="display: block;height:20px;width: 33.33%;float:left;">
+                      <i style="width: 10px;height: 10px;display: inline-block;background: ${ele.color};border-radius: 10px;"></i>
+                      <span>${ele.seriesName}: ${ele.value}</span>
+                    </div>
+                 `;
+            });
+            return `<div style="width: 800px; height: auto;">
+                      <div>${params[0].name}</div>
+                      ${astr}</div>`;
+          }
+        },
+        legend: {
+          bottom: '0',
+          left: '3%',
+          right: '3%',
+          data: []
         },
         grid: {
           left: '3%',
           right: '3%',
-          bottom: '3%',
+          bottom: '20%',
           width: 'auto',
           containLabel: true
         },
@@ -78,7 +67,10 @@ export default {
           data: []
         },
         yAxis: {
-          type: 'value'
+          type: 'value',
+          axisLabel: {
+            formatter: '{value} 次'
+          }
         },
         series: []
       }
@@ -95,9 +87,13 @@ export default {
   methods: {
     updataChart() {
       this.option.xAxis.data = this.days;
+      this.option.legend.data = this.lineData.map(it => it.name);
       this.option.series = this.lineData;
-      console.log('list', this.lineData);
-      console.log(this.days);
+      this.option.color = this.color.length
+        ? this.color
+        : Array(this.lineData.length)
+            .fill()
+            .map(() => '#' + Math.floor(Math.random() * 0xffffff).toString(16));
       if (this.color.length > 0) {
         this.option.color = this.color;
       }
