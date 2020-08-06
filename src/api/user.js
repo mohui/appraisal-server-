@@ -9,7 +9,7 @@ import {
   UserRoleModel
 } from '../database/model';
 import {Op} from 'sequelize';
-import {getPermission, PermissionDetail} from '../../common/permission';
+import {getPermission} from '../../common/permission';
 import {Context} from './context';
 
 export default class User {
@@ -185,17 +185,16 @@ export default class User {
   )
   async updateRole(role) {
     return appDB.transaction(async () => {
+      //检查权限是否在描述文件里有配置
+      const res = role.permissions.find(it => !getPermission(it));
+      if (res) throw new KatoCommonError(`'${res}'权限不存在`);
       //查询是否有该角色,并锁定
       const result = await RoleModel.findOne({
         where: {id: role.id},
         lock: true
       });
       if (!result) throw new KatoCommonError('该角色不存在');
-      //检查权限是否在描述文件里有配置
-      const res = role.permissions.find(
-        it => !PermissionDetail.some(p => p.key === it)
-      );
-      if (res) throw new KatoCommonError(`'${res}'权限不存在`);
+
       //进行角色更新操作
       return RoleModel.update(role, {where: {id: role.id}});
     });
@@ -214,14 +213,12 @@ export default class User {
       .description('权限数组')
   )
   async addRole(name, permissions) {
+    //检查权限是否在描述文件里有配置
+    const res = permissions.find(it => !getPermission(it));
+    if (res) throw new KatoCommonError(`'${res}'权限不存在`);
     //查询是否存在该角色
     const role = await RoleModel.findOne({where: {name}});
     if (role) throw new KatoCommonError('该角色已存在');
-    //检查权限是否在描述文件里有配置
-    const res = permissions.find(
-      it => !PermissionDetail.some(p => p.key === it)
-    );
-    if (res) throw new KatoCommonError(`'${res}'权限不存在`);
     //角色新增操作
     return await RoleModel.create({name, permissions});
   }
