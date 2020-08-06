@@ -185,6 +185,9 @@ export default class User {
   )
   async updateRole(role) {
     return appDB.transaction(async () => {
+      //检查权限是否在描述文件里有配置
+      const res = role.permissions.find(it => !getPermission(it));
+      if (res) throw new KatoCommonError(`'${res}'权限不存在`);
       //查询是否有该角色,并锁定
       const result = await RoleModel.findOne({
         where: {id: role.id},
@@ -209,6 +212,9 @@ export default class User {
       .description('权限数组')
   )
   async addRole(name, permissions) {
+    //检查权限是否在描述文件里有配置
+    const res = permissions.find(it => !getPermission(it));
+    if (res) throw new KatoCommonError(`'${res}'权限不存在`);
     //查询是否存在该角色
     const role = await RoleModel.findOne({where: {name}});
     if (role) throw new KatoCommonError('该角色已存在');
