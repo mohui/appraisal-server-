@@ -42,12 +42,9 @@ export default {
         },
         tooltip: {
           trigger: 'axis',
-          formatter: (comp, value) => {
+          formatter: comp => {
             const [serie] = comp;
-
-            return `${serie.seriesName} ${serie.name}: 难度系数 ${Math.round(
-              serie.value
-            )} `;
+            return `${serie.seriesName} ${serie.name}: 难度系数 ${serie.value} `;
           },
           axisPointer: {
             show: true,
@@ -178,7 +175,6 @@ export default {
         this.option.color = this.color;
       }
       this.chart.setOption(this.option);
-      console.log(JSON.stringify(this.option));
     }
   },
   watch: {
