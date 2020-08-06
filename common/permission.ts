@@ -108,7 +108,7 @@ export const Permission = {
   APPRAISAL_CONFIGURATION_MANAGEMENT: 'appraisal-configuration-management',
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
   HOSPITAL: 'hospital',
-  SCORE: 'SCORE',
+  SCORE: 'score',
   CHECK_ADD: 'check-add',
   CHECK_UPDATE: 'check-update',
   CHECK_SELECT_HOSPITAL: 'check-select-hospital',
