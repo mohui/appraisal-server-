@@ -94,10 +94,7 @@ export default {
         : Array(this.lineData.length)
             .fill()
             .map(() => '#' + Math.floor(Math.random() * 0xffffff).toString(16));
-      if (this.color.length > 0) {
-        this.option.color = this.color;
-      }
-      this.chart.setOption(this.option);
+      this.chart.setOption(this.option, true);
     }
   },
   watch: {

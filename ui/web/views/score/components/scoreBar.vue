@@ -174,7 +174,7 @@ export default {
       if (this.color.length > 0) {
         this.option.color = this.color;
       }
-      this.chart.setOption(this.option);
+      this.chart.setOption(this.option, true);
     }
   },
   watch: {
