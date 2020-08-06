@@ -2,7 +2,8 @@
   <div style="height: 100%;">
     <el-card shadow="never">
       <div style="float: right; font-size: 12px;">
-        地区：<el-cascader
+        <el-cascader
+          :placeholder="curRegion || '请选择地区'"
           v-if="$settings.user.region.level < 3"
           size="small"
           v-model="params.code"
@@ -11,11 +12,8 @@
           filterable
         ></el-cascader>
         <span v-else>{{ $settings.user.region.name }}</span>
-        年份：<el-select
-          size="small"
-          v-model="params.year"
-          placeholder="请选择年份"
-        >
+        &nbsp;&nbsp;
+        <el-select size="small" v-model="params.year" placeholder="请选择年份">
           <el-option
             v-for="item in yearOptions"
             :key="item.value"
@@ -55,7 +53,7 @@
         <el-card
           shadow="hover"
           :body-style="{
-            height: '400px'
+            height: '600px'
           }"
           v-loading="$asyncComputed.workCount.updating"
         >
@@ -64,11 +62,11 @@
       </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="8" :xs="24" :sm="15" :md="15" :lg="15" :xl="15">
+      <el-col :span="8" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
         <el-card
           shadow="hover"
           :body-style="{
-            height: '600px'
+            height: '400px'
           }"
           v-loading="$asyncComputed.workDifficultyList.updating"
         >
@@ -76,15 +74,15 @@
           <score-bar :barData="scoreList"></score-bar>
         </el-card>
       </el-col>
-      <el-col :span="8" :xs="24" :sm="9" :md="9" :lg="9" :xl="9">
+      <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
         <el-card
           shadow="hover"
           :body-style="{
-            height: '600px'
+            height: '400px'
           }"
           v-loading="$asyncComputed.workDifficultyList.updating"
         >
-          <div slot="header" class="clearfix">工分难度系数列表</div>
+          <div slot="header" class="clearfix">工分值推荐</div>
           <el-table :data="scoreList" size="mini" height="100%">
             <el-table-column
               prop="name"
@@ -94,7 +92,7 @@
             </el-table-column>
             <el-table-column
               prop="value"
-              label="难度系数"
+              label="工分值"
               :min-width="computedColWidth('value')"
             >
             </el-table-column>
@@ -118,6 +116,7 @@ export default {
   data() {
     const that = this;
     return {
+      curRegion: '',
       yearOptions: [
         {
           value: 2019,
@@ -130,7 +129,7 @@ export default {
       ],
       params: {
         scope: 'all',
-        code: this.$settings.user.region.code,
+        code: [this.$settings.user.region.code],
         year: 2019
       },
       regionList: {
@@ -148,13 +147,38 @@ export default {
       }
     };
   },
+  async created() {
+    this.params.year = this.$dayjs().year();
+    this.yearOptions = Array(this.$dayjs().diff('2018-01-01', 'year'))
+      .fill()
+      .map((_, i) => {
+        const year = this.$dayjs()
+          .subtract(i, 'year')
+          .year();
+        return {
+          value: year,
+          label: year + '年'
+        };
+      });
+    if (this.$settings.user.region.level !== 3) {
+      this.params.code[0] = await this.firstRegion(
+        this.$settings.user.region.code
+      );
+    }
+  },
   computed: {
     days() {
       const start = this.$dayjs()
         .set('year', this.params.year)
         .startOf('year');
+      const end = this.$dayjs();
+
       const days =
-        new Date(this.params.year, 2, 0).getDate() === 29 ? 366 : 365;
+        this.params.year === this.$dayjs().year()
+          ? end.diff(start, 'day')
+          : new Date(this.params.year, 2, 0).getDate() === 29
+          ? 366
+          : 365;
       return Array(days)
         .fill()
         .map((_, i) =>
@@ -167,8 +191,14 @@ export default {
       const start = this.$dayjs()
         .set('year', this.params.year)
         .startOf('year');
+      const end = this.$dayjs();
+
       const days =
-        new Date(this.params.year, 2, 0).getDate() === 29 ? 366 : 365;
+        this.params.year === this.$dayjs().year()
+          ? end.diff(start, 'day')
+          : new Date(this.params.year, 2, 0).getDate() === 29
+          ? 366
+          : 365;
       const year = Array(days)
         .fill()
         .map((_, i) =>
@@ -182,7 +212,6 @@ export default {
           name: it.projectName,
           type: 'line',
           smooth: true,
-          stack: '总量',
           data: year.map(its => {
             num += it.data?.find(d => d.day === its)?.count || 0;
             return num;
@@ -192,7 +221,7 @@ export default {
     },
     scoreList() {
       return this.workDifficultyList?.map(it => ({
-        value: it.difficulty.toFixed(0),
+        value: it.difficulty,
         name: it.name
       }));
     }
@@ -203,7 +232,7 @@ export default {
         const {scope, code, year} = this.params;
         return await this.$api.Region.workDifficultyList({
           scope,
-          code,
+          code: code[code.length - 1],
           year
         });
       },
@@ -216,7 +245,7 @@ export default {
         const {scope, code, year} = this.params;
         return await this.$api.Region.workCount({
           scope,
-          code,
+          code: code[code.length - 1],
           year
         });
       },
@@ -234,6 +263,14 @@ export default {
       if (this.scoreList?.length > 0) {
         return this.$widthCompute(this.scoreList.map(item => item[field]));
       }
+    },
+    async firstRegion(code) {
+      const result = await this.region(code);
+      if (result.length && result[0].level !== 3) {
+        return this.firstRegion(result[0].code);
+      }
+      this.curRegion = result[0].name;
+      return result[0].code;
     },
     //异步加载地区列表
     async region(code) {
