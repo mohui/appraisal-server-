@@ -13,12 +13,9 @@ import {Projects} from '../../common/project';
 
 function countWorkRender(params) {
   return sqlRender(
-    `select projecttype as "projectId",
-            to_char(missiontime, 'yyyy-MM-dd') as day,
-            cast(count(1) as int) as count,
-            projectname as "projectName"
+    `select projecttype as "projectId", to_char(missiontime, 'yyyy-MM-dd') as day, cast(count(1) as int) as count
      from (
-         select w.projecttype, w.missiontime, w.projectname,
+         select w.projecttype, w.missiontime,
                 h.hospname,
                 --1为center, 0为institute
                 case
@@ -58,7 +55,7 @@ function countWorkRender(params) {
      {{#if scope}}
      where hosipitalType={{? scope}}
      {{/if}}
-    group by projecttype, to_char(missiontime, 'yyyy-MM-dd'), projectName
+    group by projecttype, to_char(missiontime, 'yyyy-MM-dd')
     order by projecttype, day;`,
     params
   );
