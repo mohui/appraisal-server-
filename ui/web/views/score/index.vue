@@ -57,7 +57,11 @@
           }"
           v-loading="$asyncComputed.workCount.updating"
         >
-          <score-line :lineData="workList" :days="days"></score-line>
+          <score-line
+            title="工分值年度记录"
+            :lineData="workList"
+            :days="days"
+          ></score-line>
         </el-card>
       </el-col>
     </el-row>
@@ -117,16 +121,7 @@ export default {
     const that = this;
     return {
       curRegion: '',
-      yearOptions: [
-        {
-          value: 2019,
-          label: '2019年'
-        },
-        {
-          value: 2020,
-          label: '2020年'
-        }
-      ],
+      yearOptions: [],
       params: {
         scope: 'all',
         code: [this.$settings.user.region.code],
@@ -164,6 +159,8 @@ export default {
       this.params.code[0] = await this.firstRegion(
         this.$settings.user.region.code
       );
+      this.$asyncComputed.workCount.update();
+      this.$asyncComputed.workDifficultyList.update();
     }
   },
   computed: {
@@ -176,7 +173,7 @@ export default {
       const days =
         this.params.year === this.$dayjs().year()
           ? end.diff(start, 'day')
-          : new Date(this.params.year, 2, 0).getDate() === 29
+          : this.$dayjs(start).isLeapYear()
           ? 366
           : 365;
       return Array(days)
@@ -188,31 +185,13 @@ export default {
         );
     },
     workList() {
-      const start = this.$dayjs()
-        .set('year', this.params.year)
-        .startOf('year');
-      const end = this.$dayjs();
-
-      const days =
-        this.params.year === this.$dayjs().year()
-          ? end.diff(start, 'day')
-          : new Date(this.params.year, 2, 0).getDate() === 29
-          ? 366
-          : 365;
-      const year = Array(days)
-        .fill()
-        .map((_, i) =>
-          this.$dayjs(start)
-            .add(i, 'day')
-            .format('YYYY-MM-DD')
-        );
       return this.workCount.map(it => {
         let num = 0;
         return {
           name: it.projectName,
           type: 'line',
           smooth: true,
-          data: year.map(its => {
+          data: this.days.map(its => {
             num += it.data?.find(d => d.day === its)?.count || 0;
             return num;
           })
