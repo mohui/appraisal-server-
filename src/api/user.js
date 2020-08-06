@@ -194,7 +194,6 @@ export default class User {
         lock: true
       });
       if (!result) throw new KatoCommonError('该角色不存在');
-
       //进行角色更新操作
       return RoleModel.update(role, {where: {id: role.id}});
     });
