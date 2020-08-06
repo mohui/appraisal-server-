@@ -235,18 +235,18 @@ export default class Region {
       scope: scopeType
     });
     const res = await appQuery(sqlRender[0], sqlRender[1]);
-    return res.reduce((result, next) => {
-      let current = result.find(r => r.projectId === next.projectId);
-      if (current) current.data.push({day: next.day, count: next.count});
-      if (!current)
-        result.push({
-          projectId: next.projectId,
-          projectName:
-            Projects.find(p => p.id === next.projectId)?.name ||
-            next.projectName,
-          data: [{day: next.day, count: next.count}]
-        });
-      return result;
-    }, []);
+    return res
+      .filter(it => Projects.some(p => p.id === it.projectId))
+      .reduce((result, next) => {
+        let current = result.find(r => r.projectId === next.projectId);
+        if (current) current.data.push({day: next.day, count: next.count});
+        if (!current)
+          result.push({
+            projectId: next.projectId,
+            projectName: Projects.find(p => p.id === next.projectId)?.name,
+            data: [{day: next.day, count: next.count}]
+          });
+        return result;
+      }, []);
   }
 }
