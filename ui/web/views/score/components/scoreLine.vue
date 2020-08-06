@@ -56,6 +56,7 @@ export default {
           data: []
         },
         grid: {
+          top: '1%',
           left: '3%',
           right: '3%',
           bottom: '20%',

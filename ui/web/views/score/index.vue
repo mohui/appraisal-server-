@@ -57,11 +57,8 @@
           }"
           v-loading="$asyncComputed.workCount.updating"
         >
-          <score-line
-            title="工分值年度记录"
-            :lineData="workList"
-            :days="days"
-          ></score-line>
+          <div slot="header">工分值年度记录</div>
+          <score-line title="" :lineData="workList" :days="days"></score-line>
         </el-card>
       </el-col>
     </el-row>
