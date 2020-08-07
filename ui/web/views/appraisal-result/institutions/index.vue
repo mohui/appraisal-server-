@@ -1222,8 +1222,10 @@ export default {
     //机构排行数据
     workpointRankData() {
       const result = this.workpointRankServerData
-        //过滤，只取一级机构（name中含'中心'）的值
-        .filter(item => item.name.includes('中心'))
+        //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
+        .filter(
+          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+        )
         //添加child
         .map(item => {
           const returnValue = Object.assign({}, item, {
@@ -1260,7 +1262,9 @@ export default {
       const result = this.workpointRankData
         .map(item => item.child)
         .reduce((result, current) => result.concat(current), [])
-        .filter(item => item.name.includes('中心'));
+        .filter(
+          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+        );
       if (this.params.listFlag === 'score') {
         return result
           .sort((a, b) => b.score - a.score)
@@ -1276,7 +1280,10 @@ export default {
     //二级机构排行数据
     secondLevelWorkpointRankData() {
       const result = this.workpointRankServerData
-        .filter(item => !item.name.includes('中心'))
+        .filter(
+          item =>
+            !item.name.endsWith('服务中心') && !item.name.endsWith('卫生院')
+        )
         .sort((a, b) => b.score - a.score);
       if (this.params.listFlag === 'score') {
         return result
