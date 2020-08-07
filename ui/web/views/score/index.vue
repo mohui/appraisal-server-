@@ -208,7 +208,6 @@ export default {
     scoreList() {
       const min =
         Math.min(...this.workDifficultyList?.map(it => it.difficulty)) || 1;
-      console.log(min);
       return this.workDifficultyList?.map(it => ({
         value: it.difficulty,
         score: Math.round(it.difficulty / min),
