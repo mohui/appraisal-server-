@@ -1,118 +1,128 @@
 <template>
-  <div style="height: 100%;">
-    <el-card shadow="never">
-      <div style="float: right; font-size: 12px;">
-        <el-cascader
-          :placeholder="curRegion || '请选择地区'"
-          v-if="$settings.user.region.level < 3"
-          size="small"
-          v-model="params.code"
-          :props="regionList"
-          collapse-tags
-          filterable
-        ></el-cascader>
-        <span v-else>{{ $settings.user.region.name }}</span>
-        &nbsp;&nbsp;
-        <el-select size="small" v-model="params.year" placeholder="请选择年份">
-          <el-option
-            v-for="item in yearOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+  <div class="wrapper">
+    <div>
+      <el-card v-sticky shadow="never">
+        <div style="float: right; font-size: 12px;">
+          <el-cascader
+            :placeholder="curRegion || '请选择地区'"
+            v-if="$settings.user.region.level < 3"
+            size="small"
+            v-model="params.code"
+            :props="regionList"
+            collapse-tags
+            filterable
+          ></el-cascader>
+          <span v-else>{{ $settings.user.region.name }}</span>
+          &nbsp;&nbsp;
+          <el-select
+            size="small"
+            v-model="params.year"
+            placeholder="请选择年份"
           >
-          </el-option>
-        </el-select>
-      </div>
-      <span>推荐工分值</span>
-      <el-button-group style="margin-left:20px">
-        <el-button
-          size="small"
-          :class="{'el-button--primary': params.scope === 'all'}"
-          @click="typeChange('all')"
-        >
-          全部
-        </el-button>
-        <el-button
-          size="small"
-          :class="{'el-button--primary': params.scope === 'center'}"
-          @click="typeChange('center')"
-        >
-          中心/站
-        </el-button>
-        <el-button
-          size="small"
-          :class="{'el-button--primary': params.scope === 'institute'}"
-          @click="typeChange('institute')"
-        >
-          卫生院/室
-        </el-button>
-      </el-button-group>
-    </el-card>
-    <el-row :gutter="20" style="margin: 10px -10px">
-      <el-col :span="8" :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-        <el-card
-          shadow="hover"
-          :body-style="{
-            height: '600px'
-          }"
-          v-loading="$asyncComputed.workCount.updating"
-        >
-          <div slot="header">工分值年度记录</div>
-          <score-line title="" :lineData="workList" :days="days"></score-line>
-        </el-card>
-      </el-col>
-    </el-row>
-    <el-row :gutter="20">
-      <el-col :span="8" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-        <el-card
-          shadow="hover"
-          :body-style="{
-            height: '400px'
-          }"
-          v-loading="$asyncComputed.workDifficultyList.updating"
-        >
-          <div slot="header" class="clearfix">工分难度系数</div>
-          <score-bar :barData="scoreList"></score-bar>
-        </el-card>
-      </el-col>
-      <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-        <el-card
-          shadow="hover"
-          :body-style="{
-            height: '400px'
-          }"
-          v-loading="$asyncComputed.workDifficultyList.updating"
-        >
-          <div slot="header" class="clearfix">工分值推荐</div>
-          <el-table :data="scoreList" size="mini" height="100%">
-            <el-table-column
-              prop="name"
-              label="工分项"
-              :min-width="computedColWidth('name')"
+            <el-option
+              v-for="item in yearOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             >
-            </el-table-column>
-            <el-table-column
-              prop="value"
-              label="工分值"
-              :min-width="computedColWidth('value')"
-            >
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
-    </el-row>
+            </el-option>
+          </el-select>
+        </div>
+        <span>推荐工分值</span>
+        <el-button-group style="margin-left:20px">
+          <el-button
+            size="small"
+            :class="{'el-button--primary': params.scope === 'all'}"
+            @click="typeChange('all')"
+          >
+            全部
+          </el-button>
+          <el-button
+            size="small"
+            :class="{'el-button--primary': params.scope === 'center'}"
+            @click="typeChange('center')"
+          >
+            中心/站
+          </el-button>
+          <el-button
+            size="small"
+            :class="{'el-button--primary': params.scope === 'institute'}"
+            @click="typeChange('institute')"
+          >
+            卫生院/室
+          </el-button>
+        </el-button-group>
+      </el-card>
+      <el-row :gutter="20" style="margin: 10px -10px">
+        <el-col :span="8" :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+          <el-card
+            shadow="hover"
+            :body-style="{
+              height: '600px'
+            }"
+            v-loading="$asyncComputed.workCount.updating"
+          >
+            <div slot="header">工分值年度记录</div>
+            <score-line title="" :lineData="workList" :days="days"></score-line>
+          </el-card>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="8" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+          <el-card
+            shadow="hover"
+            :body-style="{
+              height: '400px'
+            }"
+            v-loading="$asyncComputed.workDifficultyList.updating"
+          >
+            <div slot="header" class="clearfix">工分难度系数</div>
+            <score-bar :barData="scoreList"></score-bar>
+          </el-card>
+        </el-col>
+        <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+          <el-card
+            shadow="hover"
+            :body-style="{
+              height: '400px'
+            }"
+            v-loading="$asyncComputed.workDifficultyList.updating"
+          >
+            <div slot="header" class="clearfix">工分值推荐</div>
+            <el-table :data="scoreList" size="mini" height="100%">
+              <el-table-column
+                prop="name"
+                label="工分项"
+                :min-width="computedColWidth('name')"
+              >
+              </el-table-column>
+              <el-table-column
+                prop="score"
+                label="工分值"
+                :min-width="computedColWidth('score')"
+              >
+              </el-table-column>
+            </el-table>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
 <script>
 import scoreLine from './components/scoreLine';
 import scoreBar from './components/scoreBar';
+import VueSticky from 'vue-sticky';
 
 export default {
   name: 'score',
   components: {
     scoreLine,
     scoreBar
+  },
+  directives: {
+    sticky: VueSticky
   },
   data() {
     const that = this;
@@ -187,6 +197,7 @@ export default {
           name: it.projectName,
           type: 'line',
           smooth: true,
+          showAllSymbol: false,
           data: this.days.map(its => {
             num += it.data?.find(d => d.day === its)?.count || 0;
             return num;
@@ -195,8 +206,12 @@ export default {
       });
     },
     scoreList() {
+      const min =
+        Math.min(...this.workDifficultyList?.map(it => it.difficulty)) || 1;
+      console.log(min);
       return this.workDifficultyList?.map(it => ({
         value: it.difficulty,
+        score: Math.round(it.difficulty / min),
         name: it.name
       }));
     }
@@ -255,4 +270,19 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.wrapper {
+  height: 100%;
+  position: relative;
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+</style>
