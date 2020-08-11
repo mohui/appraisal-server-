@@ -102,6 +102,7 @@
     "handlebars-helpers": "^0.10.0",
     "kato-server": "^2.1.1",
     "kato-ui": "^2.0.1",
+    "node-cron": "^2.0.3",
     "pg": "^8.2.1",
     "pg-hstore": "^2.3.3",
     "reflect-metadata": "^0.1.13",

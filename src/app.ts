@@ -11,6 +11,7 @@ import {UserMiddleware} from './api/middleware/user';
 import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
 import * as models from './database/model';
+import * as cron from 'node-cron';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -77,6 +78,8 @@ export class Application {
     await this.initKato();
     //初始化web资源
     await this.initWebResource();
+    //初始化定时任务
+    await this.initScheduleJob();
     //错误处理
     this.express.on('error', err => console.error(err));
 
@@ -152,6 +155,14 @@ export class Application {
     kato.use(UserMiddleware, AuthenticateMiddleware);
     //挂载kato处理中间件
     this.express.use('/api', ExpressAdapter(kato));
+  }
+
+  async initScheduleJob() {
+    const autoScore = new (require('./api/score').default)();
+    //每天凌晨1点执行自动打分
+    cron.schedule('00 00 01 * * *', function() {
+      autoScore.autoScoreAll();
+    });
   }
 }
 
