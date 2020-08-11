@@ -30,7 +30,7 @@
     </el-header>
     <el-container>
       <el-aside
-        width="200px"
+        width="270px"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -38,7 +38,12 @@
           style="height: 100%;"
           @click.self="toggleMenu"
         >
-          <el-menu class="layout-side-menu" :default-active="activeMenu" router>
+          <el-menu
+            class="layout-side-menu"
+            :default-active="activeMenu"
+            router
+            :unique-opened="true"
+          >
             <multi-menu
               v-for="menu of menus"
               :key="menu.router"
@@ -192,6 +197,62 @@ export default {
   z-index: 9;
   ul {
     width: 200px;
+  }
+}
+::v-deep .el-menu {
+  & > li {
+    &.el-menu-item,
+    > .el-submenu__title {
+      height: 46px !important;
+      line-height: 46px !important;
+      &:hover {
+        background-color: #ecf5ff;
+      }
+    }
+    &.is-active > .el-submenu__title {
+      box-shadow: inset 3px 0 0 #2198f3;
+      background-color: #ecf5ff;
+    }
+    > ul {
+      background-color: rgba(0, 0, 0, 0.02);
+      &:before {
+        border-left: 1px dotted rgba(0, 0, 0, 0.2);
+        content: '';
+        display: block;
+        position: absolute;
+        z-index: 1;
+        left: 2rem;
+        top: 0;
+        bottom: 0;
+      }
+      > li {
+        padding-left: 54px !important;
+        &:hover {
+          color: #409eff;
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        &:after {
+          content: '';
+          display: block;
+          position: absolute;
+          width: 0.3rem;
+          height: 0.3rem;
+          background-color: rgba(91, 91, 91, 0.2);
+          left: 1.8rem;
+          top: calc(50% - 0.2rem);
+          border: 1px solid rgba(91, 91, 91, 0.7);
+          border-radius: 50%;
+          z-index: 1;
+        }
+        &.is-active:after {
+          background-color: #409eff;
+          width: 0.4rem;
+          height: 0.4rem;
+          left: 1.75rem;
+          top: calc(50% - 0.25rem);
+        }
+      }
+    }
   }
 }
 </style>
