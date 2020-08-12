@@ -159,8 +159,8 @@ export class Application {
 
   async initScheduleJob() {
     const autoScore = new (require('./api/score').default)();
-    //每天凌晨1点执行自动打分
-    cron.schedule('00 00 01 * * *', function() {
+    //每天凌晨4点执行自动打分
+    cron.schedule('00 00 04 * * *', () => {
       autoScore.autoScoreAll();
     });
   }
