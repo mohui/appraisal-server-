@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from './views/layout/layout';
 import {getToken, setToken, cleanCache} from './utils/cache';
+import {Permission} from '../../common/permission.ts';
 
 Vue.use(Router);
 const router = new Router({
@@ -15,59 +16,76 @@ const router = new Router({
         {
           path: 'home',
           name: 'home',
+          meta: {permission: [Permission.HOME, Permission.APPRAISAL_RESULT]},
           component: () => import('./views/home/index')
         },
         {
           path: 'role',
           name: 'role',
+          meta: {permission: [Permission.ROLE_INDEX]},
           component: () => import('./views/role/index')
         },
         {
           path: 'user',
           name: 'user',
+          meta: {permission: [Permission.USER_INDEX]},
           component: () => import('./views/user/index')
         },
         {
           path: 'appraisal-result-institutions',
           name: 'appraisal-result-institutions',
+          meta: {permission: [Permission.APPRAISAL_RESULT]},
           component: () => import('./views/appraisal-result/institutions/index')
         },
         {
           path: 'appraisal-result-area',
           name: 'appraisal-result-area',
-          meta: {activeMenu: 'appraisal-result-institutions'},
+          meta: {
+            activeMenu: 'appraisal-result-institutions',
+            permission: [Permission.APPRAISAL_RESULT]
+          },
           component: () => import('./views/appraisal-result/area/index')
         },
         {
           path: 'check',
           name: 'check',
+          meta: {permission: [Permission.APPRAISAL_CONFIGURATION_MANAGEMENT]},
           component: () => import('./views/check/index')
         },
         {
           path: 'rule',
           name: 'rule',
-          meta: {activeMenu: 'check'},
+          meta: {
+            activeMenu: 'check',
+            permission: [Permission.APPRAISAL_CONFIGURATION_MANAGEMENT]
+          },
           component: () => import('./views/check/rule')
         },
         {
           path: 'basic-data',
           name: 'basic-data',
+          meta: {permission: [Permission.APPRAISAL_BASIC_DATA]},
           component: () => import('./views/check/basic-data')
         },
         {
           path: 'basic-data-detail',
           name: 'basic-data-detail',
-          meta: {activeMenu: 'basic-data'},
+          meta: {
+            activeMenu: 'basic-data',
+            permission: [Permission.APPRAISAL_BASIC_DATA]
+          },
           component: () => import('./views/check/basic-data-detail')
         },
         {
           path: 'hospital',
           name: 'hospital',
+          meta: {permission: [Permission.HOSPITAL]},
           component: () => import('./views/hospital/index')
         },
         {
           path: 'score',
           name: 'score',
+          meta: {permission: [Permission.SCORE]},
           component: () => import('./views/score/index')
         },
         {
@@ -78,43 +96,49 @@ const router = new Router({
         {
           path: 'patient',
           name: 'patient',
-          meta: {activeMenu: 'person'},
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/index')
         },
         {
           path: 'record-healthy',
           name: 'record-healthy',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/record-healthy')
         },
         {
           path: 'record-diabetes',
           name: 'record-diabetes',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/record-diabetes')
         },
         {
           path: 'record-hypertension',
           name: 'record-hypertension',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/record-hypertension')
         },
         {
           path: 'record-old-constitution',
           name: 'record-old-constitution',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/record-old-constitution')
         },
         {
           path: 'record-oldManSelfCare',
           name: 'record-oldManSelfCare',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/patient/record-old-man-self-care')
         },
         {
           path: 'person',
           name: 'person',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
           component: () => import('./views/person/list')
         },
         {
-          path: 'person-detail',
-          name: 'person-detail',
-          component: () => import('./views/person/detail')
+          path: '401',
+          name: 'page401',
+          component: () => import('./views/error/401page')
         }
       ]
     },
@@ -140,6 +164,18 @@ router.beforeEach(async (to, from, next) => {
   //TODO 先解决在刷新时子页面的created周期获取不到$settings缓存的问题
   if (!Vue.prototype.$settings.user || !Vue.prototype.$settings.permissions)
     await Vue.prototype.$settings.load();
+
+  //如果路由配置了permission,且不为空,则需要进行权限判断
+  if (to.meta.permission && to.meta.permission?.length > 0) {
+    //当前用户角色拥有的权限
+    const rolePermissions = Vue.prototype.$settings.user.permissions;
+    //判断是否有to的权限
+    if (!to.meta.permission.some(mp => rolePermissions.some(rp => rp === mp))) {
+      next('/401');
+      return;
+    }
+  }
+
   setToken(getToken());
   next();
 });
