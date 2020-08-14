@@ -138,7 +138,7 @@ const router = new Router({
         {
           path: '401',
           name: 'page401',
-          component: () => import('./views/error/401page')
+          component: () => import('./views/error/page401')
         }
       ]
     },
