@@ -1,4 +1,4 @@
-import {etlDB} from '../app';
+import {appDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
@@ -7,15 +7,15 @@ import dayjs from 'dayjs';
 import {HospitalModel} from '../database/model';
 import {Op} from 'sequelize';
 
-async function etlQuery(sql, params) {
-  return etlDB.query(sql, {
+async function appQuery(sql, params) {
+  return appDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
 }
 
 async function dictionaryQuery(categoryno) {
-  return await etlQuery(
+  return await appQuery(
     `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
     [categoryno]
   );
@@ -25,7 +25,7 @@ function listRender(params) {
   return sqlRender(
     `
       from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum
+             inner join view_personinfo vp on mp.personnum = vp.personnum::varchar
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where vp.vouchertype = '1'
         {{#if name}} and vp.name like {{? name}} {{/if}}
@@ -112,7 +112,7 @@ export default class Person {
     hospitals = (
       await Promise.all(
         hospitals.map(it =>
-          etlQuery(
+          appQuery(
             `select hishospid as id from hospital_mapping where h_id = ?`,
             [it]
           )
@@ -129,7 +129,7 @@ export default class Person {
         await Promise.all(
           hospitals.map(item =>
             //查询机构的下属机构
-            etlQuery(
+            appQuery(
               `select hospid as id from view_hospital where hos_hospid = ?`,
               [item]
             )
@@ -145,12 +145,12 @@ export default class Person {
 
     const sqlRenderResult = listRender({his, name, hospitals, idCard, ...tags});
     const count = (
-      await etlQuery(
+      await appQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
         sqlRenderResult[1]
       )
     )[0].count;
-    const person = await etlQuery(
+    const person = await appQuery(
       `select vp.personnum   as id,
                 vp.name,
                 vp.idcardno    as "idCard",
@@ -197,7 +197,7 @@ export default class Person {
   async detail(id) {
     // language=PostgreSQL
     const person = (
-      await etlQuery(
+      await appQuery(
         `
           select personnum as id,
                  name,
@@ -214,7 +214,7 @@ export default class Person {
     )[0];
     if (!person) throw new KatoCommonError('数据不存在');
     // language=PostgreSQL
-    const hypertensionRows = await etlQuery(
+    const hypertensionRows = await appQuery(
       `
         select *
         from view_hypertension
@@ -253,7 +253,7 @@ export default class Person {
    */
   async document(id) {
     const person = (
-      await etlQuery(
+      await appQuery(
         // language=PostgreSQL
         `
           select vp.personnum as id,
@@ -302,7 +302,7 @@ export default class Person {
 
     if (!person) throw new KatoCommonError('数据不存在');
     person.operateOrganization = (
-      await etlQuery(
+      await appQuery(
         // language=PostgreSQL
         `
           select hospid as id, hospname as name
@@ -314,7 +314,7 @@ export default class Person {
     )[0];
 
     person.organization = (
-      await etlQuery(
+      await appQuery(
         // language=PostgreSQL
         `
             select hospid as id, hospname as name
@@ -343,12 +343,12 @@ export default class Person {
    * }
    */
   async hypertensions(id) {
-    const followCodeNames = await etlQuery(
+    const followCodeNames = await appQuery(
       `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
       ['7010104']
     );
     return (
-      await etlQuery(
+      await appQuery(
         // language=PostgreSQL
         `
         select vhv.highbloodid as id,
@@ -435,7 +435,7 @@ export default class Person {
    */
   async hypertensionsDetail(id) {
     const mentalCodeNames = (
-      await etlQuery(
+      await appQuery(
         `select * from view_codedictionary vc where categoryno=?;`,
         ['331']
       )
@@ -444,7 +444,7 @@ export default class Person {
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
 
-    const result = await etlQuery(
+    const result = await appQuery(
       `select
         vh.highbloodid as "id",
         vh.hypertensioncardid as "cardId",
@@ -530,13 +530,13 @@ export default class Person {
    * @param id 个人id
    */
   async diabetes(id) {
-    const followCodeNames = await etlQuery(
+    const followCodeNames = await appQuery(
       `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
       ['7010104']
     );
     // language=PostgreSQL
     return (
-      await etlQuery(
+      await appQuery(
         `
         select
           vdv.DiabetesFollowUpID as "id",
@@ -629,7 +629,7 @@ export default class Person {
    */
   async diabetesDetail(id) {
     const mentalCodeNames = (
-      await etlQuery(
+      await appQuery(
         `select * from view_codedictionary vc where categoryno=?;`,
         ['331']
       )
@@ -637,7 +637,7 @@ export default class Person {
       ...item,
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
-    const result = await etlQuery(
+    const result = await appQuery(
       `select
         vd.DiabetesFollowUpID as "id",
         vd.name as "name",
@@ -731,7 +731,7 @@ export default class Person {
    * @param id 个人id
    */
   async healthy(id) {
-    return etlQuery(
+    return appQuery(
       `
         select
           vh.incrementno as "id",
@@ -1040,7 +1040,7 @@ export default class Person {
       dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
       dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
     ]);
-    const result = await etlQuery(
+    const result = await appQuery(
       `
         select
           vh.incrementno as "id",
@@ -1451,7 +1451,7 @@ export default class Person {
       dictionaryQuery('002') //contractStaff
     ]);
     console.log(contractStaffCode);
-    const result = await etlQuery(
+    const result = await appQuery(
       `select
         vp.PersonNum as "id",
         vp.name as "name",
@@ -1546,7 +1546,7 @@ export default class Person {
    */
   async oldManSelfCare(id) {
     return (
-      await etlQuery(
+      await appQuery(
         `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
@@ -1604,7 +1604,7 @@ export default class Person {
    */
   async oldManSelfCareDetail(id) {
     return (
-      await etlQuery(
+      await appQuery(
         `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
@@ -1661,7 +1661,7 @@ export default class Person {
       .description('标签code')
   )
   async markContent(id, code) {
-    return etlQuery(`select * from mark_content where id=? and name=?`, [
+    return appQuery(`select * from mark_content where id=? and name=?`, [
       id,
       code
     ]);
@@ -1684,7 +1684,7 @@ export default class Person {
       .description('个人id')
   )
   async questionnaire(id) {
-    return etlQuery(
+    return appQuery(
       `
        select
      vq.QuestionnaireMainSN as "id",
@@ -1732,7 +1732,7 @@ export default class Person {
   )
   async questionnaireDetail(id) {
     const questionnaire = (
-      await etlQuery(
+      await appQuery(
         `select
             cast(vb.questioncode as int) as "questionCode",
             vb.questioncode as "questionCode",
@@ -1771,7 +1771,7 @@ export default class Person {
     //找人名:
     const name =
       (
-        await etlQuery(
+        await appQuery(
           `
         select vp.name from view_questionnairedetail vqd
             left join view_questionnairemain vm on
@@ -1784,7 +1784,7 @@ export default class Person {
     //体质结果
     const constitution =
       (
-        await etlQuery(
+        await appQuery(
           `select
             vp.name,
             vq.constitutiontype,
