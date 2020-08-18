@@ -11,7 +11,7 @@
       }"
     >
       <div slot="header" class="clearfix">
-        <span>机构列表</span>
+        <span>金额列表</span>
       </div>
       <el-form
         ref="ruleForm"
