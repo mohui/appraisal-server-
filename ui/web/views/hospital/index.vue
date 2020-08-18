@@ -49,8 +49,6 @@
       <el-table
         size="mini"
         :data="hospitalListData"
-        @row-click="handleCellClick"
-        :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{
