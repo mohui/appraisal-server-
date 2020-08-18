@@ -47,10 +47,8 @@
         </el-row>
       </el-form>
       <el-table
-        stripe
-        border
         size="mini"
-        :data="listHospital"
+        :data="hospitalListData"
         @row-click="handleCellClick"
         :cell-class-name="cellClassHover"
         height="100%"
@@ -61,6 +59,39 @@
           textAlign: 'center'
         }"
       >
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <el-form>
+              <el-table
+                border
+                size="mini"
+                :data="props.row.children"
+                @row-click="handleCellClick"
+                :cell-class-name="cellClassHover"
+              >
+                <el-table-column align="center" label="序号">
+                  <template slot-scope="scope">
+                    {{ scope.$index + 1 }}
+                  </template>
+                </el-table-column>
+                <el-table-column align="center" label="机构名称" prop="name">
+                </el-table-column>
+                <el-table-column align="center" label="校正后总工分值">
+                  <template slot-scope="scope">
+                    {{ Math.round(scope.row.correctWorkPoint) }}
+                  </template>
+                </el-table-column>
+                <el-table-column align="center" label="质量系数" prop="rate">
+                  <template slot-scope="scope">
+                    {{ (scope.row.rate * 100).toFixed(2) }}%
+                  </template>
+                </el-table-column>
+                <el-table-column align="center" label="金额" prop="budget">
+                </el-table-column>
+              </el-table>
+            </el-form>
+          </template>
+        </el-table-column>
         <el-table-column align="center" label="序号">
           <template slot-scope="scope">
             {{ scope.$index + 1 }}
@@ -115,8 +146,34 @@ export default {
       }
     };
   },
+  computed: {
+    hospitalListData() {
+      console.log('hospitalListServerData', this.hospitalListServerData);
+      return (
+        this.hospitalListServerData
+          //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
+          .filter(
+            item =>
+              item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+          )
+          //添加child
+          .map(item => {
+            const returnValue = Object.assign({}, item, {
+              children: [
+                item,
+                ...this.hospitalListServerData.filter(
+                  it => it.parent === item.id
+                )
+              ]
+            });
+            console.log(returnValue);
+            return returnValue;
+          })
+      );
+    }
+  },
   asyncComputed: {
-    listHospital: {
+    hospitalListServerData: {
       async get() {
         let code = this.searchForm.region;
         let regionId = Array.isArray(code) ? code[code.length - 1] : code;
