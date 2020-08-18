@@ -164,7 +164,23 @@ export default {
                 )
               ]
             });
-            console.log(returnValue);
+            //累加校正后总工分值
+            returnValue.correctWorkPoint = returnValue.children.reduce(
+              (result, current) => (result += current.correctWorkPoint),
+              0
+            );
+            //累加金额数
+            returnValue.budget = returnValue.children.reduce(
+              (result, current) => (result += current.budget),
+              0
+            );
+            //累加质量系数
+            returnValue.rate = returnValue.children.reduce(
+              (result, current) => (result += current.rate),
+              0
+            );
+            //取累加后的平均值
+            returnValue.rate = returnValue.rate / returnValue.children.length;
             return returnValue;
           })
       );
