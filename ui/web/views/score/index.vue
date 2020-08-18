@@ -9,7 +9,6 @@
             size="small"
             v-model="params.code"
             :props="regionList"
-            collapse-tags
             filterable
           ></el-cascader>
           <span v-else>{{ $settings.user.region.name }}</span>
@@ -136,7 +135,6 @@ export default {
       },
       regionList: {
         lazy: true,
-        checkStrictly: true,
         async lazyLoad(node, resolve) {
           const {level, value = that.$settings.user.region.code || null} = node;
           const region = (await that.region(value)).map(it => ({
