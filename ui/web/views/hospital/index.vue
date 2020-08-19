@@ -144,7 +144,6 @@ export default {
   },
   computed: {
     hospitalListData() {
-      console.log('hospitalListServerData', this.hospitalListServerData);
       return (
         this.hospitalListServerData
           //添加格式化数据
