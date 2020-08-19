@@ -73,17 +73,19 @@
               </el-table-column>
               <el-table-column align="center" label="机构名称" prop="name">
               </el-table-column>
-              <el-table-column align="center" label="校正后总工分值">
-                <template slot-scope="scope">
-                  {{ Math.round(scope.row.correctWorkPoint) }}
-                </template>
+              <el-table-column
+                align="center"
+                label="校正后总工分值"
+                prop="correctWorkPointFormat"
+              >
               </el-table-column>
-              <el-table-column align="center" label="质量系数" prop="rate">
-                <template slot-scope="scope">
-                  {{ (scope.row.rate * 100).toFixed(2) }}%
-                </template>
+              <el-table-column
+                align="center"
+                label="质量系数"
+                prop="rateFormat"
+              >
               </el-table-column>
-              <el-table-column align="center" label="金额" prop="budget">
+              <el-table-column align="center" label="金额" prop="budgetFormat">
               </el-table-column>
             </el-table>
           </template>
@@ -95,17 +97,15 @@
         </el-table-column>
         <el-table-column align="center" label="机构名称" prop="name">
         </el-table-column>
-        <el-table-column align="center" label="校正后总工分值">
-          <template slot-scope="scope">
-            {{ Math.round(scope.row.correctWorkPoint) }}
-          </template>
+        <el-table-column
+          align="center"
+          label="校正后总工分值"
+          prop="correctWorkPointFormat"
+        >
         </el-table-column>
-        <el-table-column align="center" label="质量系数" prop="rate">
-          <template slot-scope="scope">
-            {{ (scope.row.rate * 100).toFixed(2) }}%
-          </template>
+        <el-table-column align="center" label="质量系数" prop="rateFormat">
         </el-table-column>
-        <el-table-column align="center" label="金额" prop="budget">
+        <el-table-column align="center" label="金额" prop="budgetFormat">
         </el-table-column>
       </el-table>
     </el-card>
@@ -147,6 +147,13 @@ export default {
       console.log('hospitalListServerData', this.hospitalListServerData);
       return (
         this.hospitalListServerData
+          //添加格式化数据
+          .map(item => {
+            item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
+            item.rateFormat = (item.rate * 100).toFixed(2);
+            item.budgetFormat = item.budget.toFixed(2);
+            return item;
+          })
           //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
           .filter(
             item =>
@@ -162,23 +169,32 @@ export default {
                 )
               ]
             });
-            //累加校正后总工分值
+            //累加校正后的总工分值
             returnValue.correctWorkPoint = returnValue.children.reduce(
               (result, current) => (result += current.correctWorkPoint),
               0
+            );
+            //格式化累加校正后的总工分值
+            returnValue.correctWorkPointFormat = Math.round(
+              returnValue.correctWorkPoint
             );
             //累加金额数
             returnValue.budget = returnValue.children.reduce(
               (result, current) => (result += current.budget),
               0
             );
+            //格式化累加金额数
+            returnValue.budgetFormat = returnValue.budget.toFixed(2);
             //累加质量系数
             returnValue.rate = returnValue.children.reduce(
               (result, current) => (result += current.rate),
               0
             );
-            //取累加后的平均值
+            //取累加后质量系数的平均值
             returnValue.rate = returnValue.rate / returnValue.children.length;
+            //格式化质量系数平均值
+            returnValue.rateFormat = (returnValue.rate * 100).toFixed(2);
+
             return returnValue;
           })
       );
