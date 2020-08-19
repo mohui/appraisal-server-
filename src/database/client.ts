@@ -2,9 +2,9 @@ import {Sequelize} from 'sequelize-typescript';
 import {TransactionContext} from './tx';
 
 export interface ExtendedSequelize extends Sequelize {
-  tx(actions: () => Promise<any>): Promise<any>;
+  tx<T>(actions: () => PromiseLike<T>): Promise<T>;
 
-  joinTx(actions: () => Promise<any>): Promise<any>;
+  joinTx<T>(actions: () => PromiseLike<T>): Promise<T>;
 
   execute(sql: string, ...params: any[]): Promise<any[]>;
 
