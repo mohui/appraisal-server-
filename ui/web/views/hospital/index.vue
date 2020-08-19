@@ -59,35 +59,33 @@
       >
         <el-table-column type="expand">
           <template slot-scope="props">
-            <el-form>
-              <el-table
-                border
-                size="mini"
-                :data="props.row.children"
-                @row-click="handleCellClick"
-                :cell-class-name="cellClassHover"
-              >
-                <el-table-column align="center" label="序号">
-                  <template slot-scope="scope">
-                    {{ scope.$index + 1 }}
-                  </template>
-                </el-table-column>
-                <el-table-column align="center" label="机构名称" prop="name">
-                </el-table-column>
-                <el-table-column align="center" label="校正后总工分值">
-                  <template slot-scope="scope">
-                    {{ Math.round(scope.row.correctWorkPoint) }}
-                  </template>
-                </el-table-column>
-                <el-table-column align="center" label="质量系数" prop="rate">
-                  <template slot-scope="scope">
-                    {{ (scope.row.rate * 100).toFixed(2) }}%
-                  </template>
-                </el-table-column>
-                <el-table-column align="center" label="金额" prop="budget">
-                </el-table-column>
-              </el-table>
-            </el-form>
+            <el-table
+              border
+              size="mini"
+              :data="props.row.children"
+              @row-click="handleCellClick"
+              :cell-class-name="cellClassHover"
+            >
+              <el-table-column align="center" label="序号">
+                <template slot-scope="scope">
+                  {{ scope.$index + 1 }}
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="机构名称" prop="name">
+              </el-table-column>
+              <el-table-column align="center" label="校正后总工分值">
+                <template slot-scope="scope">
+                  {{ Math.round(scope.row.correctWorkPoint) }}
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="质量系数" prop="rate">
+                <template slot-scope="scope">
+                  {{ (scope.row.rate * 100).toFixed(2) }}%
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="金额" prop="budget">
+              </el-table-column>
+            </el-table>
           </template>
         </el-table-column>
         <el-table-column align="center" label="序号">
