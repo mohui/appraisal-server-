@@ -150,7 +150,7 @@ export default {
           //添加格式化数据
           .map(item => {
             item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
-            item.rateFormat = (item.rate * 100).toFixed(2);
+            item.rateFormat = (item.rate * 100).toFixed(2) + '%';
             item.budgetFormat = item.budget.toFixed(2);
             return item;
           })
@@ -193,7 +193,7 @@ export default {
             //取累加后质量系数的平均值
             returnValue.rate = returnValue.rate / returnValue.children.length;
             //格式化质量系数平均值
-            returnValue.rateFormat = (returnValue.rate * 100).toFixed(2);
+            returnValue.rateFormat = (returnValue.rate * 100).toFixed(2) + '%';
 
             return returnValue;
           })
