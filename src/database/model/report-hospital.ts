@@ -25,7 +25,7 @@ export class ReportHospital extends Model<ReportHospital> {
 
   @Comment('工分')
   @Default(0)
-  @Column
+  @Column(DataType.FLOAT)
   workpoints: number;
 
   @Comment('得分')
