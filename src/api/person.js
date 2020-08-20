@@ -1745,7 +1745,7 @@ export default class Person {
             inner join view_questionoptionslib vq on
             cast(vqd.optionsn as int) = cast(vq.optionsn as int)
             inner join view_questionlib vb on
-                vb.questionsn = vq.questionsn and vb.hisid = vq.hisid
+                vb.questionsn = vq.questionsn
             where vqd.QuestionnaireMainSN = ?
         order by cast(vb.questioncode as int)`,
         [id]
