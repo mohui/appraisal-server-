@@ -65,42 +65,60 @@
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="人群分类:">
-                <el-select
-                  v-model="queryForm.personTags"
-                  clearable
-                  multiple
-                  collapse-tags
-                  placeholder="未选择代表默认全人群"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in personTagList"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
+                <div style="display: flex">
+                  <el-select
+                    v-model="queryForm.personTags"
+                    clearable
+                    multiple
+                    collapse-tags
+                    placeholder="未选择代表默认全人群"
+                    style="width: 100%;"
                   >
-                  </el-option>
-                </el-select>
+                    <el-option
+                      v-for="item in personTagList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    >
+                    </el-option>
+                  </el-select>
+                  <el-tooltip content="任意满足">
+                    <el-checkbox
+                      v-model="queryForm.personOr"
+                      style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.personTags.length > 0"
+                    ></el-checkbox>
+                  </el-tooltip>
+                </div>
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="档案问题:">
-                <el-select
-                  v-model="queryForm.tags"
-                  clearable
-                  multiple
-                  collapse-tags
-                  placeholder="请选择"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in tagList"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
+                <div style="display: flex">
+                  <el-select
+                    v-model="queryForm.tags"
+                    clearable
+                    multiple
+                    collapse-tags
+                    placeholder="请选择"
+                    style="width: 100%;"
                   >
-                  </el-option>
-                </el-select>
+                    <el-option
+                      v-for="item in tagList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    >
+                    </el-option>
+                  </el-select>
+                  <el-tooltip content="任意满足">
+                    <el-checkbox
+                      v-model="queryForm.documentOr"
+                      style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.tags.length > 0"
+                    ></el-checkbox>
+                  </el-tooltip>
+                </div>
               </el-form-item>
             </el-col>
             <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
@@ -257,12 +275,15 @@ export default {
         tags: [],
         region: '',
         include: false,
-        personTags: []
+        personTags: [],
+        personOr: false, //人群分类是否or查询
+        documentOr: false //档案问题是否or查询
       },
       personTagList: personTagList,
       tagList: documentTagList,
       archivesID: '', //档案id
-      code: '' //tag code
+      code: '', //tag code
+      isInit: false //是否初始化页面
     };
   },
   computed: {
@@ -292,11 +313,14 @@ export default {
         if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
         if (this.queryForm.region) query.region = this.queryForm.region;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
+        if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
-        if (this.queryForm.include) query.include = this.queryForm.include;
+        if (this.queryForm.documentOr)
+          query.documentOr = this.queryForm.documentOr;
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
+        if (this.queryForm.personOr) query.personOr = this.queryForm.personOr;
         this.$router.replace({query: query}).catch(err => {
           err;
         });
@@ -304,7 +328,25 @@ export default {
       deep: true
     },
     'queryForm.hospital'() {
-      this.queryForm.include = false;
+      //判断是否是初始化页面，刷新过url
+      //ture：保留原有的include
+      //false：说明是手动更改机构，将include置为false（默认不包含下级机构）
+      if (this.isInit) {
+        //设置为默认值的false
+        this.isInit = false;
+      } else {
+        this.queryForm.include = false;
+      }
+    },
+    'queryForm.personTags'() {
+      if (!this.queryForm.personTags.length > 0) {
+        this.queryForm.personOr = false;
+      }
+    },
+    'queryForm.tags'() {
+      if (!this.queryForm.tags.length > 0) {
+        this.queryForm.documentOr = false;
+      }
     },
     //指标得分解读详情数据
     nonstandardCauses() {
@@ -332,7 +374,9 @@ export default {
               res[`${next}`] = next.includes('C') || next.includes('E');
               return res;
             }, {}),
-          include: this.queryForm.include
+          include: this.queryForm.include,
+          personOr: this.queryForm.personOr,
+          documentOr: this.queryForm.documentOr
         });
       },
       default() {
@@ -363,14 +407,20 @@ export default {
   },
   methods: {
     initParams(route) {
+      this.isInit = true;
       if (route.query.name) this.queryForm.name = route.query.name;
       if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.region) this.queryForm.region = route.query.region;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
-      if (route.query.include) this.queryForm.include = route.query.include;
+      if (route.query.include)
+        this.queryForm.include = JSON.parse(route.query.include);
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
+      if (route.query.documentOr)
+        this.queryForm.documentOr = JSON.parse(route.query.documentOr);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
+      if (route.query.personOr)
+        this.queryForm.personOr = JSON.parse(route.query.personOr);
     },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
@@ -401,7 +451,9 @@ export default {
         idCard: '',
         tags: [],
         include: false,
-        personTags: []
+        personTags: [],
+        personOr: false,
+        documentOr: false
       };
     }
   }
