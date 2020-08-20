@@ -65,22 +65,30 @@
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="人群分类:">
-                <el-select
-                  v-model="queryForm.personTags"
-                  clearable
-                  multiple
-                  collapse-tags
-                  placeholder="未选择代表默认全人群"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in personTagList"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
+                <div style="display: flex">
+                  <el-select
+                    v-model="queryForm.personTags"
+                    clearable
+                    multiple
+                    collapse-tags
+                    placeholder="未选择代表默认全人群"
+                    style="width: 100%;"
                   >
-                  </el-option>
-                </el-select>
+                    <el-option
+                      v-for="item in personTagList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    >
+                    </el-option>
+                  </el-select>
+                  <el-tooltip content="任意满足">
+                    <el-checkbox
+                      v-model="queryForm.personOr"
+                      style="margin: 0 0 1px 5px"
+                    ></el-checkbox>
+                  </el-tooltip>
+                </div>
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
@@ -257,7 +265,8 @@ export default {
         tags: [],
         region: '',
         include: false,
-        personTags: []
+        personTags: [],
+        personOr: false //人群分类是否or查询
       },
       personTagList: personTagList,
       tagList: documentTagList,
@@ -298,6 +307,7 @@ export default {
         if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
+        if (this.queryForm.personOr) query.personOr = this.queryForm.personOr;
         this.$router.replace({query: query}).catch(err => {
           err;
         });
@@ -341,7 +351,8 @@ export default {
               res[`${next}`] = next.includes('C') || next.includes('E');
               return res;
             }, {}),
-          include: this.queryForm.include
+          include: this.queryForm.include,
+          personOr: this.queryForm.personOr
         });
       },
       default() {
@@ -382,6 +393,8 @@ export default {
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
+      if (route.query.personOr)
+        this.queryForm.personOr = JSON.parse(route.query.personOr);
     },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
@@ -412,7 +425,8 @@ export default {
         idCard: '',
         tags: [],
         include: false,
-        personTags: []
+        personTags: [],
+        personOr: false
       };
     }
   }
