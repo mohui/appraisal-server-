@@ -28,7 +28,7 @@ export class ScoreMigration implements IMigration {
         "hospital"   UUID REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
         "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "workpoints" INTEGER                  DEFAULT 0,
+        "workpoints" FLOAT                    DEFAULT 0,
         "scores"     FLOAT                    DEFAULT 0,
         "total"      FLOAT                    DEFAULT 0,
         PRIMARY KEY ("hospital")
