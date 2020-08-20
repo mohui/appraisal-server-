@@ -31,30 +31,38 @@ function listRender(params) {
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
-        {{#compare S03}} and mp."S03"={{? S03}}{{/compare}}
-        {{#compare S23}} and mp."S23"={{? S23}}{{/compare}}
-        {{#compare O00}} and mp."O00"={{? O00}}{{/compare}}
-        {{#compare O01}} and mp."O01"={{? O01}}{{/compare}}
-        {{#compare O02}} and mp."O02"={{? O02}}{{/compare}}
-        {{#compare H01}} and mp."H01"={{? H01}}{{/compare}}
-        {{#compare H02}} and mp."H02"={{? H02}}{{/compare}}
-        {{#compare D01}} and mp."D01"={{? D01}}{{/compare}}
-        {{#compare D02}} and mp."D02"={{? D02}}{{/compare}}
-        {{#compare C01}} and mp."C01"={{? C01}}{{/compare}}
-        {{#compare C02}} and mp."C02"={{? C02}}{{/compare}}
-        {{#compare C03}} and mp."C03"={{? C03}}{{/compare}}
-        {{#compare C04}} and mp."C04"={{? C04}}{{/compare}}
-        {{#compare C05}} and mp."C05"={{? C05}}{{/compare}}
-        {{#compare C00}} and mp."C00"={{? C00}}{{/compare}}
-        {{#compare C06}} and mp."C06"={{? C06}}{{/compare}}
-        {{#compare C07}} and mp."C07"={{? C07}}{{/compare}}
-        {{#compare C08}} and mp."C08"={{? C08}}{{/compare}}
-        {{#compare C09}} and mp."C09"={{? C09}}{{/compare}}
-        {{#compare C10}} and mp."C10"={{? C10}}{{/compare}}
-        {{#compare C11}} and mp."C11"={{? C11}}{{/compare}}
-        {{#compare C13}} and mp."C13"={{? C13}}{{/compare}}
-        {{#compare C14}} and mp."C14"={{? C14}}{{/compare}}
-        {{#compare E00}} and mp."E00"={{? E00}}{{/compare}}
+        and
+          (
+            1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
+            {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
+            {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
+            {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
+            {{#compare O01}}{{#if documentOr}} or {{else}} and {{/if}} mp."O01"={{? O01}} {{/compare}}
+            {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
+            {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
+            {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
+            {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
+            {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
+          )
+          and
+          (
+            1 = {{#if personOr}} 0 {{else}} 1 {{/if}}
+            {{#compare C01}}{{#if personOr}} or {{else}} and {{/if}} mp."C01"={{? C01}} {{/compare}}
+            {{#compare C02}}{{#if personOr}} or {{else}} and {{/if}} mp."C02"={{? C02}} {{/compare}}
+            {{#compare C03}}{{#if personOr}} or {{else}} and {{/if}} mp."C03"={{? C03}} {{/compare}}
+            {{#compare C04}}{{#if personOr}} or {{else}} and {{/if}} mp."C04"={{? C04}} {{/compare}}
+            {{#compare C05}}{{#if personOr}} or {{else}} and {{/if}} mp."C05"={{? C05}} {{/compare}}
+            {{#compare C00}}{{#if personOr}} or {{else}} and {{/if}} mp."C00"={{? C00}} {{/compare}}
+            {{#compare C06}}{{#if personOr}} or {{else}} and {{/if}} mp."C06"={{? C06}} {{/compare}}
+            {{#compare C07}}{{#if personOr}} or {{else}} and {{/if}} mp."C07"={{? C07}} {{/compare}}
+            {{#compare C08}}{{#if personOr}} or {{else}} and {{/if}} mp."C08"={{? C08}} {{/compare}}
+            {{#compare C09}}{{#if personOr}} or {{else}} and {{/if}} mp."C09"={{? C09}} {{/compare}}
+            {{#compare C10}}{{#if personOr}} or {{else}} and {{/if}} mp."C10"={{? C10}} {{/compare}}
+            {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
+            {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
+            {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
+            {{#compare E00}}{{#if personOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+          )
     `,
     params
   );
@@ -82,11 +90,23 @@ export default class Person {
         .object()
         .required()
         .allow([]),
-      include: should.boolean().description('是否包含查询下级机构的个人档案')
+      include: should.boolean().description('是否包含查询下级机构的个人档案'),
+      personOr: should.boolean().description('人群分类是否or查询'),
+      documentOr: should.boolean().description('档案问题是否or查询')
     })
   )
   async list(params) {
-    const {pageSize, pageNo, hospital, region, idCard, tags, include} = params;
+    const {
+      pageSize,
+      pageNo,
+      hospital,
+      region,
+      idCard,
+      tags,
+      include,
+      personOr = false,
+      documentOr = false
+    } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
     const his = '340203';
@@ -143,7 +163,15 @@ export default class Person {
         )
         .concat(hospitals);
 
-    const sqlRenderResult = listRender({his, name, hospitals, idCard, ...tags});
+    const sqlRenderResult = listRender({
+      his,
+      name,
+      hospitals,
+      idCard,
+      ...tags,
+      personOr,
+      documentOr
+    });
     const count = (
       await etlQuery(
         `select count(1) as count ${sqlRenderResult[0]}`,
