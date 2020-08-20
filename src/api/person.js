@@ -1661,7 +1661,7 @@ export default class Person {
       .description('标签code')
   )
   async markContent(id, code) {
-    return appQuery(`select * from mark_content where id=? and name=?`, [
+    return appQuery(`select * from mark_content1 where id=? and name=?`, [
       id,
       code
     ]);
