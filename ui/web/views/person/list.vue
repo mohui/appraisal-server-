@@ -86,6 +86,7 @@
                     <el-checkbox
                       v-model="queryForm.personOr"
                       style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.personTags.length > 0"
                     ></el-checkbox>
                   </el-tooltip>
                 </div>
@@ -323,6 +324,11 @@ export default {
         this.isInit = false;
       } else {
         this.queryForm.include = false;
+      }
+    },
+    'queryForm.personTags'() {
+      if (!this.queryForm.personTags.length > 0) {
+        this.queryForm.personOr = false;
       }
     },
     //指标得分解读详情数据
