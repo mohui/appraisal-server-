@@ -94,22 +94,31 @@
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="档案问题:">
-                <el-select
-                  v-model="queryForm.tags"
-                  clearable
-                  multiple
-                  collapse-tags
-                  placeholder="请选择"
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="item in tagList"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
+                <div style="display: flex">
+                  <el-select
+                    v-model="queryForm.tags"
+                    clearable
+                    multiple
+                    collapse-tags
+                    placeholder="请选择"
+                    style="width: 100%;"
                   >
-                  </el-option>
-                </el-select>
+                    <el-option
+                      v-for="item in tagList"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                    >
+                    </el-option>
+                  </el-select>
+                  <el-tooltip content="任意满足">
+                    <el-checkbox
+                      v-model="queryForm.documentOr"
+                      style="margin: 0 0 1px 5px"
+                      :disabled="!queryForm.tags.length > 0"
+                    ></el-checkbox>
+                  </el-tooltip>
+                </div>
               </el-form-item>
             </el-col>
             <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
@@ -267,7 +276,8 @@ export default {
         region: '',
         include: false,
         personTags: [],
-        personOr: false //人群分类是否or查询
+        personOr: false, //人群分类是否or查询
+        documentOr: false //档案问题是否or查询
       },
       personTagList: personTagList,
       tagList: documentTagList,
@@ -303,9 +313,11 @@ export default {
         if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
         if (this.queryForm.region) query.region = this.queryForm.region;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
+        if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
-        if (this.queryForm.include) query.include = this.queryForm.include;
+        if (this.queryForm.documentOr)
+          query.documentOr = this.queryForm.documentOr;
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
         if (this.queryForm.personOr) query.personOr = this.queryForm.personOr;
@@ -329,6 +341,11 @@ export default {
     'queryForm.personTags'() {
       if (!this.queryForm.personTags.length > 0) {
         this.queryForm.personOr = false;
+      }
+    },
+    'queryForm.tags'() {
+      if (!this.queryForm.tags.length > 0) {
+        this.queryForm.documentOr = false;
       }
     },
     //指标得分解读详情数据
@@ -358,7 +375,8 @@ export default {
               return res;
             }, {}),
           include: this.queryForm.include,
-          personOr: this.queryForm.personOr
+          personOr: this.queryForm.personOr,
+          documentOr: this.queryForm.documentOr
         });
       },
       default() {
@@ -397,6 +415,8 @@ export default {
       if (route.query.include)
         this.queryForm.include = JSON.parse(route.query.include);
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
+      if (route.query.documentOr)
+        this.queryForm.documentOr = JSON.parse(route.query.documentOr);
       if (route.query.personTags)
         this.queryForm.personTags = JSON.parse(route.query.personTags);
       if (route.query.personOr)
@@ -432,7 +452,8 @@ export default {
         tags: [],
         include: false,
         personTags: [],
-        personOr: false
+        personOr: false,
+        documentOr: false
       };
     }
   }
