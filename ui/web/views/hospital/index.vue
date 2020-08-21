@@ -48,9 +48,12 @@
       </el-form>
       <el-table
         size="mini"
+        ref="expandTable"
         :data="hospitalListData"
         height="100%"
         style="flex-grow: 1;"
+        :row-style="{cursor: 'pointer'}"
+        @row-click="handleRowClickExpand"
         :header-cell-style="{
           background: '#F3F4F7',
           color: '#555',
@@ -212,6 +215,9 @@ export default {
     }
   },
   methods: {
+    handleRowClickExpand(row) {
+      this.$refs.expandTable.toggleRowExpansion(row);
+    },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
       if (columnIndex === 1) return 'hospital-name';
