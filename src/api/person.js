@@ -24,7 +24,7 @@ async function dictionaryQuery(categoryno) {
 function listRender(params) {
   return sqlRender(
     `
-      from mark_person1 mp
+      from mark_person mp
              inner join view_personinfo vp on mp.personnum = vp.personnum
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where vp.vouchertype = '1'
@@ -292,7 +292,7 @@ export default class Person {
                  mp."E00",
                  vp.operatetime as "updateAt"
           from view_personinfo vp
-             inner join mark_person1 mp on mp.personnum = vp.personnum
+             inner join mark_person mp on mp.personnum = vp.personnum
           where vp.personnum = ?
           limit 1
         `,
