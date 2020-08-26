@@ -11,7 +11,7 @@ import {
 } from 'sequelize-typescript';
 import {Hospital} from './hospital';
 
-@Table({tableName: 'mark_hospital1'})
+@Table({tableName: 'mark_hospital'})
 export class MarkHospital extends Model<MarkHospital> {
   @Comment('机构')
   @PrimaryKey
