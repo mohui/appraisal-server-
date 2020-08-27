@@ -22,7 +22,7 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
-import {appDB, etlDB} from '../app';
+import {appDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
@@ -103,8 +103,8 @@ function projectWorkPointRender(params) {
   );
 }
 
-async function etlQuery(sql, params) {
-  return etlDB.query(sql, {
+async function appQuery(sql, params) {
+  return appDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
@@ -447,7 +447,7 @@ export default class Score {
     // language=PostgreSQL
     const workpoints =
       (
-        await etlDB.query(
+        await appDB.query(
           `
             select sum(vws.score) as workpoints
             from view_workscoretotal vws
@@ -548,7 +548,7 @@ export default class Score {
             .toDate()
         });
         //所有机构的在这个小项的工分情况
-        allHospitalWorkPoint = await etlQuery(sql[0], sql[1]);
+        allHospitalWorkPoint = await appQuery(sql[0], sql[1]);
         allHospitalWorkPoint = allHospitalWorkPoint.concat(
           //过滤出查询结果中工分为空的机构,给他们的工分值设置为0
           ids
@@ -1124,7 +1124,7 @@ export default class Score {
             .add(1, 'y')
             .toDate()
         });
-        let projectWorkPointList = await etlQuery(sqlRender[0], sqlRender[1]);
+        let projectWorkPointList = await appQuery(sqlRender[0], sqlRender[1]);
         projectWorkPointList = projectWorkPointList.concat(
           //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
           projects

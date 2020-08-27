@@ -10,7 +10,7 @@ import {
   RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {etlDB} from '../app';
+import {appDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
@@ -136,7 +136,7 @@ export default class Hospital {
   async workpoints(code) {
     // language=PostgreSQL
     return (
-      await etlDB.query(
+      await appDB.query(
         `select cast(sum(vws.score) as int) as score,
               vws.operatorid as doctorId,
               vws.doctor as doctorName,
