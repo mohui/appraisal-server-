@@ -159,7 +159,8 @@ export default class Region {
       result.workPoint = result.workPoint.toNumber();
       result.score = result.score.toNumber();
       result.totalScore = result.totalScore.toNumber();
-      result.rate = new Decimal(result.score).div(result.totalScore).toNumber();
+      result.rate =
+        new Decimal(result.score).div(result.totalScore).toNumber() || 0;
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
@@ -189,9 +190,14 @@ export default class Region {
               totalScore: new Decimal(0)
             }
           );
-        budgetInfo.rate = new Decimal(budgetInfo.score)
-          .div(budgetInfo.totalScore)
-          .toNumber();
+        budgetInfo.budget = budgetInfo.budget.toNumber();
+        budgetInfo.correctWorkPoint = budgetInfo.correctWorkPoint.toNumber();
+        budgetInfo.workPoint = budgetInfo.workPoint.toNumber();
+        budgetInfo.score = budgetInfo.score.toNumber();
+        budgetInfo.totalScore = budgetInfo.totalScore.toNumber();
+        budgetInfo.rate =
+          new Decimal(budgetInfo.score).div(budgetInfo.totalScore).toNumber() ||
+          0;
 
         return {...region, ...budgetInfo};
       });
