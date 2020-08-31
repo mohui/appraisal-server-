@@ -202,17 +202,24 @@ export default class Region {
         return {...region, ...budgetInfo};
       });
 
-    //是否是一个3级以下的地区
+    //是否是一个机构
     const region = await RegionModel.findOne({where: {code}});
     if (region)
-      return hospitals.filter(
-        h =>
-          h.regionId.indexOf(code) === 0 &&
-          (h.name.endsWith('服务中心') || h.name.endsWith('服务站'))
-      );
+      //筛选出该地区的一级机构
+      return hospitals
+        .filter(
+          h =>
+            h.regionId.indexOf(code) === 0 &&
+            (h.name.endsWith('服务中心') || h.name.endsWith('服务站'))
+        )
+        .map(it => ({code: it.id, ...it}));
     //是否是一家一级机构
     const hospital = await HospitalModel.findOne({where: {id: code}});
-    if (hospital) return hospitals.filter(h => h.parent === code);
+    //筛选出该机构的下属机构
+    if (hospital)
+      return hospitals
+        .filter(h => h.parent === code)
+        .map(it => ({code: it.id, ...it}));
   }
 
   /***
