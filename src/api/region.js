@@ -10,6 +10,7 @@ import {Decimal} from 'decimal.js';
 import {sql as sqlRender} from '../database/template';
 import {appDB} from '../app';
 import {Projects} from '../../common/project';
+import {Context} from './context';
 
 function countWorkRender(params) {
   return sqlRender(
@@ -115,8 +116,11 @@ export default class Region {
       .description('地区code')
   )
   async listAllHospital(code) {
-    return HospitalModel.findAll({
-      where: {region: {[Op.like]: `${code}%`}},
+    const regions = await RegionModel.findAll({where: {parent: code}});
+    const hospitals = await HospitalModel.findAll({
+      where: {
+        region: {[Op.like]: `${Context.current.user.regionId}%`}
+      },
       include: {
         model: RuleHospitalBudget,
         required: true,
@@ -160,6 +164,49 @@ export default class Region {
       delete it.ruleHospitalBudget;
       return {...it, ...result};
     });
+    //区级以上
+    if (regions && regions[0]?.level <= 3)
+      return regions.map(region => {
+        region = region.toJSON();
+        const budgetInfo = hospitals
+          .filter(h => h.regionId.indexOf(region.code) === 0)
+          .reduce(
+            (res, next) => {
+              res.budget = res.budget.add(next.budget);
+              res.correctWorkPoint = res.correctWorkPoint.add(
+                next.correctWorkPoint
+              );
+              res.workPoint = res.workPoint.add(next.workPoint);
+              res.score = res.score.add(next.score);
+              res.totalScore = res.totalScore.add(next.totalScore);
+              return res;
+            },
+            {
+              budget: new Decimal(0),
+              correctWorkPoint: new Decimal(0),
+              workPoint: new Decimal(0),
+              score: new Decimal(0),
+              totalScore: new Decimal(0)
+            }
+          );
+        budgetInfo.rate = new Decimal(budgetInfo.score)
+          .div(budgetInfo.totalScore)
+          .toNumber();
+
+        return {...region, ...budgetInfo};
+      });
+
+    //是否是一个3级以下的地区
+    const region = await RegionModel.findOne({where: {code}});
+    if (region)
+      return hospitals.filter(
+        h =>
+          h.regionId.indexOf(code) === 0 &&
+          (h.name.endsWith('服务中心') || h.name.endsWith('服务站'))
+      );
+    //是否是一家一级机构
+    const hospital = await HospitalModel.findOne({where: {id: code}});
+    if (hospital) return hospitals.filter(h => h.parent === code);
   }
 
   /***
