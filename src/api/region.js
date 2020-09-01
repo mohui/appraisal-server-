@@ -255,7 +255,8 @@ export default class Region {
       (hospital.name.endsWith('卫生院') || hospital.name.endsWith('服务中心'))
     )
       return hospitals
-        .filter(h => h.parent === code || h.id === code)
+        .filter(h => h.id === code) //该一级机构本身放在第一个
+        .concat(hospitals.filter(h => h.parent === code))
         .map(it => ({code: it.id, ...it}));
     //不符合任何情况,返回[]
     return [];
