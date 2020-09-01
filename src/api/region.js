@@ -210,7 +210,7 @@ export default class Region {
         .filter(
           h =>
             h.regionId.indexOf(code) === 0 &&
-            (h.name.endsWith('服务中心') || h.name.endsWith('服务站'))
+            (h.name.endsWith('服务中心') || h.name.endsWith('卫生院'))
         )
         .map(it => ({code: it.id, ...it}));
     //是否是一家一级机构
