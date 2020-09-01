@@ -61,7 +61,7 @@
             {{ scope.row.uuid }}
           </template>
         </el-table-column>
-        <el-table-column align="center" label="机构名称" prop="name">
+        <el-table-column align="center" label="名称" prop="name">
         </el-table-column>
         <el-table-column
           align="center"
@@ -149,7 +149,7 @@ export default {
             item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
             item.rateFormat = (item.rate * 100).toFixed(2) + '%';
             item.budgetFormat = item.budget.toFixed(2);
-            item.uuid = `${tree.uuid}.${index + 1}`;
+            item.uuid = `${tree.uuid}-${index + 1}`;
             item.hasChildren =
               item.code !== tree.code &&
               (await this.$api.Region.listAllHospital(item.code)).length > 0;
