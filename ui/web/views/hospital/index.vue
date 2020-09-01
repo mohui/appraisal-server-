@@ -62,10 +62,7 @@
           textAlign: 'center'
         }"
       >
-        <el-table-column align="center" label="序号" width="160px">
-          <template slot-scope="scope">
-            {{ scope.row.uuid }}
-          </template>
+        <el-table-column align="center" label="序号" width="160px" prop="uuid">
         </el-table-column>
         <el-table-column align="center" label="名称" prop="name">
         </el-table-column>
