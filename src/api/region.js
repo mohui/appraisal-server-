@@ -204,7 +204,7 @@ export default class Region {
 
     //是否是一个机构
     const region = await RegionModel.findOne({where: {code}});
-    if (region)
+    if (region) {
       //筛选出该地区的一级机构
       return hospitals
         .filter(
@@ -212,14 +212,50 @@ export default class Region {
             h.regionId.indexOf(code) === 0 &&
             (h.name.endsWith('服务中心') || h.name.endsWith('卫生院'))
         )
+        .map(center => {
+          //计算一级机构与其子机构的数据之和
+          const children = hospitals
+            .filter(h => h.parent === center.id)
+            .reduce(
+              (res, next) => {
+                res.budget = res.budget.add(next.budget);
+                res.correctWorkPoint = res.correctWorkPoint.add(
+                  next.correctWorkPoint
+                );
+                res.workPoint = res.workPoint.add(next.workPoint);
+                res.score = res.score.add(next.score);
+                res.totalScore = res.totalScore.add(next.totalScore);
+                return res;
+              },
+              {
+                budget: new Decimal(center.budget),
+                correctWorkPoint: new Decimal(center.correctWorkPoint),
+                workPoint: new Decimal(center.workPoint),
+                score: new Decimal(center.score),
+                totalScore: new Decimal(center.totalScore)
+              }
+            );
+          children.budget = children.budget.toNumber();
+          children.correctWorkPoint = children.correctWorkPoint.toNumber();
+          children.workPoint = children.workPoint.toNumber();
+          children.score = children.score.toNumber();
+          children.totalScore = children.totalScore.toNumber();
+          children.rate =
+            new Decimal(children.score).div(children.totalScore).toNumber() ||
+            0;
+          return {...center, ...children};
+        })
         .map(it => ({code: it.id, ...it}));
+    }
     //是否是一家一级机构
     const hospital = await HospitalModel.findOne({where: {id: code}});
-    //筛选出该机构的下属机构
+    //筛选出该机构的下属机构,并包含该机构本身
     if (hospital)
       return hospitals
-        .filter(h => h.parent === code)
+        .filter(h => h.parent === code || h.id === code)
         .map(it => ({code: it.id, ...it}));
+    //不符合任何情况,返回[]
+    return [];
   }
 
   /***
