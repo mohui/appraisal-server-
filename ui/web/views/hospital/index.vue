@@ -48,6 +48,7 @@
       </el-form>
       <el-table
         size="mini"
+        border
         :data="hospitalListData"
         height="100%"
         style="flex-grow: 1;"
@@ -55,8 +56,13 @@
         lazy
         :load="load"
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+        :header-cell-style="{
+          background: '#F3F4F7',
+          color: '#555',
+          textAlign: 'center'
+        }"
       >
-        <el-table-column align="center" label="序号">
+        <el-table-column align="center" label="序号" width="160px">
           <template slot-scope="scope">
             {{ scope.row.uuid }}
           </template>
