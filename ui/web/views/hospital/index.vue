@@ -118,7 +118,6 @@ export default {
             item.rateFormat = (item.rate * 100).toFixed(2) + '%';
             item.budgetFormat = item.budget.toFixed(2);
             item.uuid = index + 1;
-            item.hasChildren = true;
             return item;
           })
       );
@@ -129,7 +128,13 @@ export default {
       async get() {
         let code = this.searchForm.region;
         let regionId = Array.isArray(code) ? code[code.length - 1] : code;
-        return await this.$api.Region.listAllHospital(regionId);
+        return await Promise.all(
+          (await this.$api.Region.listAllHospital(regionId)).map(async item => {
+            item.hasChildren =
+              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+            return item;
+          })
+        );
       },
       default() {
         return [];
@@ -138,16 +143,19 @@ export default {
   },
   methods: {
     async load(tree, treeNode, resolve) {
-      console.log(tree, treeNode, resolve);
-      let result = (await this.$api.Region.listAllHospital(tree.code)).map(
-        (item, index) => {
-          item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
-          item.rateFormat = (item.rate * 100).toFixed(2) + '%';
-          item.budgetFormat = item.budget.toFixed(2);
-          item.uuid = tree.uuid + '.' + (index + 1);
-          item.hasChildren = true;
-          return item;
-        }
+      let result = await Promise.all(
+        (await this.$api.Region.listAllHospital(tree.code)).map(
+          async (item, index) => {
+            item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
+            item.rateFormat = (item.rate * 100).toFixed(2) + '%';
+            item.budgetFormat = item.budget.toFixed(2);
+            item.uuid = `${tree.uuid}.${index + 1}`;
+            item.hasChildren =
+              item.code !== tree.code &&
+              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+            return item;
+          }
+        )
       );
       resolve(result);
     },
