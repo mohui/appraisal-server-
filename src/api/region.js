@@ -250,7 +250,10 @@ export default class Region {
     //是否是一家一级机构
     const hospital = await HospitalModel.findOne({where: {id: code}});
     //筛选出该机构的下属机构,并包含该机构本身
-    if (hospital)
+    if (
+      hospital &&
+      (hospital.name.endsWith('卫生院') || hospital.name.endsWith('服务中心'))
+    )
       return hospitals
         .filter(h => h.parent === code || h.id === code)
         .map(it => ({code: it.id, ...it}));
