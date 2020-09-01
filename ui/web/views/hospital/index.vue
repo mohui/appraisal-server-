@@ -61,6 +61,8 @@
           color: '#555',
           textAlign: 'center'
         }"
+        @row-click="handleCellClick"
+        :cell-class-name="cellClassHover"
       >
         <el-table-column align="center" label="序号" width="160px" prop="uuid">
         </el-table-column>
@@ -169,14 +171,26 @@ export default {
     //点击标题跳转详情
     handleCellClick(row, column) {
       if (column.property === 'name')
-        return this.$router.push({
-          name: 'appraisal-result-institutions',
-          query: {
-            id: row.id,
-            listFlag: 'quality',
-            isInstitution: 'true'
-          }
-        });
+        if (row.level < 3) {
+          //判断进入地区页还是区、机构页
+          //地区
+          return this.$router.push({
+            name: 'appraisal-result-area',
+            query: {
+              id: row.code,
+              listFlag: 'quality'
+            }
+          });
+        }
+      //区、机构
+      return this.$router.push({
+        name: 'appraisal-result-institutions',
+        query: {
+          id: row.code,
+          listFlag: 'quality',
+          isInstitution: row.level === 3 ? 'false' : 'true'
+        }
+      });
     },
     reset() {
       this.searchForm = {
