@@ -117,6 +117,7 @@ export default class Region {
   )
   async listAllHospital(code) {
     const regions = await RegionModel.findAll({where: {parent: code}});
+    //查询当前用户所管的所有机构信息
     const hospitals = await HospitalModel.findAll({
       where: {
         region: {[Op.like]: `${Context.current.user.regionId}%`}
@@ -135,6 +136,7 @@ export default class Region {
       }
     }).map(it => {
       it = it.toJSON();
+      //累加各机构每项规则的打分和金额数据
       const result = it.ruleHospitalBudget.reduce(
         (res, next) => {
           res.budget = res.budget.add(next.budget);
@@ -159,20 +161,22 @@ export default class Region {
       result.workPoint = result.workPoint.toNumber();
       result.score = result.score.toNumber();
       result.totalScore = result.totalScore.toNumber();
+      //计算质量系数
       result.rate =
         new Decimal(result.score).div(result.totalScore).toNumber() || 0;
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
     });
-    //区级以上
+    //需要返回的是区级层面以上的数据
     if (regions && regions[0]?.level <= 3)
       return regions.map(region => {
         region = region.toJSON();
         const budgetInfo = hospitals
-          .filter(h => h.regionId.indexOf(region.code) === 0)
+          .filter(h => h.regionId.indexOf(region.code) === 0) //筛选出各地区下的所有一级和二级机构
           .reduce(
             (res, next) => {
+              //累加该地区下所有一级和二级机构的打分和金额数据
               res.budget = res.budget.add(next.budget);
               res.correctWorkPoint = res.correctWorkPoint.add(
                 next.correctWorkPoint
@@ -202,8 +206,8 @@ export default class Region {
         return {...region, ...budgetInfo};
       });
 
-    //是否是一个机构
     const region = await RegionModel.findOne({where: {code}});
+    //如果是区级以下的地区
     if (region) {
       //筛选出该地区的一级机构
       return hospitals
@@ -213,11 +217,12 @@ export default class Region {
             (h.name.endsWith('服务中心') || h.name.endsWith('卫生院'))
         )
         .map(center => {
-          //计算一级机构与其子机构的数据之和
+          //计算每个一级机构与其子机构的数据之和
           const children = hospitals
             .filter(h => h.parent === center.id)
             .reduce(
               (res, next) => {
+                //各个二级机构的数据累加
                 res.budget = res.budget.add(next.budget);
                 res.correctWorkPoint = res.correctWorkPoint.add(
                   next.correctWorkPoint
@@ -228,6 +233,7 @@ export default class Region {
                 return res;
               },
               {
+                //当前一级机构的数据作为初始值
                 budget: new Decimal(center.budget),
                 correctWorkPoint: new Decimal(center.correctWorkPoint),
                 workPoint: new Decimal(center.workPoint),
@@ -247,18 +253,18 @@ export default class Region {
         })
         .map(it => ({code: it.id, ...it}));
     }
-    //是否是一家一级机构
     const hospital = await HospitalModel.findOne({where: {id: code}});
-    //筛选出该机构的下属机构,并包含该机构本身
+    //如果是一级机构
     if (
       hospital &&
       (hospital.name.endsWith('卫生院') || hospital.name.endsWith('服务中心'))
     )
+      //返回的数据中,包含该一级机构本身
       return hospitals
         .filter(h => h.id === code) //该一级机构本身放在第一个
-        .concat(hospitals.filter(h => h.parent === code))
+        .concat(hospitals.filter(h => h.parent === code)) //筛选出该机构的二级机构
         .map(it => ({code: it.id, ...it}));
-    //不符合任何情况,返回[]
+    //不符合任何情况 或 hospital是二级机构,返回[]
     return [];
   }
 
