@@ -10,6 +10,7 @@ import {Decimal} from 'decimal.js';
 import {sql as sqlRender} from '../database/template';
 import {appDB} from '../app';
 import {Projects} from '../../common/project';
+import {Context} from './context';
 
 function countWorkRender(params) {
   return sqlRender(
@@ -115,8 +116,12 @@ export default class Region {
       .description('地区code')
   )
   async listAllHospital(code) {
-    return HospitalModel.findAll({
-      where: {region: {[Op.like]: `${code}%`}},
+    const regions = await RegionModel.findAll({where: {parent: code}});
+    //查询当前用户所管的所有机构信息
+    const hospitals = await HospitalModel.findAll({
+      where: {
+        region: {[Op.like]: `${Context.current.user.regionId}%`}
+      },
       include: {
         model: RuleHospitalBudget,
         required: true,
@@ -131,6 +136,7 @@ export default class Region {
       }
     }).map(it => {
       it = it.toJSON();
+      //累加各机构每项规则的打分和金额数据
       const result = it.ruleHospitalBudget.reduce(
         (res, next) => {
           res.budget = res.budget.add(next.budget);
@@ -155,11 +161,111 @@ export default class Region {
       result.workPoint = result.workPoint.toNumber();
       result.score = result.score.toNumber();
       result.totalScore = result.totalScore.toNumber();
-      result.rate = new Decimal(result.score).div(result.totalScore).toNumber();
+      //计算质量系数
+      result.rate =
+        new Decimal(result.score).div(result.totalScore).toNumber() || 0;
 
       delete it.ruleHospitalBudget;
       return {...it, ...result};
     });
+    //需要返回的是区级层面以上的数据
+    if (regions && regions[0]?.level <= 3)
+      return regions.map(region => {
+        region = region.toJSON();
+        const budgetInfo = hospitals
+          .filter(h => h.regionId.indexOf(region.code) === 0) //筛选出各地区下的所有一级和二级机构
+          .reduce(
+            (res, next) => {
+              //累加该地区下所有一级和二级机构的打分和金额数据
+              res.budget = res.budget.add(next.budget);
+              res.correctWorkPoint = res.correctWorkPoint.add(
+                next.correctWorkPoint
+              );
+              res.workPoint = res.workPoint.add(next.workPoint);
+              res.score = res.score.add(next.score);
+              res.totalScore = res.totalScore.add(next.totalScore);
+              return res;
+            },
+            {
+              budget: new Decimal(0),
+              correctWorkPoint: new Decimal(0),
+              workPoint: new Decimal(0),
+              score: new Decimal(0),
+              totalScore: new Decimal(0)
+            }
+          );
+        budgetInfo.budget = budgetInfo.budget.toNumber();
+        budgetInfo.correctWorkPoint = budgetInfo.correctWorkPoint.toNumber();
+        budgetInfo.workPoint = budgetInfo.workPoint.toNumber();
+        budgetInfo.score = budgetInfo.score.toNumber();
+        budgetInfo.totalScore = budgetInfo.totalScore.toNumber();
+        budgetInfo.rate =
+          new Decimal(budgetInfo.score).div(budgetInfo.totalScore).toNumber() ||
+          0;
+
+        return {...region, ...budgetInfo};
+      });
+
+    const region = await RegionModel.findOne({where: {code}});
+    //如果是区级以下的地区
+    if (region) {
+      //筛选出该地区的一级机构
+      return hospitals
+        .filter(
+          h =>
+            h.regionId.indexOf(code) === 0 &&
+            (h.name.endsWith('服务中心') || h.name.endsWith('卫生院'))
+        )
+        .map(center => {
+          //计算每个一级机构与其子机构的数据之和
+          const children = hospitals
+            .filter(h => h.parent === center.id)
+            .reduce(
+              (res, next) => {
+                //各个二级机构的数据累加
+                res.budget = res.budget.add(next.budget);
+                res.correctWorkPoint = res.correctWorkPoint.add(
+                  next.correctWorkPoint
+                );
+                res.workPoint = res.workPoint.add(next.workPoint);
+                res.score = res.score.add(next.score);
+                res.totalScore = res.totalScore.add(next.totalScore);
+                return res;
+              },
+              {
+                //当前一级机构的数据作为初始值
+                budget: new Decimal(center.budget),
+                correctWorkPoint: new Decimal(center.correctWorkPoint),
+                workPoint: new Decimal(center.workPoint),
+                score: new Decimal(center.score),
+                totalScore: new Decimal(center.totalScore)
+              }
+            );
+          children.budget = children.budget.toNumber();
+          children.correctWorkPoint = children.correctWorkPoint.toNumber();
+          children.workPoint = children.workPoint.toNumber();
+          children.score = children.score.toNumber();
+          children.totalScore = children.totalScore.toNumber();
+          children.rate =
+            new Decimal(children.score).div(children.totalScore).toNumber() ||
+            0;
+          return {...center, ...children};
+        })
+        .map(it => ({code: it.id, ...it}));
+    }
+    const hospital = await HospitalModel.findOne({where: {id: code}});
+    //如果是一级机构
+    if (
+      hospital &&
+      (hospital.name.endsWith('卫生院') || hospital.name.endsWith('服务中心'))
+    )
+      //返回的数据中,包含该一级机构本身
+      return hospitals
+        .filter(h => h.id === code) //该一级机构本身放在第一个
+        .concat(hospitals.filter(h => h.parent === code)) //筛选出该机构的二级机构
+        .map(it => ({code: it.id, ...it}));
+    //不符合任何情况 或 hospital是二级机构,返回[]
+    return [];
   }
 
   /***
