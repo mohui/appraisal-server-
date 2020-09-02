@@ -13,39 +13,6 @@
       <div slot="header" class="clearfix">
         <span>金额列表</span>
       </div>
-      <el-form
-        ref="ruleForm"
-        :model="searchForm"
-        label-width="100px"
-        size="mini"
-      >
-        <el-row>
-          <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item label="地区：">
-              <el-cascader
-                v-model="searchForm.region"
-                style="width: 100%"
-                :props="regionList"
-                collapse-tags
-                filterable
-              ></el-cascader>
-            </el-form-item>
-          </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="">
-              <el-button
-                type="primary"
-                size="mini"
-                @click="$asyncComputed.listHospital.update()"
-                >查询</el-button
-              >
-              <el-button type="primary" size="mini" @click="reset">
-                重置条件
-              </el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
       <el-table
         size="mini"
         border
@@ -84,34 +51,10 @@
 </template>
 
 <script>
-import {Permission} from '../../../../common/permission.ts';
 export default {
   name: 'hospital',
   data() {
-    const that = this;
-    return {
-      permission: Permission,
-      saveForm: {
-        budget: '',
-        code: ''
-      },
-      searchForm: {
-        region: this.$settings.user.region.code
-      },
-      regionList: {
-        lazy: true,
-        checkStrictly: true,
-        async lazyLoad(node, resolve) {
-          const {level, value = that.$settings.user.region.code || null} = node;
-          const region = (await that.region(value)).map(it => ({
-            value: it.code,
-            label: it.name,
-            leaf: level >= 2
-          }));
-          resolve(region);
-        }
-      }
-    };
+    return {};
   },
   computed: {
     hospitalListData() {
@@ -131,10 +74,9 @@ export default {
   asyncComputed: {
     hospitalListServerData: {
       async get() {
-        let code = this.searchForm.region;
-        let regionId = Array.isArray(code) ? code[code.length - 1] : code;
+        let code = this.$settings.user.region.code;
         return await Promise.all(
-          (await this.$api.Region.listAllHospital(regionId)).map(async item => {
+          (await this.$api.Region.listAllHospital(code)).map(async item => {
             item.hasChildren =
               (await this.$api.Region.listAllHospital(item.code)).length > 0;
             return item;
@@ -191,15 +133,6 @@ export default {
           isInstitution: row.level === 3 ? 'false' : 'true'
         }
       });
-    },
-    reset() {
-      this.searchForm = {
-        region: this.$settings.user.region.code
-      };
-    },
-    //异步加载地区列表
-    async region(code) {
-      return await this.$api.Region.list(code);
     }
   }
 };
