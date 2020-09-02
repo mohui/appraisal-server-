@@ -14,6 +14,7 @@
         <span>金额列表</span>
       </div>
       <el-table
+        v-loading="$asyncComputed.hospitalListServerData.updating"
         size="mini"
         border
         :data="hospitalListData"
