@@ -620,7 +620,8 @@ export default class Score {
     if (!rule) throw new KatoCommonError('规则不存在');
     const hospital = await HospitalModel.findOne({where: {id: hospitalId}});
     if (!hospital) throw new KatoCommonError('机构不存在');
-
+    if (score > rule.ruleScore)
+      throw new KatoCommonError('分数不能高于细则的满分');
     let model = await RuleHospitalScoreModel.findOne({
       where: {ruleId, hospitalId}
     });
@@ -633,8 +634,23 @@ export default class Score {
     } else {
       model.score = score;
     }
-
-    return model.save();
+    await model.save();
+    //机构总得分
+    const scores = (
+      await RuleHospitalScoreModel.findAll({
+        where: {hospitalId},
+        attributes: ['score']
+      })
+    )
+      .reduce(
+        (result, current) => new Decimal(result).add(current.score),
+        new Decimal(0)
+      )
+      .toNumber();
+    //更新该机构report_hospital表的数据
+    await ReportHospitalModel.update({scores}, {where: {hospitalId}});
+    //重新进行金额分配
+    this.checkBudget();
   }
 
   /**
