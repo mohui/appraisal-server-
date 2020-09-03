@@ -5,6 +5,7 @@ import {
   HospitalModel,
   MarkHospitalModel,
   RegionModel,
+  ReportHospitalHistoryModel,
   ReportHospitalModel,
   RuleHospitalAttachModel,
   RuleHospitalBudgetModel,
@@ -478,6 +479,16 @@ export default class Score {
       workpoints,
       scores,
       total
+    });
+    //更新历史得分
+    await ReportHospitalHistoryModel.upsert({
+      hospitalId: id,
+      date: dayjs()
+        .add(1, 'day')
+        .format('YYYY-MM-DD'),
+      score: scores,
+      totalScore: total,
+      rate: new Decimal(scores).div(total).toNumber() || 0
     });
   }
 
