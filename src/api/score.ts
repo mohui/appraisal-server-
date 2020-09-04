@@ -1188,4 +1188,50 @@ export default class Score {
     }
     throw new KatoCommonError('该机构不存在.');
   }
+
+  /***
+   * 质量系数历史趋势
+   * @param code
+   */
+  async history(code) {
+    const region: RegionModel = await RegionModel.findOne({where: {code}});
+    if (region) {
+      //查询该地区的机构的历史记录
+      const hospitalInRegion = await HospitalModel.findAll({
+        where: {
+          regionId: {
+            [Op.like]: `${code}%`
+          }
+        },
+        include: [ReportHospitalHistoryModel]
+      });
+      return hospitalInRegion
+        .map(it => it.toJSON())
+        .reduce((res, next) => [...res, ...next.reportHospitalHistory], [])
+        .reduce((per, next) => {
+          //按日期分组
+          const current = per.find(it => it.date === next.date);
+          if (current) {
+            current.score = new Decimal(current.score).add(next.score);
+            current.totalScore = new Decimal(current.totalScore).add(
+              next.totalScore
+            );
+          } else
+            per.push({
+              date: next.date,
+              score: new Decimal(next.score),
+              totalScore: new Decimal(next.totalScore),
+              rate: new Decimal(next.rate)
+            });
+          return per;
+        }, [])
+        .map(it => ({
+          date: it.date,
+          totalScore: it.totalScore.toNumber(),
+          score: it.score.toNumber(),
+          //地区下所有机构的(总得分/总满分)作为地区的质量系数
+          rate: new Decimal(it.score).div(it.totalScore).toNumber() || 0
+        }));
+    }
+  }
 }
