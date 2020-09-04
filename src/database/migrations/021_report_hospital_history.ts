@@ -1,6 +1,5 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {ReportHospitalHistoryModel} from '../model/index';
 
 export class ReportHospitalHistoryMigration implements IMigration {
   name = '机构数据的历史记录表';
@@ -10,7 +9,7 @@ export class ReportHospitalHistoryMigration implements IMigration {
     await client.execute(`
       CREATE TABLE IF NOT EXISTS "report_hospital_history" (
             "date" VARCHAR(255),
-            "hospital" VARCHAR(255),
+            "hospital" UUID NOT NULL REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE ,
             "score" FLOAT,
             "totalScore" FLOAT,
             "rate" FLOAT,

@@ -19,6 +19,7 @@ import {UserHospital} from './user_hospital';
 import {BasicTagData} from './basic-tag-data';
 import {ReportHospital} from './report-hospital';
 import {RuleHospitalBudget} from './rule-hospital-budget';
+import {ReportHospitalHistory} from './report-hospital-history';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -61,4 +62,8 @@ export class Hospital extends Model<Hospital> {
 
   @HasOne(() => ReportHospital)
   report: ReportHospital;
+
+  //多个历史记录
+  @HasMany(() => ReportHospitalHistory)
+  reportHospitalHistory: ReportHospitalHistory[];
 }

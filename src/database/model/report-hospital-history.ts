@@ -2,10 +2,12 @@ import {
   Column,
   Comment,
   DataType,
+  ForeignKey,
   Model,
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
+import {Hospital} from './hospital';
 
 @Table({tableName: 'report_hospital_history'})
 export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
@@ -16,6 +18,7 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
 
   @PrimaryKey
   @Comment('机构id')
+  @ForeignKey(() => Hospital)
   @Column({field: 'hospital'})
   hospitalId: string;
 
