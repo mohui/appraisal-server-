@@ -69,6 +69,8 @@ export default {
             item.uuid = index + 1;
             return item;
           })
+          //根据金额排序
+          .sort((a, b) => b.budget - a.budget)
       );
     }
   },
@@ -92,8 +94,10 @@ export default {
   methods: {
     async load(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (await this.$api.Region.listAllHospital(tree.code)).map(
-          async (item, index) => {
+        (await this.$api.Region.listAllHospital(tree.code))
+          //根据金额排序
+          .sort((a, b) => b.budget - a.budget)
+          .map(async (item, index) => {
             item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
             item.rateFormat = (item.rate * 100).toFixed(2) + '%';
             item.budgetFormat = item.budget.toFixed(2);
@@ -102,8 +106,7 @@ export default {
               item.code !== tree.code &&
               (await this.$api.Region.listAllHospital(item.code)).length > 0;
             return item;
-          }
-        )
+          })
       );
       resolve(result);
     },
