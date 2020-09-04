@@ -1233,5 +1233,15 @@ export default class Score {
           rate: new Decimal(it.score).div(it.totalScore).toNumber() || 0
         }));
     }
+    const hospital = await HospitalModel.findOne({
+      where: {id: code},
+      include: [
+        {
+          model: ReportHospitalHistoryModel,
+          attributes: ['date', 'score', 'totalScore', 'rate']
+        }
+      ]
+    });
+    if (hospital) return hospital?.reportHospitalHistory ?? [];
   }
 }
