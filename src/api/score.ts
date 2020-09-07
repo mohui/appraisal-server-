@@ -483,9 +483,7 @@ export default class Score {
     //更新历史得分
     await ReportHospitalHistoryModel.upsert({
       hospitalId: id,
-      date: dayjs()
-        .add(1, 'day')
-        .format('YYYY-MM-DD'),
+      date: dayjs().format('YYYY-MM-DD'),
       score: scores,
       totalScore: total,
       rate: new Decimal(scores).div(total).toNumber() || 0
