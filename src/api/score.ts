@@ -1217,6 +1217,7 @@ export default class Score {
           } else
             per.push({
               date: next.date,
+              createdAt: next.created_at,
               score: new Decimal(next.score),
               totalScore: new Decimal(next.totalScore),
               rate: new Decimal(next.rate)
@@ -1225,11 +1226,13 @@ export default class Score {
         }, [])
         .map(it => ({
           date: it.date,
+          createdAt: it.createdAt,
           totalScore: it.totalScore.toNumber(),
           score: it.score.toNumber(),
           //地区下所有机构的(总得分/总满分)作为地区的质量系数
           rate: new Decimal(it.score).div(it.totalScore).toNumber() || 0
-        }));
+        }))
+        .sort((a, b) => (dayjs(a.createdAt).isAfter(b.createdAt) ? 1 : -1));
     }
 
     try {
@@ -1238,11 +1241,16 @@ export default class Score {
         include: [
           {
             model: ReportHospitalHistoryModel,
-            attributes: ['date', 'score', 'totalScore', 'rate']
+            attributes: ['date', 'score', 'totalScore', 'rate', 'created_at']
           }
         ]
       });
-      if (hospital) return hospital?.reportHospitalHistory ?? [];
+      if (hospital)
+        return (
+          hospital?.reportHospitalHistory.sort((a, b) =>
+            dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1
+          ) ?? []
+        );
     } catch (e) {
       throw new KatoCommonError('所传参数code,不是地区code或机构id');
     }
