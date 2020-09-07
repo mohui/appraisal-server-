@@ -100,7 +100,12 @@
           </el-card>
         </el-col>
         <el-col :span="16" v-if="params.listFlag === 'quality'">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="
+              $asyncComputed.historicalTrendLineChartSeverData.updating
+            "
+          >
             <div class="score-detail">
               <line-chart
                 :xAxisData="historicalTrendLineChartData.xAxisData"
