@@ -1189,7 +1189,7 @@ export default class Score {
 
   /***
    * 质量系数历史趋势
-   * @param code
+   * @param code:地区code或者机构的id
    */
   async history(code) {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
