@@ -23,7 +23,7 @@ export default class ETL {
   }
 
   /**
-   * 同步个人表
+   * 同步体检表
    *
    * @param hospital 医院id
    */
