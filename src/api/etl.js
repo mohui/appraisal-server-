@@ -23,6 +23,67 @@ export default class ETL {
   }
 
   /**
+   * 同步老年人表
+   *
+   * @param hospital 医院id
+   */
+  async old(hospital) {
+    // 查询organization
+    const organizationIds = await this.getOrganizations(hospital);
+
+    // 老年人生活自理能力表
+    // language=TSQL
+    const rows = (
+      await Promise.all(
+        organizationIds.map(id =>
+          etlDB.execute(
+            `
+              select d.*
+              from dbo.view_HealthCheckTableScore d
+                     inner join dbo.view_Healthy h on d.IncrementNo = h.IncrementNo
+                     inner join dbo.view_PersonInfo p on h.PersonNum = p.PersonNum
+              where p.AdminOrganization = ?
+                and p.WriteOff = 0
+            `,
+            id
+          )
+        )
+      )
+    ).flat();
+
+    // upsert score
+    let index = 0;
+    const counts = rows.length;
+    for (let it of rows) {
+      await appDB.transaction(async () => {
+        // 删除原有数据
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+            delete
+            from view_HealthCheckTableScore
+            where ScoreID = ?
+          `,
+          it.ScoreID
+        );
+
+        // 新增数据
+        const cols = Object.keys(it);
+        const sql = `insert into view_HealthCheckTableScore(${cols.join()}) values(${cols
+          .map(() => '?')
+          .join()})`;
+        await appDB.execute(
+          sql,
+          ...cols.map(key => {
+            return it[key];
+          })
+        );
+        console.log(`CheckScore ${++index} - ${counts}`);
+      });
+    }
+  }
+
+  /**
    * 同步体检表
    *
    * @param hospital 医院id
