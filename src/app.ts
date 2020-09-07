@@ -36,6 +36,8 @@ export class Application {
     })
   );
 
+  etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
+
   constructor() {
     //同时也把app赋值给process中,方便全局访问
     (process as ExtendedProcess).app = this;
@@ -95,7 +97,7 @@ export class Application {
     this.appDB.addModels(Object.values(models));
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
-    await migrate.migrate(20);
+    // await migrate.migrate(20);
   }
 
   async initExpress() {
@@ -154,3 +156,4 @@ export const app = new Application();
 
 //导出各种便捷属性
 export const appDB = app.appDB;
+export const etlDB = app.etlDB;
