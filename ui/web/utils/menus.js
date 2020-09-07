@@ -69,5 +69,11 @@ module.exports = [
         label: '角色管理'
       }
     ]
+  },
+  {
+    index: 'etl-hospital',
+    label: '机构同步',
+    icon: 'el-icon-refresh',
+    router: '/etl'
   }
 ];
