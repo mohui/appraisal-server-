@@ -23,6 +23,66 @@ export default class ETL {
   }
 
   /**
+   * 同步工分表
+   *
+   * @param hospital 医院id
+   */
+  async score(hospital) {
+    // 查询organization
+    const organizationIds = await this.getOrganizations(hospital);
+
+    // 工分表
+    // language=TSQL
+    const rows = (
+      await Promise.all(
+        organizationIds.map(id =>
+          etlDB.execute(
+            `
+              select *
+              from dbo.view_WorkScoreTotal
+              where OperateOrganization = ?
+                and MissionTime >= ?
+            `,
+            id,
+            startDate
+          )
+        )
+      )
+    ).flat();
+
+    // upsert score
+    let index = 0;
+    const counts = rows.length;
+    for (let it of rows) {
+      await appDB.transaction(async () => {
+        // 删除原有数据
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+            delete
+            from view_WorkScoreTotal
+            where WorkScoreID = ?
+          `,
+          it.WorkScoreID
+        );
+
+        // 新增数据
+        const cols = Object.keys(it);
+        const sql = `insert into view_WorkScoreTotal(${cols.join()}) values(${cols
+          .map(() => '?')
+          .join()})`;
+        await appDB.execute(
+          sql,
+          ...cols.map(key => {
+            return it[key];
+          })
+        );
+        console.log(`WorkScore ${++index} - ${counts}`);
+      });
+    }
+  }
+
+  /**
    * 同步老年人表
    *
    * @param hospital 医院id
