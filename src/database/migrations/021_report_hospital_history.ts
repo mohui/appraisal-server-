@@ -8,7 +8,7 @@ export class ReportHospitalHistoryMigration implements IMigration {
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(`
       CREATE TABLE IF NOT EXISTS "report_hospital_history" (
-            "date" VARCHAR(255),
+            "date"  DATE NOT NULL,
             "hospital" UUID NOT NULL REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE ,
             "score" FLOAT,
             "totalScore" FLOAT,

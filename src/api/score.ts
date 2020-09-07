@@ -485,7 +485,7 @@ export default class Score {
       hospitalId: id,
       date: dayjs()
         .subtract(1, 'day') //当前日期减去一天,作为前一天的历史记录保存
-        .format('YYYY-MM-DD'),
+        .toDate(),
       score: scores,
       totalScore: total,
       rate: new Decimal(scores).div(total).toNumber() || 0

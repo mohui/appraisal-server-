@@ -13,8 +13,8 @@ import {Hospital} from './hospital';
 export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
   @PrimaryKey
   @Comment('日期')
-  @Column({field: 'date'})
-  date: string;
+  @Column({field: 'date', type: DataType.DATE})
+  date;
 
   @PrimaryKey
   @Comment('机构id')
