@@ -1,25 +1,59 @@
 import {appDB, etlDB} from '../app';
 import dayjs from 'dayjs';
+import {HospitalModel} from '../database/model';
 
 const startDate = dayjs().format('YYYY-01-01');
 
+const locked = {
+  hospital: null
+};
+
 export default class ETL {
-  async test(hospital) {
-    // 查询organization
+  /**
+   * 获取机构同步列表
+   */
+  async list() {
+    return (await HospitalModel.findAll()).map(it => ({
+      ...it.toJSON(),
+      running: it.id === locked.hospital
+    }));
+  }
 
-    // 高血压随访表
+  /**
+   * 启动机构同步任务
+   *
+   * @param hospital
+   * @returns {Promise<{hospital: null}>}
+   */
+  async run(hospital) {
+    // 判断是否有运行的机构
+    if (locked.hospital) {
+      return locked;
+    }
 
-    // 糖尿登记表
+    // 锁定运行的机构
+    locked.hospital = hospital;
 
-    // 糖尿病随访表
+    // 同步机构
+    this.job(hospital);
+  }
 
-    // 体检表
+  /**
+   * 同步机构
+   *
+   * @param hospital
+   * @returns {Promise<void>}
+   */
+  async job(hospital) {
+    await this.personInfo(hospital);
+    await this.heathy(hospital);
+    await this.hypertension(hospital);
+    await this.diabetes(hospital);
+    await this.old(hospital);
+    await this.score(hospital);
 
-    // 老年人生活自理能力表
-
-    // 工分表
-
-    return hospital;
+    // 同步完成, 置空
+    locked.hospital = null;
   }
 
   /**
