@@ -97,7 +97,9 @@ export class Application {
     this.appDB.addModels(Object.values(models));
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
-    await migrate.migrate(21);
+    if (process.env.NODE_ENV === 'production') {
+      await migrate.migrate(21);
+    }
   }
 
   async initExpress() {
