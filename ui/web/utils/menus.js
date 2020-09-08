@@ -69,5 +69,12 @@ module.exports = [
         label: '角色管理'
       }
     ]
+  },
+  {
+    index: 'etl-hospital',
+    permission: [Permission.ETL_HOSPITAL],
+    label: '机构同步',
+    icon: 'el-icon-refresh',
+    router: '/etl'
   }
 ];

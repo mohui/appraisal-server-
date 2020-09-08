@@ -139,6 +139,15 @@ const router = new Router({
           path: '401',
           name: 'page401',
           component: () => import('./views/error/page401')
+        },
+        {
+          path: 'etl',
+          name: 'hospital-elt',
+          meta: {
+            permission: [Permission.ETL_HOSPITAL],
+            activeMenu: 'etl-hospital'
+          },
+          component: () => import('./views/etl/index')
         }
       ]
     },
