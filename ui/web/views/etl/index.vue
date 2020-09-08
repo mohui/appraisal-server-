@@ -36,9 +36,10 @@
             :loading="row.running"
             type="primary"
             size="mini"
+            :disabled="row.disabled"
             @click="sync(row.id)"
-            >同步</el-button
-          >
+            >同步
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,15 +57,17 @@ export default {
   },
   computed: {
     list() {
+      const runningID = this.serverData.find(it => it.running)?.id;
       return this.serverData
+        .filter(it => {
+          return it.name.indexOf(this.keyword) !== -1;
+        })
         .map((it, index) => {
           return {
             ...it,
-            index
+            index,
+            disabled: runningID && runningID !== it.id
           };
-        })
-        .filter(it => {
-          return it.name.indexOf(this.keyword) !== -1;
         });
     }
   },
