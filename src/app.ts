@@ -18,24 +18,7 @@ import * as cron from 'node-cron';
 export class Application {
   express = express();
   server = http.createServer(this.express);
-  appDB = createExtendedSequelize(
-    new Sequelize({
-      dialect: 'postgres',
-      host: config.get('postgres.host'),
-      port: config.get('postgres.port'),
-      username: config.get('postgres.username'),
-      password: config.get('postgres.password'),
-      database: config.get('postgres.database'),
-      timezone: '+8:00',
-      define: {
-        underscored: true,
-        createdAt: 'created_at',
-        updatedAt: 'updated_at'
-      },
-      logging: console.log
-    })
-  );
-
+  appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
 
   constructor() {
