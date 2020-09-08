@@ -3,6 +3,7 @@ import {
   Comment,
   DataType,
   ForeignKey,
+  BelongsTo,
   Model,
   PrimaryKey,
   Table
@@ -33,4 +34,7 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
   @Comment('质量系数')
   @Column({field: 'rate', type: DataType.FLOAT})
   rate: number;
+
+  @BelongsTo(() => Hospital)
+  hospital: Hospital;
 }
