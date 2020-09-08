@@ -132,7 +132,7 @@ export class Application {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('./kato-loader!./api/kato.config')(kato);
     //如果需要启动KatoUI的话,仅仅在开发环境下启用
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.KatoUI) {
       console.log(
         `Kato UI http://${config.get('host')}:${config.get('port')}/api/ui/`
       );
