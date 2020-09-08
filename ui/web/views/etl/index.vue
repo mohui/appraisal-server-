@@ -10,8 +10,15 @@
       padding: $settings.isMobile ? '10px 0' : '20px'
     }"
   >
-    <div slot="header" class="clearfix">
+    <div slot="header">
       <span>机构列表</span>
+      <el-input
+        placeholder="搜索机构"
+        prefix-icon="el-icon-search"
+        style="float: right; width: 200px"
+        size="mini"
+        v-model="keyword"
+      ></el-input>
     </div>
     <el-table
       :data="list"
@@ -19,10 +26,11 @@
       height="100%"
       style="flex-grow: 1"
       size="small"
+      row-key="id"
     >
       <el-table-column prop="index" label="序号" width="50px"></el-table-column>
       <el-table-column prop="name" label="名称"></el-table-column>
-      <el-table-column label="操作" width="200px">
+      <el-table-column label="操作" width="200px" align="center">
         <template slot-scope="{row}">
           <el-button
             :loading="row.running"
@@ -41,21 +49,37 @@
 export default {
   name: 'HospitalETL',
   data() {
-    return {};
+    return {
+      timer: null,
+      keyword: ''
+    };
   },
   computed: {
     list() {
-      return this.serverData.map((it, index) => {
-        return {
-          ...it,
-          index
-        };
-      });
+      return this.serverData
+        .map((it, index) => {
+          return {
+            ...it,
+            index
+          };
+        })
+        .filter(it => {
+          return it.name.indexOf(this.keyword) !== -1;
+        });
     }
   },
+  created() {
+    this.timer = setInterval(() => {
+      this.$asyncComputed.serverData.update();
+    }, 5000);
+  },
+  destroyed() {
+    this.timer && clearInterval(this.timer);
+  },
   methods: {
-    sync(id) {
-      this.$api.ETL.run(id);
+    async sync(id) {
+      await this.$api.ETL.run(id);
+      this.$asyncComputed.serverData.update();
     }
   },
   asyncComputed: {
