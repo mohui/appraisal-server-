@@ -18,8 +18,8 @@
           size="small"
           type="primary"
           @click="handleAddRole"
-          >新增角色</el-button
-        >
+          >新增角色
+        </el-button>
       </div>
       <el-table
         :data="tableData"
@@ -317,6 +317,10 @@ export default {
         {
           key: 'profile',
           label: '个人档案'
+        },
+        {
+          key: 'etl-hospital',
+          label: '机构同步'
         }
       ]
     };
@@ -456,6 +460,7 @@ export default {
 
 <style scoped lang="scss">
 @import '../../styles/vars.scss';
+
 .el-table .el-table__row .cell a {
   color: $color-primary;
   cursor: pointer;

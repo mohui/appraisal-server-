@@ -94,6 +94,10 @@ export const PermissionDetail = [
   {
     key: 'all-check',
     name: '管理所有考核'
+  },
+  {
+    key: 'etl-hospital',
+    name: '机构同步'
   }
 ];
 
@@ -121,7 +125,8 @@ export const Permission = {
   RULE_UPDATE: 'rule-update',
   RULE_REMOVE: 'rule-remove',
   PROFILE: 'profile',
-  ALL_CHECK: 'all-check'
+  ALL_CHECK: 'all-check',
+  ETL_HOSPITAL: 'etl-hospital'
 };
 
 export function getPermission(key) {

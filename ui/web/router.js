@@ -144,6 +144,7 @@ const router = new Router({
           path: 'etl',
           name: 'hospital-elt',
           meta: {
+            permission: [Permission.ETL_HOSPITAL],
             activeMenu: 'etl-hospital'
           },
           component: () => import('./views/etl/index')

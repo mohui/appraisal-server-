@@ -72,6 +72,7 @@ module.exports = [
   },
   {
     index: 'etl-hospital',
+    permission: [Permission.ETL_HOSPITAL],
     label: '机构同步',
     icon: 'el-icon-refresh',
     router: '/etl'
