@@ -36,17 +36,17 @@ export default {
           show: true,
           text: '历史趋势',
           textStyle: {
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 'bolder',
-            color: '#1096d0'
+            color: '#409EFF'
           },
-          top: '10px',
+          top: '0px',
           left: '5px'
         },
         grid: {
           top: 80
         },
-        color: '#1096d0',
+        color: '#409EFF',
         legend: {
           data: [],
           left: '85%',
@@ -110,7 +110,7 @@ export default {
               normal: {
                 lineStyle: {
                   //折线线条的设置
-                  color: '#0090dc',
+                  color: '#409EFF',
                   width: 3 //折线的线条宽度
                 }
               }

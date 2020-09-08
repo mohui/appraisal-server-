@@ -100,11 +100,19 @@
           </el-card>
         </el-col>
         <el-col :span="16" v-if="params.listFlag === 'quality'">
-          <el-card shadow="hover">
+          <el-card
+            shadow="hover"
+            v-loading="
+              $asyncComputed.historicalTrendLineChartSeverData.updating
+            "
+          >
             <div class="score-detail">
-              <div class="second-title" style="float: left">
-                历史趋势（待实现）
-              </div>
+              <line-chart
+                :xAxisData="historicalTrendLineChartData.xAxisData"
+                :yAxisData="historicalTrendLineChartData.yAxisData"
+                lineText="%"
+                :listFlag="params.listFlag"
+              ></line-chart>
             </div>
           </el-card>
         </el-col>
@@ -190,6 +198,7 @@
 import twoCardCircle from '../components/twocardCircle';
 import twoCardBar from '../components/twocardBar';
 import ProgressScore from '../components/progressScore';
+import lineChart from '../components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
@@ -199,7 +208,8 @@ export default {
   components: {
     twoCardCircle,
     twoCardBar,
-    ProgressScore
+    ProgressScore,
+    lineChart
   },
   beforeRouteUpdate(to, from, next) {
     this.initParams(to);
@@ -223,6 +233,18 @@ export default {
     sticky: VueSticky
   },
   computed: {
+    //历史趋势数据，折线图展示
+    historicalTrendLineChartData() {
+      const data = this.historicalTrendLineChartSeverData;
+      let result = {};
+      result.xAxisData = data.map(it => {
+        return it.date;
+      });
+      result.yAxisData = data.map(it => {
+        return Number((it.rate * 100).toFixed(2));
+      });
+      return result;
+    },
     //工分值数据，用于柱状图显示
     workpointBarData() {
       let value = {xAxisData: [], yAxisData: []};
@@ -266,6 +288,15 @@ export default {
     }
   },
   asyncComputed: {
+    //历史趋势数据
+    historicalTrendLineChartSeverData: {
+      async get() {
+        return await this.$api.Score.history(this.params.id);
+      },
+      default() {
+        return [];
+      }
+    },
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
