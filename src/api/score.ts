@@ -1290,12 +1290,11 @@ export default class Score {
         const hospital = await HospitalModel.findOne({where: {id: code}});
         //如果是一家机构
         if (hospital)
-          //TODO:表名暂时为mark_hospital1
           faceData = (
             await appQuery(
               `select
             cast(COALESCE(sum(mk."S00"),0) as int) as "total",
-            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital1 mk
+            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
         where hospital=?`,
               [code]
             )
