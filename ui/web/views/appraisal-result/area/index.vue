@@ -313,8 +313,8 @@ export default {
       },
       default() {
         return {
-          face: 11,
-          rate: 22
+          face: null,
+          rate: null
         };
       },
       shouldUpdate() {
