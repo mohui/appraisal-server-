@@ -15,7 +15,7 @@ import {
   RuleTagModel,
   sql as sqlRender
 } from '../database';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {
   BasicTagUsages,
   MarkTagUsages,
@@ -1272,6 +1272,12 @@ export default class Score {
    * 人脸采集信息
    * @param code
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
   async faceCollect(code) {
     let faceData = {face: 0, total: 0, rate: 0};
     //如果是一个地区
