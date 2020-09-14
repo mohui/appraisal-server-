@@ -131,7 +131,10 @@
             </el-card>
           </el-col>
           <el-col :span="6">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.faceCollectSeverData.updating"
+            >
               <div class="score-detail">
                 <p class="second-title" style="margin:0; text-align:left;">
                   人脸采集信息
