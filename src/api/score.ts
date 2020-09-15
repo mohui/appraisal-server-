@@ -104,16 +104,6 @@ function projectWorkPointRender(params) {
   );
 }
 
-function faceCollectRender(params) {
-  return sqlRender(
-    `select cast(COALESCE(sum(mk."S00"),0) as int) as "total",
-            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital1 mk
-            inner join hospital h
-            on h.region like {{? regionId}} where h.id=mk.hospital`,
-    params
-  );
-}
-
 async function appQuery(sql, params) {
   return appDB.query(sql, {
     replacements: params,
@@ -1283,19 +1273,27 @@ export default class Score {
     //如果是一个地区
     const region = await RegionModel.findOne({where: {code}});
     if (region) {
-      const sqls = faceCollectRender({regionId: `${code}%`});
-      faceData = (await appQuery(sqls[0], sqls[1]))[0];
+      faceData = (
+        await appDB.execute(
+          `select
+            cast(COALESCE(sum(mk."S00"),0) as int) as "total",
+            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
+            inner join hospital h
+            on h.region like ? where h.id=mk.hospital`,
+          [`${code}%`]
+        )
+      )[0];
     } else {
       try {
         const hospital = await HospitalModel.findOne({where: {id: code}});
         //如果是一家机构
         if (hospital)
           faceData = (
-            await appQuery(
+            await appDB.execute(
               `select
-            cast(COALESCE(sum(mk."S00"),0) as int) as "total",
-            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
-        where hospital=?`,
+                cast(COALESCE(sum(mk."S00"),0) as int) as "total",
+                cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
+                where hospital=?`,
               [code]
             )
           )[0];
