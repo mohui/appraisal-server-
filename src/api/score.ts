@@ -1276,8 +1276,8 @@ export default class Score {
       faceData = (
         await appDB.execute(
           `select
-            cast(COALESCE(sum(mk."S00"),0) as int) as "total",
-            cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
+            coalesce(sum(mk."S00"),0)::integer as "total",
+            coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
             inner join hospital h
             on h.region like ? where h.id=mk.hospital`,
           [`${code}%`]
@@ -1291,8 +1291,8 @@ export default class Score {
           faceData = (
             await appDB.execute(
               `select
-                cast(COALESCE(sum(mk."S00"),0) as int) as "total",
-                cast(COALESCE(sum(mk."S30"),0) as int) as "face" from mark_hospital mk
+                coalesce(sum(mk."S00"),0)::integer as "total",
+                coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
                 where hospital=?`,
               [code]
             )
