@@ -131,11 +131,24 @@
             </el-card>
           </el-col>
           <el-col :span="6">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.faceCollectSeverData.updating"
+            >
               <div class="score-detail">
-                <div class="second-title" style="float: left">
-                  人脸采集信息（待实现）
-                </div>
+                <p class="second-title" style="margin:0; text-align:left;">
+                  人脸采集信息
+                </p>
+                <p
+                  style="font-size:16px; margin:30px 0; text-align:left; color:#333"
+                >
+                  人脸采集数：{{ faceCollectData.face }}
+                </p>
+                <p
+                  style="font-size:16px; margin:30px 0; text-align:left; color:#333"
+                >
+                  人脸采集率：{{ faceCollectData.rateFormat }}
+                </p>
               </div>
             </el-card>
           </el-col>
@@ -233,6 +246,14 @@ export default {
     sticky: VueSticky
   },
   computed: {
+    //人脸采集信息
+    faceCollectData() {
+      return {
+        face: this.faceCollectSeverData.face,
+        rateFormat:
+          Number((this.faceCollectSeverData.rate * 100).toFixed(2)) + '%'
+      };
+    },
     //历史趋势数据，折线图展示
     historicalTrendLineChartData() {
       const data = this.historicalTrendLineChartSeverData;
@@ -288,6 +309,21 @@ export default {
     }
   },
   asyncComputed: {
+    //人脸采集数据
+    faceCollectSeverData: {
+      async get() {
+        return await this.$api.Score.faceCollect(this.params.id);
+      },
+      default() {
+        return {
+          face: null,
+          rate: null
+        };
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'score';
+      }
+    },
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {

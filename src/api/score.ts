@@ -15,7 +15,7 @@ import {
   RuleTagModel,
   sql as sqlRender
 } from '../database';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {
   BasicTagUsages,
   MarkTagUsages,
@@ -1256,5 +1256,53 @@ export default class Score {
     } catch (e) {
       throw new KatoCommonError('所传参数code,不是地区code或机构id');
     }
+  }
+
+  /**
+   * 人脸采集信息
+   * @param code
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
+  async faceCollect(code) {
+    let faceData = {face: 0, total: 0, rate: 0};
+    //如果是一个地区
+    const region = await RegionModel.findOne({where: {code}});
+    if (region) {
+      faceData = (
+        await appDB.execute(
+          `select
+            coalesce(sum(mk."S00"),0)::integer as "total",
+            coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
+            inner join hospital h
+            on h.region like ? where h.id=mk.hospital`,
+          [`${code}%`]
+        )
+      )[0];
+    } else {
+      try {
+        const hospital = await HospitalModel.findOne({where: {id: code}});
+        //如果是一家机构
+        if (hospital)
+          faceData = (
+            await appDB.execute(
+              `select
+                coalesce(sum(mk."S00"),0)::integer as "total",
+                coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
+                where hospital=?`,
+              [code]
+            )
+          )[0];
+      } catch (e) {
+        throw new KatoCommonError('所传参数code,不是地区code或机构id');
+      }
+    }
+    faceData.rate =
+      new Decimal(faceData.face).div(faceData.total).toNumber() || 0;
+    return faceData;
   }
 }
