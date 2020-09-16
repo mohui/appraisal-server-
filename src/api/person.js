@@ -211,7 +211,7 @@ export default class Person {
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
-         order by vp.operatetime desc
+         order by vp.operatetime desc, vp.personnum desc
          limit ? offset ?`,
       [...sqlRenderResult[1], limit, offset]
     );
