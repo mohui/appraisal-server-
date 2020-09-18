@@ -5,10 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 80px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '20px 0 0 10px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -25,242 +25,253 @@
           >返回
         </el-button>
       </div>
-      <div v-for="(item, index) in ruleList" :key="item.ruleId">
-        <div class="check-class-title">
-          <span v-if="!!item.isEdit">
-            <el-input
-              v-model="item.ruleName"
-              size="mini"
-              placeholder="请输入考核分类名称"
-            >
-            </el-input>
-            <el-input-number
-              v-model="item.budget"
-              :precision="4"
-              style="width: 300px;"
-              size="mini"
-              placeholder="请输入金额"
-            ></el-input-number>
-            <el-tooltip content="选择工分项" :enterable="false">
-              <el-button
-                icon="el-icon-s-claim"
-                circle
-                type="primary"
+      <div
+        style="flex-grow: 1;height: 0; overflow-y: auto; overflow-x: hidden;"
+      >
+        <div v-for="(item, index) in ruleList" :key="item.ruleId">
+          <div class="check-class-title">
+            <span v-if="!!item.isEdit">
+              <el-input
+                v-model="item.ruleName"
                 size="mini"
-                @click.stop="selectWorkPoint(item)"
+                placeholder="请输入考核分类名称"
               >
-              </el-button>
-            </el-tooltip>
-            <el-button plain type="success" size="mini" @click="saveGroup(item)"
-              >保存
-            </el-button>
-            <el-button
-              plain
-              type="warning"
-              size="mini"
-              v-show="item.ruleId"
-              @click="cancelGroup(item)"
-              >取消
-            </el-button>
-          </span>
-          <span v-else>
-            {{ item.ruleName }}（<em> {{ item.ruleScores }}分</em>）
-            <span class="sub-attr">
-              分配金额：
-              <em> {{ item.budget }} 元 </em>
-            </span>
-            <span v-if="item.projects.length > 0" class="sub-tip">
-              <el-tooltip
-                :content="
-                  '绑定工分项：' + item.projects.map(it => it.name).join('，')
-                "
-                :enterable="false"
-              >
+              </el-input>
+              <el-input-number
+                v-model="item.budget"
+                :precision="4"
+                style="width: 300px;"
+                size="mini"
+                placeholder="请输入金额"
+              ></el-input-number>
+              <el-tooltip content="选择工分项" :enterable="false">
                 <el-button
                   icon="el-icon-s-claim"
                   circle
                   type="primary"
                   size="mini"
+                  @click.stop="selectWorkPoint(item)"
                 >
                 </el-button>
               </el-tooltip>
+              <el-button
+                plain
+                type="success"
+                size="mini"
+                @click="saveGroup(item)"
+                >保存
+              </el-button>
+              <el-button
+                plain
+                type="warning"
+                size="mini"
+                v-show="item.ruleId"
+                @click="cancelGroup(item)"
+                >取消
+              </el-button>
             </span>
-          </span>
-          <div>
-            <el-button
-              plain
-              type="primary"
-              size="mini"
-              v-show="!item.isEdit && !item.group.some(it => it.isEdit)"
-              @click="addRule(item)"
-              v-permission="permission.RULE_ADD"
-            >
-              新增细则
-            </el-button>
-            <el-button
-              plain
-              type="primary"
-              size="mini"
-              v-show="!item.isEdit"
-              @click="editGroup(item, index)"
-              >修改
-            </el-button>
-            <el-button
-              v-show="!item.isEdit"
-              plain
-              type="danger"
-              size="mini"
-              @click="delGroup(item, index)"
-              >删除
-            </el-button>
+            <span v-else>
+              {{ item.ruleName }}（<em> {{ item.ruleScores }}分</em>）
+              <span class="sub-attr">
+                分配金额：
+                <em> {{ item.budget }} 元 </em>
+              </span>
+              <span v-if="item.projects.length > 0" class="sub-tip">
+                <el-tooltip
+                  :content="
+                    '绑定工分项：' + item.projects.map(it => it.name).join('，')
+                  "
+                  :enterable="false"
+                >
+                  <el-button
+                    icon="el-icon-s-claim"
+                    circle
+                    type="primary"
+                    size="mini"
+                  >
+                  </el-button>
+                </el-tooltip>
+              </span>
+            </span>
+            <div>
+              <el-button
+                plain
+                type="primary"
+                size="mini"
+                v-show="!item.isEdit && !item.group.some(it => it.isEdit)"
+                @click="addRule(item)"
+                v-permission="permission.RULE_ADD"
+              >
+                新增细则
+              </el-button>
+              <el-button
+                plain
+                type="primary"
+                size="mini"
+                v-show="!item.isEdit"
+                @click="editGroup(item, index)"
+                >修改
+              </el-button>
+              <el-button
+                v-show="!item.isEdit"
+                plain
+                type="danger"
+                size="mini"
+                @click="delGroup(item, index)"
+                >删除
+              </el-button>
+            </div>
           </div>
+          <el-table :data="item.group">
+            <el-table-column
+              width="50px"
+              type="index"
+              align="center"
+              label="序号"
+            ></el-table-column>
+            <el-table-column align="center" label="考核内容" min-width="200">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-input
+                    v-model="scope.row.ruleName"
+                    size="mini"
+                    type="textarea"
+                    :autosize="{minRows: 4, maxRows: 10}"
+                    placeholder="请输入考核内容"
+                  >
+                  </el-input>
+                </span>
+                <span v-else>{{ scope.row.ruleName }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="分值" min-width="140">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-input-number
+                    v-model="scope.row.ruleScore"
+                    size="mini"
+                    :min="0"
+                    placeholder="请输入分值"
+                  >
+                  </el-input-number>
+                </span>
+                <span v-else>{{ scope.row.ruleScore }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="考核标准" min-width="300">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-input
+                    v-model="scope.row.checkStandard"
+                    size="mini"
+                    type="textarea"
+                    :autosize="{minRows: 4, maxRows: 10}"
+                    placeholder="请输入考核标准"
+                  >
+                  </el-input>
+                </span>
+                <span v-else>{{ scope.row.checkStandard }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="考核方法" min-width="200">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-input
+                    v-model="scope.row.checkMethod"
+                    size="mini"
+                    type="textarea"
+                    :autosize="{minRows: 4, maxRows: 10}"
+                    placeholder="请输入考核方法"
+                  >
+                  </el-input>
+                </span>
+                <span v-else>{{ scope.row.checkMethod }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="评分标准" min-width="200">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-input
+                    v-model="scope.row.evaluateStandard"
+                    size="mini"
+                    type="textarea"
+                    :autosize="{minRows: 4, maxRows: 10}"
+                    placeholder="请输入评分标准"
+                  >
+                  </el-input>
+                </span>
+                <span v-else>{{ scope.row.evaluateStandard }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="关联关系" min-width="200">
+              <template slot-scope="scope">
+                <span v-if="scope.row.isEdit">
+                  <el-button
+                    plain
+                    size="mini"
+                    type="primary"
+                    icon="el-icon-check"
+                    @click="openStandardDialog(index, scope)"
+                    >选择指标</el-button
+                  >
+                </span>
+                <span v-else>{{ scope.row.ruleTagName }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="操作" min-width="200">
+              <template slot-scope="scope">
+                <div v-if="scope.row.isEdit">
+                  <el-button
+                    plain
+                    type="success"
+                    size="mini"
+                    @click="saveRule(scope.row, item.ruleId)"
+                    >保存
+                  </el-button>
+                  <el-button
+                    plain
+                    type="primary"
+                    size="mini"
+                    @click="cancelRule(scope.row, item)"
+                    >取消
+                  </el-button>
+                </div>
+                <div v-else>
+                  <el-button
+                    plain
+                    v-permission="{
+                      permission: permission.RULE_UPDATE,
+                      type: 'disabled'
+                    }"
+                    type="primary"
+                    size="mini"
+                    @click="editRule(scope.row)"
+                    >修改
+                  </el-button>
+                  <el-button
+                    plain
+                    v-permission="{
+                      permission: permission.RULE_REMOVE,
+                      type: 'disabled'
+                    }"
+                    type="danger"
+                    size="mini"
+                    @click="delRule(scope, index)"
+                    >删除
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-col
+            :span="24"
+            v-if="!item.isEdit && index === ruleList.length - 1"
+          >
+            <div class="add-rule" @click="addGroup">
+              <span>+ 新增考核项</span>
+            </div>
+          </el-col>
         </div>
-        <el-table :data="item.group">
-          <el-table-column
-            width="50px"
-            type="index"
-            align="center"
-            label="序号"
-          ></el-table-column>
-          <el-table-column align="center" label="考核内容" min-width="200">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-input
-                  v-model="scope.row.ruleName"
-                  size="mini"
-                  type="textarea"
-                  :autosize="{minRows: 4, maxRows: 10}"
-                  placeholder="请输入考核内容"
-                >
-                </el-input>
-              </span>
-              <span v-else>{{ scope.row.ruleName }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="分值" min-width="140">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-input-number
-                  v-model="scope.row.ruleScore"
-                  size="mini"
-                  :min="0"
-                  placeholder="请输入分值"
-                >
-                </el-input-number>
-              </span>
-              <span v-else>{{ scope.row.ruleScore }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="考核标准" min-width="300">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-input
-                  v-model="scope.row.checkStandard"
-                  size="mini"
-                  type="textarea"
-                  :autosize="{minRows: 4, maxRows: 10}"
-                  placeholder="请输入考核标准"
-                >
-                </el-input>
-              </span>
-              <span v-else>{{ scope.row.checkStandard }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="考核方法" min-width="200">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-input
-                  v-model="scope.row.checkMethod"
-                  size="mini"
-                  type="textarea"
-                  :autosize="{minRows: 4, maxRows: 10}"
-                  placeholder="请输入考核方法"
-                >
-                </el-input>
-              </span>
-              <span v-else>{{ scope.row.checkMethod }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="评分标准" min-width="200">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-input
-                  v-model="scope.row.evaluateStandard"
-                  size="mini"
-                  type="textarea"
-                  :autosize="{minRows: 4, maxRows: 10}"
-                  placeholder="请输入评分标准"
-                >
-                </el-input>
-              </span>
-              <span v-else>{{ scope.row.evaluateStandard }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="关联关系" min-width="200">
-            <template slot-scope="scope">
-              <span v-if="scope.row.isEdit">
-                <el-button
-                  plain
-                  size="mini"
-                  type="primary"
-                  icon="el-icon-check"
-                  @click="openStandardDialog(index, scope)"
-                  >选择指标</el-button
-                >
-              </span>
-              <span v-else>{{ scope.row.ruleTagName }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="center" label="操作" min-width="200">
-            <template slot-scope="scope">
-              <div v-if="scope.row.isEdit">
-                <el-button
-                  plain
-                  type="success"
-                  size="mini"
-                  @click="saveRule(scope.row, item.ruleId)"
-                  >保存
-                </el-button>
-                <el-button
-                  plain
-                  type="primary"
-                  size="mini"
-                  @click="cancelRule(scope.row, item)"
-                  >取消
-                </el-button>
-              </div>
-              <div v-else>
-                <el-button
-                  plain
-                  v-permission="{
-                    permission: permission.RULE_UPDATE,
-                    type: 'disabled'
-                  }"
-                  type="primary"
-                  size="mini"
-                  @click="editRule(scope.row)"
-                  >修改
-                </el-button>
-                <el-button
-                  plain
-                  v-permission="{
-                    permission: permission.RULE_REMOVE,
-                    type: 'disabled'
-                  }"
-                  type="danger"
-                  size="mini"
-                  @click="delRule(scope, index)"
-                  >删除
-                </el-button>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-col :span="24" v-if="!item.isEdit && index === ruleList.length - 1">
-          <div class="add-rule" @click="addGroup">
-            <span>+ 新增考核项</span>
-          </div>
-        </el-col>
       </div>
     </el-card>
     <el-dialog title="指标库" :visible.sync="dialogStandardVisible">
