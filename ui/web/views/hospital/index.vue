@@ -59,19 +59,17 @@ export default {
   },
   computed: {
     hospitalListData() {
-      return (
-        this.hospitalListServerData
+      const currentData = this.hospitalListServerData;
+      return currentData
+        .sort((a, b) => b.budget - a.budget) //根据金额排序
+        .map((item, index) => {
           //添加格式化数据
-          .map((item, index) => {
-            item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
-            item.rateFormat = (item.rate * 100).toFixed(2) + '%';
-            item.budgetFormat = item.budget.toFixed(2);
-            item.uuid = index + 1;
-            return item;
-          })
-          //根据金额排序
-          .sort((a, b) => b.budget - a.budget)
-      );
+          item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
+          item.rateFormat = (item.rate * 100).toFixed(2) + '%';
+          item.budgetFormat = item.budget.toFixed(2);
+          item.uuid = index + 1;
+          return item;
+        });
     }
   },
   asyncComputed: {
