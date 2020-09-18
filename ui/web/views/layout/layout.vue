@@ -8,7 +8,7 @@
           style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
           @click="toggleMenu"
         ></i>
-        绩效管理系统</span
+        {{ $settings.user.region.name }}基层医疗机构绩效考核系统</span
       >
       <el-dropdown
         class="dropdown"
