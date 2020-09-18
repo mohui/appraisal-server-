@@ -12,7 +12,7 @@
         "
       >
         <div class="header-title" style="float: left">
-          {{ totalData.name }}两卡制管理
+          {{ totalData.name }}基本公共卫生服务两卡制绩效考核
           <span
             v-if="params.isInstitution && totalData.budget"
             style="color: #606266;"

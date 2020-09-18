@@ -12,7 +12,7 @@
         "
       >
         <div class="header-title" style="float: left">
-          {{ totalData.name }}两卡制管理
+          {{ totalData.name }}基本公共卫生服务两卡制绩效考核
         </div>
         <div class="kpiSum-select">
           <el-button-group style="margin-left: 20px">
