@@ -270,7 +270,7 @@ export default {
     workpointBarData() {
       let value = {xAxisData: [], yAxisData: []};
       let array = [];
-      array = this.areaRankData.slice(0, 3);
+      array = this.areaRankData.slice(0, 5);
       value.xAxisData = array.map(it => it.name);
       value.yAxisData = array.map(it => Math.round(it.score));
       return value;

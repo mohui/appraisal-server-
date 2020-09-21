@@ -64,6 +64,12 @@ export default {
             axisLabel: {
               margin: 5,
               formatter: function(value) {
+                if (value > 100000000) {
+                  return Math.ceil(value / 100000000) + '亿分';
+                }
+                if (value > 10000) {
+                  return Math.ceil(value / 10000) + '万分';
+                }
                 return value + '分';
               }
             },
