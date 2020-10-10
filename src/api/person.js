@@ -389,6 +389,8 @@ export default class Person {
         from view_hypertensionvisit vhv
                inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
         where vh.personnum = ?
+          and vh.isdelete = false
+          and vhv.isdelete = false
         order by vhv.followupdate desc
       `,
         [id]
