@@ -579,6 +579,8 @@ export default class Person {
         from view_diabetesvisit vdv
                inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
         where vd.personnum = ?
+          and vd.isdelete = false
+          and vdv.isdelete = false
         order by vdv.operatetime desc
       `,
         [id]
