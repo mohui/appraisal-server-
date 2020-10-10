@@ -771,6 +771,7 @@ export default class Person {
           vh.operatetime as "updateAt"
         from view_healthy vh
         where vh.personnum = ?
+        and vh.isdelete = false
         order by vh.operatetime desc
        `,
       [id]
