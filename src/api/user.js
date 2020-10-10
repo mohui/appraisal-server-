@@ -48,6 +48,7 @@ export default class User {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
     let whereOption = {};
+    whereOption['region'] = {[Op.like]: `${Context.current.user.regionId}%`};
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
     if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
