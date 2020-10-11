@@ -389,6 +389,8 @@ export default class Person {
         from view_hypertensionvisit vhv
                inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
         where vh.personnum = ?
+          and vh.isdelete = false
+          and vhv.isdelete = false
         order by vhv.followupdate desc
       `,
         [id]
@@ -538,7 +540,7 @@ export default class Person {
        left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vh.DoctorStatue
        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
-       where vh.highbloodid=?`,
+       where vh.highbloodid=? and vh.isdelete=false`,
       [id]
     );
     return result.map(r => ({
@@ -577,6 +579,8 @@ export default class Person {
         from view_diabetesvisit vdv
                inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
         where vd.personnum = ?
+          and vd.isdelete = false
+          and vdv.isdelete = false
         order by vdv.operatetime desc
       `,
         [id]
@@ -739,7 +743,7 @@ export default class Person {
         left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
         left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
         left join view_codedictionary vc_lb on vc_lb.categoryno='7020101' and vc_lb.code = vd.LowBlood
-        where DiabetesFollowUpID=?`,
+        where DiabetesFollowUpID=? and vd.isdelete=false`,
       [id]
     );
     return result.map(r => ({
@@ -771,6 +775,7 @@ export default class Person {
           vh.operatetime as "updateAt"
         from view_healthy vh
         where vh.personnum = ?
+        and vh.isdelete = false
         order by vh.operatetime desc
        `,
       [id]
@@ -1313,7 +1318,7 @@ export default class Person {
           vh.operatetime as "updateAt"
         from view_healthy vh
         left join view_hospital vc_hos on vc_hos.hospid=vh.OperateOrganization
-        where vh.incrementno = ?
+        where vh.incrementno = ? and vh.isdelete=false
         order by vh.operatetime desc
        `,
       [id]
@@ -1587,7 +1592,7 @@ export default class Person {
             vhc.AllScore as "total"
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vh.personnum=?`,
+        where vh.personnum=? and vh.isdelete=false`,
         [id]
       )
     ).map(it => ({
@@ -1664,7 +1669,7 @@ export default class Person {
             vhc.AllScore as "total"
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vhc.scoreID=?`,
+        where vhc.scoreID=? and vh.isdelete=false`,
         [id]
       )
     ).map(it => ({
