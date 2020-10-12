@@ -245,11 +245,19 @@ export default class User {
         }
       ]
     });
-    result.rows = result.rows.map(it => ({
-      ...it.toJSON(),
-      permissions: it.permissions.map(key => getPermission(key))
-    }));
-    return result;
+    result.rows = result.rows
+      .map(it => ({
+        ...it.toJSON(),
+        permissions: it.permissions.map(key => getPermission(key))
+      }))
+      .filter(
+        //过滤掉当前用户没有权限的角色
+        it =>
+          !it.permissions.some(
+            p => !Context.current.user.permissions.includes(p.key)
+          )
+      );
+    return {rows: result.rows, count: result.rows.length};
   }
 
   @validate(should.string().required(), should.string().required())
