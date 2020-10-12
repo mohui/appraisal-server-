@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import {Permission} from '../../../common/permission.ts';
+
 export default {
   name: 'MultiMenu',
   props: {
@@ -39,6 +41,8 @@ export default {
   },
   methods: {
     findPermission(permission) {
+      if (this.$settings.permissions.includes(Permission.SUPER_ADMIN))
+        return true;
       return !!permission.find(p => this.$settings.permissions.includes(p));
     }
   }

@@ -174,14 +174,19 @@ router.beforeEach(async (to, from, next) => {
   if (!Vue.prototype.$settings.user || !Vue.prototype.$settings.permissions)
     await Vue.prototype.$settings.load();
 
-  //如果路由配置了permission,且不为空,则需要进行权限判断
-  if (to.meta.permission && to.meta.permission?.length > 0) {
-    //当前用户角色拥有的权限
-    const rolePermissions = Vue.prototype.$settings.user.permissions;
-    //判断是否有to的权限
-    if (!to.meta.permission.some(mp => rolePermissions.some(rp => rp === mp))) {
-      next('/401');
-      return;
+  //当前用户角色拥有的权限
+  const rolePermissions = Vue.prototype.$settings.user.permissions;
+  //如果用户是超级管理员权限,则不需要进行权限判断
+  if (!rolePermissions.includes(Permission.SUPER_ADMIN)) {
+    //如果路由配置了permission,且不为空,则需要进行权限判断
+    if (to.meta.permission && to.meta.permission?.length > 0) {
+      //判断是否有to的权限
+      if (
+        !to.meta.permission.some(mp => rolePermissions.some(rp => rp === mp))
+      ) {
+        next('/401');
+        return;
+      }
     }
   }
 
