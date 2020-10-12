@@ -9,7 +9,7 @@ import {
   UserRoleModel
 } from '../database/model';
 import {Op} from 'sequelize';
-import {getPermission} from '../../common/permission';
+import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
 export default class User {
@@ -253,6 +253,7 @@ export default class User {
       .filter(
         //过滤掉当前用户没有权限的角色
         it =>
+          Context.current.user.permissions.includes(Permission.SUPER_ADMIN) ||
           !it.permissions.some(
             p => !Context.current.user.permissions.includes(p.key)
           )
