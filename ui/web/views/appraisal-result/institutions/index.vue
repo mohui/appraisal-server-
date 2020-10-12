@@ -107,31 +107,41 @@
             </div>
           </el-card>
         </el-col>
-        <el-col
-          :span="16"
-          :xs="24"
-          :sm="12"
-          :md="16"
-          :lg="16"
-          :xl="16"
-          v-if="params.listFlag === 'quality'"
-        >
-          <el-card
-            shadow="hover"
-            v-loading="
-              $asyncComputed.historicalTrendLineChartSeverData.updating
-            "
-          >
-            <div class="score-detail">
-              <line-chart
-                :xAxisData="historicalTrendLineChartData.xAxisData"
-                :yAxisData="historicalTrendLineChartData.yAxisData"
-                lineText="%"
-                :listFlag="params.listFlag"
-              ></line-chart>
-            </div>
-          </el-card>
-        </el-col>
+        <div v-if="params.listFlag === 'quality'">
+          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+            <el-card
+              shadow="hover"
+              v-loading="
+                $asyncComputed.historicalTrendLineChartSeverData.updating
+              "
+            >
+              <div class="score-detail">
+                <line-chart
+                  :xAxisData="historicalTrendLineChartData.xAxisData"
+                  :yAxisData="historicalTrendLineChartData.yAxisData"
+                  lineText="%"
+                  :listFlag="params.listFlag"
+                ></line-chart>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.faceCollectSeverData.updating"
+            >
+              <div class="score-detail">
+                <p class="second-title" style="margin:0; text-align:left;">
+                  人脸采集信息
+                </p>
+                <twoCardPie
+                  :pie-data="faceCollectData"
+                  :color="['#409EFF', '#96c9ff']"
+                ></twoCardPie>
+              </div>
+            </el-card>
+          </el-col>
+        </div>
         <div v-else>
           <el-col
             :span="10"
@@ -834,6 +844,7 @@
   </div>
 </template>
 <script>
+import twoCardPie from '../components/twocardPie';
 import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
@@ -846,6 +857,7 @@ import FileSaver from 'file-saver';
 export default {
   name: 'index',
   components: {
+    twoCardPie,
     twoCardTreeMap,
     twoCardCircle,
     accordion,
@@ -1150,6 +1162,21 @@ export default {
     }
   },
   computed: {
+    //人脸采集信息
+    faceCollectData() {
+      let arr = [
+        {
+          value: this.faceCollectSeverData.face,
+          name: '人脸采集数'
+        },
+        {
+          value:
+            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
+          name: '人脸未采集数'
+        }
+      ];
+      return arr;
+    },
     //历史趋势数据，折线图展示
     historicalTrendLineChartData() {
       const data = this.historicalTrendLineChartSeverData;
@@ -1448,6 +1475,21 @@ export default {
     }
   },
   asyncComputed: {
+    //人脸采集数据
+    faceCollectSeverData: {
+      async get() {
+        return await this.$api.Score.faceCollect(this.params.id);
+      },
+      default() {
+        return {
+          face: null,
+          rate: null
+        };
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'quality';
+      }
+    },
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {

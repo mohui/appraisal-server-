@@ -99,34 +99,21 @@
             </div>
           </el-card>
         </el-col>
-        <el-col :span="16" v-if="params.listFlag === 'quality'">
-          <el-card
-            shadow="hover"
-            v-loading="
-              $asyncComputed.historicalTrendLineChartSeverData.updating
-            "
-          >
-            <div class="score-detail">
-              <line-chart
-                :xAxisData="historicalTrendLineChartData.xAxisData"
-                :yAxisData="historicalTrendLineChartData.yAxisData"
-                lineText="%"
-                :listFlag="params.listFlag"
-              ></line-chart>
-            </div>
-          </el-card>
-        </el-col>
-        <div v-else>
+        <div v-if="params.listFlag === 'quality'">
           <el-col :span="10">
             <el-card
               shadow="hover"
-              v-loading="$asyncComputed.areaRankServerData.updating"
+              v-loading="
+                $asyncComputed.historicalTrendLineChartSeverData.updating
+              "
             >
               <div class="score-detail">
-                <two-card-bar
-                  :barxAxisData="workpointBarData.xAxisData"
-                  :baryAxisData="workpointBarData.yAxisData"
-                ></two-card-bar>
+                <line-chart
+                  :xAxisData="historicalTrendLineChartData.xAxisData"
+                  :yAxisData="historicalTrendLineChartData.yAxisData"
+                  lineText="%"
+                  :listFlag="params.listFlag"
+                ></line-chart>
               </div>
             </el-card>
           </el-col>
@@ -139,16 +126,25 @@
                 <p class="second-title" style="margin:0; text-align:left;">
                   人脸采集信息
                 </p>
-                <p
-                  style="font-size:16px; margin:30px 0; text-align:left; color:#333"
-                >
-                  人脸采集数：{{ faceCollectData.face }}
-                </p>
-                <p
-                  style="font-size:16px; margin:30px 0; text-align:left; color:#333"
-                >
-                  人脸采集率：{{ faceCollectData.rateFormat }}
-                </p>
+                <twoCardPie
+                  :pie-data="faceCollectData"
+                  :color="['#409EFF', '#96c9ff']"
+                ></twoCardPie>
+              </div>
+            </el-card>
+          </el-col>
+        </div>
+        <div v-else>
+          <el-col :span="16">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.areaRankServerData.updating"
+            >
+              <div class="score-detail">
+                <two-card-bar
+                  :barxAxisData="workpointBarData.xAxisData"
+                  :baryAxisData="workpointBarData.yAxisData"
+                ></two-card-bar>
               </div>
             </el-card>
           </el-col>
@@ -208,6 +204,7 @@
   </div>
 </template>
 <script>
+import twoCardPie from '../components/twocardPie';
 import twoCardCircle from '../components/twocardCircle';
 import twoCardBar from '../components/twocardBar';
 import ProgressScore from '../components/progressScore';
@@ -219,6 +216,7 @@ import FileSaver from 'file-saver';
 export default {
   name: 'index',
   components: {
+    twoCardPie,
     twoCardCircle,
     twoCardBar,
     ProgressScore,
@@ -248,11 +246,18 @@ export default {
   computed: {
     //人脸采集信息
     faceCollectData() {
-      return {
-        face: this.faceCollectSeverData.face,
-        rateFormat:
-          Number((this.faceCollectSeverData.rate * 100).toFixed(2)) + '%'
-      };
+      let arr = [
+        {
+          value: this.faceCollectSeverData.face,
+          name: '人脸采集数'
+        },
+        {
+          value:
+            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
+          name: '人脸未采集数'
+        }
+      ];
+      return arr;
     },
     //历史趋势数据，折线图展示
     historicalTrendLineChartData() {
@@ -321,7 +326,7 @@ export default {
         };
       },
       shouldUpdate() {
-        return this.params.listFlag === 'score';
+        return this.params.listFlag === 'quality';
       }
     },
     //历史趋势数据
