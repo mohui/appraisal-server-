@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import {Permission} from '../../../common/permission.ts';
 
 function isAllowed(permission, permissions) {
   if (typeof permission === 'string') {
@@ -20,7 +21,9 @@ Vue.directive('permission', {
     } else {
       permission = binding.value;
     }
-    const isAllow = isAllowed(permission, Vue.prototype.$settings.permissions);
+    const isAllow =
+      Vue.prototype.$settings.permissions.includes(Permission.SUPER_ADMIN) ||
+      isAllowed(permission, Vue.prototype.$settings.permissions);
     const element = el;
     if (!isAllow && permission) {
       if (type) {
