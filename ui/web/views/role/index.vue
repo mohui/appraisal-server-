@@ -160,6 +160,8 @@
 </template>
 
 <script>
+import {PermissionTree} from '../../../../common/permission.ts';
+
 const defaultRole = {
   name: '',
   description: '',
@@ -191,139 +193,20 @@ export default {
       rules: {
         name: [{required: true, message: '请输入角色名称', trigger: 'blur'}]
       },
-      permissionsList: [
-        {
-          key: 'home',
-          label: '首页'
-        },
-        {
-          key: 'user-index',
-          label: '用户管理',
-          children: [
-            {
-              key: 'user-index',
-              label: '用户首页'
-            },
-            {
-              key: 'user-add',
-              label: '用户添加'
-            },
-            {
-              key: 'user-update',
-              label: '用户更新'
-            },
-            {
-              key: 'user-remove',
-              label: '用户删除'
-            }
-          ]
-        },
-        {
-          key: 'role-index',
-          label: '角色管理'
-        },
-        {
-          key: 'appraisal',
-          label: '绩效考核',
-          children: [
-            {
-              key: 'appraisal-result',
-              label: '考核结果'
-            },
-            {
-              key: 'appraisal-configuration-management-group',
-              label: '配置管理',
-              children: [
-                {
-                  key: 'appraisal-configuration-management',
-                  label: '配置管理首页'
-                },
-                {
-                  key: 'all-check',
-                  label: '管理所有考核'
-                },
-                {
-                  key: 'check',
-                  label: '规则管理',
-                  children: [
-                    {
-                      key: 'check-add',
-                      label: '新建规则'
-                    },
-                    {
-                      key: 'check-update',
-                      label: '修改规则'
-                    },
-                    {
-                      key: 'check-select-hospital',
-                      label: '配置机构'
-                    },
-                    {
-                      key: 'check-clone',
-                      label: '快速复制'
-                    },
-                    {
-                      key: 'check-import',
-                      label: '批量导入细则'
-                    },
-                    {
-                      key: 'check-open-grade',
-                      label: '全部开启打分'
-                    },
-                    {
-                      key: 'check-close-grade',
-                      label: '全部关闭打分'
-                    },
-                    {
-                      key: 'check-remove',
-                      label: '删除规则'
-                    }
-                  ]
-                },
-                {
-                  key: 'rule',
-                  label: '细则管理',
-                  children: [
-                    {
-                      key: 'rule-add',
-                      label: '新建细则'
-                    },
-                    {
-                      key: 'rule-update',
-                      label: '修改规则'
-                    },
-                    {
-                      key: 'rule-remove',
-                      label: '删除规则'
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              key: 'appraisal-basic-data',
-              label: '基础数据'
-            },
-            {
-              key: 'hospital',
-              label: '金额列表'
-            },
-            {
-              key: 'score',
-              label: '推荐工分值'
-            }
-          ]
-        },
-        {
-          key: 'profile',
-          label: '个人档案'
-        },
-        {
-          key: 'etl-hospital',
-          label: '机构同步'
-        }
-      ]
+      permissionsList: []
     };
+  },
+  created() {
+    this.permissionsList = PermissionTree.filter(it => {
+      if (it.children) {
+        it.children = it.children.filter(item => {
+          return this.$settings.permissions.includes(item.key);
+        });
+        return it.children.length;
+      } else {
+        return this.$settings.permissions.includes(it.key);
+      }
+    });
   },
   computed: {
     tableData() {
