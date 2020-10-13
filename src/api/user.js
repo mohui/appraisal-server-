@@ -247,7 +247,11 @@ export default class User {
     const role = await RoleModel.findOne({where: {name}});
     if (role) throw new KatoCommonError('该角色已存在');
     //角色新增操作
-    return await RoleModel.create({name, permissions});
+    return RoleModel.create({
+      name,
+      permissions,
+      creator: Context.current.user.id
+    });
   }
 
   @validate(
