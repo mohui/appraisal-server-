@@ -108,6 +108,22 @@
           </el-card>
         </el-col>
         <div v-if="params.listFlag === 'quality'">
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.faceCollectSeverData.updating"
+            >
+              <div class="score-detail">
+                <p class="second-title" style="margin:0; text-align:left;">
+                  人脸采集信息
+                </p>
+                <twoCardPie
+                  :pie-data="faceCollectData"
+                  :color="['#409EFF', '#96c9ff']"
+                ></twoCardPie>
+              </div>
+            </el-card>
+          </el-col>
           <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
             <el-card
               shadow="hover"
@@ -122,22 +138,6 @@
                   lineText="%"
                   :listFlag="params.listFlag"
                 ></line-chart>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.faceCollectSeverData.updating"
-            >
-              <div class="score-detail">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  人脸采集信息
-                </p>
-                <twoCardPie
-                  :pie-data="faceCollectData"
-                  :color="['#409EFF', '#96c9ff']"
-                ></twoCardPie>
               </div>
             </el-card>
           </el-col>
