@@ -8,7 +8,7 @@ import {
   UserModel,
   UserRoleModel
 } from '../database/model';
-import {Op} from 'sequelize';
+import {Op, QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
@@ -48,7 +48,34 @@ export default class User {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
     let whereOption = {};
-    whereOption['region'] = {[Op.like]: `${Context.current.user.regionId}%`};
+
+    //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
+    if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
+      //递归查询用户所属地区的所有下属地区
+      const childrenCode = (
+        await appDB.query(
+          `
+            with recursive r as (
+                select * from region
+                where code='${Context.current.user.regionId}'
+                union all
+                select region.*
+                from region,
+                    r
+                where r.code = region.parent
+            )
+            select code
+            from r where code!='${Context.current.user.regionId}';
+          `,
+          {
+            replacements: params,
+            type: QueryTypes.SELECT
+          }
+        )
+      ).map(it => it.code);
+      //添加权限方面的查询条件
+      whereOption['region'] = {[Op.in]: childrenCode};
+    }
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
     if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
