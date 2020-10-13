@@ -131,12 +131,16 @@
           min-width="160"
           v-if="
             $settings.permissions.includes(permission.USER_UPDATE) ||
-              $settings.permissions.includes(permission.USER_REMOVE)
+              $settings.permissions.includes(permission.USER_REMOVE) ||
+              $settings.permissions.includes(permission.SUPER_ADMIN)
           "
         >
           <template slot-scope="scope">
             <el-button
-              v-if="$settings.permissions.includes(permission.USER_UPDATE)"
+              v-if="
+                $settings.permissions.includes(permission.USER_UPDATE) ||
+                  $settings.permissions.includes(permission.SUPER_ADMIN)
+              "
               type="primary"
               size="mini"
               @click="editUser(scope)"
@@ -144,6 +148,10 @@
               修改
             </el-button>
             <el-button
+              v-if="
+                $settings.permissions.includes(permission.USER_REMOVE) ||
+                  $settings.permissions.includes(permission.SUPER_ADMIN)
+              "
               v-permission="{
                 permission: permission.USER_REMOVE,
                 type: 'disabled'
