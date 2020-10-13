@@ -21,6 +21,7 @@ import {CheckConstraintMigration} from './018_check_constraint';
 import {RuleHospitalBudgetColumnMigration} from './019_rule_hospital_budget';
 import {WorkDifficultyMigration} from './020_work_difficulty';
 import {ReportHospitalHistoryMigration} from './021_report_hospital_history';
+import {RoleCreatorMigration} from './022_role_creator';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -45,5 +46,6 @@ export const migrations: IMigration[] = [
   new CheckConstraintMigration(),
   new RuleHospitalBudgetColumnMigration(),
   new WorkDifficultyMigration(),
-  new ReportHospitalHistoryMigration()
+  new ReportHospitalHistoryMigration(),
+  new RoleCreatorMigration()
 ];

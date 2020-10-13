@@ -26,6 +26,10 @@ export class Role extends Model<Role> {
   @Column(DataType.STRING)
   name: string;
 
+  @Comment('创建者id')
+  @Column(DataType.UUID)
+  creator;
+
   @BelongsToMany(
     () => User,
     () => UserRole
