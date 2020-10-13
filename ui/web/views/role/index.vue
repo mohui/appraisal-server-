@@ -209,16 +209,8 @@ export default {
     };
   },
   created() {
-    this.permissionsList = PermissionTree.filter(it => {
-      if (it.children) {
-        it.children = it.children.filter(item => {
-          return this.$settings.permissions.includes(item.key);
-        });
-        return it.children.length;
-      } else {
-        return this.$settings.permissions.includes(it.key);
-      }
-    });
+    this.permissionsList = PermissionTree;
+    this.filterPermission(this.permissionsList);
   },
   computed: {
     tableData() {
@@ -258,6 +250,15 @@ export default {
     }
   },
   methods: {
+    filterPermission(arr) {
+      for (let a of arr) {
+        if (!a.children) {
+          if (!this.$settings.permissions.includes(a.key)) {
+            arr.splice(arr.indexOf(a), 1);
+          }
+        } else this.filterPermission(a.children);
+      }
+    },
     deepClone(source) {
       if (!source && typeof source !== 'object') {
         throw new Error('error arguments', 'deepClone');
