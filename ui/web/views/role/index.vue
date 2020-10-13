@@ -59,10 +59,21 @@
         </el-table-column>
         <el-table-column align="center" width="250" label="操作">
           <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="handleEdit(scope)"
+            <el-button
+              :disabled="
+                !$settings.permissions.includes(permission.SUPER_ADMIN) &&
+                  scope.row.creator !== $settings.user.id
+              "
+              type="primary"
+              size="mini"
+              @click="handleEdit(scope)"
               >编辑
             </el-button>
             <el-button
+              :disabled="
+                !$settings.permissions.includes(permission.SUPER_ADMIN) &&
+                  scope.row.creator !== $settings.user.id
+              "
               type="danger"
               size="mini"
               @click="handleDelete(scope.row.id)"
@@ -160,7 +171,7 @@
 </template>
 
 <script>
-import {PermissionTree} from '../../../../common/permission.ts';
+import {PermissionTree, Permission} from '../../../../common/permission.ts';
 
 const defaultRole = {
   name: '',
@@ -178,6 +189,7 @@ export default {
   name: 'role',
   data() {
     return {
+      permission: Permission,
       role: Object.assign({}, defaultRole),
       dialogVisible: false,
       dialogPermissionsListTableViewVisible: false,
