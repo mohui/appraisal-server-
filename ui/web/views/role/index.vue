@@ -209,8 +209,8 @@ export default {
     };
   },
   created() {
-    this.permissionsList = PermissionTree;
-    this.filterPermission(this.permissionsList);
+    this.filterPermission(this.permissionsList, PermissionTree);
+    this.filterEmpty(this.permissionsList);
   },
   computed: {
     tableData() {
@@ -250,13 +250,29 @@ export default {
     }
   },
   methods: {
-    filterPermission(arr) {
-      for (let a of arr) {
+    //arr:需要组装的数据, tree:需要进行过滤的数据
+    filterPermission(arr, tree) {
+      //遍历树的节点
+      for (let a of tree) {
         if (!a.children) {
-          if (!this.$settings.permissions.includes(a.key)) {
-            arr.splice(arr.indexOf(a), 1);
-          }
-        } else this.filterPermission(a.children);
+          //当前树节点没有子节点了,则判断用户是否有该节点的权限
+          if (this.$settings.permissions.includes(a.key))
+            //有权限则push进组装数据的children[]
+            arr.push(a);
+        } else {
+          //当前树节点还有子节点,则往组装数据添加一个新节点
+          let newTree = {key: a.key, label: a.label, children: []};
+          arr.push(newTree);
+          //递归子节点
+          this.filterPermission(newTree.children, a.children);
+        }
+      }
+    },
+    //递归清理children为空的父节点
+    filterEmpty(data) {
+      for (let d of data) {
+        if (d?.children?.length === 0) data.splice(data.indexOf(d), 1);
+        else if (d.children) this.filterEmpty(d.children);
       }
     },
     deepClone(source) {
