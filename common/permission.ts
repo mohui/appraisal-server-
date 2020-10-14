@@ -44,10 +44,6 @@ export const PermissionDetail = [
     name: '推荐工分值'
   },
   {
-    key: 'check-index',
-    name: '规则管理'
-  },
-  {
     key: 'check-add',
     name: '新建规则'
   },
@@ -78,10 +74,6 @@ export const PermissionDetail = [
   {
     key: 'check-remove',
     name: '删除规则'
-  },
-  {
-    key: 'rule-index',
-    name: '细则管理'
   },
   {
     key: 'rule-add',
@@ -125,7 +117,6 @@ export const Permission = {
   APPRAISAL_BASIC_DATA: 'appraisal-basic-data',
   HOSPITAL: 'hospital',
   SCORE: 'score',
-  CHECK_INDEX: 'check-index',
   CHECK_ADD: 'check-add',
   CHECK_UPDATE: 'check-update',
   CHECK_SELECT_HOSPITAL: 'check-select-hospital',
@@ -134,7 +125,6 @@ export const Permission = {
   CHECK_OPEN_GRADE: 'check-open-grade',
   CHECK_CLOSE_GRADE: 'check-close-grade',
   CHECK_REMOVE: 'check-remove',
-  RULE_INDEX: 'rule-index',
   RULE_ADD: 'rule-add',
   RULE_UPDATE: 'rule-update',
   RULE_REMOVE: 'rule-remove',
@@ -199,7 +189,7 @@ export const PermissionTree = [
             label: '管理所有考核'
           },
           {
-            key: Permission.CHECK_INDEX,
+            key: 'check-index',
             label: '规则管理',
             children: [
               {
@@ -237,7 +227,7 @@ export const PermissionTree = [
             ]
           },
           {
-            key: Permission.RULE_INDEX,
+            key: 'rule-index',
             label: '细则管理',
             children: [
               {
