@@ -147,6 +147,7 @@
               :props="defaultProps"
               show-checkbox
               node-key="key"
+              @check="handleCheck"
             />
           </el-form-item>
           <el-form-item>
@@ -204,7 +205,8 @@ export default {
       rules: {
         name: [{required: true, message: '请输入角色名称', trigger: 'blur'}]
       },
-      permissionsList: []
+      permissionsList: [],
+      dimensionReductionPermissionsList: []
     };
   },
   created() {
@@ -212,7 +214,12 @@ export default {
     if (!this.$settings.permissions.includes(Permission.SUPER_ADMIN)) {
       this.filterPermission(this.permissionsList, PermissionTree);
       this.filterEmpty(this.permissionsList);
-    } else this.permissionsList = PermissionTree;
+    } else {
+      this.permissionsList = PermissionTree;
+      //"超级管理"权限有一键勾选所有权限的操作
+      //平铺树形数据的所有叶子节点
+      this.dimensionReductionTree(PermissionTree);
+    }
   },
   computed: {
     tableData() {
@@ -252,6 +259,18 @@ export default {
     }
   },
   methods: {
+    //降维：树形数据平铺
+    dimensionReductionTree(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        // 递归判断children数组存不存在, 存在的话就递归处理
+        if (arr[i].children) {
+          this.dimensionReductionTree(arr[i].children);
+        } else {
+          //只添加叶子节点
+          this.dimensionReductionPermissionsList.push(arr[i]);
+        }
+      }
+    },
     //arr:需要组装的数据, tree:需要进行过滤的数据
     filterPermission(arr, tree) {
       //遍历树的节点
@@ -276,6 +295,51 @@ export default {
         if (d?.children?.length === 0) data.splice(data.indexOf(d), 1);
         else if (d.children) this.filterEmpty(d.children);
       }
+    },
+    //tree组件：复选框被点击的时候触发
+    handleCheck(data, checked) {
+      if (!this.$settings.permissions.includes(this.permission.SUPER_ADMIN))
+        return;
+      if (data.key === this.permission.SUPER_ADMIN) {
+        if (checked.checkedKeys.includes(this.permission.SUPER_ADMIN)) {
+          this.$refs.tree.setCheckedNodes(
+            this.dimensionReductionPermissionsList
+          );
+        } else {
+          this.$refs.tree.setCheckedNodes([]);
+        }
+      } else {
+        console.log(
+          'dimensionReductionPermissionsList',
+          this.dimensionReductionPermissionsList
+        );
+        console.log('checked.checkedKeys', checked.checkedKeys);
+        if (
+          this.isContain(
+            checked.checkedKeys,
+            this.dimensionReductionPermissionsList
+          )
+        ) {
+          console.log('true');
+          this.$refs.tree.setChecked(this.permission.SUPER_ADMIN, true);
+        } else {
+          console.log('false');
+          this.$refs.tree.setChecked(this.permission.SUPER_ADMIN, false);
+        }
+      }
+    },
+    //arr1包含arr2判断
+    isContain(arr1, arr2) {
+      for (let i = arr2.length - 1; i >= 0; i--) {
+        if (
+          //super-admin除外，特殊处理
+          arr2[i].key !== this.permission.SUPER_ADMIN &&
+          !arr1.includes(arr2[i].key)
+        ) {
+          return false;
+        }
+      }
+      return true;
     },
     deepClone(source) {
       if (!source && typeof source !== 'object') {
@@ -304,7 +368,18 @@ export default {
       this.dialogVisible = true;
       this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
-        this.$refs.tree.setCheckedNodes(scope.row.permissions);
+        console.log(scope.row.permissions);
+        if (
+          scope.row.permissions.some(
+            it => it.key === this.permission.SUPER_ADMIN
+          )
+        ) {
+          this.$refs.tree.setCheckedNodes(
+            this.dimensionReductionPermissionsList
+          );
+        } else {
+          this.$refs.tree.setCheckedNodes(scope.row.permissions);
+        }
         // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
       });
@@ -341,7 +416,10 @@ export default {
         const isEdit = this.dialogType === 'edit';
         this.submitting = true;
         //被选中的节点的 key 所组成的数组
-        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        let permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        if (permissionsKey.includes(this.permission.SUPER_ADMIN)) {
+          permissionsKey = [this.permission.SUPER_ADMIN];
+        }
         try {
           if (isEdit) {
             //更新角色
