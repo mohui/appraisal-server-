@@ -136,7 +136,7 @@ export const Permission = {
 export const PermissionTree = [
   {
     key: Permission.SUPER_ADMIN,
-    label: '超级管理员'
+    label: '超级管理'
   },
   {
     key: Permission.HOME,
