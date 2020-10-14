@@ -109,7 +109,7 @@ export const PermissionDetail = [
   },
   {
     key: 'super-admin',
-    name: '超级管理员'
+    name: '超级管理'
   }
 ];
 
