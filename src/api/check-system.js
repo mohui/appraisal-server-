@@ -428,8 +428,12 @@ export default class CheckSystem {
     const {pageSize = 20, pageNo = 1, checkId} = params || {};
     let whereOptions = {};
 
-    //if没有"管理所有考核"的权限,则仅能看当前用户创建的
-    if (!Context.current.user.permissions.some(p => p === Permission.ALL_CHECK))
+    //if没有"管理所有考核"或者"超级管理员"的权限,则仅能看当前用户创建的
+    if (
+      !Context.current.user.permissions.some(
+        p => p === Permission.ALL_CHECK || p === Permission.SUPER_ADMIN
+      )
+    )
       whereOptions['create_by'] = Context.current.user.id;
 
     if (checkId) whereOptions['checkId'] = checkId;

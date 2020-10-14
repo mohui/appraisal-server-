@@ -72,6 +72,7 @@ export default class Region {
   //通过code查询下一级行政区域
   @validate(should.string().allow(null))
   async list(code) {
+    if (!code) code = Context.current.user.regionId;
     return await RegionModel.findAll({
       paranoid: false,
       attributes: {exclude: ['deleted_at']},

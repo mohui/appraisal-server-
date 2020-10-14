@@ -59,15 +59,25 @@
         </el-table-column>
         <el-table-column align="center" width="250" label="操作">
           <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="handleEdit(scope)"
-              >编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="mini"
-              @click="handleDelete(scope.row.id)"
-              >删除
-            </el-button>
+            <div
+              v-if="
+                $settings.permissions.includes(permission.SUPER_ADMIN) ||
+                  scope.row.creator === $settings.user.id
+              "
+            >
+              <el-button type="primary" size="mini" @click="handleEdit(scope)"
+                >编辑
+              </el-button>
+              <el-button
+                type="danger"
+                size="mini"
+                @click="handleDelete(scope.row.id)"
+                >删除
+              </el-button>
+            </div>
+            <div v-else style="color: #e6a23c">
+              无权限
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -137,6 +147,7 @@
               :props="defaultProps"
               show-checkbox
               node-key="key"
+              @check="handleCheck"
             />
           </el-form-item>
           <el-form-item>
@@ -160,6 +171,8 @@
 </template>
 
 <script>
+import {PermissionTree, Permission} from '../../../../common/permission.ts';
+
 const defaultRole = {
   name: '',
   description: '',
@@ -176,6 +189,7 @@ export default {
   name: 'role',
   data() {
     return {
+      permission: Permission,
       role: Object.assign({}, defaultRole),
       dialogVisible: false,
       dialogPermissionsListTableViewVisible: false,
@@ -191,139 +205,21 @@ export default {
       rules: {
         name: [{required: true, message: '请输入角色名称', trigger: 'blur'}]
       },
-      permissionsList: [
-        {
-          key: 'home',
-          label: '首页'
-        },
-        {
-          key: 'user-index',
-          label: '用户管理',
-          children: [
-            {
-              key: 'user-index',
-              label: '用户首页'
-            },
-            {
-              key: 'user-add',
-              label: '用户添加'
-            },
-            {
-              key: 'user-update',
-              label: '用户更新'
-            },
-            {
-              key: 'user-remove',
-              label: '用户删除'
-            }
-          ]
-        },
-        {
-          key: 'role-index',
-          label: '角色管理'
-        },
-        {
-          key: 'appraisal',
-          label: '绩效考核',
-          children: [
-            {
-              key: 'appraisal-result',
-              label: '考核结果'
-            },
-            {
-              key: 'appraisal-configuration-management-group',
-              label: '配置管理',
-              children: [
-                {
-                  key: 'appraisal-configuration-management',
-                  label: '配置管理首页'
-                },
-                {
-                  key: 'all-check',
-                  label: '管理所有考核'
-                },
-                {
-                  key: 'check',
-                  label: '规则管理',
-                  children: [
-                    {
-                      key: 'check-add',
-                      label: '新建规则'
-                    },
-                    {
-                      key: 'check-update',
-                      label: '修改规则'
-                    },
-                    {
-                      key: 'check-select-hospital',
-                      label: '配置机构'
-                    },
-                    {
-                      key: 'check-clone',
-                      label: '快速复制'
-                    },
-                    {
-                      key: 'check-import',
-                      label: '批量导入细则'
-                    },
-                    {
-                      key: 'check-open-grade',
-                      label: '全部开启打分'
-                    },
-                    {
-                      key: 'check-close-grade',
-                      label: '全部关闭打分'
-                    },
-                    {
-                      key: 'check-remove',
-                      label: '删除规则'
-                    }
-                  ]
-                },
-                {
-                  key: 'rule',
-                  label: '细则管理',
-                  children: [
-                    {
-                      key: 'rule-add',
-                      label: '新建细则'
-                    },
-                    {
-                      key: 'rule-update',
-                      label: '修改规则'
-                    },
-                    {
-                      key: 'rule-remove',
-                      label: '删除规则'
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              key: 'appraisal-basic-data',
-              label: '基础数据'
-            },
-            {
-              key: 'hospital',
-              label: '金额列表'
-            },
-            {
-              key: 'score',
-              label: '推荐工分值'
-            }
-          ]
-        },
-        {
-          key: 'profile',
-          label: '个人档案'
-        },
-        {
-          key: 'etl-hospital',
-          label: '机构同步'
-        }
-      ]
+      permissionsList: [],
+      dimensionReductionPermissionsList: []
     };
+  },
+  created() {
+    //如果没有"超级管理"权限则需要进行权限过滤
+    if (!this.$settings.permissions.includes(Permission.SUPER_ADMIN)) {
+      this.filterPermission(this.permissionsList, PermissionTree);
+      this.filterEmpty(this.permissionsList);
+    } else {
+      this.permissionsList = PermissionTree;
+      //"超级管理"权限有一键勾选所有权限的操作
+      //平铺树形数据的所有叶子节点
+      this.dimensionReductionTree(PermissionTree);
+    }
   },
   computed: {
     tableData() {
@@ -363,6 +259,78 @@ export default {
     }
   },
   methods: {
+    //降维：树形数据平铺
+    dimensionReductionTree(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        // 递归判断children数组存不存在, 存在的话就递归处理
+        if (arr[i].children) {
+          this.dimensionReductionTree(arr[i].children);
+        } else {
+          //只添加叶子节点
+          this.dimensionReductionPermissionsList.push(arr[i]);
+        }
+      }
+    },
+    //arr:需要组装的数据, tree:需要进行过滤的数据
+    filterPermission(arr, tree) {
+      //遍历树的节点
+      for (let a of tree) {
+        if (!a.children) {
+          //当前树节点没有子节点了,则判断用户是否有该节点的权限
+          if (this.$settings.permissions.includes(a.key))
+            //有权限则push进组装数据的children[]
+            arr.push(a);
+        } else {
+          //当前树节点还有子节点,则往组装数据添加一个新节点
+          let newTree = {key: a.key, label: a.label, children: []};
+          arr.push(newTree);
+          //递归子节点
+          this.filterPermission(newTree.children, a.children);
+        }
+      }
+    },
+    //递归清理children为空的父节点
+    filterEmpty(data) {
+      for (let d of data) {
+        if (d?.children?.length === 0) data.splice(data.indexOf(d), 1);
+        else if (d.children) this.filterEmpty(d.children);
+      }
+    },
+    //tree组件：复选框被点击的时候触发
+    handleCheck(data, checked) {
+      if (!this.$settings.permissions.includes(this.permission.SUPER_ADMIN))
+        return;
+      if (data.key === this.permission.SUPER_ADMIN) {
+        if (checked.checkedKeys.includes(this.permission.SUPER_ADMIN)) {
+          this.$refs.tree.setCheckedNodes(
+            this.dimensionReductionPermissionsList
+          );
+        } else {
+          this.$refs.tree.setCheckedNodes([]);
+        }
+      } else {
+        this.$refs.tree.setChecked(
+          this.permission.SUPER_ADMIN,
+          this.isContain(
+            checked.checkedKeys,
+            this.dimensionReductionPermissionsList
+          )
+        );
+      }
+    },
+    //arr1包含arr2判断
+    isContain(arr1, arr2) {
+      for (let i = arr2.length - 1; i >= 0; i--) {
+        if (
+          //super-admin除外，特殊处理
+          arr2[i].key !== this.permission.SUPER_ADMIN &&
+          !arr1.includes(arr2[i].key)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    },
     deepClone(source) {
       if (!source && typeof source !== 'object') {
         throw new Error('error arguments', 'deepClone');
@@ -390,7 +358,18 @@ export default {
       this.dialogVisible = true;
       this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
-        this.$refs.tree.setCheckedNodes(scope.row.permissions);
+        //包含"超级权限"，则为满权限
+        if (
+          scope.row.permissions.some(
+            it => it.key === this.permission.SUPER_ADMIN
+          )
+        ) {
+          this.$refs.tree.setCheckedNodes(
+            this.dimensionReductionPermissionsList
+          );
+        } else {
+          this.$refs.tree.setCheckedNodes(scope.row.permissions);
+        }
         // set checked state of a node not affects its father and child nodes
         this.checkStrictly = false;
       });
@@ -419,7 +398,6 @@ export default {
         });
     },
     async submitForm(formName) {
-      console.log(formName);
       try {
         //校验表单是否通过
         await this.$refs[formName].validate();
@@ -427,7 +405,10 @@ export default {
         const isEdit = this.dialogType === 'edit';
         this.submitting = true;
         //被选中的节点的 key 所组成的数组
-        const permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        let permissionsKey = this.$refs.tree.getCheckedKeys(true);
+        if (permissionsKey.includes(this.permission.SUPER_ADMIN)) {
+          permissionsKey = [this.permission.SUPER_ADMIN];
+        }
         try {
           if (isEdit) {
             //更新角色

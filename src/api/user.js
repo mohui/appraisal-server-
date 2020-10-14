@@ -8,8 +8,8 @@ import {
   UserModel,
   UserRoleModel
 } from '../database/model';
-import {Op} from 'sequelize';
-import {getPermission} from '../../common/permission';
+import {Op, QueryTypes} from 'sequelize';
+import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
 export default class User {
@@ -48,6 +48,34 @@ export default class User {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
     let whereOption = {};
+
+    //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
+    if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
+      //递归查询用户所属地区的所有下属地区
+      const childrenCode = (
+        await appDB.query(
+          `
+            with recursive r as (
+                select * from region
+                where code='${Context.current.user.regionId}'
+                union all
+                select region.*
+                from region,
+                    r
+                where r.code = region.parent
+            )
+            select code
+            from r where code!='${Context.current.user.regionId}';
+          `,
+          {
+            replacements: params,
+            type: QueryTypes.SELECT
+          }
+        )
+      ).map(it => it.code);
+      //添加权限方面的查询条件
+      whereOption['region'] = {[Op.in]: childrenCode};
+    }
     if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
     if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
@@ -219,7 +247,11 @@ export default class User {
     const role = await RoleModel.findOne({where: {name}});
     if (role) throw new KatoCommonError('该角色已存在');
     //角色新增操作
-    return await RoleModel.create({name, permissions});
+    return RoleModel.create({
+      name,
+      permissions,
+      creator: Context.current.user.id
+    });
   }
 
   @validate(
@@ -244,11 +276,20 @@ export default class User {
         }
       ]
     });
-    result.rows = result.rows.map(it => ({
-      ...it.toJSON(),
-      permissions: it.permissions.map(key => getPermission(key))
-    }));
-    return result;
+    result.rows = result.rows
+      .map(it => ({
+        ...it.toJSON(),
+        permissions: it.permissions.map(key => getPermission(key))
+      }))
+      .filter(
+        //过滤掉当前用户没有权限的角色
+        it =>
+          Context.current.user.permissions.includes(Permission.SUPER_ADMIN) ||
+          !it.permissions.some(
+            p => !Context.current.user.permissions.includes(p.key)
+          )
+      );
+    return {rows: result.rows, count: result.rows.length};
   }
 
   @validate(should.string().required(), should.string().required())
