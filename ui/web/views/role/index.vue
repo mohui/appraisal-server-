@@ -59,26 +59,25 @@
         </el-table-column>
         <el-table-column align="center" width="250" label="操作">
           <template slot-scope="scope">
-            <el-button
-              :disabled="
-                !$settings.permissions.includes(permission.SUPER_ADMIN) &&
-                  scope.row.creator !== $settings.user.id
+            <div
+              v-if="
+                $settings.permissions.includes(permission.SUPER_ADMIN) ||
+                  scope.row.creator === $settings.user.id
               "
-              type="primary"
-              size="mini"
-              @click="handleEdit(scope)"
-              >编辑
-            </el-button>
-            <el-button
-              :disabled="
-                !$settings.permissions.includes(permission.SUPER_ADMIN) &&
-                  scope.row.creator !== $settings.user.id
-              "
-              type="danger"
-              size="mini"
-              @click="handleDelete(scope.row.id)"
-              >删除
-            </el-button>
+            >
+              <el-button type="primary" size="mini" @click="handleEdit(scope)"
+                >编辑
+              </el-button>
+              <el-button
+                type="danger"
+                size="mini"
+                @click="handleDelete(scope.row.id)"
+                >删除
+              </el-button>
+            </div>
+            <div v-else style="color: #e6a23c">
+              无权限
+            </div>
           </template>
         </el-table-column>
       </el-table>
