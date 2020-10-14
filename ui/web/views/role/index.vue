@@ -209,8 +209,11 @@ export default {
     };
   },
   created() {
-    this.filterPermission(this.permissionsList, PermissionTree);
-    this.filterEmpty(this.permissionsList);
+    //如果没有"超级管理"权限则需要进行权限过滤
+    if (!this.$settings.permissions.includes(Permission.SUPER_ADMIN)) {
+      this.filterPermission(this.permissionsList, PermissionTree);
+      this.filterEmpty(this.permissionsList);
+    } else this.permissionsList = PermissionTree;
   },
   computed: {
     tableData() {
