@@ -309,23 +309,13 @@ export default {
           this.$refs.tree.setCheckedNodes([]);
         }
       } else {
-        console.log(
-          'dimensionReductionPermissionsList',
-          this.dimensionReductionPermissionsList
-        );
-        console.log('checked.checkedKeys', checked.checkedKeys);
-        if (
+        this.$refs.tree.setChecked(
+          this.permission.SUPER_ADMIN,
           this.isContain(
             checked.checkedKeys,
             this.dimensionReductionPermissionsList
           )
-        ) {
-          console.log('true');
-          this.$refs.tree.setChecked(this.permission.SUPER_ADMIN, true);
-        } else {
-          console.log('false');
-          this.$refs.tree.setChecked(this.permission.SUPER_ADMIN, false);
-        }
+        );
       }
     },
     //arr1包含arr2判断
@@ -368,7 +358,7 @@ export default {
       this.dialogVisible = true;
       this.role = this.deepClone(scope.row);
       this.$nextTick(() => {
-        console.log(scope.row.permissions);
+        //包含"超级权限"，则为满权限
         if (
           scope.row.permissions.some(
             it => it.key === this.permission.SUPER_ADMIN
@@ -408,7 +398,6 @@ export default {
         });
     },
     async submitForm(formName) {
-      console.log(formName);
       try {
         //校验表单是否通过
         await this.$refs[formName].validate();
