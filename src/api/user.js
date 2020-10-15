@@ -102,10 +102,18 @@ export default class User {
         {model: HospitalModel, through: {attributes: []}}
       ]
     });
-    result.rows = result.rows.map(it => ({
-      ...it.toJSON(),
-      hospital: it.hospitals[0]
-    }));
+    result.rows = await Promise.all(
+      result.rows.map(async it => ({
+        ...it.toJSON(),
+        hospital: it.hospitals[0],
+        creatorName: it.creatorId
+          ? (await UserModel.findOne({where: {id: it.creatorId}}))?.name || ''
+          : '',
+        editorName: it.editorId
+          ? (await UserModel.findOne({where: {id: it.editorId}}))?.name || ''
+          : ''
+      }))
+    );
     return result;
   }
 
