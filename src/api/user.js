@@ -148,7 +148,13 @@ export default class User {
       //查询该账户是否存在
       const result = await UserModel.findOne({where: {account: user.account}});
       if (result) throw new KatoCommonError('该账户已存在');
-      const newUser = await UserModel.create(user);
+      //操作者id
+      const currentId = Context.current.user.id;
+      const newUser = await UserModel.create({
+        ...user,
+        creatorId: currentId,
+        editorId: currentId
+      });
       //绑定角色关系
       const roleUser = user.roles.map(roleId => ({
         userId: newUser.id,
@@ -201,7 +207,10 @@ export default class User {
           .map(roleId => ({userId: user.id, roleId: roleId}))
       );
       //修改操作
-      await UserModel.update(user, {where: {id: user.id}});
+      await UserModel.update(
+        {...user, editorId: Context.current.user.id},
+        {where: {id: user.id}}
+      );
     });
   }
 
