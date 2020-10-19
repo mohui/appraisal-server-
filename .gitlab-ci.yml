@@ -62,3 +62,22 @@ dev_deploy:
     - docker_build
   only:
     - master
+
+prod_deploy:
+  stage: deploy
+  tags:
+    - knrt
+    - docker
+  image: docker:git
+  script:
+    - mkdir -p ~/.ssh
+    - echo "$REVIEW_SSH_ID_RSA" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker pull $IMAGE_NAME"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server || true && docker rm appraisal-server || true"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server -p 3201:3000 -v /data/etc/appraisal-server/prod.js:/home/node/app/config/production.js $IMAGE_NAME"
+  dependencies:
+    - docker_build
+  only:
+    - tags
