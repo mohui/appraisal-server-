@@ -6,11 +6,107 @@ import {
   RoleModel,
   UserHospitalModel,
   UserModel,
-  UserRoleModel
-} from '../database/model';
+  UserRoleModel,
+  sql as sqlRender
+} from '../database';
 import {Op, QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
+
+function countUserRender(params) {
+  return sqlRender(
+    `
+    SELECT count(DISTINCT ("User"."id")) AS "count"
+        FROM "user" AS "User"
+         LEFT OUTER JOIN ( "user_role_mapping" AS "roles->UserRole" INNER JOIN "role" AS "roles" ON "roles"."id" = "roles->UserRole"."role_id")
+                         ON "User"."id" = "roles->UserRole"."user_id"
+         LEFT OUTER JOIN "user" AS "editor" ON "User"."editor" = "editor"."id"
+         INNER JOIN "region" AS "region" ON "User"."region" = "region"."code"
+         LEFT OUTER JOIN ( "user_hospital_mapping" AS "hospitals->UserHospital" INNER JOIN "hospital" AS "hospitals" ON "hospitals"."id" = "hospitals->UserHospital"."hospital_id")
+                         ON "User"."id" = "hospitals->UserHospital"."user_id"
+         WHERE true
+        {{#if regions}}
+            AND "User"."region" IN
+            ({{#each regions}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{/if}}
+        {{#if account}}
+            AND "User"."account" LIKE {{? account}}
+        {{/if}}
+        {{#if name}}
+            AND "User"."name" LIKE {{? name}}
+        {{/if}}
+        {{#if roleUsers}}
+        --某个角色的所有用户id
+            AND "User"."id" IN ({{#each roleUsers}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{/if}}
+     `,
+    params
+  );
+}
+
+function userListRender(params) {
+  return sqlRender(
+    `
+    SELECT "User".*,
+       "roles"."id"                            AS "roles.id",
+       "roles"."name"                          AS "roles.name",
+       "roles"."creator"                       AS "roles.creator",
+       "roles"."permissions"                   AS "roles.permissions",
+       "editor"."name"                         AS "editorName",
+       "creator"."name"                        AS "creatorName",
+       "hospitals"."id"                        AS "hospitals.id",
+       "hospitals"."name"                      AS "hospitals.name",
+       "hospitals"."parent"                    AS "hospitals.parent",
+       "hospitals"."region"                    AS "hospitals.regionId",
+       "uhm"."user_id"     AS "hospitals.UserHospital.userId",
+       "uhm"."hospital_id" AS "hospitals.UserHospital.hospitalId"
+    FROM (
+        SELECT "User"."id",
+             "User"."account",
+             "User"."name",
+             "User"."password",
+             "User"."region"       AS "regionId",
+             "User"."creator"      AS "creatorId",
+             "User"."editor"       AS "editorId",
+             "User"."created_at",
+             "User"."updated_at",
+             "region"."code"       AS "region.code",
+             "region"."name"       AS "region.name",
+             "region"."level"      AS "region.level",
+             "region"."parent"     AS "region.parent",
+             "region"."budget"     AS "region.budget",
+             "region"."created_at" AS "region.created_at",
+             "region"."updated_at" AS "region.updated_at"
+        FROM "user" AS "User"
+               INNER JOIN "region" AS "region" ON "User"."region" = "region"."code"
+        WHERE true
+        {{#if regions}}
+            AND "User"."region" IN
+            ({{#each regions}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{/if}}
+        {{#if account}}
+            AND "User"."account" LIKE {{? account}}
+        {{/if}}
+        {{#if name}}
+            AND "User"."name" LIKE {{? name}}
+        {{/if}}
+        {{#if roleUsers}}
+        --某个角色的所有用户id
+            AND "User"."id" IN ({{#each roleUsers}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{/if}}
+      ORDER BY "User"."created_at" DESC
+      LIMIT {{? pageSize}} OFFSET {{? pageNo}}) AS "User"
+         LEFT OUTER JOIN ( "user_role_mapping" AS "ru" INNER JOIN "role" AS "roles" ON "roles"."id" = "ru"."role_id")
+                         ON "User"."id" = "ru"."user_id"
+         LEFT OUTER JOIN "user" AS "editor" ON "User"."editorId" = "editor"."id"
+         LEFT OUTER JOIN "user" AS "creator" ON "User"."creatorId" = "creator"."id"
+         LEFT OUTER JOIN ("user_hospital_mapping" AS "uhm" INNER JOIN "hospital" AS "hospitals" ON "hospitals"."id" = "uhm"."hospital_id")
+                         ON "User"."id" = "uhm"."user_id"
+      ORDER BY "User"."created_at" DESC
+     `,
+    params
+  );
+}
 
 export default class User {
   @validate(
@@ -45,9 +141,11 @@ export default class User {
       .allow(null)
   )
   async list(params) {
-    const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
+    const {pageNo = 0, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
     let whereOption = {};
+
+    let sqlParams = {pageSize, pageNo};
 
     //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
@@ -75,46 +173,42 @@ export default class User {
       ).map(it => it.code);
       //添加权限方面的查询条件
       whereOption['region'] = {[Op.in]: childrenCode};
+      //sql
+      sqlParams['regions'] = childrenCode;
     }
-    if (account) whereOption['account'] = {[Op.like]: `%${account}%`};
-    if (name) whereOption['name'] = {[Op.like]: `%${name}%`};
+    if (account) sqlParams['account'] = `%${account}%`;
+    // whereOption['account'] = {[Op.like]: `%${account}%`};
+    if (name) sqlParams['name'] = `%${name}%`;
+    // whereOption['name'] = {[Op.like]: `%${name}%`};
+
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
     if (roleId)
-      //构成条件
-      whereOption['id'] = {
-        [Op.in]: await UserRoleModel.findAll({where: {roleId}}).map(
-          r => r.userId
-        )
-      };
-    let result = await UserModel.findAndCountAll({
-      where: whereOption,
-      distinct: true,
-      offset: (pageNo - 1) * pageSize,
-      limit: pageSize,
-      order: [['created_at', 'DESC']],
-      include: [
-        {
-          model: RoleModel,
-          through: {attributes: []},
-          required: false
-        },
-        {model: RegionModel, required: true},
-        {model: HospitalModel, through: {attributes: []}}
-      ]
+      sqlParams['roleUsers'] = await UserRoleModel.findAll({
+        where: {roleId}
+      }).map(r => r.userId);
+    //构成条件
+    // whereOption['id'] = {
+    //   [Op.in]: await UserRoleModel.findAll({where: {roleId}}).map(
+    //     r => r.userId
+    //   )
+    // };
+
+    const sqlObject = userListRender(sqlParams);
+
+    let rows = (
+      await appDB.query(sqlObject[0], {
+        replacements: sqlObject[1],
+        type: QueryTypes.SELECT
+      })
+    ).map(it => {
+      return {...it, hospital: it['hospitals.id']};
     });
-    result.rows = await Promise.all(
-      result.rows.map(async it => ({
-        ...it.toJSON(),
-        hospital: it.hospitals[0],
-        creatorName: it.creatorId
-          ? (await UserModel.findOne({where: {id: it.creatorId}}))?.name || ''
-          : '',
-        editorName: it.editorId
-          ? (await UserModel.findOne({where: {id: it.editorId}}))?.name || ''
-          : ''
-      }))
-    );
-    return result;
+    const countObject = countUserRender(sqlParams);
+    const count = await appDB.query(countObject[0], {
+      replacements: countObject[1],
+      type: QueryTypes.SELECT
+    });
+    return {count: count[0].count, rows};
   }
 
   @validate(
