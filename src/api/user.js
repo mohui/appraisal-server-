@@ -48,16 +48,16 @@ function userListRender(params) {
   return sqlRender(
     `
     SELECT "User".*,
-       "roles"."id"                            AS "roles.id",
-       "roles"."name"                          AS "roles.name",
-       "roles"."creator"                       AS "roles.creator",
-       "roles"."permissions"                   AS "roles.permissions",
+       "roles"."id"                            AS "rolesId",
+       "roles"."name"                          AS "rolesName",
+       "roles"."creator"                       AS "rolesCreator",
+       "roles"."permissions"                   AS "rolesPermissions",
        "editor"."name"                         AS "editorName",
        "creator"."name"                        AS "creatorName",
-       "hospitals"."id"                        AS "hospitals.id",
-       "hospitals"."name"                      AS "hospitals.name",
-       "hospitals"."parent"                    AS "hospitals.parent",
-       "hospitals"."region"                    AS "hospitals.regionId",
+       "hospitals"."id"                        AS "hospitalId",
+       "hospitals"."name"                      AS "hospitalName",
+       "hospitals"."parent"                    AS "hospitalParent",
+       "hospitals"."region"                    AS "hospitalRegionId",
        "uhm"."user_id"     AS "hospitals.UserHospital.userId",
        "uhm"."hospital_id" AS "hospitals.UserHospital.hospitalId"
     FROM (
@@ -70,15 +70,17 @@ function userListRender(params) {
              "User"."editor"       AS "editorId",
              "User"."created_at",
              "User"."updated_at",
-             "region"."code"       AS "region.code",
-             "region"."name"       AS "region.name",
-             "region"."level"      AS "region.level",
-             "region"."parent"     AS "region.parent",
-             "region"."budget"     AS "region.budget",
-             "region"."created_at" AS "region.created_at",
-             "region"."updated_at" AS "region.updated_at"
+              json_build_object(
+               'code', _region.code,
+               'name', _region.name,
+               'level', _region.level,
+               'parent', _region.parent,
+               'budget', _region.budget,
+               'created_at', _region.created_at,
+               'updated_at', _region.updated_at
+           ) AS "region"
         FROM "user" AS "User"
-               INNER JOIN "region" AS "region" ON "User"."region" = "region"."code"
+               INNER JOIN "region" AS "_region" ON "User"."region" = "_region"."code"
         WHERE true
         {{#if regions}}
             AND "User"."region" IN
@@ -195,20 +197,60 @@ export default class User {
 
     const sqlObject = userListRender(sqlParams);
 
-    let rows = (
+    const rows = (
       await appDB.query(sqlObject[0], {
         replacements: sqlObject[1],
         type: QueryTypes.SELECT
       })
-    ).map(it => {
-      return {...it, hospital: it['hospitals.id']};
-    });
+    )
+      .map(it => {
+        return {...it, hospital: it['hospitalId']};
+      })
+      .reduce((pre, next) => {
+        let current = pre.find(p => p.id === next.id);
+        if (current) {
+          current.roles.push({
+            id: next.rolesId,
+            name: next.rolesName,
+            creator: next.rolesCreator,
+            permissions: next.rolesPermissions
+          });
+        } else
+          pre.push({
+            id: next.id,
+            account: next.account,
+            name: next.name,
+            password: next.password,
+            regionId: next.regionId,
+            created_at: next.created_at,
+            updated_at: next.updated_at,
+            roles: [
+              {
+                id: next.rolesId,
+                name: next.rolesName,
+                creator: next.rolesCreator,
+                permissions: next.rolesPermissions
+              }
+            ],
+            region: next.region,
+            editorName: next.editorName,
+            creatorName: next.creatorName,
+            hospital: {
+              id: next.hospitalId,
+              name: next.hospitalName,
+              parent: next.hospitalParent,
+              region: next.hospitalRegionId
+            }
+          });
+        console.log(pre);
+        return pre;
+      }, []);
     const countObject = countUserRender(sqlParams);
     const count = await appDB.query(countObject[0], {
       replacements: countObject[1],
       type: QueryTypes.SELECT
     });
-    return {count: count[0].count, rows};
+    return {total: count[0].count, rows};
   }
 
   @validate(
