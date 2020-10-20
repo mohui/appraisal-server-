@@ -9,7 +9,7 @@ import {
   UserRoleModel,
   sql as sqlRender
 } from '../database';
-import {Op, QueryTypes} from 'sequelize';
+import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
@@ -143,11 +143,9 @@ export default class User {
       .allow(null)
   )
   async list(params) {
-    const {pageNo = 0, pageSize = 20, account = '', name = '', roleId = ''} =
+    const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
-    let whereOption = {};
-
-    let sqlParams = {pageSize, pageNo};
+    let sqlParams = {pageSize, pageNo: pageNo - 1};
 
     //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
@@ -174,27 +172,18 @@ export default class User {
         )
       ).map(it => it.code);
       //添加权限方面的查询条件
-      whereOption['region'] = {[Op.in]: childrenCode};
-      //sql
       sqlParams['regions'] = childrenCode;
     }
+    //构成条件
     if (account) sqlParams['account'] = `%${account}%`;
-    // whereOption['account'] = {[Op.like]: `%${account}%`};
     if (name) sqlParams['name'] = `%${name}%`;
-    // whereOption['name'] = {[Op.like]: `%${name}%`};
-
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
     if (roleId)
       sqlParams['roleUsers'] = await UserRoleModel.findAll({
         where: {roleId}
       }).map(r => r.userId);
-    //构成条件
-    // whereOption['id'] = {
-    //   [Op.in]: await UserRoleModel.findAll({where: {roleId}}).map(
-    //     r => r.userId
-    //   )
-    // };
 
+    //生成SQL语句和参数数组
     const sqlObject = userListRender(sqlParams);
 
     const rows = (
@@ -202,55 +191,62 @@ export default class User {
         replacements: sqlObject[1],
         type: QueryTypes.SELECT
       })
-    )
-      .map(it => {
-        return {...it, hospital: it['hospitalId']};
-      })
-      .reduce((pre, next) => {
-        let current = pre.find(p => p.id === next.id);
-        if (current) {
-          current.roles.push({
-            id: next.rolesId,
-            name: next.rolesName,
-            creator: next.rolesCreator,
-            permissions: next.rolesPermissions
-          });
-        } else
-          pre.push({
-            id: next.id,
-            account: next.account,
-            name: next.name,
-            password: next.password,
-            regionId: next.regionId,
-            created_at: next.created_at,
-            updated_at: next.updated_at,
-            roles: [
-              {
-                id: next.rolesId,
-                name: next.rolesName,
-                creator: next.rolesCreator,
-                permissions: next.rolesPermissions
-              }
-            ],
-            region: next.region,
-            editorName: next.editorName,
-            creatorName: next.creatorName,
-            hospital: {
-              id: next.hospitalId,
-              name: next.hospitalName,
-              parent: next.hospitalParent,
-              region: next.hospitalRegionId
+    ).reduce((pre, next) => {
+      let current = pre.find(p => p.id === next.id);
+      if (current) {
+        current.roles.push({
+          id: next.rolesId,
+          name: next.rolesName,
+          creator: next.rolesCreator,
+          permissions: next.rolesPermissions
+        });
+      } else
+        pre.push({
+          id: next.id,
+          account: next.account,
+          name: next.name,
+          password: next.password,
+          regionId: next.regionId,
+          created_at: next.created_at,
+          updated_at: next.updated_at,
+          roles: [
+            {
+              id: next.rolesId,
+              name: next.rolesName,
+              creator: next.rolesCreator,
+              permissions: next.rolesPermissions
             }
-          });
-        console.log(pre);
-        return pre;
-      }, []);
+          ],
+          region: next.region,
+          editorName: next.editorName,
+          creatorName: next.creatorName,
+          hospital: next.hospitalId
+            ? {
+                id: next.hospitalId,
+                name: next.hospitalName,
+                parent: next.hospitalParent,
+                region: next.hospitalRegionId
+              }
+            : undefined,
+          hospitals: next.hospitalId
+            ? [
+                {
+                  id: next.hospitalId,
+                  name: next.hospitalName,
+                  parent: next.hospitalParent,
+                  region: next.hospitalRegionId
+                }
+              ]
+            : []
+        });
+      return pre;
+    }, []);
     const countObject = countUserRender(sqlParams);
     const count = await appDB.query(countObject[0], {
       replacements: countObject[1],
       type: QueryTypes.SELECT
     });
-    return {total: count[0].count, rows};
+    return {count: Number(count[0].count), rows};
   }
 
   @validate(
