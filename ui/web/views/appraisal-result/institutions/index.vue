@@ -244,7 +244,10 @@
         <el-card
           v-loading="$asyncComputed.workpointRankServerData.updating"
           shadow="hover"
-          :style="{height: totalShowMore ? 'auto' : 300 + 'px'}"
+          :style="{
+            height: totalShowMore ? 'auto' : 300 + 'px',
+            minHeight: '300px'
+          }"
         >
           <h3 class="ins-ranking-title">
             机构排行（含一级机构及下属二级机构）
@@ -325,11 +328,7 @@
           </div>
         </el-card>
         <!--机构排行底部【收起】/【显示更多】按钮-->
-        <div
-          v-show="workpointRankData.length > 3"
-          class="show-more"
-          @click="totalShowMore = !totalShowMore"
-        >
+        <div class="show-more" @click="totalShowMore = !totalShowMore">
           {{ totalShowMore ? '收起' : '显示更多' }}
         </div>
         <!--一、二级机构排行-->
