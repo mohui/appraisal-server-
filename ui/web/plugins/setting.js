@@ -11,9 +11,10 @@ export const settingPlugin = {
       methods: {
         async load() {
           this.user = await this.$api.User.profile();
-          this.permissions = [
-            ...new Set(this.user.roles.map(it => it.permissions).flat())
-          ];
+          if (this.user)
+            this.permissions = [
+              ...new Set(this.user.roles.map(it => it.permissions).flat())
+            ];
         },
         //清理缓存
         clean() {

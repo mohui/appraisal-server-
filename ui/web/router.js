@@ -174,6 +174,11 @@ router.beforeEach(async (to, from, next) => {
   if (!Vue.prototype.$settings.user || !Vue.prototype.$settings.permissions)
     await Vue.prototype.$settings.load();
 
+  //没有该用户,则跳转登录页
+  if (!Vue.prototype.$settings.user) {
+    next('/login');
+    return;
+  }
   //当前用户角色拥有的权限
   const rolePermissions = Vue.prototype.$settings.user.permissions;
   //如果用户是超级管理员权限,则不需要进行权限判断
