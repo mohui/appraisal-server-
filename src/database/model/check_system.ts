@@ -49,4 +49,8 @@ export class CheckSystem extends Model<CheckSystem> {
   @Comment('备注')
   @Column
   remarks: string;
+
+  @Comment('考核类型：默认为1主考核类型')
+  @Column
+  checkType: number;
 }

@@ -28,13 +28,19 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名')
+        .description('考核系统名'),
+      checkType: should
+        .number()
+        .max(1)
+        .min(0)
+        .description('考核类型 0为临时考核规则 1为主考核规则')
     })
   )
   async add(params) {
-    const {checkName} = params;
+    const {checkName, checkType} = params;
     return CheckSystemModel.create({
       checkName,
+      checkType: checkType ?? 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id,
       checkYear: dayjs().year()
@@ -55,7 +61,12 @@ export default class CheckSystem {
       status: should
         .boolean()
         .required()
-        .description('状态值:true||false')
+        .description('状态值:true||false'),
+      checkType: should
+        .number()
+        .max(1)
+        .min(0)
+        .description('考核类型 0为临时考核规则 1为主考核规则')
     })
   )
   updateName(params) {
@@ -69,7 +80,8 @@ export default class CheckSystem {
         {
           checkName: params.checkName,
           update_by: Context.current.user.id,
-          status: params.status
+          status: params.status,
+          checkType: params.checkType ?? 1
         },
         {where: {checkId: params.checkId}}
       );
@@ -470,7 +482,7 @@ export default class CheckSystem {
         //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
         const autoTrue = !!ruleHospital.find(it => it.auto);
         const autoFalse = !!ruleHospital.find(it => !it.auto);
-        let auto;
+        let auto = 'no';
         if (autoFalse && autoTrue) auto = 'part';
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
