@@ -23,7 +23,7 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
-import {appDB} from '../app';
+import {appDB, govDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
@@ -66,28 +66,6 @@ function listRender(params) {
   );
 }
 
-function rankRender(params) {
-  return sqlRender(
-    `       select
-            cast(sum(vw.score) as int) as workPoint,
-            vh.h_id as "hospitalId",
-            vho.hospname as "name"
-            from view_workscoretotal vw
-                 left join hospital_mapping vh on vw.operateorganization = vh.hishospid
-                 left join view_hospital vho on vho.hospid = vh.hishospid
-            where
-                vho.regioncode like {{? code}}
-                 and
-                vw.projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-                 and
-                vw.missiontime >= {{? start}}
-                 and
-                vw.missiontime < {{? end}}
-        group by vh.h_id, vho.hospname`,
-    params
-  );
-}
-
 function projectWorkPointRender(params) {
   return sqlRender(
     `select
@@ -104,8 +82,8 @@ function projectWorkPointRender(params) {
   );
 }
 
-async function appQuery(sql, params) {
-  return appDB.query(sql, {
+async function govQuery(sql, params) {
+  return govDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
@@ -448,7 +426,7 @@ export default class Score {
     // language=PostgreSQL
     const workpoints =
       (
-        await appDB.query(
+        await govDB.query(
           `
             select sum(vws.score) as workpoints
             from view_workscoretotal vws
@@ -559,7 +537,7 @@ export default class Score {
             .toDate()
         });
         //所有机构的在这个小项的工分情况
-        allHospitalWorkPoint = await appQuery(sql[0], sql[1]);
+        allHospitalWorkPoint = await govQuery(sql[0], sql[1]);
         allHospitalWorkPoint = allHospitalWorkPoint.concat(
           //过滤出查询结果中工分为空的机构,给他们的工分值设置为0
           ids
@@ -1151,7 +1129,7 @@ export default class Score {
             .add(1, 'y')
             .toDate()
         });
-        let projectWorkPointList = await appQuery(sqlRender[0], sqlRender[1]);
+        let projectWorkPointList = await govQuery(sqlRender[0], sqlRender[1]);
         projectWorkPointList = projectWorkPointList.concat(
           //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
           projects
@@ -1274,7 +1252,7 @@ export default class Score {
     const region = await RegionModel.findOne({where: {code}});
     if (region) {
       faceData = (
-        await appDB.execute(
+        await govDB.execute(
           `select
             coalesce(sum(mk."S00"),0)::integer as "total",
             coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
@@ -1289,7 +1267,7 @@ export default class Score {
         //如果是一家机构
         if (hospital)
           faceData = (
-            await appDB.execute(
+            await govDB.execute(
               `select
                 coalesce(sum(mk."S00"),0)::integer as "total",
                 coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
