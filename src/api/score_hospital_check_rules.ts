@@ -171,9 +171,9 @@ export default class ScoreHospitalCheckRules {
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
         auto: true,
-        hospitalId: hospital.id,
-        checkId
-      }
+        hospitalId: hospital.id
+      },
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     // 循环所有考核细则
     for (const ruleModel of ruleModels) {
