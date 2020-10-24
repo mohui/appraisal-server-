@@ -33,21 +33,20 @@ module.exports = {
     logging: false,
     timezone: '+8:00'
   },
-  gov: {
+  original: {
     dialect: 'postgres',
     host: 'localhost',
     port: '123456',
     username: 'root',
     password: 'root',
     database: 'appraisal-dev',
-    dialectOptions: {
-      options: {
-        useUTC: false,
-        requestTimeout: 300000
-      }
+    define: {
+      underscored: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
     },
-    logging: false,
-    timezone: '+8:00'
+    timezone: '+8:00',
+    logging: false
   },
   oss: {
     accessKeyId: '',

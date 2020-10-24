@@ -8,7 +8,7 @@ import {Op, QueryTypes} from 'sequelize';
 import {RuleHospitalBudget} from '../database/model/rule-hospital-budget';
 import {Decimal} from 'decimal.js';
 import {sql as sqlRender} from '../database/template';
-import {govDB} from '../app';
+import {originalDB} from '../app';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 
@@ -62,7 +62,7 @@ function countWorkRender(params) {
   );
 }
 async function govQuery(sql, params) {
-  return govDB.query(sql, {
+  return originalDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });

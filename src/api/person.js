@@ -1,4 +1,4 @@
-import {govDB} from '../app';
+import {originalDB} from '../app';
 import {QueryTypes} from 'sequelize';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
@@ -8,7 +8,7 @@ import {HospitalModel} from '../database/model';
 import {Op} from 'sequelize';
 
 async function govQuery(sql, params) {
-  return govDB.query(sql, {
+  return originalDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });

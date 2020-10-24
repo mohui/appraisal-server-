@@ -23,7 +23,7 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
-import {appDB, govDB} from '../app';
+import {appDB, originalDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
@@ -83,7 +83,7 @@ function projectWorkPointRender(params) {
 }
 
 async function govQuery(sql, params) {
-  return govDB.query(sql, {
+  return originalDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
@@ -426,7 +426,7 @@ export default class Score {
     // language=PostgreSQL
     const workpoints =
       (
-        await govDB.query(
+        await originalDB.query(
           `
             select sum(vws.score) as workpoints
             from view_workscoretotal vws
@@ -1252,7 +1252,7 @@ export default class Score {
     const region = await RegionModel.findOne({where: {code}});
     if (region) {
       faceData = (
-        await govDB.execute(
+        await originalDB.execute(
           `select
             coalesce(sum(mk."S00"),0)::integer as "total",
             coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
@@ -1267,7 +1267,7 @@ export default class Score {
         //如果是一家机构
         if (hospital)
           faceData = (
-            await govDB.execute(
+            await originalDB.execute(
               `select
                 coalesce(sum(mk."S00"),0)::integer as "total",
                 coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
