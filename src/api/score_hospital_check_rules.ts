@@ -127,9 +127,9 @@ export default class ScoreHospitalCheckRules {
     await Promise.all(
       (
         await CheckHospitalModel.findAll({
-          where: {checkId: {[Op.not]: id}}
+          where: {checkId: id}
         })
-      ).map(it => this.autoScoreHospitalCheck(it.id, id))
+      ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id))
     );
     await this.checkBudget();
   }

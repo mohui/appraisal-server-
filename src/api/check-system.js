@@ -515,10 +515,17 @@ export default class CheckSystem {
       .description('考核系统id')
   )
   async listHospitals(checkId) {
-    //绑定在其他考核系统下的机构
-    const extraHospitals = await CheckHospitalModel.findAll({
-      where: {checkId: {[Op.not]: checkId}}
+    //新增考核类型后，只考虑主考核类型(checkType:1)的1对1的绑定关系
+    const checkSystem = await CheckSystemModel.findOne({
+      where: {checkId}
     });
+    if (!checkSystem) throw new KatoCommonError('未找到该考核系统');
+    //绑定在其他考核系统下的机构
+    let extraHospitals;
+    if (checkSystem.checkType === 1)
+      extraHospitals = await CheckHospitalModel.findAll({
+        where: {checkId: {[Op.not]: checkId}}
+      });
     //用户所拥有的机构
     const result = Context.current.user.hospitals;
     //绑定在该考核系统的机构
