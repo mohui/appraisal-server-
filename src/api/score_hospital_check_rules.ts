@@ -122,7 +122,7 @@ export default class ScoreHospitalCheckRules {
 
   async autoScoreAllCheck() {
     await Promise.all(
-      (await CheckHospitalModel.findAll()).map(it =>
+      (await CheckSystemModel.findAll()).map(it =>
         this.autoScoreCheck(it.checkId, false)
       )
     );
