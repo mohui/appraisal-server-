@@ -905,7 +905,8 @@ export default {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
-        id: this.$settings.user.code
+        id: this.$settings.user.code,
+        checkId: ''
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -1094,6 +1095,7 @@ export default {
         ? JSON.parse(route.query.isInstitution)
         : !this.$settings.user.isRegion;
       this.params.id = route.query.id ?? this.$settings.user.code;
+      this.params.checkId = route.query.checkId ?? undefined;
     },
     //纬度切换
     latTypeChanged(type) {
@@ -1492,7 +1494,10 @@ export default {
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {
-        return await this.$api.Score.history(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.history(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];
@@ -1501,7 +1506,10 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.total(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return {
@@ -1517,7 +1525,10 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.Score.rank(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.rank(
+          this.params.id,
+          this.params.checkId
+        );
       },
       shouldUpdate() {
         return !this.params.isInstitution;
