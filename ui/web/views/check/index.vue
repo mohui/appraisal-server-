@@ -209,6 +209,10 @@
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
+        <el-form-item label="类型：">
+          <el-radio v-model="checkForm.checkType" :label="1">主要</el-radio>
+          <el-radio v-model="checkForm.checkType" :label="0">临时</el-radio>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddChecksVisible = false">取 消</el-button>
@@ -373,6 +377,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
+        checkType: 1,
         status: true
       },
       searchForm: {
@@ -528,6 +533,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
+        checkType: 1,
         status: true
       };
     },
@@ -541,13 +547,13 @@ export default {
     },
     //添加规则
     async addCheck() {
-      const {checkName} = this.checkForm;
+      const {checkName, checkType = 1} = this.checkForm;
       if (!checkName) {
         this.$message.error('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.add({checkName});
+        await this.$api.CheckSystem.add({checkName, checkType});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -562,13 +568,18 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName, status} = this.checkForm;
+      const {checkId, checkName, status, checkType} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.updateName({checkId, checkName, status});
+        await this.$api.CheckSystem.updateName({
+          checkId,
+          checkName,
+          status,
+          checkType
+        });
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
