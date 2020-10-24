@@ -10,6 +10,8 @@ export class AlterCheckSystemMigration implements IMigration {
     await client.execute(`
       alter table "check_system"
         add column if not exists check_type integer default(1) not null;
+      alter table "check_system"
+        add column if not exists run_time timestamp(6) with time zone null;
     `);
   }
 
