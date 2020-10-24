@@ -2,6 +2,7 @@ import {
   BasicTagDataModel,
   CheckHospitalModel,
   CheckRuleModel,
+  CheckSystemModel,
   HospitalModel,
   MarkHospitalModel,
   RegionModel,
@@ -112,9 +113,18 @@ async function appQuery(sql, params) {
 }
 
 export default class ScoreHospitalCheckRules {
-  async autoScoreAll() {
+  async autoScoreAllHospital() {
     await Promise.all(
       (await HospitalModel.findAll()).map(it => this.autoScoreHospital(it.id))
+    );
+    await this.checkBudget();
+  }
+
+  async autoScoreAllCheck() {
+    await Promise.all(
+      (await CheckHospitalModel.findAll()).map(it =>
+        this.autoScoreCheck(it.checkId, false)
+      )
     );
     await this.checkBudget();
   }
@@ -123,7 +133,7 @@ export default class ScoreHospitalCheckRules {
    * 考核机构跑分
    * @param id
    */
-  async autoScoreCheck(id) {
+  async autoScoreCheck(id, checkBudget) {
     await Promise.all(
       (
         await CheckHospitalModel.findAll({
@@ -131,7 +141,13 @@ export default class ScoreHospitalCheckRules {
         })
       ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id))
     );
-    await this.checkBudget();
+    if (checkBudget ?? true) await this.checkBudget();
+    await CheckSystemModel.update(
+      {
+        runTime: dayjs().toDate()
+      },
+      {where: {checkId: id}}
+    );
   }
 
   /**
