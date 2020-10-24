@@ -64,6 +64,7 @@ export default class CheckSystem {
         .description('状态值:true||false'),
       checkType: should
         .number()
+        .required()
         .max(1)
         .min(0)
         .description('考核类型 0为临时考核规则 1为主考核规则')
@@ -76,6 +77,43 @@ export default class CheckSystem {
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
+      //当考核体系保存成主考核时，检查机构是否冲突
+      if (sys.checkType !== params.checkType && params.checkType === 1) {
+        //查询原有的考核与机构的关系
+        const checkHospitals = await CheckHospitalModel.findAll({
+          where: {
+            checkId: params.checkId
+          }
+        });
+        //当登陆账户无"原有考核机构其中之一"的权限时不允许修改
+        if (
+          checkHospitals.filter(
+            a =>
+              Context.current.user.hospitals.filter(b => b.id === a.hospitalId)
+                .length === 0
+          ).length > 0
+        )
+          throw new KatoCommonError('因授权不匹配，不允许修改');
+        //当原有机构已有主考核体系时不允许修改
+        if (
+          await CheckHospitalModel.findAll({
+            where: {
+              hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
+            },
+            include: [
+              {
+                model: CheckSystemModel,
+                where: {
+                  checkType: {[Op.not]: 1}
+                }
+              }
+            ]
+          })
+        )
+          throw new KatoCommonError(
+            '当前变更体系中某些机构已存在主考核需要解绑操作，不允许修改'
+          );
+      }
       await CheckSystemModel.update(
         {
           checkName: params.checkName,
@@ -579,12 +617,7 @@ export default class CheckSystem {
 
     if (hospitals.find(h => !userHospital.find(u => u === h)))
       throw new KatoCommonError('权限不足');
-    //删除被解绑的机构
-    await Promise.all(
-      ruleHospital
-        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-        .map(async it => await it.destroy())
-    );
+
     //查询原有的考核与机构的关系
     const checkHospitals = await CheckHospitalModel.findAll({
       where: {
@@ -592,29 +625,41 @@ export default class CheckSystem {
         hospitalId: {[Op.in]: userHospital}
       }
     });
-    //删除被解绑的考核体系和机构的关系
-    await Promise.all(
-      checkHospitals
-        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-        .map(async it => await it.destroy())
-    );
-    //筛选出解绑的机构
-    const unHospitals = ruleHospital
-      .filter(item => !hospitals.find(h => h === item.hospitalId))
-      .map(r => r.hospitalId);
-    //删除机构金额数据
-    await RuleHospitalBudgetModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
-    });
-    //删除机构得分数据
-    await RuleHospitalScoreModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
-    });
-    //删除机构定性指标文件
-    await RuleHospitalAttachModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
-    });
 
+    //新增考核类型后，只考虑主考核类型(checkType:1)的1对1的绑定关系
+    const checkSystem = await CheckSystemModel.findOne({
+      where: {checkId}
+    });
+    if (checkSystem.checkType === 1) {
+      //删除被解绑的机构
+      await Promise.all(
+        ruleHospital
+          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+          .map(async it => await it.destroy())
+      );
+      //删除被解绑的考核体系和机构的关系
+      await Promise.all(
+        checkHospitals
+          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+          .map(async it => await it.destroy())
+      );
+      //筛选出解绑的机构
+      const unHospitals = ruleHospital
+        .filter(item => !hospitals.find(h => h === item.hospitalId))
+        .map(r => r.hospitalId);
+      //删除机构金额数据
+      await RuleHospitalBudgetModel.destroy({
+        where: {hospitalId: {[Op.in]: unHospitals}}
+      });
+      //删除机构得分数据
+      await RuleHospitalScoreModel.destroy({
+        where: {hospitalId: {[Op.in]: unHospitals}}
+      });
+      //删除机构定性指标文件
+      await RuleHospitalAttachModel.destroy({
+        where: {hospitalId: {[Op.in]: unHospitals}}
+      });
+    }
     //添加新增的机构和规则对应关系
     let newRuleHospitals = [];
     hospitals
