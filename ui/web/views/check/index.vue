@@ -157,6 +157,21 @@
               >
               </el-button>
             </el-tooltip>
+            <el-tooltip content="实时打分" :enterable="false">
+              <el-button
+                icon="el-icon-finished"
+                circle
+                v-permission="{
+                  permission: permission.CHECK_UPDATE,
+                  type: 'disabled'
+                }"
+                v-show="!scope.row.checkType"
+                size="mini"
+                type="info"
+                @click.stop="tempCheck(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -421,6 +436,8 @@ export default {
     }
   },
   methods: {
+    //临时考核打分
+    tempCheck() {},
     //下属机构未全选状态切换
     childToggleChange(item) {
       const checkedCount = item.child.filter(it => it.selected).length;
