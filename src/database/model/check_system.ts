@@ -53,4 +53,8 @@ export class CheckSystem extends Model<CheckSystem> {
   @Comment('考核类型：默认为1主考核类型')
   @Column
   checkType: number;
+
+  @Comment('跑分时间')
+  @Column
+  runTime: Date;
 }
