@@ -104,7 +104,8 @@ export default class CheckSystem {
               {
                 model: CheckSystemModel,
                 where: {
-                  checkType: {[Op.not]: 1}
+                  checkType: 1,
+                  checkId: {[Op.not]: params.checkId}
                 }
               }
             ]
@@ -559,7 +560,7 @@ export default class CheckSystem {
     });
     if (!checkSystem) throw new KatoCommonError('未找到该考核系统');
     //绑定在其他考核系统下的机构
-    let extraHospitals;
+    let extraHospitals = [];
     if (checkSystem.checkType === 1)
       extraHospitals = await CheckHospitalModel.findAll({
         where: {checkId: {[Op.not]: checkId}}

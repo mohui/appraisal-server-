@@ -122,7 +122,7 @@ export default class ScoreHospitalCheckRules {
 
   async autoScoreAllCheck() {
     await Promise.all(
-      (await CheckHospitalModel.findAll()).map(it =>
+      (await CheckSystemModel.findAll()).map(it =>
         this.autoScoreCheck(it.checkId, false)
       )
     );
@@ -171,9 +171,9 @@ export default class ScoreHospitalCheckRules {
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
         auto: true,
-        hospitalId: hospital.id,
-        checkId
-      }
+        hospitalId: hospital.id
+      },
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     // 循环所有考核细则
     for (const ruleModel of ruleModels) {
@@ -1073,18 +1073,31 @@ export default class ScoreHospitalCheckRules {
    * 获取考核地区/机构对应的考核总体情况
    *
    * @param code 地区或机构的code
+   * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code) {
+  async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
-      const reduceObject = await HospitalModel.findAll({
-        where: {
-          regionId: {
-            [Op.like]: `${code}%`
+      const reduceObject = await CheckHospitalModel.findAll({
+        where: {},
+        include: [
+          {
+            model: HospitalModel,
+            where: {
+              regionId: {
+                [Op.like]: `${code}%`
+              }
+            },
+            include: [{model: RuleHospitalBudgetModel, required: true}]
+          },
+          {
+            model: CheckSystemModel,
+            where: checkId ? {checkId: checkId} : {checkType: 1}
           }
-        },
-        include: [{model: RuleHospitalBudgetModel, required: true}]
+        ]
+      }).map(i => {
+        return {...i.hospital};
       });
       const resultObject = reduceObject.reduce(
         (res, next) => {
@@ -1184,8 +1197,9 @@ export default class ScoreHospitalCheckRules {
    * 获取当前地区机构排行
    *
    * @param code 地区code
+   * @param checkId 考核体系 为空时默认查找主考核体系
    */
-  async rank(code) {
+  async rank(code, checkId) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
     return await Promise.all(
@@ -1200,11 +1214,18 @@ export default class ScoreHospitalCheckRules {
             {
               model: HospitalModel,
               where: {region: {[Op.like]: `${regionModel.code}%`}}
+            },
+            {
+              model: CheckSystemModel,
+              where: checkId ? {checkId: checkId} : {checkType: 1}
             }
           ]
         })
       ).map(async checkHospital => {
-        const item = await this.total(checkHospital.hospitalId);
+        const item = await this.total(
+          checkHospital.hospitalId,
+          checkHospital.checkId
+        );
         return {
           ...item,
           parent: checkHospital?.hospital?.parent
@@ -1218,7 +1239,7 @@ export default class ScoreHospitalCheckRules {
    *
    * @param code 省市code
    */
-  async areaRank(code) {
+  async areaRank(code, checkId) {
     const regionModel = await RegionModel.findOne({
       where: {
         code,
@@ -1238,7 +1259,7 @@ export default class ScoreHospitalCheckRules {
           }
         })
       ).map(async region => {
-        const result = await this.total(region.code);
+        const result = await this.total(region.code, checkId);
         return {
           ...result,
           ...region.toJSON()
@@ -1598,23 +1619,35 @@ export default class ScoreHospitalCheckRules {
    * 质量系数历史趋势
    * @param code:地区code或者机构的id
    */
-  async history(code) {
+  async history(code, checkId) {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
     if (region) {
       //查询该地区的机构的历史记录
-      const hospitalInRegion = await HospitalModel.findAll({
-        where: {
-          regionId: {
-            [Op.like]: `${code}%`
-          }
-        },
+      const hospitalInRegion = await CheckHospitalModel.findAll({
+        where: {},
         include: [
           {
-            model: ReportHospitalHistoryModel,
-            separate: true,
-            order: [['date', 'asc']]
+            model: HospitalModel,
+            where: {
+              regionId: {
+                [Op.like]: `${code}%`
+              }
+            },
+            include: [
+              {
+                model: ReportHospitalHistoryModel,
+                separate: true,
+                order: [['date', 'asc']]
+              }
+            ]
+          },
+          {
+            model: CheckSystemModel,
+            where: checkId ? {checkId: checkId} : {checkType: 1}
           }
         ]
+      }).map(i => {
+        return {...i.hospital};
       });
       return hospitalInRegion
         .map(it => it.toJSON())
