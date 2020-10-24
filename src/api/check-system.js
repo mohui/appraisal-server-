@@ -104,7 +104,8 @@ export default class CheckSystem {
               {
                 model: CheckSystemModel,
                 where: {
-                  checkType: {[Op.not]: 1}
+                  checkType: 1,
+                  checkId: {[Op.not]: params.checkId}
                 }
               }
             ]
