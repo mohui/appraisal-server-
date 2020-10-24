@@ -520,7 +520,7 @@ export default class CheckSystem {
         //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
         const autoTrue = !!ruleHospital.find(it => it.auto);
         const autoFalse = !!ruleHospital.find(it => !it.auto);
-        let auto = 'no';
+        let auto;
         if (autoFalse && autoTrue) auto = 'part';
         if (autoFalse && !autoTrue) auto = 'no';
         if (!autoFalse && autoTrue) auto = 'all';
