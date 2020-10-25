@@ -11,28 +11,33 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
   try {
     const token = ctx.req.header('token');
     if (token) {
-      const user = (
-        await UserModel.findOne({
-          where: {id: Context.req.headers.token},
-          include: [
-            {
-              model: HospitalModel,
-              through: {
-                attributes: []
+      const user =
+        (
+          await UserModel.findOne({
+            where: {id: Context.req.headers.token},
+            include: [
+              {
+                model: HospitalModel,
+                through: {
+                  attributes: []
+                }
+              },
+              {
+                model: RoleModel,
+                through: {
+                  attributes: []
+                }
+              },
+              {
+                model: RegionModel
               }
-            },
-            {
-              model: RoleModel,
-              through: {
-                attributes: []
-              }
-            },
-            {
-              model: RegionModel
-            }
-          ]
-        })
-      ).toJSON();
+            ]
+          })
+        )?.toJSON() ?? null;
+      if (!user) {
+        await next();
+        return;
+      }
       //该用户的默认code
       user.code =
         user.hospitals.length === 1 ? user.hospitals[0].id : user.regionId;

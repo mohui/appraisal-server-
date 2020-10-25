@@ -8,7 +8,7 @@ import {Op, QueryTypes} from 'sequelize';
 import {RuleHospitalBudget} from '../database/model/rule-hospital-budget';
 import {Decimal} from 'decimal.js';
 import {sql as sqlRender} from '../database/template';
-import {appDB} from '../app';
+import {originalDB} from '../app';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 
@@ -61,8 +61,8 @@ function countWorkRender(params) {
     params
   );
 }
-async function appQuery(sql, params) {
-  return appDB.query(sql, {
+async function govQuery(sql, params) {
+  return originalDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
@@ -338,7 +338,7 @@ export default class Region {
       end: end,
       scope: scopeType
     });
-    const res = await appQuery(sqlRender[0], sqlRender[1]);
+    const res = await govQuery(sqlRender[0], sqlRender[1]);
     return res
       .filter(it => Projects.some(p => p.id === it.projectId))
       .reduce((result, next) => {

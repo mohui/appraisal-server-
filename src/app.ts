@@ -20,6 +20,7 @@ export class Application {
   server = http.createServer(this.express);
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
+  originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -142,3 +143,4 @@ export const app = new Application();
 //导出各种便捷属性
 export const appDB = app.appDB;
 export const etlDB = app.etlDB;
+export const originalDB = app.originalDB;

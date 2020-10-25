@@ -33,6 +33,21 @@ module.exports = {
     logging: false,
     timezone: '+8:00'
   },
+  original: {
+    dialect: 'postgres',
+    host: 'localhost',
+    port: '123456',
+    username: 'root',
+    password: 'root',
+    database: 'appraisal-dev',
+    define: {
+      underscored: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    },
+    timezone: '+8:00',
+    logging: false
+  },
   oss: {
     accessKeyId: '',
     accessKeySecret: '',
