@@ -37,4 +37,8 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
 
   @BelongsTo(() => Hospital)
   hospital: Hospital;
+
+  @Comment('考核体系id')
+  @Column({field: 'checkId', type: DataType.UUID})
+  checkId;
 }
