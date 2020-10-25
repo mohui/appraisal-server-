@@ -1599,7 +1599,10 @@ export default {
     //获取机构的各项工分详情
     hospitalProject: {
       async get() {
-        return await this.$api.Score.projectDetail(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.projectDetail(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];

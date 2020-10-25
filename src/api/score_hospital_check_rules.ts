@@ -1169,10 +1169,27 @@ export default class ScoreHospitalCheckRules {
    * 各个工分项的详情
    * @param code
    */
-  async projectDetail(code) {
+  async projectDetail(code, checkId) {
     const hospitalModel = await HospitalModel.findOne({
       where: {id: code},
-      include: [RuleHospitalBudgetModel]
+      include: [
+        {
+          model: RuleHospitalBudgetModel,
+          required: true,
+          include: [
+            {
+              model: CheckRuleModel,
+              required: true,
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: checkId ? {checkId: checkId} : {checkType: 1}
+                }
+              ]
+            }
+          ]
+        }
+      ]
     });
     if (hospitalModel) {
       //机构所绑定的小项下的工分项
