@@ -1246,31 +1246,25 @@ export default class ScoreHospitalCheckRules {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
     if (region) {
       //查询该地区的机构的历史记录
-      const hospitalInRegion = await CheckHospitalModel.findAll({
-        where: {},
+      const hospitalInRegion = await HospitalModel.findAll({
+        where: {
+          regionId: {
+            [Op.like]: `${code}%`
+          }
+        },
         include: [
           {
-            model: HospitalModel,
-            where: {
-              regionId: {
-                [Op.like]: `${code}%`
-              }
-            },
+            model: ReportHospitalHistoryModel,
+            separate: true,
+            order: [['date', 'asc']],
             include: [
               {
-                model: ReportHospitalHistoryModel,
-                separate: true,
-                order: [['date', 'asc']]
+                model: CheckSystemModel,
+                where: checkId ? {checkId: checkId} : {checkType: 1}
               }
             ]
-          },
-          {
-            model: CheckSystemModel,
-            where: checkId ? {checkId: checkId} : {checkType: 1}
           }
         ]
-      }).map(i => {
-        return {...i.hospital};
       });
       return hospitalInRegion
         .map(it => it.toJSON())
@@ -1309,7 +1303,13 @@ export default class ScoreHospitalCheckRules {
             model: ReportHospitalHistoryModel,
             separate: true,
             order: [['date', 'asc']],
-            attributes: ['date', 'score', 'totalScore', 'rate']
+            attributes: ['date', 'score', 'totalScore', 'rate'],
+            include: [
+              {
+                model: CheckSystemModel,
+                where: checkId ? {checkId: checkId} : {checkType: 1}
+              }
+            ]
           }
         ]
       });
