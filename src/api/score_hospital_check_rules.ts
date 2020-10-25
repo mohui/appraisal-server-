@@ -510,7 +510,8 @@ export default class ScoreHospitalCheckRules {
       hospitalId: hospitalId,
       workpoints,
       scores,
-      total
+      total,
+      checkId
     });
     //更新历史得分
     await ReportHospitalHistoryModel.upsert({
@@ -521,7 +522,7 @@ export default class ScoreHospitalCheckRules {
       score: scores,
       totalScore: total,
       rate: new Decimal(scores).div(total).toNumber() || 0,
-      checkId: checkId
+      checkId
     });
   }
 
