@@ -9,9 +9,9 @@ export class AlterCheckSystemMigration implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       alter table "check_system"
-        add column if not exists check_type integer default(1) not null;
+        add column if not exists check_type integer default (0);
       alter table "check_system"
-        add column if not exists run_time timestamp(6) with time zone null;
+        add column if not exists run_time timestamp with time zone;
     `);
   }
 

@@ -50,11 +50,11 @@ export class CheckSystem extends Model<CheckSystem> {
   @Column
   remarks: string;
 
-  @Comment('考核类型：默认为1主考核类型')
-  @Column
+  @Comment('考核类型: 默认为0; 1: 主考核; 0: 临时考核')
+  @Column({field: 'check_type'})
   checkType: number;
 
   @Comment('跑分时间')
-  @Column
+  @Column({field: 'run_time'})
   runTime: Date;
 }
