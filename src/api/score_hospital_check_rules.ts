@@ -520,7 +520,8 @@ export default class ScoreHospitalCheckRules {
         .toDate(),
       score: scores,
       totalScore: total,
-      rate: new Decimal(scores).div(total).toNumber() || 0
+      rate: new Decimal(scores).div(total).toNumber() || 0,
+      checkId: checkId
     });
   }
 
