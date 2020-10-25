@@ -42,4 +42,8 @@ export class ReportHospital extends Model<ReportHospital> {
   @Default(0)
   @Column(DataType.DECIMAL(20, 4))
   budget: number;
+
+  @Comment('考核体系id')
+  @Column({field: 'checkId', type: DataType.UUID})
+  checkId;
 }
