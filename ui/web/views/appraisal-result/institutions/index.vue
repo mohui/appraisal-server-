@@ -1552,7 +1552,10 @@ export default {
     //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
-        return await this.$api.Hospital.checks(this.params.id);
+        return await this.$api.Hospital.checks(
+          this.params.id,
+          this.params.checkId
+        );
       },
       shouldUpdate() {
         return this.params.listFlag === 'quality' && this.params.isInstitution;
