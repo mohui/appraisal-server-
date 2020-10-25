@@ -191,7 +191,7 @@
                 v-show="!scope.row.checkType"
                 size="mini"
                 type="info"
-                @click.stop="tempCheck(scope.row)"
+                @click.stop="tempCheck(scope.row.checkId)"
               >
               </el-button>
             </el-tooltip>
@@ -464,8 +464,10 @@ export default {
     }
   },
   methods: {
-    //TODO: 临时考核打分
-    tempCheck() {},
+    //临时考核打分
+    tempCheck(id) {
+      this.$api.ScoreHospitalCheckRules.autoScoreCheck(id, false);
+    },
     //跳转考核结果页
     toCheck(row) {
       this.$router.push({
