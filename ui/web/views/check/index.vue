@@ -481,11 +481,16 @@ export default {
     async tempCheck(row) {
       if (!row.running) {
         row.running = true;
-        await this.$api.ScoreHospitalCheckRules.autoScoreCheck(
-          row.checkId,
-          false
-        );
-        row.running = !row.running;
+        try {
+          await this.$api.ScoreHospitalCheckRules.autoScoreCheck(
+            row.checkId,
+            false
+          );
+        } catch (e) {
+          this.$message.error(`出错了,${e.message}`);
+        } finally {
+          row.running = !row.running;
+        }
         //刷新列表
         this.$asyncComputed.listCheck.update();
       }
