@@ -89,8 +89,8 @@
               type="primary"
               size="mini"
               @click.stop="openSelectDialog(scope.row)"
-              >{{ scope.row.hospitalCount }}</el-button
-            >
+              >{{ scope.row.hospitalCount }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="220">
@@ -343,8 +343,8 @@
           type="primary"
           @click="saveUploadRules"
           :loading="uploadLoading"
-          >确 定</el-button
-        >
+          >确 定
+        </el-button>
       </div>
     </el-dialog>
     <el-dialog
@@ -394,6 +394,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+
 export default {
   name: 'check',
   data() {
@@ -498,7 +499,10 @@ export default {
     //跳转考核结果页
     toCheck(row) {
       this.$router.push({
-        path: 'appraisal-result-institutions',
+        path:
+          this.$settings.user.isRegion && this.$settings.user.region.level < 3
+            ? 'appraisal-result-area'
+            : 'appraisal-result-institutions',
         query: {id: this.$settings.user.code, checkId: row.checkId}
       });
     },
@@ -851,6 +855,7 @@ export default {
 <style lang="scss">
 .check-title {
   cursor: pointer;
+
   :hover {
     color: #1a95d7;
   }
@@ -862,15 +867,19 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: -20px;
+
   .center-title {
     margin: 20px 0 10px 0;
+
     span {
       font-size: 16px;
     }
   }
+
   .el-cols {
     margin-bottom: 10px;
     padding-left: 38px !important;
+
     &:last-child {
       margin-bottom: 0;
     }
