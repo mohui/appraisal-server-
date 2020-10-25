@@ -630,7 +630,12 @@ export default class CheckSystem {
 
     if (hospitals.find(h => !userHospital.find(u => u === h)))
       throw new KatoCommonError('权限不足');
-
+    //删除被解绑的机构
+    await Promise.all(
+      ruleHospital
+        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+        .map(async it => await it.destroy())
+    );
     //查询原有的考核与机构的关系
     const checkHospitals = await CheckHospitalModel.findAll({
       where: {
@@ -638,41 +643,29 @@ export default class CheckSystem {
         hospitalId: {[Op.in]: userHospital}
       }
     });
-
-    //新增考核类型后，只考虑主考核类型(checkType:1)的1对1的绑定关系
-    const checkSystem = await CheckSystemModel.findOne({
-      where: {checkId}
+    //删除被解绑的考核体系和机构的关系
+    await Promise.all(
+      checkHospitals
+        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
+        .map(async it => await it.destroy())
+    );
+    //筛选出解绑的机构
+    const unHospitals = ruleHospital
+      .filter(item => !hospitals.find(h => h === item.hospitalId))
+      .map(r => r.hospitalId);
+    //删除机构金额数据
+    await RuleHospitalBudgetModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
     });
-    if (checkSystem.checkType === 1) {
-      //删除被解绑的机构
-      await Promise.all(
-        ruleHospital
-          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-          .map(async it => await it.destroy())
-      );
-      //删除被解绑的考核体系和机构的关系
-      await Promise.all(
-        checkHospitals
-          .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-          .map(async it => await it.destroy())
-      );
-      //筛选出解绑的机构
-      const unHospitals = ruleHospital
-        .filter(item => !hospitals.find(h => h === item.hospitalId))
-        .map(r => r.hospitalId);
-      //删除机构金额数据
-      await RuleHospitalBudgetModel.destroy({
-        where: {hospitalId: {[Op.in]: unHospitals}}
-      });
-      //删除机构得分数据
-      await RuleHospitalScoreModel.destroy({
-        where: {hospitalId: {[Op.in]: unHospitals}}
-      });
-      //删除机构定性指标文件
-      await RuleHospitalAttachModel.destroy({
-        where: {hospitalId: {[Op.in]: unHospitals}}
-      });
-    }
+    //删除机构得分数据
+    await RuleHospitalScoreModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
+    //删除机构定性指标文件
+    await RuleHospitalAttachModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
+
     //添加新增的机构和规则对应关系
     let newRuleHospitals = [];
     hospitals
