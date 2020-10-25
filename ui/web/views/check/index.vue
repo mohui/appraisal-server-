@@ -180,9 +180,20 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip content="实时打分" :enterable="false">
+            <el-tooltip
+              :content="
+                scope.row.running
+                  ? '正在打分...'
+                  : `实时打分. 上次打分时间:${scope.row.runTime}`
+              "
+              :enterable="false"
+            >
               <el-button
-                icon="el-icon-refresh-right"
+                :icon="
+                  scope.row.running
+                    ? 'el-icon-loading'
+                    : 'el-icon-refresh-right'
+                "
                 circle
                 v-permission="{
                   permission: permission.CHECK_UPDATE,
@@ -191,7 +202,7 @@
                 v-show="!scope.row.checkType"
                 size="mini"
                 type="info"
-                @click.stop="tempCheck(scope.row.checkId)"
+                @click.stop="tempCheck(scope.row)"
               >
               </el-button>
             </el-tooltip>
@@ -434,7 +445,9 @@ export default {
           it.hospitalCount !== 0 &&
           it.status,
         created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
+        updated_at: it.updated_at.$format('YYYY-MM-DD'),
+        runTime: it.runTime.$format('YYYY-MM-DD HH:mm:ss'),
+        running: false //是否正在跑分
       }));
     },
     uploadData() {
@@ -465,8 +478,17 @@ export default {
   },
   methods: {
     //临时考核打分
-    tempCheck(id) {
-      this.$api.ScoreHospitalCheckRules.autoScoreCheck(id, false);
+    async tempCheck(row) {
+      if (!row.running) {
+        row.running = true;
+        await this.$api.ScoreHospitalCheckRules.autoScoreCheck(
+          row.checkId,
+          false
+        );
+        row.running = !row.running;
+        //刷新列表
+        this.$asyncComputed.listCheck.update();
+      }
     },
     //跳转考核结果页
     toCheck(row) {
