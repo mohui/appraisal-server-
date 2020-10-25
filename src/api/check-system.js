@@ -18,6 +18,7 @@ import {Projects} from '../../common/project';
 import {Context} from './context';
 import Score from './score';
 import dayjs from 'dayjs';
+
 const scoreAPI = new Score();
 import {Permission} from '../../common/permission';
 
@@ -561,10 +562,19 @@ export default class CheckSystem {
     if (!checkSystem) throw new KatoCommonError('未找到该考核系统');
     //绑定在其他考核系统下的机构
     let extraHospitals = [];
-    if (checkSystem.checkType === 1)
+    // 如果当前考核体系是主考核, 那么排除绑定在其他主考核下的机构
+    if (checkSystem.checkType === 1) {
       extraHospitals = await CheckHospitalModel.findAll({
-        where: {checkId: {[Op.not]: checkId}}
+        where: {checkId: {[Op.not]: checkId}},
+        include: [
+          {
+            model: CheckSystemModel,
+            where: {checkType: checkSystem.checkType},
+            required: true // 外联查询时, 默认required为true
+          }
+        ]
       });
+    }
     //用户所拥有的机构
     const result = Context.current.user.hospitals;
     //绑定在该考核系统的机构
