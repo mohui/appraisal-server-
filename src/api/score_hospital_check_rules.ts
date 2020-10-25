@@ -770,7 +770,24 @@ export default class ScoreHospitalCheckRules {
 
     const hospitalModel = await HospitalModel.findOne({
       where: {id: code},
-      include: [ReportHospitalModel, RuleHospitalBudgetModel]
+      include: [
+        {
+          model: RuleHospitalBudgetModel,
+          required: true,
+          include: [
+            {
+              model: CheckRuleModel,
+              required: true,
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: checkId ? {checkId: checkId} : {checkType: 1}
+                }
+              ]
+            }
+          ]
+        }
+      ]
     });
     if (hospitalModel) {
       return {
