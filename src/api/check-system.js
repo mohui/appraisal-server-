@@ -604,6 +604,31 @@ export default class CheckSystem {
   )
   async setHospitals(params) {
     const {checkId, hospitals} = params;
+    // 查询考核体系
+    const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
+    if (!checkSystem) throw new KatoCommonError('该考核体系不存在');
+    // 判断是否是主考核
+    if (checkSystem.checkType === 1) {
+      // 主考核, 那么判断机构是否已经绑定过其他主考核了
+      const bindOtherHospitals = await CheckHospitalModel.findAll({
+        where: {
+          hospitalId: {[Op.in]: hospitals}
+        },
+        include: [
+          {
+            model: CheckSystemModel,
+            where: {
+              checkType: 1,
+              checkId: {[Op.not]: checkId}
+            }
+          }
+        ]
+      });
+      if (bindOtherHospitals.length > 0) {
+        throw new KatoCommonError('存在绑定过其他考核的机构');
+      }
+    }
+
     //查询该体系下所有细则
     const allRules = await CheckRuleModel.findAll({
       where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
