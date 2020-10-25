@@ -137,6 +137,20 @@
               >
               </el-button>
             </el-tooltip>
+            <el-tooltip content="查看考核结果" :enterable="false">
+              <el-button
+                icon="el-icon-right"
+                circle
+                v-permission="{
+                  permission: permission.APPRAISAL_RESULT,
+                  type: 'disabled'
+                }"
+                size="mini"
+                type="primary"
+                @click.stop="toCheck(scope.row)"
+              >
+              </el-button>
+            </el-tooltip>
             <el-tooltip content="全部开启打分" :enterable="false">
               <el-button
                 icon="el-icon-check"
@@ -168,7 +182,7 @@
             </el-tooltip>
             <el-tooltip content="实时打分" :enterable="false">
               <el-button
-                icon="el-icon-finished"
+                icon="el-icon-refresh-right"
                 circle
                 v-permission="{
                   permission: permission.CHECK_UPDATE,
@@ -450,8 +464,15 @@ export default {
     }
   },
   methods: {
-    //临时考核打分
+    //TODO: 临时考核打分
     tempCheck() {},
+    //跳转考核结果页
+    toCheck(row) {
+      this.$router.push({
+        path: 'appraisal-result-institutions',
+        query: {id: this.$settings.user.code, checkId: row.checkId}
+      });
+    },
     //下属机构未全选状态切换
     childToggleChange(item) {
       const checkedCount = item.child.filter(it => it.selected).length;
