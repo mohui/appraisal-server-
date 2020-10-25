@@ -97,20 +97,22 @@ export default class CheckSystem {
           throw new KatoCommonError('因授权不匹配，不允许修改');
         //当原有机构已有主考核体系时不允许修改
         if (
-          await CheckHospitalModel.findAll({
-            where: {
-              hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
-            },
-            include: [
-              {
-                model: CheckSystemModel,
-                where: {
-                  checkType: 1,
-                  checkId: {[Op.not]: params.checkId}
+          (
+            await CheckHospitalModel.findAll({
+              where: {
+                hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
+              },
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: {
+                    checkType: 1,
+                    checkId: {[Op.not]: params.checkId}
+                  }
                 }
-              }
-            ]
-          })
+              ]
+            })
+          ).length > 0
         )
           throw new KatoCommonError(
             '当前变更体系中某些机构已存在主考核需要解绑操作，不允许修改'
