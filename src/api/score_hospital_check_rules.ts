@@ -460,13 +460,14 @@ export default class ScoreHospitalCheckRules {
     const total = (
       await RuleHospitalModel.findAll({
         where: {hospitalId: hospitalId},
-        include: [CheckRuleModel]
+        include: [{model: CheckRuleModel, where: {checkId}}]
       })
     ).reduce((result, current) => (result += current?.rule?.ruleScore ?? 0), 0);
     // 机构总得分
     const scores = (
       await RuleHospitalScoreModel.findAll({
-        where: {hospitalId: hospitalId}
+        where: {hospitalId: hospitalId},
+        include: [{model: CheckRuleModel, where: {checkId}}]
       })
     ).reduce((result, current) => (result += current.score), 0);
     // 机构工分
