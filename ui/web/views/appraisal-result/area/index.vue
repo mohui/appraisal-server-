@@ -412,7 +412,7 @@ export default {
         //进入区级行政区和机构页
         this.$router.push({
           path: 'appraisal-result-institutions',
-          query: {id: id}
+          query: {id: id, checkId: this.params.checkId}
         });
       }
     },
