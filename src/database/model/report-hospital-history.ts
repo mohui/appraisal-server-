@@ -40,6 +40,7 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
   hospital: Hospital;
 
   @Comment('考核体系id')
+  @PrimaryKey
   @ForeignKey(() => CheckSystem)
   @Column({field: 'check_id', type: DataType.UUID})
   checkId;
