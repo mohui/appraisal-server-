@@ -793,7 +793,7 @@ export default class ScoreHospitalCheckRules {
       include: [
         {
           model: RuleHospitalBudgetModel,
-          required: true,
+          required: false,
           where: {
             hospitalId: {
               [Op.in]: Context.current.user.hospitals.map(it => it.id)
