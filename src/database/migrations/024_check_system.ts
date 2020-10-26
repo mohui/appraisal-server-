@@ -13,10 +13,10 @@ export class AlterCheckSystemMigration implements IMigration {
       alter table "check_system"
         add column if not exists run_time timestamp with time zone;
       alter table "report_hospital_history"
-        add column if not exists "checkId" uuid default null
+        add column if not exists "check_id" uuid default null
           references "check_system" ("check_id") on delete set null on update cascade;
       alter table "report_hospital"
-        add column if not exists "checkId" uuid default null
+        add column if not exists "check_id" uuid default null
           references "check_system" ("check_id") on delete set null on update cascade;
     `);
   }

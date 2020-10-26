@@ -41,7 +41,7 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
 
   @Comment('考核体系id')
   @ForeignKey(() => CheckSystem)
-  @Column({field: 'checkId', type: DataType.UUID})
+  @Column({field: 'check_id', type: DataType.UUID})
   checkId;
   @BelongsTo(() => CheckSystem)
   checkSystem: CheckSystem;
