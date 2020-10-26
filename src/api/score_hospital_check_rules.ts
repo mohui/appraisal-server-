@@ -1310,7 +1310,7 @@ export default class ScoreHospitalCheckRules {
           regionId: {
             [Op.like]: `${code}%`
           },
-          hospitalId: {
+          id: {
             [Op.in]: Context.current.user.hospitals.map(it => it.id)
           }
         },
