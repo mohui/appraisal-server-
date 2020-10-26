@@ -680,15 +680,18 @@ export default class CheckSystem {
       .map(r => r.hospitalId);
     //删除机构金额数据
     await RuleHospitalBudgetModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     //删除机构得分数据
     await RuleHospitalScoreModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     //删除机构定性指标文件
     await RuleHospitalAttachModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
 
     //添加新增的机构和规则对应关系
