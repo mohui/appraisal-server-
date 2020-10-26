@@ -1217,11 +1217,11 @@ export default class ScoreHospitalCheckRules {
       include: [
         {
           model: RuleHospitalBudgetModel,
-          required: true,
+          required: false,
           include: [
             {
               model: CheckRuleModel,
-              required: false,
+              required: true,
               include: [
                 {
                   model: CheckSystemModel,
