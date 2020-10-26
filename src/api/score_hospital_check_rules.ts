@@ -710,9 +710,29 @@ export default class ScoreHospitalCheckRules {
             where: {
               regionId: {
                 [Op.like]: `${code}%`
+              },
+              id: {
+                [Op.in]: Context.current.user.hospitals.map(it => it.id)
               }
             },
-            include: [{model: RuleHospitalBudgetModel, required: true}]
+            include: [
+              {
+                model: RuleHospitalBudgetModel,
+                required: true,
+                include: [
+                  {
+                    model: CheckRuleModel,
+                    required: true,
+                    include: [
+                      {
+                        model: CheckSystemModel,
+                        where: checkId ? {checkId: checkId} : {checkType: 1}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           },
           {
             model: CheckSystemModel,
@@ -774,6 +794,11 @@ export default class ScoreHospitalCheckRules {
         {
           model: RuleHospitalBudgetModel,
           required: true,
+          where: {
+            hospitalId: {
+              [Op.in]: Context.current.user.hospitals.map(it => it.id)
+            }
+          },
           include: [
             {
               model: CheckRuleModel,
@@ -1284,6 +1309,9 @@ export default class ScoreHospitalCheckRules {
         where: {
           regionId: {
             [Op.like]: `${code}%`
+          },
+          hospitalId: {
+            [Op.in]: Context.current.user.hospitals.map(it => it.id)
           }
         },
         include: [
@@ -1330,8 +1358,13 @@ export default class ScoreHospitalCheckRules {
     }
 
     try {
+      //授权范围外的数据不允许查看
+      if (Context.current.user.hospitals.filter(i => i.id === code).length < 1)
+        return [];
       const hospital = await HospitalModel.findOne({
-        where: {id: code},
+        where: {
+          id: code
+        },
         include: [
           {
             model: ReportHospitalHistoryModel,
@@ -1348,6 +1381,7 @@ export default class ScoreHospitalCheckRules {
         ]
       });
       if (hospital) return hospital?.reportHospitalHistory ?? [];
+      return [];
     } catch (e) {
       throw new KatoCommonError('所传参数code,不是地区code或机构id');
     }
