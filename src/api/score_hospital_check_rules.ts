@@ -1221,7 +1221,7 @@ export default class ScoreHospitalCheckRules {
           include: [
             {
               model: CheckRuleModel,
-              required: true,
+              required: false,
               include: [
                 {
                   model: CheckSystemModel,
@@ -1243,7 +1243,18 @@ export default class ScoreHospitalCheckRules {
               [Op.in]: hospitalModel.ruleHospitalBudget.map(it => it.ruleId)
             }
           },
-          include: [CheckRuleModel]
+          include: [
+            {
+              model: CheckRuleModel,
+              required: false,
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: checkId ? {checkId: checkId} : {checkType: 1}
+                }
+              ]
+            }
+          ]
         })
       ).map(it => it.toJSON());
       if (projects.length > 0) {
@@ -1284,7 +1295,7 @@ export default class ScoreHospitalCheckRules {
           //小项质量系数
           const ruleRate =
             hospitalModel?.ruleHospitalBudget.find(
-              rhb => rhb.ruleId === ruleGroup.ruleId
+              rhb => rhb.ruleId === ruleGroup?.ruleId
             )?.rate ?? 0;
           //校正工分
           current['correctWorkpoint'] = current['workpoint'] * ruleRate;
