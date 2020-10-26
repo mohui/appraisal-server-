@@ -13,11 +13,11 @@ export class AlterCheckSystemMigration implements IMigration {
       alter table "check_system"
         add column if not exists run_time timestamp with time zone;
       alter table "report_hospital_history"
-        add column if not exists "check_id" uuid default null
-          references "check_system" ("check_id") on delete set null on update cascade;
+        add column if not exists "check_id" uuid
+          references "check_system" ("check_id") on update cascade;
       alter table "report_hospital"
-        add column if not exists "check_id" uuid default null
-          references "check_system" ("check_id") on delete set null on update cascade;
+        add column if not exists "check_id" uuid
+          references "check_system" ("check_id") on update cascade;
 
       --补上跑分历史记录的check_id的值
       update report_hospital_history rhh set "check_id" = ch.check_system
@@ -28,6 +28,20 @@ export class AlterCheckSystemMigration implements IMigration {
       update report_hospital rh set "check_id" = ch.check_system
       from (select check_system,hospital from check_hospital) as ch
       where rh.hospital = ch.hospital;
+
+      --删除check_id为空的数据
+      delete from report_hospital where check_id is null;
+      delete from report_hospital_history where check_id is null;
+
+      --删除report_hospital原有的主键约束
+      alter table report_hospital drop constraint report_hospital_pkey;
+      --建立新的联合主键约束
+      alter table report_hospital add primary key ("hospital", "check_id");
+
+      --删除"report_hospital_hospital"原有的主键约束
+      alter table report_hospital_history drop constraint report_hospital_history_pkey;
+      --建立新的联合主键约束
+      alter table report_hospital_history add primary key ("date", "hospital", "check_id");
     `);
   }
 
