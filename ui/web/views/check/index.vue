@@ -483,10 +483,7 @@ export default {
       if (!row.running) {
         row.running = true;
         try {
-          await this.$api.ScoreHospitalCheckRules.autoScoreCheck(
-            row.checkId,
-            false
-          );
+          await this.$api.ScoreHospitalCheckRules.autoScoreCheck(row.checkId);
         } catch (e) {
           this.$message.error(`出错了,${e.message}`);
         } finally {
