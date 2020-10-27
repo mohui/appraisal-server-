@@ -2,6 +2,7 @@ import {
   CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
+  ReportHospitalModel,
   RuleHospitalAttachModel,
   RuleHospitalBudgetModel,
   RuleHospitalModel,
@@ -593,6 +594,10 @@ export default class CheckSystem {
     });
     //删除机构定性指标文件
     await RuleHospitalAttachModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
+    });
+    //删除机构的打分结果
+    await ReportHospitalModel.destroy({
       where: {hospitalId: {[Op.in]: unHospitals}}
     });
 
