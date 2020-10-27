@@ -116,17 +116,16 @@ export default class ScoreHospitalCheckRules {
   async autoScoreAllCheck() {
     await Promise.all(
       (await CheckSystemModel.findAll()).map(it =>
-        this.autoScoreCheck(it.checkId, false)
+        this.autoScoreCheck(it.checkId)
       )
     );
-    await this.checkBudget();
   }
 
   /**
    * 考核机构跑分
    * @param id
    */
-  async autoScoreCheck(id, checkBudget) {
+  async autoScoreCheck(id) {
     await Promise.all(
       (
         await CheckHospitalModel.findAll({
@@ -134,7 +133,7 @@ export default class ScoreHospitalCheckRules {
         })
       ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id))
     );
-    if (checkBudget ?? true) await this.checkBudget();
+    await this.checkBudget(id);
     await CheckSystemModel.update(
       {
         runTime: dayjs().toDate()
@@ -523,7 +522,7 @@ export default class ScoreHospitalCheckRules {
   /***
    * 根据考核结果进行金额分配
    */
-  async checkBudget() {
+  async checkBudget(checkId) {
     //所有的考核组
     //考核组下绑定的工分项
     //质量系数: 得分/规则总分
@@ -531,7 +530,7 @@ export default class ScoreHospitalCheckRules {
     //这个考核组下所有机构的所有矫正后工分
     const ruleGroup = (
       await CheckRuleModel.findAll({
-        where: {parentRuleId: {[Op.eq]: null}},
+        where: {parentRuleId: {[Op.eq]: null}, checkId},
         attributes: ['ruleId', 'ruleName', 'budget'],
         include: [
           {
@@ -689,7 +688,7 @@ export default class ScoreHospitalCheckRules {
     //更新该机构report_hospital表的数据
     await ReportHospitalModel.update({scores}, {where: {hospitalId}});
     //重新进行金额分配
-    this.checkBudget();
+    this.checkBudget(rule.checkId);
   }
 
   /**
