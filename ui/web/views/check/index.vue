@@ -97,117 +97,113 @@
         </el-table-column>
         <el-table-column label="操作" min-width="280">
           <template slot-scope="scope">
-            <el-tooltip content="编辑" :enterable="false">
-              <el-button
-                type="primary"
-                icon="el-icon-edit"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_UPDATE,
-                  type: 'disabled'
-                }"
-                size="mini"
-                @click.stop="openEditCheckDialog(scope.row)"
+            <div v-show="!scope.row.running">
+              <el-tooltip content="编辑" :enterable="false">
+                <el-button
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_UPDATE,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  @click.stop="openEditCheckDialog(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="快速复制" :enterable="false">
+                <el-button
+                  icon="el-icon-document-copy"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_CLONE,
+                    type: 'disabled'
+                  }"
+                  type="warning"
+                  size="mini"
+                  @click.stop="openCloneCheckDialog(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="删除" :enterable="false">
+                <el-button
+                  icon="el-icon-delete"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_REMOVE,
+                    type: 'disabled'
+                  }"
+                  type="danger"
+                  size="mini"
+                  @click.stop="delCheck(scope)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="查看考核结果" :enterable="false">
+                <el-button
+                  icon="el-icon-right"
+                  circle
+                  v-permission="{
+                    permission: permission.APPRAISAL_RESULT,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  type="primary"
+                  @click.stop="toCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                :content="scope.row.running ? '正在打分...' : `实时打分`"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="快速复制" :enterable="false">
-              <el-button
-                icon="el-icon-document-copy"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_CLONE,
-                  type: 'disabled'
-                }"
-                type="warning"
-                size="mini"
-                @click.stop="openCloneCheckDialog(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="删除" :enterable="false">
-              <el-button
-                icon="el-icon-delete"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_REMOVE,
-                  type: 'disabled'
-                }"
-                type="danger"
-                size="mini"
-                @click.stop="delCheck(scope)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="查看考核结果" :enterable="false">
-              <el-button
-                icon="el-icon-right"
-                circle
-                v-permission="{
-                  permission: permission.APPRAISAL_RESULT,
-                  type: 'disabled'
-                }"
-                size="mini"
-                type="primary"
-                @click.stop="toCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="全部开启打分" :enterable="false">
-              <el-button
-                icon="el-icon-check"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_OPEN_GRADE,
-                  type: 'disabled'
-                }"
-                v-show="scope.row.isOpen"
-                type="success"
-                size="mini"
-                @click.stop="openCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="全部关闭打分" :enterable="false">
-              <el-button
-                icon="el-icon-close"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_CLOSE_GRADE,
-                  type: 'disabled'
-                }"
-                v-show="scope.row.isClose"
-                size="mini"
-                @click.stop="closeCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              :content="
-                scope.row.running
-                  ? '正在打分...'
-                  : `实时打分. 上次打分时间:${scope.row.runTime}`
-              "
-              :enterable="false"
-            >
-              <el-button
-                :icon="
-                  scope.row.running
-                    ? 'el-icon-loading'
-                    : 'el-icon-refresh-right'
-                "
-                circle
-                v-permission="{
-                  permission: permission.CHECK_UPDATE,
-                  type: 'disabled'
-                }"
-                v-show="!scope.row.checkType"
-                size="mini"
-                type="info"
-                @click.stop="tempCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
+                <el-button
+                  icon="el-icon-refresh-right"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_UPDATE,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  type="info"
+                  @click.stop="tempCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="全部开启打分" :enterable="false">
+                <el-button
+                  icon="el-icon-check"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_OPEN_GRADE,
+                    type: 'disabled'
+                  }"
+                  v-show="scope.row.isOpen"
+                  type="success"
+                  size="mini"
+                  @click.stop="openCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="全部关闭打分" :enterable="false">
+                <el-button
+                  icon="el-icon-close"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_CLOSE_GRADE,
+                    type: 'disabled'
+                  }"
+                  v-show="scope.row.isClose"
+                  size="mini"
+                  @click.stop="closeCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+            </div>
+            <div v-show="scope.row.running">
+              <i class="el-icon-loading"></i> 正在打分
+            </div>
           </template>
         </el-table-column>
       </el-table>
