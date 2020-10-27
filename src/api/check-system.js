@@ -21,6 +21,7 @@ import dayjs from 'dayjs';
 
 const scoreAPI = new Score();
 import {Permission} from '../../common/permission';
+import {jobStatus} from './score_hospital_check_rules';
 
 export default class CheckSystem {
   //添加考核系统
@@ -543,7 +544,8 @@ export default class CheckSystem {
           hospitalCount: checkHospitalCount,
           auto,
           createUser,
-          updateUser
+          updateUser,
+          running: jobStatus[row.checkId] || false
         };
       })
     );
