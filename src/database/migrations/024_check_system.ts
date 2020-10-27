@@ -14,10 +14,10 @@ export class AlterCheckSystemMigration implements IMigration {
         add column if not exists run_time timestamp with time zone;
       alter table "report_hospital_history"
         add column if not exists "check_id" uuid
-          references "check_system" ("check_id") on update cascade;
+          references "check_system" ("check_id") on update cascade on delete cascade;
       alter table "report_hospital"
         add column if not exists "check_id" uuid
-          references "check_system" ("check_id") on update cascade;
+          references "check_system" ("check_id") on update cascade on delete cascade;
 
       --补上跑分历史记录的check_id的值
       update report_hospital_history rhh set "check_id" = ch.check_system
