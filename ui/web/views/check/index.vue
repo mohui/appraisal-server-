@@ -397,6 +397,7 @@ export default {
   name: 'check',
   data() {
     return {
+      timer: null, // 考核体系列表接口调用定时器
       permission: Permission,
       maxSize: 5,
       progress: 0,
@@ -422,6 +423,14 @@ export default {
       importUrl: 'uploadUrl',
       headers: {token: "getCookie('account')"}
     };
+  },
+  created() {
+    this.timer = setInterval(() => {
+      this.$asyncComputed.listCheck.update();
+    }, 5000);
+  },
+  destroyed() {
+    this.timer && clearInterval(this.timer);
   },
   computed: {
     checkList() {
