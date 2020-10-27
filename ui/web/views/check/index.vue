@@ -63,11 +63,7 @@
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
-        <el-table-column
-          align="center"
-          :min-width="computedColWidth('checkType')"
-          label="类型"
-        >
+        <el-table-column align="center" :min-width="50" label="类型">
           <template slot-scope="scope">
             {{ scope.row.checkType ? '主要' : '临时' }}
           </template>
@@ -76,7 +72,7 @@
           align="center"
           prop="autoScore"
           :min-width="computedColWidth('autoScore')"
-          label="打分状态"
+          label="自动打分"
         ></el-table-column>
         <el-table-column
           align="center"
@@ -99,7 +95,7 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="220">
+        <el-table-column label="操作" min-width="280">
           <template slot-scope="scope">
             <el-tooltip content="编辑" :enterable="false">
               <el-button
