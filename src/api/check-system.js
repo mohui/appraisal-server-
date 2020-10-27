@@ -16,10 +16,8 @@ import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
-import Score from './score';
 import dayjs from 'dayjs';
 
-const scoreAPI = new Score();
 import {Permission} from '../../common/permission';
 import {jobStatus} from './score_hospital_check_rules';
 
@@ -184,8 +182,6 @@ export default class CheckSystem {
           ruleId: rule.ruleId
         }))
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
       return rule;
     });
   }
@@ -219,8 +215,6 @@ export default class CheckSystem {
           projectId: item
         }))
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
     }
     return rule;
   }
@@ -266,12 +260,9 @@ export default class CheckSystem {
       );
     }
     //修改规则组
-    const result = await CheckRuleModel.update(options, {
+    return CheckRuleModel.update(options, {
       where: {ruleId: params.ruleId}
     });
-    //同步更新金额分配情况
-    scoreAPI.checkBudget();
-    return result;
   }
 
   //删除考核系统
@@ -356,7 +347,7 @@ export default class CheckSystem {
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
       //进行修改操作
-      const result = await CheckRuleModel.update(
+      return CheckRuleModel.update(
         {
           ruleName,
           parentRuleId,
@@ -368,9 +359,6 @@ export default class CheckSystem {
         },
         {where: {ruleId}}
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
-      return result;
     });
   }
 
@@ -398,8 +386,6 @@ export default class CheckSystem {
       }
       await rule.destroy({force: true});
     });
-    //同步更新金额的分配情况
-    scoreAPI.checkBudget();
   }
 
   //查询规则
@@ -723,9 +709,6 @@ export default class CheckSystem {
         }))
     );
     //批量添加规则与机构的关系数据
-    const result = await RuleHospitalModel.bulkCreate(newRuleHospitals);
-    //同步更新金额分配的情况
-    scoreAPI.checkBudget();
-    return result;
+    return RuleHospitalModel.bulkCreate(newRuleHospitals);
   }
 }
