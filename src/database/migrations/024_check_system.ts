@@ -24,7 +24,7 @@ export class AlterCheckSystemMigration implements IMigration {
       set "check_id" = ch.check_system
       from (select check_system, hospital
             from check_hospital ch
-                   left join check_system cs on ch.check_system = cs.check_id
+                   inner join check_system cs on ch.check_system = cs.check_id
             where cs.check_type = 1) as ch
       where rhh.hospital = ch.hospital;
 
@@ -33,7 +33,7 @@ export class AlterCheckSystemMigration implements IMigration {
       set "check_id" = ch.check_system
       from (select check_system, hospital
             from check_hospital ch
-                   left join check_system cs on ch.check_system = cs.check_id
+                   inner join check_system cs on ch.check_system = cs.check_id
             where cs.check_type = 1) as ch
       where rh.hospital = ch.hospital;
 
