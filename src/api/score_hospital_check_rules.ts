@@ -112,6 +112,11 @@ async function appQuery(sql, params) {
   });
 }
 
+/**
+ * 考核体系打分任务状态
+ */
+export const jobStatus = {};
+
 export default class ScoreHospitalCheckRules {
   async autoScoreAllCheck() {
     await Promise.all(
@@ -122,24 +127,39 @@ export default class ScoreHospitalCheckRules {
   }
 
   /**
-   * 考核机构跑分
-   * @param id
+   * 考核体系打分
+   *
+   * @param id 考核体系id
    */
   async autoScoreCheck(id) {
-    await Promise.all(
-      (
-        await CheckHospitalModel.findAll({
-          where: {checkId: id}
-        })
-      ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id))
-    );
-    await this.checkBudget(id);
-    await CheckSystemModel.update(
-      {
-        runTime: dayjs().toDate()
-      },
-      {where: {checkId: id}}
-    );
+    if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
+    // 标记打分状态, 正在打分
+    jobStatus[id] = true;
+    try {
+      await Promise.all(
+        // 查询考核体系绑定的机构
+        (
+          await CheckHospitalModel.findAll({
+            where: {checkId: id}
+          })
+        ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id)) // 考核体系-机构打分
+      );
+      // 金额分配
+      await this.checkBudget(id);
+      // 更新打分时间
+      await CheckSystemModel.update(
+        {
+          runTime: dayjs().toDate()
+        },
+        {where: {checkId: id}}
+      );
+    } catch (e) {
+      console.error(e);
+      throw new KatoCommonError('当前考核体系打分失败');
+    }
+
+    // 标记打分状态, 打分结束
+    jobStatus[id] = false;
   }
 
   /**
