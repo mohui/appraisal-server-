@@ -9,7 +9,7 @@ export class AlterCheckSystemMigration implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       alter table "check_system"
-        add column if not exists check_type integer default (0);
+        add column if not exists check_type integer; -- 暂时设置字段值为null, 稍后补充默认值
       alter table "check_system"
         add column if not exists run_time timestamp with time zone;
       alter table "report_hospital_history"
@@ -18,6 +18,15 @@ export class AlterCheckSystemMigration implements IMigration {
       alter table "report_hospital"
         add column if not exists "check_id" uuid
           references "check_system" ("check_id") on update cascade on delete cascade;
+
+      -- 更新现有考核体系为主考核
+      update "check_system"
+      set "check_type" = 1
+      where "check_type" IS NULL;
+
+      -- 添加考核类型默认值为0
+      alter table "check_system"
+        alter "check_type" set default 0;
 
       --补上跑分历史记录的check_id的值
       update report_hospital_history rhh
