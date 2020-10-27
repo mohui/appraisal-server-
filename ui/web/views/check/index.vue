@@ -78,6 +78,12 @@
           :min-width="computedColWidth('autoScore')"
           label="打分状态"
         ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="runTime"
+          :min-width="computedColWidth('runTime')"
+          label="打分时间"
+        ></el-table-column>
         <el-table-column align="center" min-width="70" label="适用机构">
           <template slot-scope="scope">
             <el-button
