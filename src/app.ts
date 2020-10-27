@@ -12,6 +12,8 @@ import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
 import * as models from './database/model';
 import * as cron from 'node-cron';
+import ScoreHospitalCheckRules from './api/score_hospital_check_rules';
+const scoreAPI = new ScoreHospitalCheckRules();
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -129,10 +131,13 @@ export class Application {
   }
 
   async initScheduleJob() {
-    const autoScore = new (require('./api/score').default)();
     //每天凌晨4点执行自动打分
-    cron.schedule('00 00 04 * * *', () => {
-      autoScore.autoScoreAll();
+    cron.schedule(config.get('queue.cron'), async () => {
+      try {
+        await scoreAPI.autoScoreAllCheck();
+      } catch (e) {
+        console.log(`定时任务失败: ${e}`);
+      }
     });
   }
 }
