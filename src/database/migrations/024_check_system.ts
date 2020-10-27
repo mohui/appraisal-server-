@@ -21,12 +21,16 @@ export class AlterCheckSystemMigration implements IMigration {
 
       --补上跑分历史记录的check_id的值
       update report_hospital_history rhh set "check_id" = ch.check_system
-      from (select check_system,hospital from check_hospital) as ch
+      from (select check_system,hospital from check_hospital ch
+            left join check_system cs on ch.check_system = cs.check_id
+            where cs.check_type=1) as ch
       where rhh.hospital = ch.hospital;
 
       --补上跑分结果的check_id的值
       update report_hospital rh set "check_id" = ch.check_system
-      from (select check_system,hospital from check_hospital) as ch
+      from (select check_system,hospital from check_hospital ch
+            left join check_system cs on ch.check_system = cs.check_id
+            where cs.check_type=1) as ch
       where rh.hospital = ch.hospital;
 
       --删除check_id为空的数据
