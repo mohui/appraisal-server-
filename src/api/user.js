@@ -145,7 +145,7 @@ export default class User {
   async list(params) {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
-    let sqlParams = {pageSize, pageNo: pageNo - 1};
+    let sqlParams = {pageSize, pageNo: (pageNo - 1) * pageSize};
 
     //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
