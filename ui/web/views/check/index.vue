@@ -449,8 +449,7 @@ export default {
           it.status,
         created_at: it.created_at.$format('YYYY-MM-DD'),
         updated_at: it.updated_at.$format('YYYY-MM-DD'),
-        runTime: it?.runTime?.$format('YYYY-MM-DD HH:mm:ss') ?? '',
-        running: false //是否正在跑分
+        runTime: it?.runTime?.$format('YYYY-MM-DD HH:mm:ss') ?? ''
       }));
     },
     uploadData() {
