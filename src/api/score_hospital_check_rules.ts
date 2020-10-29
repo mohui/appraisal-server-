@@ -24,7 +24,7 @@ import {
 } from '../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {v4 as uuid} from 'uuid';
-import {appDB} from '../app';
+import {appDB, originalDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
 import * as path from 'path';
 import {ossClient} from '../../util/oss';
@@ -48,65 +48,123 @@ function percentString(numerator: number, denominator: number): string {
   }
 }
 
-function listRender(params) {
-  return sqlRender(
+async function queryList(params) {
+  let sql = sqlRender(
     `
             select
             vh.h_id as "hospitalId",
-            cast(sum(vw.score) as int) as "workPoint"
-            from view_workscoretotal vw
-            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
-            and
-             vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-             and missiontime >= {{? start}}
-             and missiontime < {{? end}}
-            group by vh.h_id,vw.operateorganization
+            vh.hishospid
+            from hospital_mapping vh
+            where vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            group by vh.h_id,vh.hishospid
     `,
     params
   );
-}
-
-function rankRender(params) {
-  return sqlRender(
-    `       select
-            cast(sum(vw.score) as int) as workPoint,
-            vh.h_id as "hospitalId",
-            vho.hospname as "name"
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const hospitals = await appQuery(sql[0], sql[1]);
+  sql = sqlRender(
+    `
+            select
+            vw.operateorganization,
+            cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
-                 left join hospital_mapping vh on vw.operateorganization = vh.hishospid
-                 left join view_hospital vho on vho.hospid = vh.hishospid
-            where
-                vho.regioncode like {{? code}}
-                 and
-                vw.projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-                 and
-                vw.missiontime >= {{? start}}
-                 and
-                vw.missiontime < {{? end}}
-        group by vh.h_id, vho.hospname`,
+            where 1 = 1
+             {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+            group by vw.operateorganization
+    `,
     params
   );
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const workPoints = await originalQuery(sql[0], sql[1]);
+  return Array.from(
+    new Set(
+      hospitals
+        .filter(
+          h =>
+            workPoints.filter(p => p.operateorganization === h.hishospid)
+              .length > 0
+        )
+        .map(i => i.hospitalId)
+    )
+  ).map(hospitalId => ({
+    hospitalId,
+    workPoint: workPoints
+      .filter(
+        p =>
+          hospitals.filter(
+            h =>
+              h.hospitalId === hospitalId &&
+              h.hishospid === p.operateorganization
+          ).length > 0
+      )
+      .reduce((result, current) => (result += current.workPoint), 0)
+  }));
 }
 
-function projectWorkPointRender(params) {
-  return sqlRender(
-    `select
-        projecttype as "projectId",
-        cast(sum(vw.score) as int) as workPoint
-        from view_workscoretotal vw
-        inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
-        and vh.h_id = {{? hospitalId}}
-        where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-        and missiontime >= {{? start}}
-        and missiontime < {{? end}}
-        group by projecttype;`,
+async function queryProjectWorkPoint(params) {
+  let sql = sqlRender(
+    `
+            select
+            vh.h_id as "hospitalId",
+            vh.hishospid
+            from hospital_mapping vh
+            where vh.h_id = {{? hospitalId}}
+            group by vh.h_id,vh.hishospid
+    `,
     params
   );
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const hospitals = await appQuery(sql[0], sql[1]);
+  sql = sqlRender(
+    `
+            select
+            vw.projecttype as "projectId",
+            vw.operateorganization,
+            cast(sum(vw.score) as int) as "workPoint"
+            from view_workscoretotal vw
+            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+            group by vw.projecttype,vw.operateorganization
+    `,
+    params
+  );
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const workPoints = await originalQuery(sql[0], sql[1]);
+  return Array.from(
+    new Set(
+      workPoints
+        .filter(
+          p =>
+            hospitals.filter(h => p.operateorganization === h.hishospid)
+              .length > 0
+        )
+        .map(i => i.projectId)
+    )
+  ).map(projectId => ({
+    projectId,
+    workPoint: workPoints
+      .filter(
+        p =>
+          p.projectId === projectId &&
+          hospitals.filter(h => p.operateorganization === h.hishospid).length >
+            0
+      )
+      .reduce((result, current) => (result += current.workPoint), 0)
+  }));
 }
 
 async function appQuery(sql, params) {
   return appDB.query(sql, {
+    replacements: params,
+    type: QueryTypes.SELECT
+  });
+}
+
+async function originalQuery(sql, params) {
+  return originalDB.query(sql, {
     replacements: params,
     type: QueryTypes.SELECT
   });
@@ -491,33 +549,17 @@ export default class ScoreHospitalCheckRules {
     ).reduce((result, current) => (result += current.score), 0);
     // 机构工分
     // language=PostgreSQL
-    const workpoints =
-      (
-        await appDB.query(
-          `
-            select sum(vws.score) as workpoints
-            from view_workscoretotal vws
-                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
-            where hm.h_id = ?
-              and vws.missiontime >= ?
-              and vws.missiontime < ?
-          `,
-          {
-            replacements: [
-              hospitalId,
-              dayjs()
-                .startOf('y')
-                .toDate(),
-              dayjs()
-                .startOf('y')
-                .add(1, 'y')
-                .toDate()
-            ],
-            type: QueryTypes.SELECT
-          }
-        )
-      )[0]?.workpoints ?? 0;
-
+    const params = {
+      ids: [hospitalId],
+      start: dayjs()
+        .startOf('y')
+        .toDate(),
+      end: dayjs()
+        .startOf('y')
+        .add(1, 'y')
+        .toDate()
+    };
+    const workpoints = (await queryList(params))?.[0]?.workPoint ?? 0;
     // 更新机构考核报告表
     await ReportHospitalModel.upsert({
       hospitalId: hospitalId,
@@ -594,7 +636,7 @@ export default class ScoreHospitalCheckRules {
           correctWorkPoint: 0
         }));
       } else {
-        const sql = listRender({
+        const params = {
           ids,
           projectIds,
           start: dayjs()
@@ -604,9 +646,9 @@ export default class ScoreHospitalCheckRules {
             .startOf('y')
             .add(1, 'y')
             .toDate()
-        });
+        };
         //所有机构的在这个小项的工分情况
-        allHospitalWorkPoint = await appQuery(sql[0], sql[1]);
+        allHospitalWorkPoint = await queryList(params);
         allHospitalWorkPoint = allHospitalWorkPoint.concat(
           //过滤出查询结果中工分为空的机构,给他们的工分值设置为0
           ids
@@ -1278,7 +1320,7 @@ export default class ScoreHospitalCheckRules {
       ).map(it => it.toJSON());
       if (projects.length > 0) {
         //按工分项分类查询工分值
-        const sqlRender = projectWorkPointRender({
+        const params = {
           hospitalId: code,
           projectIds: projects.map(it => it.projectId),
           start: dayjs()
@@ -1288,8 +1330,8 @@ export default class ScoreHospitalCheckRules {
             .startOf('y')
             .add(1, 'y')
             .toDate()
-        });
-        let projectWorkPointList = await appQuery(sqlRender[0], sqlRender[1]);
+        };
+        let projectWorkPointList = await queryProjectWorkPoint(params);
         projectWorkPointList = projectWorkPointList.concat(
           //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
           projects
