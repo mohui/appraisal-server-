@@ -56,9 +56,7 @@ dev_deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker pull $IMAGE_NAME"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server-dev || true && docker rm appraisal-server-dev || true"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server-dev -p 3200:3000 -v /data/etc/appraisal-server/dev.js:/home/node/app/config/production.js $IMAGE_NAME"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server-temp || true && docker rm appraisal-server-temp || true"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server-temp -p 3210:3000 -v /data/etc/appraisal-server/check.js:/home/node/app/config/production.js $IMAGE_NAME"
   dependencies:
     - docker_build
-  only:
-    - master
