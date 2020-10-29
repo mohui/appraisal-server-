@@ -27,7 +27,7 @@ function listRender(params) {
       from mark_person mp
              inner join view_personinfo vp on mp.personnum = vp.personnum
              inner join view_hospital vh on vp.adminorganization = vh.hospid
-      where vp.vouchertype = '1'
+      where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
