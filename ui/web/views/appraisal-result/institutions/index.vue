@@ -990,7 +990,11 @@ export default {
       }
       try {
         row.isSaveScoreLoaing = true;
-        await this.$api.Score.score(row.ruleId, this.totalData.id, row.score);
+        await this.$api.ScoreHospitalCheckRules.score(
+          row.ruleId,
+          this.totalData.id,
+          row.score
+        );
         this.$message({
           type: 'success',
           message: '打分成功'
@@ -1479,7 +1483,9 @@ export default {
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
-        return await this.$api.Score.faceCollect(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.faceCollect(
+          this.params.id
+        );
       },
       default() {
         return {
@@ -1572,7 +1578,7 @@ export default {
     //获取服务器单项考核规则的考核文件列表数据
     appraisalFileListServerData: {
       async get() {
-        return await this.$api.Score.listAttachments(
+        return await this.$api.ScoreHospitalCheckRules.listAttachments(
           this.curRule.ruleId,
           this.params.id
         );
@@ -1587,7 +1593,7 @@ export default {
     //获取服务器单项考核得分解读数据
     appraisalResultInstructionsServerData: {
       async get() {
-        return await this.$api.Score.detail(
+        return await this.$api.ScoreHospitalCheckRules.detail(
           this.params.id,
           this.curRule.ruleId
         );

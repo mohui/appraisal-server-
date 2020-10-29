@@ -318,7 +318,9 @@ export default {
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
-        return await this.$api.Score.faceCollect(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.faceCollect(
+          this.params.id
+        );
       },
       default() {
         return {
