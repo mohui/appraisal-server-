@@ -1009,6 +1009,8 @@ export default {
           message: e.message
         });
       } finally {
+        //打分后重新刷新考核数据
+        this.$asyncComputed.appraisalIndicatorsServerData.update();
         row.isSaveScoreLoaing = false;
       }
     },
