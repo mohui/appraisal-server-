@@ -782,7 +782,8 @@ export default class ScoreHospitalCheckRules {
     const scores = (
       await RuleHospitalScoreModel.findAll({
         where: {hospitalId},
-        attributes: ['score']
+        attributes: ['score'],
+        include: [{model: CheckRuleModel, where: {checkId: rule.checkId}}]
       })
     )
       .reduce(
@@ -790,8 +791,12 @@ export default class ScoreHospitalCheckRules {
         new Decimal(0)
       )
       .toNumber();
-    //更新该机构report_hospital表的数据
-    await ReportHospitalModel.update({scores}, {where: {hospitalId}});
+    //保存该机构report_hospital表的数据
+    await ReportHospitalModel.upsert({
+      checkId: rule.checkId,
+      hospitalId,
+      scores
+    });
     //重新进行金额分配
     this.checkBudget(rule.checkId);
   }
