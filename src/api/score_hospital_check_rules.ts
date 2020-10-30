@@ -170,6 +170,49 @@ async function originalQuery(sql, params) {
   });
 }
 
+async function getLevelRegion(
+  regionCodeList,
+  hospitalMinRegionLevel,
+  currentLevel
+) {
+  let sql = `
+select
+        r.level,r.code,
+        case r.level `;
+  // eslint-disable-next-line for-direction
+  for (let i = hospitalMinRegionLevel; i >= currentLevel; i--)
+    sql +=
+      ` when ` +
+      i +
+      ` then r` +
+      (i == currentLevel ? `` : hospitalMinRegionLevel + currentLevel - i) +
+      `.code`;
+  sql += ` else null end as current_level_region
+    from region r`;
+  // eslint-disable-next-line for-direction
+  for (let i = hospitalMinRegionLevel; i > currentLevel; i--)
+    sql +=
+      `
+        left join region r` +
+      (i - 1) +
+      ` on r` +
+      (i - 1) +
+      `.code=r` +
+      (i == hospitalMinRegionLevel ? `` : i) +
+      `.parent`;
+  //机构检索对应区域
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const sqlRender1 = sqlRender(
+    sql +
+      `
+where r.code in({{#each code}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+    {
+      code: regionCodeList
+    }
+  );
+  return await appQuery(sqlRender1[0], sqlRender1[1]);
+}
+
 /**
  * 考核体系打分任务状态
  */
@@ -975,13 +1018,31 @@ export default class ScoreHospitalCheckRules {
       }
     });
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不合法`);
-
+    const checkHospitals = await CheckHospitalModel.findAll({
+      where: {hospitalId: Context.current.user.hospitals.map(h => h.id)},
+      include: [
+        {
+          model: CheckSystemModel,
+          required: true,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        },
+        {model: HospitalModel, include: [RegionModel]}
+      ]
+    });
+    const hospitalCurrentRegions = await getLevelRegion(
+      checkHospitals.map(i => i.hospital.region.code),
+      Math.max(...checkHospitals.map(i => i.hospital.region.level)),
+      regionModel.level + 1
+    );
     // 获取所有子地区
     return await Promise.all(
       (
         await RegionModel.findAll({
           where: {
-            parent: regionModel.code
+            parent: regionModel.code,
+            code: {
+              [Op.in]: hospitalCurrentRegions.map(i => i.current_level_region)
+            }
           }
         })
       ).map(async region => {
