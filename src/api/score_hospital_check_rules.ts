@@ -237,14 +237,10 @@ export default class ScoreHospitalCheckRules {
     // 标记打分状态, 正在打分
     jobStatus[id] = true;
     try {
-      await Promise.all(
-        // 查询考核体系绑定的机构
-        (
-          await CheckHospitalModel.findAll({
-            where: {checkId: id}
-          })
-        ).map(it => this.autoScoreHospitalCheck(it.hospitalId, id)) // 考核体系-机构打分
-      );
+      for (const hospital of await CheckHospitalModel.findAll({
+        where: {checkId: id}
+      }))
+        await this.autoScoreHospitalCheck(hospital.hospitalId, id); // 考核体系-机构打分
       // 金额分配
       await this.checkBudget(id);
       // 更新打分时间
