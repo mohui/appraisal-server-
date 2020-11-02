@@ -202,7 +202,7 @@
               </el-tooltip>
             </div>
             <div v-show="scope.row.running">
-              <i class="el-icon-loading"></i> 正在打分
+              <i class="el-icon-loading"></i> 正在打分 (预计5分钟完成)
             </div>
           </template>
         </el-table-column>
