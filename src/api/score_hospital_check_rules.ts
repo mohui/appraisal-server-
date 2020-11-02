@@ -255,12 +255,12 @@ export default class ScoreHospitalCheckRules {
         {where: {checkId: id}}
       );
     } catch (e) {
-      console.error(e);
+      console.error('autoScoreCheck: ', e);
       throw new KatoCommonError('当前考核体系打分失败');
+    } finally {
+      // 标记打分状态, 打分结束
+      jobStatus[id] = false;
     }
-
-    // 标记打分状态, 打分结束
-    jobStatus[id] = false;
   }
 
   /**
