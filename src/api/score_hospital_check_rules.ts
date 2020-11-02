@@ -222,7 +222,7 @@ export default class ScoreHospitalCheckRules {
   async autoScoreAllCheck() {
     await Promise.all(
       (await CheckSystemModel.findAll()).map(it =>
-        this.autoScoreCheck(it.checkId)
+        this.autoScoreCheck(it.checkId, true)
       )
     );
   }
@@ -232,7 +232,7 @@ export default class ScoreHospitalCheckRules {
    *
    * @param id 考核体系id
    */
-  async autoScoreCheck(id) {
+  async autoScoreCheck(id, isAuto) {
     if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
     // 标记打分状态, 正在打分
     jobStatus[id] = true;
@@ -240,7 +240,7 @@ export default class ScoreHospitalCheckRules {
       for (const hospital of await CheckHospitalModel.findAll({
         where: {checkId: id}
       }))
-        await this.autoScoreHospitalCheck(hospital.hospitalId, id); // 考核体系-机构打分
+        await this.autoScoreHospitalCheck(hospital.hospitalId, id, !!isAuto); // 考核体系-机构打分
       // 金额分配
       await this.checkBudget(id);
       // 更新打分时间
@@ -264,7 +264,7 @@ export default class ScoreHospitalCheckRules {
    * @param hospitalId
    * @param checkId
    */
-  async autoScoreHospitalCheck(hospitalId, checkId) {
+  async autoScoreHospitalCheck(hospitalId, checkId, isAuto) {
     // 查机构
     const hospital = await HospitalModel.findOne({
       where: {id: hospitalId}
@@ -610,9 +610,11 @@ export default class ScoreHospitalCheckRules {
     //更新历史得分
     await ReportHospitalHistoryModel.upsert({
       hospitalId: hospitalId,
-      date: dayjs()
-        .subtract(1, 'day') //当前日期减去一天,作为前一天的历史记录保存
-        .toDate(),
+      date: isAuto
+        ? dayjs()
+            .subtract(1, 'day') //当前日期减去一天,作为前一天的历史记录保存
+            .toDate()
+        : dayjs().toDate(),
       score: scores,
       totalScore: total,
       rate: new Decimal(scores).div(total).toNumber() || 0,

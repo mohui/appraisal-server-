@@ -2,6 +2,7 @@ import {
   CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
+  ReportHospitalHistoryModel,
   ReportHospitalModel,
   RuleHospitalAttachModel,
   RuleHospitalBudgetModel,
@@ -684,9 +685,16 @@ export default class CheckSystem {
     });
     //删除机构的打分结果
     await ReportHospitalModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}, checkId}
     });
-
+    //删除解绑结构的今日历史打分结果
+    await ReportHospitalHistoryModel.destroy({
+      where: {
+        hospitalId: {[Op.in]: unHospitals},
+        date: dayjs().toDate(),
+        checkId
+      }
+    });
     //添加新增的机构和规则对应关系
     let newRuleHospitals = [];
     hospitals
