@@ -2,6 +2,7 @@ import {
   CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
+  ReportHospitalModel,
   RuleHospitalAttachModel,
   RuleHospitalBudgetModel,
   RuleHospitalModel,
@@ -680,6 +681,10 @@ export default class CheckSystem {
     await RuleHospitalAttachModel.destroy({
       where: {hospitalId: {[Op.in]: unHospitals}},
       include: [{model: CheckRuleModel, where: {checkId}}]
+    });
+    //删除机构的打分结果
+    await ReportHospitalModel.destroy({
+      where: {hospitalId: {[Op.in]: unHospitals}}
     });
 
     //添加新增的机构和规则对应关系
