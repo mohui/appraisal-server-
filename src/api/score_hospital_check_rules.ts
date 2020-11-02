@@ -587,7 +587,6 @@ export default class ScoreHospitalCheckRules {
       })
     ).reduce((result, current) => (result += current.score), 0);
     // 机构工分
-    // language=PostgreSQL
     const params = {
       ids: [hospitalId],
       start: dayjs()
