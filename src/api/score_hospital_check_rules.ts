@@ -808,44 +808,46 @@ export default class ScoreHospitalCheckRules {
   async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
-      const reduceObject = await CheckHospitalModel.findAll({
-        where: {},
-        include: [
-          {
-            model: HospitalModel,
-            where: {
-              regionId: {
-                [Op.like]: `${code}%`
+      const reduceObject = (
+        await CheckHospitalModel.findAll({
+          where: {},
+          include: [
+            {
+              model: HospitalModel,
+              where: {
+                regionId: {
+                  [Op.like]: `${code}%`
+                },
+                id: {
+                  [Op.in]: Context.current.user.hospitals.map(it => it.id)
+                }
               },
-              id: {
-                [Op.in]: Context.current.user.hospitals.map(it => it.id)
-              }
+              include: [
+                {
+                  model: RuleHospitalBudgetModel,
+                  required: true,
+                  include: [
+                    {
+                      model: CheckRuleModel,
+                      required: true,
+                      include: [
+                        {
+                          model: CheckSystemModel,
+                          where: checkId ? {checkId: checkId} : {checkType: 1}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             },
-            include: [
-              {
-                model: RuleHospitalBudgetModel,
-                required: true,
-                include: [
-                  {
-                    model: CheckRuleModel,
-                    required: true,
-                    include: [
-                      {
-                        model: CheckSystemModel,
-                        where: checkId ? {checkId: checkId} : {checkType: 1}
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            model: CheckSystemModel,
-            where: checkId ? {checkId: checkId} : {checkType: 1}
-          }
-        ]
-      }).map(i => {
+            {
+              model: CheckSystemModel,
+              where: checkId ? {checkId: checkId} : {checkType: 1}
+            }
+          ]
+        })
+      ).map(i => {
         return {...i.hospital};
       });
       const resultObject = reduceObject.reduce(
