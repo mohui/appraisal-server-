@@ -110,7 +110,9 @@ async function queryProjectWorkPoint(params) {
             vh.h_id as "hospitalId",
             vh.hishospid
             from hospital_mapping vh
-            where vh.h_id = {{? hospitalId}}
+            where 1 = 1
+            {{#if hospitalId}} and vh.h_id = {{? hospitalId}}{{/if}}
+            {{#if hospitalIds}} and vh.h_id in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
             group by vh.h_id,vh.hishospid
     `,
     params
@@ -124,7 +126,8 @@ async function queryProjectWorkPoint(params) {
             vw.operateorganization,
             cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
-            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            where 1 = 1
+            {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
             group by vw.projecttype,vw.operateorganization
@@ -955,6 +958,24 @@ export default class ScoreHospitalCheckRules {
           hospitalModel?.ruleHospitalBudget
             ?.reduce(
               (res, next) => new Decimal(res).add(next?.budget ?? 0),
+              new Decimal(0)
+            )
+            .toNumber() ?? 0,
+        originalWorkPoint:
+          (
+            await queryProjectWorkPoint({
+              hospitalId: code,
+              start: dayjs()
+                .startOf('y')
+                .toDate(),
+              end: dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
+            })
+          )
+            ?.reduce(
+              (res, next) => new Decimal(res).add(next?.workPoint ?? 0),
               new Decimal(0)
             )
             .toNumber() ?? 0
