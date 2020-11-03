@@ -42,10 +42,6 @@ export class MarkHospital extends Model<MarkHospital> {
   O00: number;
 
   @Default(0)
-  @Column({field: 'O01'})
-  O01: number;
-
-  @Default(0)
   @Column({field: 'O02'})
   O02: number;
 
