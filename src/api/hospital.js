@@ -134,9 +134,9 @@ export default class Hospital {
   }
 
   async workpoints(code) {
-    // language=PostgreSQL
     return (
       await originalDB.query(
+        // language=PostgreSQL
         `select cast(sum(vws.score) as int) as score,
               vws.operatorid as doctorId,
               vws.doctor as doctorName,
