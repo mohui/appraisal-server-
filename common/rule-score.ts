@@ -330,11 +330,6 @@ export const MarkTags = [
             code: 'O03',
             name: '年内接受健康管理的老年人人数',
             enabled: false
-          },
-          {
-            code: 'O04',
-            name: '老年人中医药健康管理率',
-            enabled: false
           }
         ]
       },
