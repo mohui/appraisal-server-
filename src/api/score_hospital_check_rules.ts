@@ -931,7 +931,7 @@ export default class ScoreHospitalCheckRules {
       originalWorkPoints =
         (
           await originalDB.execute(
-            `select sum(score) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
+            `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
             hisHospitalId,
             dayjs()
               .startOf('y')
