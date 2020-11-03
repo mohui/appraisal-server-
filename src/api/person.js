@@ -37,7 +37,6 @@ function listRender(params) {
             {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
             {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
             {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
-            {{#compare O01}}{{#if documentOr}} or {{else}} and {{/if}} mp."O01"={{? O01}} {{/compare}}
             {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
             {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
             {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
@@ -185,7 +184,6 @@ export default class Person {
                 mp."S03",
                 mp."S23",
                 mp."O00",
-                mp."O01",
                 mp."O02",
                 mp."H00",
                 mp."H01",
@@ -295,7 +293,6 @@ export default class Person {
                  mp."S03",
                  mp."S23",
                  mp."O00",
-                 mp."O01",
                  mp."O02",
                  mp."H00",
                  mp."H01",
