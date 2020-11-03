@@ -808,7 +808,7 @@ export default class ScoreHospitalCheckRules {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code, checkId) {
+  async total(code, checkId, isContainOriginalWorkPoint) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
       const reduceObject = await CheckHospitalModel.findAll({
@@ -962,23 +962,26 @@ export default class ScoreHospitalCheckRules {
             )
             .toNumber() ?? 0,
         originalWorkPoint:
-          (
-            await queryProjectWorkPoint({
-              hospitalId: code,
-              start: dayjs()
-                .startOf('y')
-                .toDate(),
-              end: dayjs()
-                .startOf('y')
-                .add(1, 'y')
-                .toDate()
-            })
-          )
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next?.workPoint ?? 0),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0
+          isContainOriginalWorkPoint === undefined ||
+          isContainOriginalWorkPoint === true
+            ? (
+                await queryProjectWorkPoint({
+                  hospitalId: code,
+                  start: dayjs()
+                    .startOf('y')
+                    .toDate(),
+                  end: dayjs()
+                    .startOf('y')
+                    .add(1, 'y')
+                    .toDate()
+                })
+              )
+                ?.reduce(
+                  (res, next) => new Decimal(res).add(next?.workPoint ?? 0),
+                  new Decimal(0)
+                )
+                .toNumber() ?? 0
+            : 0
       };
     }
 
@@ -1016,7 +1019,8 @@ export default class ScoreHospitalCheckRules {
       ).map(async checkHospital => {
         const item = await this.total(
           checkHospital.hospitalId,
-          checkHospital.checkId
+          checkHospital.checkId,
+          false
         );
         return {
           ...item,
@@ -1069,7 +1073,7 @@ export default class ScoreHospitalCheckRules {
           }
         })
       ).map(async region => {
-        const result = await this.total(region.code, checkId);
+        const result = await this.total(region.code, checkId, false);
         return {
           ...result,
           ...region.toJSON()
