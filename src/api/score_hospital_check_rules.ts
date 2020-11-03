@@ -110,9 +110,7 @@ async function queryProjectWorkPoint(params) {
             vh.h_id as "hospitalId",
             vh.hishospid
             from hospital_mapping vh
-            where 1 = 1
-            {{#if hospitalId}} and vh.h_id = {{? hospitalId}}{{/if}}
-            {{#if hospitalIds}} and vh.h_id in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+            where vh.h_id = {{? hospitalId}}
             group by vh.h_id,vh.hishospid
     `,
     params
@@ -126,8 +124,7 @@ async function queryProjectWorkPoint(params) {
             vw.operateorganization,
             cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
-            where 1 = 1
-            {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
             group by vw.projecttype,vw.operateorganization
@@ -808,7 +805,7 @@ export default class ScoreHospitalCheckRules {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code, checkId, isContainOriginalWorkPoint) {
+  async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
       const reduceObject = await CheckHospitalModel.findAll({
@@ -1021,8 +1018,7 @@ export default class ScoreHospitalCheckRules {
       ).map(async checkHospital => {
         const item = await this.total(
           checkHospital.hospitalId,
-          checkHospital.checkId,
-          false
+          checkHospital.checkId
         );
         return {
           ...item,
@@ -1075,7 +1071,7 @@ export default class ScoreHospitalCheckRules {
           }
         })
       ).map(async region => {
-        const result = await this.total(region.code, checkId, false);
+        const result = await this.total(region.code, checkId);
         return {
           ...result,
           ...region.toJSON()
