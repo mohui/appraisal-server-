@@ -145,7 +145,7 @@ async function queryProjectWorkPoint(params) {
     )
   ).map(projectId => ({
     projectId,
-    workPoint: workPoints
+    workpoint: workPoints
       .filter(
         p =>
           p.projectId === projectId &&
