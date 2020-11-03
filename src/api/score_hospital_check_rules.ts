@@ -382,23 +382,6 @@ export default class ScoreHospitalCheckRules {
             score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
-
-        // 老年人体检完整率
-        if (tagModel.tag === MarkTagUsages.O01.code) {
-          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O01)
-            score += tagModel.score;
-          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O01)
-            score += tagModel.score;
-          if (
-            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
-            mark?.O00 &&
-            mark?.O01
-          ) {
-            const rate = mark.O01 / mark.O00 / tagModel.baseline;
-            score += tagModel.score * (rate > 1 ? 1 : rate);
-          }
-        }
-
         // 老年人中医药健康管理率
         if (tagModel.tag === MarkTagUsages.O02.code) {
           if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O02)
@@ -1192,19 +1175,6 @@ export default class ScoreHospitalCheckRules {
             )}`
           );
         }
-      }
-      // 老年人体检完整率
-      if (ruleTagModel.tag === MarkTagUsages.O01.code) {
-        result.push(
-          `${
-            MarkTagUsages.O01.name
-          } = 年内接受完整体检的老年人数 / 年内接受健康管理的65岁及以上常住居民数 = ${
-            markHospitalModel.O01
-          } / ${markHospitalModel.O00} = ${percentString(
-            markHospitalModel.O01,
-            markHospitalModel.O00
-          )}`
-        );
       }
       // 老年人中医药健康管理率
       if (ruleTagModel.tag === MarkTagUsages.O02.code) {
