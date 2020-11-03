@@ -82,7 +82,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(23);
+      await migrate.migrate(24);
     }
   }
 
@@ -129,10 +129,14 @@ export class Application {
   }
 
   async initScheduleJob() {
-    const autoScore = new (require('./api/score').default)();
     //每天凌晨4点执行自动打分
-    cron.schedule('00 00 04 * * *', () => {
-      autoScore.autoScoreAll();
+    cron.schedule(config.get('queue.cron'), async () => {
+      try {
+        const scoreAPI = new (require('./api/score_hospital_check_rules').default)();
+        await scoreAPI.autoScoreAllCheck();
+      } catch (e) {
+        console.log(`定时任务失败: ${e}`);
+      }
     });
   }
 }

@@ -63,11 +63,22 @@
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
+        <el-table-column align="center" :min-width="50" label="类型">
+          <template slot-scope="scope">
+            {{ scope.row.checkType ? '主要' : '临时' }}
+          </template>
+        </el-table-column>
         <el-table-column
           align="center"
           prop="autoScore"
           :min-width="computedColWidth('autoScore')"
-          label="打分状态"
+          label="自动打分"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="runTime"
+          :min-width="computedColWidth('runTime')"
+          label="打分时间"
         ></el-table-column>
         <el-table-column align="center" min-width="70" label="适用机构">
           <template slot-scope="scope">
@@ -80,83 +91,119 @@
               type="primary"
               size="mini"
               @click.stop="openSelectDialog(scope.row)"
-              >{{ scope.row.hospitalCount }}</el-button
-            >
+              >{{ scope.row.hospitalCount }}
+            </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="220">
+        <el-table-column label="操作" min-width="280">
           <template slot-scope="scope">
-            <el-tooltip content="编辑" :enterable="false">
-              <el-button
-                type="primary"
-                icon="el-icon-edit"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_UPDATE,
-                  type: 'disabled'
-                }"
-                size="mini"
-                @click.stop="openEditCheckDialog(scope.row)"
+            <div v-show="!scope.row.running">
+              <el-tooltip content="编辑" :enterable="false">
+                <el-button
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_UPDATE,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  @click.stop="openEditCheckDialog(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="快速复制" :enterable="false">
+                <el-button
+                  icon="el-icon-document-copy"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_CLONE,
+                    type: 'disabled'
+                  }"
+                  type="warning"
+                  size="mini"
+                  @click.stop="openCloneCheckDialog(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="删除" :enterable="false">
+                <el-button
+                  icon="el-icon-delete"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_REMOVE,
+                    type: 'disabled'
+                  }"
+                  type="danger"
+                  size="mini"
+                  @click.stop="delCheck(scope)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="查看考核结果" :enterable="false">
+                <el-button
+                  icon="el-icon-right"
+                  circle
+                  v-permission="{
+                    permission: permission.APPRAISAL_RESULT,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  type="primary"
+                  @click.stop="toCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                :content="scope.row.running ? '正在打分...' : `实时打分`"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="快速复制" :enterable="false">
-              <el-button
-                icon="el-icon-document-copy"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_CLONE,
-                  type: 'disabled'
-                }"
-                type="warning"
-                size="mini"
-                @click.stop="openCloneCheckDialog(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="删除" :enterable="false">
-              <el-button
-                icon="el-icon-delete"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_REMOVE,
-                  type: 'disabled'
-                }"
-                type="danger"
-                size="mini"
-                @click.stop="delCheck(scope)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="全部开启打分" :enterable="false">
-              <el-button
-                icon="el-icon-check"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_OPEN_GRADE,
-                  type: 'disabled'
-                }"
-                v-show="scope.row.isOpen"
-                type="success"
-                size="mini"
-                @click.stop="openCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip content="全部关闭打分" :enterable="false">
-              <el-button
-                icon="el-icon-close"
-                circle
-                v-permission="{
-                  permission: permission.CHECK_CLOSE_GRADE,
-                  type: 'disabled'
-                }"
-                v-show="scope.row.isClose"
-                size="mini"
-                @click.stop="closeCheck(scope.row)"
-              >
-              </el-button>
-            </el-tooltip>
+                <el-button
+                  icon="el-icon-refresh-right"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_UPDATE,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  type="info"
+                  @click.stop="tempCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="全部开启打分" :enterable="false">
+                <el-button
+                  icon="el-icon-check"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_OPEN_GRADE,
+                    type: 'disabled'
+                  }"
+                  v-show="scope.row.isOpen"
+                  type="success"
+                  size="mini"
+                  @click.stop="openCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="全部关闭打分" :enterable="false">
+                <el-button
+                  icon="el-icon-close"
+                  circle
+                  v-permission="{
+                    permission: permission.CHECK_CLOSE_GRADE,
+                    type: 'disabled'
+                  }"
+                  v-show="scope.row.isClose"
+                  size="mini"
+                  @click.stop="closeCheck(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+            </div>
+            <div v-show="scope.row.running">
+              <i class="el-icon-loading"></i> 正在打分 (预计5分钟完成)
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -193,6 +240,10 @@
         <el-form-item label="状态：">
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
+        </el-form-item>
+        <el-form-item label="类型：">
+          <el-radio v-model="checkForm.checkType" :label="1">主要</el-radio>
+          <el-radio v-model="checkForm.checkType" :label="0">临时</el-radio>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -290,8 +341,8 @@
           type="primary"
           @click="saveUploadRules"
           :loading="uploadLoading"
-          >确 定</el-button
-        >
+          >确 定
+        </el-button>
       </div>
     </el-dialog>
     <el-dialog
@@ -341,10 +392,12 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+
 export default {
   name: 'check',
   data() {
     return {
+      timer: null, // 考核体系列表接口调用定时器
       permission: Permission,
       maxSize: 5,
       progress: 0,
@@ -358,6 +411,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
+        checkType: 1,
         status: true
       },
       searchForm: {
@@ -369,6 +423,14 @@ export default {
       importUrl: 'uploadUrl',
       headers: {token: "getCookie('account')"}
     };
+  },
+  created() {
+    this.timer = setInterval(() => {
+      this.$asyncComputed.listCheck.update();
+    }, 5000);
+  },
+  destroyed() {
+    this.timer && clearInterval(this.timer);
   },
   computed: {
     checkList() {
@@ -391,7 +453,8 @@ export default {
           it.hospitalCount !== 0 &&
           it.status,
         created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
+        updated_at: it.updated_at.$format('YYYY-MM-DD'),
+        runTime: it?.runTime?.$format('YYYY-MM-DD HH:mm:ss') ?? ''
       }));
     },
     uploadData() {
@@ -421,6 +484,25 @@ export default {
     }
   },
   methods: {
+    //临时考核打分
+    async tempCheck(row) {
+      if (!row.running) {
+        row.running = true;
+        this.$api.ScoreHospitalCheckRules.autoScoreCheck(row.checkId);
+        //刷新列表
+        this.$asyncComputed.listCheck.update();
+      }
+    },
+    //跳转考核结果页
+    toCheck(row) {
+      this.$router.push({
+        path:
+          this.$settings.user.isRegion && this.$settings.user.region.level < 3
+            ? 'appraisal-result-area'
+            : 'appraisal-result-institutions',
+        query: {id: this.$settings.user.code, checkId: row.checkId}
+      });
+    },
     //下属机构未全选状态切换
     childToggleChange(item) {
       const checkedCount = item.child.filter(it => it.selected).length;
@@ -511,6 +593,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
+        checkType: 1,
         status: true
       };
     },
@@ -524,13 +607,13 @@ export default {
     },
     //添加规则
     async addCheck() {
-      const {checkName} = this.checkForm;
+      const {checkName, checkType = 1} = this.checkForm;
       if (!checkName) {
         this.$message.error('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.add({checkName});
+        await this.$api.CheckSystem.add({checkName, checkType});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -545,13 +628,18 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName, status} = this.checkForm;
+      const {checkId, checkName, status, checkType} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.updateName({checkId, checkName, status});
+        await this.$api.CheckSystem.updateName({
+          checkId,
+          checkName,
+          status,
+          checkType
+        });
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -764,6 +852,7 @@ export default {
 <style lang="scss">
 .check-title {
   cursor: pointer;
+
   :hover {
     color: #1a95d7;
   }
@@ -775,15 +864,19 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: -20px;
+
   .center-title {
     margin: 20px 0 10px 0;
+
     span {
       font-size: 16px;
     }
   }
+
   .el-cols {
     margin-bottom: 10px;
     padding-left: 38px !important;
+
     &:last-child {
       margin-bottom: 0;
     }

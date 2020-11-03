@@ -2,6 +2,7 @@ import {
   CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
+  ReportHospitalHistoryModel,
   ReportHospitalModel,
   RuleHospitalAttachModel,
   RuleHospitalBudgetModel,
@@ -17,10 +18,10 @@ import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
-import Score from './score';
 import dayjs from 'dayjs';
-const scoreAPI = new Score();
+
 import {Permission} from '../../common/permission';
+import {jobStatus} from './score_hospital_check_rules';
 
 export default class CheckSystem {
   //添加考核系统
@@ -29,13 +30,19 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名')
+        .description('考核系统名'),
+      checkType: should
+        .number()
+        .max(1)
+        .min(0)
+        .description('考核类型 0为临时考核规则 1为主考核规则')
     })
   )
   async add(params) {
-    const {checkName} = params;
+    const {checkName, checkType} = params;
     return CheckSystemModel.create({
       checkName,
+      checkType: checkType ?? 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id,
       checkYear: dayjs().year()
@@ -56,7 +63,13 @@ export default class CheckSystem {
       status: should
         .boolean()
         .required()
-        .description('状态值:true||false')
+        .description('状态值:true||false'),
+      checkType: should
+        .number()
+        .required()
+        .max(1)
+        .min(0)
+        .description('考核类型 0为临时考核规则 1为主考核规则')
     })
   )
   updateName(params) {
@@ -66,11 +79,52 @@ export default class CheckSystem {
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
+      //当考核体系保存成主考核时，检查机构是否冲突
+      if (sys.checkType !== params.checkType && params.checkType === 1) {
+        //查询原有的考核与机构的关系
+        const checkHospitals = await CheckHospitalModel.findAll({
+          where: {
+            checkId: params.checkId
+          }
+        });
+        //当登陆账户无"原有考核机构其中之一"的权限时不允许修改
+        if (
+          checkHospitals.filter(
+            a =>
+              Context.current.user.hospitals.filter(b => b.id === a.hospitalId)
+                .length === 0
+          ).length > 0
+        )
+          throw new KatoCommonError('因授权不匹配，不允许修改');
+        //当原有机构已有主考核体系时不允许修改
+        if (
+          (
+            await CheckHospitalModel.findAll({
+              where: {
+                hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
+              },
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: {
+                    checkType: 1,
+                    checkId: {[Op.not]: params.checkId}
+                  }
+                }
+              ]
+            })
+          ).length > 0
+        )
+          throw new KatoCommonError(
+            '当前变更体系中某些机构已存在主考核需要解绑操作，不允许修改'
+          );
+      }
       await CheckSystemModel.update(
         {
           checkName: params.checkName,
           update_by: Context.current.user.id,
-          status: params.status
+          status: params.status,
+          checkType: params.checkType ?? 1
         },
         {where: {checkId: params.checkId}}
       );
@@ -130,8 +184,6 @@ export default class CheckSystem {
           ruleId: rule.ruleId
         }))
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
       return rule;
     });
   }
@@ -165,8 +217,6 @@ export default class CheckSystem {
           projectId: item
         }))
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
     }
     return rule;
   }
@@ -212,12 +262,9 @@ export default class CheckSystem {
       );
     }
     //修改规则组
-    const result = await CheckRuleModel.update(options, {
+    return CheckRuleModel.update(options, {
       where: {ruleId: params.ruleId}
     });
-    //同步更新金额分配情况
-    scoreAPI.checkBudget();
-    return result;
   }
 
   //删除考核系统
@@ -302,7 +349,7 @@ export default class CheckSystem {
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
       //进行修改操作
-      const result = await CheckRuleModel.update(
+      return CheckRuleModel.update(
         {
           ruleName,
           parentRuleId,
@@ -314,9 +361,6 @@ export default class CheckSystem {
         },
         {where: {ruleId}}
       );
-      //同步更新金额的分配情况
-      scoreAPI.checkBudget();
-      return result;
     });
   }
 
@@ -344,8 +388,6 @@ export default class CheckSystem {
       }
       await rule.destroy({force: true});
     });
-    //同步更新金额的分配情况
-    scoreAPI.checkBudget();
   }
 
   //查询规则
@@ -490,7 +532,8 @@ export default class CheckSystem {
           hospitalCount: checkHospitalCount,
           auto,
           createUser,
-          updateUser
+          updateUser,
+          running: jobStatus[row.checkId] || false
         };
       })
     );
@@ -504,10 +547,26 @@ export default class CheckSystem {
       .description('考核系统id')
   )
   async listHospitals(checkId) {
-    //绑定在其他考核系统下的机构
-    const extraHospitals = await CheckHospitalModel.findAll({
-      where: {checkId: {[Op.not]: checkId}}
+    //新增考核类型后，只考虑主考核类型(checkType:1)的1对1的绑定关系
+    const checkSystem = await CheckSystemModel.findOne({
+      where: {checkId}
     });
+    if (!checkSystem) throw new KatoCommonError('未找到该考核系统');
+    //绑定在其他考核系统下的机构
+    let extraHospitals = [];
+    // 如果当前考核体系是主考核, 那么排除绑定在其他主考核下的机构
+    if (checkSystem.checkType === 1) {
+      extraHospitals = await CheckHospitalModel.findAll({
+        where: {checkId: {[Op.not]: checkId}},
+        include: [
+          {
+            model: CheckSystemModel,
+            where: {checkType: checkSystem.checkType},
+            required: true // 外联查询时, 默认required为true
+          }
+        ]
+      });
+    }
     //用户所拥有的机构
     const result = Context.current.user.hospitals;
     //绑定在该考核系统的机构
@@ -535,6 +594,31 @@ export default class CheckSystem {
   )
   async setHospitals(params) {
     const {checkId, hospitals} = params;
+    // 查询考核体系
+    const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
+    if (!checkSystem) throw new KatoCommonError('该考核体系不存在');
+    // 判断是否是主考核
+    if (checkSystem.checkType === 1) {
+      // 主考核, 那么判断机构是否已经绑定过其他主考核了
+      const bindOtherHospitals = await CheckHospitalModel.findAll({
+        where: {
+          hospitalId: {[Op.in]: hospitals}
+        },
+        include: [
+          {
+            model: CheckSystemModel,
+            where: {
+              checkType: 1,
+              checkId: {[Op.not]: checkId}
+            }
+          }
+        ]
+      });
+      if (bindOtherHospitals.length > 0) {
+        throw new KatoCommonError('存在绑定过其他考核的机构');
+      }
+    }
+
     //查询该体系下所有细则
     const allRules = await CheckRuleModel.findAll({
       where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
@@ -586,21 +670,31 @@ export default class CheckSystem {
       .map(r => r.hospitalId);
     //删除机构金额数据
     await RuleHospitalBudgetModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     //删除机构得分数据
     await RuleHospitalScoreModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     //删除机构定性指标文件
     await RuleHospitalAttachModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}},
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     //删除机构的打分结果
     await ReportHospitalModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}}
+      where: {hospitalId: {[Op.in]: unHospitals}, checkId}
     });
-
+    //删除解绑结构的今日历史打分结果
+    await ReportHospitalHistoryModel.destroy({
+      where: {
+        hospitalId: {[Op.in]: unHospitals},
+        date: dayjs().toDate(),
+        checkId
+      }
+    });
     //添加新增的机构和规则对应关系
     let newRuleHospitals = [];
     hospitals
@@ -628,9 +722,6 @@ export default class CheckSystem {
         }))
     );
     //批量添加规则与机构的关系数据
-    const result = await RuleHospitalModel.bulkCreate(newRuleHospitals);
-    //同步更新金额分配的情况
-    scoreAPI.checkBudget();
-    return result;
+    return RuleHospitalModel.bulkCreate(newRuleHospitals);
   }
 }

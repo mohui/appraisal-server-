@@ -905,7 +905,8 @@ export default {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
-        id: this.$settings.user.code
+        id: this.$settings.user.code,
+        checkId: ''
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -989,7 +990,11 @@ export default {
       }
       try {
         row.isSaveScoreLoaing = true;
-        await this.$api.Score.score(row.ruleId, this.totalData.id, row.score);
+        await this.$api.ScoreHospitalCheckRules.score(
+          row.ruleId,
+          this.totalData.id,
+          row.score
+        );
         this.$message({
           type: 'success',
           message: '打分成功'
@@ -1004,6 +1009,8 @@ export default {
           message: e.message
         });
       } finally {
+        //打分后重新刷新考核数据
+        this.$asyncComputed.appraisalIndicatorsServerData.update();
         row.isSaveScoreLoaing = false;
       }
     },
@@ -1094,6 +1101,7 @@ export default {
         ? JSON.parse(route.query.isInstitution)
         : !this.$settings.user.isRegion;
       this.params.id = route.query.id ?? this.$settings.user.code;
+      this.params.checkId = route.query.checkId ?? undefined;
     },
     //纬度切换
     latTypeChanged(type) {
@@ -1477,7 +1485,9 @@ export default {
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
-        return await this.$api.Score.faceCollect(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.faceCollect(
+          this.params.id
+        );
       },
       default() {
         return {
@@ -1492,7 +1502,10 @@ export default {
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {
-        return await this.$api.Score.history(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.history(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];
@@ -1501,7 +1514,10 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.total(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return {
@@ -1517,7 +1533,10 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.Score.rank(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.rank(
+          this.params.id,
+          this.params.checkId
+        );
       },
       shouldUpdate() {
         return !this.params.isInstitution;
@@ -1541,7 +1560,10 @@ export default {
     //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
-        return await this.$api.Hospital.checks(this.params.id);
+        return await this.$api.Hospital.checks(
+          this.params.id,
+          this.params.checkId
+        );
       },
       shouldUpdate() {
         return this.params.listFlag === 'quality' && this.params.isInstitution;
@@ -1558,7 +1580,7 @@ export default {
     //获取服务器单项考核规则的考核文件列表数据
     appraisalFileListServerData: {
       async get() {
-        return await this.$api.Score.listAttachments(
+        return await this.$api.ScoreHospitalCheckRules.listAttachments(
           this.curRule.ruleId,
           this.params.id
         );
@@ -1573,7 +1595,7 @@ export default {
     //获取服务器单项考核得分解读数据
     appraisalResultInstructionsServerData: {
       async get() {
-        return await this.$api.Score.detail(
+        return await this.$api.ScoreHospitalCheckRules.detail(
           this.params.id,
           this.curRule.ruleId
         );
@@ -1588,7 +1610,10 @@ export default {
     //获取机构的各项工分详情
     hospitalProject: {
       async get() {
-        return await this.$api.Score.projectDetail(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.projectDetail(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];

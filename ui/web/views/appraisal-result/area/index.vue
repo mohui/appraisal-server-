@@ -233,7 +233,8 @@ export default {
     return {
       params: {
         listFlag: 'score', // quality(质量系数) | score（工分值）
-        id: this.$settings.user.code
+        id: this.$settings.user.code,
+        checkId: ''
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -317,7 +318,9 @@ export default {
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
-        return await this.$api.Score.faceCollect(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.faceCollect(
+          this.params.id
+        );
       },
       default() {
         return {
@@ -332,7 +335,10 @@ export default {
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {
-        return await this.$api.Score.history(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.history(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];
@@ -341,7 +347,10 @@ export default {
     //获取服务器上该地区/机构的总计工分和系数
     totalServerData: {
       async get() {
-        return await this.$api.Score.total(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.total(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return {
@@ -355,7 +364,10 @@ export default {
     },
     areaRankServerData: {
       async get() {
-        return await this.$api.Score.areaRank(this.params.id);
+        return await this.$api.ScoreHospitalCheckRules.areaRank(
+          this.params.id,
+          this.params.checkId
+        );
       },
       default() {
         return [];
@@ -375,6 +387,7 @@ export default {
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'score';
       this.params.id = route.query.id ?? this.$settings.user.code;
+      this.params.checkId = route.query.checkId ?? undefined;
     },
     //纬度切换
     latTypeChanged(type) {
@@ -401,7 +414,7 @@ export default {
         //进入区级行政区和机构页
         this.$router.push({
           path: 'appraisal-result-institutions',
-          query: {id: id}
+          query: {id: id, checkId: this.params.checkId}
         });
       }
     },

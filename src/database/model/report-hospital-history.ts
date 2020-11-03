@@ -9,6 +9,7 @@ import {
   Table
 } from 'sequelize-typescript';
 import {Hospital} from './hospital';
+import {CheckSystem} from './check_system';
 
 @Table({tableName: 'report_hospital_history'})
 export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
@@ -37,4 +38,12 @@ export class ReportHospitalHistory extends Model<ReportHospitalHistory> {
 
   @BelongsTo(() => Hospital)
   hospital: Hospital;
+
+  @Comment('考核体系id')
+  @PrimaryKey
+  @ForeignKey(() => CheckSystem)
+  @Column({field: 'check_id', type: DataType.UUID})
+  checkId;
+  @BelongsTo(() => CheckSystem)
+  checkSystem: CheckSystem;
 }

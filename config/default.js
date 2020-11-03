@@ -48,6 +48,10 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  // 定时任务
+  queue: {
+    cron: '00 00 04 * * *'
+  },
   oss: {
     accessKeyId: '',
     accessKeySecret: '',

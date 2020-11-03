@@ -11,6 +11,7 @@ import {
   Table
 } from 'sequelize-typescript';
 import {Hospital} from './hospital';
+import {CheckSystem} from './check_system';
 
 @Table({tableName: 'report_hospital'})
 export class ReportHospital extends Model<ReportHospital> {
@@ -42,4 +43,12 @@ export class ReportHospital extends Model<ReportHospital> {
   @Default(0)
   @Column(DataType.DECIMAL(20, 4))
   budget: number;
+
+  @Comment('考核体系id')
+  @PrimaryKey
+  @ForeignKey(() => CheckSystem)
+  @Column({field: 'check_id', type: DataType.UUID})
+  checkId;
+  @BelongsTo(() => CheckSystem)
+  checkSystem: CheckSystem;
 }

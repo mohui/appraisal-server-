@@ -173,7 +173,7 @@ export default class Hospital {
    *
    * @param id 机构id
    */
-  async checks(id) {
+  async checks(id, checkId) {
     // hospital
     const hospitalModel = await HospitalModel.findOne({
       where: {id}
@@ -184,28 +184,20 @@ export default class Hospital {
       where: {
         hospital: id
       },
-      include: [CheckSystemModel]
+      include: [
+        {
+          model: CheckSystemModel,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        }
+      ]
     });
 
     if (!checkSystem) throw new KatoCommonError(`该机构未绑定考核`);
 
-    // checkSystem
-    const checkSystemModel = (
-      await RuleHospitalModel.findOne({
-        where: {hospitalId: id},
-        include: [
-          {
-            model: CheckRuleModel,
-            include: [CheckSystemModel]
-          }
-        ]
-      })
-    )?.rule?.checkSystem;
-    if (!checkSystemModel) throw new KatoCommonError(`${hospitalModel.name}`);
     const children = await Promise.all(
       (
         await CheckRuleModel.findAll({
-          where: {checkId: checkSystemModel.checkId, parentRuleId: null},
+          where: {checkId: checkSystem.checkId, parentRuleId: null},
           include: [RuleHospitalBudgetModel]
         })
       ).map(async rule => {
@@ -266,7 +258,7 @@ export default class Hospital {
         };
       })
     );
-    const returnValue = checkSystemModel.toJSON();
+    const returnValue = checkSystem.toJSON();
     returnValue.children = children;
     return returnValue;
   }
