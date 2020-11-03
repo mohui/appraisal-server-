@@ -322,11 +322,6 @@ export const MarkTags = [
             enabled: true
           },
           {
-            code: 'O01',
-            name: '老年人体检完整率',
-            enabled: true
-          },
-          {
             code: 'O02',
             name: '老年人中医药健康管理率',
             enabled: true
@@ -705,10 +700,6 @@ export const MarkTagUsages = {
   O00: {
     code: 'O00',
     name: '老年人健康管理率'
-  },
-  O01: {
-    code: 'O01',
-    name: '老年人体检完整率'
   },
   O02: {
     code: 'O02',
