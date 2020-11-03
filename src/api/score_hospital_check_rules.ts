@@ -906,6 +906,28 @@ export default class ScoreHospitalCheckRules {
       ]
     });
     if (hospitalModel) {
+      let originalWorkPoints = 0;
+      const hisHospitalId = (
+        await appDB.execute(
+          `select hishospid as id from hospital_mapping where h_id = ?`,
+          hospitalModel.id
+        )
+      )[0]?.id;
+      originalWorkPoints =
+        (
+          await originalDB.execute(
+            `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
+            hisHospitalId,
+            dayjs()
+              .startOf('y')
+              .toDate(),
+            dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          )
+        )[0]?.scores ?? 0;
+
       return {
         id: hospitalModel.id,
         name: hospitalModel.name,
@@ -942,7 +964,8 @@ export default class ScoreHospitalCheckRules {
               (res, next) => new Decimal(res).add(next?.budget ?? 0),
               new Decimal(0)
             )
-            .toNumber() ?? 0
+            .toNumber() ?? 0,
+        originalWorkPoint: originalWorkPoints
       };
     }
 
