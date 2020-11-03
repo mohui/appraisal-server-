@@ -7,8 +7,9 @@ import {
   RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
-  RuleTagModel
-} from '../database/model';
+  RuleTagModel,
+  sql as sqlRender
+} from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
 import {Op, QueryTypes} from 'sequelize';
@@ -19,7 +20,6 @@ import ContentDisposition from 'content-disposition';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../common/project';
-import {sql as sqlRender} from '../database/template';
 
 export default class Hospital {
   @validate(
