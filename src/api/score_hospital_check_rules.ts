@@ -219,10 +219,10 @@ where r.code in({{#each code}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
 export const jobStatus = {};
 
 export default class ScoreHospitalCheckRules {
-  async autoScoreAllCheck() {
+  async autoScoreAllCheck(isAuto) {
     await Promise.all(
       (await CheckSystemModel.findAll()).map(it =>
-        this.autoScoreCheck(it.checkId, true)
+        this.autoScoreCheck(it.checkId, isAuto === undefined ? true : isAuto)
       )
     );
   }
