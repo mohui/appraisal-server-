@@ -122,7 +122,7 @@ async function queryProjectWorkPoint(params) {
             select
             vw.projecttype as "projectId",
             vw.operateorganization,
-            cast(sum(vw.score) as int) as "workPoint"
+            cast(sum(vw.score) as int) as workPoint
             from view_workscoretotal vw
             where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and missiontime >= {{? start}}
@@ -152,7 +152,7 @@ async function queryProjectWorkPoint(params) {
           hospitals.filter(h => p.operateorganization === h.hishospid).length >
             0
       )
-      .reduce((result, current) => (result += current.workPoint), 0)
+      .reduce((result, current) => (result += current.workpoint), 0)
   }));
 }
 
