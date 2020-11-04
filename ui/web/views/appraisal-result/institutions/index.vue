@@ -903,7 +903,7 @@ export default {
         '#7bd9a5'
       ],
       params: {
-        listFlag: 'score', // quality(质量系数) | score（工分值）
+        listFlag: 'quality', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
         id: this.$settings.user.code,
         checkId: ''
@@ -1096,7 +1096,7 @@ export default {
       return value.toFixed(2);
     },
     initParams(route) {
-      this.params.listFlag = route.query.listFlag ?? 'score';
+      this.params.listFlag = route.query.listFlag ?? 'quality';
       this.params.isInstitution = route.query.isInstitution
         ? JSON.parse(route.query.isInstitution)
         : !this.$settings.user.isRegion;

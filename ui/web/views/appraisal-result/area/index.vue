@@ -232,7 +232,7 @@ export default {
   data() {
     return {
       params: {
-        listFlag: 'score', // quality(质量系数) | score（工分值）
+        listFlag: 'quality', // quality(质量系数) | score（工分值）
         id: this.$settings.user.code,
         checkId: ''
       },
@@ -385,7 +385,7 @@ export default {
   },
   methods: {
     initParams(route) {
-      this.params.listFlag = route.query.listFlag ?? 'score';
+      this.params.listFlag = route.query.listFlag ?? 'quality';
       this.params.id = route.query.id ?? this.$settings.user.code;
       this.params.checkId = route.query.checkId ?? undefined;
     },
@@ -414,7 +414,11 @@ export default {
         //进入区级行政区和机构页
         this.$router.push({
           path: 'appraisal-result-institutions',
-          query: {id: id, checkId: this.params.checkId}
+          query: {
+            id: id,
+            checkId: this.params.checkId,
+            listFlag: this.params.listFlag
+          }
         });
       }
     },
