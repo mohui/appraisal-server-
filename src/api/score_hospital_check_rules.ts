@@ -49,125 +49,53 @@ function percentString(numerator: number, denominator: number): string {
 }
 
 async function queryList(params) {
-  let sql = sqlRender(
-    `
-            select
-            vh.h_id as "hospitalId",
-            vh.hishospid
-            from hospital_mapping vh
-            where vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-            group by vh.h_id,vh.hishospid
-    `,
+  let [sql, paramters] = sqlRender(
+    `select hishospid as id,h_id as hospitalId from hospital_mapping where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
     params
   );
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const hospitals = await appQuery(sql[0], sql[1]);
-  sql = sqlRender(
-    `
-            select
-            vw.operateorganization,
+  const hisHospitals = await appDB.execute(sql, ...paramters);
+  params.operateorganizations = hisHospitals.map(i => i.id);
+  [sql, paramters] = sqlRender(
+    `select
+            operateorganization,
             cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
             where 1 = 1
              {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
-            group by vw.operateorganization
-    `,
+             and operateorganization in ({{#each operateorganizations}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            group by vw.operateorganization`,
     params
   );
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const workPoints = await originalQuery(sql[0], sql[1]);
-  return Array.from(
-    new Set(
-      hospitals
-        .filter(
-          h =>
-            workPoints.filter(p => p.operateorganization === h.hishospid)
-              .length > 0
-        )
-        .map(i => i.hospitalId)
-    )
-  ).map(hospitalId => ({
-    hospitalId,
-    workPoint: workPoints
-      .filter(
-        p =>
-          hospitals.filter(
-            h =>
-              h.hospitalId === hospitalId &&
-              h.hishospid === p.operateorganization
-          ).length > 0
-      )
-      .reduce((result, current) => (result += current.workPoint), 0)
+  return (await originalDB.execute(sql, ...paramters)).map(i => ({
+    workPoint: i.workPoint,
+    hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
+      ?.hospitalId
   }));
 }
 
 async function queryProjectWorkPoint(params) {
-  let sql = sqlRender(
-    `
-            select
-            vh.h_id as "hospitalId",
-            vh.hishospid
-            from hospital_mapping vh
-            where vh.h_id = {{? hospitalId}}
-            group by vh.h_id,vh.hishospid
-    `,
-    params
-  );
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const hospitals = await appQuery(sql[0], sql[1]);
-  sql = sqlRender(
-    `
-            select
-            vw.projecttype as "projectId",
-            vw.operateorganization,
-            cast(sum(vw.score) as int) as workPoint
-            from view_workscoretotal vw
-            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-             and missiontime >= {{? start}}
-             and missiontime < {{? end}}
-            group by vw.projecttype,vw.operateorganization
-    `,
-    params
-  );
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const workPoints = await originalQuery(sql[0], sql[1]);
-  return Array.from(
-    new Set(
-      workPoints
-        .filter(
-          p =>
-            hospitals.filter(h => p.operateorganization === h.hishospid)
-              .length > 0
-        )
-        .map(i => i.projectId)
+  const hisHospitalId = (
+    await appDB.execute(
+      `select hishospid as id from hospital_mapping where h_id = ?`,
+      params.hospitalId
     )
-  ).map(projectId => ({
-    projectId,
-    workpoint: workPoints
-      .filter(
-        p =>
-          p.projectId === projectId &&
-          hospitals.filter(h => p.operateorganization === h.hishospid).length >
-            0
-      )
-      .reduce((result, current) => (result += current.workpoint), 0)
-  }));
-}
-
-async function appQuery(sql, params) {
-  return appDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
-}
-
-async function originalQuery(sql, params) {
-  return originalDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
+  )?.[0]?.id;
+  params.operateorganization = hisHospitalId;
+  const [sql, paramters] = sqlRender(
+    `select
+        projecttype as "projectId",
+        cast(sum(vw.score) as int) as workPoint
+        from view_workscoretotal vw
+        where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        and missiontime >= {{? start}}
+        and missiontime < {{? end}}
+        and operateorganization = {{? hospitalId}}
+        group by projecttype`,
+    params
+  );
+  return await originalDB.execute(sql, ...paramters);
 }
 
 async function getLevelRegion(
@@ -189,8 +117,7 @@ select
       `.code`;
   sql += ` else null end as current_level_region
     from region r`;
-  // eslint-disable-next-line for-direction
-  for (let i = hospitalMinRegionLevel; i > currentLevel; i--)
+  for (let i = hospitalMinRegionLevel; i > currentLevel; i--) {
     sql +=
       `
         left join region r` +
@@ -200,8 +127,8 @@ select
       `.code=r` +
       (i == hospitalMinRegionLevel ? `` : i) +
       `.parent`;
+  }
   //机构检索对应区域
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   const sqlRender1 = sqlRender(
     sql +
       `
@@ -210,7 +137,7 @@ where r.code in({{#each code}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
       code: regionCodeList
     }
   );
-  return await appQuery(sqlRender1[0], sqlRender1[1]);
+  return await appDB.execute(sqlRender1[0], ...sqlRender1[1]);
 }
 
 /**
