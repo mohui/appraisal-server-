@@ -50,7 +50,7 @@ function percentString(numerator: number, denominator: number): string {
 
 async function queryList(params) {
   let [sql, paramters] = sqlRender(
-    `select hishospid as id,h_id as hospitalId from hospital_mapping where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+    `select hishospid as id,h_id as "hospitalId" from hospital_mapping where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
     params
   );
   const hisHospitals = await appDB.execute(sql, ...paramters);
@@ -91,7 +91,7 @@ async function queryProjectWorkPoint(params) {
         where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         and missiontime >= {{? start}}
         and missiontime < {{? end}}
-        and operateorganization = {{? hospitalId}}
+        and operateorganization = {{? operateorganization}}
         group by projecttype`,
     params
   );
