@@ -9,7 +9,6 @@ import {
   UserRoleModel,
   sql as sqlRender
 } from '../database';
-import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
@@ -151,7 +150,7 @@ export default class User {
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
       //递归查询用户所属地区的所有下属地区
       const childrenCode = (
-        await appDB.query(
+        await appDB.execute(
           `
             with recursive r as (
                 select * from region
@@ -165,10 +164,7 @@ export default class User {
             select code
             from r where code!='${Context.current.user.regionId}';
           `,
-          {
-            replacements: params,
-            type: QueryTypes.SELECT
-          }
+          ...params
         )
       ).map(it => it.code);
       //添加权限方面的查询条件
@@ -186,66 +182,61 @@ export default class User {
     //生成SQL语句和参数数组
     const sqlObject = userListRender(sqlParams);
 
-    const rows = (
-      await appDB.query(sqlObject[0], {
-        replacements: sqlObject[1],
-        type: QueryTypes.SELECT
-      })
-    ).reduce((pre, next) => {
-      let current = pre.find(p => p.id === next.id);
-      if (current) {
-        current.roles.push({
-          id: next.rolesId,
-          name: next.rolesName,
-          creator: next.rolesCreator,
-          permissions: next.rolesPermissions
-        });
-      } else
-        pre.push({
-          id: next.id,
-          account: next.account,
-          name: next.name,
-          password: next.password,
-          regionId: next.regionId,
-          created_at: next.created_at,
-          updated_at: next.updated_at,
-          roles: [
-            {
-              id: next.rolesId,
-              name: next.rolesName,
-              creator: next.rolesCreator,
-              permissions: next.rolesPermissions
-            }
-          ],
-          region: next.region,
-          editorName: next.editorName,
-          creatorName: next.creatorName,
-          hospital: next.hospitalId
-            ? {
-                id: next.hospitalId,
-                name: next.hospitalName,
-                parent: next.hospitalParent,
-                region: next.hospitalRegionId
+    const rows = (await appDB.execute(sqlObject[0], ...sqlObject[1])).reduce(
+      (pre, next) => {
+        let current = pre.find(p => p.id === next.id);
+        if (current) {
+          current.roles.push({
+            id: next.rolesId,
+            name: next.rolesName,
+            creator: next.rolesCreator,
+            permissions: next.rolesPermissions
+          });
+        } else
+          pre.push({
+            id: next.id,
+            account: next.account,
+            name: next.name,
+            password: next.password,
+            regionId: next.regionId,
+            created_at: next.created_at,
+            updated_at: next.updated_at,
+            roles: [
+              {
+                id: next.rolesId,
+                name: next.rolesName,
+                creator: next.rolesCreator,
+                permissions: next.rolesPermissions
               }
-            : undefined,
-          hospitals: next.hospitalId
-            ? [
-                {
+            ],
+            region: next.region,
+            editorName: next.editorName,
+            creatorName: next.creatorName,
+            hospital: next.hospitalId
+              ? {
                   id: next.hospitalId,
                   name: next.hospitalName,
                   parent: next.hospitalParent,
                   region: next.hospitalRegionId
                 }
-              ]
-            : []
-        });
-      return pre;
-    }, []);
+              : undefined,
+            hospitals: next.hospitalId
+              ? [
+                  {
+                    id: next.hospitalId,
+                    name: next.hospitalName,
+                    parent: next.hospitalParent,
+                    region: next.hospitalRegionId
+                  }
+                ]
+              : []
+          });
+        return pre;
+      },
+      []
+    );
     const countObject = countUserRender(sqlParams);
-    const count = await appDB.query(countObject[0], {
-      replacements: countObject[1],
-      type: QueryTypes.SELECT
-    });
+    const count = await appDB.execute(countObject[0], ...countObject[1]);
     return {count: Number(count[0].count), rows};
   }
 

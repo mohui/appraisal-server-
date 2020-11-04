@@ -1,5 +1,4 @@
 import {originalDB} from '../app';
-import {QueryTypes} from 'sequelize';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
@@ -7,17 +6,10 @@ import dayjs from 'dayjs';
 import {HospitalModel} from '../database/model';
 import {Op} from 'sequelize';
 
-async function govQuery(sql, params) {
-  return originalDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
-}
-
 async function dictionaryQuery(categoryno) {
-  return await govQuery(
+  return await originalDB.execute(
     `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
-    [categoryno]
+    categoryno
   );
 }
 
@@ -131,9 +123,9 @@ export default class Person {
     hospitals = (
       await Promise.all(
         hospitals.map(it =>
-          govQuery(
+          originalDB.execute(
             `select hishospid as id from hospital_mapping where h_id = ?`,
-            [it]
+            it
           )
         )
       )
@@ -148,9 +140,9 @@ export default class Person {
         await Promise.all(
           hospitals.map(item =>
             //查询机构的下属机构
-            govQuery(
+            originalDB.execute(
               `select hospid as id from view_hospital where hos_hospid = ?`,
-              [item]
+              item
             )
           )
         )
@@ -172,12 +164,12 @@ export default class Person {
       documentOr
     });
     const count = (
-      await govQuery(
+      await originalDB.execute(
         `select count(1) as count ${sqlRenderResult[0]}`,
-        sqlRenderResult[1]
+        ...sqlRenderResult[1]
       )
     )[0].count;
-    const person = await govQuery(
+    const person = await originalDB.execute(
       `select vp.personnum   as id,
                 vp.name,
                 vp.idcardno    as "idCard",
@@ -211,7 +203,9 @@ export default class Person {
          ${sqlRenderResult[0]}
          order by vp.operatetime desc, vp.personnum desc
          limit ? offset ?`,
-      [...sqlRenderResult[1], limit, offset]
+      ...sqlRenderResult[1],
+      limit,
+      offset
     );
 
     return {
@@ -223,7 +217,7 @@ export default class Person {
   async detail(id) {
     // language=PostgreSQL
     const person = (
-      await govQuery(
+      await originalDB.execute(
         `
           select personnum as id,
                  name,
@@ -235,18 +229,18 @@ export default class Person {
           where personnum = ?
           limit 1
         `,
-        [id]
+        id
       )
     )[0];
     if (!person) throw new KatoCommonError('数据不存在');
     // language=PostgreSQL
-    const hypertensionRows = await govQuery(
+    const hypertensionRows = await originalDB.execute(
       `
         select *
         from view_hypertension
         where personnum = ?
       `,
-      [id]
+      id
     );
 
     return {
@@ -279,7 +273,7 @@ export default class Person {
    */
   async document(id) {
     const person = (
-      await govQuery(
+      await originalDB.execute(
         // language=PostgreSQL
         `
           select vp.personnum as id,
@@ -321,32 +315,32 @@ export default class Person {
           where vp.personnum = ?
           limit 1
         `,
-        [id]
+        id
       )
     )[0];
 
     if (!person) throw new KatoCommonError('数据不存在');
     person.operateOrganization = (
-      await govQuery(
+      await originalDB.execute(
         // language=PostgreSQL
         `
           select hospid as id, hospname as name
           from view_hospital
           where hospid = ?
         `,
-        [person.operateorganization]
+        person.operateorganization
       )
     )[0];
 
     person.organization = (
-      await govQuery(
+      await originalDB.execute(
         // language=PostgreSQL
         `
             select hospid as id, hospname as name
             from view_hospital
             where hospid = ?
           `,
-        [person.adminorganization]
+        person.adminorganization
       )
     )[0];
 
@@ -368,12 +362,12 @@ export default class Person {
    * }
    */
   async hypertensions(id) {
-    const followCodeNames = await govQuery(
+    const followCodeNames = await originalDB.execute(
       `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      ['7010104']
+      '7010104'
     );
     return (
-      await govQuery(
+      await originalDB.execute(
         // language=PostgreSQL
         `
         select vhv.highbloodid as id,
@@ -390,7 +384,7 @@ export default class Person {
           and vhv.isdelete = false
         order by vhv.followupdate desc
       `,
-        [id]
+        id
       )
     ).map(item => ({
       ...item,
@@ -462,16 +456,16 @@ export default class Person {
    */
   async hypertensionsDetail(id) {
     const mentalCodeNames = (
-      await govQuery(
+      await originalDB.execute(
         `select * from view_codedictionary vc where categoryno=?;`,
-        ['331']
+        '331'
       )
     ).map(item => ({
       ...item,
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
 
-    const result = await govQuery(
+    const result = await originalDB.execute(
       `select
         vh.highbloodid as "id",
         vh.hypertensioncardid as "cardId",
@@ -538,7 +532,7 @@ export default class Person {
        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
        where vh.highbloodid=? and vh.isdelete=false`,
-      [id]
+      id
     );
     return result.map(r => ({
       ...r,
@@ -557,13 +551,13 @@ export default class Person {
    * @param id 个人id
    */
   async diabetes(id) {
-    const followCodeNames = await govQuery(
+    const followCodeNames = await originalDB.execute(
       `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      ['7010104']
+      '7010104'
     );
     // language=PostgreSQL
     return (
-      await govQuery(
+      await originalDB.execute(
         `
         select
           vdv.DiabetesFollowUpID as "id",
@@ -580,7 +574,7 @@ export default class Person {
           and vdv.isdelete = false
         order by vdv.operatetime desc
       `,
-        [id]
+        id
       )
     ).map(item => ({
       ...item,
@@ -658,15 +652,15 @@ export default class Person {
    */
   async diabetesDetail(id) {
     const mentalCodeNames = (
-      await govQuery(
+      await originalDB.execute(
         `select * from view_codedictionary vc where categoryno=?;`,
-        ['331']
+        '331'
       )
     ).map(item => ({
       ...item,
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
-    const result = await govQuery(
+    const result = await originalDB.execute(
       `select
         vd.DiabetesFollowUpID as "id",
         vd.name as "name",
@@ -741,7 +735,7 @@ export default class Person {
         left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
         left join view_codedictionary vc_lb on vc_lb.categoryno='7020101' and vc_lb.code = vd.LowBlood
         where DiabetesFollowUpID=? and vd.isdelete=false`,
-      [id]
+      id
     );
     return result.map(r => ({
       ...r,
@@ -760,7 +754,7 @@ export default class Person {
    * @param id 个人id
    */
   async healthy(id) {
-    return govQuery(
+    return originalDB.execute(
       `
         select
           vh.incrementno as "id",
@@ -775,7 +769,7 @@ export default class Person {
         and vh.isdelete = false
         order by vh.operatetime desc
        `,
-      [id]
+      id
     );
   }
 
@@ -1027,7 +1021,7 @@ export default class Person {
       genderCode, //性别字典
       marrageCode, //婚姻字典
       jobTypeCode, //职业字典
-      exerciseFrequencyCode, //锻炼频率
+      //exerciseFrequencyCode, //锻炼频率
       // oldManHealthSelfCode, //健康状态自我评估
       // oldManLifeSelfCode, //生活自理
       // eyeGroundCode, //眼底
@@ -1050,7 +1044,7 @@ export default class Person {
       dictionaryQuery('001'), //性别字典
       dictionaryQuery('558'), //婚姻字典
       dictionaryQuery('557'), //职业字典
-      dictionaryQuery('724'), //锻炼频率
+      //dictionaryQuery('724'), //锻炼频率
       // dictionaryQuery('7470'), //健康状态自我评估
       // dictionaryQuery('7471'), //生活自理
       // dictionaryQuery('745'), //眼底
@@ -1070,7 +1064,7 @@ export default class Person {
       dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
       dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
     ]);
-    const result = await govQuery(
+    const result = await originalDB.execute(
       `
         select
           vh.incrementno as "id",
@@ -1318,10 +1312,8 @@ export default class Person {
         where vh.incrementno = ? and vh.isdelete=false
         order by vh.operatetime desc
        `,
-      [id]
+      id
     );
-    console.log(exerciseFrequencyCode);
-
     return result.map(item => ({
       ...item,
       checkDate: dayjs(item.checkDate).toDate(),
@@ -1480,8 +1472,7 @@ export default class Person {
       dictionaryQuery('100007'), //contractStaff
       dictionaryQuery('002') //contractStaff
     ]);
-    console.log(contractStaffCode);
-    const result = await govQuery(
+    const result = await originalDB.execute(
       `select
         vp.PersonNum as "id",
         vp.name as "name",
@@ -1542,7 +1533,7 @@ export default class Person {
         from view_personinfo vp
         left join view_hospital vc_hos on vc_hos.hospid=vp.OperateOrganization
         where personnum=?`,
-      [id]
+      id
     );
 
     return result.map(item => ({
@@ -1576,7 +1567,7 @@ export default class Person {
    */
   async oldManSelfCare(id) {
     return (
-      await govQuery(
+      await originalDB.execute(
         `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
@@ -1590,7 +1581,7 @@ export default class Person {
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
         where vh.personnum=? and vh.isdelete=false`,
-        [id]
+        id
       )
     ).map(it => ({
       ...it,
@@ -1634,7 +1625,7 @@ export default class Person {
    */
   async oldManSelfCareDetail(id) {
     return (
-      await govQuery(
+      await originalDB.execute(
         `select
             vhc.scoreID as "id",
             vhc.IncrementNo as "healthyID",
@@ -1667,7 +1658,7 @@ export default class Person {
         from view_healthchecktablescore vhc
         left join view_healthy vh on vh.incrementno=vhc.incrementno
         where vhc.scoreID=? and vh.isdelete=false`,
-        [id]
+        id
       )
     ).map(it => ({
       ...it,
@@ -1691,10 +1682,11 @@ export default class Person {
       .description('标签code')
   )
   async markContent(id, code) {
-    return govQuery(`select * from mark_content where id=? and name=?`, [
+    return originalDB.execute(
+      `select * from mark_content where id=? and name=?`,
       id,
       code
-    ]);
+    );
   }
 
   /***
@@ -1714,7 +1706,7 @@ export default class Person {
       .description('个人id')
   )
   async questionnaire(id) {
-    return govQuery(
+    return originalDB.execute(
       `
        select
      vq.QuestionnaireMainSN as "id",
@@ -1726,7 +1718,7 @@ export default class Person {
      left join view_personinfo vp on vq.personnum = vp.personnum
      left join view_hospital vh on vp.operateorganization = vh.hospid
      where vp.personnum=?;`,
-      [id]
+      id
     );
   }
 
@@ -1762,7 +1754,7 @@ export default class Person {
   )
   async questionnaireDetail(id) {
     const questionnaire = (
-      await govQuery(
+      await originalDB.execute(
         `select
             cast(vb.questioncode as int) as "questionCode",
             vb.questioncode as "questionCode",
@@ -1778,7 +1770,7 @@ export default class Person {
                 vb.questionsn = vq.questionsn
             where vqd.QuestionnaireMainSN = ?
         order by cast(vb.questioncode as int)`,
-        [id]
+        id
       )
     ).reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
@@ -1801,20 +1793,20 @@ export default class Person {
     //找人名:
     const name =
       (
-        await govQuery(
+        await originalDB.execute(
           `
         select vp.name from view_questionnairedetail vqd
             left join view_questionnairemain vm on
             cast(vm.questionnairemainsn as varchar) = cast(vqd.questionnairemainsn as varchar)
             right join view_personinfo vp on vm.personnum = vp.personnum
         where vqd.questionnairemainsn = ? limit 1;`,
-          [id]
+          id
         )
       )[0]?.name ?? '';
     //体质结果
     const constitution =
       (
-        await govQuery(
+        await originalDB.execute(
           `select
             vp.name,
             vq.constitutiontype,
@@ -1826,7 +1818,7 @@ export default class Person {
             left join view_personinfo vp on vq.personnum = vp.personnum
             left join view_hospital vh on vp.operateorganization = vh.hospid
             where vq.questionnairemainsn = ?`,
-          [questionnaire[0]?.detailId]
+          questionnaire[0]?.detailId
         )
       )[0] ?? [];
     //TODO 指定建议暂时无数据

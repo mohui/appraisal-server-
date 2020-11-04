@@ -4,7 +4,7 @@ import {
   WorkDifficultyModel
 } from '../database/model';
 import {should, validate} from 'kato-server';
-import {Op, QueryTypes} from 'sequelize';
+import {Op} from 'sequelize';
 import {RuleHospitalBudget} from '../database/model/rule-hospital-budget';
 import {Decimal} from 'decimal.js';
 import {sql as sqlRender} from '../database/template';
@@ -60,12 +60,6 @@ function countWorkRender(params) {
     order by projecttype, day;`,
     params
   );
-}
-async function govQuery(sql, params) {
-  return originalDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
 }
 
 export default class Region {
@@ -338,7 +332,7 @@ export default class Region {
       end: end,
       scope: scopeType
     });
-    const res = await govQuery(sqlRender[0], sqlRender[1]);
+    const res = await originalDB.execute(sqlRender[0], ...sqlRender[1]);
     return res
       .filter(it => Projects.some(p => p.id === it.projectId))
       .reduce((result, next) => {
