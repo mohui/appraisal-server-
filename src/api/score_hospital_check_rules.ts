@@ -91,7 +91,7 @@ async function queryProjectWorkPoint(params) {
         where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         and missiontime >= {{? start}}
         and missiontime < {{? end}}
-        and operateorganization = {{? hospitalId}}
+        and operateorganization = {{? operateorganization}}
         group by projecttype`,
     params
   );
