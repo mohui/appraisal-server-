@@ -7,12 +7,11 @@ import {
   RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
-  RuleTagModel,
-  sql as sqlRender
+  RuleTagModel
 } from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
-import {Op, QueryTypes} from 'sequelize';
+import {Op} from 'sequelize';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
 import Excel from 'exceljs';
@@ -135,17 +134,32 @@ export default class Hospital {
   }
 
   async workpoints(code) {
+    const hisHospitalId = (
+      await appDB.execute(
+        `select hishospid as id from hospital_mapping where h_id = ?`,
+        code
+      )
+    )?.[0]?.id;
     return (
-      await queryProjectDoctorWorkPoint({
-        hospitalId: code,
-        start: dayjs()
+      await originalDB.execute(
+        `select cast(sum(vws.score) as int) as score,
+              vws.operatorid as doctorId,
+              vws.doctor as doctorName,
+              vws.projecttype as "projectId"
+           from view_workscoretotal vws
+           where vws.operateorganization = ?
+             and missiontime >= ?
+             and missiontime < ?
+         group by vws.operatorid, vws.doctor,vws.projecttype`,
+        hisHospitalId,
+        dayjs()
           .startOf('y')
           .toDate(),
-        end: dayjs()
+        dayjs()
           .startOf('y')
           .add(1, 'y')
           .toDate()
-      })
+      )
     ).map(it => ({
       ...it,
       name: Projects.find(p => p.id === it.projectId)?.name
@@ -410,78 +424,4 @@ export default class Hospital {
   async info(id) {
     return HospitalModel.findOne({where: {id}});
   }
-}
-
-async function queryProjectDoctorWorkPoint(params) {
-  let sql = sqlRender(
-    `
-            select
-            vh.h_id as "hospitalId",
-            vh.hishospid
-            from hospital_mapping vh
-            where 1 = 1
-            {{#if hospitalId}} and vh.h_id = {{? hospitalId}}{{/if}}
-            {{#if hospitalIds}} and vh.h_id in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
-            group by vh.h_id,vh.hishospid
-    `,
-    params
-  );
-  const hospitals = await appQuery(sql[0], sql[1]);
-  sql = sqlRender(
-    `
-            select
-            vws.operatorid as doctorId,
-            vws.doctor as doctorName,
-            vws.projecttype as "projectId",
-            cast(sum(vws.score) as int) as "workPoint",
-            vws.operateorganization
-            from view_workscoretotal vws
-            where 1 = 1
-            {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
-             and missiontime >= {{? start}}
-             and missiontime < {{? end}}
-            group by vws.operatorid, vws.doctor,vws.projecttype,vws.operateorganization
-    `,
-    params
-  );
-  const workPoints = await originalQuery(sql[0], sql[1]);
-  return Array.from(
-    new Set(
-      workPoints
-        .filter(
-          p =>
-            hospitals.filter(h => p.operateorganization === h.hishospid)
-              .length > 0
-        )
-        .map(vws => vws.doctorid + '-' + vws.doctorname + '-' + vws.projectId)
-    )
-  ).map(vws => ({
-    doctorid: vws.split('-')[0],
-    doctorname: vws.split('-')[1],
-    projectId: vws.split('-')[2],
-    score: workPoints
-      .filter(
-        p =>
-          p.doctorid === vws.split('-')[0] &&
-          p.doctorname === vws.split('-')[1] &&
-          p.projectId === vws.split('-')[2] &&
-          hospitals.filter(h => p.operateorganization === h.hishospid).length >
-            0
-      )
-      .reduce((result, current) => (result += current.workPoint), 0)
-  }));
-}
-
-async function appQuery(sql, params) {
-  return appDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
-}
-
-async function originalQuery(sql, params) {
-  return originalDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
 }
