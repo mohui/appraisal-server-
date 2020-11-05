@@ -698,7 +698,7 @@ export default class ScoreHospitalCheckRules {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code, checkId) {
+  async total(code, checkId, isContainOriginalWorkPoint) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
     if (regionModel) {
       const reduceObject = (
@@ -817,27 +817,31 @@ export default class ScoreHospitalCheckRules {
     });
     if (hospitalModel) {
       let originalWorkPoints = 0;
-      const hisHospitalId = (
-        await appDB.execute(
-          `select hishospid as id from hospital_mapping where h_id = ?`,
-          hospitalModel.id
-        )
-      )[0]?.id;
-      originalWorkPoints =
-        (
-          await originalDB.execute(
-            `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
-            hisHospitalId,
-            dayjs()
-              .startOf('y')
-              .toDate(),
-            dayjs()
-              .startOf('y')
-              .add(1, 'y')
-              .toDate()
+      if (
+        isContainOriginalWorkPoint === undefined ||
+        isContainOriginalWorkPoint === true
+      ) {
+        const hisHospitalId = (
+          await appDB.execute(
+            `select hishospid as id from hospital_mapping where h_id = ?`,
+            hospitalModel.id
           )
-        )[0]?.scores ?? 0;
-
+        )[0]?.id;
+        originalWorkPoints =
+          (
+            await originalDB.execute(
+              `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
+              hisHospitalId,
+              dayjs()
+                .startOf('y')
+                .toDate(),
+              dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
+            )
+          )[0]?.scores ?? 0;
+      }
       return {
         id: hospitalModel.id,
         name: hospitalModel.name,
@@ -913,7 +917,8 @@ export default class ScoreHospitalCheckRules {
       ).map(async checkHospital => {
         const item = await this.total(
           checkHospital.hospitalId,
-          checkHospital.checkId
+          checkHospital.checkId,
+          false
         );
         return {
           ...item,
@@ -966,7 +971,7 @@ export default class ScoreHospitalCheckRules {
           }
         })
       ).map(async region => {
-        const result = await this.total(region.code, checkId);
+        const result = await this.total(region.code, checkId, false);
         return {
           ...result,
           ...region.toJSON()
