@@ -460,26 +460,12 @@ export default class ScoreHospitalCheckRules {
           }
         }
       }
-      // 查询机构考核得分
-      const ruleHospitalScoreObject = {
+      // 保存机构考核得分
+      await RuleHospitalScoreModel.upsert({
         ruleId: ruleModel.ruleId,
-        hospitalId: ruleModel.hospitalId
-      };
-      let ruleHospitalScoreModel = await RuleHospitalScoreModel.findOne({
-        where: ruleHospitalScoreObject
+        hospitalId: ruleModel.hospitalId,
+        score
       });
-      // 刷新最新得分
-      if (!ruleHospitalScoreModel) {
-        ruleHospitalScoreModel = new RuleHospitalScoreModel({
-          ...ruleHospitalScoreObject,
-          score,
-          id: uuid()
-        });
-      } else {
-        ruleHospitalScoreModel.score = score;
-      }
-      // 保存
-      await ruleHospitalScoreModel.save();
     }
 
     // 考核满分
@@ -670,21 +656,18 @@ export default class ScoreHospitalCheckRules {
     if (!rule) throw new KatoCommonError('规则不存在');
     const hospital = await HospitalModel.findOne({where: {id: hospitalId}});
     if (!hospital) throw new KatoCommonError('机构不存在');
-    if (score > rule.ruleScore)
-      throw new KatoCommonError('分数不能高于细则的满分');
-    let model = await RuleHospitalScoreModel.findOne({
+    const hospitalRule = await RuleHospitalModel.findOne({
       where: {ruleId, hospitalId}
     });
-    if (!model) {
-      model = new RuleHospitalScoreModel({
-        ruleId: ruleId,
-        hospitalId: hospitalId,
-        score
-      });
-    } else {
-      model.score = score;
-    }
-    await model.save();
+    if (!hospitalRule)
+      throw new KatoCommonError('机构与细则并未绑定，不允许打分');
+    if (score > rule.ruleScore)
+      throw new KatoCommonError('分数不能高于细则的满分');
+    await RuleHospitalScoreModel.upsert({
+      ruleId,
+      hospitalId,
+      score
+    });
     //机构总得分
     const scores = (
       await RuleHospitalScoreModel.findAll({
