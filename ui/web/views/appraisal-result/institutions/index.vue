@@ -92,8 +92,15 @@
               <span>分</span>
               <p style="margin:10px 0;">{{ date }}</p>
               <p style="font-size:13px;">{{ totalData.name }}</p>
-              <div style="padding-top: 40px;">
-                <p>校正前 {{ totalData.originalScore }}分</p>
+              <div
+                :style="{'padding-top': params.isInstitution ? '10px' : '40px'}"
+              >
+                <div v-if="params.isInstitution">
+                  <p>校正前总工分： {{ totalData.originalWorkPoint }}分</p>
+                </div>
+                <div>
+                  <p>参与校正工分： {{ totalData.originalScore }}分</p>
+                </div>
               </div>
             </div>
             <div class=" score-detail" v-if="params.listFlag === 'quality'">
