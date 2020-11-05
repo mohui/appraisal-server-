@@ -723,7 +723,7 @@ inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.
           checkId
         }
       );
-      const resultObject = (await appDB.execute(sql[0], ...sql[1]))?.[0];
+      const resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
       return {
         id: regionModel.code,
         name: regionModel.name,
