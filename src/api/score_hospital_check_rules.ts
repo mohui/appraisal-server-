@@ -705,7 +705,6 @@ export default class ScoreHospitalCheckRules {
       hospitalModel = await HospitalModel.findOne({
         where: {id: code}
       });
-    let resultObject;
     if (regionModel || hospitalModel) {
       if (
         hospitalModel &&
@@ -737,7 +736,7 @@ inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.
           checkId
         }
       );
-      resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
+      const resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
       if (regionModel) {
         return {
           id: regionModel.code,
