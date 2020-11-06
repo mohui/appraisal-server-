@@ -98,48 +98,6 @@ async function queryProjectWorkPoint(params) {
   return await originalDB.execute(sql, ...paramters);
 }
 
-async function getLevelRegion(
-  regionCodeList,
-  hospitalMinRegionLevel,
-  currentLevel
-) {
-  let sql = `
-select
-        r.level,r.code,
-        case r.level `;
-  // eslint-disable-next-line for-direction
-  for (let i = hospitalMinRegionLevel; i >= currentLevel; i--)
-    sql +=
-      ` when ` +
-      i +
-      ` then r` +
-      (i == currentLevel ? `` : hospitalMinRegionLevel + currentLevel - i) +
-      `.code`;
-  sql += ` else null end as current_level_region
-    from region r`;
-  for (let i = hospitalMinRegionLevel; i > currentLevel; i--) {
-    sql +=
-      `
-        left join region r` +
-      (i - 1) +
-      ` on r` +
-      (i - 1) +
-      `.code=r` +
-      (i == hospitalMinRegionLevel ? `` : i) +
-      `.parent`;
-  }
-  //机构检索对应区域
-  const sqlRender1 = sqlRender(
-    sql +
-      `
-where r.code in({{#each code}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
-    {
-      code: regionCodeList
-    }
-  );
-  return await appDB.execute(sqlRender1[0], ...sqlRender1[1]);
-}
-
 /**
  * 考核体系打分任务状态
  */
@@ -869,20 +827,27 @@ inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is n
         {model: HospitalModel, include: [RegionModel]}
       ]
     });
-    const hospitalCurrentRegions = await getLevelRegion(
-      checkHospitals.map(i => i.hospital.region.code),
-      Math.max(...checkHospitals.map(i => i.hospital.region.level)),
-      regionModel.level + 1
-    );
     // 获取所有授权子地区
-    const authorizedRegions = await RegionModel.findAll({
+    let authorizedRegions = await RegionModel.findAll({
       where: {
-        parent: regionModel.code,
-        code: {
-          [Op.in]: hospitalCurrentRegions.map(i => i.current_level_region)
-        }
+        parent: regionModel.code
       }
     });
+    const hospitalCurrentRegions = checkHospitals
+      .map(ch => ({
+        code: ch.hospital.region.code,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        current_level_region:
+          authorizedRegions.filter(
+            r => ch.hospital.region.code.indexOf(r.code) === 0
+          )?.[0]?.code ?? null
+      }))
+      .filter(i => i.current_level_region !== null);
+    authorizedRegions = authorizedRegions.filter(
+      i =>
+        hospitalCurrentRegions.filter(j => i.code === j.current_level_region)
+          .length > 0
+    );
     const sql = sqlRender(
       `select
 h.region,
@@ -905,8 +870,7 @@ group by h.region`,
         regionId: code,
         checkType: checkId ? null : 1,
         checkId,
-        regionIds: authorizedRegions.map(r => r.code),
-        regionLength: Math.max(...authorizedRegions.map(r => r.code.length))
+        regionIds: authorizedRegions.map(r => r.code)
       }
     );
     const data = await appDB.execute(sql[0], ...sql[1]);
