@@ -718,8 +718,9 @@ COALESCE(sum("workPoint"),0) as "originalScore",
 COALESCE(sum("ruleScore"),0) as "ruleScore",
 COALESCE(sum("ruleTotalScore"),0) as "total",
 COALESCE(sum(rhb.budget),0) as "budget"
+{{#if regionId}}{{else}},max(hm.hishospid) hishospid{{/if}}
 from rule_hospital_budget rhb
-inner join hospital h on h.id=rhb.hospital
+{{#if regionId}}inner join hospital h on h.id=rhb.hospital{{else}}inner join hospital_mapping hm on hm.h_id=rhb.hospital{{/if}}
 inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
 inner join check_system cs on cs.check_id=cr.check_id
 {{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
@@ -749,18 +750,11 @@ inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.
         };
       }
       if (hospitalModel) {
-        let originalWorkPoints = 0;
-        const hisHospitalId = (
-          await appDB.execute(
-            `select hishospid as id from hospital_mapping where h_id = ?`,
-            hospitalModel.id
-          )
-        )[0]?.id;
-        originalWorkPoints =
+        const originalWorkPoints =
           (
             await originalDB.execute(
               `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
-              hisHospitalId,
+              resultObject.hishospid,
               dayjs()
                 .startOf('y')
                 .toDate(),
