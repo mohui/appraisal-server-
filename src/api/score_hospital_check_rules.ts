@@ -698,140 +698,63 @@ export default class ScoreHospitalCheckRules {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code, checkId, isContainOriginalWorkPoint) {
+  async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
-    if (regionModel) {
-      const reduceObject = (
-        await CheckHospitalModel.findAll({
-          where: {},
-          include: [
-            {
-              model: HospitalModel,
-              where: {
-                regionId: {
-                  [Op.like]: `${code}%`
-                },
-                id: {
-                  [Op.in]: Context.current.user.hospitals.map(it => it.id)
-                }
-              },
-              include: [
-                {
-                  model: RuleHospitalBudgetModel,
-                  required: true,
-                  include: [
-                    {
-                      model: CheckRuleModel,
-                      required: true,
-                      include: [
-                        {
-                          model: CheckSystemModel,
-                          where: checkId ? {checkId: checkId} : {checkType: 1}
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              model: CheckSystemModel,
-              where: checkId ? {checkId: checkId} : {checkType: 1}
-            }
-          ]
-        })
-      ).map(i => {
-        return {...i.hospital};
+    let hospitalModel;
+    if (!regionModel)
+      hospitalModel = await HospitalModel.findOne({
+        where: {id: code}
       });
-      const resultObject = reduceObject.reduce(
-        (res, next) => {
-          res.originalScore = new Decimal(res?.originalScore ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.workPoint)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.ruleScore = new Decimal(res?.ruleScore ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.ruleScore)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.score = new Decimal(res?.score ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.correctWorkPoint)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.total = new Decimal(res?.total ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.ruleTotalScore)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          return res;
-        },
+    if (regionModel || hospitalModel) {
+      if (
+        hospitalModel &&
+        Context.current.user.hospitals.filter(i => i.id === code).length < 1
+      )
+        throw new KatoCommonError('未经授权的机构不允许查看');
+      const sql = sqlRender(
+        `select
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total",
+COALESCE(sum(rhb.budget),0) as "budget"
+{{#if regionId}}{{else}},max(hm.hishospid) hishospid{{/if}}
+from rule_hospital_budget rhb
+{{#if regionId}}inner join hospital h on h.id=rhb.hospital{{else}}inner join hospital_mapping hm on hm.h_id=rhb.hospital{{/if}}
+inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
+inner join check_system cs on cs.check_id=cr.check_id
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{#if regionId}} and position({{? regionId}} in h.region)=1{{/if}}`,
         {
-          originalScore: 0,
-          ruleScore: 0,
-          total: 0,
-          score: 0
+          hospitalIds: hospitalModel
+            ? [code]
+            : Context.current.user.hospitals.map(it => it.id),
+          regionId: regionModel ? code : null,
+          checkType: checkId ? null : 1,
+          checkId
         }
       );
-      return {
-        id: regionModel.code,
-        name: regionModel.name,
-        score: Number(resultObject.score),
-        originalScore: Number(resultObject.originalScore),
-        rate: new Decimal(Number(resultObject.ruleScore))
-          .div(Number(resultObject.total))
-          .toNumber()
-      };
-    }
-
-    const hospitalModel = await HospitalModel.findOne({
-      where: {id: code},
-      include: [
-        {
-          model: RuleHospitalBudgetModel,
-          required: false,
-          where: {
-            hospitalId: {
-              [Op.in]: Context.current.user.hospitals.map(it => it.id)
-            }
-          },
-          include: [
-            {
-              model: CheckRuleModel,
-              required: true,
-              include: [
-                {
-                  model: CheckSystemModel,
-                  where: checkId ? {checkId: checkId} : {checkType: 1}
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    });
-    if (hospitalModel) {
-      let originalWorkPoints = 0;
-      if (
-        isContainOriginalWorkPoint === undefined ||
-        isContainOriginalWorkPoint === true
-      ) {
-        const hisHospitalId = (
-          await appDB.execute(
-            `select hishospid as id from hospital_mapping where h_id = ?`,
-            hospitalModel.id
-          )
-        )[0]?.id;
-        originalWorkPoints =
+      const resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
+      if (regionModel) {
+        return {
+          id: regionModel.code,
+          name: regionModel.name,
+          score: Number(resultObject.score),
+          originalScore: Number(resultObject.originalScore),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber()
+        };
+      }
+      if (hospitalModel) {
+        const originalWorkPoints =
           (
             await originalDB.execute(
               `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
-              hisHospitalId,
+              resultObject.hishospid,
               dayjs()
                 .startOf('y')
                 .toDate(),
@@ -841,46 +764,19 @@ export default class ScoreHospitalCheckRules {
                 .toDate()
             )
           )[0]?.scores ?? 0;
+
+        return {
+          id: hospitalModel.id,
+          name: hospitalModel.name,
+          originalScore: Number(resultObject.originalScore),
+          score: Number(resultObject.score),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber(),
+          budget: Number(resultObject.budget),
+          originalWorkPoint: originalWorkPoints
+        };
       }
-      return {
-        id: hospitalModel.id,
-        name: hospitalModel.name,
-        originalScore:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.workPoint),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        score:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.correctWorkPoint),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        rate:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.ruleScore),
-              new Decimal(0)
-            )
-            .div(
-              hospitalModel?.ruleHospitalBudget?.reduce(
-                (res, next) => new Decimal(res).add(next.ruleTotalScore),
-                new Decimal(0)
-              )
-            )
-            .toNumber() ?? 0,
-        budget:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next?.budget ?? 0),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        originalWorkPoint: originalWorkPoints
-      };
     }
 
     throw new KatoCommonError(`${code} 不存在`);
@@ -895,37 +791,56 @@ export default class ScoreHospitalCheckRules {
   async rank(code, checkId) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
-    return await Promise.all(
-      (
-        await CheckHospitalModel.findAll({
-          where: {
-            hospitalId: {
-              [Op.in]: Context.current.user.hospitals.map(it => it.id)
-            }
-          },
-          include: [
-            {
-              model: HospitalModel,
-              where: {region: {[Op.like]: `${regionModel.code}%`}}
-            },
-            {
-              model: CheckSystemModel,
-              where: checkId ? {checkId: checkId} : {checkType: 1}
-            }
-          ]
-        })
-      ).map(async checkHospital => {
-        const item = await this.total(
-          checkHospital.hospitalId,
-          checkHospital.checkId,
-          false
-        );
-        return {
-          ...item,
-          parent: checkHospital?.hospital?.parent
-        };
-      })
+    const checkHospitals = await CheckHospitalModel.findAll({
+      where: {
+        hospitalId: {
+          [Op.in]: Context.current.user.hospitals.map(it => it.id)
+        }
+      },
+      include: [
+        {
+          model: HospitalModel,
+          where: {region: {[Op.like]: `${regionModel.code}%`}}
+        },
+        {
+          model: CheckSystemModel,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        }
+      ]
+    });
+    const sql = sqlRender(
+      `select
+rhb.hospital as id,
+h.name,
+h.parent,
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total",
+COALESCE(sum(rhb.budget),0) as "budget"
+from rule_hospital_budget rhb
+inner join hospital h on h.id=rhb.hospital
+inner join check_rule cr on cr.rule_id=rhb.rule
+inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is null
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        group by rhb.hospital,h.name,h.parent`,
+      {
+        hospitalIds: checkHospitals.map(it => it.hospitalId),
+        checkType: checkId ? null : 1,
+        checkId
+      }
     );
+    return (await appDB.execute(sql[0], ...sql[1])).map(i => ({
+      id: i.id,
+      name: i.name,
+      originalScore: new Decimal(i.originalScore).toNumber(),
+      score: new Decimal(i.score).toNumber(),
+      rate: new Decimal(i.ruleScore).div(i.total).toNumber() ?? 0,
+      budget: new Decimal(i.budget).toNumber(),
+      parent: i.parent
+    }));
   }
 
   /**
@@ -959,25 +874,90 @@ export default class ScoreHospitalCheckRules {
       Math.max(...checkHospitals.map(i => i.hospital.region.level)),
       regionModel.level + 1
     );
-    // 获取所有子地区
-    return await Promise.all(
-      (
-        await RegionModel.findAll({
-          where: {
-            parent: regionModel.code,
-            code: {
-              [Op.in]: hospitalCurrentRegions.map(i => i.current_level_region)
-            }
-          }
-        })
-      ).map(async region => {
-        const result = await this.total(region.code, checkId, false);
-        return {
-          ...result,
-          ...region.toJSON()
-        };
-      })
+    // 获取所有授权子地区
+    const authorizedRegions = await RegionModel.findAll({
+      where: {
+        parent: regionModel.code,
+        code: {
+          [Op.in]: hospitalCurrentRegions.map(i => i.current_level_region)
+        }
+      }
+    });
+    const sql = sqlRender(
+      `select
+h.region,
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total"
+from rule_hospital_budget rhb
+inner join hospital h on h.id=rhb.hospital
+inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
+inner join check_system cs on cs.check_id=cr.check_id
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        and ({{#each regionIds}}position({{? this}} in h.region)=1{{#sep}} or {{/sep}}{{/each}})
+group by h.region`,
+      {
+        hospitalIds: Context.current.user.hospitals.map(it => it.id),
+        regionId: code,
+        checkType: checkId ? null : 1,
+        checkId,
+        regionIds: authorizedRegions.map(r => r.code),
+        regionLength: Math.max(...authorizedRegions.map(r => r.code.length))
+      }
     );
+    const data = await appDB.execute(sql[0], ...sql[1]);
+    const result = authorizedRegions.map(region => ({
+      result: {...region.toJSON(), id: region.code, name: region.name},
+      data: data.filter(
+        i =>
+          hospitalCurrentRegions.filter(
+            j => j.current_level_region === region.code && j.code === i.region
+          ).length > 0
+      )
+    }));
+    return result.map(i => ({
+      ...i.result,
+      score:
+        i.data
+          .reduce(
+            (res, next) => new Decimal(res).add(next.score),
+            new Decimal(0)
+          )
+          .toNumber() ?? 0,
+      originalScore:
+        i.data
+          .reduce(
+            (res, next) => new Decimal(res).add(next.originalScore),
+            new Decimal(0)
+          )
+          .toNumber() ?? 0,
+      rate:
+        new Decimal(
+          Number(
+            i.data
+              .reduce(
+                (res, next) => new Decimal(res).add(next.ruleScore),
+                new Decimal(0)
+              )
+              .toNumber()
+          )
+        )
+          .div(
+            Number(
+              i.data
+                .reduce(
+                  (res, next) => new Decimal(res).add(next.total),
+                  new Decimal(0)
+                )
+                .toNumber()
+            )
+          )
+          .toNumber() ?? 0
+    }));
   }
 
   async upload(ruleId, hospitalId, attachments) {
