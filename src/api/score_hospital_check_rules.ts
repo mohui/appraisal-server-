@@ -700,13 +700,25 @@ export default class ScoreHospitalCheckRules {
    */
   async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
-    if (regionModel) {
+    let hospitalModel;
+    if (!regionModel)
+      hospitalModel = await HospitalModel.findOne({
+        where: {id: code}
+      });
+    let resultObject;
+    if (regionModel || hospitalModel) {
+      if (
+        hospitalModel &&
+        Context.current.user.hospitals.filter(i => i.id === code).length < 1
+      )
+        throw new KatoCommonError('未经授权的机构不允许查看');
       const sql = sqlRender(
         `select
 COALESCE(sum("correctWorkPoint"),0) as "score",
 COALESCE(sum("workPoint"),0) as "originalScore",
 COALESCE(sum("ruleScore"),0) as "ruleScore",
-COALESCE(sum("ruleTotalScore"),0) as "total"
+COALESCE(sum("ruleTotalScore"),0) as "total",
+COALESCE(sum(rhb.budget),0) as "budget"
 from rule_hospital_budget rhb
 inner join hospital h on h.id=rhb.hospital
 inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
@@ -715,113 +727,63 @@ inner join check_system cs on cs.check_id=cr.check_id
 {{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
 inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
     where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-        and position({{? regionId}} in h.region)=1`,
+        {{#if regionId}} and position({{? regionId}} in h.region)=1{{/if}}`,
         {
-          hospitalIds: Context.current.user.hospitals.map(it => it.id),
-          regionId: code,
+          hospitalIds: hospitalModel
+            ? [code]
+            : Context.current.user.hospitals.map(it => it.id),
+          regionId: regionModel ? code : null,
           checkType: checkId ? null : 1,
           checkId
         }
       );
-      const resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
-      return {
-        id: regionModel.code,
-        name: regionModel.name,
-        score: Number(resultObject.score),
-        originalScore: Number(resultObject.originalScore),
-        rate: new Decimal(Number(resultObject.ruleScore))
-          .div(Number(resultObject.total))
-          .toNumber()
-      };
-    }
-
-    const hospitalModel = await HospitalModel.findOne({
-      where: {id: code},
-      include: [
-        {
-          model: RuleHospitalBudgetModel,
-          required: false,
-          where: {
-            hospitalId: {
-              [Op.in]: Context.current.user.hospitals.map(it => it.id)
-            }
-          },
-          include: [
-            {
-              model: CheckRuleModel,
-              required: true,
-              include: [
-                {
-                  model: CheckSystemModel,
-                  where: checkId ? {checkId: checkId} : {checkType: 1}
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    });
-    if (hospitalModel) {
-      let originalWorkPoints = 0;
-      const hisHospitalId = (
-        await appDB.execute(
-          `select hishospid as id from hospital_mapping where h_id = ?`,
-          hospitalModel.id
-        )
-      )[0]?.id;
-      originalWorkPoints =
-        (
-          await originalDB.execute(
-            `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
-            hisHospitalId,
-            dayjs()
-              .startOf('y')
-              .toDate(),
-            dayjs()
-              .startOf('y')
-              .add(1, 'y')
-              .toDate()
+      resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
+      if (regionModel) {
+        return {
+          id: regionModel.code,
+          name: regionModel.name,
+          score: Number(resultObject.score),
+          originalScore: Number(resultObject.originalScore),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber()
+        };
+      }
+      if (hospitalModel) {
+        let originalWorkPoints = 0;
+        const hisHospitalId = (
+          await appDB.execute(
+            `select hishospid as id from hospital_mapping where h_id = ?`,
+            hospitalModel.id
           )
-        )[0]?.scores ?? 0;
-      return {
-        id: hospitalModel.id,
-        name: hospitalModel.name,
-        originalScore:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.workPoint),
-              new Decimal(0)
+        )[0]?.id;
+        originalWorkPoints =
+          (
+            await originalDB.execute(
+              `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
+              hisHospitalId,
+              dayjs()
+                .startOf('y')
+                .toDate(),
+              dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
             )
-            .toNumber() ?? 0,
-        score:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.correctWorkPoint),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        rate:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.ruleScore),
-              new Decimal(0)
-            )
-            .div(
-              hospitalModel?.ruleHospitalBudget?.reduce(
-                (res, next) => new Decimal(res).add(next.ruleTotalScore),
-                new Decimal(0)
-              )
-            )
-            .toNumber() ?? 0,
-        budget:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next?.budget ?? 0),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        originalWorkPoint: originalWorkPoints
-      };
+          )[0]?.scores ?? 0;
+
+        return {
+          id: hospitalModel.id,
+          name: hospitalModel.name,
+          originalScore: Number(resultObject.originalScore),
+          score: Number(resultObject.score),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber(),
+          budget: Number(resultObject.budget),
+          originalWorkPoint: originalWorkPoints
+        };
+      }
     }
 
     throw new KatoCommonError(`${code} 不存在`);
