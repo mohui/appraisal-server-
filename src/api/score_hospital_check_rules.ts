@@ -2,6 +2,7 @@ import {
   BasicTagDataModel,
   CheckHospitalModel,
   CheckRuleModel,
+  CheckSystemModel,
   HospitalModel,
   MarkHospitalModel,
   RegionModel,
@@ -47,79 +48,168 @@ function percentString(numerator: number, denominator: number): string {
   }
 }
 
-function listRender(params) {
-  return sqlRender(
-    `
-            select
-            vh.h_id as "hospitalId",
-            cast(sum(vw.score) as int) as "workPoint"
-            from view_workscoretotal vw
-            inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
-            and
-             vh.h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-            where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-             and missiontime >= {{? start}}
-             and missiontime < {{? end}}
-            group by vh.h_id,vw.operateorganization
-    `,
+async function queryList(params) {
+  let [sql, paramters] = sqlRender(
+    `select hishospid as id,h_id as "hospitalId" from hospital_mapping where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
     params
   );
+  const hisHospitals = await appDB.execute(sql, ...paramters);
+  params.operateorganizations = hisHospitals.map(i => i.id);
+  [sql, paramters] = sqlRender(
+    `select
+            operateorganization,
+            cast(sum(vw.score) as int) as "workPoint"
+            from view_workscoretotal vw
+            where 1 = 1
+             {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+             and operateorganization in ({{#each operateorganizations}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            group by vw.operateorganization`,
+    params
+  );
+  return (await originalDB.execute(sql, ...paramters)).map(i => ({
+    workPoint: i.workPoint,
+    hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
+      ?.hospitalId
+  }));
 }
 
-function projectWorkPointRender(params) {
-  return sqlRender(
+async function queryProjectWorkPoint(params) {
+  const hisHospitalId = (
+    await appDB.execute(
+      `select hishospid as id from hospital_mapping where h_id = ?`,
+      params.hospitalId
+    )
+  )?.[0]?.id;
+  params.operateorganization = hisHospitalId;
+  const [sql, paramters] = sqlRender(
     `select
         projecttype as "projectId",
         cast(sum(vw.score) as int) as workPoint
         from view_workscoretotal vw
-        inner join hospital_mapping vh on vw.operateorganization = vh.hishospid
-        and vh.h_id = {{? hospitalId}}
         where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         and missiontime >= {{? start}}
         and missiontime < {{? end}}
-        group by projecttype;`,
+        and operateorganization = {{? operateorganization}}
+        group by projecttype`,
     params
   );
+  return await originalDB.execute(sql, ...paramters);
 }
 
-async function govQuery(sql, params) {
-  return originalDB.query(sql, {
-    replacements: params,
-    type: QueryTypes.SELECT
-  });
+async function getLevelRegion(
+  regionCodeList,
+  hospitalMinRegionLevel,
+  currentLevel
+) {
+  let sql = `
+select
+        r.level,r.code,
+        case r.level `;
+  // eslint-disable-next-line for-direction
+  for (let i = hospitalMinRegionLevel; i >= currentLevel; i--)
+    sql +=
+      ` when ` +
+      i +
+      ` then r` +
+      (i == currentLevel ? `` : hospitalMinRegionLevel + currentLevel - i) +
+      `.code`;
+  sql += ` else null end as current_level_region
+    from region r`;
+  for (let i = hospitalMinRegionLevel; i > currentLevel; i--) {
+    sql +=
+      `
+        left join region r` +
+      (i - 1) +
+      ` on r` +
+      (i - 1) +
+      `.code=r` +
+      (i == hospitalMinRegionLevel ? `` : i) +
+      `.parent`;
+  }
+  //机构检索对应区域
+  const sqlRender1 = sqlRender(
+    sql +
+      `
+where r.code in({{#each code}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+    {
+      code: regionCodeList
+    }
+  );
+  return await appDB.execute(sqlRender1[0], ...sqlRender1[1]);
 }
 
-export default class Score {
-  async autoScoreAll() {
+/**
+ * 考核体系打分任务状态
+ */
+export const jobStatus = {};
+
+export default class ScoreHospitalCheckRules {
+  async autoScoreAllCheck(isAuto) {
     await Promise.all(
-      (await HospitalModel.findAll()).map(it => this.autoScore(it.id))
+      (await CheckSystemModel.findAll()).map(it =>
+        this.autoScoreCheck(it.checkId, isAuto === undefined ? true : isAuto)
+      )
     );
-    await this.checkBudget();
   }
 
   /**
-   * 系统打分
+   * 考核体系打分
    *
-   * @param id 机构id
+   * @param id 考核体系id
    */
-  async autoScore(id) {
+  async autoScoreCheck(id, isAuto) {
+    if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
+    // 标记打分状态, 正在打分
+    jobStatus[id] = true;
+    try {
+      for (const hospital of await CheckHospitalModel.findAll({
+        where: {checkId: id}
+      }))
+        await this.autoScoreHospitalCheck(hospital.hospitalId, id, !!isAuto); // 考核体系-机构打分
+      // 金额分配
+      await this.checkBudget(id);
+      // 更新打分时间
+      await CheckSystemModel.update(
+        {
+          runTime: dayjs().toDate()
+        },
+        {where: {checkId: id}}
+      );
+    } catch (e) {
+      console.error('autoScoreCheck: ', e);
+      throw new KatoCommonError('当前考核体系打分失败');
+    } finally {
+      // 标记打分状态, 打分结束
+      jobStatus[id] = false;
+    }
+  }
+
+  /**
+   * 机构考核细则
+   * @param hospitalId
+   * @param checkId
+   */
+  async autoScoreHospitalCheck(hospitalId, checkId, isAuto) {
     // 查机构
     const hospital = await HospitalModel.findOne({
-      where: {id}
+      where: {id: hospitalId}
     });
-    if (!hospital) throw new KatoCommonError(`id为 ${id} 的机构不存在`);
+    if (!hospital) throw new KatoCommonError(`id为 ${hospitalId} 的机构不存在`);
     // 查机构标记
     const mark = await MarkHospitalModel.findOne({
       where: {
         hospitalId: hospital.id
       }
     });
-    // 查所有考核细则
+    // 查机构考核细则
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
         auto: true,
         hospitalId: hospital.id
-      }
+      },
+      include: [{model: CheckRuleModel, where: {checkId}}]
     });
     // 循环所有考核细则
     for (const ruleModel of ruleModels) {
@@ -219,7 +309,6 @@ export default class Score {
             score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
-
         // 老年人中医药健康管理率
         if (tagModel.tag === MarkTagUsages.O02.code) {
           if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O02)
@@ -353,7 +442,7 @@ export default class Score {
           const attach = await RuleHospitalAttachModel.findAll({
             where: {
               ruleId: tagModel.ruleId,
-              hospitalId: id,
+              hospitalId: hospitalId,
               updatedAt: {
                 [Op.gt]: tagModel.attachStartDate,
                 [Op.lt]: tagModel.attachEndDate
@@ -371,93 +460,67 @@ export default class Score {
           }
         }
       }
-      // 查询机构考核得分
-      const ruleHospitalScoreObject = {
+      // 保存机构考核得分
+      await RuleHospitalScoreModel.upsert({
         ruleId: ruleModel.ruleId,
-        hospitalId: ruleModel.hospitalId
-      };
-      let ruleHospitalScoreModel = await RuleHospitalScoreModel.findOne({
-        where: ruleHospitalScoreObject
+        hospitalId: ruleModel.hospitalId,
+        score
       });
-      // 刷新最新得分
-      if (!ruleHospitalScoreModel) {
-        ruleHospitalScoreModel = new RuleHospitalScoreModel({
-          ...ruleHospitalScoreObject,
-          score,
-          id: uuid()
-        });
-      } else {
-        ruleHospitalScoreModel.score = score;
-      }
-      // 保存
-      await ruleHospitalScoreModel.save();
     }
 
     // 考核满分
     const total = (
       await RuleHospitalModel.findAll({
-        where: {hospitalId: id},
-        include: [CheckRuleModel]
+        where: {hospitalId: hospitalId},
+        include: [{model: CheckRuleModel, where: {checkId}}]
       })
     ).reduce((result, current) => (result += current?.rule?.ruleScore ?? 0), 0);
     // 机构总得分
     const scores = (
       await RuleHospitalScoreModel.findAll({
-        where: {hospitalId: id}
+        where: {hospitalId: hospitalId},
+        include: [{model: CheckRuleModel, where: {checkId}}]
       })
     ).reduce((result, current) => (result += current.score), 0);
     // 机构工分
-    // language=PostgreSQL
-    const workpoints =
-      (
-        await originalDB.query(
-          `
-            select sum(vws.score) as workpoints
-            from view_workscoretotal vws
-                   left join hospital_mapping hm on vws.operateorganization = hm.hishospid
-            where hm.h_id = ?
-              and vws.missiontime >= ?
-              and vws.missiontime < ?
-          `,
-          {
-            replacements: [
-              id,
-              dayjs()
-                .startOf('y')
-                .toDate(),
-              dayjs()
-                .startOf('y')
-                .add(1, 'y')
-                .toDate()
-            ],
-            type: QueryTypes.SELECT
-          }
-        )
-      )[0]?.workpoints ?? 0;
-
+    const params = {
+      ids: [hospitalId],
+      start: dayjs()
+        .startOf('y')
+        .toDate(),
+      end: dayjs()
+        .startOf('y')
+        .add(1, 'y')
+        .toDate()
+    };
+    const workpoints = (await queryList(params))?.[0]?.workPoint ?? 0;
     // 更新机构考核报告表
     await ReportHospitalModel.upsert({
-      hospitalId: id,
+      hospitalId: hospitalId,
       workpoints,
       scores,
-      total
+      total,
+      checkId
     });
     //更新历史得分
     await ReportHospitalHistoryModel.upsert({
-      hospitalId: id,
-      date: dayjs()
-        .subtract(1, 'day') //当前日期减去一天,作为前一天的历史记录保存
-        .toDate(),
+      hospitalId: hospitalId,
+      date: isAuto
+        ? dayjs()
+            .subtract(1, 'day') //当前日期减去一天,作为前一天的历史记录保存
+            .toDate()
+        : dayjs().toDate(),
       score: scores,
       totalScore: total,
-      rate: new Decimal(scores).div(total).toNumber() || 0
+      rate: new Decimal(scores).div(total).toNumber() || 0,
+      checkId
     });
   }
 
   /***
    * 根据考核结果进行金额分配
    */
-  async checkBudget() {
+  async checkBudget(checkId) {
     //所有的考核组
     //考核组下绑定的工分项
     //质量系数: 得分/规则总分
@@ -465,7 +528,7 @@ export default class Score {
     //这个考核组下所有机构的所有矫正后工分
     const ruleGroup = (
       await CheckRuleModel.findAll({
-        where: {parentRuleId: {[Op.eq]: null}},
+        where: {parentRuleId: {[Op.eq]: null}, checkId},
         attributes: ['ruleId', 'ruleName', 'budget'],
         include: [
           {
@@ -509,7 +572,7 @@ export default class Score {
           correctWorkPoint: 0
         }));
       } else {
-        const sql = listRender({
+        const params = {
           ids,
           projectIds,
           start: dayjs()
@@ -519,9 +582,9 @@ export default class Score {
             .startOf('y')
             .add(1, 'y')
             .toDate()
-        });
+        };
         //所有机构的在这个小项的工分情况
-        allHospitalWorkPoint = await govQuery(sql[0], sql[1]);
+        allHospitalWorkPoint = await queryList(params);
         allHospitalWorkPoint = allHospitalWorkPoint.concat(
           //过滤出查询结果中工分为空的机构,给他们的工分值设置为0
           ids
@@ -593,26 +656,24 @@ export default class Score {
     if (!rule) throw new KatoCommonError('规则不存在');
     const hospital = await HospitalModel.findOne({where: {id: hospitalId}});
     if (!hospital) throw new KatoCommonError('机构不存在');
-    if (score > rule.ruleScore)
-      throw new KatoCommonError('分数不能高于细则的满分');
-    let model = await RuleHospitalScoreModel.findOne({
+    const hospitalRule = await RuleHospitalModel.findOne({
       where: {ruleId, hospitalId}
     });
-    if (!model) {
-      model = new RuleHospitalScoreModel({
-        ruleId: ruleId,
-        hospitalId: hospitalId,
-        score
-      });
-    } else {
-      model.score = score;
-    }
-    await model.save();
+    if (!hospitalRule)
+      throw new KatoCommonError('机构与细则并未绑定，不允许打分');
+    if (score > rule.ruleScore)
+      throw new KatoCommonError('分数不能高于细则的满分');
+    await RuleHospitalScoreModel.upsert({
+      ruleId,
+      hospitalId,
+      score
+    });
     //机构总得分
     const scores = (
       await RuleHospitalScoreModel.findAll({
         where: {hospitalId},
-        attributes: ['score']
+        attributes: ['score'],
+        include: [{model: CheckRuleModel, where: {checkId: rule.checkId}}]
       })
     )
       .reduce(
@@ -620,118 +681,102 @@ export default class Score {
         new Decimal(0)
       )
       .toNumber();
-    //更新该机构report_hospital表的数据
-    await ReportHospitalModel.update({scores}, {where: {hospitalId}});
+    //保存该机构report_hospital表的数据
+    await ReportHospitalModel.upsert({
+      checkId: rule.checkId,
+      hospitalId,
+      scores
+    });
     //重新进行金额分配
-    this.checkBudget();
+    this.checkBudget(rule.checkId);
   }
 
   /**
    * 获取考核地区/机构对应的考核总体情况
    *
    * @param code 地区或机构的code
+   * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async total(code) {
+  async total(code, checkId) {
     const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
-    if (regionModel) {
-      const reduceObject = await HospitalModel.findAll({
-        where: {
-          regionId: {
-            [Op.like]: `${code}%`
-          }
-        },
-        include: [{model: RuleHospitalBudgetModel, required: true}]
+    let hospitalModel;
+    if (!regionModel)
+      hospitalModel = await HospitalModel.findOne({
+        where: {id: code}
       });
-      const resultObject = reduceObject.reduce(
-        (res, next) => {
-          res.originalScore = new Decimal(res?.originalScore ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.workPoint)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.ruleScore = new Decimal(res?.ruleScore ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.ruleScore)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.score = new Decimal(res?.score ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.correctWorkPoint)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          res.total = new Decimal(res?.total ?? 0).add(
-            next?.ruleHospitalBudget?.reduce(
-              (r, n) => (r = new Decimal(r).add(n.ruleTotalScore)),
-              new Decimal(0)
-            ) ?? 0
-          );
-          return res;
-        },
+    if (regionModel || hospitalModel) {
+      if (
+        hospitalModel &&
+        Context.current.user.hospitals.filter(i => i.id === code).length < 1
+      )
+        throw new KatoCommonError('未经授权的机构不允许查看');
+      const sql = sqlRender(
+        `select
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total",
+COALESCE(sum(rhb.budget),0) as "budget"
+{{#if regionId}}{{else}},max(hm.hishospid) hishospid{{/if}}
+from rule_hospital_budget rhb
+{{#if regionId}}inner join hospital h on h.id=rhb.hospital{{else}}inner join hospital_mapping hm on hm.h_id=rhb.hospital{{/if}}
+inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
+inner join check_system cs on cs.check_id=cr.check_id
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{#if regionId}} and position({{? regionId}} in h.region)=1{{/if}}`,
         {
-          originalScore: 0,
-          ruleScore: 0,
-          total: 0,
-          score: 0
+          hospitalIds: hospitalModel
+            ? [code]
+            : Context.current.user.hospitals.map(it => it.id),
+          regionId: regionModel ? code : null,
+          checkType: checkId ? null : 1,
+          checkId
         }
       );
-      return {
-        id: regionModel.code,
-        name: regionModel.name,
-        score: Number(resultObject.score),
-        originalScore: Number(resultObject.originalScore),
-        rate: new Decimal(Number(resultObject.ruleScore))
-          .div(Number(resultObject.total))
-          .toNumber()
-      };
-    }
+      const resultObject = (await appDB.execute(sql[0], ...sql[1]))[0];
+      if (regionModel) {
+        return {
+          id: regionModel.code,
+          name: regionModel.name,
+          score: Number(resultObject.score),
+          originalScore: Number(resultObject.originalScore),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber()
+        };
+      }
+      if (hospitalModel) {
+        const originalWorkPoints =
+          (
+            await originalDB.execute(
+              `select cast(sum(score) as int) as scores from view_workscoretotal where operateorganization = ? and missiontime >= ? and missiontime < ?`,
+              resultObject.hishospid,
+              dayjs()
+                .startOf('y')
+                .toDate(),
+              dayjs()
+                .startOf('y')
+                .add(1, 'y')
+                .toDate()
+            )
+          )[0]?.scores ?? 0;
 
-    const hospitalModel = await HospitalModel.findOne({
-      where: {id: code},
-      include: [ReportHospitalModel, RuleHospitalBudgetModel]
-    });
-    if (hospitalModel) {
-      return {
-        id: hospitalModel.id,
-        name: hospitalModel.name,
-        originalScore:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.workPoint),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        score:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.correctWorkPoint),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0,
-        rate:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next.ruleScore),
-              new Decimal(0)
-            )
-            .div(
-              hospitalModel?.ruleHospitalBudget?.reduce(
-                (res, next) => new Decimal(res).add(next.ruleTotalScore),
-                new Decimal(0)
-              )
-            )
-            .toNumber() ?? 0,
-        budget:
-          hospitalModel?.ruleHospitalBudget
-            ?.reduce(
-              (res, next) => new Decimal(res).add(next?.budget ?? 0),
-              new Decimal(0)
-            )
-            .toNumber() ?? 0
-      };
+        return {
+          id: hospitalModel.id,
+          name: hospitalModel.name,
+          originalScore: Number(resultObject.originalScore),
+          score: Number(resultObject.score),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber(),
+          budget: Number(resultObject.budget),
+          originalWorkPoint: originalWorkPoints
+        };
+      }
     }
 
     throw new KatoCommonError(`${code} 不存在`);
@@ -741,33 +786,61 @@ export default class Score {
    * 获取当前地区机构排行
    *
    * @param code 地区code
+   * @param checkId 考核体系 为空时默认查找主考核体系
    */
-  async rank(code) {
+  async rank(code, checkId) {
     const regionModel = await RegionModel.findOne({where: {code}});
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不存在`);
-    return await Promise.all(
-      (
-        await CheckHospitalModel.findAll({
-          where: {
-            hospitalId: {
-              [Op.in]: Context.current.user.hospitals.map(it => it.id)
-            }
-          },
-          include: [
-            {
-              model: HospitalModel,
-              where: {region: {[Op.like]: `${regionModel.code}%`}}
-            }
-          ]
-        })
-      ).map(async checkHospital => {
-        const item = await this.total(checkHospital.hospitalId);
-        return {
-          ...item,
-          parent: checkHospital?.hospital?.parent
-        };
-      })
+    const checkHospitals = await CheckHospitalModel.findAll({
+      where: {
+        hospitalId: {
+          [Op.in]: Context.current.user.hospitals.map(it => it.id)
+        }
+      },
+      include: [
+        {
+          model: HospitalModel,
+          where: {region: {[Op.like]: `${regionModel.code}%`}}
+        },
+        {
+          model: CheckSystemModel,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        }
+      ]
+    });
+    const sql = sqlRender(
+      `select
+rhb.hospital as id,
+h.name,
+h.parent,
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total",
+COALESCE(sum(rhb.budget),0) as "budget"
+from rule_hospital_budget rhb
+inner join hospital h on h.id=rhb.hospital
+inner join check_rule cr on cr.rule_id=rhb.rule
+inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is null
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        group by rhb.hospital,h.name,h.parent`,
+      {
+        hospitalIds: checkHospitals.map(it => it.hospitalId),
+        checkType: checkId ? null : 1,
+        checkId
+      }
     );
+    return (await appDB.execute(sql[0], ...sql[1])).map(i => ({
+      id: i.id,
+      name: i.name,
+      originalScore: new Decimal(i.originalScore).toNumber(),
+      score: new Decimal(i.score).toNumber(),
+      rate: new Decimal(i.ruleScore).div(i.total).toNumber() ?? 0,
+      budget: new Decimal(i.budget).toNumber(),
+      parent: i.parent
+    }));
   }
 
   /**
@@ -775,7 +848,7 @@ export default class Score {
    *
    * @param code 省市code
    */
-  async areaRank(code) {
+  async areaRank(code, checkId) {
     const regionModel = await RegionModel.findOne({
       where: {
         code,
@@ -785,23 +858,106 @@ export default class Score {
       }
     });
     if (!regionModel) throw new KatoCommonError(`地区 ${code} 不合法`);
-
-    // 获取所有子地区
-    return await Promise.all(
-      (
-        await RegionModel.findAll({
-          where: {
-            parent: regionModel.code
-          }
-        })
-      ).map(async region => {
-        const result = await this.total(region.code);
-        return {
-          ...result,
-          ...region.toJSON()
-        };
-      })
+    const checkHospitals = await CheckHospitalModel.findAll({
+      where: {hospitalId: Context.current.user.hospitals.map(h => h.id)},
+      include: [
+        {
+          model: CheckSystemModel,
+          required: true,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        },
+        {model: HospitalModel, include: [RegionModel]}
+      ]
+    });
+    const hospitalCurrentRegions = await getLevelRegion(
+      checkHospitals.map(i => i.hospital.region.code),
+      Math.max(...checkHospitals.map(i => i.hospital.region.level)),
+      regionModel.level + 1
     );
+    // 获取所有授权子地区
+    const authorizedRegions = await RegionModel.findAll({
+      where: {
+        parent: regionModel.code,
+        code: {
+          [Op.in]: hospitalCurrentRegions.map(i => i.current_level_region)
+        }
+      }
+    });
+    const sql = sqlRender(
+      `select
+h.region,
+COALESCE(sum("correctWorkPoint"),0) as "score",
+COALESCE(sum("workPoint"),0) as "originalScore",
+COALESCE(sum("ruleScore"),0) as "ruleScore",
+COALESCE(sum("ruleTotalScore"),0) as "total"
+from rule_hospital_budget rhb
+inner join hospital h on h.id=rhb.hospital
+inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
+inner join check_system cs on cs.check_id=cr.check_id
+{{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+{{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
+    where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        and ({{#each regionIds}}position({{? this}} in h.region)=1{{#sep}} or {{/sep}}{{/each}})
+group by h.region`,
+      {
+        hospitalIds: Context.current.user.hospitals.map(it => it.id),
+        regionId: code,
+        checkType: checkId ? null : 1,
+        checkId,
+        regionIds: authorizedRegions.map(r => r.code),
+        regionLength: Math.max(...authorizedRegions.map(r => r.code.length))
+      }
+    );
+    const data = await appDB.execute(sql[0], ...sql[1]);
+    const result = authorizedRegions.map(region => ({
+      result: {...region.toJSON(), id: region.code, name: region.name},
+      data: data.filter(
+        i =>
+          hospitalCurrentRegions.filter(
+            j => j.current_level_region === region.code && j.code === i.region
+          ).length > 0
+      )
+    }));
+    return result.map(i => ({
+      ...i.result,
+      score:
+        i.data
+          .reduce(
+            (res, next) => new Decimal(res).add(next.score),
+            new Decimal(0)
+          )
+          .toNumber() ?? 0,
+      originalScore:
+        i.data
+          .reduce(
+            (res, next) => new Decimal(res).add(next.originalScore),
+            new Decimal(0)
+          )
+          .toNumber() ?? 0,
+      rate:
+        new Decimal(
+          Number(
+            i.data
+              .reduce(
+                (res, next) => new Decimal(res).add(next.ruleScore),
+                new Decimal(0)
+              )
+              .toNumber()
+          )
+        )
+          .div(
+            Number(
+              i.data
+                .reduce(
+                  (res, next) => new Decimal(res).add(next.total),
+                  new Decimal(0)
+                )
+                .toNumber()
+            )
+          )
+          .toNumber() ?? 0
+    }));
   }
 
   async upload(ruleId, hospitalId, attachments) {
@@ -1069,10 +1225,27 @@ export default class Score {
    * 各个工分项的详情
    * @param code
    */
-  async projectDetail(code) {
+  async projectDetail(code, checkId) {
     const hospitalModel = await HospitalModel.findOne({
       where: {id: code},
-      include: [RuleHospitalBudgetModel]
+      include: [
+        {
+          model: RuleHospitalBudgetModel,
+          required: false,
+          include: [
+            {
+              model: CheckRuleModel,
+              required: true,
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: checkId ? {checkId: checkId} : {checkType: 1}
+                }
+              ]
+            }
+          ]
+        }
+      ]
     });
     if (hospitalModel) {
       //机构所绑定的小项下的工分项
@@ -1084,12 +1257,23 @@ export default class Score {
               [Op.in]: hospitalModel.ruleHospitalBudget.map(it => it.ruleId)
             }
           },
-          include: [CheckRuleModel]
+          include: [
+            {
+              model: CheckRuleModel,
+              required: false,
+              include: [
+                {
+                  model: CheckSystemModel,
+                  where: checkId ? {checkId: checkId} : {checkType: 1}
+                }
+              ]
+            }
+          ]
         })
       ).map(it => it.toJSON());
       if (projects.length > 0) {
         //按工分项分类查询工分值
-        const sqlRender = projectWorkPointRender({
+        const params = {
           hospitalId: code,
           projectIds: projects.map(it => it.projectId),
           start: dayjs()
@@ -1099,8 +1283,8 @@ export default class Score {
             .startOf('y')
             .add(1, 'y')
             .toDate()
-        });
-        let projectWorkPointList = await govQuery(sqlRender[0], sqlRender[1]);
+        };
+        let projectWorkPointList = await queryProjectWorkPoint(params);
         projectWorkPointList = projectWorkPointList.concat(
           //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
           projects
@@ -1125,7 +1309,7 @@ export default class Score {
           //小项质量系数
           const ruleRate =
             hospitalModel?.ruleHospitalBudget.find(
-              rhb => rhb.ruleId === ruleGroup.ruleId
+              rhb => rhb.ruleId === ruleGroup?.ruleId
             )?.rate ?? 0;
           //校正工分
           current['correctWorkpoint'] = current['workpoint'] * ruleRate;
@@ -1142,7 +1326,7 @@ export default class Score {
    * 质量系数历史趋势
    * @param code:地区code或者机构的id
    */
-  async history(code) {
+  async history(code, checkId) {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
     if (region) {
       //查询该地区的机构的历史记录
@@ -1150,13 +1334,22 @@ export default class Score {
         where: {
           regionId: {
             [Op.like]: `${code}%`
+          },
+          id: {
+            [Op.in]: Context.current.user.hospitals.map(it => it.id)
           }
         },
         include: [
           {
             model: ReportHospitalHistoryModel,
             separate: true,
-            order: [['date', 'asc']]
+            order: [['date', 'asc']],
+            include: [
+              {
+                model: CheckSystemModel,
+                where: checkId ? {checkId: checkId} : {checkType: 1}
+              }
+            ]
           }
         ]
       });
@@ -1190,18 +1383,30 @@ export default class Score {
     }
 
     try {
+      //授权范围外的数据不允许查看
+      if (Context.current.user.hospitals.filter(i => i.id === code).length < 1)
+        return [];
       const hospital = await HospitalModel.findOne({
-        where: {id: code},
+        where: {
+          id: code
+        },
         include: [
           {
             model: ReportHospitalHistoryModel,
             separate: true,
             order: [['date', 'asc']],
-            attributes: ['date', 'score', 'totalScore', 'rate']
+            attributes: ['date', 'score', 'totalScore', 'rate'],
+            include: [
+              {
+                model: CheckSystemModel,
+                where: checkId ? {checkId: checkId} : {checkType: 1}
+              }
+            ]
           }
         ]
       });
       if (hospital) return hospital?.reportHospitalHistory ?? [];
+      return [];
     } catch (e) {
       throw new KatoCommonError('所传参数code,不是地区code或机构id');
     }
@@ -1223,7 +1428,7 @@ export default class Score {
     const region = await RegionModel.findOne({where: {code}});
     if (region) {
       faceData = (
-        await originalDB.execute(
+        await appDB.execute(
           `select
             coalesce(sum(mk."S00"),0)::integer as "total",
             coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
@@ -1238,7 +1443,7 @@ export default class Score {
         //如果是一家机构
         if (hospital)
           faceData = (
-            await originalDB.execute(
+            await appDB.execute(
               `select
                 coalesce(sum(mk."S00"),0)::integer as "total",
                 coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk

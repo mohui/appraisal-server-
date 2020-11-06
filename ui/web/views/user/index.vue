@@ -117,13 +117,13 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="created_at"
-          label="创建时间"
+          prop="creatorName"
+          label="创建人"
           min-width="100"
         ></el-table-column>
         <el-table-column
-          prop="updated_at"
-          label="更新时间"
+          prop="editorName"
+          label="修改人"
           min-width="100"
         ></el-table-column>
         <el-table-column
@@ -459,17 +459,11 @@ export default {
       return this.listUser.rows.map(it => ({
         ...it,
         roles: it.roles.map(it => it.id),
-        rolesName: it.roles.map(it => it.name),
-        created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
+        rolesName: it.roles.map(it => it.name)
       }));
     },
     roleList() {
-      return this.listRole.rows.map(it => ({
-        ...it,
-        created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD')
-      }));
+      return this.listRole.rows;
     }
   },
   watch: {

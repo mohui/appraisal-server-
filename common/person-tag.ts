@@ -118,13 +118,6 @@ export const documentTags = {
       code: 'O00'
     };
   },
-  O01(value) {
-    return {
-      label: `老年人体检${value ? '' : '不'}完整`,
-      type: !!value,
-      code: 'O01'
-    };
-  },
   O02(value) {
     return {
       label: `${value ? '' : '无'}老年人中医药管理`,
@@ -180,10 +173,6 @@ export const documentTagList = [
     name: '老年人健康管理不规范'
   },
   {
-    id: 'O01',
-    name: '老年人体检不完整'
-  },
-  {
     id: 'O02',
     name: '无老年人中医药管理'
   },
@@ -237,7 +226,6 @@ export function getTagsList(it) {
   if (it.E00) it.tags.push(documentTags.E00);
   // 老年人标记
   if (it.O00 != undefined) it.tags.push(documentTags.O00(it.O00));
-  if (it.O01 != undefined) it.tags.push(documentTags.O01(it.O01));
   if (it.O02 != undefined) it.tags.push(documentTags.O02(it.O02));
   // 高血压标记
   if (it.H01 != undefined) it.tags.push(documentTags.H01(it.H01));

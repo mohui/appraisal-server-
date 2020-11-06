@@ -20,6 +20,7 @@ export class Application {
   server = http.createServer(this.express);
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
+  originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -81,7 +82,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(22);
+      await migrate.migrate(25);
     }
   }
 
@@ -128,10 +129,14 @@ export class Application {
   }
 
   async initScheduleJob() {
-    const autoScore = new (require('./api/score').default)();
     //每天凌晨4点执行自动打分
-    cron.schedule('00 00 04 * * *', () => {
-      autoScore.autoScoreAll();
+    cron.schedule(config.get('queue.cron'), async () => {
+      try {
+        const scoreAPI = new (require('./api/score_hospital_check_rules').default)();
+        await scoreAPI.autoScoreAllCheck();
+      } catch (e) {
+        console.log(`定时任务失败: ${e}`);
+      }
     });
   }
 }
@@ -142,3 +147,4 @@ export const app = new Application();
 //导出各种便捷属性
 export const appDB = app.appDB;
 export const etlDB = app.etlDB;
+export const originalDB = app.originalDB;

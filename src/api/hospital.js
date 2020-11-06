@@ -8,10 +8,10 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleTagModel
-} from '../database/model';
+} from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {appDB} from '../app';
-import {Op, QueryTypes} from 'sequelize';
+import {appDB, originalDB} from '../app';
+import {Op} from 'sequelize';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
 import Excel from 'exceljs';
@@ -134,33 +134,31 @@ export default class Hospital {
   }
 
   async workpoints(code) {
-    // language=PostgreSQL
+    const hisHospitalId = (
+      await appDB.execute(
+        `select hishospid as id from hospital_mapping where h_id = ?`,
+        code
+      )
+    )?.[0]?.id;
     return (
-      await appDB.query(
+      await originalDB.execute(
         `select cast(sum(vws.score) as int) as score,
               vws.operatorid as doctorId,
               vws.doctor as doctorName,
               vws.projecttype as "projectId"
            from view_workscoretotal vws
-                  left join hospital_mapping hm on vws.operateorganization = hm.hishospid
-           where hm.h_id = ?
+           where vws.operateorganization = ?
              and missiontime >= ?
              and missiontime < ?
-         group by vws.operatorid, vws.doctor,vws.projecttype
-      `,
-        {
-          replacements: [
-            code,
-            dayjs()
-              .startOf('y')
-              .toDate(),
-            dayjs()
-              .startOf('y')
-              .add(1, 'y')
-              .toDate()
-          ],
-          type: QueryTypes.SELECT
-        }
+         group by vws.operatorid, vws.doctor,vws.projecttype`,
+        hisHospitalId,
+        dayjs()
+          .startOf('y')
+          .toDate(),
+        dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
       )
     ).map(it => ({
       ...it,
@@ -173,7 +171,7 @@ export default class Hospital {
    *
    * @param id 机构id
    */
-  async checks(id) {
+  async checks(id, checkId) {
     // hospital
     const hospitalModel = await HospitalModel.findOne({
       where: {id}
@@ -184,28 +182,20 @@ export default class Hospital {
       where: {
         hospital: id
       },
-      include: [CheckSystemModel]
+      include: [
+        {
+          model: CheckSystemModel,
+          where: checkId ? {checkId: checkId} : {checkType: 1}
+        }
+      ]
     });
 
     if (!checkSystem) throw new KatoCommonError(`该机构未绑定考核`);
 
-    // checkSystem
-    const checkSystemModel = (
-      await RuleHospitalModel.findOne({
-        where: {hospitalId: id},
-        include: [
-          {
-            model: CheckRuleModel,
-            include: [CheckSystemModel]
-          }
-        ]
-      })
-    )?.rule?.checkSystem;
-    if (!checkSystemModel) throw new KatoCommonError(`${hospitalModel.name}`);
     const children = await Promise.all(
       (
         await CheckRuleModel.findAll({
-          where: {checkId: checkSystemModel.checkId, parentRuleId: null},
+          where: {checkId: checkSystem.checkId, parentRuleId: null},
           include: [RuleHospitalBudgetModel]
         })
       ).map(async rule => {
@@ -266,7 +256,7 @@ export default class Hospital {
         };
       })
     );
-    const returnValue = checkSystemModel.toJSON();
+    const returnValue = checkSystem.toJSON();
     returnValue.children = children;
     return returnValue;
   }

@@ -60,4 +60,26 @@ export class User extends Model<User> {
     () => UserHospital
   )
   hospitals: Hospital[];
+
+  //多对一个创建者
+  @Comment('创建者id')
+  @Column({field: 'creator'})
+  creatorId: string;
+
+  @BelongsTo(() => User, {
+    foreignKey: 'creatorId',
+    as: 'creator'
+  })
+  creator;
+
+  //多对一个修改者
+  @Comment('修改者id')
+  @Column({field: 'editor'})
+  editorId: string;
+
+  @BelongsTo(() => User, {
+    foreignKey: 'editorId',
+    as: 'editor'
+  })
+  editor;
 }

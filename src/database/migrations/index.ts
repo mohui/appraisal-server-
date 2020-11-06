@@ -22,6 +22,9 @@ import {RuleHospitalBudgetColumnMigration} from './019_rule_hospital_budget';
 import {WorkDifficultyMigration} from './020_work_difficulty';
 import {ReportHospitalHistoryMigration} from './021_report_hospital_history';
 import {RoleCreatorMigration} from './022_role_creator';
+import {UserCreatorMigration} from './023_user_creator';
+import {AlterCheckSystemMigration} from './024_check_system';
+import {DeleteRuleHospitalScoreRepeatDataMigration} from './025_rule_hospital_score';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -47,5 +50,8 @@ export const migrations: IMigration[] = [
   new RuleHospitalBudgetColumnMigration(),
   new WorkDifficultyMigration(),
   new ReportHospitalHistoryMigration(),
-  new RoleCreatorMigration()
+  new RoleCreatorMigration(),
+  new UserCreatorMigration(),
+  new AlterCheckSystemMigration(),
+  new DeleteRuleHospitalScoreRepeatDataMigration()
 ];

@@ -307,7 +307,7 @@
                           <el-radio label="3">3井水</el-radio>
                           <el-radio label="4">4河湖水</el-radio>
                           <el-radio label="5">5塘水</el-radio>
-                          <el-radio label="5">6其他</el-radio>
+                          <el-radio label="6">6其他</el-radio>
                         </el-radio-group>
                       </td>
                     </tr>
@@ -329,8 +329,8 @@
                         <el-radio-group v-model="personDetailData.livestock">
                           <el-radio label="1">1无</el-radio>
                           <el-radio label="2">2单设</el-radio>
-                          <el-radio label="2">3室内</el-radio>
-                          <el-radio label="2">4室外</el-radio>
+                          <el-radio label="3">3室内</el-radio>
+                          <el-radio label="4">4室外</el-radio>
                         </el-radio-group>
                       </td>
                     </tr>
