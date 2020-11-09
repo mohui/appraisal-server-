@@ -9,6 +9,7 @@ import {
   UserRoleModel,
   sql as sqlRender
 } from '../database';
+import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 
@@ -150,7 +151,7 @@ export default class User {
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
       //递归查询用户所属地区的所有下属地区
       const childrenCode = (
-        await appDB.execute(
+        await appDB.query(
           `
             with recursive r as (
                 select * from region
@@ -164,7 +165,10 @@ export default class User {
             select code
             from r where code!='${Context.current.user.regionId}';
           `,
-          ...params
+          {
+            replacements: params,
+            type: QueryTypes.SELECT
+          }
         )
       ).map(it => it.code);
       //添加权限方面的查询条件
