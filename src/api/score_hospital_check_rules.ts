@@ -790,7 +790,7 @@ inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is n
         checkId
       }
     );
-    return (await appDB.execute(sql[0], ...sql[1])).map(i => ({
+    const data = (await appDB.execute(sql[0], ...sql[1])).map(i => ({
       id: i.id,
       name: i.name,
       originalScore: new Decimal(i.originalScore).toNumber(),
@@ -799,6 +799,19 @@ inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is n
       budget: new Decimal(i.budget).toNumber(),
       parent: i.parent
     }));
+    return data.concat(
+      checkHospitals
+        .filter(i => data.filter(d => d.id === i.hospital.id).length === 0)
+        .map(i => ({
+          id: i.hospital.id,
+          name: i.hospital.name,
+          originalScore: 0,
+          score: 0,
+          rate: 0,
+          budget: 0,
+          parent: i.hospital.parent
+        }))
+    );
   }
 
   /**
