@@ -1404,28 +1404,40 @@ group by h.region`,
     //如果是一个地区
     const region = await RegionModel.findOne({where: {code}});
     if (region) {
-      faceData = (
-        await appDB.execute(
-          `select
-            coalesce(sum(mk."S00"),0)::integer as "total",
-            coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
-            inner join hospital h
-            on h.region like ? where h.id=mk.hospital`,
-          [`${code}%`]
-        )
-      )[0];
+      const sql = sqlRender(
+        `select
+            coalesce(sum("S00"),0)::integer as "total",
+            coalesce(sum("S30"),0)::integer as "face" from mark_organization
+            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+        {
+          hishospid: (
+            await appDB.execute(
+              `select hm.hishospid from hospital_mapping hm
+inner join hospital h on h.id=hm.h_id
+where h.region like ?`,
+              `${code}%`
+            )
+          ).map(i => i.hishospid)
+        }
+      );
+      faceData = (await originalDB.execute(sql[0], ...sql[1]))[0];
     } else {
       try {
         const hospital = await HospitalModel.findOne({where: {id: code}});
         //如果是一家机构
         if (hospital)
           faceData = (
-            await appDB.execute(
+            await originalDB.execute(
               `select
-                coalesce(sum(mk."S00"),0)::integer as "total",
-                coalesce(sum(mk."S30"),0)::integer as "face" from mark_hospital mk
-                where hospital=?`,
-              [code]
+                coalesce(sum("S00"),0)::integer as "total",
+                coalesce(sum("S30"),0)::integer as "face" from mark_organization
+                where id=?`,
+              (
+                await appDB.execute(
+                  `select hishospid from hospital_mapping where h_id=?`,
+                  code
+                )
+              )?.[0]?.hishospid
             )
           )[0];
       } catch (e) {
