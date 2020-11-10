@@ -1,7 +1,9 @@
 import {
   RegionModel,
   HospitalModel,
-  WorkDifficultyModel
+  WorkDifficultyModel,
+  CheckRuleModel,
+  CheckSystemModel
 } from '../database/model';
 import {should, validate} from 'kato-server';
 import {Op} from 'sequelize';
@@ -115,7 +117,8 @@ export default class Region {
     //查询当前用户所管的所有机构信息
     const hospitals = await HospitalModel.findAll({
       where: {
-        region: {[Op.like]: `${Context.current.user.regionId}%`}
+        region: {[Op.like]: `${Context.current.user.regionId}%`},
+        id: {[Op.in]: Context.current.user.hospitals.map(i => i.id)}
       },
       include: {
         model: RuleHospitalBudget,
@@ -127,6 +130,18 @@ export default class Region {
           'ruleScore',
           'ruleTotalScore',
           'rate'
+        ],
+        include: [
+          {
+            model: CheckRuleModel,
+            required: true,
+            include: [
+              {
+                model: CheckSystemModel,
+                where: {checkType: 1}
+              }
+            ]
+          }
         ]
       }
     }).map(it => {
@@ -165,41 +180,47 @@ export default class Region {
     });
     //需要返回的是区级层面以上的数据
     if (regions && regions[0]?.level <= 3)
-      return regions.map(region => {
-        region = region.toJSON();
-        const budgetInfo = hospitals
-          .filter(h => h.regionId.indexOf(region.code) === 0) //筛选出各地区下的所有一级和二级机构
-          .reduce(
-            (res, next) => {
-              //累加该地区下所有一级和二级机构的打分和金额数据
-              res.budget = res.budget.add(next.budget);
-              res.correctWorkPoint = res.correctWorkPoint.add(
-                next.correctWorkPoint
-              );
-              res.workPoint = res.workPoint.add(next.workPoint);
-              res.score = res.score.add(next.score);
-              res.totalScore = res.totalScore.add(next.totalScore);
-              return res;
-            },
-            {
-              budget: new Decimal(0),
-              correctWorkPoint: new Decimal(0),
-              workPoint: new Decimal(0),
-              score: new Decimal(0),
-              totalScore: new Decimal(0)
-            }
-          );
-        budgetInfo.budget = budgetInfo.budget.toNumber();
-        budgetInfo.correctWorkPoint = budgetInfo.correctWorkPoint.toNumber();
-        budgetInfo.workPoint = budgetInfo.workPoint.toNumber();
-        budgetInfo.score = budgetInfo.score.toNumber();
-        budgetInfo.totalScore = budgetInfo.totalScore.toNumber();
-        budgetInfo.rate =
-          new Decimal(budgetInfo.score).div(budgetInfo.totalScore).toNumber() ||
-          0;
+      return regions
+        .filter(
+          r =>
+            hospitals.filter(h => h.regionId.indexOf(r.code) === 0).length > 0
+        )
+        .map(region => {
+          region = region.toJSON();
+          const budgetInfo = hospitals
+            .filter(h => h.regionId.indexOf(region.code) === 0) //筛选出各地区下的所有一级和二级机构
+            .reduce(
+              (res, next) => {
+                //累加该地区下所有一级和二级机构的打分和金额数据
+                res.budget = res.budget.add(next.budget);
+                res.correctWorkPoint = res.correctWorkPoint.add(
+                  next.correctWorkPoint
+                );
+                res.workPoint = res.workPoint.add(next.workPoint);
+                res.score = res.score.add(next.score);
+                res.totalScore = res.totalScore.add(next.totalScore);
+                return res;
+              },
+              {
+                budget: new Decimal(0),
+                correctWorkPoint: new Decimal(0),
+                workPoint: new Decimal(0),
+                score: new Decimal(0),
+                totalScore: new Decimal(0)
+              }
+            );
+          budgetInfo.budget = budgetInfo.budget.toNumber();
+          budgetInfo.correctWorkPoint = budgetInfo.correctWorkPoint.toNumber();
+          budgetInfo.workPoint = budgetInfo.workPoint.toNumber();
+          budgetInfo.score = budgetInfo.score.toNumber();
+          budgetInfo.totalScore = budgetInfo.totalScore.toNumber();
+          budgetInfo.rate =
+            new Decimal(budgetInfo.score)
+              .div(budgetInfo.totalScore)
+              .toNumber() || 0;
 
-        return {...region, ...budgetInfo};
-      });
+          return {...region, ...budgetInfo};
+        });
 
     const region = await RegionModel.findOne({where: {code}});
     //如果是区级以下的地区
