@@ -4,7 +4,6 @@ import {
   CheckRuleModel,
   CheckSystemModel,
   HospitalModel,
-  MarkHospitalModel,
   RegionModel,
   ReportHospitalHistoryModel,
   ReportHospitalModel,
@@ -156,11 +155,18 @@ export default class ScoreHospitalCheckRules {
     });
     if (!hospital) throw new KatoCommonError(`id为 ${hospitalId} 的机构不存在`);
     // 查机构标记
-    const mark = await MarkHospitalModel.findOne({
-      where: {
-        hospitalId: hospital.id
-      }
-    });
+    const mark = (
+      await originalDB.execute(
+        `select * from mark_organization
+                where id=?`,
+        (
+          await appDB.execute(
+            `select hishospid from hospital_mapping where h_id=?`,
+            hospital.id
+          )
+        )?.[0]?.hishospid
+      )
+    )[0];
     // 查机构考核细则
     const ruleModels: [RuleHospitalModel] = await RuleHospitalModel.findAll({
       where: {
@@ -988,9 +994,18 @@ group by h.region`,
     const result = [];
     // 查询规则绑定的关联关系
     const ruleTagModels = await RuleTagModel.findAll({where: {ruleId}});
-    const markHospitalModel = await MarkHospitalModel.findOne({
-      where: {hospitalId}
-    });
+    const markHospitalModel = (
+      await originalDB.execute(
+        `select * from mark_organization
+                where id::varchar =?`,
+        (
+          await appDB.execute(
+            `select hishospid from hospital_mapping where h_id=?`,
+            hospitalId
+          )
+        )?.[0]?.hishospid
+      )
+    )[0];
     if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
     for (const ruleTagModel of ruleTagModels) {
       // 建档率
@@ -1012,9 +1027,9 @@ group by h.region`,
             `${
               MarkTagUsages.S01.name
             } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
-              markHospitalModel.S00
+              markHospitalModel?.S00
             } / ${basicData.value} = ${percentString(
-              markHospitalModel.S00,
+              markHospitalModel?.S00,
               basicData.value
             )}`
           );
@@ -1026,10 +1041,10 @@ group by h.region`,
           `${
             MarkTagUsages.S23.name
           } = 规范的电子档案数 / 建立电子健康档案人数 = ${
-            markHospitalModel.S23
+            markHospitalModel?.S23
           } / ${markHospitalModel.S00} = ${percentString(
-            markHospitalModel.S23,
-            markHospitalModel.S00
+            markHospitalModel?.S23,
+            markHospitalModel?.S00
           )}`
         );
       }
@@ -1039,10 +1054,10 @@ group by h.region`,
           `${
             MarkTagUsages.S03.name
           } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
-            markHospitalModel.S03
-          } / ${markHospitalModel.S00} = ${percentString(
-            markHospitalModel.S03,
-            markHospitalModel.S00
+            markHospitalModel?.S03
+          } / ${markHospitalModel?.S00} = ${percentString(
+            markHospitalModel?.S03,
+            markHospitalModel?.S00
           )}`
         );
       }
@@ -1065,9 +1080,9 @@ group by h.region`,
             `${
               MarkTagUsages.O00.name
             } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
-              markHospitalModel.O00
+              markHospitalModel?.O00
             } / ${basicData.value} = ${percentString(
-              markHospitalModel.O00,
+              markHospitalModel?.O00,
               basicData.value
             )}`
           );
@@ -1079,10 +1094,10 @@ group by h.region`,
           `${
             MarkTagUsages.O02.name
           } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
-            markHospitalModel.O02
-          } / ${markHospitalModel.O00} = ${percentString(
-            markHospitalModel.O02,
-            markHospitalModel.O00
+            markHospitalModel?.O02
+          } / ${markHospitalModel?.O00} = ${percentString(
+            markHospitalModel?.O02,
+            markHospitalModel?.O00
           )}`
         );
       }
@@ -1106,9 +1121,9 @@ group by h.region`,
             `${
               MarkTagUsages.H00.name
             } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
-              markHospitalModel.H00
+              markHospitalModel?.H00
             } / ${basicData.value} = ${percentString(
-              markHospitalModel.H00,
+              markHospitalModel?.H00,
               basicData.value
             )}`
           );
@@ -1120,10 +1135,10 @@ group by h.region`,
           `${
             MarkTagUsages.H01.name
           } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
-            markHospitalModel.H01
-          } / ${markHospitalModel.H00} = ${percentString(
-            markHospitalModel.H01,
-            markHospitalModel.H00
+            markHospitalModel?.H01
+          } / ${markHospitalModel?.H00} = ${percentString(
+            markHospitalModel?.H01,
+            markHospitalModel?.H00
           )}`
         );
       }
@@ -1133,10 +1148,10 @@ group by h.region`,
           `${
             MarkTagUsages.H02.name
           } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
-            markHospitalModel.H02
-          } / ${markHospitalModel.H00} = ${percentString(
-            markHospitalModel.H02,
-            markHospitalModel.H00
+            markHospitalModel?.H02
+          } / ${markHospitalModel?.H00} = ${percentString(
+            markHospitalModel?.H02,
+            markHospitalModel?.H00
           )}`
         );
       }
@@ -1159,9 +1174,9 @@ group by h.region`,
             `${
               MarkTagUsages.D00.name
             } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
-              markHospitalModel.D00
+              markHospitalModel?.D00
             } / ${basicData.value} = ${percentString(
-              markHospitalModel.D00,
+              markHospitalModel?.D00,
               basicData.value
             )}`
           );
@@ -1173,10 +1188,10 @@ group by h.region`,
           `${
             MarkTagUsages.D01.name
           } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
-            markHospitalModel.D01
-          } / ${markHospitalModel.D00} = ${percentString(
-            markHospitalModel.D01,
-            markHospitalModel.D00
+            markHospitalModel?.D01
+          } / ${markHospitalModel?.D00} = ${percentString(
+            markHospitalModel?.D01,
+            markHospitalModel?.D00
           )}`
         );
       }
@@ -1186,10 +1201,10 @@ group by h.region`,
           `${
             MarkTagUsages.D02.name
           } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
-            markHospitalModel.D02
-          } / ${markHospitalModel.D00} = ${percentString(
-            markHospitalModel.D02,
-            markHospitalModel.D00
+            markHospitalModel?.D02
+          } / ${markHospitalModel?.D00} = ${percentString(
+            markHospitalModel?.D02,
+            markHospitalModel?.D00
           )}`
         );
       }
