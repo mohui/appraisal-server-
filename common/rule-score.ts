@@ -704,11 +704,10 @@ export const MarkTagUsages = {
     name: '发放健康教育印刷资料的数量',
     code: 'HE01'
   },
-  // TODO: 等待大数据完成
-  // HE02: {
-  //   name: '播放健康教育音像资料的种类',
-  //   code: 'HE02'
-  // },
+  HE02: {
+    name: '播放健康教育音像资料的种类',
+    code: 'HE02'
+  },
   HE03: {
     name: '播放健康教育音像资料的次数',
     code: 'HE03'

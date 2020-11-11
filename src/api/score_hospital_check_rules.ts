@@ -423,6 +423,151 @@ export default class ScoreHospitalCheckRules {
             }
           }
         }
+
+        //健康教育指标
+        if (tagModel.tag === MarkTagUsages.HE00.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE00)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE00
+          ) {
+            const rate = mark?.HE00 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE01.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE01)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE01)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE01
+          ) {
+            const rate = mark?.HE01 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE02.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE02)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE02)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE02
+          ) {
+            const rate = mark?.HE02 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE03.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE03)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE03)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE03
+          ) {
+            const rate = mark?.HE03 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE04.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE04)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE04)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE04
+          ) {
+            const rate = mark?.HE04 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE05.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE05)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE05)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE05
+          ) {
+            const rate = mark?.HE05 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE06.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE06)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE06)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE06
+          ) {
+            const rate = mark?.HE06 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE07.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE07)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE07)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE07
+          ) {
+            const rate = mark?.HE07 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE08.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE08)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE08)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE08
+          ) {
+            const rate = mark?.HE08 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE09.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE09)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE09)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE09
+          ) {
+            const rate = mark?.HE09 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        if (tagModel.tag === MarkTagUsages.HE10.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.HE10)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.HE10)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.HE10
+          ) {
+            const rate = mark?.HE10 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
       }
       // 保存机构考核得分
       await RuleHospitalScoreModel.upsert({
@@ -1206,6 +1351,14 @@ group by h.region`,
             markHospitalModel?.D02,
             markHospitalModel?.D00
           )}`
+        );
+      }
+      //健康教育
+      if (ruleTagModel.tag.indexOf('HE') == 0) {
+        result.push(
+          `${MarkTagUsages[ruleTagModel.tag].name} = ${
+            markHospitalModel?.[ruleTagModel.tag]
+          }`
         );
       }
     }
