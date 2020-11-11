@@ -507,7 +507,7 @@ export const MarkTags = [
           {
             name: '播放健康教育音像资料的种类',
             code: 'HE02',
-            enabled: false
+            enabled: false // TODO: 等待大数据完成
           },
           {
             name: '播放健康教育音像资料的次数',
@@ -695,6 +695,51 @@ export const MarkTagUsages = {
   Attach: {
     name: '定性指标',
     code: 'Attach'
+  },
+  HE00: {
+    name: '发放健康教育印刷资料的种类',
+    code: 'HE00'
+  },
+  HE01: {
+    name: '发放健康教育印刷资料的数量',
+    code: 'HE01'
+  },
+  // TODO: 等待大数据完成
+  // HE02: {
+  //   name: '播放健康教育音像资料的种类',
+  //   code: 'HE02'
+  // },
+  HE03: {
+    name: '播放健康教育音像资料的次数',
+    code: 'HE03'
+  },
+  HE04: {
+    name: '播放健康教育音像资料的播放时间',
+    code: 'HE04'
+  },
+  HE05: {
+    name: '健康教育宣传栏的设置地点',
+    code: 'HE05'
+  },
+  HE06: {
+    name: '健康教育宣传栏的更新次数',
+    code: 'HE06'
+  },
+  HE07: {
+    name: '健康教育讲座的次数',
+    code: 'HE07'
+  },
+  HE08: {
+    name: '健康教育讲座的参加人数',
+    code: 'HE08'
+  },
+  HE09: {
+    name: '健康教育咨询的次数',
+    code: 'HE09'
+  },
+  HE10: {
+    name: '健康教育咨询的参加人数',
+    code: 'HE10'
   }
 };
 
