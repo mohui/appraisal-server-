@@ -345,9 +345,13 @@
                       ></el-input-number>
                       <span
                         style="margin: 0 -15px 0 5px;"
-                        v-if="k.algorithm === 'egt' || k.algorithm === 'elt'"
-                        >%</span
+                        v-if="
+                          k.name.includes('率') &&
+                            (k.algorithm === 'egt' || k.algorithm === 'elt')
+                        "
                       >
+                        %
+                      </span>
                       <span
                         style="margin: 0 -15px 0 5px;"
                         v-if="k.algorithm === 'attach'"

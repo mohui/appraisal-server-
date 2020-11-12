@@ -423,6 +423,27 @@ export default class ScoreHospitalCheckRules {
             }
           }
         }
+
+        //健康教育指标
+        if (tagModel.tag.indexOf('HE') == 0) {
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+            mark?.[tagModel.tag]
+          )
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+            !mark?.[tagModel.tag]
+          )
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.[tagModel.tag]
+          ) {
+            const rate = mark?.[tagModel.tag] / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
       }
       // 保存机构考核得分
       await RuleHospitalScoreModel.upsert({
@@ -1206,6 +1227,14 @@ group by h.region`,
             markHospitalModel?.D02,
             markHospitalModel?.D00
           )}`
+        );
+      }
+      //健康教育
+      if (ruleTagModel.tag.indexOf('HE') == 0) {
+        result.push(
+          `${MarkTagUsages[ruleTagModel.tag].name} = ${
+            markHospitalModel?.[ruleTagModel.tag]
+          }`
         );
       }
     }
