@@ -348,6 +348,15 @@ export default class CheckSystem {
       //查询规则,并锁定
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
+      //判断指标汇总是否超标ruleScore
+      if (
+        ruleScore <
+        (await RuleTagModel.findAll({where: {rule: ruleId}})).reduce(
+          (result, current) => (result += current.score),
+          0
+        )
+      )
+        throw new KatoCommonError('规则对应的指标总分超标');
       //进行修改操作
       return CheckRuleModel.update(
         {
