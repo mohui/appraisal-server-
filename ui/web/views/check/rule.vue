@@ -152,8 +152,15 @@
                     size="mini"
                     :min="0"
                     placeholder="请输入分值"
+                    @change="() => scoreChange(scope.row)"
                   >
                   </el-input-number>
+                  <span
+                    v-if="scope.row.scoreChanged"
+                    style="color:#f00;font-size: 12px;"
+                  >
+                    请同步调整关联关系的分值
+                  </span>
                 </span>
                 <span v-else>{{ scope.row.ruleScore }}</span>
               </template>
@@ -552,6 +559,7 @@ export default {
                     ...it,
                     original: it,
                     isEdit: false,
+                    scoreChanged: false,
                     group: it.group.map(item => ({
                       ...item,
                       isEdit: false,
@@ -581,6 +589,14 @@ export default {
         }
       } catch (e) {
         this.$message.error(e.message);
+      }
+    },
+    //分值改变检查
+    scoreChange(row) {
+      let ruleTags = row.ruleTags;
+      if (ruleTags.length) {
+        row.scoreChanged =
+          row.ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0);
       }
     },
     //打开指标库对话框
@@ -705,6 +721,8 @@ export default {
         this.ruleList[index].group[
           $index
         ].ruleTagName = this.curRule.ruleTagName;
+        this.curRule.scoreChanged = false;
+        this.ruleList[index].group[$index].scoreChanged = false;
       } catch (e) {
         this.$message.error(e.message);
       } finally {
@@ -888,6 +906,14 @@ export default {
           message: '评分标准不能为空',
           type: 'error'
         });
+      }
+      if (ruleTags.length) {
+        if (ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0)) {
+          return this.$message({
+            message: '分值与关联关系合计分值不相符',
+            type: 'error'
+          });
+        }
       }
       try {
         let result;

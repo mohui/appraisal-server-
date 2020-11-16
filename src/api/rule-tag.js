@@ -1,5 +1,5 @@
 import {KatoCommonError, should, validate} from 'kato-server';
-import {RuleTagModel} from '../database/model';
+import {CheckRuleModel, RuleTagModel} from '../database/model';
 import {appDB} from '../app';
 import dayjs from 'dayjs';
 import {MarkTagUsages} from '../../common/rule-score';
@@ -48,6 +48,12 @@ export default class RuleTag {
   async upsert(params) {
     return appDB.transaction(async () => {
       const {tags = [], ruleId} = params;
+      const rule = await CheckRuleModel.findOne({where: {ruleId}});
+      if (
+        rule.ruleScore <
+        tags.reduce((result, current) => (result += current.score), 0)
+      )
+        throw new KatoCommonError('指标总分超过规则的得分');
       //查询与该规则挂钩的原有的指标
       const allTags = await RuleTagModel.findAll({where: {rule: ruleId}});
       //删除已经被解除的指标
