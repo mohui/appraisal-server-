@@ -25,6 +25,7 @@ import {RoleCreatorMigration} from './022_role_creator';
 import {UserCreatorMigration} from './023_user_creator';
 import {AlterCheckSystemMigration} from './024_check_system';
 import {DeleteRuleHospitalScoreRepeatDataMigration} from './025_rule_hospital_score';
+import {ProfileTagsDetailMigration} from './026_profile_tags_permission';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -53,5 +54,6 @@ export const migrations: IMigration[] = [
   new RoleCreatorMigration(),
   new UserCreatorMigration(),
   new AlterCheckSystemMigration(),
-  new DeleteRuleHospitalScoreRepeatDataMigration()
+  new DeleteRuleHospitalScoreRepeatDataMigration(),
+  new ProfileTagsDetailMigration()
 ];
