@@ -102,6 +102,10 @@ export const PermissionDetail = [
   {
     key: 'super-admin',
     name: '超级管理'
+  },
+  {
+    key: 'tags-detail',
+    name: '档案指标详情'
   }
 ];
 
@@ -131,7 +135,8 @@ export const Permission = {
   PROFILE: 'profile',
   ALL_CHECK: 'all-check',
   ETL_HOSPITAL: 'etl-hospital',
-  SUPER_ADMIN: 'super-admin'
+  SUPER_ADMIN: 'super-admin',
+  TAGS_DETAIL: 'tags-detail'
 };
 export const PermissionTree = [
   {
@@ -261,8 +266,18 @@ export const PermissionTree = [
     ]
   },
   {
-    key: Permission.PROFILE,
-    label: '个人档案'
+    key: 'profile-index',
+    label: '个人档案',
+    children: [
+      {
+        key: Permission.PROFILE,
+        label: '个人档案首页'
+      },
+      {
+        key: Permission.TAGS_DETAIL,
+        label: '档案指标详情'
+      }
+    ]
   },
   {
     key: Permission.ETL_HOSPITAL,
