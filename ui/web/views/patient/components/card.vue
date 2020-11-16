@@ -53,7 +53,10 @@
           <el-popover
             :ref="tag.code"
             @show="code = tag.code"
-            :disabled="tag.type"
+            :disabled="
+              tag.type ||
+                !$settings.permissions.includes(permission.TAGS_DETAIL)
+            "
             :popper-options="{
               boundariesElement: 'viewport',
               removeOnDestroy: true
@@ -71,7 +74,11 @@
             ></div>
             <i
               :style="{
-                cursor: !tag.type ? 'pointer' : 'auto',
+                cursor:
+                  !tag.type &&
+                  $settings.permissions.includes(permission.TAGS_DETAIL)
+                    ? 'pointer'
+                    : 'auto',
                 'font-style': 'normal'
               }"
               slot="reference"
@@ -85,10 +92,13 @@
 </template>
 
 <script>
+import {Permission} from '../../../../../common/permission.ts';
+
 export default {
   data() {
     return {
-      code: ''
+      code: '',
+      permission: Permission
     };
   },
   props: {

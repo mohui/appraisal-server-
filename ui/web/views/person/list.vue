@@ -191,7 +191,10 @@
               <el-popover
                 :ref="tag.code + scope.row.id"
                 @show="(code = tag.code), (archivesID = scope.row.id)"
-                :disabled="tag.type"
+                :disabled="
+                  tag.type ||
+                    !$settings.permissions.includes(permission.TAGS_DETAIL)
+                "
                 :popper-options="{
                   boundariesElement: 'viewport',
                   removeOnDestroy: true
@@ -209,7 +212,11 @@
                 ></div>
                 <i
                   :style="{
-                    cursor: !tag.type ? 'pointer' : 'auto',
+                    cursor:
+                      !tag.type &&
+                      $settings.permissions.includes(permission.TAGS_DETAIL)
+                        ? 'pointer'
+                        : 'auto',
                     'font-style': 'normal'
                   }"
                   slot="reference"
@@ -256,6 +263,7 @@ import {
   documentTagList,
   getTagsList
 } from '../../../../common/person-tag.ts';
+import {Permission} from '../../../../common/permission.ts';
 
 export default {
   name: 'PersonList',
@@ -279,11 +287,12 @@ export default {
         personOr: false, //人群分类是否or查询
         documentOr: false //档案问题是否or查询
       },
+      permission: Permission,
       personTagList: personTagList,
       tagList: documentTagList,
       archivesID: '', //档案id
       code: '', //tag code
-      isInit: false //是否初始化页面
+      isInit: false //是否初始化页面,
     };
   },
   computed: {
