@@ -11,8 +11,8 @@ export class ProfileTagsDetailMigration implements IMigration {
     await client.execute(`
       --拥有'个人档案权限'角色都补上'指标详情权限'
       update role
-      set permissions=permissions || ${Permission.TAGS_DETAIL}
-      where ${Permission.PROFILE} = ANY (role.permissions);
+      set permissions=permissions || '{${Permission.TAGS_DETAIL}}'
+      where '${Permission.PROFILE}' = ANY (role.permissions);
     `);
   }
 
