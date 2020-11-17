@@ -969,6 +969,7 @@ export default {
         row.checkMethod = row.original.checkMethod;
         row.evaluateStandard = row.original.evaluateStandard;
         row.isEdit = false;
+        row.scoreChanged = false;
       } else {
         item.group.pop();
       }
