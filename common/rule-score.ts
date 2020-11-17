@@ -215,15 +215,7 @@ export const BasicTags = [
     children: [
       {
         code: 'Supervision00',
-        name: '报告的时间或线索次数'
-      },
-      {
-        code: 'Supervision01',
         name: '发现的事件或线索次数'
-      },
-      {
-        code: 'Supervision02',
-        name: '协助开展实地巡查次数'
       }
     ]
   }
@@ -233,7 +225,8 @@ export const BasicTagUsages = {
   DocPeople: 'doc-people',
   OldPeople: 'old-people',
   HypertensionPeople: 'hypertension-people',
-  DiabetesPeople: 'diabetes-people'
+  DiabetesPeople: 'diabetes-people',
+  Supervision: 'Supervision00'
 };
 
 /**
@@ -485,8 +478,13 @@ export const MarkTags = [
         children: [
           {
             name: '卫生计生监督协管信息报告率',
-            code: 'S05',
-            enabled: false
+            code: 'SC00',
+            enabled: true
+          },
+          {
+            name: '协助开展的实地巡查次数',
+            code: 'SC01',
+            enabled: true
           }
         ]
       },
@@ -739,6 +737,14 @@ export const MarkTagUsages = {
   HE10: {
     name: '健康教育咨询的参加人数',
     code: 'HE10'
+  },
+  SC00: {
+    name: '卫生计生监督协管信息报告率',
+    code: 'SC00'
+  },
+  SC01: {
+    name: '协助开展的实地巡查次数',
+    code: 'SC01'
   }
 };
 
