@@ -444,6 +444,46 @@ export default class ScoreHospitalCheckRules {
             score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
+
+        //卫生计生监督协管信息报告率
+        if (tagModel.tag === MarkTagUsages.SC00.code) {
+          const basicData = await BasicTagDataModel.findOne({
+            where: {
+              code: BasicTagUsages.Supervision,
+              hospital: hospital.id,
+              year: dayjs()
+                .year()
+                .toString()
+            }
+          });
+          if (!basicData?.value) continue;
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.SC00)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.SC00)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.SC00
+          ) {
+            const rate = mark.SC00 / basicData.value / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        //协助开展的实地巡查次数
+        if (tagModel.tag === MarkTagUsages.SC01.code) {
+          if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.SC01)
+            score += tagModel.score;
+          if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.SC01)
+            score += tagModel.score;
+          if (
+            tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+            mark?.SC01
+          ) {
+            const rate = mark?.SC01 / tagModel.baseline;
+            score += tagModel.score * (rate > 1 ? 1 : rate);
+          }
+        }
       }
       // 保存机构考核得分
       await RuleHospitalScoreModel.upsert({
@@ -1237,8 +1277,36 @@ group by h.region`,
           }`
         );
       }
+      //卫生计生监督协管信息报告率
+      if (ruleTagModel.tag === MarkTagUsages.SC00.code) {
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.Supervision,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        if (!basicData?.value) result.push('暂无"发现的事件或线索次数"');
+        else {
+          result.push(
+            `${
+              MarkTagUsages.SC00.name
+            } = 报告的事件或线索次数 / 发现的事件或线索次数 x 100% = ${
+              markHospitalModel?.SC00
+            } / ${basicData.value} = ${percentString(
+              markHospitalModel?.SC00,
+              basicData.value
+            )}`
+          );
+        }
+      }
+      //协助开展的实地巡查次数
+      if (ruleTagModel.tag === MarkTagUsages.SC01.code) {
+        result.push(`${MarkTagUsages.SC01.name} = ${markHospitalModel?.SC01}`);
+      }
     }
-
     return result;
   }
 
