@@ -507,7 +507,7 @@ export const MarkTags = [
           {
             name: '播放健康教育音像资料的种类',
             code: 'HE02',
-            enabled: false // TODO: 等待大数据完成
+            enabled: true
           },
           {
             name: '播放健康教育音像资料的次数',
