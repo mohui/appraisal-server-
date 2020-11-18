@@ -593,7 +593,7 @@ export default {
     },
     //分值改变检查
     scoreChange(row) {
-      let ruleTags = row.ruleTags;
+      let ruleTags = row.ruleTags || [];
       if (ruleTags.length) {
         row.scoreChanged =
           row.ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0);
@@ -907,7 +907,7 @@ export default {
           type: 'error'
         });
       }
-      if (ruleTags.length) {
+      if (ruleTags?.length) {
         if (ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0)) {
           return this.$message({
             message: '分值与关联关系合计分值不相符',
@@ -930,6 +930,7 @@ export default {
           });
 
           this.$set(row, 'ruleId', result.ruleId);
+          this.$set(row, 'original', result);
           if (ruleTags?.length) {
             await this.$api.RuleTag.upsert({
               ruleId: result.ruleId,
@@ -938,6 +939,17 @@ export default {
           }
         } else {
           await this.$api.CheckSystem.updateRule({
+            ruleId,
+            ruleName,
+            parentRuleId,
+            checkId,
+            evaluateStandard,
+            ruleScore,
+            checkStandard,
+            checkMethod,
+            status
+          });
+          this.$set(row, 'original', {
             ruleId,
             ruleName,
             parentRuleId,
