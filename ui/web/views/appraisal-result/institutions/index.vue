@@ -937,7 +937,7 @@ export default {
     //过滤器，保留两位小数
     fixedDecimal: function(value) {
       if (!value) return 0;
-      return value.toFixed(0);
+      return value.toFixed(2);
     }
   },
   methods: {
@@ -1100,7 +1100,7 @@ export default {
     //el-table-column 内容格式化保留两位小数
     fixedDecimal: function(row, column, value) {
       if (!value) return 0;
-      return value.toFixed(2);
+      return value;
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
