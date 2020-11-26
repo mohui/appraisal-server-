@@ -152,7 +152,6 @@
                     size="mini"
                     :min="0"
                     placeholder="请输入分值"
-                    @change="() => scoreChange(scope.row)"
                   >
                   </el-input-number>
                   <span
@@ -422,7 +421,7 @@
       >
         <el-table-column type="selection" width="55" :selectable="isDisabled">
         </el-table-column>
-        <el-table-column prop="name" label="名称"> </el-table-column>
+        <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column label="考核项">
           <template slot-scope="scope">
             {{ getRuleName(scope.row.id) }}
@@ -450,6 +449,7 @@ import {
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
 import {Projects} from '../../../../common/project.ts';
+
 export default {
   name: 'rule',
   data() {
@@ -559,17 +559,36 @@ export default {
                     ...it,
                     original: it,
                     isEdit: false,
-                    scoreChanged: false,
-                    group: it.group.map(item => ({
-                      ...item,
-                      isEdit: false,
-                      original: item,
-                      ruleTagName: item.ruleTags
-                        .map(its => MarkTagUsages[its.tag].name)
-                        .join('，'),
-                      created_at: item.created_at.$format('YYYY-MM-DD'),
-                      updated_at: item.updated_at.$format('YYYY-MM-DD')
-                    }))
+                    group: it.group.map(
+                      item =>
+                        new Vue({
+                          data() {
+                            return {
+                              ...item,
+                              isEdit: false,
+                              original: item,
+                              ruleTagName: item.ruleTags
+                                .map(its => MarkTagUsages[its.tag].name)
+                                .join('，'),
+                              created_at: item.created_at.$format('YYYY-MM-DD'),
+                              updated_at: item.updated_at.$format('YYYY-MM-DD')
+                            };
+                          },
+                          computed: {
+                            scoreChanged: {
+                              get() {
+                                return (
+                                  this.ruleScore <
+                                  this.ruleTags.reduce(
+                                    (acc, cur) => acc + cur.score,
+                                    0
+                                  )
+                                );
+                              }
+                            }
+                          }
+                        })
+                    )
                   };
                 },
                 computed: {
@@ -589,14 +608,6 @@ export default {
         }
       } catch (e) {
         this.$message.error(e.message);
-      }
-    },
-    //分值改变检查
-    scoreChange(row) {
-      let ruleTags = row.ruleTags || [];
-      if (ruleTags.length) {
-        row.scoreChanged =
-          row.ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0);
       }
     },
     //打开指标库对话框
@@ -653,7 +664,7 @@ export default {
       ].original.ruleTags;
       this.ruleList[index].group[$index].ruleTagName = this.ruleList[
         index
-      ].group[$index].original.ruleTags
+      ].group[$index].original?.ruleTags
         .map(its => MarkTagUsages[its.tag].name)
         .join('，');
     },
@@ -702,7 +713,7 @@ export default {
         });
       }
       const totalScore = tags.reduce((acc, cur) => acc + cur.score, 0);
-      if (totalScore !== ruleScore) {
+      if (totalScore > ruleScore) {
         return this.$message({
           message: `总分值为:${ruleScore}, 请合理分配各指标得分。`,
           type: 'error'
@@ -721,8 +732,6 @@ export default {
         this.ruleList[index].group[
           $index
         ].ruleTagName = this.curRule.ruleTagName;
-        this.curRule.scoreChanged = false;
-        this.ruleList[index].group[$index].scoreChanged = false;
       } catch (e) {
         this.$message.error(e.message);
       } finally {
@@ -908,7 +917,7 @@ export default {
         });
       }
       if (ruleTags?.length) {
-        if (ruleScore !== ruleTags.reduce((acc, cur) => acc + cur.score, 0)) {
+        if (ruleScore < ruleTags.reduce((acc, cur) => acc + cur.score, 0)) {
           return this.$message({
             message: '分值与关联关系合计分值不相符',
             type: 'error'
@@ -981,7 +990,6 @@ export default {
         row.checkMethod = row.original.checkMethod;
         row.evaluateStandard = row.original.evaluateStandard;
         row.isEdit = false;
-        row.scoreChanged = false;
       } else {
         item.group.pop();
       }
@@ -1027,27 +1035,34 @@ export default {
   background-color: #dee2e6;
   line-height: 26px;
   padding: 5px 0;
+
   & > span {
     padding: 0 20px;
     display: flex;
+
     .sub-attr {
       padding-left: 10px;
       font-size: 14px;
     }
+
     .sub-tip {
       padding-left: 20px;
     }
+
     em {
       color: #409eff;
     }
+
     & > div {
       margin: 0 10px;
     }
   }
+
   & > div {
     padding: 0 20px;
   }
 }
+
 .add-rule {
   margin: 10px 0 30px;
   width: 100%;
