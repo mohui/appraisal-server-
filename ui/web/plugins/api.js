@@ -45,7 +45,7 @@ export async function getApiClient() {
             return;
           }
 
-          ctx.req.headers['token'] = token;
+          token && (ctx.req.headers['token'] = token);
           await next();
           const res = ctx.res;
           const contentType = res.headers['content-type'];
