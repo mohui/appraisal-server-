@@ -1,7 +1,7 @@
 import Cookie from 'js-cookie';
 import dayjs from 'dayjs';
 import Vue from 'vue';
-const USER_TOKEN = 'user_token';
+const USER_TOKEN = 'appraisal_user_token';
 
 export function setToken(value) {
   return Cookie.set(USER_TOKEN, value, {
