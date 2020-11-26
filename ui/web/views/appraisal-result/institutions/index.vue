@@ -1100,7 +1100,7 @@ export default {
     //el-table-column 内容格式化保留两位小数
     fixedDecimal: function(row, column, value) {
       if (!value) return 0;
-      return value;
+      return value.toFixed(2);
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
