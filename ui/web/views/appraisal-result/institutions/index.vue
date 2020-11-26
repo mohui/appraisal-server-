@@ -937,7 +937,7 @@ export default {
     //过滤器，保留两位小数
     fixedDecimal: function(value) {
       if (!value) return 0;
-      return value.toFixed(0);
+      return value.toFixed(2);
     }
   },
   methods: {
