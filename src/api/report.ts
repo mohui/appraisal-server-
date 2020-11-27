@@ -47,4 +47,14 @@ export default class Report {
         url: it.url
       }));
   }
+
+  /**
+   * 导出考核
+   *
+   * @param code 地区/机构id
+   * @param id 考核体系id
+   */
+  async downloadCheck(code, id) {
+    return [];
+  }
 }
