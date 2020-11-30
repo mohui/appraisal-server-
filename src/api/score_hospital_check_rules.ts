@@ -1071,7 +1071,8 @@ group by h.region`,
         )?.[0]?.hishospid
       )
     )[0];
-    if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
+    if (ruleTagModels.length < 1)
+      throw new KatoCommonError(`当前考核项没有绑定关联关系`);
     for (const ruleTagModel of ruleTagModels) {
       // 建档率
       if (ruleTagModel.tag === MarkTagUsages.S01.code) {
