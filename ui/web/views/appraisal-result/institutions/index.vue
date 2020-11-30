@@ -246,6 +246,100 @@
           </el-col>
         </div>
       </el-row>
+      <el-row :gutter="20" style="margin: 20px -10px">
+        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                家庭医生签约
+              </p>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                健康教育
+              </p>
+              <el-table style="width: 100%">
+                <el-table-column
+                  prop="hdlx"
+                  header-align="center"
+                  align="center"
+                  min-width="20px"
+                  label="活动类型"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="hdlx"
+                  header-align="center"
+                  align="center"
+                  min-width="20px"
+                  label="活动名称"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="hdlx"
+                  header-align="center"
+                  align="center"
+                  min-width="20px"
+                  label="活动时间"
+                >
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                监督协管
+              </p>
+              <el-tabs>
+                <el-tab-pane label="报告">
+                  <el-table :data="test" style="width: 100%">
+                    <el-table-column
+                      prop="bgnr"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="报告内容"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="bgsj"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="报告时间"
+                    ></el-table-column>
+                  </el-table>
+                </el-tab-pane>
+                <el-tab-pane label="巡查">
+                  <el-table :data="test" style="width: 100%">
+                    <el-table-column
+                      prop="xcdd"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="巡查地点"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="xcsj"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="巡查时间"
+                    ></el-table-column>
+                  </el-table>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
       <!--机构排行-->
       <div v-if="!params.isInstitution">
         <el-card
