@@ -115,6 +115,7 @@ export default class ScoreHospitalCheckRules {
    * 考核体系打分
    *
    * @param id 考核体系id
+   * @param isAuto
    */
   async autoScoreCheck(id, isAuto) {
     if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
@@ -147,6 +148,7 @@ export default class ScoreHospitalCheckRules {
    * 机构考核细则
    * @param hospitalId
    * @param checkId
+   * @param isAuto
    */
   async autoScoreHospitalCheck(hospitalId, checkId, isAuto) {
     // 查机构
@@ -885,6 +887,7 @@ inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is n
    * 获取省市排行
    *
    * @param code 省市code
+   * @param checkId
    */
   async areaRank(code, checkId) {
     const regionModel = await RegionModel.findOne({
@@ -1313,6 +1316,7 @@ group by h.region`,
   /**
    * 各个工分项的详情
    * @param code
+   * @param checkId
    */
   async projectDetail(code, checkId) {
     const hospitalModel = await HospitalModel.findOne({
@@ -1414,6 +1418,7 @@ group by h.region`,
   /***
    * 质量系数历史趋势
    * @param code:地区code或者机构的id
+   * @param checkId
    */
   async history(code, checkId) {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
