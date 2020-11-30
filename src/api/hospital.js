@@ -436,24 +436,14 @@ export default class Hospital {
         )
       )[0]?.id ?? null;
     //language=MySQL
-    return await originalDB.execute(
+    const data = await originalDB.execute(
       `
-        SELECT CASE
-                 vhe.ActivityFormCode
-                 WHEN '1'
-                   OR '2' THEN
-                   vhe.PrintDataName
-                 WHEN '3' THEN
-                   vhe.ActivityName
-                 WHEN '4'
-                   OR '5' THEN
-                   vcd.CodeName
-                 ELSE ifnull(
-                   vhe.ActivityName,
-                   IFNULL(vhe.PrintDataName, vcd.CodeName))
-                 END           ActivityName,
-               vcd.CodeName AS ActivityFormName,
-               vhe.ActivityTime
+        SELECT vhe.ActivityFormCode as "ActivityFormCode",
+               vhe.PrintDataName as "PrintDataName",
+               vhe.ActivityName as "ActivityName",
+               vcd.CodeName as "CodeName",
+               vcd.CodeName as "ActivityFormName",
+               vhe.ActivityTime as "ActivityTime"
         FROM view_HealthEducation vhe
                LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
           AND vcd.CategoryNo = '270105'
@@ -462,5 +452,17 @@ export default class Hospital {
       `,
       hisHospId
     );
+    return data.map(i => ({
+      ActivityName:
+        i.ActivityFormCode === '1' || i.ActivityFormCode === '2'
+          ? i.PrintDataName
+          : i.ActivityFormCode === '4' || i.ActivityFormCode === '5'
+          ? i.CodeName
+          : i.ActivityFormCode === '3'
+          ? i.ActivityName
+          : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
+      ActivityFormName: i.ActivityFormName,
+      ActivityTime: i.ActivityTime
+    }));
   }
 }
