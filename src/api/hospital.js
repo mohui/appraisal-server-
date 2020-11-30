@@ -424,4 +424,43 @@ export default class Hospital {
   async info(id) {
     return HospitalModel.findOne({where: {id}});
   }
+
+  async healthEducation(hospitalId) {
+    const hisHospId =
+      (
+        await appDB.execute(
+          `select hishospid as id
+           from hospital_mapping
+           where h_id = ?`,
+          hospitalId
+        )
+      )[0]?.id ?? null;
+    //language=MySQL
+    return await originalDB.execute(
+      `
+        SELECT CASE
+                 vhe.ActivityFormCode
+                 WHEN '1'
+                   OR '2' THEN
+                   vhe.PrintDataName
+                 WHEN '3' THEN
+                   vhe.ActivityName
+                 WHEN '4'
+                   OR '5' THEN
+                   vcd.CodeName
+                 ELSE ifnull(
+                   vhe.ActivityName,
+                   IFNULL(vhe.PrintDataName, vcd.CodeName))
+                 END           ActivityName,
+               vcd.CodeName AS ActivityFormName,
+               vhe.ActivityTime
+        FROM view_HealthEducation vhe
+               LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
+          AND vcd.CategoryNo = '270105'
+        where vhe.OperateOrganization = ?
+        order by vhe.ActivityTime desc
+      `,
+      hisHospId
+    );
+  }
 }
