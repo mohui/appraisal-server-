@@ -187,7 +187,7 @@ export default class ScoreHospitalCheckRules {
       });
       // 默认打分 0分
       let score = 0;
-      if (!ruleTagModels) score = ruleModel.rule.ruleScore;
+      if (ruleTagModels.length < 1) score = ruleModel.rule.ruleScore;
       // 循环所有的指标算法, 计算得分
       for (const tagModel of ruleTagModels) {
         // 健康档案建档率
