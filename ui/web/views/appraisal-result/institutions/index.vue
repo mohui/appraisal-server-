@@ -570,7 +570,6 @@
                       <el-input-number
                         v-model="scope.row.score"
                         size="mini"
-                        :min="0"
                         :step="1"
                         :precision="2"
                         style="width:84%"
