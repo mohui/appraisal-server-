@@ -115,6 +115,7 @@ export default class ScoreHospitalCheckRules {
    * 考核体系打分
    *
    * @param id 考核体系id
+   * @param isAuto 是否自动跑分
    */
   async autoScoreCheck(id, isAuto) {
     if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
@@ -145,8 +146,10 @@ export default class ScoreHospitalCheckRules {
 
   /**
    * 机构考核细则
-   * @param hospitalId
-   * @param checkId
+   *
+   * @param hospitalId 机构id
+   * @param checkId 考核体系id
+   * @param isAuto 是否自动跑分
    */
   async autoScoreHospitalCheck(hospitalId, checkId, isAuto) {
     // 查机构
@@ -886,6 +889,7 @@ inner join check_system cs on cs.check_id=cr.check_id and cr.parent_rule_id is n
    * 获取省市排行
    *
    * @param code 省市code
+   * @param checkId 考核体系id
    */
   async areaRank(code, checkId) {
     const regionModel = await RegionModel.findOne({
@@ -1068,7 +1072,8 @@ group by h.region`,
         )?.[0]?.hishospid
       )
     )[0];
-    if (!ruleTagModels) throw new KatoCommonError(`当前考核项没有绑定关联关系`);
+    if (ruleTagModels.length < 1)
+      throw new KatoCommonError(`当前考核项没有绑定关联关系`);
     for (const ruleTagModel of ruleTagModels) {
       // 建档率
       if (ruleTagModel.tag === MarkTagUsages.S01.code) {
@@ -1313,7 +1318,9 @@ group by h.region`,
 
   /**
    * 各个工分项的详情
-   * @param code
+   *
+   * @param code 机构id
+   * @param checkId 考核体系id
    */
   async projectDetail(code, checkId) {
     const hospitalModel = await HospitalModel.findOne({
@@ -1414,7 +1421,9 @@ group by h.region`,
 
   /***
    * 质量系数历史趋势
+   *
    * @param code:地区code或者机构的id
+   * @param checkId
    */
   async history(code, checkId) {
     const region: RegionModel = await RegionModel.findOne({where: {code}});
@@ -1504,7 +1513,8 @@ group by h.region`,
 
   /**
    * 人脸采集信息
-   * @param code
+   *
+   * @param code 地区code或机构id
    */
   @validate(
     should
