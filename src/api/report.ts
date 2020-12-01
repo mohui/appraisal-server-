@@ -107,22 +107,22 @@ export default class Report {
       },
       logging: console.log
     });
-    return systemHospital;
 
-    // // 机构
-    // const systemList = [];
-    // for (const it of systemHospital) {
-    //   // 分组考核id，把各个考核下的考核机构分到考核下
-    //   const index = systemList.findIndex(item => item.checkId == it.checkId);
-    //   if (index == -1) {
-    //     systemList.push({
-    //       checkId: it.checkId,
-    //       hospital: [it.hospitalId]
-    //     });
-    //   } else {
-    //     systemList[index].hospital.push(it.hospitalId);
-    //   }
-    // }
+    // 机构
+    const systemList = [];
+    for (const it of systemHospital) {
+      // 分组考核id，把各个考核下的考核机构分到考核下
+      const index = systemList.findIndex(item => item.checkId == it.checkId);
+      if (index == -1) {
+        systemList.push({
+          checkId: it.checkId,
+          hospital: [it.hospitalId]
+        });
+      } else {
+        systemList[index].hospital.push(it.hospitalId);
+      }
+    }
+    return systemList;
 
     // for (const it of systemList) {
     //   // 查询考核细则 =》 根据考核id获取考核细则内容
