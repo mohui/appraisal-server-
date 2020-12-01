@@ -138,37 +138,31 @@ export default class Report {
           score: 0
         }))
         .filter(it => it.parentRuleId != null);
-      return ruleList;
-      // const newRuleList = ruleList.map(it => ({
-      //   ...it,
-      //   children: []
-      // }));
 
       // 取出考核细则id放到数组中
-      // const ruleIdList = ruleList.map(item => item.ruleId);
-      //
-      // // 获取考核细则得分
-      // const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
-      //   {
-      //     where: {
-      //       rule: {
-      //         [Op.in]: ruleIdList
-      //       },
-      //       hospital: {
-      //         [Op.in]: it.hospital
-      //       }
-      //     }
-      //   }
-      // );
+      const ruleIdList = ruleList.map(item => item.ruleId);
 
-      // const childrenRule = ruleList.filter(item => item.parentRuleId != null);
-      // return childrenRule;
-      // for (const item in childrenRule) {
-      //   const index = ruleHospitalScore.findIndex(
-      //     item1 => item1.ruleId == item.ruleId
-      //   );
-      // }
+      // 根据细则id和机构id获取考核机构细则得分
+      const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
+        {
+          where: {
+            rule: {
+              [Op.in]: ruleIdList
+            },
+            hospital: {
+              [Op.in]: it.hospital
+            }
+          }
+        }
+      );
+      return ruleList;
 
+      /*
+       * 定义定义一个机构数组
+       *
+       * 把考核细则放到机构的子集当中
+       * 放好以后给考核细则得分赋值
+       * */
       // 定义一个机构数组
       // const hospital = [];
       // for (let i = 0; i < it.hospital.length; i++) {
