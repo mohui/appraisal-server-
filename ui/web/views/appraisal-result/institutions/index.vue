@@ -987,13 +987,6 @@ export default {
         });
         return;
       }
-      if (row.score < 0) {
-        this.$message({
-          type: 'error',
-          message: '打分不能低于0分！'
-        });
-        return;
-      }
       try {
         row.isSaveScoreLoaing = true;
         await this.$api.ScoreHospitalCheckRules.score(
