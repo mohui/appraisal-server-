@@ -436,8 +436,8 @@ export default class Hospital {
           hospitalId
         )
       )[0]?.id ?? null;
-    //language=MySQL
     const data = await originalDB.execute(
+      //language=MySQL
       `
         SELECT vhe.ActivityFormCode as "ActivityFormCode",
                vhe.PrintDataName    as "PrintDataName",
@@ -449,9 +449,18 @@ export default class Hospital {
                LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
           AND vcd.CategoryNo = '270105'
         where vhe.OperateOrganization = ?
+          and vhe.ActivityTime >= ?
+          and vhe.ActivityTime < ?
         order by vhe.ActivityTime desc
       `,
-      hisHospId
+      hisHospId,
+      dayjs()
+        .startOf('y')
+        .toDate(),
+      dayjs()
+        .startOf('y')
+        .add(1, 'y')
+        .toDate()
     );
     return data.map(i => ({
       ActivityName:
