@@ -246,7 +246,12 @@
           </el-col>
         </div>
       </el-row>
-      <el-row :gutter="20" style="margin: 20px -10px">
+
+      <el-row
+        :gutter="20"
+        style="margin: 20px -10px"
+        v-if="params.isInstitution"
+      >
         <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
           <el-card shadow="hover">
             <div class="score-detail">
@@ -262,9 +267,15 @@
               <p class="second-title" style="margin:0; text-align:left;">
                 健康教育
               </p>
-              <el-table style="width: 100%">
+              <el-table
+                :data="healthEducationData"
+                height="280px"
+                v-loading="$asyncComputed.healthEducationServerData.updating"
+                style="width: 100%"
+                size="mini"
+              >
                 <el-table-column
-                  prop="hdlx"
+                  prop="ActivityFormName"
                   header-align="center"
                   align="center"
                   min-width="20px"
@@ -272,7 +283,7 @@
                 >
                 </el-table-column>
                 <el-table-column
-                  prop="hdlx"
+                  prop="ActivityName"
                   header-align="center"
                   align="center"
                   min-width="20px"
@@ -280,7 +291,7 @@
                 >
                 </el-table-column>
                 <el-table-column
-                  prop="hdlx"
+                  prop="ActivityTime"
                   header-align="center"
                   align="center"
                   min-width="20px"
@@ -299,16 +310,24 @@
               </p>
               <el-tabs>
                 <el-tab-pane label="报告">
-                  <el-table :data="test" style="width: 100%">
+                  <el-table
+                    :data="supervisionReportData"
+                    v-loading="
+                      $asyncComputed.supervisionReportServerData.updating
+                    "
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
                     <el-table-column
-                      prop="bgnr"
+                      prop="Contents"
                       header-align="center"
                       align="center"
                       min-width="20px"
                       label="报告内容"
                     ></el-table-column>
                     <el-table-column
-                      prop="bgsj"
+                      prop="Time"
                       header-align="center"
                       align="center"
                       min-width="20px"
@@ -317,16 +336,24 @@
                   </el-table>
                 </el-tab-pane>
                 <el-tab-pane label="巡查">
-                  <el-table :data="test" style="width: 100%">
+                  <el-table
+                    :data="supervisionAssistData"
+                    v-loading="
+                      $asyncComputed.supervisionAssistServerData.updating
+                    "
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
                     <el-table-column
-                      prop="xcdd"
+                      prop="Address"
                       header-align="center"
                       align="center"
                       min-width="20px"
                       label="巡查地点"
                     ></el-table-column>
                     <el-table-column
-                      prop="xcsj"
+                      prop="Time"
                       header-align="center"
                       align="center"
                       min-width="20px"
@@ -1270,6 +1297,27 @@ export default {
     }
   },
   computed: {
+    //健康教育
+    healthEducationData() {
+      return this.healthEducationServerData.map(it => ({
+        ...it,
+        ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
+      }));
+    },
+    //监督协管报告
+    supervisionReportData() {
+      return this.supervisionReportServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
+    //监督协管巡查
+    supervisionAssistData() {
+      return this.supervisionAssistServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
     //人脸采集信息
     faceCollectData() {
       let arr = [
@@ -1583,6 +1631,42 @@ export default {
     }
   },
   asyncComputed: {
+    //健康教育数据
+    healthEducationServerData: {
+      async get() {
+        return await this.$api.Hospital.healthEducation(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
+    //监督协管报告
+    supervisionReportServerData: {
+      async get() {
+        return await this.$api.Hospital.supervisionReport(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
+    //监督协管巡查
+    supervisionAssistServerData: {
+      async get() {
+        return await this.$api.Hospital.supervisionAssist(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
