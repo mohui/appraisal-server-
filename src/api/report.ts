@@ -104,8 +104,7 @@ export default class Report {
         hospital: {
           [Op.in]: hospitalIdList
         }
-      },
-      logging: console.log
+      }
     });
 
     // 机构
@@ -122,70 +121,74 @@ export default class Report {
         systemList[index].hospital.push(it.hospitalId);
       }
     }
-    return systemList;
 
-    // for (const it of systemList) {
-    //   // 查询考核细则 =》 根据考核id获取考核细则内容
-    //   const ruleList: (CheckRuleModel & {score: number})[] = (
-    //     await CheckRuleModel.findAll({
-    //       where: {
-    //         checkId: it.checkId
-    //       }
-    //     })
-    //   ).map(it => ({
-    //     ...it.toJSON(),
-    //     score: 0
-    //   }));
-    // }
-    // const newRuleList = ruleList.map(it => ({
-    //   ...it,
-    //   children: []
-    // }));
+    // 根据分组把各个考核导入到sheet中(添加一个得分的字段,去掉了细则父级)
+    for (const it of systemList) {
+      // 导入之前 =》 根据考核id获取考核细则内容
+      const ruleList: (CheckRuleModel & {score: number})[] = (
+        await CheckRuleModel.findAll({
+          where: {
+            checkId: it.checkId
+          },
+          logging: console.log
+        })
+      )
+        .map(it => ({
+          ...it.toJSON(),
+          score: 0
+        }))
+        .filter(it => it.parentRuleId != null);
+      return ruleList;
+      // const newRuleList = ruleList.map(it => ({
+      //   ...it,
+      //   children: []
+      // }));
 
-    // 取出考核细则id放到数组中
-    // const ruleIdList = ruleList.map(item => item.ruleId);
-    //
-    // // 获取考核细则得分
-    // const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
-    //   {
-    //     where: {
-    //       rule: {
-    //         [Op.in]: ruleIdList
-    //       },
-    //       hospital: {
-    //         [Op.in]: it.hospital
-    //       }
-    //     }
-    //   }
-    // );
+      // 取出考核细则id放到数组中
+      // const ruleIdList = ruleList.map(item => item.ruleId);
+      //
+      // // 获取考核细则得分
+      // const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
+      //   {
+      //     where: {
+      //       rule: {
+      //         [Op.in]: ruleIdList
+      //       },
+      //       hospital: {
+      //         [Op.in]: it.hospital
+      //       }
+      //     }
+      //   }
+      // );
 
-    // const childrenRule = ruleList.filter(item => item.parentRuleId != null);
-    // return childrenRule;
-    // for (const item in childrenRule) {
-    //   const index = ruleHospitalScore.findIndex(
-    //     item1 => item1.ruleId == item.ruleId
-    //   );
-    // }
+      // const childrenRule = ruleList.filter(item => item.parentRuleId != null);
+      // return childrenRule;
+      // for (const item in childrenRule) {
+      //   const index = ruleHospitalScore.findIndex(
+      //     item1 => item1.ruleId == item.ruleId
+      //   );
+      // }
 
-    // 定义一个机构数组
-    // const hospital = [];
-    // for (let i = 0; i < it.hospital.length; i++) {
-    //   // 过滤出所有的细则
-    //
-    //   hospital.push({
-    //     hospital: it.hospital[i],
-    //     children: childrenRule
-    //   });
-    // }
+      // 定义一个机构数组
+      // const hospital = [];
+      // for (let i = 0; i < it.hospital.length; i++) {
+      //   // 过滤出所有的细则
+      //
+      //   hospital.push({
+      //     hospital: it.hospital[i],
+      //     children: childrenRule
+      //   });
+      // }
 
-    //return hospital;
+      //return hospital;
 
-    //导出方法
-    //开始创建Excel表格
-    //const workBook = new Excel.Workbook();
-    //return workBook;
+      //导出方法
+      //开始创建Excel表格
+      //const workBook = new Excel.Workbook();
+      //return workBook;
 
-    // }
+      // }
+    }
   }
 
   async downloadHospital(code) {
