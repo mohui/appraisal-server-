@@ -7,7 +7,8 @@ import {
   RuleHospitalBudgetModel,
   RuleHospitalModel,
   RuleHospitalScoreModel,
-  RuleTagModel
+  RuleTagModel,
+  sql as sqlRender
 } from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
@@ -439,11 +440,11 @@ export default class Hospital {
     const data = await originalDB.execute(
       `
         SELECT vhe.ActivityFormCode as "ActivityFormCode",
-               vhe.PrintDataName as "PrintDataName",
-               vhe.ActivityName as "ActivityName",
-               vcd.CodeName as "CodeName",
-               vcd.CodeName as "ActivityFormName",
-               vhe.ActivityTime as "ActivityTime"
+               vhe.PrintDataName    as "PrintDataName",
+               vhe.ActivityName     as "ActivityName",
+               vcd.CodeName         as "CodeName",
+               vcd.CodeName         as "ActivityFormName",
+               vhe.ActivityTime     as "ActivityTime"
         FROM view_HealthEducation vhe
                LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
           AND vcd.CategoryNo = '270105'
@@ -464,5 +465,88 @@ export default class Hospital {
       ActivityFormName: i.ActivityFormName,
       ActivityTime: i.ActivityTime
     }));
+  }
+
+  /**
+   * 监督协管报告
+   *
+   * @param hospitalId
+   */
+  async supervisionReport(hospitalId) {
+    const hisHospId =
+      (
+        await appDB.execute(
+          `
+            select hishospid as id
+            from hospital_mapping
+            where h_id = ?`,
+          hospitalId
+        )
+      )[0]?.id ?? null;
+    const sql = sqlRender(
+      `
+    select
+        institutionname as "InstitutionName",
+        address as "Address",
+        Contents as "Contents",
+        ReportTime as "Date"
+    from view_SanitaryControlReport
+    where OperateOrganization={{? hisHospId}}
+    and ReportTime>={{? start}} and ReportTime<{{? end}}
+    order by ReportTime desc
+    `,
+      {
+        hisHospId,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+    return await originalDB.execute(sql[0], ...sql[1]);
+  }
+
+  /**
+   * 监督协管巡查
+   *
+   * @param hospitalId
+   */
+  async supervisionAssist(hospitalId) {
+    const hisHospId =
+      (
+        await appDB.execute(
+          `
+            select hishospid as id
+            from hospital_mapping
+            where h_id = ?`,
+          hospitalId
+        )
+      )[0]?.id ?? null;
+    const sql = sqlRender(
+      `
+    select
+        institutionname as "InstitutionName",
+        address as "Address",
+        checkDate as "Date"
+    from view_SanitaryControlAssist
+    where OperateOrganization={{? hisHospId}}
+    and checkDate>={{? start}} and checkDate<{{? end}}
+    order by checkDate desc
+    `,
+      {
+        hisHospId,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+    return await originalDB.execute(sql[0], ...sql[1]);
   }
 }
