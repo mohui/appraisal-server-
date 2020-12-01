@@ -1,6 +1,17 @@
 import {ossClient} from '../../util/oss';
 import * as config from 'config';
 import * as path from 'upath';
+import {
+  CheckHospitalModel,
+  CheckSystemModel,
+  CheckRuleModel,
+  HospitalModel,
+  RegionModel,
+  RuleHospitalScoreModel
+} from '../database/model';
+import {KatoCommonError} from 'kato-server';
+import {hospital} from './hospital';
+import {Op} from 'sequelize';
 
 /**
  * 语义化时间
@@ -55,6 +66,159 @@ export default class Report {
    * @param id 考核体系id
    */
   async downloadCheck(code, id) {
-    return [];
+    const regionOne = await RegionModel.findOne({
+      where: {code}
+    });
+    // 判断是地区的导出耗时机构的导出
+    if (regionOne) {
+      return await this.downloadArea(code);
+    } else {
+      return await hospital.checkDownload(id);
+      // return this.downloadHospital(code);
+    }
+  }
+
+  /**
+   * 地区的导出
+   *
+   * 判断有没有传考核体系id
+   * 没有传考核体系id =》需要查询出所有的考核体系
+   * 传考核体系id =》根据考核体系id查询所有的该地区下的考核机构的导出内容
+   */
+  async downloadArea(code) {
+    // 查询该地区下的所有考核机构
+    const hospitals = await HospitalModel.findAll({
+      where: {
+        region: {
+          [Op.like]: `${code}%`
+        }
+      }
+    });
+
+    // 取出所有的考核机构hospitalId
+    const hospitalIdList = hospitals.map(item => item.id);
+
+    // 根据考核hospitalId获取考核主内容checkId
+    const systemHospital = await CheckHospitalModel.findAll({
+      where: {
+        hospital: {
+          [Op.in]: hospitalIdList
+        }
+      },
+      logging: console.log
+    });
+
+    // 机构
+    const systemList = [];
+    for (const it of systemHospital) {
+      // 分组考核id，把各个考核下的考核机构分到考核下
+      const index = systemList.findIndex(item => item.checkId == it.checkId);
+      if (index == -1) {
+        systemList.push({
+          checkId: it.checkId,
+          hospital: [it.hospitalId]
+        });
+      } else {
+        systemList[index].hospital.push(it.hospitalId);
+      }
+    }
+
+    for (const it of systemList) {
+      // 查询考核细则 =》 根据考核id获取考核细则内容
+      const ruleList: (CheckRuleModel & {score: number})[] = (
+        await CheckRuleModel.findAll({
+          where: {
+            checkId: it.checkId
+          }
+        })
+      ).map(it => ({
+        ...it.toJSON(),
+        score: 0
+      }));
+
+      const newRuleList = ruleList.map(it => ({
+        ...it,
+        children: []
+      }));
+      return newRuleList;
+      // 取出考核细则id放到数组中
+      const ruleIdList = ruleList.map(item => item.ruleId);
+
+      // 获取考核细则得分
+      const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
+        {
+          where: {
+            rule: {
+              [Op.in]: ruleIdList
+            },
+            hospital: {
+              [Op.in]: it.hospital
+            }
+          }
+        }
+      );
+      // 定义一个机构数组
+      const hospital = [];
+      for (let i = 0; i < it.hospital.length; i++) {
+        const parentRule = ruleList.filter(item => item.parentRuleId == null);
+
+        for (const item1 of ruleList) {
+          parentRule.map(item2 => {
+            if (item1.parentRuleId == item2.ruleId) {
+              const systemScore = ruleList.reduce(
+                (prev, curr) => Number(prev) + Number(curr.ruleScore),
+                0
+              );
+              item2.ruleScore = systemScore;
+            }
+          });
+        }
+        hospital.push({
+          hospital: it.hospital[i],
+          children: parentRule
+        });
+      }
+
+      return hospital;
+
+      //导出方法
+      //开始创建Excel表格
+      //const workBook = new Excel.Workbook();
+      //return workBook;
+    }
+  }
+
+  async downloadHospital(code) {
+    const hospital = await HospitalModel.findOne({
+      where: {id: code}
+    });
+
+    if (!hospital) throw new KatoCommonError('该机构不存在');
+    const {checkSystem} = await CheckHospitalModel.findOne({
+      where: {hospital: code},
+      include: [CheckSystemModel]
+    });
+    if (!checkSystem) throw new KatoCommonError('该机构未绑定考核系统');
+    return checkSystem;
+    //查询该机构和其直属的二级机构
+    const childrenHospital = [hospital].concat(
+      await HospitalModel.findAll({
+        where: {parent: code}
+      })
+    );
+    return childrenHospital;
+    //被绑定在该考核下的下属机构
+    const checkChildrenHospital = (
+      await Promise.all(
+        childrenHospital.map(
+          async hospital =>
+            await CheckHospitalModel.findOne({
+              where: {hospitalId: hospital.id},
+              include: [HospitalModel]
+            })
+        )
+      )
+    ).reduce((res, next) => (next ? res.concat(next) : res), []);
+    return checkChildrenHospital;
   }
 }
