@@ -86,7 +86,7 @@ export default class Report {
    * 传考核体系id =》根据考核体系id查询所有的该地区下的考核机构的导出内容
    */
   async downloadArea(code) {
-    // 查询该地区下的所有考核机构
+    // 查询该地区权限下的所有机构
     const hospitals = await HospitalModel.findAll({
       where: {
         region: {
@@ -95,10 +95,10 @@ export default class Report {
       }
     });
 
-    // 取出所有的考核机构hospitalId
+    // 取出所有的机构hospitalId
     const hospitalIdList = hospitals.map(item => item.id);
 
-    // 根据考核hospitalId获取考核主内容checkId
+    // 根据机构的hospitalId获取考核机构及其考核主内容checkId
     const systemHospital = await CheckHospitalModel.findAll({
       where: {
         hospital: {
@@ -107,85 +107,85 @@ export default class Report {
       },
       logging: console.log
     });
+    return systemHospital;
 
-    // 机构
-    const systemList = [];
-    for (const it of systemHospital) {
-      // 分组考核id，把各个考核下的考核机构分到考核下
-      const index = systemList.findIndex(item => item.checkId == it.checkId);
-      if (index == -1) {
-        systemList.push({
-          checkId: it.checkId,
-          hospital: [it.hospitalId]
-        });
-      } else {
-        systemList[index].hospital.push(it.hospitalId);
-      }
-    }
+    // // 机构
+    // const systemList = [];
+    // for (const it of systemHospital) {
+    //   // 分组考核id，把各个考核下的考核机构分到考核下
+    //   const index = systemList.findIndex(item => item.checkId == it.checkId);
+    //   if (index == -1) {
+    //     systemList.push({
+    //       checkId: it.checkId,
+    //       hospital: [it.hospitalId]
+    //     });
+    //   } else {
+    //     systemList[index].hospital.push(it.hospitalId);
+    //   }
+    // }
 
-    for (const it of systemList) {
-      // 查询考核细则 =》 根据考核id获取考核细则内容
-      const ruleList: (CheckRuleModel & {score: number})[] = (
-        await CheckRuleModel.findAll({
-          where: {
-            checkId: it.checkId
-          }
-        })
-      ).map(it => ({
-        ...it.toJSON(),
-        score: 0
-      }));
+    // for (const it of systemList) {
+    //   // 查询考核细则 =》 根据考核id获取考核细则内容
+    //   const ruleList: (CheckRuleModel & {score: number})[] = (
+    //     await CheckRuleModel.findAll({
+    //       where: {
+    //         checkId: it.checkId
+    //       }
+    //     })
+    //   ).map(it => ({
+    //     ...it.toJSON(),
+    //     score: 0
+    //   }));
+    // }
+    // const newRuleList = ruleList.map(it => ({
+    //   ...it,
+    //   children: []
+    // }));
 
-      const newRuleList = ruleList.map(it => ({
-        ...it,
-        children: []
-      }));
-      return newRuleList;
-      // 取出考核细则id放到数组中
-      const ruleIdList = ruleList.map(item => item.ruleId);
+    // 取出考核细则id放到数组中
+    // const ruleIdList = ruleList.map(item => item.ruleId);
+    //
+    // // 获取考核细则得分
+    // const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
+    //   {
+    //     where: {
+    //       rule: {
+    //         [Op.in]: ruleIdList
+    //       },
+    //       hospital: {
+    //         [Op.in]: it.hospital
+    //       }
+    //     }
+    //   }
+    // );
 
-      // 获取考核细则得分
-      const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
-        {
-          where: {
-            rule: {
-              [Op.in]: ruleIdList
-            },
-            hospital: {
-              [Op.in]: it.hospital
-            }
-          }
-        }
-      );
-      // 定义一个机构数组
-      const hospital = [];
-      for (let i = 0; i < it.hospital.length; i++) {
-        const parentRule = ruleList.filter(item => item.parentRuleId == null);
+    // const childrenRule = ruleList.filter(item => item.parentRuleId != null);
+    // return childrenRule;
+    // for (const item in childrenRule) {
+    //   const index = ruleHospitalScore.findIndex(
+    //     item1 => item1.ruleId == item.ruleId
+    //   );
+    // }
 
-        for (const item1 of ruleList) {
-          parentRule.map(item2 => {
-            if (item1.parentRuleId == item2.ruleId) {
-              const systemScore = ruleList.reduce(
-                (prev, curr) => Number(prev) + Number(curr.ruleScore),
-                0
-              );
-              item2.ruleScore = systemScore;
-            }
-          });
-        }
-        hospital.push({
-          hospital: it.hospital[i],
-          children: parentRule
-        });
-      }
+    // 定义一个机构数组
+    // const hospital = [];
+    // for (let i = 0; i < it.hospital.length; i++) {
+    //   // 过滤出所有的细则
+    //
+    //   hospital.push({
+    //     hospital: it.hospital[i],
+    //     children: childrenRule
+    //   });
+    // }
 
-      return hospital;
+    //return hospital;
 
-      //导出方法
-      //开始创建Excel表格
-      //const workBook = new Excel.Workbook();
-      //return workBook;
-    }
+    //导出方法
+    //开始创建Excel表格
+    //const workBook = new Excel.Workbook();
+    //return workBook;
+
+    // }
   }
 
   async downloadHospital(code) {
