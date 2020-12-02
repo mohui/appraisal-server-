@@ -8,9 +8,12 @@ import {
   HospitalModel,
   RegionModel,
   RuleHospitalScoreModel
-} from '../database/model';
+} from '../database';
 import {KatoCommonError} from 'kato-server';
-import {hospital} from './hospital';
+import {Workbook} from 'exceljs';
+import {Context} from './context';
+import * as ContentDisposition from 'content-disposition';
+
 import {Op} from 'sequelize';
 
 /**
@@ -66,6 +69,7 @@ export default class Report {
    * @param id 考核体系id
    */
   async downloadCheck(code, id) {
+    code = '340202';
     // 机构编码
     let hospitals: HospitalModel[] = [];
 
@@ -114,7 +118,6 @@ export default class Report {
             ]
           }
         );
-
         return {
           ...hospital.toJSON(),
           check: checkHospital?.checkSystem?.toJSON()
@@ -168,7 +171,43 @@ export default class Report {
         scores: scores
       });
     }
-    return checkGroups;
+
+    // return checkGroups;
+    //导出方法
+    for (const it of checkGroups) {
+      //开始创建Excel表格
+      const workBook = new Workbook();
+      const workSheet = workBook.addWorksheet(`${it.name}考核结果`);
+      //添加标题
+      workSheet.addRow([`机构名称`]);
+
+      //行数据
+      const firstRow = it.rules.map(item => item.ruleName);
+      const childrenHospitalCheckResult = it.hospitals.map(item => {
+        let data = [item.name];
+        item.scores.forEach(rule => {
+          data = data.concat(rule.score);
+        });
+        return data;
+      });
+
+      workSheet.addRows([firstRow, ...childrenHospitalCheckResult]);
+
+      Context.current.bypassing = true;
+      const res = Context.current.res;
+
+      //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+      res.setHeader(
+        'Content-Disposition',
+        ContentDisposition(`${it.name}-考核结果表.xls`)
+      );
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+
+      const buffer = await workBook.xlsx.writeBuffer();
+      res.send(buffer);
+    }
+    //导出结束
   }
 
   /**
@@ -272,48 +311,50 @@ export default class Report {
         });
       }
 
-      return hospital;
-
       //导出方法
       //开始创建Excel表格
-      //const workBook = new Excel.Workbook();
-      //return workBook;
+      const workBook = new Workbook();
+      // const workSheet = workBook.addWorksheet(`${hospital.name}考核结果`);
+      const workSheet = workBook.addWorksheet(`gaga考核结果`);
+      //添加标题
+      workSheet.addRow([`-helloWord`]);
 
-      // }
+      //以下是测试东西
+      const firstRow = ['一级机构及二级机构', '一级机构', '二级机构'];
+      const secondRow = ['---', '---', '---'];
+      const thirdRow = [`西张明村`];
+      const childrenHospitalCheckResult = ['111', '222', '333', '444'];
+
+      workSheet.addRows([
+        firstRow,
+        secondRow,
+        thirdRow,
+        ...childrenHospitalCheckResult
+      ]);
+
+      //标题占据一整行单元格
+      workSheet.mergeCells(1, childrenHospitalCheckResult[0].length, 1, 1);
+
+      //let cellCount = 0;
+      //合并单元格
+      firstRow.forEach((row, index) => {
+        if (index > 2 && index < firstRow.length - 1 && firstRow[index]) {
+          // workSheet.mergeCells(2, index + 1, 2, index + cells[cellCount++]);
+          workSheet.mergeCells(2, index + 1, 2, index + 22);
+        }
+      });
+
+      Context.current.bypassing = true;
+      const res = Context.current.res;
+      //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+      res.setHeader(
+        'Content-Disposition',
+        ContentDisposition(`gaga-考核结果表.xls`)
+      );
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+      const buffer = await workBook.xlsx.writeBuffer();
+      res.send(buffer);
     }
-  }
-
-  async downloadHospital(code) {
-    const hospital = await HospitalModel.findOne({
-      where: {id: code}
-    });
-
-    if (!hospital) throw new KatoCommonError('该机构不存在');
-    const {checkSystem} = await CheckHospitalModel.findOne({
-      where: {hospital: code},
-      include: [CheckSystemModel]
-    });
-    if (!checkSystem) throw new KatoCommonError('该机构未绑定考核系统');
-    return checkSystem;
-    //查询该机构和其直属的二级机构
-    const childrenHospital = [hospital].concat(
-      await HospitalModel.findAll({
-        where: {parent: code}
-      })
-    );
-    return childrenHospital;
-    //被绑定在该考核下的下属机构
-    const checkChildrenHospital = (
-      await Promise.all(
-        childrenHospital.map(
-          async hospital =>
-            await CheckHospitalModel.findOne({
-              where: {hospitalId: hospital.id},
-              include: [HospitalModel]
-            })
-        )
-      )
-    ).reduce((res, next) => (next ? res.concat(next) : res), []);
-    return checkChildrenHospital;
   }
 }
