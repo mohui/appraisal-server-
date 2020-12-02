@@ -568,7 +568,7 @@
                   <template slot-scope="scope">
                     <span v-if="scope.row.isGradeScore">
                       <el-input-number
-                        v-model="scope.row.score"
+                        v-model="scope.row.modifyScore"
                         size="mini"
                         :min="0"
                         :step="1"
@@ -977,11 +977,12 @@ export default {
     },
     //点击打分按钮处理
     handleScore(row) {
+      this.$set(row, 'modifyScore', row.score);
       this.$set(row, 'isGradeScore', true);
     },
     //保存打分处理
     async handleSaveScore(row) {
-      if (row.score > row.ruleScore) {
+      if (row.modifyScore > row.ruleScore) {
         this.$message({
           type: 'error',
           message: '打分不能超过最大分值！'
@@ -997,6 +998,7 @@ export default {
       }
       try {
         row.isSaveScoreLoaing = true;
+        this.$set(row, 'score', row.modifyScore);
         await this.$api.ScoreHospitalCheckRules.score(
           row.ruleId,
           this.totalData.id,
