@@ -576,21 +576,71 @@ export default class Hospital {
           hospitalId
         )
       )[0]?.id ?? null;
-    //language=MySQL
-    return await originalDB.execute(
-      `
-        select vsr.CheckDoctor as "CheckDoctor",
-               count(*)        as "SignNumber"
-        from view_SignRegiste vsr
-        where vsr.OperateOrganization = ?
-          and vsr.YearDegree = ?
-        group by vsr.CheckDoctor
-        order by count(*) desc
-      `,
-      hisHospId,
-      dayjs()
-        .year()
-        .toString()
-    );
+    return {
+      signedNumber: new Decimal(
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+              select count(*) as "Number"
+              from view_SignRegiste vsr
+              where vsr.OperateOrganization = ?
+                and vsr.YearDegree = ?
+            `,
+            hisHospId,
+            dayjs()
+              .year()
+              .toString()
+          )
+        )[0]?.Number ?? 0
+      ).toNumber(),
+      exeNumber: new Decimal(
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+              select count(*) as "Number"
+              from view_SignRegisteCheckMain
+              where ExeOrganization = ?
+                and ExeTime >= ?
+                and ExeTime < ?
+            `,
+            hisHospId,
+            dayjs()
+              .startOf('y')
+              .toDate(),
+            dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          )
+        )[0]?.Number ?? 0
+      ).toNumber(),
+      renewNumber: new Decimal(
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+              select count(*) as "Number"
+              from view_SignRegiste vsr
+              where vsr.OperateOrganization = ?
+                and vsr.YearDegree = ?
+                and vsr.personnum in (select a.personnum
+                                      from view_SignRegiste a
+                                      where a.OperateOrganization = vsr.OperateOrganization
+                                        and a.YearDegree = ?)
+            `,
+            hisHospId,
+            dayjs()
+              .add(1, 'y')
+              .year()
+              .toString(),
+            dayjs()
+              .year()
+              .toString()
+          )
+        )[0]?.Number ?? 0
+      ).toNumber()
+    };
   }
 }
