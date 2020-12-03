@@ -172,35 +172,33 @@ export default class Report {
       });
     }
 
-    // return checkGroups;
-    //导出方法
+    // 导出方法
     const workBook = new Workbook();
-
     for (const it of checkGroups) {
       //开始创建Excel表格
       const workSheet = workBook.addWorksheet(`${it.name}考核结果`);
 
       //添加标题内容
-      const firstRow = it.rules.map(item => `${item.ruleId}${item.ruleName}`);
+      const firstRow = it.rules.map(item => `${item.ruleName}`);
       firstRow.unshift('机构名称');
+      const ruleIds = it.rules.map(item => `${item.ruleId}`);
 
       // 填充每行数据
       const childrenHospitalCheckResult = it.hospitals.map(item => {
         // 机构的中文名称
-        let data = [item.name];
-        item.scores.forEach(rule => {
-          const index = firstRow.find(ruleId => ruleId === rule.ruleId);
-          data = data.concat(`${rule.ruleId}${rule.score}`);
-          //data[index] = `${rule.ruleId}${rule.score}`;
-        });
+        const data = [item.name];
+        for (const ruleId of ruleIds) {
+          const scoreObj = item.scores.find(
+            scoreObj => scoreObj.ruleId === ruleId
+          );
+          data.push(Number(scoreObj?.score?.toFixed(2) ?? 0));
+        }
         return data;
       });
-      return childrenHospitalCheckResult;
 
       workSheet.addRows([firstRow, ...childrenHospitalCheckResult]);
-
-      Context.current.bypassing = true;
     }
+    Context.current.bypassing = true;
     const res = Context.current.res;
 
     //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
