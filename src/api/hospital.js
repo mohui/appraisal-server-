@@ -588,9 +588,7 @@ export default class Hospital {
                 and vsr.YearDegree = ?
             `,
             hisHospId,
-            dayjs()
-              .year()
-              .toString()
+            dayjs().year()
           )
         )[0]?.Number ?? 0
       ).toNumber(),
@@ -628,14 +626,11 @@ export default class Hospital {
               where vsr.OperateOrganization = ?
                 and vsr.YearDegree = ?
             `,
-            dayjs()
-              .year()
-              .toString(),
+            dayjs().year(),
             hisHospId,
             dayjs()
               .add(1, 'y')
               .year()
-              .toString()
           )
         )[0]?.Number ?? 0
       ).toNumber()
