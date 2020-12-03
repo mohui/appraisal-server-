@@ -69,7 +69,7 @@ export default class Report {
    * @param id 考核体系id
    */
   async downloadCheck(code, id) {
-    code = '340202';
+    code = '340203';
     // 机构编码
     let hospitals: HospitalModel[] = [];
 
@@ -174,39 +174,45 @@ export default class Report {
 
     // return checkGroups;
     //导出方法
+    const workBook = new Workbook();
+
     for (const it of checkGroups) {
       //开始创建Excel表格
-      const workBook = new Workbook();
       const workSheet = workBook.addWorksheet(`${it.name}考核结果`);
-      //添加标题
-      workSheet.addRow([`机构名称`]);
 
-      //行数据
-      const firstRow = it.rules.map(item => item.ruleName);
+      //添加标题内容
+      const firstRow = it.rules.map(item => `${item.ruleId}${item.ruleName}`);
+      firstRow.unshift('机构名称');
+
+      // 填充每行数据
       const childrenHospitalCheckResult = it.hospitals.map(item => {
+        // 机构的中文名称
         let data = [item.name];
         item.scores.forEach(rule => {
-          data = data.concat(rule.score);
+          const index = firstRow.find(ruleId => ruleId === rule.ruleId);
+          data = data.concat(`${rule.ruleId}${rule.score}`);
+          //data[index] = `${rule.ruleId}${rule.score}`;
         });
         return data;
       });
+      return childrenHospitalCheckResult;
 
       workSheet.addRows([firstRow, ...childrenHospitalCheckResult]);
 
       Context.current.bypassing = true;
-      const res = Context.current.res;
-
-      //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
-      res.setHeader(
-        'Content-Disposition',
-        ContentDisposition(`${it.name}-考核结果表.xls`)
-      );
-      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-      res.setHeader('Content-Type', 'application/vnd.ms-excel');
-
-      const buffer = await workBook.xlsx.writeBuffer();
-      res.send(buffer);
     }
+    const res = Context.current.res;
+
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader(
+      'Content-Disposition',
+      ContentDisposition(`考核结果文件名称.xls`)
+    );
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+
+    const buffer = await workBook.xlsx.writeBuffer();
+    res.send(buffer);
     //导出结束
   }
 
