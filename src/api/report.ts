@@ -69,7 +69,7 @@ export default class Report {
    * @param id 考核体系id
    */
   async downloadCheck(code, id) {
-    code = '340203';
+    //code = '340203';
     // 机构编码
     let hospitals: HospitalModel[] = [];
 
@@ -77,8 +77,10 @@ export default class Report {
     const regionOne = await RegionModel.findOne({
       where: {code}
     });
+    let xlsName = '';
     // 判断是地区的导出耗时机构的导出
     if (regionOne) {
+      xlsName = regionOne.name;
       // 如果是地区,查询该地区权限下的所有机构
       hospitals = await HospitalModel.findAll({
         where: {
@@ -95,6 +97,10 @@ export default class Report {
         },
         include: []
       });
+
+      xlsName = hospitals.find(it => {
+        if (it.id === code) return it;
+      })?.name;
     }
     // 地区和机构都没有查到,说明是非法地区
     if (hospitals.length === 0)
@@ -204,7 +210,7 @@ export default class Report {
     //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
     res.setHeader(
       'Content-Disposition',
-      ContentDisposition(`考核结果文件名称.xls`)
+      ContentDisposition(`${xlsName}考核结果.xls`)
     );
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
@@ -212,153 +218,5 @@ export default class Report {
     const buffer = await workBook.xlsx.writeBuffer();
     res.send(buffer);
     //导出结束
-  }
-
-  /**
-   * 地区的导出
-   *
-   * 判断有没有传考核体系id
-   * 没有传考核体系id =》需要查询出所有的考核体系
-   * 传考核体系id =》根据考核体系id查询所有的该地区下的考核机构的导出内容
-   */
-  async downloadArea(code) {
-    // 查询该地区权限下的所有机构
-    const hospitals = await HospitalModel.findAll({
-      where: {
-        region: {
-          [Op.like]: `${code}%`
-        }
-      },
-      attributes: ['id', 'name'],
-      logging: console.log
-    });
-
-    // 取出所有的机构hospitalId
-    const hospitalIdList = hospitals.map(item => item.id);
-
-    // 根据机构的hospitalId获取考核机构及其考核主内容checkId
-    const systemHospital = await CheckHospitalModel.findAll({
-      where: {
-        hospital: {
-          [Op.in]: hospitalIdList
-        }
-      }
-    });
-
-    // 机构
-    const systemList = [];
-    for (const it of systemHospital) {
-      // 分组考核id，把各个考核下的考核机构分到考核下
-      const index = systemList.findIndex(item => item.checkId == it.checkId);
-      if (index == -1) {
-        systemList.push({
-          checkId: it.checkId,
-          hospital: [it.hospitalId]
-        });
-      } else {
-        systemList[index].hospital.push(it.hospitalId);
-      }
-    }
-
-    // 根据分组把各个考核导入到sheet中(添加一个得分的字段,去掉了细则父级)
-    for (const it of systemList) {
-      // 导入之前 =》 根据考核id获取考核细则内容
-      const ruleList: (CheckRuleModel & {score: number})[] = (
-        await CheckRuleModel.findAll({
-          where: {
-            checkId: it.checkId
-          },
-          logging: console.log
-        })
-      )
-        .map(it => ({
-          ...it.toJSON(),
-          score: 0
-        }))
-        .filter(it => it.parentRuleId != null);
-
-      // 取出考核细则id放到数组中
-      const ruleIdList = ruleList.map(item => item.ruleId);
-
-      // 根据细则id和机构id获取考核机构细则得分
-      const ruleHospitalScore: RuleHospitalScoreModel[] = await RuleHospitalScoreModel.findAll(
-        {
-          where: {
-            rule: {
-              [Op.in]: ruleIdList
-            },
-            hospital: {
-              [Op.in]: it.hospital
-            }
-          }
-        }
-      );
-
-      // 定义一个机构数组
-      const hospital = [];
-      for (let i = 0; i < it.hospital.length; i++) {
-        const children = ruleList.map(item => {
-          const result = {...item};
-          const index = ruleHospitalScore.findIndex(
-            item1 =>
-              item1.ruleId === result.ruleId &&
-              item1.hospitalId === it.hospital[i]
-          );
-          if (index > -1) result.score = ruleHospitalScore[index].score;
-          return result;
-        });
-
-        // 过滤出所有的细则
-        hospital.push({
-          hospital: it.hospital[i],
-          children: children
-        });
-      }
-
-      //导出方法
-      //开始创建Excel表格
-      const workBook = new Workbook();
-      // const workSheet = workBook.addWorksheet(`${hospital.name}考核结果`);
-      const workSheet = workBook.addWorksheet(`gaga考核结果`);
-      //添加标题
-      workSheet.addRow([`-helloWord`]);
-
-      //以下是测试东西
-      const firstRow = ['一级机构及二级机构', '一级机构', '二级机构'];
-      const secondRow = ['---', '---', '---'];
-      const thirdRow = [`西张明村`];
-      const childrenHospitalCheckResult = ['111', '222', '333', '444'];
-
-      workSheet.addRows([
-        firstRow,
-        secondRow,
-        thirdRow,
-        ...childrenHospitalCheckResult
-      ]);
-
-      //标题占据一整行单元格
-      workSheet.mergeCells(1, childrenHospitalCheckResult[0].length, 1, 1);
-
-      //let cellCount = 0;
-      //合并单元格
-      firstRow.forEach((row, index) => {
-        if (index > 2 && index < firstRow.length - 1 && firstRow[index]) {
-          // workSheet.mergeCells(2, index + 1, 2, index + cells[cellCount++]);
-          workSheet.mergeCells(2, index + 1, 2, index + 22);
-        }
-      });
-
-      Context.current.bypassing = true;
-      const res = Context.current.res;
-      //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
-      res.setHeader(
-        'Content-Disposition',
-        ContentDisposition(`gaga-考核结果表.xls`)
-      );
-      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-      res.setHeader('Content-Type', 'application/vnd.ms-excel');
-      const buffer = await workBook.xlsx.writeBuffer();
-      res.send(buffer);
-    }
   }
 }
