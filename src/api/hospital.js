@@ -559,4 +559,38 @@ export default class Hospital {
     );
     return await originalDB.execute(sql[0], ...sql[1]);
   }
+
+  /**
+   * 家庭签约
+   *
+   * @param hospitalId
+   */
+  async signRegister(hospitalId) {
+    const hisHospId =
+      (
+        await appDB.execute(
+          `
+            select hishospid as id
+            from hospital_mapping
+            where h_id = ?`,
+          hospitalId
+        )
+      )[0]?.id ?? null;
+    //language=MySQL
+    return await originalDB.execute(
+      `
+        select vsr.CheckDoctor as "CheckDoctor",
+               count(*)        as "SignNumber"
+        from view_SignRegiste vsr
+        where vsr.OperateOrganization = ?
+          and vsr.YearDegree = ?
+        group by vsr.CheckDoctor
+        order by count(*) desc
+      `,
+      hisHospId,
+      dayjs()
+        .year()
+        .toString()
+    );
+  }
 }
