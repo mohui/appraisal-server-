@@ -252,16 +252,35 @@
         style="margin: 20px -10px"
         v-if="params.isInstitution"
       >
-        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :span="4" :xs="8" :sm="4" :md="4" :lg="4" :xl="4">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
                 家庭医生签约
               </p>
+              <div
+                v-loading="
+                  $asyncComputed.familyDoctorContractServerData.updating
+                "
+                class="family-doctor"
+              >
+                <span
+                  >签约人数:
+                  {{ familyDoctorContractServerData.signedNumber }}</span
+                >
+                <span
+                  >履约人数:
+                  {{ familyDoctorContractServerData.exeNumber }}</span
+                >
+                <span
+                  >续约人数:
+                  {{ familyDoctorContractServerData.renewNumber }}</span
+                >
+              </div>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
@@ -283,19 +302,19 @@
                 >
                 </el-table-column>
                 <el-table-column
-                  prop="ActivityName"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动名称"
-                >
-                </el-table-column>
-                <el-table-column
                   prop="ActivityTime"
                   header-align="center"
                   align="center"
                   min-width="20px"
                   label="活动时间"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="ActivityName"
+                  header-align="center"
+                  align="center"
+                  min-width="40px"
+                  label="活动名称"
                 >
                 </el-table-column>
               </el-table>
@@ -1631,6 +1650,18 @@ export default {
     }
   },
   asyncComputed: {
+    // 家庭医生签约
+    familyDoctorContractServerData: {
+      async get() {
+        return await this.$api.Hospital.signRegister(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return {};
+      }
+    },
     //健康教育数据
     healthEducationServerData: {
       async get() {
@@ -1861,6 +1892,17 @@ export default {
   text-align: center;
   box-sizing: border-box;
   color: $color-primary;
+}
+
+.family-doctor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 0 0 15px;
+  span {
+    color: #606266;
+    line-height: 28px;
+  }
 }
 
 .pointer {
