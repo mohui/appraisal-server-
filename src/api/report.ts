@@ -76,7 +76,9 @@ export default class Report {
     const regionOne = await RegionModel.findOne({
       where: {code}
     });
+    // 导出文件名称 以所导出的地区/机构为名称
     let xlsName = '';
+
     // 判断是地区的导出耗时机构的导出
     if (regionOne) {
       xlsName = regionOne.name;
@@ -97,9 +99,10 @@ export default class Report {
         include: []
       });
 
-      xlsName = hospitals.find(it => {
+      const hospitalObj = hospitals.find(it => {
         if (it.id === code) return it;
-      })?.name;
+      });
+      if (hospitalObj) xlsName = hospitalObj.name;
     }
     // 地区和机构都没有查到,说明是非法地区
     if (hospitals.length === 0)
