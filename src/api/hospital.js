@@ -621,21 +621,19 @@ export default class Hospital {
           await originalDB.execute(
             //language=MySQL
             `
-              select count(*) as "Number"
+              select count(vsr.*) as "Number"
               from view_SignRegiste vsr
+                     inner join view_SignRegiste a on a.OperateOrganization = vsr.OperateOrganization
+                and a.YearDegree = ? and a.PersonNum=vsr.PersonNum
               where vsr.OperateOrganization = ?
                 and vsr.YearDegree = ?
-                and vsr.personnum in (select a.personnum
-                                      from view_SignRegiste a
-                                      where a.OperateOrganization = vsr.OperateOrganization
-                                        and a.YearDegree = ?)
             `,
+            dayjs()
+              .year()
+              .toString(),
             hisHospId,
             dayjs()
               .add(1, 'y')
-              .year()
-              .toString(),
-            dayjs()
               .year()
               .toString()
           )
