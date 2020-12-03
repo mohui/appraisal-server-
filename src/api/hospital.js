@@ -626,11 +626,11 @@ export default class Hospital {
               where vsr.OperateOrganization = ?
                 and vsr.YearDegree = ?
             `,
-            dayjs().year(),
-            hisHospId,
             dayjs()
-              .add(1, 'y')
-              .year()
+              .add(-1, 'y')
+              .year(),
+            hisHospId,
+            dayjs().year()
           )
         )[0]?.Number ?? 0
       ).toNumber()
