@@ -597,7 +597,7 @@ export default class Hospital {
           await originalDB.execute(
             //language=MySQL
             `
-              select count(*) as "Number"
+              select count(distinct registerid) as "Number"
               from view_SignRegisteCheckMain
               where ExeOrganization = ?
                 and ExeTime >= ?
