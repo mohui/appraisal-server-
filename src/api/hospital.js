@@ -451,6 +451,7 @@ export default class Hospital {
         where vhe.OperateOrganization = ?
           and vhe.ActivityTime >= ?
           and vhe.ActivityTime < ?
+          and vhe.State = 1
         order by vhe.ActivityTime desc
       `,
       hisHospId,
@@ -557,5 +558,89 @@ export default class Hospital {
       }
     );
     return await originalDB.execute(sql[0], ...sql[1]);
+  }
+
+  /**
+   * 家庭签约
+   *
+   * @param hospitalId
+   * @return {
+   * signedNumber: number, //签约人数
+   * exeNumber: number, //履约人数
+   * renewNumber: number //续约人数
+   * }
+   */
+  async signRegister(hospitalId) {
+    const hisHospId =
+      (
+        await appDB.execute(
+          `
+            select hishospid as id
+            from hospital_mapping
+            where h_id = ?`,
+          hospitalId
+        )
+      )[0]?.id ?? null;
+    const signedNumber =
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+            select count(*) as "Number"
+            from view_SignRegiste vsr
+            where vsr.OperateOrganization = ?
+              and vsr.YearDegree = ?
+          `,
+            hisHospId,
+            dayjs().year()
+          )
+        )[0]?.Number ?? 0,
+      exeNumber =
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+              select count(distinct vsrcm.registerid) as "Number"
+              from view_SignRegisteCheckMain vsrcm
+                     inner join view_SignRegiste a on a.OperateOrganization = ?
+                and a.YearDegree = ? and a.registerid = vsrcm.registerid
+              where vsrcm.ExeTime >= ?
+                and vsrcm.ExeTime < ?
+            `,
+            hisHospId,
+            dayjs().year(),
+            dayjs()
+              .startOf('y')
+              .toDate(),
+            dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          )
+        )[0]?.Number ?? 0,
+      renewNumber =
+        (
+          await originalDB.execute(
+            //language=MySQL
+            `
+              select count(vsr.*) as "Number"
+              from view_SignRegiste vsr
+                     inner join view_SignRegiste a on a.OperateOrganization = vsr.OperateOrganization
+                and a.YearDegree = ? and a.PersonNum = vsr.PersonNum
+              where vsr.OperateOrganization = ?
+                and vsr.YearDegree = ?
+            `,
+            dayjs()
+              .add(-1, 'y')
+              .year(),
+            hisHospId,
+            dayjs().year()
+          )
+        )[0]?.Number ?? 0;
+    return {
+      signedNumber: new Decimal(signedNumber).toNumber(),
+      exeNumber: new Decimal(exeNumber).toNumber(),
+      renewNumber: new Decimal(renewNumber).toNumber()
+    };
   }
 }
