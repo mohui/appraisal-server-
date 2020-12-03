@@ -69,7 +69,6 @@ export default class Report {
    * @param id 考核体系id
    */
   async downloadCheck(code, id) {
-    //code = '340203';
     // 机构编码
     let hospitals: HospitalModel[] = [];
 
