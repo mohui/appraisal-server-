@@ -564,6 +564,11 @@ export default class Hospital {
    * 家庭签约
    *
    * @param hospitalId
+   * @return {
+   * signedNumber: number, //签约人数
+   * exeNumber: number, //履约人数
+   * renewNumber: number //续约人数
+   * }
    */
   async signRegister(hospitalId) {
     const hisHospId =
@@ -576,34 +581,34 @@ export default class Hospital {
           hospitalId
         )
       )[0]?.id ?? null;
-    return {
-      signedNumber: new Decimal(
+    const signedNumber =
         (
           await originalDB.execute(
             //language=MySQL
             `
-              select count(*) as "Number"
-              from view_SignRegiste vsr
-              where vsr.OperateOrganization = ?
-                and vsr.YearDegree = ?
-            `,
+            select count(*) as "Number"
+            from view_SignRegiste vsr
+            where vsr.OperateOrganization = ?
+              and vsr.YearDegree = ?
+          `,
             hisHospId,
             dayjs().year()
           )
-        )[0]?.Number ?? 0
-      ).toNumber(),
-      exeNumber: new Decimal(
+        )[0]?.Number ?? 0,
+      exeNumber =
         (
           await originalDB.execute(
             //language=MySQL
             `
-              select count(distinct registerid) as "Number"
-              from view_SignRegisteCheckMain
-              where ExeOrganization = ?
-                and ExeTime >= ?
-                and ExeTime < ?
+              select count(distinct vsrcm.registerid) as "Number"
+              from view_SignRegisteCheckMain vsrcm
+                     inner join view_SignRegiste a on a.OperateOrganization = ?
+                and a.YearDegree = ? and a.registerid = vsrcm.registerid
+              where vsrcm.ExeTime >= ?
+                and vsrcm.ExeTime < ?
             `,
             hisHospId,
+            dayjs().year(),
             dayjs()
               .startOf('y')
               .toDate(),
@@ -612,9 +617,8 @@ export default class Hospital {
               .add(1, 'y')
               .toDate()
           )
-        )[0]?.Number ?? 0
-      ).toNumber(),
-      renewNumber: new Decimal(
+        )[0]?.Number ?? 0,
+      renewNumber =
         (
           await originalDB.execute(
             //language=MySQL
@@ -622,7 +626,7 @@ export default class Hospital {
               select count(vsr.*) as "Number"
               from view_SignRegiste vsr
                      inner join view_SignRegiste a on a.OperateOrganization = vsr.OperateOrganization
-                and a.YearDegree = ? and a.PersonNum=vsr.PersonNum
+                and a.YearDegree = ? and a.PersonNum = vsr.PersonNum
               where vsr.OperateOrganization = ?
                 and vsr.YearDegree = ?
             `,
@@ -632,8 +636,11 @@ export default class Hospital {
             hisHospId,
             dayjs().year()
           )
-        )[0]?.Number ?? 0
-      ).toNumber()
+        )[0]?.Number ?? 0;
+    return {
+      signedNumber: new Decimal(signedNumber).toNumber(),
+      exeNumber: new Decimal(exeNumber).toNumber(),
+      renewNumber: new Decimal(renewNumber).toNumber()
     };
   }
 }
