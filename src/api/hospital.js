@@ -451,6 +451,7 @@ export default class Hospital {
         where vhe.OperateOrganization = ?
           and vhe.ActivityTime >= ?
           and vhe.ActivityTime < ?
+          and vhe.State = 1
         order by vhe.ActivityTime desc
       `,
       hisHospId,
