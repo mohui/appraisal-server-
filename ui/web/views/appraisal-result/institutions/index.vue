@@ -1023,7 +1023,6 @@ export default {
     },
     //取消打分
     cancelScore(row) {
-      this.$set(row, 'originalScore', row.originalScore);
       this.$set(row, 'score', row.originalScore);
       this.$set(row, 'isGradeScore', false);
     },
