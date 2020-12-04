@@ -602,13 +602,11 @@ export default class Hospital {
             `
               select count(distinct vsrcm.registerid) as "Number"
               from view_SignRegisteCheckMain vsrcm
-                     inner join view_SignRegiste a on a.OperateOrganization = ?
-                and a.YearDegree = ? and a.registerid = vsrcm.registerid
-              where vsrcm.ExeTime >= ?
+              where vsrcm.ExeOrganization = ?
+                and vsrcm.ExeTime >= ?
                 and vsrcm.ExeTime < ?
             `,
             hisHospId,
-            dayjs().year(),
             dayjs()
               .startOf('y')
               .toDate(),
