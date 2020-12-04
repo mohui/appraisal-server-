@@ -467,9 +467,9 @@ export default class Hospital {
       ActivityName:
         i.ActivityFormCode === '1' || i.ActivityFormCode === '2'
           ? i.PrintDataName
-          : i.ActivityFormCode === '5'
-          ? i.CodeName
-          : i.ActivityFormCode === '3' || i.ActivityFormCode === '4'
+          : i.ActivityFormCode === '3' ||
+            i.ActivityFormCode === '4' ||
+            i.ActivityFormCode === '5'
           ? i.ActivityName
           : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
       ActivityFormName: i.ActivityFormName,
