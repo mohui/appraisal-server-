@@ -246,6 +246,146 @@
           </el-col>
         </div>
       </el-row>
+
+      <el-row
+        :gutter="20"
+        style="margin: 20px -10px"
+        v-if="params.isInstitution"
+      >
+        <el-col :span="4" :xs="8" :sm="4" :md="4" :lg="4" :xl="4">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                家庭医生签约
+              </p>
+              <div
+                v-loading="
+                  $asyncComputed.familyDoctorContractServerData.updating
+                "
+                class="family-doctor"
+              >
+                <span
+                  >签约人数:
+                  {{ familyDoctorContractServerData.signedNumber }}</span
+                >
+                <span
+                  >履约人数:
+                  {{ familyDoctorContractServerData.exeNumber }}</span
+                >
+                <span
+                  >续约人数:
+                  {{ familyDoctorContractServerData.renewNumber }}</span
+                >
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                健康教育
+              </p>
+              <el-table
+                :data="healthEducationData"
+                height="280px"
+                v-loading="$asyncComputed.healthEducationServerData.updating"
+                style="width: 100%"
+                size="mini"
+              >
+                <el-table-column
+                  prop="ActivityFormName"
+                  header-align="center"
+                  align="center"
+                  min-width="20px"
+                  label="活动类型"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="ActivityTime"
+                  header-align="center"
+                  align="center"
+                  min-width="20px"
+                  label="活动时间"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="ActivityName"
+                  header-align="center"
+                  align="center"
+                  min-width="40px"
+                  label="活动名称"
+                >
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                监督协管
+              </p>
+              <el-tabs>
+                <el-tab-pane label="报告">
+                  <el-table
+                    :data="supervisionReportData"
+                    v-loading="
+                      $asyncComputed.supervisionReportServerData.updating
+                    "
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
+                    <el-table-column
+                      prop="Contents"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="报告内容"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="Time"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="报告时间"
+                    ></el-table-column>
+                  </el-table>
+                </el-tab-pane>
+                <el-tab-pane label="巡查">
+                  <el-table
+                    :data="supervisionAssistData"
+                    v-loading="
+                      $asyncComputed.supervisionAssistServerData.updating
+                    "
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
+                    <el-table-column
+                      prop="Address"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="巡查地点"
+                    ></el-table-column>
+                    <el-table-column
+                      prop="Time"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="巡查时间"
+                    ></el-table-column>
+                  </el-table>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
       <!--机构排行-->
       <div v-if="!params.isInstitution">
         <el-card
@@ -1168,6 +1308,27 @@ export default {
     }
   },
   computed: {
+    //健康教育
+    healthEducationData() {
+      return this.healthEducationServerData.map(it => ({
+        ...it,
+        ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
+      }));
+    },
+    //监督协管报告
+    supervisionReportData() {
+      return this.supervisionReportServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
+    //监督协管巡查
+    supervisionAssistData() {
+      return this.supervisionAssistServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
     //人脸采集信息
     faceCollectData() {
       let arr = [
@@ -1481,6 +1642,54 @@ export default {
     }
   },
   asyncComputed: {
+    // 家庭医生签约
+    familyDoctorContractServerData: {
+      async get() {
+        return await this.$api.Hospital.signRegister(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return {};
+      }
+    },
+    //健康教育数据
+    healthEducationServerData: {
+      async get() {
+        return await this.$api.Hospital.healthEducation(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
+    //监督协管报告
+    supervisionReportServerData: {
+      async get() {
+        return await this.$api.Hospital.supervisionReport(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
+    //监督协管巡查
+    supervisionAssistServerData: {
+      async get() {
+        return await this.$api.Hospital.supervisionAssist(this.params.id);
+      },
+      shouldUpdate() {
+        return this.params.isInstitution;
+      },
+      default() {
+        return [];
+      }
+    },
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
@@ -1675,6 +1884,17 @@ export default {
   text-align: center;
   box-sizing: border-box;
   color: $color-primary;
+}
+
+.family-doctor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 0 0 15px;
+  span {
+    color: #606266;
+    line-height: 28px;
+  }
 }
 
 .pointer {
