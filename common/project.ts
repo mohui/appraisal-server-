@@ -614,11 +614,6 @@ export const Projects = [
         id: '3',
         name: '签约服务',
         type: '340203'
-      },
-      {
-        id: '3',
-        name: '采集人脸并档案审核',
-        type: '340222'
       }
     ]
   },
@@ -630,6 +625,11 @@ export const Projects = [
         id: '4',
         name: '人脸采集',
         type: '340203'
+      },
+      {
+        id: '3',
+        name: '采集人脸并档案审核',
+        type: '340222'
       }
     ]
   },
