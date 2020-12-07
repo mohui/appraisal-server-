@@ -65,7 +65,6 @@
                 plain
                 type="warning"
                 size="mini"
-                v-show="item.ruleId"
                 @click="cancelGroup(item)"
                 >取消
               </el-button>
@@ -757,7 +756,9 @@ export default {
     },
     //细则分类编辑取消
     cancelGroup(item) {
-      item.ruleName = item.original.ruleName;
+      !item.ruleId
+        ? this.ruleList.pop()
+        : (item.ruleName = item.original.ruleName);
       item.isEdit = false;
     },
     //保存细则分类
