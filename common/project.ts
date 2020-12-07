@@ -307,6 +307,11 @@ export const Projects = [
         id: '1',
         name: '高血压随访',
         type: '340203'
+      },
+      {
+        id: '1',
+        name: '高血压',
+        type: '340222'
       }
     ]
   },
@@ -340,6 +345,11 @@ export const Projects = [
         id: '2',
         name: '糖尿病随访',
         type: '340203'
+      },
+      {
+        id: '2',
+        name: '糖尿病',
+        type: '340222'
       }
     ]
   },
@@ -604,6 +614,11 @@ export const Projects = [
         id: '3',
         name: '签约服务',
         type: '340203'
+      },
+      {
+        id: '3',
+        name: '采集人脸并档案审核',
+        type: '340222'
       }
     ]
   },
