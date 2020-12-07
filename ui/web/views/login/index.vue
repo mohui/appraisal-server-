@@ -85,39 +85,33 @@ export default {
     };
   },
   async created() {},
-  beforeDestroy() {
-    clearTimeout(this.timer);
-    this.timer = null;
-  },
   methods: {
     submitForm() {
+      if (this.btnLoading) return;
       this.btnLoading = true;
       this.$refs.loginForm.validate(async valid => {
         if (valid) {
-          if (this.timer) clearTimeout(this.timer);
-          this.timer = setTimeout(async () => {
-            try {
-              const result = await this.$api.User.login(
-                this.loginForm.account,
-                this.loginForm.pass
-              );
-              this.$message({
-                message: '登录成功',
-                type: 'success',
-                duration: 1000
-              });
-              setToken(result.id);
-              this.btnLoading = false;
-              await this.$router.push('/');
-            } catch (e) {
-              this.btnLoading = false;
-              this.$message.error({
-                message: e.message,
-                duration: 1000
-              });
-              return false;
-            }
-          }, 300);
+          try {
+            const result = await this.$api.User.login(
+              this.loginForm.account,
+              this.loginForm.pass
+            );
+            this.$message({
+              message: '登录成功',
+              type: 'success',
+              duration: 1000
+            });
+            setToken(result.id);
+            this.btnLoading = false;
+            await this.$router.push('/');
+          } catch (e) {
+            this.btnLoading = false;
+            this.$message.error({
+              message: e.message,
+              duration: 1000
+            });
+            return false;
+          }
         } else {
           this.btnLoading = false;
           console.log('error submit!!');
