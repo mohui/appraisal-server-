@@ -135,12 +135,18 @@ export default class Hospital {
   }
 
   async workpoints(code) {
-    const hisHospitalId = (
-      await appDB.execute(
-        `select hishospid as id from hospital_mapping where h_id = ?`,
-        code
-      )
-    )?.[0]?.id;
+    const hospital = await appDB.execute(
+      `select hishospid as id,
+                    viewHospital.regioncode region
+            from hospital_mapping mapping
+            left join view_hospital viewHospital on mapping.hishospid = viewHospital.hospid
+            where h_id = ?`,
+      code
+    );
+    const hisHospitalId = hospital[0]?.id;
+    const type =
+      hospital[0]?.region.substr(0, 6) === '340222' ? '340222' : '340203';
+
     return (
       await originalDB.execute(
         `select cast(sum(vws.score) as int) as score,
@@ -163,7 +169,11 @@ export default class Hospital {
       )
     ).map(it => ({
       ...it,
-      name: Projects.find(p => p.id === it.projectId)?.name
+      name: Projects.find(p => {
+        return p.mappings.find(
+          mapping => mapping.id === it.projectId && mapping.type === type
+        );
+      })?.name
     }));
   }
 
