@@ -1368,20 +1368,41 @@ group by h.region`,
           ]
         })
       ).map(it => it.toJSON());
+
+      // 取出机构所属的区级权限
+      const type =
+        hospitalModel.regionId.substr(0, 6) === '340222' ? '340222' : '340203';
+
       if (projects.length > 0) {
-        //按工分项分类查询工分值
-        const params = {
-          hospitalId: code,
-          projectIds: projects.map(it => it.projectId),
-          start: dayjs()
-            .startOf('y')
-            .toDate(),
-          end: dayjs()
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        };
-        let projectWorkPointList = await queryProjectWorkPoint(params);
+        // 取出权限下的工分项id(繁昌的和其他区的有区别)
+        const newProject = projects.map(it => ({
+          ...(Projects.find(item => item.id === it.projectId)?.mappings?.find(
+            mapping => mapping.type === type
+          ) ?? {}),
+          parent: it.projectId
+        }));
+
+        let projectWorkPointChildrenList = [];
+        // 筛选以后,可能存在没有公分项的
+        if (newProject.length > 0) {
+          //按工分项分类查询工分值
+          const params = {
+            hospitalId: code,
+            projectIds: newProject.map(it => it.id),
+            start: dayjs()
+              .startOf('y')
+              .toDate(),
+            end: dayjs()
+              .startOf('y')
+              .add(1, 'y')
+              .toDate()
+          };
+          projectWorkPointChildrenList = await queryProjectWorkPoint(params);
+        }
+        let projectWorkPointList = projectWorkPointChildrenList.map(it => {
+          const itemObj = newProject.find(item => item.id === it.projectId);
+          return {workpoint: it.workpoint, projectId: itemObj.parent};
+        });
         projectWorkPointList = projectWorkPointList.concat(
           //过滤查询结果中,工分值为null的工分项,将他们的工分值设为0
           projects
