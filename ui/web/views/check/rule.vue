@@ -790,6 +790,13 @@ export default {
           type: 'success',
           message: '保存成功!'
         });
+        this.$set(row, 'original', {
+          checkId,
+          ruleId,
+          ruleName,
+          budget,
+          projects
+        });
         if (result.ruleId) {
           row.ruleId = result.ruleId;
           row.projects = projects;
