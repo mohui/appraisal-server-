@@ -278,7 +278,10 @@
               <p class="second-title" style="margin:0; text-align:left;">
                 健康教育
               </p>
-              <el-tabs v-model="healthEducationTagSelected">
+              <el-tabs
+                v-if="healthEducationTagsName.length !== 0"
+                v-model="healthEducationTagSelected"
+              >
                 <el-tab-pane
                   v-for="tag in healthEducationTagsName"
                   :key="tag"
@@ -313,6 +316,9 @@
                   </el-table>
                 </el-tab-pane>
               </el-tabs>
+              <div class="el-table__empty-text empty-data" v-else>
+                暂无数据
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -1342,12 +1348,11 @@ export default {
       }));
     },
     healthEducationTagsName() {
-      let tags = [];
-      this.healthEducationServerData?.forEach(it => {
-        if (tags.indexOf(it.ActivityFormName) === -1)
-          tags.push(it.ActivityFormName);
-      });
-      return tags;
+      return Array.from(
+        new Set(
+          this.healthEducationServerData?.map(it => it.ActivityFormName) ?? []
+        )
+      );
     },
     //健康教育
     healthEducationData() {
@@ -1898,6 +1903,14 @@ export default {
     width: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+
+  .empty-data {
+    font-size: 12px;
+    position: relative;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 
