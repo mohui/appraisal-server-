@@ -127,31 +127,13 @@ export default {
         ],
         series: [
           {
-            name: '底部backdrop',
-            xAxisIndex: 1,
-            yAxisIndex: 1,
-            type: 'bar',
-            data: [1, 1, 1, 1, 1, 1, 1, 1].map(value => {
-              return {
-                value,
-                itemStyle: {
-                  color: 'transparent'
-                }
-              };
-            }),
-            barMaxWidth: '100%',
-            silent: true,
-            z: 2
-          },
-          {
-            name: '工分项',
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: {
               color: '#43A7FF'
             },
             type: 'bar',
-            data: [0.3, 0.4, 0.5, 0.8, 0.7, 0.7, 0.5, 0.8],
+            data: [],
             barMaxWidth: '20%',
             z: 3
           }
@@ -170,7 +152,7 @@ export default {
   methods: {
     updataChart() {
       this.option.xAxis[0].data = this.barData.map(it => it.name);
-      this.option.series[1].data = this.barData.map(it => it.value);
+      this.option.series[0].data = this.barData.map(it => it.value);
       if (this.color.length > 0) {
         this.option.color = this.color;
       }
