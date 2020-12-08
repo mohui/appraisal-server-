@@ -758,7 +758,8 @@ export default {
     cancelGroup(item) {
       !item.ruleId
         ? this.ruleList.pop()
-        : (item.ruleName = item.original.ruleName);
+        : ((item.ruleName = item.original.ruleName),
+          (item.budget = item.original.budget));
       item.isEdit = false;
     },
     //保存细则分类
