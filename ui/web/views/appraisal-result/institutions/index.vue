@@ -278,38 +278,41 @@
               <p class="second-title" style="margin:0; text-align:left;">
                 健康教育
               </p>
-              <el-table
-                :data="healthEducationData"
-                height="280px"
-                v-loading="$asyncComputed.healthEducationServerData.updating"
-                style="width: 100%"
-                size="mini"
-              >
-                <el-table-column
-                  prop="ActivityFormName"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动类型"
+              <el-tabs v-model="healthEducationTagSelected">
+                <el-tab-pane
+                  v-for="tag in healthEducationTagsName"
+                  :key="tag"
+                  :label="tag"
+                  :name="tag"
                 >
-                </el-table-column>
-                <el-table-column
-                  prop="ActivityTime"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动时间"
-                >
-                </el-table-column>
-                <el-table-column
-                  prop="ActivityName"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动名称"
-                >
-                </el-table-column>
-              </el-table>
+                  <el-table
+                    v-loading="
+                      $asyncComputed.healthEducationServerData.updating
+                    "
+                    :data="healthEducationData"
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
+                    <el-table-column
+                      prop="ActivityTime"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="活动时间"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                      prop="ActivityName"
+                      header-align="center"
+                      align="center"
+                      min-width="40px"
+                      label="活动名称"
+                    >
+                    </el-table-column>
+                  </el-table>
+                </el-tab-pane>
+              </el-tabs>
             </div>
           </el-card>
         </el-col>
@@ -1061,7 +1064,8 @@ export default {
         data: ''
       },
       dialogAppraisalFileListVisible: false,
-      appraisalResultInstructionsPopoverVisible: false //单项指标考核结果说明
+      appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
+      healthEducationTagSelected: ''
     };
   },
   directives: {
@@ -1307,6 +1311,9 @@ export default {
           this.$refs[this.curRule.ruleId][0].updatePopper();
         });
       }
+    },
+    healthEducationTagsName(val) {
+      this.healthEducationTagSelected = val[0];
     }
   },
   computed: {
@@ -1334,12 +1341,22 @@ export default {
         value: this.familyDoctorContractServerData[it.label]
       }));
     },
+    healthEducationTagsName() {
+      let tags = [];
+      this.healthEducationServerData?.forEach(it => {
+        if (tags.indexOf(it.ActivityFormName) === -1)
+          tags.push(it.ActivityFormName);
+      });
+      return tags;
+    },
     //健康教育
     healthEducationData() {
-      return this.healthEducationServerData.map(it => ({
-        ...it,
-        ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
-      }));
+      return this.healthEducationServerData
+        .filter(e => e.ActivityFormName === this.healthEducationTagSelected)
+        .map(it => ({
+          ...it,
+          ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
+        }));
     },
     //监督协管报告
     supervisionReportData() {
