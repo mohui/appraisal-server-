@@ -758,8 +758,9 @@ export default {
     cancelGroup(item) {
       !item.ruleId
         ? this.ruleList.pop()
-        : ((item.ruleName = item.original.ruleName),
-          (item.budget = item.original.budget));
+        : Object.keys(item.original).forEach(e => {
+            item[e] = item.original[e];
+          });
       item.isEdit = false;
     },
     //保存细则分类
