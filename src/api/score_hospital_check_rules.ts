@@ -67,6 +67,7 @@ async function queryList(params) {
             group by vw.operateorganization`,
     params
   );
+  // return await originalDB.execute(sql, ...paramters);
   return (await originalDB.execute(sql, ...paramters)).map(i => ({
     workPoint: i.workPoint,
     hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
@@ -550,11 +551,15 @@ export default class ScoreHospitalCheckRules {
    * 根据考核结果进行金额分配
    */
   async checkBudget(checkId) {
-    //所有的考核组
-    //考核组下绑定的工分项
-    //质量系数: 得分/规则总分
-    //机构在这些工分项所有的工分*质量系数
-    //这个考核组下所有机构的所有矫正后工分
+    /** 所有的考核组
+     *
+     * 考核组下绑定的工分项
+     * 质量系数: 得分/规则总分
+     * 机构在这些工分项所有的工分*质量系数
+     * 这个考核组下所有机构的所有矫正后工分
+     */
+
+    // 查询考核小项
     const ruleGroup = (
       await CheckRuleModel.findAll({
         where: {parentRuleId: {[Op.eq]: null}, checkId},
@@ -567,7 +572,9 @@ export default class ScoreHospitalCheckRules {
         ]
       })
     ).map(r => r.toJSON());
+    //循环考核小项
     for (const group of ruleGroup) {
+      // 查询此考核小项下的所有考核细则及其所有机构
       const rules = (
         await CheckRuleModel.findAll({
           where: {parentRuleId: group.ruleId},
@@ -578,12 +585,15 @@ export default class ScoreHospitalCheckRules {
       //如果小项下面没有细则,则跳过不计算
       if (rules.length === 0) continue;
 
+      // 取出所有的机构id
       const hospitals = rules[0].ruleHospitals;
-      //规则满分
+
+      //规则满分(所有细则总分和)
       const totalScore = rules.reduce(
         (result, next) => (result += next.ruleScore),
         0
       );
+
       //工分项
       const projectIds = group.ruleProject.map(p => p.projectId);
       const ids = hospitals.map(it => it.hospitalId);
