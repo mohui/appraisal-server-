@@ -73,15 +73,16 @@ async function queryList(params) {
     const type =
       hospital.regioncode.substr(0, 6) === '340222' ? '340222' : '340203';
 
-    //筛选公分id
-    proParam['projectIds'] = params.projectIds
-      .map(item => {
-        return Projects.find(p => p.id === item)?.mappings?.find(
-          mapping => mapping.type === type
-        )?.id;
-      })
-      .filter(it => it);
-
+    if (params.projectIds) {
+      //筛选公分id
+      proParam['projectIds'] = params.projectIds
+        .map(item => {
+          return Projects.find(p => p.id === item)?.mappings?.find(
+            mapping => mapping.type === type
+          )?.id;
+        })
+        .filter(it => it);
+    }
     [sql, paramters] = sqlRender(
       `select
             operateorganization,
@@ -97,7 +98,7 @@ async function queryList(params) {
     );
     returnList.push(...(await originalDB.execute(sql, ...paramters)));
   }
-  return returnList.map(i => ({
+  return returnList?.map(i => ({
     workPoint: i.workPoint,
     hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
       ?.hospitalId
