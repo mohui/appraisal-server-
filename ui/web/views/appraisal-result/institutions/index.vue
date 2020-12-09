@@ -711,7 +711,6 @@
                       <el-input-number
                         v-model="scope.row.score"
                         size="mini"
-                        :min="0"
                         :step="1"
                         :precision="2"
                         style="width:84%"
@@ -1132,13 +1131,6 @@ export default {
         });
         return;
       }
-      if (row.score < 0) {
-        this.$message({
-          type: 'error',
-          message: '打分不能低于0分！'
-        });
-        return;
-      }
       try {
         row.isSaveScoreLoaing = true;
         await this.$api.ScoreHospitalCheckRules.score(
@@ -1167,7 +1159,7 @@ export default {
     },
     //取消打分
     cancelScore(row) {
-      this.$set(row, 'originalScore', row.originalScore);
+      this.$set(row, 'score', row.originalScore);
       this.$set(row, 'isGradeScore', false);
     },
     //上传考核资料

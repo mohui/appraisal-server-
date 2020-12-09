@@ -87,6 +87,7 @@ export default {
   async created() {},
   methods: {
     submitForm() {
+      if (this.btnLoading) return;
       this.btnLoading = true;
       this.$refs.loginForm.validate(async valid => {
         if (valid) {
