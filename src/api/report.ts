@@ -15,6 +15,7 @@ import {Context} from './context';
 import * as ContentDisposition from 'content-disposition';
 
 import {Op} from 'sequelize';
+import createBackJob from '../utils/back-job';
 
 /**
  * 语义化时间
@@ -60,6 +61,124 @@ export default class Report {
         name: displayTime(path.parse(it.name).name.split('_')[1]),
         url: it.url
       }));
+  }
+
+  async downloadCheckBackJob(code, id) {
+    //查询数据
+    // 机构编码
+    let hospitals: HospitalModel[] = [];
+
+    // 查询地区
+    const regionOne = await RegionModel.findOne({
+      where: {code}
+    });
+    // 导出文件名称 以所导出的地区/机构为名称
+    let xlsName = '';
+
+    // 判断是地区的导出耗时机构的导出
+    if (regionOne) {
+      xlsName = regionOne.name;
+      // 如果是地区,查询该地区权限下的所有机构
+      hospitals = await HospitalModel.findAll({
+        where: {
+          region: {
+            [Op.like]: `${code}%`
+          }
+        }
+      });
+    } else {
+      // 如果是机构, 查询出该机构下所有机构(一级机构下有二级机构)
+      hospitals = await HospitalModel.findAll({
+        where: {
+          [Op.or]: [{id: code}, {parent: code}]
+        },
+        include: []
+      });
+
+      const hospitalObj = hospitals.find(it => {
+        if (it.id === code) return it;
+      });
+      if (hospitalObj) xlsName = hospitalObj.name;
+    }
+    // 地区和机构都没有查到,说明是非法地区
+    if (hospitals.length === 0)
+      throw new KatoCommonError(`code为 [${code}] 不合法`);
+
+    // 查找机构对应的考核体系,如果考核体系id为空,查所有的主考核
+    const checkWhere = id ? {checkId: id} : {checkType: 1};
+
+    let hospitalCheckList: any[] = await Promise.all(
+      hospitals.map(async hospital => {
+        const checkHospital: CheckHospitalModel = await CheckHospitalModel.findOne(
+          {
+            where: {
+              hospitalId: hospital.id
+            },
+            include: [
+              {
+                model: CheckSystemModel,
+                where: checkWhere
+              }
+            ]
+          }
+        );
+        return {
+          ...hospital.toJSON(),
+          check: checkHospital?.checkSystem?.toJSON()
+        };
+      })
+    );
+    // 过滤所有没有考核的机构(可能存在一些不是主考核的考核)
+    hospitalCheckList = hospitalCheckList.filter(it => it.check);
+
+    // 根据考核体系分组
+    const checkGroups = [];
+    for (const current of hospitalCheckList) {
+      let check = checkGroups.find(it => it.id === current.check.checkId);
+
+      // 如果查找为空
+      if (!check) {
+        // 补充考核细则字段
+        const rules = await CheckRuleModel.findAll({
+          where: {
+            checkId: current.check.checkId,
+            parentRuleId: {[Op.not]: null}
+          },
+          attributes: ['ruleId', 'ruleName']
+        });
+
+        check = {
+          id: current.check.checkId,
+          name: current.check.checkName,
+          hospitals: [],
+          rules: rules
+        };
+
+        checkGroups.push(check);
+      }
+
+      // 查询机构考核细则得分
+      const scores = await RuleHospitalScoreModel.findAll({
+        where: {
+          hospitalId: current.id,
+          ruleId: {
+            [Op.in]: check.rules.map(rule => rule.ruleId)
+          }
+        },
+        attributes: ['score', 'ruleId']
+      });
+
+      // 补充考核机构字段
+      check.hospitals.push({
+        id: current.id,
+        name: current.name,
+        scores: scores
+      });
+    }
+    return await createBackJob('reportCheck', {
+      checkGroups,
+      title: `${xlsName}考核结果.xls`
+    });
   }
 
   /**
