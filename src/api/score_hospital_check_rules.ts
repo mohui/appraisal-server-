@@ -48,14 +48,42 @@ function percentString(numerator: number, denominator: number): string {
 }
 
 async function queryList(params) {
+  // 查询机构之间的对应关系和所属his
   let [sql, paramters] = sqlRender(
-    `select hishospid as id,h_id as "hospitalId" from hospital_mapping where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+    `select hishospid as id,
+                        h_id as "hospitalId",
+                        viewHospital.regioncode
+                from hospital_mapping mapping
+                left join view_hospital viewHospital on mapping.hishospid = viewHospital.hospid
+                where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
     params
   );
   const hisHospitals = await appDB.execute(sql, ...paramters);
-  params.operateorganizations = hisHospitals.map(i => i.id);
-  [sql, paramters] = sqlRender(
-    `select
+
+  // 最后的返回值数组
+  const returnList = [];
+  // 根据机构找到其对应的公分id(芜湖和繁昌的公分值id存在差异,所以需要区分是否是繁昌的)
+  for (const hospital of hisHospitals) {
+    const proParam = {
+      operateorganization: hospital.id,
+      start: params.start,
+      end: params.end
+    };
+    // 判断机构属于芜湖还是繁昌
+    const type =
+      hospital.regioncode.substr(0, 6) === '340222' ? '340222' : '340203';
+
+    //筛选公分id
+    proParam['projectIds'] = params.projectIds
+      .map(item => {
+        return Projects.find(p => p.id === item)?.mappings?.find(
+          mapping => mapping.type === type
+        )?.id;
+      })
+      .filter(it => it);
+
+    [sql, paramters] = sqlRender(
+      `select
             operateorganization,
             cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
@@ -63,12 +91,13 @@ async function queryList(params) {
              {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
-             and operateorganization in ({{#each operateorganizations}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+             and operateorganization = {{? operateorganization}}
             group by vw.operateorganization`,
-    params
-  );
-  // return await originalDB.execute(sql, ...paramters);
-  return (await originalDB.execute(sql, ...paramters)).map(i => ({
+      proParam
+    );
+    returnList.push(...(await originalDB.execute(sql, ...paramters)));
+  }
+  return returnList.map(i => ({
     workPoint: i.workPoint,
     hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
       ?.hospitalId
