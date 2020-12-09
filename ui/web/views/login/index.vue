@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import {setToken} from '../../utils/cache';
+import {setToken, getRoute, removeRoute} from '../../utils/cache';
 
 export default {
   name: 'Index',
@@ -102,6 +102,13 @@ export default {
               duration: 1000
             });
             setToken(result.id);
+            const route = getRoute();
+            if (route) {
+              const {path, query, params} = route;
+              await this.$router.push({path, query, params});
+              removeRoute();
+              return;
+            }
             this.btnLoading = false;
             await this.$router.push('/');
           } catch (e) {

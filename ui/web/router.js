@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from './views/layout/layout';
-import {getToken, setToken, cleanCache} from './utils/cache';
+import {getToken, setToken, cleanCache, setRoute} from './utils/cache';
 import {Permission} from '../../common/permission.ts';
 
 Vue.use(Router);
@@ -166,6 +166,8 @@ router.beforeEach(async (to, from, next) => {
   }
   if (!getToken()) {
     cleanCache();
+    let {path, query, params} = from;
+    setRoute({path, query, params});
     from.path === '/' || Vue.prototype.$message.info('登录超时,请重新登录~');
     next('/login');
     return;
