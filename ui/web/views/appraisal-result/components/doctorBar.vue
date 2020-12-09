@@ -1,0 +1,170 @@
+<template>
+  <div style="height: 100%; width: 100%;">
+    <div ref="scoreBar" :style="{width: '100%', height: '100%'}"></div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'doctorBar',
+  props: {
+    barData: Array,
+    emptyText: {
+      type: String,
+      default() {
+        return '暂无数据';
+      }
+    },
+    color: {
+      type: Array,
+      default() {
+        return [];
+      }
+    }
+  },
+  data() {
+    return {
+      chart: {},
+      option: {
+        grid: [
+          {
+            top: 40,
+            left: 40,
+            right: 20,
+            bottom: 140
+          },
+          {
+            bottom: 50
+          }
+        ],
+        legend: {
+          show: false
+        },
+        tooltip: {
+          trigger: 'axis',
+          formatter: comp => {
+            const [serie] = comp;
+            return `${serie.name}: ${serie.value} `;
+          },
+          axisPointer: {
+            show: true,
+            status: 'shadow',
+            z: -1,
+            shadowStyle: {
+              color: '#E6F7FF'
+            },
+            type: 'shadow'
+          }
+        },
+        xAxis: [
+          {
+            position: 'bottom',
+            type: 'category',
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: '#ECF1F6'
+              }
+            },
+            axisTick: {
+              show: false
+            },
+            axisLabel: {
+              show: true,
+              rotate: 45,
+              fontSize: 12,
+              color: '#3A3A3C'
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: ['#ECF1F6', '#ECF1F6'],
+                width: 0,
+                type: 'dashed'
+              }
+            },
+            gridIndex: 0,
+            data: []
+          },
+          {
+            type: 'category',
+            gridIndex: 1,
+            show: false
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value',
+            position: 'left',
+            axisLine: {
+              show: false
+            },
+            axisTick: {
+              show: false
+            },
+            axisLabel: {
+              show: true,
+              rotate: 0,
+              fontSize: 12,
+              color: '#6E7D9C'
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: ['#ECF1F6', '#ECF1F6'],
+                width: 1,
+                type: 'solid'
+              }
+            },
+            gridIndex: 0
+          },
+          {
+            gridIndex: 1,
+            min: 0,
+            max: 1,
+            show: false
+          }
+        ],
+        series: [
+          {
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            itemStyle: {
+              color: '#43A7FF'
+            },
+            type: 'bar',
+            data: [],
+            barMaxWidth: '20%',
+            z: 3
+          }
+        ]
+      }
+    };
+  },
+  mounted() {
+    this.chart = this.$echarts.init(this.$refs['scoreBar']);
+    this.updataChart();
+    window.addEventListener('resize', this.chart.resize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.chart.resize);
+  },
+  methods: {
+    updataChart() {
+      this.option.xAxis[0].data = this.barData.map(it => it.name);
+      this.option.series[0].data = this.barData.map(it => it.value);
+      if (this.color.length > 0) {
+        this.option.color = this.color;
+      }
+      this.chart.setOption(this.option, true);
+    }
+  },
+  watch: {
+    barData: function() {
+      this.updataChart();
+    }
+  }
+};
+</script>
+
+<style scoped></style>

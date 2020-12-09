@@ -252,35 +252,27 @@
         style="margin: 20px -10px"
         v-if="params.isInstitution"
       >
-        <el-col :span="4" :xs="8" :sm="4" :md="4" :lg="4" :xl="4">
+        <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
                 家庭医生签约
               </p>
               <div
+                style="height: 100%"
                 v-loading="
                   $asyncComputed.familyDoctorContractServerData.updating
                 "
-                class="family-doctor"
               >
-                <span
-                  >签约人数:
-                  {{ familyDoctorContractServerData.signedNumber }}</span
-                >
-                <span
-                  >履约人数:
-                  {{ familyDoctorContractServerData.exeNumber }}</span
-                >
-                <span
-                  >续约人数:
-                  {{ familyDoctorContractServerData.renewNumber }}</span
-                >
+                <doctor-bar
+                  style="padding-top: 20px;"
+                  :barData="familyDoctorContractData"
+                ></doctor-bar>
               </div>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+        <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
@@ -313,7 +305,7 @@
                   prop="ActivityName"
                   header-align="center"
                   align="center"
-                  min-width="40px"
+                  min-width="20px"
                   label="活动名称"
                 >
                 </el-table-column>
@@ -990,6 +982,7 @@
 </template>
 <script>
 import twoCardPie from '../components/twocardPie';
+import doctorBar from '../components/doctorBar';
 import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
@@ -1003,6 +996,7 @@ export default {
   name: 'index',
   components: {
     twoCardPie,
+    doctorBar,
     twoCardTreeMap,
     twoCardCircle,
     accordion,
@@ -1308,6 +1302,30 @@ export default {
     }
   },
   computed: {
+    //家庭医生签约
+    familyDoctorContractData() {
+      let arr = [
+        {
+          name: '签约人数',
+          label: 'signedNumber',
+          value: ''
+        },
+        {
+          name: '履约人数',
+          label: 'exeNumber',
+          value: ''
+        },
+        {
+          name: '续约人数',
+          label: 'renewNumber',
+          value: ''
+        }
+      ];
+      return arr.map(it => ({
+        ...it,
+        value: this.familyDoctorContractServerData[it.label]
+      }));
+    },
     //健康教育
     healthEducationData() {
       return this.healthEducationServerData.map(it => ({
