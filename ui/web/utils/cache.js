@@ -30,7 +30,6 @@ export function getRoute() {
 }
 
 export function setRoute(route) {
-  console.log('route', route);
   localStorage.setItem(USER_ROUTE, JSON.stringify(route));
 }
 
