@@ -12,6 +12,7 @@ import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
 import * as models from './database/model';
 import * as cron from 'node-cron';
+import {init as initBackJob} from './utils/back-job/index';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -45,6 +46,8 @@ export class Application {
     await this.initExpress();
     //初始化kato
     await this.initKato();
+    //初始化socket
+    await initBackJob(this.server);
     //初始化web资源
     await this.initWebResource();
     //初始化定时任务
