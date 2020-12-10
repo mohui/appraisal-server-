@@ -26,7 +26,6 @@
         stripe
         border
         size="mini"
-        v-loading="$asyncComputed.listCheck.updating"
         :data="checkList"
         @row-click="handleCellClick"
         :cell-class-name="cellClassHover"
