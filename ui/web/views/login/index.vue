@@ -102,12 +102,13 @@ export default {
               duration: 1000
             });
             setToken(result.id);
-            const {query, params} = this.$route;
-            if (query.path) {
+            const {oauth_callback} = this.$route.query;
+            const {path, query, params} = oauth_callback;
+            if (oauth_callback?.path) {
               await this.$router.push({
-                path: query.path,
-                query: query,
-                params
+                path: JSON.parse(path),
+                query: JSON.parse(query),
+                params: JSON.parse(params)
               });
               return;
             }
