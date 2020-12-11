@@ -1,5 +1,5 @@
 <template>
-  <el-popover placement="bottom" width="500" trigger="click">
+  <el-popover placement="bottom" width="550" trigger="click">
     <el-table
       align="center"
       size="mini"
@@ -7,11 +7,23 @@
       width="100%"
       :data="jobDataShow"
     >
-      <el-table-column align="center" label="状态">
+      <el-table-column align="center" label="状态" width="100">
         <template slot-scope="{row}">
-          <el-button v-show="row.status === 'success'" size="mini"
-            >下载
-          </el-button>
+          <el-button
+            v-show="row.status === 'success'"
+            size="mini"
+            type="success"
+            icon="el-icon-download"
+            circle
+          ></el-button>
+          <el-button
+            v-show="row.status === 'success'"
+            size="mini"
+            type="danger"
+            icon="el-icon-delete"
+            @click="deleteJob(row.id)"
+            circle
+          ></el-button>
           <div v-show="row.status === 'running'">
             <i class="el-icon-loading"></i>正在运行...
           </div>
@@ -49,6 +61,7 @@
 <script>
 import io from 'socket.io-client';
 import {getToken} from '../utils/cache';
+const DateStringRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
 
 export default {
   name: 'kn-back-job',
@@ -60,8 +73,6 @@ export default {
   async created() {
     const socket = io({path: '/back-job', query: {id: getToken()}});
     socket.on('update', data => {
-      console.log('客户端收到:', data);
-      const DateStringRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
       if (
         typeof data.startTime === 'string' &&
         DateStringRegex.exec(data?.startTime)
@@ -94,6 +105,11 @@ export default {
       if (this.jobDataShow?.length > 0) {
         return this.$widthCompute(this.jobDataShow.map(item => item[field]));
       }
+    },
+    deleteJob(id) {
+      this.socket.emit('delete', id);
+      const index = this.jobData.findIndex(it => it.id === id);
+      if (index > -1) this.jobData.splice(index, 1);
     }
   },
   destroyed() {

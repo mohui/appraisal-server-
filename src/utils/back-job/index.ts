@@ -43,7 +43,8 @@ export async function init(app) {
     jobs.forEach(value => {
       if (value.userId === id) socket.emit('update', value);
     });
-
+    //监听前端手动删除任务
+    socket.on('delete', jobId => jobs.delete(jobId));
     socket.on('disconnect', () => {
       const index = clients.findIndex(it => it.id === id);
       if (index > -1) clients.splice(index, 1);
@@ -72,7 +73,6 @@ export async function createBackJob(job: string, title: string, data?: object) {
     };
 
     jobs.set(backJob.id, backJob);
-
     const work = new Worker(path.join(__dirname, './worker.js'), {
       workerData: {job, ...data}
     });
