@@ -156,7 +156,6 @@ export async function reportCheck(code: string, id: any): Promise<string> {
   }
   const filepath = path.join(__dirname, `${xlsName}考核结果.xls`);
   await workBook.xlsx.writeFile(filepath);
-  await new Promise(resolve => setTimeout(() => resolve(1), 3000));
   return filepath;
 }
 
