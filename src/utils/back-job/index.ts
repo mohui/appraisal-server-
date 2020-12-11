@@ -30,7 +30,7 @@ export async function init(app) {
   //设置socket
   const io = new Server(app, {path: '/back-job'});
   io.on('connection', (socket: Socket) => {
-    const id: string = socket.handshake?.query?.id;
+    const id: string = (socket.handshake.query as any)?.id ?? '';
 
     if (!id) {
       socket.disconnect(true);
