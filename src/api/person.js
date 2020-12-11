@@ -1,4 +1,4 @@
-import {originalDB} from '../app';
+import {originalDB, appDB} from '../app';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
@@ -123,7 +123,7 @@ export default class Person {
     hospitals = (
       await Promise.all(
         hospitals.map(it =>
-          originalDB.execute(
+          appDB.execute(
             `select hishospid as id from hospital_mapping where h_id = ?`,
             it
           )
