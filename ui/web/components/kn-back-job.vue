@@ -7,18 +7,6 @@
       width="100%"
       :data="jobDataShow"
     >
-      <el-table-column
-        align="center"
-        property="title"
-        label="名称"
-      ></el-table-column>
-      <el-table-column align="center" property="startTime" label="时间">
-        <template slot-scope="{row}">
-          <div>
-            {{ row.status === 'success' ? row.endTime : row.startTime }}
-          </div>
-        </template>
-      </el-table-column>
       <el-table-column align="center" label="状态">
         <template slot-scope="{row}">
           <el-button v-show="row.status === 'success'" size="mini"
@@ -26,6 +14,24 @@
           </el-button>
           <div v-show="row.status === 'running'">
             <i class="el-icon-loading"></i>正在运行...
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column
+        align="center"
+        property="title"
+        label="名称"
+        :min-width="computedColWidth('title')"
+      ></el-table-column>
+      <el-table-column
+        align="center"
+        property="startTime"
+        label="时间"
+        :min-width="computedColWidth('startTime')"
+      >
+        <template slot-scope="{row}">
+          <div>
+            {{ row.status === 'success' ? row.endTime : row.startTime }}
           </div>
         </template>
       </el-table-column>
@@ -81,6 +87,13 @@ export default {
         startTime: it.startTime.$format(),
         endTime: it?.endTime?.$format() || ''
       }));
+    }
+  },
+  methods: {
+    computedColWidth(field) {
+      if (this.jobDataShow?.length > 0) {
+        return this.$widthCompute(this.jobDataShow.map(item => item[field]));
+      }
     }
   },
   destroyed() {
