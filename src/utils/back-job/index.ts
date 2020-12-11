@@ -3,6 +3,7 @@ import * as path from 'path';
 import {Server, Socket} from 'socket.io';
 import {Context} from '../../api/context';
 import {KatoCommonError} from 'kato-server';
+import {v4 as uuid} from 'uuid';
 
 const jobType: Array<string> = ['reportCheck'];
 
@@ -44,7 +45,6 @@ export async function init(app) {
     });
 
     socket.on('disconnect', () => {
-      console.log('后端断开');
       const index = clients.findIndex(it => it.id === id);
       if (index > -1) clients.splice(index, 1);
     });
@@ -63,7 +63,7 @@ export async function createBackJob(job: string, title: string, data?: object) {
 
     const userId = Context.current.user.id;
     const backJob: Job = {
-      id: userId + job, //同一个用户同一个类型的任务始终保持一个
+      id: uuid(),
       userId,
       job,
       title,
@@ -81,7 +81,6 @@ export async function createBackJob(job: string, title: string, data?: object) {
     //监听后台任务的结果
     work.on('message', data => {
       // socket.io
-      console.log('main等到的消息', data);
       backJob.result = data;
       backJob.status = 'success';
       backJob.endTime = new Date();
