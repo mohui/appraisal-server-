@@ -64,10 +64,21 @@ export default class Report {
   }
 
   async downloadCheckBackJob(code, id) {
-    return createBackJob('reportCheck', '考核结果导出', {
-      code,
-      id
-    });
+    try {
+      let fileName = '';
+      let dataInfo = await RegionModel.findOne({where: {code}});
+      if (!dataInfo)
+        dataInfo = await HospitalModel.findOne({where: {id: code}});
+      if (!dataInfo) throw new KatoCommonError('机构或地区id错误!');
+
+      fileName = dataInfo.name;
+      return createBackJob('reportCheck', `${fileName}考核结果导出`, {
+        code,
+        id
+      });
+    } catch (e) {
+      throw new KatoCommonError(e.message);
+    }
   }
 
   /**
