@@ -16,6 +16,7 @@ type Job = {
   startTime: Date;
   endTime?: Date;
   result?: any;
+  error?: any;
 };
 
 //客户端集合
@@ -80,9 +81,9 @@ export async function createBackJob(job: string, title: string, data?: object) {
 
     //监听后台任务的结果
     work.on('message', data => {
-      // socket.io
-      backJob.result = data;
-      backJob.status = 'success';
+      backJob.error = data.error;
+      backJob.status = data.error ? 'error' : 'success';
+      backJob.result = data?.result ?? '';
       backJob.endTime = new Date();
       if (client) client.socket.emit('update', backJob);
     });

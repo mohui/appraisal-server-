@@ -17,7 +17,7 @@
             circle
           ></el-button>
           <el-button
-            v-show="row.status === 'success'"
+            v-show="row.status === 'success' || row.status === 'error'"
             size="mini"
             type="danger"
             icon="el-icon-delete"
@@ -47,9 +47,24 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column
+        align="center"
+        property="error"
+        label="备注"
+        width="50"
+        :min-width="computedColWidth('error')"
+      >
+        <template slot-scope="{row}">
+          <div style="color:red">{{ row.error }}</div>
+        </template>
+      </el-table-column>
     </el-table>
     <template slot="reference">
-      <el-badge is-dot v-show="jobDataShow.length > 0">
+      <el-badge
+        :value="jobDataShow.length"
+        :max="20"
+        v-show="jobDataShow.length > 0"
+      >
         <el-button class="dropdown" type="text" style="color: white; padding: 0"
           >后台任务
         </el-button>

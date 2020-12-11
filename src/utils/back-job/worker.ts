@@ -166,10 +166,14 @@ const {job} = workerData;
 
 (async () => {
   let jobResult: string;
-  //考核报表任务
-  if (job === 'reportCheck') {
-    const {code, id} = workerData;
-    jobResult = await reportCheck(code, id);
+  try {
+    //考核报表任务
+    if (job === 'reportCheck') {
+      const {code, id} = workerData;
+      jobResult = await reportCheck(code, id);
+    }
+    parentPort.postMessage({result: jobResult, error: null});
+  } catch (e) {
+    parentPort.postMessage({error: e.message || '未知错误'});
   }
-  parentPort.postMessage(jobResult);
 })();
