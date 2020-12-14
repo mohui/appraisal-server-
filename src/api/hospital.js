@@ -135,17 +135,21 @@ export default class Hospital {
   }
 
   async workpoints(code) {
-    const hospital = await appDB.execute(
-      `select hishospid as id,
-                    viewHospital.regioncode region
+    const hospitalMapping = await appDB.execute(
+      `select hishospid as id
             from hospital_mapping mapping
-            left join view_hospital viewHospital on mapping.hishospid = viewHospital.hospid
             where h_id = ?`,
       code
     );
-    const hisHospitalId = hospital[0]?.id;
-    const type =
-      hospital[0]?.region.substr(0, 6) === '340222' ? '340222' : '340203';
+
+    // 查询所属his
+    const hospital = await HospitalModel.findOne({
+      where: {id: code}
+    });
+    if (!hospital) throw new KatoCommonError(`code为 ${code} 的机构不存在`);
+
+    const hisHospitalId = hospitalMapping[0]?.id;
+    const type = hospital?.his;
 
     return (
       await originalDB.execute(
