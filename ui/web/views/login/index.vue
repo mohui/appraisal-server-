@@ -102,6 +102,17 @@ export default {
               duration: 1000
             });
             setToken(result.id);
+            const {oauth_callback} = this.$route.query;
+            const {path, query, params} =
+              (oauth_callback && JSON.parse(oauth_callback)) || {};
+            if (path) {
+              await this.$router.push({
+                path,
+                query,
+                params
+              });
+              return;
+            }
             this.btnLoading = false;
             await this.$router.push('/');
           } catch (e) {

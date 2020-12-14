@@ -166,8 +166,18 @@ router.beforeEach(async (to, from, next) => {
   }
   if (!getToken()) {
     cleanCache();
+    const {path, query, params} = to;
     from.path === '/' || Vue.prototype.$message.info('登录超时,请重新登录~');
-    next('/login');
+    next({
+      path: '/login',
+      query: {
+        oauth_callback: JSON.stringify({
+          path,
+          query,
+          params
+        })
+      }
+    });
     return;
   }
   //TODO 先解决在刷新时子页面的created周期获取不到$settings缓存的问题
