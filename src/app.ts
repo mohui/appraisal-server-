@@ -47,7 +47,7 @@ export class Application {
     //初始化kato
     await this.initKato();
     //初始化socket
-    await initBackJob(this.server);
+    await this.initBackJob(this.server);
     //初始化web资源
     await this.initWebResource();
     //初始化定时任务
@@ -141,6 +141,10 @@ export class Application {
         console.log(`定时任务失败: ${e}`);
       }
     });
+  }
+
+  async initBackJob(app) {
+    await initBackJob(app);
   }
 }
 
