@@ -422,16 +422,15 @@
                 </el-progress>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ Math.round(i.rate * 100) }}%
-                  </li>
-                </ul>
+                <div
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ Math.round(i.rate * 100) }}%
+                </div>
               </div>
             </accordion>
             <!--工分值机构排行-->
@@ -460,17 +459,15 @@
                 </progress-score>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    style="margin: 8px 0; font-size: 14px"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ i.score | fixedDecimal }}分
-                  </li>
-                </ul>
+                <div
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ i.score | fixedDecimal }}分
+                </div>
               </div>
             </accordion>
           </div>
@@ -1484,13 +1481,18 @@ export default {
         )
         //添加child
         .map(item => {
+          //对下属二级机构进行排序
+          let child = this.workpointRankServerData.filter(
+            it => it.parent === item.id
+          );
+          if (this.params.listFlag === 'score') {
+            child = child.sort((a, b) => b.score - a.score);
+          } else {
+            child = child.sort((a, b) => b.rate - a.rate);
+          }
+          //添加一级机构和排序后的二级机构的值
           const returnValue = Object.assign({}, item, {
-            child: [
-              item,
-              ...this.workpointRankServerData.filter(
-                it => it.parent === item.id
-              )
-            ]
+            child: [item, ...child]
           });
           //累加分数
           returnValue.score = returnValue.child.reduce(
