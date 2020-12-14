@@ -281,16 +281,15 @@
                 </el-progress>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ Math.round(i.rate * 100) }}%
-                  </li>
-                </ul>
+                <div
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ Math.round(i.rate * 100) }}%
+                </div>
               </div>
             </accordion>
             <!--工分值机构排行-->
@@ -319,17 +318,15 @@
                 </progress-score>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    style="margin: 8px 0; font-size: 14px"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ i.score | fixedDecimal }}分
-                  </li>
-                </ul>
+                <div
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ i.score | fixedDecimal }}分
+                </div>
               </div>
             </accordion>
           </div>
