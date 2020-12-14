@@ -1283,13 +1283,18 @@ export default {
         )
         //添加child
         .map(item => {
+          //对下属二级机构进行排序
+          let child = this.workpointRankServerData.filter(
+            it => it.parent === item.id
+          );
+          if (this.params.listFlag === 'score') {
+            child = child.sort((a, b) => b.score - a.score);
+          } else {
+            child = child.sort((a, b) => b.rate - a.rate);
+          }
+          //添加一级机构和排序后的二级机构的值
           const returnValue = Object.assign({}, item, {
-            child: [
-              item,
-              ...this.workpointRankServerData.filter(
-                it => it.parent === item.id
-              )
-            ]
+            child: [item, ...child]
           });
           //累加分数
           returnValue.score = returnValue.child.reduce(
