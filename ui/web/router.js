@@ -167,15 +167,16 @@ router.beforeEach(async (to, from, next) => {
   if (!getToken()) {
     cleanCache();
     const {path, query, params} = to;
-    const oauth_callback = {
-      path,
-      query,
-      params
-    };
     from.path === '/' || Vue.prototype.$message.info('登录超时,请重新登录~');
     next({
       path: '/login',
-      query: {oauth_callback: JSON.stringify(oauth_callback)}
+      query: {
+        oauth_callback: JSON.stringify({
+          path,
+          query,
+          params
+        })
+      }
     });
     return;
   }

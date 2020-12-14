@@ -103,7 +103,8 @@ export default {
             });
             setToken(result.id);
             const {oauth_callback} = this.$route.query;
-            const {path, query, params} = JSON.parse(oauth_callback);
+            const {path, query, params} =
+              (oauth_callback && JSON.parse(oauth_callback)) || {};
             if (path) {
               await this.$router.push({
                 path,
