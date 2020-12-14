@@ -14,16 +14,16 @@ const fallback = require('connect-history-api-fallback');
     }
 
     const app = express();
-    app.use(fallback());
     app.use(devServer);
     app.use(
-      proxy.createProxyMiddleware('/api', {
+      proxy.createProxyMiddleware({
         target: apiServer,
         changeOrigin: true,
         logLevel: 'warn',
         ws: true
       })
     );
+    app.use(fallback());
 
     let port = await portFinder.getPortPromise({port: 8080, stopPort: 8090});
     app.listen(port, '0.0.0.0', () =>
