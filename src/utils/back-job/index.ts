@@ -23,6 +23,8 @@ type Job = {
 const clients: Array<{id: string; socket: Socket}> = [];
 //任务集合
 const jobs = new Map<string, Job>();
+//任务限制
+let jobLimit = 10;
 
 /***
  * 后台任务初始化
@@ -62,7 +64,8 @@ export async function init(app) {
 export async function createBackJob(job: string, title: string, data?: object) {
   try {
     if (jobType.indexOf(job) < 0) throw new KatoCommonError('任务不存在');
-
+    if (jobLimit <= 0)
+      throw new KatoCommonError('后台任务已达到最大限制,请稍微再试');
     const userId = Context.current.user.id;
     const backJob: Job = {
       id: uuid(),
@@ -78,6 +81,7 @@ export async function createBackJob(job: string, title: string, data?: object) {
       workerData: {job, ...data}
     });
     const client = clients.find(it => it.id === userId);
+    jobLimit--;
 
     //监听后台任务的结果
     work.on('message', data => {
@@ -86,10 +90,11 @@ export async function createBackJob(job: string, title: string, data?: object) {
       backJob.result = data?.result ?? '';
       backJob.endTime = new Date();
       if (client) client.socket.emit('update', backJob);
+      jobLimit++;
     });
     if (client) client.socket.emit('update', backJob);
     return backJob;
   } catch (e) {
-    console.log('发生错误', e);
+    throw new KatoCommonError(e.message || '未知错误');
   }
 }
