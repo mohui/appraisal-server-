@@ -272,57 +272,7 @@
             </div>
           </el-card>
         </el-col>
-        <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-          <el-card shadow="hover">
-            <div class="score-detail">
-              <p class="second-title" style="margin:0; text-align:left;">
-                健康教育
-              </p>
-              <el-tabs
-                v-if="healthEducationTagsName.length !== 0"
-                v-model="healthEducationTagSelected"
-              >
-                <el-tab-pane
-                  v-for="tag in healthEducationTagsName"
-                  :key="tag"
-                  :label="tag"
-                  :name="tag"
-                >
-                  <el-table
-                    v-loading="
-                      $asyncComputed.healthEducationServerData.updating
-                    "
-                    :data="healthEducationData"
-                    height="280px"
-                    style="width: 100%"
-                    size="mini"
-                  >
-                    <el-table-column
-                      prop="ActivityTime"
-                      header-align="center"
-                      align="center"
-                      min-width="20px"
-                      label="活动时间"
-                    >
-                    </el-table-column>
-                    <el-table-column
-                      prop="ActivityName"
-                      header-align="center"
-                      align="center"
-                      min-width="40px"
-                      label="活动名称"
-                    >
-                    </el-table-column>
-                  </el-table>
-                </el-tab-pane>
-              </el-tabs>
-              <div class="el-table__empty-text empty-data" v-else>
-                暂无数据
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
@@ -382,6 +332,56 @@
                   </el-table>
                 </el-tab-pane>
               </el-tabs>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                健康教育
+              </p>
+              <el-tabs
+                v-if="healthEducationTagsName.length !== 0"
+                v-model="healthEducationTagSelected"
+              >
+                <el-tab-pane
+                  v-for="tag in healthEducationTagsName"
+                  :key="tag"
+                  :label="tag"
+                  :name="tag"
+                >
+                  <el-table
+                    v-loading="
+                      $asyncComputed.healthEducationServerData.updating
+                    "
+                    :data="healthEducationData"
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
+                    <el-table-column
+                      prop="ActivityTime"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="活动时间"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                      prop="ActivityName"
+                      header-align="center"
+                      align="center"
+                      min-width="40px"
+                      label="活动名称"
+                    >
+                    </el-table-column>
+                  </el-table>
+                </el-tab-pane>
+              </el-tabs>
+              <div class="el-table__empty-text empty-data" v-else>
+                暂无数据
+              </div>
             </div>
           </el-card>
         </el-col>
