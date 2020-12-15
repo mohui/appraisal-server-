@@ -1422,8 +1422,7 @@ group by h.region`,
       ).map(it => it.toJSON());
 
       // 取出机构所属的区级权限
-      const type =
-        hospitalModel.regionId.substr(0, 6) === '340222' ? '340222' : '340203';
+      const type = hospitalModel.his;
 
       if (projects.length > 0) {
         // 取出权限下的工分项id(繁昌的和其他区的有区别)
