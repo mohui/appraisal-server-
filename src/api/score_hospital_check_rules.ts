@@ -51,14 +51,28 @@ async function queryList(params) {
   // 查询机构之间的对应关系和所属his
   let [sql, paramters] = sqlRender(
     `select hishospid as id,
-                        h_id as "hospitalId",
-                        viewHospital.regioncode
+                        h_id as "hospitalId"
                 from hospital_mapping mapping
-                left join view_hospital viewHospital on mapping.hishospid = viewHospital.hospid
                 where h_id in ({{#each ids}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
     params
   );
-  const hisHospitals = await appDB.execute(sql, ...paramters);
+  const hospitalMappings = await appDB.execute(sql, ...paramters);
+
+  // 查询所属his
+  const hospitals = await HospitalModel.findAll({
+    where: {
+      id: {
+        [Op.in]: params.ids
+      }
+    }
+  });
+
+  const hisHospitals = hospitalMappings.map(it => {
+    const index = hospitals.findIndex(item => item.id === it.hospitalId);
+    const obj = {...it};
+    if (index > -1) obj['his'] = hospitals[index].his;
+    return obj;
+  });
 
   // 最后的返回值数组
   const returnList = [];
@@ -69,16 +83,13 @@ async function queryList(params) {
       start: params.start,
       end: params.end
     };
-    // 判断机构属于芜湖还是繁昌
-    const type =
-      hospital.regioncode.substr(0, 6) === '340222' ? '340222' : '340203';
-
+    // 需要判断机构属于芜湖还是繁昌
     if (params.projectIds) {
       //筛选公分id
       proParam['projectIds'] = params.projectIds
         .map(item => {
           return Projects.find(p => p.id === item)?.mappings?.find(
-            mapping => mapping.type === type
+            mapping => mapping.type === hospital.his
           )?.id;
         })
         .filter(it => it);
@@ -93,7 +104,8 @@ async function queryList(params) {
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
              and operateorganization = {{? operateorganization}}
-            group by vw.operateorganization`,
+             group by operateorganization
+             `,
       proParam
     );
     returnList.push(...(await originalDB.execute(sql, ...paramters)));
