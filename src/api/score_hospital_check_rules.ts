@@ -78,13 +78,10 @@ async function queryList(params) {
     }
   });
 
-  // 把his放到所属机构中
-  const hisHospitals = hospitalMappings.map(it => {
-    const index = hospitals.find(item => item.id === it.hospitalId);
-    const obj = {...it};
-    if (index) obj['his'] = index.his;
-    return obj;
-  });
+  const hisHospitals = hospitalMappings.map(it => ({
+    ...it,
+    his: hospitals.find(item => item.id === it.hospitalId)?.his
+  }));
 
   // 根据his归纳数组,所属his相同的机构放到一起
   const hospitalHisIds = [];
