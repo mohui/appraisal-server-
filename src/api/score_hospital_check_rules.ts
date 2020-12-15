@@ -74,10 +74,25 @@ async function queryList(params) {
     return obj;
   });
 
+  const hospitalHisIds = [];
+  for (const it of hisHospitals) {
+    const hospital = hospitalHisIds.find(item => item.his === it.his);
+    if (!hospital) {
+      hospitalHisIds.push({
+        id: [it.id],
+        hospitalId: [it.hospitalId],
+        his: it.his
+      });
+    } else {
+      hospital.id.push(it.id);
+      hospital.hospitalId.push(it.hospitalId);
+    }
+  }
+
   // 最后的返回值数组
   const returnList = [];
   // 根据机构找到其对应的公分id(芜湖和繁昌的公分值id存在差异,所以需要区分是否是繁昌的)
-  for (const hospital of hisHospitals) {
+  for (const hospital of hospitalHisIds) {
     const proParam = {
       operateorganization: hospital.id,
       start: params.start,
@@ -93,9 +108,19 @@ async function queryList(params) {
           )?.id;
         })
         .filter(it => it);
-    }
-    [sql, paramters] = sqlRender(
-      `select
+      // 如果经过筛选后没有公分id,复制所有机构公分为0分
+      if (proParam['projectIds'].length === 0) {
+        // 给机构复制为0;
+        const hospitalZeroScoreList = proParam.operateorganization.map(it => {
+          return {
+            operateorganization: it,
+            workPoint: 0
+          };
+        });
+        returnList.push(...hospitalZeroScoreList);
+      } else {
+        [sql, paramters] = sqlRender(
+          `select
             operateorganization,
             cast(sum(vw.score) as int) as "workPoint"
             from view_workscoretotal vw
@@ -103,12 +128,30 @@ async function queryList(params) {
              {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
              and missiontime >= {{? start}}
              and missiontime < {{? end}}
-             and operateorganization = {{? operateorganization}}
+             and operateorganization in ({{#each operateorganization}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              group by operateorganization
-             `,
-      proParam
-    );
-    returnList.push(...(await originalDB.execute(sql, ...paramters)));
+          `,
+          proParam
+        );
+        returnList.push(...(await originalDB.execute(sql, ...paramters)));
+      }
+    } else {
+      [sql, paramters] = sqlRender(
+        `select
+            operateorganization,
+            cast(sum(vw.score) as int) as "workPoint"
+            from view_workscoretotal vw
+            where 1 = 1
+             {{#if projectIds}} and projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+             and missiontime >= {{? start}}
+             and missiontime < {{? end}}
+             and operateorganization in ({{#each operateorganization}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+             group by operateorganization
+          `,
+        proParam
+      );
+      returnList.push(...(await originalDB.execute(sql, ...paramters)));
+    }
   }
   return returnList?.map(i => ({
     workPoint: i.workPoint,
