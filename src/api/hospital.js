@@ -571,74 +571,83 @@ export default class Hospital {
    * }
    */
   async signRegister(hospitalId) {
-    const hisHospId =
-      (
-        await appDB.execute(
-          `
-            select hishospid as id
-            from hospital_mapping
-            where h_id = ?`,
-          hospitalId
-        )
-      )[0]?.id ?? null;
+    const hisHospId = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select hishospid as id
+          from hospital_mapping
+          where h_id = ?`,
+        hospitalId
+      )
+    )[0]?.id;
+    if (!hisHospId) throw new KatoCommonError('机构id不合法');
+
+    // 签约人数
     const signedNumber =
-        (
-          await originalDB.execute(
-            //language=MySQL
-            `
-            select count(*) as "Number"
+      (
+        await originalDB.execute(
+          //language=PostgreSQL
+          `
+            select count(distinct vsr.personnum) as "Number"
             from view_SignRegiste vsr
-            where vsr.OperateOrganization = ?
+                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
+            where vp.AdminOrganization = ?
+              and vp.WriteOff = false
               and vsr.YearDegree = ?
           `,
-            hisHospId,
-            dayjs().year()
-          )
-        )[0]?.Number ?? 0,
-      exeNumber =
-        (
-          await originalDB.execute(
-            //language=MySQL
-            `
-              select count(distinct vsrcm.registerid) as "Number"
-              from view_SignRegisteCheckMain vsrcm
-              where vsrcm.ExeOrganization = ?
-                and vsrcm.ExeTime >= ?
-                and vsrcm.ExeTime < ?
-            `,
-            hisHospId,
-            dayjs()
-              .startOf('y')
-              .toDate(),
-            dayjs()
-              .startOf('y')
-              .add(1, 'y')
-              .toDate()
-          )
-        )[0]?.Number ?? 0,
-      renewNumber =
-        (
-          await originalDB.execute(
-            //language=MySQL
-            `
-              select count(vsr.*) as "Number"
-              from view_SignRegiste vsr
-                     inner join view_SignRegiste a on a.OperateOrganization = vsr.OperateOrganization
-                and a.YearDegree = ? and a.PersonNum = vsr.PersonNum
-              where vsr.OperateOrganization = ?
-                and vsr.YearDegree = ?
-            `,
-            dayjs()
-              .add(-1, 'y')
-              .year(),
-            hisHospId,
-            dayjs().year()
-          )
-        )[0]?.Number ?? 0;
+          hisHospId,
+          dayjs().year()
+        )
+      )[0]?.Number ?? 0;
+    // 履约人数
+    const exeNumber =
+      (
+        await originalDB.execute(
+          //language=PostgreSQL
+          `
+            select count(distinct vsr.PersonNum) as "Number"
+            from view_SignRegisteCheckMain vsrcm
+                   inner join view_SignRegiste vsr on vsr.RegisterID = vsrcm.RegisterID
+            where vsrcm.ExeOrganization = ?
+              and vsrcm.ExeTime >= ?
+              and vsrcm.ExeTime < ?
+          `,
+          hisHospId,
+          dayjs()
+            .startOf('y')
+            .toDate(),
+          dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        )
+      )[0]?.Number ?? 0;
+    // 续约人数
+    const renewNumber =
+      (
+        await originalDB.execute(
+          //language=PostgreSQL
+          `
+            select count(distinct vsr.PersonNum) as "Number"
+            from view_SignRegiste vsr
+                   inner join view_SignRegiste a on a.PersonNum = vsr.PersonNum and a.YearDegree = ?
+                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
+            where vp.AdminOrganization = ?
+              and vp.WriteOff = false
+              and vsr.YearDegree = ?
+          `,
+          dayjs()
+            .add(-1, 'y')
+            .year(),
+          hisHospId,
+          dayjs().year()
+        )
+      )[0]?.Number ?? 0;
     return {
-      signedNumber: new Decimal(signedNumber).toNumber(),
-      exeNumber: new Decimal(exeNumber).toNumber(),
-      renewNumber: new Decimal(renewNumber).toNumber()
+      signedNumber: Number(signedNumber),
+      exeNumber: Number(exeNumber),
+      renewNumber: Number(renewNumber)
     };
   }
 }
