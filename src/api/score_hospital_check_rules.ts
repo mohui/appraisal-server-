@@ -47,6 +47,17 @@ function percentString(numerator: number, denominator: number): string {
   }
 }
 
+/**
+ * 根据机构id,公分id,时间范围 查询机构下的工分值
+ *
+ * @param params object
+ * param.ids 机构id
+ * param.projectIds 公分id,可不传,
+ *  没传: 查询机构下的所有id,
+ *  传: 需要找公分里面的 mappings 里的id, 因为繁昌的需要公分id和芜湖的存在区别
+ * param.start 工分开始时间
+ * param.end 工分结束时间
+ */
 async function queryList(params) {
   // 查询机构之间的对应关系和所属his
   let [sql, paramters] = sqlRender(
@@ -67,6 +78,7 @@ async function queryList(params) {
     }
   });
 
+  // 把his放到所属机构中
   const hisHospitals = hospitalMappings.map(it => {
     const index = hospitals.find(item => item.id === it.hospitalId);
     const obj = {...it};
@@ -74,6 +86,7 @@ async function queryList(params) {
     return obj;
   });
 
+  // 根据his归纳数组,所属his相同的机构放到一起
   const hospitalHisIds = [];
   for (const it of hisHospitals) {
     const hospital = hospitalHisIds.find(item => item.his === it.his);
@@ -98,9 +111,9 @@ async function queryList(params) {
       start: params.start,
       end: params.end
     };
-    // 需要判断机构属于芜湖还是繁昌
+    // 如果传了公分id,需要根据机构his筛选出mapping里的公分id
     if (params.projectIds) {
-      //筛选公分id
+      // 需要判断机构属于芜湖还是繁昌 筛选公分id
       proParam['projectIds'] = params.projectIds
         .map(item => {
           return Projects.find(p => p.id === item)?.mappings?.find(
@@ -108,7 +121,7 @@ async function queryList(params) {
           )?.id;
         })
         .filter(it => it);
-      // 如果经过筛选后没有公分id,复制所有机构公分为0分
+      // 如果经过筛选后没有公分id,赋值所有机构公分为0分
       if (proParam['projectIds'].length === 0) {
         // 给机构复制为0;
         const hospitalZeroScoreList = proParam.operateorganization.map(it => {
@@ -119,6 +132,7 @@ async function queryList(params) {
         });
         returnList.push(...hospitalZeroScoreList);
       } else {
+        // 如果经过筛选后有公分id,根据公分id查询此机构下公分值
         [sql, paramters] = sqlRender(
           `select
             operateorganization,
@@ -153,7 +167,7 @@ async function queryList(params) {
       returnList.push(...(await originalDB.execute(sql, ...paramters)));
     }
   }
-  return returnList?.map(i => ({
+  return returnList.map(i => ({
     workPoint: i.workPoint,
     hospitalId: hisHospitals.filter(h => h.id === i.operateorganization)?.[0]
       ?.hospitalId
