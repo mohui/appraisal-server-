@@ -68,9 +68,9 @@ async function queryList(params) {
   });
 
   const hisHospitals = hospitalMappings.map(it => {
-    const index = hospitals.findIndex(item => item.id === it.hospitalId);
+    const index = hospitals.find(item => item.id === it.hospitalId);
     const obj = {...it};
-    if (index > -1) obj['his'] = hospitals[index].his;
+    if (index) obj['his'] = index.his;
     return obj;
   });
 
