@@ -14,6 +14,7 @@
             size="mini"
             type="success"
             icon="el-icon-download"
+            @click="downloadFile(row.result)"
             circle
           ></el-button>
           <el-button
@@ -125,6 +126,10 @@ export default {
       this.socket.emit('delete', id);
       const index = this.jobData.findIndex(it => it.id === id);
       if (index > -1) this.jobData.splice(index, 1);
+    },
+    async downloadFile(file) {
+      const fileUrl = await this.$api.Report.sign(file);
+      if (fileUrl) window.open(fileUrl);
     }
   },
   destroyed() {
