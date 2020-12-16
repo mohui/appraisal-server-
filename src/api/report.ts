@@ -16,6 +16,7 @@ import * as ContentDisposition from 'content-disposition';
 
 import {Op} from 'sequelize';
 import {createBackJob} from '../utils/back-job';
+import {unifs} from '../app';
 
 /**
  * 语义化时间
@@ -79,6 +80,15 @@ export default class Report {
     } catch (e) {
       throw new KatoCommonError(e.message);
     }
+  }
+
+  /**
+   * unifs文件地址
+   *
+   * @param file 签名
+   */
+  async sign(file) {
+    return await unifs.getExternalUrl(file);
   }
 
   /**
