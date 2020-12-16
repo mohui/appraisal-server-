@@ -7,7 +7,8 @@ import {
   CheckRuleModel,
   HospitalModel,
   RegionModel,
-  RuleHospitalScoreModel
+  RuleHospitalScoreModel,
+  sql as sqlRender
 } from '../database';
 import {KatoCommonError} from 'kato-server';
 import {Workbook} from 'exceljs';
@@ -15,6 +16,8 @@ import {Context} from './context';
 import * as ContentDisposition from 'content-disposition';
 
 import {Op} from 'sequelize';
+import dayjs = require('dayjs');
+import {originalDB} from '../app';
 
 /**
  * 语义化时间
@@ -220,5 +223,26 @@ export default class Report {
     const buffer = await workBook.xlsx.writeBuffer();
     res.send(buffer);
     //导出结束
+  }
+
+  /**
+   * 检查定时任务是否执行成功
+   */
+  async checkTimming() {
+    // 拼接查询条件
+    const paramObj = {
+      viewStartDate: dayjs('2020-12-01').toDate(),
+      viewEndDate: dayjs().toDate()
+    };
+    const [sql, params] = sqlRender(
+      `
+        select count(1) as "count"
+        from view_hypertension
+        where created_at >= {{? viewStartDate}}
+            and created_at < {{? viewEndDate}}`,
+      paramObj
+    );
+    // return {sql, params};
+    return await originalDB.execute(sql, ...params);
   }
 }
