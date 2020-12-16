@@ -1,6 +1,5 @@
 import {parentPort, isMainThread, workerData} from 'worker_threads';
 import {Workbook} from 'exceljs';
-import * as path from 'path';
 import {
   CheckHospitalModel,
   CheckRuleModel,
@@ -9,10 +8,12 @@ import {
   RegionModel,
   RuleHospitalScoreModel
 } from '../../database';
-import {appDB} from '../../app';
+import {appDB, initFS, unifs} from '../../app';
 import * as models from '../../database/model';
 import {Op} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
+import dayjs = require('dayjs');
+
 appDB.addModels(Object.values(models));
 
 // 考核报表下载
@@ -154,8 +155,11 @@ export async function reportCheck(code: string, id: any): Promise<string> {
     });
     workSheet.addRows([firstRow, ...childrenHospitalCheckResult]);
   }
-  const filepath = path.join(__dirname, `${xlsName}考核结果.xls`);
-  await workBook.xlsx.writeFile(filepath);
+  const filepath = `/reportCheck/${xlsName}-${dayjs().format(
+    'YYYY-MM-DDTHH:mm:ss'
+  )}考核结果.xls`;
+  const buffer = (await workBook.xlsx.writeBuffer()) as Buffer;
+  await unifs.writeFile(filepath, buffer);
   return filepath;
 }
 
@@ -166,6 +170,8 @@ const {job} = workerData;
 (async () => {
   let jobResult: string;
   try {
+    //初始化文件挂载
+    await initFS();
     //考核报表任务
     if (job === 'reportCheck') {
       const {code, id} = workerData;
