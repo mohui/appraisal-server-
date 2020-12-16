@@ -135,12 +135,22 @@ export default class Hospital {
   }
 
   async workpoints(code) {
-    const hisHospitalId = (
-      await appDB.execute(
-        `select hishospid as id from hospital_mapping where h_id = ?`,
-        code
-      )
-    )?.[0]?.id;
+    const hospitalMapping = await appDB.execute(
+      `select hishospid as id
+            from hospital_mapping mapping
+            where h_id = ?`,
+      code
+    );
+
+    // 查询所属his
+    const hospital = await HospitalModel.findOne({
+      where: {id: code}
+    });
+    if (!hospital) throw new KatoCommonError(`code为 ${code} 的机构不存在`);
+
+    const hisHospitalId = hospitalMapping[0]?.id;
+    const type = hospital?.his;
+
     return (
       await originalDB.execute(
         `select cast(sum(vws.score) as int) as score,
@@ -163,7 +173,11 @@ export default class Hospital {
       )
     ).map(it => ({
       ...it,
-      name: Projects.find(p => p.id === it.projectId)?.name
+      name: Projects.find(p => {
+        return p.mappings.find(
+          mapping => mapping.id === it.projectId && mapping.type === type
+        );
+      })?.name
     }));
   }
 

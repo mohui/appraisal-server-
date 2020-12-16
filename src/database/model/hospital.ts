@@ -41,6 +41,11 @@ export class Hospital extends Model<Hospital> {
   @Column({field: 'region'})
   regionId: string;
 
+  @Column(DataType.VIRTUAL(DataType.STRING))
+  get his() {
+    return this.regionId.startsWith('340222') ? '340222' : '340203';
+  }
+
   //多对一个行政地区
   @BelongsTo(() => Region)
   region: Region;
