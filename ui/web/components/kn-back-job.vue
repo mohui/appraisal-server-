@@ -52,8 +52,7 @@
         align="center"
         property="error"
         label="备注"
-        width="50"
-        :min-width="computedColWidth('error')"
+        :width="computedColWidth('error')"
       >
         <template slot-scope="{row}">
           <div style="color:red">{{ row.error }}</div>
@@ -119,7 +118,9 @@ export default {
   methods: {
     computedColWidth(field) {
       if (this.jobDataShow?.length > 0) {
-        return this.$widthCompute(this.jobDataShow.map(item => item[field]));
+        return this.$widthCompute(
+          this.jobDataShow.map(item => item[field] || '--')
+        );
       }
     },
     deleteJob(id) {
