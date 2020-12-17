@@ -4,6 +4,7 @@ import {Server, Socket} from 'socket.io';
 import {Context} from '../../api/context';
 import {KatoCommonError} from 'kato-server';
 import {v4 as uuid} from 'uuid';
+import {unifs} from '../../app';
 
 const jobType: Array<string> = ['reportCheck'];
 
@@ -47,7 +48,13 @@ export async function init(app) {
       if (value.userId === id) socket.emit('update', value);
     });
     //监听前端手动删除任务
-    socket.on('delete', jobId => jobs.delete(jobId));
+    socket.on('delete', async jobId => {
+      const delJob = jobs.get(jobId);
+      if (delJob) {
+        await unifs.deleteFile(delJob.result);
+        jobs.delete(jobId);
+      }
+    });
     socket.on('disconnect', () => {
       const index = clients.findIndex(it => it.id === id);
       if (index > -1) clients.splice(index, 1);
