@@ -1,4 +1,4 @@
-import {originalDB, appDB} from '../app';
+import {appDB, originalDB} from '../app';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
@@ -30,8 +30,10 @@ function listRender(params) {
             {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
             {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
             {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
+            {{#compare H00}}{{#if documentOr}} or {{else}} and {{/if}} mp."H00"={{? H00}} {{/compare}}
             {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
             {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
+            {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
             {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
             {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
           )
