@@ -51,7 +51,7 @@ export async function init(app) {
     socket.on('delete', async jobId => {
       const delJob = jobs.get(jobId);
       if (delJob) {
-        await unifs.deleteFile(delJob.result);
+        if (delJob.result) await unifs.deleteFile(delJob.result);
         jobs.delete(jobId);
       }
     });
