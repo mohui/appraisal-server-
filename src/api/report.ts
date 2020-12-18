@@ -17,7 +17,9 @@ import * as ContentDisposition from 'content-disposition';
 
 import {Op} from 'sequelize';
 import dayjs = require('dayjs');
-import {originalDB} from '../app';
+import {originalDB, appDB} from '../app';
+
+import {createTransport} from 'nodemailer';
 
 /**
  * 语义化时间
@@ -229,20 +231,139 @@ export default class Report {
    * 检查定时任务是否执行成功
    */
   async checkTimming() {
+    const str = 'view_hypertension';
     // 拼接查询条件
     const paramObj = {
-      viewStartDate: dayjs('2020-12-01').toDate(),
-      viewEndDate: dayjs().toDate()
+      viewStartDate: dayjs(dayjs().format('YYYY-MM-DD 22:00:00'))
+        .subtract(1, 'day')
+        .toDate(),
+      viewEndDate: dayjs().toDate(),
+      markStartDate: dayjs(dayjs().format('YYYY-MM-DD 00:00:00')).toDate(),
+      markEndDate: dayjs().toDate(),
+      ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 02:00:00')).toDate(),
+      ruleEndDate: dayjs().toDate()
     };
-    const [sql, params] = sqlRender(
-      `
-        select count(1) as "count"
-        from view_hypertension
-        where created_at >= {{? viewStartDate}}
-            and created_at < {{? viewEndDate}}`,
-      paramObj
+
+    /**
+     * view相关表检查,同步的表
+     *
+     * view_hypertension 高血压登记
+     * view_hypertensionVisit 高血压随访
+     * view_Diabetes 糖尿病登记
+     * view_diabetesVisit 糖尿病随访
+     * view_Healthy 体检信息登记
+     * view_sanitarycontrolreport 卫生计生监督信息报告
+     * view_sanitarycontrolassist 卫生监督协管巡查登记信息
+     * view_healthchecktablescore 老年人生活自理能力
+     * view_personfacecollect 人脸采集表
+     * view_personinfo
+     * view_workscoretotal 公分表
+     *
+     * rule_hospital_score 得分表
+     * rule_hospital_budget 金额分配
+     * report_hospital 机构报告
+     */
+    const viewList = [
+      'view_hypertension',
+      'view_hypertensionVisit',
+      'view_diabetes',
+      'view_diabetesVisit',
+      'view_Healthy',
+      'view_sanitarycontrolreport',
+      'view_sanitarycontrolassist',
+      'view_healthchecktablescore',
+      'view_personfacecollect',
+      'view_personinfo',
+      'view_workscoretotal',
+
+      'mark_content',
+      'mark_organization',
+      'mark_person',
+
+      'rule_hospital_score',
+      'rule_hospital_budget',
+      'report_hospital'
+    ];
+
+    const selView = await Promise.all(
+      viewList.map(async it => {
+        console.log(it);
+        let list;
+        // 同步视图数据
+        if (it.startsWith('view')) {
+          const [sql, params] = sqlRender(
+            `
+              select count(1) as counts
+              from ${it}
+              where created_at >= {{? viewStartDate}}
+                  and created_at < {{? viewEndDate}}`,
+            paramObj
+          );
+          list = await originalDB.execute(sql, ...params);
+        } else if (it.startsWith('mark')) {
+          /**
+           * 同步Mark数据
+           */
+          const [sql, params] = sqlRender(
+            `
+              select count(1) as counts
+              from ${it}
+              where created_at >= {{? markStartDate}}
+                  and created_at < {{? markEndDate}}`,
+            paramObj
+          );
+          list = await originalDB.execute(sql, ...params);
+        } else {
+          /**
+           * 考核得分表
+           */
+          const [sql, params] = sqlRender(
+            `
+              select count(1) as counts
+              from ${it}
+              where updated_at >= {{? ruleStartDate}}
+              and updated_at < {{? ruleEndDate}}`,
+            paramObj
+          );
+          list = await appDB.execute(sql, ...params);
+        }
+
+        return {
+          table: it,
+          count: list[0]?.counts ?? 0
+        };
+      })
     );
-    // return {sql, params};
-    return await originalDB.execute(sql, ...params);
+
+    const selViewZero = selView.filter(it => it.count < 50000);
+    const tableName = selViewZero.map(it => it.table).join(',');
+    if (selViewZero.length === 0) return;
+
+    /**
+     * 如果存在为零的数据, 说明有的表跑数据失败, 需要发送邮件
+     */
+    const transporter = createTransport({
+      service: 'qq',
+      port: 465, // SMTP 端口
+      secureConnection: true, // 使用 SSL
+      auth: {
+        user: '1749325910@qq.com', // 发邮件邮箱
+        pass: 'zoaubyxxfslsdhcd' // 此处不是qq密码,是发件人邮箱的授权码
+      }
+    });
+
+    const mailOptions = {
+      from: '1749325910@qq.com', // 发件地址
+      to: 'wanghehui@bjknrt.com', // 收件列表
+      subject: '自动任务有异常数据', // 标题
+      html: `以下表的数据没有跑${tableName}`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        return console.log(error);
+      }
+      console.log('Message sent: ' + info.response);
+    });
   }
 }
