@@ -1,5 +1,10 @@
 <template>
-  <el-popover placement="bottom" width="550" trigger="click">
+  <el-popover
+    v-model="showPopover"
+    placement="bottom"
+    width="550"
+    trigger="click"
+  >
     <el-table
       align="center"
       size="mini"
@@ -82,7 +87,8 @@ export default {
   name: 'kn-back-job',
   data() {
     return {
-      jobData: []
+      jobData: [],
+      showPopover: false
     };
   },
   async created() {
@@ -127,6 +133,7 @@ export default {
       this.socket.emit('delete', id);
       const index = this.jobData.findIndex(it => it.id === id);
       if (index > -1) this.jobData.splice(index, 1);
+      this.showPopover = this.jobDataShow.length > 0;
     },
     async downloadFile(file) {
       const fileUrl = await this.$api.Report.sign(file);
