@@ -139,6 +139,13 @@ export const documentTags = {
       code: 'H02'
     };
   },
+  H00(value) {
+    return {
+      label: `${value ? '' : '未'}接受高血压管理`,
+      type: !!value,
+      code: 'H00'
+    };
+  },
   D01(value) {
     return {
       label: `糖尿病管理${value ? '' : '不'}规范`,
@@ -151,6 +158,13 @@ export const documentTags = {
       label: `糖尿病${value ? '已' : '未'}控制`,
       type: !!value,
       code: 'D02'
+    };
+  },
+  D00(value) {
+    return {
+      label: `${value ? '' : '未'}接受糖尿病管理`,
+      type: !!value,
+      code: 'D00'
     };
   },
   E00: {label: '人群标记错误', type: false, code: 'E00'}
@@ -177,12 +191,20 @@ export const documentTagList = [
     name: '无老年人中医药管理'
   },
   {
+    id: 'H00',
+    name: '未接受高血压管理'
+  },
+  {
     id: 'H01',
     name: '高血压管理不规范'
   },
   {
     id: 'H02',
     name: '高血压未控制'
+  },
+  {
+    id: 'D00',
+    name: '未接受糖尿病管理'
   },
   {
     id: 'D01',
@@ -228,9 +250,11 @@ export function getTagsList(it) {
   if (it.O00 != undefined) it.tags.push(documentTags.O00(it.O00));
   if (it.O02 != undefined) it.tags.push(documentTags.O02(it.O02));
   // 高血压标记
+  if (it.H00 != undefined) it.tags.push(documentTags.H00(it.H00));
   if (it.H01 != undefined) it.tags.push(documentTags.H01(it.H01));
   if (it.H02 != undefined) it.tags.push(documentTags.H02(it.H02));
   // 糖尿病标记
+  if (it.D00 != undefined) it.tags.push(documentTags.D00(it.D00));
   if (it.D01 != undefined) it.tags.push(documentTags.D01(it.D01));
   if (it.D02 != undefined) it.tags.push(documentTags.D02(it.D02));
   return it;
