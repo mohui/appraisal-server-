@@ -191,6 +191,10 @@ export const documentTagList = [
     name: '无老年人中医药管理'
   },
   {
+    id: 'H00',
+    name: '未接受高血压管理'
+  },
+  {
     id: 'H01',
     name: '高血压管理不规范'
   },
@@ -199,8 +203,8 @@ export const documentTagList = [
     name: '高血压未控制'
   },
   {
-    id: 'H00',
-    name: '未接受高血压管理'
+    id: 'D00',
+    name: '未接受糖尿病管理'
   },
   {
     id: 'D01',
@@ -209,10 +213,6 @@ export const documentTagList = [
   {
     id: 'D02',
     name: '糖尿病未控制'
-  },
-  {
-    id: 'D00',
-    name: '未接受糖尿病管理'
   },
   {
     id: 'E00',
