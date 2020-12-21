@@ -231,16 +231,15 @@ export default class Report {
    * 检查定时任务是否执行成功
    */
   async checkTimming() {
-    const str = 'view_hypertension';
     // 拼接查询条件
     const paramObj = {
       viewStartDate: dayjs(dayjs().format('YYYY-MM-DD 22:00:00'))
         .subtract(1, 'day')
         .toDate(),
       viewEndDate: dayjs().toDate(),
-      markStartDate: dayjs(dayjs().format('YYYY-MM-DD 00:00:00')).toDate(),
+      markStartDate: dayjs(dayjs().format('YYYY-MM-DD 02:00:00')).toDate(),
       markEndDate: dayjs().toDate(),
-      ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 02:00:00')).toDate(),
+      ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 04:00:00')).toDate(),
       ruleEndDate: dayjs().toDate()
     };
 
@@ -280,8 +279,6 @@ export default class Report {
       'mark_organization',
       'mark_person',
 
-      'rule_hospital_score',
-      'rule_hospital_budget',
       'report_hospital'
     ];
 
@@ -292,10 +289,11 @@ export default class Report {
         if (it.startsWith('view')) {
           const [sql, params] = sqlRender(
             `
-              select count(1) as counts
+              select 1 as counts
               from ${it}
               where created_at >= {{? viewStartDate}}
-                  and created_at < {{? viewEndDate}}`,
+                  and created_at < {{? viewEndDate}}
+              limit 1`,
             paramObj
           );
           list = await originalDB.execute(sql, ...params);
@@ -305,10 +303,11 @@ export default class Report {
            */
           const [sql, params] = sqlRender(
             `
-              select count(1) as counts
+              select 1 as counts
               from ${it}
               where created_at >= {{? markStartDate}}
-                  and created_at < {{? markEndDate}}`,
+              and created_at < {{? markEndDate}}
+              limit 1`,
             paramObj
           );
           list = await originalDB.execute(sql, ...params);
@@ -318,10 +317,11 @@ export default class Report {
            */
           const [sql, params] = sqlRender(
             `
-              select count(1) as counts
+              select 1 as counts
               from ${it}
               where updated_at >= {{? ruleStartDate}}
-              and updated_at < {{? ruleEndDate}}`,
+              and updated_at < {{? ruleEndDate}}
+              limit 1`,
             paramObj
           );
           list = await appDB.execute(sql, ...params);
@@ -342,28 +342,26 @@ export default class Report {
      * 如果存在为零的数据, 说明有的表跑数据失败, 需要发送邮件
      */
     const transporter = createTransport({
-      service: 'qq',
-      port: 465, // SMTP 端口
-      secureConnection: true, // 使用 SSL
+      host: config.get('checkETL.email.sender.host'),
+      port: config.get('checkETL.email.sender.port'), // SMTP 端口
+      secure: true, // 使用 SSL
       auth: {
-        user: '1749325910@qq.com', // 发邮件邮箱
-        pass: 'zoaubyxxfslsdhcd' // 此处不是qq密码,是发件人邮箱的授权码
+        user: config.get('checkETL.email.sender.email'), // 发邮件邮箱
+        pass: config.get('checkETL.email.sender.password') // 此处不是qq密码,是发件人邮箱的授权码
       }
     });
 
     const mailOptions = {
-      from: '1749325910@qq.com', // 发件地址
-      to: 'wanghehui@bjknrt.com', // 收件列表
+      from: config.get<string>('checkETL.email.sender.email'), // 发件地址
+      to: config.get<Array<string>>('checkETL.email.receivers').join(','), // 收件列表
       subject: '自动任务有异常数据', // 标题
       html: `以下表的数据没有跑${tableName}`
     };
 
-    transporter.sendMail(mailOptions, function(error, info) {
-      if (error) {
-        throw new KatoCommonError(`${error}`);
-      }
-      // console.log('Message sent: ' + info.response);
-      return;
-    });
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (e) {
+      throw new KatoCommonError(`邮件发送失败: ${e}`);
+    }
   }
 }
