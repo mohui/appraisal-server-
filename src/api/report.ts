@@ -335,7 +335,7 @@ export default class Report {
       })
     );
 
-    const selViewZero = selView.filter(it => it.count < 50000);
+    const selViewZero = selView.filter(it => it.count < 1);
     const tableName = selViewZero.map(it => it.table).join(',');
     if (selViewZero.length === 0) return;
 
