@@ -287,7 +287,6 @@ export default class Report {
 
     const selView = await Promise.all(
       viewList.map(async it => {
-        console.log(it);
         let list;
         // 同步视图数据
         if (it.startsWith('view')) {
@@ -361,9 +360,10 @@ export default class Report {
 
     transporter.sendMail(mailOptions, function(error, info) {
       if (error) {
-        return console.log(error);
+        throw new KatoCommonError(`${error}`);
       }
-      console.log('Message sent: ' + info.response);
+      // console.log('Message sent: ' + info.response);
+      return;
     });
   }
 }
