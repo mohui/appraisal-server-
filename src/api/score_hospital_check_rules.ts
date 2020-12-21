@@ -376,16 +376,28 @@ export default class ScoreHospitalCheckRules {
         }
         // 老年人中医药健康管理率
         if (tagModel.tag === MarkTagUsages.O02.code) {
+          // 查询老年人人数
+          const basicData = await BasicTagDataModel.findOne({
+            where: {
+              code: BasicTagUsages.OldPeople,
+              hospital: hospitalId,
+              year: dayjs()
+                .year()
+                .toString()
+            }
+          });
+          // 如果查询老年人人数不存在, 直接跳过
+          if (!basicData?.value) continue;
           if (tagModel.algorithm === TagAlgorithmUsages.Y01.code && mark?.O02)
             score += tagModel.score;
           if (tagModel.algorithm === TagAlgorithmUsages.N01.code && !mark?.O02)
             score += tagModel.score;
           if (
             tagModel.algorithm === TagAlgorithmUsages.egt.code &&
-            mark?.O00 &&
+            basicData?.value &&
             mark?.O02
           ) {
-            const rate = mark.O02 / mark.O00 / tagModel.baseline;
+            const rate = mark.O02 / basicData.value / tagModel.baseline;
             score += tagModel.score * (rate > 1 ? 1 : rate);
           }
         }
@@ -1263,14 +1275,28 @@ group by h.region`,
       }
       // 老年人中医药健康管理率
       if (ruleTagModel.tag === MarkTagUsages.O02.code) {
+        // 查询老年人人数
+        const basicData = await BasicTagDataModel.findOne({
+          where: {
+            code: BasicTagUsages.OldPeople,
+            hospital: hospitalId,
+            year: dayjs()
+              .year()
+              .toString()
+          }
+        });
+        if (!basicData?.value) {
+          result.push('暂无"辖区内65岁及以上常住居民数"');
+          continue;
+        }
         result.push(
           `${
             MarkTagUsages.O02.name
           } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
             markHospitalModel?.O02
-          } / ${markHospitalModel?.O00} = ${percentString(
+          } / ${basicData.value} = ${percentString(
             markHospitalModel?.O02,
-            markHospitalModel?.O00
+            basicData.value
           )}`
         );
       }
