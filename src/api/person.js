@@ -36,6 +36,7 @@ function listRender(params) {
             {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
             {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
             {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
+            {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
           )
           and
           (
@@ -54,7 +55,6 @@ function listRender(params) {
             {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
             {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
             {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
-            {{#compare E00}}{{#if personOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
           )
     `,
     params
