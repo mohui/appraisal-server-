@@ -747,7 +747,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.CheckSystem.setAllRuleAuto(item.checkId, false);
+        await this.$api.Hospital.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'
