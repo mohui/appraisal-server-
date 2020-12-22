@@ -154,21 +154,11 @@
             </el-col>
           </div>
           <div v-else>
-            <el-col
-              :span="10"
-              :xs="24"
-              :sm="12"
-              :md="8"
-              :lg="8"
-              :xl="8"
-              v-if="!params.isInstitution"
-            >
+            <!--下级金额分配-->
+            <el-col :span="10" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 shadow="hover"
-                v-loading="
-                  $asyncComputed.doctorWorkpointRankServerData.updating ||
-                    $asyncComputed.workpointRankServerData.updating
-                "
+                v-loading="$asyncComputed.workpointRankServerData.updating"
               >
                 <div class="score-detail">
                   <two-card-tree-map
@@ -179,36 +169,19 @@
                 </div>
               </el-card>
             </el-col>
-            <el-col
-              :span="6"
-              :xs="24"
-              :sm="12"
-              :md="8"
-              :lg="8"
-              :xl="8"
-              v-if="!params.isInstitution"
-            >
+            <!--下级工分值图-->
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 shadow="hover"
-                v-loading="
-                  $asyncComputed.doctorWorkpointRankServerData.updating ||
-                    $asyncComputed.workpointRankServerData.updating
-                "
+                v-loading="$asyncComputed.workpointRankServerData.updating"
               >
                 <div class="score-detail">
                   <two-card-tree-map :mapData="mapData"></two-card-tree-map>
                 </div>
               </el-card>
             </el-col>
-            <el-col
-              :span="16"
-              :xs="24"
-              :sm="12"
-              :md="16"
-              :lg="16"
-              :xl="16"
-              v-if="params.isInstitution"
-            >
+            <!--工分值校正明细-->
+            <el-col :span="24">
               <el-card
                 shadow="hover"
                 v-loading="$asyncComputed.totalServerData.updating"
@@ -257,7 +230,7 @@
         <el-row
           :gutter="20"
           style="margin: 20px -10px"
-          v-if="params.isInstitution"
+          v-if="params.listFlag === 'quality'"
         >
           <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-card shadow="hover">
@@ -611,8 +584,8 @@
                     plain
                     type="primary"
                     @click="handleAppraisalResultsDownload()"
-                    >考核结果下载</el-button
-                  >
+                    >考核结果下载
+                  </el-button>
                 </div>
                 <div style="float: right" v-if="$settings.user.isRegion">
                   <span style="font-size: 14px">系统自动打分：</span>
@@ -836,16 +809,73 @@
             </div>
           </el-col>
         </el-row>
+      </div>
+      <div>
+        <el-row v-if="params.listFlag === 'quality'">
+          <el-col :span="24">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.subordinateAreaRankServerData.updating"
+            >
+              <h3 class="area-ranking-title">下级地区排行</h3>
+              <div
+                v-for="(item, index) of subordinateAreaRankData"
+                :key="item.id"
+              >
+                <!--下级质量系数排行-->
+                <div
+                  v-if="params.listFlag === 'quality'"
+                  class="pointer"
+                  @click="handleClickSubordinateArea(item.id)"
+                >
+                  <p>
+                    {{ index + 1 }}、{{ item.name }}
+                    <span style="float:right"
+                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                    >
+                  </p>
+                  <el-progress
+                    :text-inside="true"
+                    :stroke-width="18"
+                    :percentage="Math.round(item.rate * 100)"
+                  >
+                  </el-progress>
+                </div>
+                <!--下级机构工分值排行-->
+                <div
+                  class="pointer"
+                  v-else-if="params.listFlag === 'score'"
+                  @click="handleClickSubordinateArea(item.id)"
+                >
+                  <p>{{ index + 1 }}、{{ item.name }}</p>
+                  <progress-score
+                    :label="item.scoreFormat"
+                    :height="18"
+                    :percentage="
+                      item.score != 0
+                        ? Math.round(
+                            (item.score / subordinateAreaMaxScore) * 100
+                          )
+                        : 0
+                    "
+                    style="padding:0 20px;"
+                  >
+                  </progress-score>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
         <el-row
           v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
-          v-if="params.isInstitution && params.listFlag === 'score'"
+          v-if="params.listFlag === 'score'"
           :gutter="20"
           style="margin-top: 20px"
         >
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-card shadow="hover">
               <p style="color:#1096d0; font-size:20px; font-weight:500;">
-                医生工分
+                下级工分
               </p>
               <el-table
                 :data="doctorWorkpointRankData"
@@ -931,63 +961,6 @@
           </el-col>
         </el-row>
       </div>
-      <div>
-        <el-row>
-          <el-col :span="24">
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.subordinateAreaRankServerData.updating"
-            >
-              <h3 class="area-ranking-title">下级地区排行</h3>
-              <div
-                v-for="(item, index) of subordinateAreaRankData"
-                :key="item.id"
-              >
-                <!--下级质量系数排行-->
-                <div
-                  v-if="params.listFlag === 'quality'"
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.id)"
-                >
-                  <p>
-                    {{ index + 1 }}、{{ item.name }}
-                    <span style="float:right"
-                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
-                    >
-                  </p>
-                  <el-progress
-                    :text-inside="true"
-                    :stroke-width="18"
-                    :percentage="Math.round(item.rate * 100)"
-                  >
-                  </el-progress>
-                </div>
-                <!--下级机构工分值排行-->
-                <div
-                  class="pointer"
-                  v-else-if="params.listFlag === 'score'"
-                  @click="handleClickSubordinateArea(item.id)"
-                >
-                  <p>{{ index + 1 }}、{{ item.name }}</p>
-                  <progress-score
-                    :label="item.scoreFormat"
-                    :height="18"
-                    :percentage="
-                      item.score != 0
-                        ? Math.round(
-                            (item.score / subordinateAreaMaxScore) * 100
-                          )
-                        : 0
-                    "
-                    style="padding:0 20px;"
-                  >
-                  </progress-score>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
     </div>
     <el-dialog
       title="上传考核资料"
@@ -1012,8 +985,8 @@
             :data="curRule.data"
           >
             <el-button plain slot="trigger" size="small" type="primary"
-              >选取文件</el-button
-            >
+              >选取文件
+            </el-button>
             <div slot="tip" class="el-upload__tip" style="font-size:12px;">
               可以上传图片，word文件，xls文件，pdf文件，压缩包文件，单个文件不能超过5M。
             </div>
@@ -1022,11 +995,11 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button plain @click="dialogUploadAppraisalFileVisible = false"
-          >取 消</el-button
-        >
+          >取 消
+        </el-button>
         <el-button plain type="primary" @click="handleSaveUploadFile"
-          >确 定</el-button
-        >
+          >确 定
+        </el-button>
       </div>
     </el-dialog>
     <el-dialog
@@ -1877,9 +1850,6 @@ export default {
           this.params.checkId
         );
       },
-      shouldUpdate() {
-        return !this.params.isInstitution;
-      },
       default() {
         return [];
       }
@@ -1887,10 +1857,14 @@ export default {
     //获取服务器的医生工分和工分项目数据
     doctorWorkpointRankServerData: {
       async get() {
-        return await this.$api.Hospital.workpoints(this.params.id);
+        try {
+          return await this.$api.Hospital.workpoints(this.params.id);
+        } catch (e) {
+          return [];
+        }
       },
       shouldUpdate() {
-        return this.params.listFlag === 'score' && this.params.isInstitution;
+        return this.params.listFlag === 'score';
       },
       default() {
         return [];
@@ -1949,10 +1923,14 @@ export default {
     //获取机构的各项工分详情
     hospitalProject: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.projectDetail(
-          this.params.id,
-          this.params.checkId
-        );
+        try {
+          return await this.$api.ScoreHospitalCheckRules.projectDetail(
+            this.params.id,
+            this.params.checkId
+          );
+        } catch (e) {
+          return [];
+        }
       },
       default() {
         return [];
@@ -2042,6 +2020,7 @@ export default {
   flex-direction: column;
   align-items: flex-start;
   padding: 20px 0 0 15px;
+
   span {
     color: #606266;
     line-height: 28px;
