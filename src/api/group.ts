@@ -1,6 +1,7 @@
 import {appDB} from '../app';
 import {sql as sqlRender} from '../database';
-
+import {Context} from './context';
+import dayjs = require('dayjs');
 /**
  * group实体类型
  */
@@ -84,5 +85,52 @@ export default class Group {
       const hospitals: GroupModel[] = await appDB.execute(sql, ...params);
       for (const hospital of hospitals) await upsert(hospital);
     });
+  }
+  /**
+   * 地区列表
+   * @param code
+   * return usable: true:可选, false: 不可选
+   */
+  async list(code) {
+    let where = '';
+    // 判断code是否为空,如果传值,查询下级,如果没有传值,查询自身权限
+    if (code) {
+      where += ` and parent = ? `;
+    } else {
+      code = Context.current.user.regionId;
+      // 没传值查本身
+      where += ` and code = ? `;
+    }
+    // 地区列表
+    const list = await appDB.execute(
+      `
+            select "code", "name"
+            from "group"
+            where 1 = 1 ${where}`,
+      code
+    );
+
+    // 查询的年份
+    const checkYear = dayjs().format('YYYY');
+    // 已经参加考核的地区
+    const checkArea = await appDB.execute(
+      `select hospital.hospital
+            from check_hospital hospital
+            left join check_system system on hospital.check_system = system.check_id
+            where system.check_year = ?`,
+      checkYear
+    );
+
+    // 排查所有的地区是否已经参加考核
+    const regionList = list.map(it => {
+      const index = checkArea.findIndex(
+        hospital => hospital.hospital === it.code
+      );
+      return {
+        ...it,
+        usable: index === -1 ? true : false
+      };
+    });
+    return regionList;
   }
 }
