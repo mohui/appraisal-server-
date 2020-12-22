@@ -113,19 +113,17 @@ export default class Group {
     // 查询的年份
     const checkYear = dayjs().format('YYYY');
     // 已经参加考核的地区
-    const checkArea = await appDB.execute(
-      `select hospital.hospital
-            from check_hospital hospital
-            left join check_system system on hospital.check_system = system.check_id
+    const checkGroup = await appDB.execute(
+      `select "group"."group"
+            from check_group "group"
+            left join check_system system on "group".check_system = system.check_id
             where system.check_year = ?`,
       checkYear
     );
 
     // 排查所有的地区是否已经参加考核
     const regionList = list.map(it => {
-      const index = checkArea.findIndex(
-        hospital => hospital.hospital === it.code
-      );
+      const index = checkGroup.findIndex(item => item.group === it.code);
       return {
         ...it,
         usable: index === -1 ? true : false
