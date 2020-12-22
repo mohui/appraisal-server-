@@ -1751,9 +1751,6 @@ export default {
       async get() {
         return await this.$api.Hospital.signRegister(this.params.id);
       },
-      shouldUpdate() {
-        return this.params.isInstitution;
-      },
       default() {
         return {};
       }
@@ -1774,9 +1771,6 @@ export default {
     supervisionReportServerData: {
       async get() {
         return await this.$api.Hospital.supervisionReport(this.params.id);
-      },
-      shouldUpdate() {
-        return this.params.isInstitution;
       },
       default() {
         return [];
