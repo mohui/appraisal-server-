@@ -932,7 +932,61 @@
         </el-row>
       </div>
       <div>
-        下级排行
+        <el-row>
+          <el-col :span="24">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.subordinateAreaRankServerData.updating"
+            >
+              <h3 class="area-ranking-title">下级地区排行</h3>
+              <div
+                v-for="(item, index) of subordinateAreaRankData"
+                :key="item.id"
+              >
+                <!--下级质量系数排行-->
+                <div
+                  v-if="params.listFlag === 'quality'"
+                  class="pointer"
+                  @click="handleClickSubordinateArea(item.id)"
+                >
+                  <p>
+                    {{ index + 1 }}、{{ item.name }}
+                    <span style="float:right"
+                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                    >
+                  </p>
+                  <el-progress
+                    :text-inside="true"
+                    :stroke-width="18"
+                    :percentage="Math.round(item.rate * 100)"
+                  >
+                  </el-progress>
+                </div>
+                <!--下级机构工分值排行-->
+                <div
+                  class="pointer"
+                  v-else-if="params.listFlag === 'score'"
+                  @click="handleClickSubordinateArea(item.id)"
+                >
+                  <p>{{ index + 1 }}、{{ item.name }}</p>
+                  <progress-score
+                    :label="item.scoreFormat"
+                    :height="18"
+                    :percentage="
+                      item.score != 0
+                        ? Math.round(
+                            (item.score / subordinateAreaMaxScore) * 100
+                          )
+                        : 0
+                    "
+                    style="padding:0 20px;"
+                  >
+                  </progress-score>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
     </div>
     <el-dialog
@@ -1281,6 +1335,11 @@ export default {
           }
         });
       }
+    },
+    //进入下级地区
+    handleClickSubordinateArea(id) {
+      //TODO: 跳转到下级地区
+      console.log('跳转到下级地区id:', id);
     },
     //是否显示返回按钮
     showBackButton() {
@@ -1692,6 +1751,25 @@ export default {
     //报告下载列表数据
     reportListData() {
       return this.reportListSeverData;
+    },
+    //下级地区排行数据
+    subordinateAreaRankData() {
+      const result = this.subordinateAreaRankServerData.map(item => item);
+      if (this.params.listFlag === 'score') {
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
+    },
+    //最大得分值数
+    subordinateAreaMaxScore() {
+      return Math.max(...this.subordinateAreaRankData.map(it => it.score));
     }
   },
   asyncComputed: {
@@ -1884,6 +1962,18 @@ export default {
     reportListSeverData: {
       async get() {
         return await this.$api.Report.list(this.params.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    //下级地区排行
+    subordinateAreaRankServerData: {
+      async get() {
+        return await this.$api.ScoreHospitalCheckRules.areaRank(
+          '3402',
+          this.params.checkId
+        );
       },
       default() {
         return [];
