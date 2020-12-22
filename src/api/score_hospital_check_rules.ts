@@ -13,7 +13,9 @@ import {
   RuleHospitalScoreModel,
   RuleProjectModel,
   RuleTagModel,
-  sql as sqlRender
+  sql as sqlRender,
+  ScoreRemarkHistoryModel,
+  UserModel
 } from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
@@ -797,8 +799,9 @@ export default class ScoreHospitalCheckRules {
    * @param ruleId 细则id
    * @param hospitalId 机构id
    * @param score 分数
+   * @param remark 备注
    */
-  async score(ruleId, hospitalId, score) {
+  async score(ruleId, hospitalId, score, remark) {
     const rule = await CheckRuleModel.findOne({where: {ruleId: ruleId}});
     if (!rule) throw new KatoCommonError('规则不存在');
     const hospital = await HospitalModel.findOne({where: {id: hospitalId}});
@@ -833,6 +836,14 @@ export default class ScoreHospitalCheckRules {
       checkId: rule.checkId,
       hospitalId,
       scores
+    });
+    //保存打分备注和历史
+    await ScoreRemarkHistoryModel.upsert({
+      ruleId: ruleId,
+      hospitalId: hospitalId,
+      creatorId: Context.current.user.id,
+      score: score,
+      remark: remark
     });
     //重新进行金额分配
     this.checkBudget(rule.checkId);
@@ -1722,5 +1733,18 @@ where h.region like ?`,
     faceData.rate =
       new Decimal(faceData.face).div(faceData.total).toNumber() || 0;
     return faceData;
+  }
+
+  /***
+   * 获取手动打分历史
+   * @param ruleId
+   * @param hospitalId
+   */
+  async scoreHistory(ruleId, hospitalId) {
+    return ScoreRemarkHistoryModel.findAll({
+      where: {ruleId, hospitalId},
+      include: [UserModel],
+      order: [['created_at', 'DESC']]
+    });
   }
 }
