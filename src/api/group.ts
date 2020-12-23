@@ -3,7 +3,25 @@ import {sql as sqlRender} from '../database';
 import {Context} from './context';
 import dayjs = require('dayjs');
 
-export async function getGroupTree(code): Promise<any[]> {
+/**
+ * 获取地区树
+ *
+ * @param code 地区code
+ */
+export async function getGroupTree(
+  code
+): Promise<
+  {
+    name: string;
+    code: string;
+    parent: string;
+    level: number;
+    root: string;
+    path: string;
+    cycle: boolean;
+    leaf: boolean;
+  }[]
+> {
   const condition = code ? `parent = '${code}'` : 'parent is null';
   // language=PostgreSQL
   return await appDB.execute(`
