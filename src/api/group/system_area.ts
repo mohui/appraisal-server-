@@ -11,16 +11,37 @@ import {Decimal} from 'decimal.js';
  * @param code
  */
 async function getHospital(code) {
-  const hospitalIds = await appDB.execute(
+  // 先校验权限是否合法
+  const area = await appDB.execute(
+    `
+            select "code"
+            from "area"
+            where code = ?`,
+    code
+  );
+  if (area.length < 1) return [];
+
+  // 根据权限查询所有机构
+  let hospitalIds = await appDB.execute(
     `
         select mapping.hishospid as id
         from hospital
         left join hospital_mapping mapping on hospital.id = mapping.h_id
         where hospital.region like '${code}%'
-        or hospital.id = '${code}'
         `,
     code
   );
+  if (hospitalIds.length === 0) {
+    hospitalIds = await appDB.execute(
+      `
+        select mapping.hishospid as id
+        from hospital
+        left join hospital_mapping mapping on hospital.id = mapping.h_id
+        where hospital.id = '${code}'
+        `,
+      code
+    );
+  }
   return hospitalIds.map(it => it.id);
 }
 export default class SystemArea {
@@ -160,18 +181,9 @@ export default class SystemArea {
    * }
    */
   async signRegister(code) {
-    const group = await appDB.execute(
-      `
-            select "code"
-            from "area"
-            where code = ?`,
-      code
-    );
-    if (group.length < 1) throw new KatoCommonError('地区编码不合法');
-
+    // 根据地区id获取机构id列表
     const hisHospIds = await getHospital(code);
-
-    if (!hisHospIds) throw new KatoCommonError('机构id不合法');
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     let [sql, paramters] = sqlRender(
       `
@@ -241,5 +253,75 @@ export default class SystemArea {
       exeNumber: Number(exeNumber),
       renewNumber: Number(renewNumber)
     };
+  }
+
+  /**
+   * 监督协管报告
+   *
+   * @param hospitalId
+   */
+  async supervisionReport(code) {
+    // 根据地区id获取机构id列表
+    const hisHospIds = await getHospital(code);
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    const sql = sqlRender(
+      `
+        select
+            institutionname as "InstitutionName",
+            address as "Address",
+            Contents as "Contents",
+            ReportTime as "Date"
+        from view_SanitaryControlReport
+        where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        and ReportTime>={{? start}} and ReportTime<{{? end}}
+        order by ReportTime desc
+      `,
+      {
+        hisHospIds,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+    return await originalDB.execute(sql[0], ...sql[1]);
+  }
+
+  /**
+   * 监督协管巡查
+   *
+   * @param hospitalId
+   */
+  async supervisionAssist(code) {
+    // 根据地区id获取机构id列表
+    const hisHospIds = await getHospital(code);
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    const [sql, params] = sqlRender(
+      `
+    select
+        institutionname as "InstitutionName",
+        address as "Address",
+        checkDate as "Date"
+    from view_SanitaryControlAssist
+    where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+    and checkDate>={{? start}} and checkDate<{{? end}}
+    order by checkDate desc
+    `,
+      {
+        hisHospIds,
+        start: dayjs()
+          .startOf('y')
+          .toDate(),
+        end: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+    return await originalDB.execute(sql, ...params);
   }
 }
