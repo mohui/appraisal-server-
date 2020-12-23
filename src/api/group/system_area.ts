@@ -180,6 +180,12 @@ export default class SystemArea {
    * renewNumber: number //续约人数
    * }
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
   async signRegister(code) {
     // 根据地区id获取机构id列表
     const hisHospIds = await getHospital(code);
@@ -260,6 +266,12 @@ export default class SystemArea {
    *
    * @param hospitalId
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
   async supervisionReport(code) {
     // 根据地区id获取机构id列表
     const hisHospIds = await getHospital(code);
@@ -295,6 +307,12 @@ export default class SystemArea {
    *
    * @param hospitalId
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
   async supervisionAssist(code) {
     // 根据地区id获取机构id列表
     const hisHospIds = await getHospital(code);
@@ -323,5 +341,61 @@ export default class SystemArea {
       }
     );
     return await originalDB.execute(sql, ...params);
+  }
+
+  // 健康教育
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
+  async healthEducation(code) {
+    // 根据地区id获取机构id列表
+    const hisHospIds = await getHospital(code);
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    const [sql, params] = sqlRender(
+      `
+        SELECT vhe.ActivityFormCode as "ActivityFormCode",
+               vhe.PrintDataName    as "PrintDataName",
+               vhe.ActivityName     as "ActivityName",
+               vcd.CodeName         as "CodeName",
+               vcd.CodeName         as "ActivityFormName",
+               vhe.ActivityTime     as "ActivityTime"
+        FROM view_HealthEducation vhe
+               LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
+          AND vcd.CategoryNo = '270105'
+        where vhe.OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+          and vhe.ActivityTime >= {{? startTime}}
+          and vhe.ActivityTime < {{? endTime}}
+          and vhe.State = 1
+        order by vhe.ActivityTime desc
+      `,
+      {
+        hisHospIds,
+        startTime: dayjs()
+          .startOf('y')
+          .toDate(),
+        endTime: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+
+    const data = await originalDB.execute(sql, ...params);
+    return data.map(i => ({
+      ActivityName:
+        i.ActivityFormCode === '1' || i.ActivityFormCode === '2'
+          ? i.PrintDataName
+          : i.ActivityFormCode === '3' ||
+            i.ActivityFormCode === '4' ||
+            i.ActivityFormCode === '5'
+          ? i.ActivityName
+          : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
+      ActivityFormName: i.ActivityFormName,
+      ActivityTime: i.ActivityTime
+    }));
   }
 }
