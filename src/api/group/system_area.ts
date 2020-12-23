@@ -4,6 +4,9 @@ import {HospitalModel, RegionModel} from '../../database/model';
 import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
+import {Projects} from '../../../common/project';
+import {getGroupTree} from '../group';
+import {Context} from '../context';
 
 /**
  * 获取机构id
@@ -50,14 +53,123 @@ export default class SystemArea {
    * @param date
    * @param code
    * @param checkId
+   *
+   * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
    */
-  async total(date, code, checkId) {
+  async total(code, checkId) {
+    // 获取权限下所有机构id
+    // 根据地区id获取机构id列表
+    const hisHospIds = await getHospital(code);
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
+    let hospitalModel;
+    if (!regionModel)
+      hospitalModel = await HospitalModel.findOne({
+        where: {id: code}
+      });
+
+    if (regionModel || hospitalModel) {
+      if (
+        hospitalModel &&
+        Context.current.user.hospitals.filter(i => i.id === code).length < 1
+      )
+        throw new KatoCommonError('未经授权的机构不允许查看');
+
+      let [sql, params] = sqlRender(
+        `
+        select
+            COALESCE(sum("correctWorkPoint"),0) as "score",
+            COALESCE(sum("workPoint"),0) as "originalScore",
+            COALESCE(sum("ruleScore"),0) as "ruleScore",
+            COALESCE(sum("ruleTotalScore"),0) as "total",
+            COALESCE(sum(rhb.budget),0) as "budget"
+            {{#if regionId}}{{else}},max(hm.hishospid) hishospid{{/if}}
+        from rule_hospital_budget rhb
+        {{#if regionId}}
+            inner join hospital h on h.id=rhb.hospital
+        {{else}}
+            inner join hospital_mapping hm on hm.h_id=rhb.hospital
+        {{/if}}
+        inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
+        inner join check_system cs on cs.check_id=cr.check_id
+        {{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
+        {{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
+        inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
+        where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{#if regionId}} and position({{? regionId}} in h.region)=1{{/if}}`,
+        {
+          hospitalIds: hospitalModel
+            ? [code]
+            : Context.current.user.hospitals.map(it => it.id),
+          regionId: regionModel ? code : null,
+          checkType: checkId ? null : 1,
+          checkId
+        }
+      );
+      // return await appDB.execute(sql, ...params);
+      const resultObject = (await appDB.execute(sql, ...params))[0];
+
+      [sql, params] = sqlRender(
+        `
+          select cast(sum(score) as int) as scores
+          from view_workscoretotal
+          where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+          and missiontime >= {{? startTime}}
+          and missiontime < {{? endTime}}
+          `,
+        {
+          hisHospIds,
+          startTime: dayjs()
+            .startOf('y')
+            .toDate(),
+          endTime: dayjs()
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        }
+      );
+
+      const originalWorkPoints =
+        (await originalDB.execute(sql, ...params))[0]?.scores ?? 0;
+
+      if (regionModel) {
+        return {
+          id: regionModel.code,
+          name: regionModel.name,
+          score: Number(resultObject.score),
+          originalScore: Number(resultObject.originalScore),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber(),
+          originalWorkPoint: originalWorkPoints
+        };
+      }
+      if (hospitalModel) {
+        return {
+          id: hospitalModel.id,
+          name: hospitalModel.name,
+          score: Number(resultObject.score),
+          originalScore: Number(resultObject.originalScore),
+          rate: new Decimal(Number(resultObject.ruleScore))
+            .div(Number(resultObject.total))
+            .toNumber(),
+          budget: Number(resultObject.budget),
+          originalWorkPoint: originalWorkPoints
+        };
+      }
+    }
+
+    throw new KatoCommonError(`${code} 不存在`);
+
     return {
       id: '3402',
       name: '芜湖市',
       score: 40075986.859490514,
       originalScore: 54104423,
-      rate: 0.7599249148753182
+      rate: 0.7599249148753182,
+      budget: 0,
+      originalWorkPoint: 1407334
     };
   }
 
@@ -396,6 +508,117 @@ export default class SystemArea {
           : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
       ActivityFormName: i.ActivityFormName,
       ActivityTime: i.ActivityTime
+    }));
+  }
+
+  /**
+   * 公分列表[地区工分]
+   *
+   * 可能存在问题,自己就是最底层的时候
+   * @param code
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
+  async workpointsArea(code) {
+    // 获取树形结构
+    const tree = await getGroupTree(code);
+    // 找到所有的子节点
+    const hospitals = tree.filter(it => it.cycle === true);
+    return tree;
+    // 查找出所有的下级权限
+    const treeChildren = tree.filter(it => it.parent === code);
+    // if (treeChildren.length === 0)
+    // return treeChildren;
+    // 根据地区id获取机构id列表
+    const hisHospIds = await getHospital(code);
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    const [sql, params] = sqlRender(
+      `
+            select
+                cast(sum(vws.score) as int) as score,
+                vws.operateorganization,
+                vws.operatorid as doctorId,
+                vws.doctor as doctorName,
+                vws.projecttype as "projectId"
+            from view_workscoretotal vws
+            where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+             and missiontime >= {{? startTime}}
+             and missiontime < {{? endTime}}
+             group by vws.operatorid, vws.doctor,vws.projecttype, vws.operateorganization
+             `,
+      {
+        hisHospIds,
+        startTime: dayjs()
+          .startOf('y')
+          .toDate(),
+        endTime: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+
+    // 执行SQL语句
+    const workPoint = await originalDB.execute(sql, ...params);
+    return workPoint;
+  }
+
+  // 公分列表[医生工分, 工分项目]
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id')
+  )
+  async workpointsProject(code) {
+    const hospitalMapping = await appDB.execute(
+      `select hishospid as id
+            from hospital_mapping mapping
+            where h_id = ?`,
+      code
+    );
+
+    // 查询所属his
+    const hospital = await HospitalModel.findOne({
+      where: {id: code}
+    });
+    if (!hospital) throw new KatoCommonError(`code为 ${code} 的机构不存在`);
+
+    const hisHospitalId = hospitalMapping[0]?.id;
+    const type = hospital?.his;
+
+    return (
+      await originalDB.execute(
+        `select cast(sum(vws.score) as int) as score,
+              vws.operatorid as doctorId,
+              vws.doctor as doctorName,
+              vws.projecttype as "projectId"
+           from view_workscoretotal vws
+           where vws.operateorganization = ?
+             and missiontime >= ?
+             and missiontime < ?
+         group by vws.operatorid, vws.doctor,vws.projecttype`,
+        hisHospitalId,
+        dayjs()
+          .startOf('y')
+          .toDate(),
+        dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      )
+    ).map(it => ({
+      ...it,
+      name: Projects.find(p => {
+        return p.mappings.find(
+          mapping => mapping.id === it.projectId && mapping.type === type
+        );
+      })?.name
     }));
   }
 }
