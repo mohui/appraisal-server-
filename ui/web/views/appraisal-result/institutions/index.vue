@@ -614,7 +614,9 @@
           </el-col>
         </el-row>
       </div>
+      <!--下级排行-->
       <div>
+        <!--下级质量系数排行-->
         <el-row v-if="params.listFlag === 'quality'">
           <el-col :span="24">
             <el-card
@@ -626,9 +628,7 @@
                 v-for="(item, index) of subordinateAreaRankData"
                 :key="item.id"
               >
-                <!--下级质量系数排行-->
                 <div
-                  v-if="params.listFlag === 'quality'"
                   class="pointer"
                   @click="handleClickSubordinateArea(item.id)"
                 >
@@ -645,31 +645,11 @@
                   >
                   </el-progress>
                 </div>
-                <!--下级机构工分值排行-->
-                <div
-                  v-else-if="params.listFlag === 'score'"
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.id)"
-                >
-                  <p>{{ index + 1 }}、{{ item.name }}</p>
-                  <progress-score
-                    :label="item.scoreFormat"
-                    :height="18"
-                    :percentage="
-                      item.score != 0
-                        ? Math.round(
-                            (item.score / subordinateAreaMaxScore) * 100
-                          )
-                        : 0
-                    "
-                    style="padding:0 20px;"
-                  >
-                  </progress-score>
-                </div>
               </div>
             </el-card>
           </el-col>
         </el-row>
+        <!--下级工分排行-->
         <el-row
           v-if="params.listFlag === 'score'"
           v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
@@ -833,7 +813,6 @@ import twoCardPie from '../components/twocardPie';
 import doctorBar from '../components/doctorBar';
 import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
-import progressScore from '../components/progressScore';
 import lineChart from '../components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
@@ -846,7 +825,6 @@ export default {
     doctorBar,
     twoCardTreeMap,
     twoCardCircle,
-    progressScore,
     lineChart
   },
   beforeRouteUpdate(to, from, next) {
