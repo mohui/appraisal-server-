@@ -2,6 +2,55 @@ import {appDB} from '../app';
 import {sql as sqlRender} from '../database';
 import {Context} from './context';
 import dayjs = require('dayjs');
+
+export async function getGroupTree(code): Promise<any[]> {
+  const condition = code ? `parent = '${code}'` : 'parent is null';
+  // language=PostgreSQL
+  return await appDB.execute(`
+    with recursive tree(
+                        name,
+                        code,
+                        parent,
+                        level,
+                        path,
+                        root,
+                        cycle
+      ) as (
+      select name,
+             code                          as code,
+             parent                        as code,
+             1                             as level,
+             (array [code])::varchar(36)[] as path,
+             code                          as root,
+             false                         as cycle
+      from area
+      where ${condition}
+      union all
+      select c.name,
+             c.code                               as code,
+             c.parent                             as parent,
+             level + 1                            as level,
+             (tree.path || c.code)::varchar(36)[] as path,
+             tree.root                            as root,
+             c.code = any (path)                  as cycle
+      from tree,
+           area c
+      where tree.code = c.parent
+        and not cycle
+    )
+    select name,                                                       -- 名称
+           code,                                                       -- code
+           tree.parent,                                                -- 父级code
+           level,                                                      -- 层级
+           root,                                                       -- 路径
+           path,                                                       -- 根节点
+           cycle,                                                      -- 是否循环
+           case when t.parent is null then true else false end as leaf -- 是否是叶子节点
+    from tree
+           left join (select parent from area group by parent) t on tree.code = t.parent
+  `);
+}
+
 /**
  * group实体类型
  */
