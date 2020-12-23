@@ -37,6 +37,48 @@ export class GroupMigration implements IMigration {
         select h.check_system,h.hospital, h.created_at, h.updated_at from "check_hospital"  h
         left join check_system s on h.check_system = s.check_id
         where s.check_type = 1);
+
+      CREATE TABLE IF NOT EXISTS "rule_group_score" -- 地区得分表
+      (
+        "id"         UUID,                                                                                                        -- 主键id
+        "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
+        "group"      VARCHAR(36)              NOT NULL REFERENCES "group" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,        -- 地区编码
+        "score"      FLOAT                    NOT NULL,                                                                           -- 得分
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        PRIMARY KEY ("id")
+      );
+      COMMENT ON COLUMN "rule_group_score"."id" IS '主键id';
+      COMMENT ON COLUMN "rule_group_score"."rule" IS '考核细则id';
+      COMMENT ON COLUMN "rule_group_score"."group" IS '地区编码';
+      COMMENT ON COLUMN "rule_group_score"."score" IS '得分';
+
+      CREATE TABLE IF NOT EXISTS "rule_group_budget" -- 地区金额分配表
+      (
+        "rule" UUID NOT NULL  REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE ,
+        "group" VARCHAR(36) NOT NULL  REFERENCES "group" ("code") ON DELETE NO ACTION ON UPDATE CASCADE ,
+        "budget"  DECIMAL(15, 4) DEFAULT 0,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        PRIMARY KEY ("rule","group"));
+      COMMENT ON COLUMN "rule_group_budget"."rule" IS '考核小项id';
+      COMMENT ON COLUMN "rule_group_budget"."group" IS '机构id';
+      COMMENT ON COLUMN "rule_group_budget"."budget" IS '分配金额';
+
+      CREATE TABLE IF NOT EXISTS "report_group"
+      (
+        "group"      VARCHAR(36) REFERENCES "group" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "workpoints" FLOAT                    DEFAULT 0,
+        "scores"     FLOAT                    DEFAULT 0,
+        "total"      FLOAT                    DEFAULT 0,
+        PRIMARY KEY ("group")
+      );
+      COMMENT ON COLUMN "report_group"."group" IS '地区id';
+      COMMENT ON COLUMN "report_group"."workpoints" IS '工分';
+      COMMENT ON COLUMN "report_group"."scores" IS '得分';
+      COMMENT ON COLUMN "report_group"."total" IS '满分';
     `);
   }
 
