@@ -105,7 +105,7 @@ export default class Group {
     const list = await appDB.execute(
       `
             select "code", "name"
-            from "group"
+            from "area"
             where 1 = 1 ${where}`,
       code
     );
@@ -113,17 +113,17 @@ export default class Group {
     // 查询的年份
     const checkYear = dayjs().format('YYYY');
     // 已经参加考核的地区
-    const checkGroup = await appDB.execute(
-      `select "group"."group"
-            from check_group "group"
-            left join check_system system on "group".check_system = system.check_id
+    const checkArea = await appDB.execute(
+      `select "area"."area"
+            from check_area "area"
+            left join check_system system on "area".check_system = system.check_id
             where system.check_year = ?`,
       checkYear
     );
 
     // 排查所有的地区是否已经参加考核
     const regionList = list.map(it => {
-      const index = checkGroup.findIndex(item => item.group === it.code);
+      const index = checkArea.findIndex(item => item.area === it.code);
       return {
         ...it,
         usable: index === -1 ? true : false
