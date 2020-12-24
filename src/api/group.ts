@@ -314,7 +314,7 @@ export default class Group {
       return {
         ...it,
         system: index ? index.check_name : null,
-        usable: index ? true : false
+        usable: index ? false : true
       };
     });
     return regionList;
