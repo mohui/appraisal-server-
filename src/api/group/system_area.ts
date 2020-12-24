@@ -5,7 +5,7 @@ import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
-import {getGroupTree} from '../group';
+import {getGroupTree, getOriginalArray} from '../group';
 import {Context} from '../context';
 
 /**
@@ -526,15 +526,43 @@ export default class SystemArea {
   async workpointsArea(code) {
     // 获取树形结构
     const tree = await getGroupTree(code);
-    // 找到所有的子节点
-    const hospitals = tree.filter(it => it.cycle === true);
-    return tree;
-    // 查找出所有的下级权限
-    const treeChildren = tree.filter(it => it.parent === code);
-    // if (treeChildren.length === 0)
-    // return treeChildren;
+
+    // 权限的下级子节点
+    let childrenTree = [];
+    // 所有的叶子节点
+    let hospitalIds = [];
+
+    // 如果没有查到子节点,可能是机构节点,判断机构节点是否合法
+    if (tree.length === 0) {
+      // 先校验权限是否合法
+      hospitalIds = await appDB.execute(
+        `
+            select "code"
+            from "area"
+            where code = ?`,
+        code
+      );
+      if (hospitalIds.length === 0)
+        throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
+    } else {
+      // 非机构权限, 列表为下级权限 => 找到自己的子节点
+      childrenTree = tree
+        .map(it => {
+          if (it.parent === code) return it;
+        })
+        .filter(item => item);
+
+      // 找到所有的叶子节点
+      hospitalIds = tree.filter(it => it.leaf === true);
+    }
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(
+      hospitalIds.map(item => item.code)
+    );
+
+    const hisHospIds = hisHospIdObjs.map(it => it['id']);
+
     // 根据地区id获取机构id列表
-    const hisHospIds = await getHospital(code);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     const [sql, params] = sqlRender(
@@ -542,14 +570,13 @@ export default class SystemArea {
             select
                 cast(sum(vws.score) as int) as score,
                 vws.operateorganization,
-                vws.operatorid as doctorId,
-                vws.doctor as doctorName,
-                vws.projecttype as "projectId"
+                vws.operatorid as "doctorId",
+                vws.doctor as "doctorName"
             from view_workscoretotal vws
             where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
              and missiontime >= {{? startTime}}
              and missiontime < {{? endTime}}
-             group by vws.operatorid, vws.doctor,vws.projecttype, vws.operateorganization
+             group by vws.operatorid, vws.doctor, vws.operateorganization
              `,
       {
         hisHospIds,
@@ -565,7 +592,61 @@ export default class SystemArea {
 
     // 执行SQL语句
     const workPoint = await originalDB.execute(sql, ...params);
-    return workPoint;
+    // 如果是机构级节点, 返回查询结果
+    if (childrenTree.length === 0) {
+      return workPoint.map(it => {
+        return {
+          code: it.doctorId,
+          name: it.doctorName,
+          score: it.score
+        };
+      });
+    }
+
+    // 如果是机构节点之前, 把机构id赋值给查询结果
+    const hospitalWorkPoint = workPoint
+      .map(it => {
+        const hospitalIdObj = hisHospIdObjs.find(
+          item => item.id === it.operateorganization
+        );
+        return {
+          ...it,
+          hospitalId: hospitalIdObj.code
+        };
+      })
+      .map(it => {
+        const index = hospitalIds.find(item => item.code === it.hospitalId);
+        return {
+          ...it,
+          path: index.path
+        };
+      })
+      .map(it => {
+        const index = childrenTree.find(item =>
+          it.path.find(p => p === item.code)
+        );
+        return {
+          ...it,
+          parentCode: index.code,
+          parentName: index.name
+        };
+      });
+
+    const returnPoint = [];
+    for (const it of hospitalWorkPoint) {
+      const index = returnPoint.find(item => item.code === it.parentCode);
+      if (index) {
+        index.score += it.score;
+      } else {
+        returnPoint.push({
+          code: it.parentCode,
+          name: it.parentName,
+          score: it.score
+        });
+      }
+    }
+
+    return returnPoint;
   }
 
   // 公分列表[医生工分, 工分项目]
