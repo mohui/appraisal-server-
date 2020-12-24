@@ -37,8 +37,8 @@ export class GroupMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "check_area" --考核地区表
       (
-        "check_system" UUID        NOT NULL REFERENCES "check_system" ("check_id") ON DELETE NO ACTION ON UPDATE CASCADE,
-        "area"         VARCHAR(36) NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "check_system" UUID                     NOT NULL REFERENCES "check_system" ("check_id") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"         VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
         "created_at"   TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at"   TIMESTAMP WITH TIME ZONE NOT NULL,
         PRIMARY KEY ("check_system", "area")
@@ -47,16 +47,16 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "check_area"."area" IS '地区id';
 
       insert into "check_area"(
-        select h.check_system,h.hospital, h.created_at, h.updated_at
-        from "check_hospital"  h
-        left join check_system s on h.check_system = s.check_id
+        select h.check_system, h.hospital, h.created_at, h.updated_at
+        from "check_hospital" h
+               left join check_system s on h.check_system = s.check_id
         where s.check_type = 1);
 
       CREATE TABLE IF NOT EXISTS "rule_area_score" -- 地区得分表
       (
         "id"         UUID,                                                                                                        -- 主键id
         "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
-        "area"       VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,        -- 地区编码
+        "area"       VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,          -- 地区编码
         "score"      FLOAT                    NOT NULL,                                                                           -- 得分
         "auto"       BOOLEAN DEFAULT true,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -71,22 +71,22 @@ export class GroupMigration implements IMigration {
 
 
 
-
       CREATE TABLE IF NOT EXISTS "rule_area_budget" -- 地区金额分配表
       (
-        "rule" UUID NOT NULL  REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE ,
-        "area" VARCHAR(36) NOT NULL  REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE ,
-        "budget"  DECIMAL(15, 4) DEFAULT 0,
+        "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"       VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "budget"     DECIMAL(15, 4) DEFAULT 0,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        PRIMARY KEY ("rule","area"));
+        PRIMARY KEY ("rule", "area")
+      );
       COMMENT ON COLUMN "rule_area_budget"."rule" IS '考核小项id';
       COMMENT ON COLUMN "rule_area_budget"."area" IS '地区id';
       COMMENT ON COLUMN "rule_area_budget"."budget" IS '分配金额';
 
       CREATE TABLE IF NOT EXISTS "report_area"
       (
-        "area"      VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"       VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
         "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "workpoints" FLOAT                    DEFAULT 0,
