@@ -74,8 +74,21 @@ export async function getAreaTree(
  *
  * @param code 地区code
  */
-export async function getLeaves(code: string): Promise<string[]> {
-  return (await getAreaTree(code)).filter(it => it.leaf).map(it => it.code);
+export async function getLeaves(
+  code: string
+): Promise<
+  {
+    name: string;
+    code: string;
+    parent: string;
+    level: number;
+    root: string;
+    path: string;
+    cycle: boolean;
+    leaf: boolean;
+  }[]
+> {
+  return (await getAreaTree(code)).filter(it => it.leaf);
 }
 
 /**
