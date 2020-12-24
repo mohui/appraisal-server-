@@ -30,6 +30,7 @@
         lazy
         show-checkbox
         check-strictly
+        @check-change="handleCheckChange"
         @node-expand="handleNodeExpand"
         @node-collapse="handleNodeCollapse"
       >
@@ -874,6 +875,11 @@ export default {
       //如果有页子节点，设置该节点不可点击
       if (node.data && children.length > 0) node.data.disabled = true;
       return resolve(children);
+    },
+    //节点选中状态发生变化时的回调
+    handleCheckChange(data, checked, indeterminate) {
+      console.log('handleCheckChange', data, checked, indeterminate);
+      // if (checked) this.$refs.tree.setCheckedKeys([data.code]);
     },
     //节点被展开时触发的事件
     handleNodeExpand(data, node, el) {
