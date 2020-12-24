@@ -34,6 +34,19 @@
         @node-expand="handleNodeExpand"
         @node-collapse="handleNodeCollapse"
       >
+        <span class="custom-tree-node" slot-scope="{node, data}">
+          <span style="font-size: 14px; color: #606266">{{ node.label }}</span>
+          <span v-if="!data.usable">
+            <el-popover
+              placement="right"
+              width="200"
+              trigger="hover"
+              :content="data.system"
+            >
+              <i slot="reference" class="el-icon-warning-outline"> </i>
+            </el-popover>
+          </span>
+        </span>
       </el-tree>
       <el-table
         stripe
