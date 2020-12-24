@@ -34,6 +34,19 @@
         @node-expand="handleNodeExpand"
         @node-collapse="handleNodeCollapse"
       >
+        <span class="custom-tree-node" slot-scope="{node, data}">
+          <span style="font-size: 14px; color: #606266">{{ node.label }}</span>
+          <span v-if="!data.usable">
+            <el-popover
+              placement="right"
+              width="200"
+              trigger="hover"
+              :content="`该组织已被《${data.system}》考核`"
+            >
+              <i slot="reference" class="el-icon-warning-outline"> </i>
+            </el-popover>
+          </span>
+        </span>
       </el-tree>
       <el-table
         stripe
@@ -452,28 +465,7 @@ export default {
   },
   computed: {
     checkList() {
-      return this.listCheck.rows.map(it => ({
-        ...it,
-        autoScore:
-          it.auto === 'all'
-            ? '全部开启'
-            : it.auto === 'part'
-            ? '部分开启'
-            : it.auto === 'no'
-            ? '全部关闭'
-            : '',
-        isOpen:
-          (it.auto === 'no' || it.auto === 'part') &&
-          it.hospitalCount !== 0 &&
-          it.status,
-        isClose:
-          (it.auto === 'all' || it.auto === 'part') &&
-          it.hospitalCount !== 0 &&
-          it.status,
-        created_at: it.created_at.$format('YYYY-MM-DD'),
-        updated_at: it.updated_at.$format('YYYY-MM-DD'),
-        runTime: it?.runTime?.$format('YYYY-MM-DD HH:mm:ss') ?? ''
-      }));
+      return [];
     },
     uploadData() {
       return {
@@ -491,7 +483,7 @@ export default {
   asyncComputed: {
     listCheck: {
       async get() {
-        return await this.$api.CheckSystem.list();
+        return [];
       },
       default() {
         return {
@@ -869,9 +861,12 @@ export default {
       if (node.level !== 0) this.code = node.data.code;
       // console.log('code:', this.code);
       const children = (await this.$api.Group?.list(this.code)).map(it => {
-        return {name: it.name, code: it.code, disabled: false};
+        return {
+          ...it,
+          disabled: !it.usable
+        };
       });
-      console.log('children', children?.node);
+      console.log('children', children);
       //如果有页子节点，设置该节点不可点击
       if (node.data && children.length > 0) node.data.disabled = true;
       return resolve(children);
@@ -890,7 +885,7 @@ export default {
     //节点被关闭时触发的事件
     handleNodeCollapse(data, node, el) {
       console.log('节点被关闭handleNodeCollapse：', data, node, el);
-      data.disabled = false;
+      if (data.usable) data.disabled = false;
       //取消叶子节点的选中
       this.handleUncheck(node);
     },
