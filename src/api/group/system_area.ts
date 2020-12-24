@@ -480,26 +480,20 @@ export default class SystemArea {
 
     // 权限的下级子节点
     let childrenTree = [];
-    // 所有的叶子节点
-    let hospitalIds = [];
-
     // 如果没有查到子节点,可能是机构节点,判断机构节点是否合法
     if (tree.length === 0)
       throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
-    else if (tree.length === 1 && tree[0].leaf === true) {
-      // 先校验权限是否合法
-      hospitalIds = tree.filter(it => it.leaf === true);
-    } else {
+    else if (tree.length > 1) {
       // 非机构权限, 列表为下级权限 => 找到自己的子节点
       childrenTree = tree
         .map(it => {
           if (it.parent === code) return it;
         })
         .filter(item => item);
-
-      // 找到所有的叶子节点
-      hospitalIds = tree.filter(it => it.leaf === true);
     }
+    // 找到所有的叶子节点
+    const hospitalIds = tree.filter(it => it.leaf === true);
+
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(
       hospitalIds.map(item => item.code)
@@ -602,6 +596,22 @@ export default class SystemArea {
       .description('地区code或机构id')
   )
   async workpointsProject(code) {
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+
+    const hisHospIds = hisHospIdObjs.map(it => it['id']);
+
+    // 根据地区id获取机构id列表
+    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
     const hospitalMapping = await appDB.execute(
       `select hishospid as id
             from hospital_mapping mapping
@@ -618,7 +628,7 @@ export default class SystemArea {
     const hisHospitalId = hospitalMapping[0]?.id;
     const type = hospital?.his;
 
-    return (
+    const pointScore = (
       await originalDB.execute(
         `select cast(sum(vws.score) as int) as score,
               vws.operatorid as doctorId,
@@ -646,5 +656,6 @@ export default class SystemArea {
         );
       })?.name
     }));
+    return pointScore;
   }
 }
