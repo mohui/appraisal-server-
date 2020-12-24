@@ -488,13 +488,7 @@ export default class SystemArea {
       throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
     else if (tree.length === 1 && tree[0].leaf === true) {
       // 先校验权限是否合法
-      hospitalIds = await appDB.execute(
-        `
-            select "code"
-            from "area"
-            where code = ?`,
-        code
-      );
+      hospitalIds = tree.filter(it => it.leaf === true);
     } else {
       // 非机构权限, 列表为下级权限 => 找到自己的子节点
       childrenTree = tree
