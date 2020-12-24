@@ -19,3 +19,4 @@ export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
 export {ReportHospitalHistory as ReportHospitalHistoryModel} from './report-hospital-history';
 
 export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
+export {RuleAreaBudget as RuleAreaBudgetModel} from './group/rule-area-budget';
