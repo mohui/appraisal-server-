@@ -390,36 +390,7 @@
       :width="$settings.isMobile ? '99%' : '50%'"
     >
       <div class="hos-box">
-        <div v-for="(item, i) of hospitalList" :key="i">
-          <div class="center-title">
-            <el-checkbox
-              :indeterminate="item.isIndeterminate"
-              v-model="item.selected"
-              @change="toggleChange($event, item)"
-            >
-              <span>[{{ item.name }}]</span>
-            </el-checkbox>
-          </div>
-          <el-row :gutter="20">
-            <el-col
-              :xs="24"
-              :sm="24"
-              :md="12"
-              :lg="12"
-              :xl="8"
-              v-for="(it, index) of item.child"
-              :key="index"
-              class="el-cols"
-            >
-              <el-checkbox
-                v-model="it.selected"
-                @change="() => childToggleChange(item)"
-              >
-                {{ index + 1 }} {{ it.name }}
-              </el-checkbox>
-            </el-col>
-          </el-row>
-        </div>
+        选择机构
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
@@ -548,73 +519,14 @@ export default {
         query: {id: this.$settings.user.code, checkId: row.checkId}
       });
     },
-    //下属机构未全选状态切换
-    childToggleChange(item) {
-      const checkedCount = item.child.filter(it => it.selected).length;
-      item.selected = checkedCount === item.child.length;
-      item.isIndeterminate =
-        checkedCount > 0 && checkedCount < item.child.length;
-    },
-    //中心下属机构全选切换
-    toggleChange(event, item) {
-      item.isIndeterminate = false;
-      item.child.forEach(it => (it.selected = event));
-    },
-    //获取机构列表
-    async getHospitalList(checkId) {
-      const result = await this.$api.CheckSystem.listHospitals(checkId);
-      let arr = result
-        .filter(
-          it => it.name.endsWith('服务中心') || it.name.endsWith('卫生院')
-        )
-        .map(it => ({
-          ...it,
-          isIndeterminate: false,
-          child: result.filter(
-            item => item.parent === it.id || item.id === it.id
-          )
-        }));
-
-      let cur = arr.map(it => it.child).flat();
-
-      let other = {
-        name: '其它',
-        id: 'other',
-        child: result.filter(it => cur.indexOf(it) === -1)
-      };
-
-      if (other.child.length) {
-        arr.push(other);
-      }
-
-      this.hospitalList = arr.map(it => ({
-        ...it,
-        selected: !it.child.some(it => !it.selected),
-        isIndeterminate: it.child.some(it => !it.selected)
-      }));
-    },
     //打开机构对话框
     openSelectDialog(item) {
       this.checkForm = Object.assign({}, item);
-      this.getHospitalList(item.checkId);
       this.dialogSelectVisible = true;
     },
     //保存选取的机构
     async saveHospital() {
-      const {checkId} = this.checkForm;
-      const hospitals = this.hospitalList
-        .map(it => it.child)
-        .flat()
-        .filter(it => it.selected)
-        .map(it => it.id);
-      try {
-        await this.$api.CheckSystem.setHospitals({checkId, hospitals});
-        this.$asyncComputed.listCheck.update();
-      } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        this.dialogSelectVisible = false;
-      }
+      //TODO:保存
     },
     //设置规则标题可点击样式
     cellClassHover({columnIndex}) {
@@ -964,22 +876,5 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: -20px;
-
-  .center-title {
-    margin: 20px 0 10px 0;
-
-    span {
-      font-size: 16px;
-    }
-  }
-
-  .el-cols {
-    margin-bottom: 10px;
-    padding-left: 38px !important;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
 }
 </style>
