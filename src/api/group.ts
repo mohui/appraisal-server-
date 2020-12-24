@@ -269,6 +269,7 @@ export default class Group {
       for (const hospital of hospitals) await upsert(hospital);
     });
   }
+
   /**
    * 地区列表
    * @param code
@@ -298,9 +299,9 @@ export default class Group {
     // 已经参加考核的地区
     const checkArea = await appDB.execute(
       `select "area"."area"
-            from check_area "area"
-            left join check_system system on "area".check_system = system.check_id
-            where system.check_year = ?`,
+       from check_area "area"
+              left join check_system system on "area".check_system = system.check_id
+       where system.check_year = ?`,
       checkYear
     );
 
