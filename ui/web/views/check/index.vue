@@ -30,6 +30,8 @@
         lazy
         show-checkbox
         check-strictly
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
       >
       </el-tree>
       <el-table
@@ -869,7 +871,20 @@ export default {
         return {name: it.name, code: it.code, disabled: false};
       });
       console.log('children', children?.node);
+      //如果有页子节点，设置该节点不可点击
+      if (node.data && children.length > 0) node.data.disabled = true;
       return resolve(children);
+    },
+    //节点被展开时触发的事件
+    handleNodeExpand(data, node, el) {
+      console.log('节点被展开handleNodeExpand：', data, node, el);
+      if (node.childNodes?.length ?? 0 > 0) data.disabled = true;
+      node.checked = false;
+    },
+    //节点被关闭时触发的事件
+    handleNodeCollapse(data, node, el) {
+      console.log('节点被关闭handleNodeCollapse：', data, node, el);
+      data.disabled = false;
     }
   }
 };
