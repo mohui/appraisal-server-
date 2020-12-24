@@ -29,6 +29,7 @@
             v-for="tag in this.checkedNodes"
             :key="tag.name"
             closable
+            @close="handleTagClose(tag)"
           >
             {{ tag.name }}
           </el-tag>
@@ -931,6 +932,14 @@ export default {
           this.handleUncheck(node);
         }
       } else node.checked = false;
+    },
+    //关闭标签
+    handleTagClose(tag) {
+      const index = this.checkedNodes.findIndex(it => it.code === tag.code);
+      //删除checkedNodes中的该元素
+      if (index !== -1) this.checkedNodes.splice(index, 1);
+      //取消该节点的选中
+      this.$refs.tree.setChecked(tag.code, false);
     }
   }
 };
