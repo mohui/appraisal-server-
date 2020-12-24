@@ -136,7 +136,6 @@ export async function getWorkPoints(
     const [sql, params] = sqlRender(
       `
         select
-          OperateOrganization as id,
           cast(sum(score) as float) as score
         from view_workScoreTotal
         where MissionTime >= {{? start}}
