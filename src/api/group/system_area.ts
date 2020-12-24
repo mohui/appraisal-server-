@@ -5,7 +5,7 @@ import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
-import {getGroupTree, getOriginalArray} from '../group';
+import {getAreaTree, getOriginalArray} from '../group';
 import {Context} from '../context';
 
 /**
@@ -525,7 +525,7 @@ export default class SystemArea {
   )
   async workpointsArea(code) {
     // 获取树形结构
-    const tree = await getGroupTree(code);
+    const tree = await getAreaTree(code);
 
     // 权限的下级子节点
     let childrenTree = [];
@@ -533,7 +533,9 @@ export default class SystemArea {
     let hospitalIds = [];
 
     // 如果没有查到子节点,可能是机构节点,判断机构节点是否合法
-    if (tree.length === 0) {
+    if (tree.length === 0)
+      throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
+    else if (tree.length === 1 && tree[0].leaf === true) {
       // 先校验权限是否合法
       hospitalIds = await appDB.execute(
         `
@@ -542,8 +544,6 @@ export default class SystemArea {
             where code = ?`,
         code
       );
-      if (hospitalIds.length === 0)
-        throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
     } else {
       // 非机构权限, 列表为下级权限 => 找到自己的子节点
       childrenTree = tree
