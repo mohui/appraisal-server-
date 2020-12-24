@@ -612,50 +612,41 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    const hospitalMapping = await appDB.execute(
-      `select hishospid as id
-            from hospital_mapping mapping
-            where h_id = ?`,
-      code
-    );
-
-    // 查询所属his
-    const hospital = await HospitalModel.findOne({
-      where: {id: code}
-    });
-    if (!hospital) throw new KatoCommonError(`code为 ${code} 的机构不存在`);
-
-    const hisHospitalId = hospitalMapping[0]?.id;
-    const type = hospital?.his;
-
-    const pointScore = (
-      await originalDB.execute(
-        `select cast(sum(vws.score) as int) as score,
-              vws.operatorid as doctorId,
-              vws.doctor as doctorName,
-              vws.projecttype as "projectId"
-           from view_workscoretotal vws
-           where vws.operateorganization = ?
-             and missiontime >= ?
-             and missiontime < ?
-         group by vws.operatorid, vws.doctor,vws.projecttype`,
-        hisHospitalId,
-        dayjs()
+    const [sql, params] = sqlRender(
+      `
+            select
+                cast(sum(vws.score) as int) as score,
+                vws.operateorganization,
+                vws.projecttype as "projectId"
+            from view_workscoretotal vws
+            where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+                and missiontime >= {{? startTime}}
+                and missiontime < {{? endTime}}
+            group by vws.projecttype, vws.operateorganization
+         `,
+      {
+        hisHospIds,
+        startTime: dayjs()
           .startOf('y')
           .toDate(),
-        dayjs()
+        endTime: dayjs()
           .startOf('y')
           .add(1, 'y')
           .toDate()
-      )
-    ).map(it => ({
+      }
+    );
+
+    const workPoint = await originalDB.execute(sql, ...params);
+    return workPoint;
+
+    const a = workPoint.map(it => ({
       ...it,
       name: Projects.find(p => {
         return p.mappings.find(
-          mapping => mapping.id === it.projectId && mapping.type === type
+          mapping => mapping.id === it.projectId && mapping.type === '340222'
         );
       })?.name
     }));
-    return pointScore;
+    return workPoint;
   }
 }
