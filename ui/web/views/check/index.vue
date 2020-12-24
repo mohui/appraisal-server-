@@ -869,9 +869,12 @@ export default {
       if (node.level !== 0) this.code = node.data.code;
       // console.log('code:', this.code);
       const children = (await this.$api.Group?.list(this.code)).map(it => {
-        return {name: it.name, code: it.code, disabled: false};
+        return {
+          ...it,
+          disabled: false
+        };
       });
-      console.log('children', children?.node);
+      console.log('children', children);
       //如果有页子节点，设置该节点不可点击
       if (node.data && children.length > 0) node.data.disabled = true;
       return resolve(children);
