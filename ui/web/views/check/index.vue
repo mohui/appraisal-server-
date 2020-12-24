@@ -892,6 +892,8 @@ export default {
     },
     //加载子树数据
     async loadNode(node, resolve) {
+      //记录该node的选中状态
+      const checked = node.checked;
       console.log('loadNode ', node);
       if (node.level !== 0) this.code = node.data.code;
       // console.log('code:', this.code);
@@ -902,8 +904,10 @@ export default {
         };
       });
       console.log('children', children);
-      //如果有页子节点，设置该节点不可点击
+      //如果有叶子节点，设置该节点不可点击
       if (node.data && children.length > 0) node.data.disabled = true;
+      //如果没有叶子节点，将该节点的选中状态还原（因为在handleNodeExpand方法中，节点展开时会设置节点的选中状态为false）
+      if (node.checked && children.length === 0) node.checked = checked;
       return resolve(children);
     },
     //节点选中状态发生变化时的回调
@@ -925,7 +929,7 @@ export default {
       //取消叶子节点的选中
       this.handleUncheck(node);
     },
-    //递归该节点下所有页子节点并取消选中
+    //递归该节点下所有页节点并取消选中
     handleUncheck(node) {
       if (node.childNodes?.length > 0) {
         for (const node of node.childNodes) {
