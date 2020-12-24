@@ -871,7 +871,7 @@ export default {
       const children = (await this.$api.Group?.list(this.code)).map(it => {
         return {
           ...it,
-          disabled: false
+          disabled: !it.usable
         };
       });
       console.log('children', children);
@@ -893,7 +893,7 @@ export default {
     //节点被关闭时触发的事件
     handleNodeCollapse(data, node, el) {
       console.log('节点被关闭handleNodeCollapse：', data, node, el);
-      data.disabled = false;
+      if (data.usable) data.disabled = false;
       //取消叶子节点的选中
       this.handleUncheck(node);
     },
