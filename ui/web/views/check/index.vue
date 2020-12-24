@@ -465,7 +465,28 @@ export default {
   },
   computed: {
     checkList() {
-      return [];
+      return this.listCheck.rows.map(it => ({
+        ...it,
+        autoScore:
+          it.auto === 'all'
+            ? '全部开启'
+            : it.auto === 'part'
+            ? '部分开启'
+            : it.auto === 'no'
+            ? '全部关闭'
+            : '',
+        isOpen:
+          (it.auto === 'no' || it.auto === 'part') &&
+          it.hospitalCount !== 0 &&
+          it.status,
+        isClose:
+          (it.auto === 'all' || it.auto === 'part') &&
+          it.hospitalCount !== 0 &&
+          it.status,
+        created_at: it.created_at.$format('YYYY-MM-DD'),
+        updated_at: it.updated_at.$format('YYYY-MM-DD'),
+        runTime: it?.runTime?.$format('YYYY-MM-DD HH:mm:ss') ?? ''
+      }));
     },
     uploadData() {
       return {
@@ -483,7 +504,7 @@ export default {
   asyncComputed: {
     listCheck: {
       async get() {
-        return [];
+        return await this.$api.CheckSystem.list();
       },
       default() {
         return {
