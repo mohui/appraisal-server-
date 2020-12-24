@@ -96,13 +96,15 @@ export async function getLeaves(
  *
  * @param codes 地区code数据
  */
-export async function getOriginalArray(codes: string[]): Promise<string[]> {
+export async function getOriginalArray(
+  codes: string[]
+): Promise<{id: string; code: string}[]> {
   const result = [];
   for (const code of codes) {
     try {
       // language=PostgreSQL
-      const idArray: string[] = await appDB.execute(
-        `select hishospid as id
+      const idArray: {id: string; code: string}[] = await appDB.execute(
+        `select hishospid as id, h_id as code
          from hospital_mapping
          where h_id = ?`,
         code
