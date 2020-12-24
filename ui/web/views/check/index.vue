@@ -22,8 +22,17 @@
           >新建规则
         </el-button>
       </div>
-      <div v-for="it of this.checkedNodes" :key="it.code">
-        {{ it.name }}
+      <div>
+        <span>
+          <el-tag
+            style="margin: 10px"
+            v-for="tag in this.checkedNodes"
+            :key="tag.name"
+            closable
+          >
+            {{ tag.name }}
+          </el-tag>
+        </span>
       </div>
       <el-tree
         ref="tree"
