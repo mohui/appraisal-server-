@@ -92,7 +92,7 @@ export async function getLeaves(
 }
 
 /**
- * 获取地区对应的原始数据的机构id
+ * 获取地区对应的原始数据的机构
  *
  * @param codes 地区code数据
  */
