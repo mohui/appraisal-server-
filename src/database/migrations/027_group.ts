@@ -54,16 +54,14 @@ export class GroupMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "rule_area_score" -- 地区得分表
       (
-        "id"         UUID,                                                                                                        -- 主键id
         "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
         "area"       VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,          -- 地区编码
         "score"      FLOAT                    NOT NULL,                                                                           -- 得分
         "auto"       BOOLEAN DEFAULT true,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        PRIMARY KEY ("id")
+        PRIMARY KEY ("rule", "area")
       );
-      COMMENT ON COLUMN "rule_area_score"."id" IS '主键id';
       COMMENT ON COLUMN "rule_area_score"."rule" IS '考核细则id';
       COMMENT ON COLUMN "rule_area_score"."area" IS '地区编码';
       COMMENT ON COLUMN "rule_area_score"."score" IS '得分';
