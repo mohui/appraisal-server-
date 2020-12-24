@@ -4,6 +4,107 @@ import {Context} from './context';
 import dayjs = require('dayjs');
 
 /**
+ * 获取地区树, 包括自己
+ *
+ * @param code 地区code
+ */
+export async function getAreaTree(
+  code
+): Promise<
+  {
+    name: string;
+    code: string;
+    parent: string;
+    level: number;
+    root: string;
+    path: string;
+    cycle: boolean;
+    leaf: boolean;
+  }[]
+> {
+  const condition = code ? `code = '${code}'` : 'parent is null';
+  // language=PostgreSQL
+  return await appDB.execute(`
+    with recursive tree(
+                        name,
+                        code,
+                        parent,
+                        level,
+                        path,
+                        root,
+                        cycle
+      ) as (
+      select name,
+             code                          as code,
+             parent                        as code,
+             1                             as level,
+             (array [code])::varchar(36)[] as path,
+             code                          as root,
+             false                         as cycle
+      from area
+      where ${condition}
+      union all
+      select c.name,
+             c.code                               as code,
+             c.parent                             as parent,
+             level + 1                            as level,
+             (tree.path || c.code)::varchar(36)[] as path,
+             tree.root                            as root,
+             c.code = any (path)                  as cycle
+      from tree,
+           area c
+      where tree.code = c.parent
+        and not cycle
+    )
+    select name,                                                       -- 名称
+           code,                                                       -- code
+           tree.parent,                                                -- 父级code
+           level,                                                      -- 层级
+           root,                                                       -- 路径
+           path,                                                       -- 根节点
+           cycle,                                                      -- 是否循环
+           case when t.parent is null then true else false end as leaf -- 是否是叶子节点
+    from tree
+           left join (select parent from area group by parent) t on tree.code = t.parent
+  `);
+}
+
+/**
+ * 获取当前节点下的所有叶子节点
+ *
+ * @param code 地区code
+ */
+export async function getLeaves(code: string): Promise<string[]> {
+  return (await getAreaTree(code)).filter(it => it.leaf).map(it => it.code);
+}
+
+/**
+ * 获取地区对应的原始数据的机构id
+ *
+ * @param codes 地区code数据
+ */
+export async function getOriginalArray(codes: string[]): Promise<string[]> {
+  const result = [];
+  for (const code of codes) {
+    try {
+      // language=PostgreSQL
+      const idArray: string[] = await appDB.execute(
+        `select hishospid as id
+         from hospital_mapping
+         where h_id = ?`,
+        code
+      );
+      if (idArray[0]) {
+        result.push(idArray[0]);
+      }
+    } catch (e) {
+      // 无所谓
+    }
+  }
+  return result;
+}
+
+/**
  * 获取地区树
  *
  * @param code 地区code
