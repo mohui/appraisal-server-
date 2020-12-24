@@ -885,6 +885,16 @@ export default {
     handleNodeCollapse(data, node, el) {
       console.log('节点被关闭handleNodeCollapse：', data, node, el);
       data.disabled = false;
+      //取消叶子节点的选中
+      this.handleUncheck(node);
+    },
+    //递归该节点下所有页子节点并取消选中
+    handleUncheck(node) {
+      if (node.childNodes?.length > 0) {
+        for (const node of node.childNodes) {
+          this.handleUncheck(node);
+        }
+      } else node.checked = false;
     }
   }
 };
