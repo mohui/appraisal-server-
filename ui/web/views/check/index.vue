@@ -22,45 +22,6 @@
           >新建规则
         </el-button>
       </div>
-      <div>
-        <span>
-          <el-tag
-            style="margin: 10px"
-            v-for="tag in this.checkedNodes"
-            :key="tag.name"
-            closable
-            @close="handleTagClose(tag)"
-          >
-            {{ tag.name }}
-          </el-tag>
-        </span>
-      </div>
-      <el-tree
-        ref="tree"
-        node-key="code"
-        :props="props"
-        :load="loadNode"
-        lazy
-        show-checkbox
-        check-strictly
-        @check-change="handleCheckChange"
-        @node-expand="handleNodeExpand"
-        @node-collapse="handleNodeCollapse"
-      >
-        <span class="custom-tree-node" slot-scope="{node, data}">
-          <span style="font-size: 14px; color: #606266">{{ node.label }}</span>
-          <span v-if="!data.usable">
-            <el-popover
-              placement="right"
-              width="200"
-              trigger="hover"
-              :content="`该组织已被《${data.system}》考核`"
-            >
-              <i slot="reference" class="el-icon-warning-outline"> </i>
-            </el-popover>
-          </span>
-        </span>
-      </el-tree>
       <el-table
         stripe
         border
@@ -390,7 +351,47 @@
       :width="$settings.isMobile ? '99%' : '50%'"
     >
       <div class="hos-box">
-        选择机构
+        <div>
+          <span>
+            <el-tag
+              style="margin: 5px"
+              v-for="tag in this.checkedNodes"
+              :key="tag.name"
+              closable
+              @close="handleTagClose(tag)"
+            >
+              {{ tag.name }}
+            </el-tag>
+          </span>
+        </div>
+        <el-tree
+          ref="tree"
+          node-key="code"
+          :props="props"
+          :load="loadNode"
+          lazy
+          show-checkbox
+          check-strictly
+          @check-change="handleCheckChange"
+          @node-expand="handleNodeExpand"
+          @node-collapse="handleNodeCollapse"
+        >
+          <span class="custom-tree-node" slot-scope="{node, data}">
+            <span style="font-size: 14px; color: #606266">{{
+              node.label
+            }}</span>
+            <span v-if="!data.usable">
+              <el-popover
+                placement="right"
+                width="200"
+                trigger="hover"
+                :content="`该组织已被《${data.system}》考核`"
+              >
+                <i slot="reference" class="el-icon-warning-outline"> </i>
+              </el-popover>
+            </span>
+          </span>
+        </el-tree>
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
