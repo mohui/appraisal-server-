@@ -57,119 +57,70 @@ export default class SystemArea {
    * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
    */
   async total(code, checkId) {
-    // 获取权限下所有机构id
-    // 根据地区id获取机构id列表
-    const hisHospIds = await getHospital(code);
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+    // 所传权限本身的基本信息
+    const currentArea = tree.filter(it => it.code === code);
+    // 获取所有的机构id
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
 
-    const regionModel: RegionModel = await RegionModel.findOne({where: {code}});
-    let hospitalModel;
-    if (!regionModel)
-      hospitalModel = await HospitalModel.findOne({
-        where: {id: code}
-      });
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
 
-    if (regionModel || hospitalModel) {
-      if (
-        hospitalModel &&
-        Context.current.user.hospitals.filter(i => i.id === code).length < 1
-      )
-        throw new KatoCommonError('未经授权的机构不允许查看');
-
-      let [sql, params] = sqlRender(
-        `
-        select
-            COALESCE(sum("correctWorkPoint"),0) as "score",
-            COALESCE(sum("workPoint"),0) as "originalScore",
-            COALESCE(sum("ruleScore"),0) as "ruleScore",
-            COALESCE(sum("ruleTotalScore"),0) as "total",
-            COALESCE(sum(rhb.budget),0) as "budget"
-            {{#if regionId}}{{else}},max(hm.hishospid) hishospid{{/if}}
-        from rule_hospital_budget rhb
-        {{#if regionId}}
-            inner join hospital h on h.id=rhb.hospital
-        {{else}}
-            inner join hospital_mapping hm on hm.h_id=rhb.hospital
-        {{/if}}
-        inner join check_rule cr on cr.rule_id=rhb.rule and cr.parent_rule_id is null
-        inner join check_system cs on cs.check_id=cr.check_id
-        {{#if checkType}} and cs.check_type={{? checkType}}{{/if}}
-        {{#if checkId}} and cs.check_id={{? checkId}}{{/if}}
-        inner join check_hospital ch on ch.hospital=rhb.hospital and ch.check_system=cs.check_id
-        where rhb.hospital in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-        {{#if regionId}} and position({{? regionId}} in h.region)=1{{/if}}`,
-        {
-          hospitalIds: hospitalModel
-            ? [code]
-            : Context.current.user.hospitals.map(it => it.id),
-          regionId: regionModel ? code : null,
-          checkType: checkId ? null : 1,
-          checkId
-        }
-      );
-      // return await appDB.execute(sql, ...params);
-      const resultObject = (await appDB.execute(sql, ...params))[0];
-
-      [sql, params] = sqlRender(
-        `
-          select cast(sum(score) as int) as scores
-          from view_workscoretotal
-          where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-          and missiontime >= {{? startTime}}
-          and missiontime < {{? endTime}}
-          `,
-        {
-          hisHospIds,
-          startTime: dayjs()
-            .startOf('y')
-            .toDate(),
-          endTime: dayjs()
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        }
-      );
-
-      const originalWorkPoints =
-        (await originalDB.execute(sql, ...params))[0]?.scores ?? 0;
-
-      if (regionModel) {
-        return {
-          id: regionModel.code,
-          name: regionModel.name,
-          score: Number(resultObject.score),
-          originalScore: Number(resultObject.originalScore),
-          rate: new Decimal(Number(resultObject.ruleScore))
-            .div(Number(resultObject.total))
-            .toNumber(),
-          originalWorkPoint: originalWorkPoints
-        };
+    const hisHospIds = hisHospIdObjs.map(it => it['id']);
+    // 获取SQL
+    let [sql, params] = sqlRender(
+      `
+      select
+          COALESCE(sum("workpoints"),0) as "originalScore",
+          COALESCE(sum("scores"),0) as "score",
+          COALESCE(sum("scores"),0) as "ruleScore",
+          COALESCE(sum("total"),0) as "total",
+          COALESCE(sum(budget),0) as "budget"
+      from report_hospital
+      where hospital = {{? code}}
+      `,
+      {
+        code
       }
-      if (hospitalModel) {
-        return {
-          id: hospitalModel.id,
-          name: hospitalModel.name,
-          score: Number(resultObject.score),
-          originalScore: Number(resultObject.originalScore),
-          rate: new Decimal(Number(resultObject.ruleScore))
-            .div(Number(resultObject.total))
-            .toNumber(),
-          budget: Number(resultObject.budget),
-          originalWorkPoint: originalWorkPoints
-        };
-      }
-    }
+    );
+    const resultObject = (await appDB.execute(sql, ...params))[0];
 
-    throw new KatoCommonError(`${code} 不存在`);
+    [sql, params] = sqlRender(
+      `
+        select cast(sum(score) as int) as scores
+        from view_workscoretotal
+        where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        and missiontime >= {{? startTime}}
+        and missiontime < {{? endTime}}
+        `,
+      {
+        hisHospIds,
+        startTime: dayjs()
+          .startOf('y')
+          .toDate(),
+        endTime: dayjs()
+          .startOf('y')
+          .add(1, 'y')
+          .toDate()
+      }
+    );
+
+    const originalWorkPoints =
+      (await originalDB.execute(sql, ...params))[0]?.scores ?? 0;
 
     return {
-      id: '3402',
-      name: '芜湖市',
-      score: 40075986.859490514,
-      originalScore: 54104423,
-      rate: 0.7599249148753182,
-      budget: 0,
-      originalWorkPoint: 1407334
+      id: currentArea[0].code,
+      name: currentArea[0].name,
+      score: Number(resultObject.score),
+      originalScore: Number(resultObject.originalScore),
+      rate: new Decimal(Number(resultObject.ruleScore))
+        .div(Number(resultObject.total))
+        .toNumber(),
+      budget: Number(resultObject.budget),
+      originalWorkPoint: originalWorkPoints
     };
   }
 
