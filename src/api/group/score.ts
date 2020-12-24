@@ -10,9 +10,10 @@ import {
 import {
   BasicTagDataModel,
   RuleAreaScoreModel,
-  RuleHospitalAttachModel
+  sql as sqlRender
 } from '../../database';
 import {Op} from 'sequelize';
+import {Projects as ProjectMapping} from '../../../common/project';
 
 /**
  * 查询考核对象的标记数据
@@ -102,6 +103,55 @@ async function getMarks(
     }
   );
   return {...obj, id: group};
+}
+
+/**
+ * 获取机构工分数据
+ *
+ * @param organization 机构数组
+ * @param projects 工分项数组
+ * @param year 考核年份
+ */
+export async function getWorkPoints(
+  organization: {id: string; code: string; region: string}[],
+  projects: string[],
+  year: string
+) {
+  const result = [];
+  // 处理年份
+  const date = dayjs(year, 'YYYY');
+  const start = date.format('YYYY-MM-DD');
+  const end = date.add(1, 'y').format('YYYY-MM-DD');
+
+  // 处理工分项映射
+  for (const o of organization) {
+    // 查询his数据
+    const his: string = o.region.startsWith('340222') ? '340222' : '340203';
+    // 当前机构对应的原始工分项
+    const originalProjectIds: string[] = ProjectMapping.filter(it =>
+      projects.find(p => p === it.id)
+    )
+      .map(it => it.mappings.find(m => m.type === his)?.id)
+      .filter(it => it);
+    const [sql, params] = sqlRender(
+      `
+        select
+          OperateOrganization as id,
+          cast(sum(score) as float) as score
+        from view_workScoreTotal
+        where MissionTime >= {{? start}}
+          and MissionTime < {{? end}}
+          and OperateOrganization = {{? id}}
+          {{#if projects.length}}
+          and ProjectType in ({{#each projects}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          {{/if}}
+          `,
+      {projects: originalProjectIds, start, end, id: o.id}
+    );
+    const scores: {score: number}[] = await originalDB.execute(sql, ...params);
+    result.push(...scores);
+  }
+  return result;
 }
 
 export default class Score {
