@@ -22,6 +22,9 @@
           >新建规则
         </el-button>
       </div>
+      <div v-for="it of this.checkedNodes" :key="it.code">
+        {{ it.name }}
+      </div>
       <el-tree
         ref="tree"
         node-key="code"
@@ -452,7 +455,8 @@ export default {
       props: {
         label: 'name',
         children: 'children'
-      }
+      },
+      checkedNodes: []
     };
   },
   created() {
@@ -893,9 +897,10 @@ export default {
       return resolve(children);
     },
     //节点选中状态发生变化时的回调
-    handleCheckChange(data, checked, indeterminate) {
-      console.log('handleCheckChange', data, checked, indeterminate);
-      // if (checked) this.$refs.tree.setCheckedKeys([data.code]);
+    handleCheckChange(data, checked) {
+      console.log('节点选中状态handleCheckChange:', data, checked);
+      //获取目前被选中的节点所组成的数组
+      this.checkedNodes = this.$refs.tree.getCheckedNodes();
     },
     //节点被展开时触发的事件
     handleNodeExpand(data, node, el) {
