@@ -22,6 +22,16 @@
           >新建规则
         </el-button>
       </div>
+      <el-tree
+        ref="tree"
+        node-key="code"
+        :props="props"
+        :load="loadNode"
+        lazy
+        show-checkbox
+        check-strictly
+      >
+      </el-tree>
       <el-table
         stripe
         border
@@ -421,7 +431,12 @@ export default {
       hospitalList: [],
       fileList: [],
       importUrl: 'uploadUrl',
-      headers: {token: "getCookie('account')"}
+      headers: {token: "getCookie('account')"},
+      code: '',
+      props: {
+        label: 'name',
+        children: 'children'
+      }
     };
   },
   created() {
@@ -844,6 +859,17 @@ export default {
       if (this.checkList.length > 0) {
         return this.$widthCompute(this.checkList.map(item => item[field]));
       }
+    },
+    //加载子树数据
+    async loadNode(node, resolve) {
+      console.log('loadNode ', node);
+      if (node.level !== 0) this.code = node.data.code;
+      // console.log('code:', this.code);
+      const children = (await this.$api.Group?.list(this.code)).map(it => {
+        return {name: it.name, code: it.code, disabled: false};
+      });
+      console.log('children', children?.node);
+      return resolve(children);
     }
   }
 };
