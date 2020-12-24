@@ -162,7 +162,7 @@ export default class Score {
    */
   async score(group, year) {
     const mark = await getMarks(group);
-    return appDB.transaction(async () => {
+    try {
       // 判断group是否合法, 并上锁
       // language=PostgreSQL
       const groups = await appDB.execute(
@@ -205,16 +205,23 @@ export default class Score {
       );
       // 根据考核小项, 进行打分
       for (const parentRule of parentRules) {
+        // 考核小项得分
+        let parentScore = 0;
+        // 考核小项满分
+        let parentTotalScore = 0;
         // 根据考核小项查询考核细则
         // language=PostgreSQL
-        const rules: {id: string}[] = await appDB.execute(
+        const rules: {id: string; score: number}[] = await appDB.execute(
           `
-            select rule_id as id
+            select rule_id as id, rule_score as score
             from check_rule
             where parent_rule_id = ?`,
           parentRule.id
         );
         for (const rule of rules) {
+          // 考核小项满分
+          parentTotalScore += rule?.score ?? 0;
+          // 考核细则得分
           let score = 0;
           // 根据考核细则查询关联关系
           // language=PostgreSQL
@@ -642,8 +649,46 @@ export default class Score {
             areaCode: group,
             score
           });
+          // 考核小项得分
+          parentScore += score;
         }
+        let budgetModel: {
+          rule: string;
+          area: string;
+          workPoint: number;
+          correctWorkPoint: number;
+          score: number;
+          totalScore: number;
+          rate: number;
+        };
+        // 计算考核小项的质量系数
+        const rate =
+          parentTotalScore === 0 ? 0 : parentScore / parentTotalScore;
+
+        // 根据考核小项查询绑定的工分项
+        const projects = (
+          await appDB.execute(
+            `select "projectId" as id from rule_project where rule = ?`,
+            parentRule.id
+          )
+        ).map(it => it.id);
+        // 获取原始机构id数组
+        const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
+        // 获取工分数组
+        const scoreArray: {score: number}[] = await getWorkPoints(
+          viewHospitals,
+          projects,
+          year
+        );
+        // 累计工分, 即参与校正工分值
+        const workPoint = scoreArray.reduce(
+          (prev, current) => (prev += current.score),
+          0
+        );
+        console.log('考核小项得分: ', parentScore, parentTotalScore, workPoint);
       }
-    });
+    } catch (e) {
+      throw new KatoRuntimeError(e);
+    }
   }
 }
