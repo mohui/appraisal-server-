@@ -98,15 +98,21 @@ export async function getLeaves(
  */
 export async function getOriginalArray(
   codes: string[]
-): Promise<{id: string; code: string}[]> {
+): Promise<{id: string; code: string; region: string}[]> {
   const result = [];
   for (const code of codes) {
     try {
       // language=PostgreSQL
-      const idArray: {id: string; code: string}[] = await appDB.execute(
-        `select hishospid as id, h_id as code
-         from hospital_mapping
-         where h_id = ?`,
+      const idArray: {
+        id: string;
+        code: string;
+        region: string;
+      }[] = await appDB.execute(
+        `
+          select hishospid as id, h_id as code, h.region
+          from hospital_mapping m
+                 inner join hospital h on m.h_id = h.id
+          where h_id = ?`,
         code
       );
       if (idArray[0]) {
@@ -299,11 +305,10 @@ export default class Group {
     // 已经参加考核的地区
     const checkArea = await appDB.execute(
       `
-        select
-            "area"."area",
-            "system"."check_name"
+        select "area"."area",
+               "system"."check_name"
         from check_area "area"
-        left join check_system system on "area".check_system = system.check_id
+               left join check_system system on "area".check_system = system.check_id
         where system.check_year = ?`,
       checkYear
     );
