@@ -298,19 +298,23 @@ export default class Group {
     const checkYear = dayjs().format('YYYY');
     // 已经参加考核的地区
     const checkArea = await appDB.execute(
-      `select "area"."area"
-       from check_area "area"
-              left join check_system system on "area".check_system = system.check_id
-       where system.check_year = ?`,
+      `
+        select
+            "area"."area",
+            "system".check_name
+        from check_area "area"
+        left join check_system system on "area".check_system = system.check_id
+        where system.check_year = ?`,
       checkYear
     );
 
     // 排查所有的地区是否已经参加考核
     const regionList = list.map(it => {
-      const index = checkArea.findIndex(item => item.area === it.code);
+      const index = checkArea.find(item => item.area === it.code);
       return {
         ...it,
-        usable: index === -1 ? true : false
+        system: index ? index.system_name : null,
+        usable: index ? true : false
       };
     });
     return regionList;
