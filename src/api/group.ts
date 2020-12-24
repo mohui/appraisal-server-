@@ -301,7 +301,7 @@ export default class Group {
       `
         select
             "area"."area",
-            "system".check_name
+            "system"."check_name"
         from check_area "area"
         left join check_system system on "area".check_system = system.check_id
         where system.check_year = ?`,
@@ -313,7 +313,7 @@ export default class Group {
       const index = checkArea.find(item => item.area === it.code);
       return {
         ...it,
-        system: index ? index.system_name : null,
+        system: index ? index.check_name : null,
         usable: index ? true : false
       };
     });
