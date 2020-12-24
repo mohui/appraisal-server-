@@ -71,16 +71,26 @@ export class GroupMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "rule_area_budget" -- 地区金额分配表
       (
-        "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE,
-        "area"       VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
-        "budget"     DECIMAL(15, 4) DEFAULT 0,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "rule"             UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"             VARCHAR(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "budget"           DECIMAL(15, 4) DEFAULT 0,
+        "workPoint"        FLOAT          DEFAULT 0,
+        "correctWorkPoint" FLOAT          DEFAULT 0,
+        "score"            FLOAT          DEFAULT 0,
+        "totalScore"       FLOAT          DEFAULT 0,
+        "rate"             FLOAT          DEFAULT 0,
+        "created_at"       TIMESTAMP WITH TIME ZONE NOT NULL,
+        "updated_at"       TIMESTAMP WITH TIME ZONE NOT NULL,
         PRIMARY KEY ("rule", "area")
       );
       COMMENT ON COLUMN "rule_area_budget"."rule" IS '考核小项id';
       COMMENT ON COLUMN "rule_area_budget"."area" IS '地区id';
       COMMENT ON COLUMN "rule_area_budget"."budget" IS '分配金额';
+      COMMENT ON COLUMN "rule_area_budget"."workPoint" IS '校正前工分';
+      COMMENT ON COLUMN "rule_area_budget"."correctWorkPoint" IS '校正后工分';
+      COMMENT ON COLUMN "rule_area_budget"."score" IS '得分';
+      COMMENT ON COLUMN "rule_area_budget"."totalScore" IS '总分';
+      COMMENT ON COLUMN "rule_area_budget"."rate" IS '质量系数';
 
       CREATE TABLE IF NOT EXISTS "report_area"
       (
