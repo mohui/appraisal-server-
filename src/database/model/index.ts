@@ -17,3 +17,5 @@ export {RuleProject as RuleProjectModel} from './rule-project';
 export {RuleHospitalBudget as RuleHospitalBudgetModel} from './rule-hospital-budget';
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
 export {ReportHospitalHistory as ReportHospitalHistoryModel} from './report-hospital-history';
+
+export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
