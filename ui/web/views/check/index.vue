@@ -350,49 +350,57 @@
       :visible.sync="dialogSelectVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
-      <div class="hos-box">
-        <div>
-          <span>
-            <el-tag
-              style="margin: 5px"
-              v-for="tag in this.checkedNodes"
-              :key="tag.name"
-              closable
-              @close="handleTagClose(tag)"
-            >
-              {{ tag.name }}
-            </el-tag>
-          </span>
-        </div>
-        <el-tree
-          ref="tree"
-          node-key="code"
-          :props="props"
-          :load="loadNode"
-          lazy
-          show-checkbox
-          check-strictly
-          @check-change="handleCheckChange"
-          @node-expand="handleNodeExpand"
-          @node-collapse="handleNodeCollapse"
-        >
-          <span class="custom-tree-node" slot-scope="{node, data}">
-            <span style="font-size: 14px; color: #606266">{{
-              node.label
-            }}</span>
-            <span v-if="!data.usable">
-              <el-popover
-                placement="right"
-                width="200"
-                trigger="hover"
-                :content="`该组织已被《${data.system}》考核`"
+      <el-row>
+        <el-col :span="24">
+          <div class="checked-organization-box">
+            <span>
+              <el-tag
+                style="margin: 5px"
+                v-for="tag in this.checkedNodes"
+                :key="tag.name"
+                closable
+                @close="handleTagClose(tag)"
               >
-                <i slot="reference" class="el-icon-warning-outline"> </i>
-              </el-popover>
+                {{ tag.name }}
+              </el-tag>
             </span>
-          </span>
-        </el-tree>
-      </div>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <div class="organization-box">
+            <el-tree
+              ref="tree"
+              node-key="code"
+              :props="props"
+              :load="loadNode"
+              lazy
+              show-checkbox
+              check-strictly
+              @check-change="handleCheckChange"
+              @node-expand="handleNodeExpand"
+              @node-collapse="handleNodeCollapse"
+            >
+              <span class="custom-tree-node" slot-scope="{node, data}">
+                <span style="font-size: 14px; color: #606266">{{
+                  node.label
+                }}</span>
+                <span v-if="!data.usable">
+                  <el-popover
+                    placement="right"
+                    width="200"
+                    trigger="hover"
+                    :content="`该组织已被《${data.system}》考核`"
+                  >
+                    <i slot="reference" class="el-icon-warning-outline"> </i>
+                  </el-popover>
+                </span>
+              </span>
+            </el-tree>
+          </div>
+        </el-col>
+      </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveHospital">确 定</el-button>
@@ -872,10 +880,16 @@ export default {
 }
 </style>
 <style scoped lang="scss">
-.hos-box {
+.organization-box {
   height: 50vh;
   overflow-y: auto;
   overflow-x: hidden;
-  margin-top: -20px;
+  margin-top: 20px;
+}
+.checked-organization-box {
+  height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: -30px;
 }
 </style>
