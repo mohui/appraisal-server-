@@ -1,7 +1,11 @@
 /**
  * 工分项
  */
-export const Projects = [
+export const Projects: {
+  id: string;
+  name: string;
+  mappings: {id: string; name: string; type: string}[];
+}[] = [
   {
     id: '010101',
     name: '建立居民健康档案',
