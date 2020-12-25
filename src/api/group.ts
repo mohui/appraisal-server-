@@ -301,24 +301,19 @@ export default class Group {
       code
     );
 
-    let checkYear;
     // 根据checkId获取年份
-    if (checkId) {
-      // 根据checkId获取年份
-      const checkSystem = await appDB.execute(
-        `
-        select check_year
-        from check_system
-        where check_id = ?`,
-        checkId
-      );
-      if (checkSystem.length === 0)
-        throw new KatoRuntimeError(`checkId为${checkId} 的不存在`);
-      checkYear = checkSystem[0]['check_year'];
-    } else {
-      // 查询的年份
-      checkYear = dayjs().format('YYYY');
-    }
+    const checkSystem = await appDB.execute(
+      `
+      select check_year,area
+      from check_system system
+      left join check_area area on system.check_id = area.check_system
+      where check_id = ?`,
+      checkId
+    );
+    if (checkSystem.length === 0)
+      throw new KatoRuntimeError(`checkId为${checkId} 的不存在`);
+
+    const checkYear = checkSystem[0]['check_year'];
 
     // 已经参加考核的地区
     const checkArea = await appDB.execute(
@@ -334,10 +329,12 @@ export default class Group {
     // 排查所有的地区是否已经参加考核
     const regionList = list.map(it => {
       const index = checkArea.find(item => item.area === it.code);
+      const area = checkSystem.find(item => item.area === it.code);
       return {
         ...it,
         system: index ? index.check_name : null,
-        usable: index ? false : true
+        usable: index ? false : true,
+        selected: area ? true : false
       };
     });
     return regionList;
