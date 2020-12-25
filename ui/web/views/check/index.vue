@@ -441,7 +441,7 @@ export default {
       fileList: [],
       importUrl: 'uploadUrl',
       headers: {token: "getCookie('account')"},
-      code: '',
+      code: this.$settings.user.code,
       props: {
         label: 'name',
         children: 'children'
