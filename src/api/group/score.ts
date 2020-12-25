@@ -162,6 +162,25 @@ function debug(...args) {
 
 export default class Score {
   /**
+   * 考核体系自动打分
+   *
+   * @param id 考核体系id
+   */
+  async autoScore(id) {
+    // 查询考核对象
+    const checkAreaModels: CheckAreaModel[] = await CheckAreaModel.findAll({
+      where: {
+        checkId: id
+      }
+    });
+    for (const ca of checkAreaModels) {
+      debug(`${ca.areaCode} 系统打分开始`);
+      await this.score(id, ca.areaCode, null);
+      debug(`${ca.areaCode} 系统打分结束`);
+    }
+  }
+
+  /**
    * 系统打分
    *
    * @param check 考核体系
