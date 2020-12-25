@@ -10,8 +10,6 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
-import {Hospital} from './hospital';
-import {CheckSystem} from './check_system';
 
 @Table({tableName: 'report_area'})
 export class ReportArea extends Model<ReportArea> {
