@@ -36,6 +36,9 @@ export class ReportArea extends Model<ReportArea> {
   @Column(DataType.FLOAT)
   score: number;
 
+  // 暂存考核体系总分, 用于质量系数计算
+  totalScore: number;
+
   @Comment('质量系数')
   @AllowNull(false)
   @Default(0)
