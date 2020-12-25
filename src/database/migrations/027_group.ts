@@ -94,15 +94,17 @@ export class GroupMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "report_area"
       (
-        "area"             VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
-        "totalWorkPoint"   FLOAT                    DEFAULT 0,
-        "workPoint"        FLOAT                    DEFAULT 0,
-        "score"            FLOAT                    DEFAULT 0,
-        "rate"             FLOAT                    DEFAULT 0,
-        "created_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "updated_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        PRIMARY KEY ("area")
+        "check"          UUID REFERENCES "check_system" ("check_id") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"           VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "totalWorkPoint" FLOAT                    DEFAULT 0,
+        "workPoint"      FLOAT                    DEFAULT 0,
+        "score"          FLOAT                    DEFAULT 0,
+        "rate"           FLOAT                    DEFAULT 0,
+        "created_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        PRIMARY KEY ("area", "check")
       );
+      COMMENT ON COLUMN "report_area"."check" IS '考核id';
       COMMENT ON COLUMN "report_area"."area" IS '地区id';
       COMMENT ON COLUMN "report_area"."totalWorkPoint" IS '校正前工分';
       COMMENT ON COLUMN "report_area"."workPoint" IS '参与校正工分';

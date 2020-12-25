@@ -1,11 +1,9 @@
 import {
   AllowNull,
-  BelongsTo,
   Column,
   Comment,
   DataType,
   Default,
-  ForeignKey,
   Model,
   PrimaryKey,
   Table
@@ -13,6 +11,11 @@ import {
 
 @Table({tableName: 'report_area'})
 export class ReportArea extends Model<ReportArea> {
+  @Comment('考核id')
+  @PrimaryKey
+  @Column({field: 'check'})
+  checkId: string;
+
   @Comment('地区code')
   @PrimaryKey
   @Column({field: 'area'})
