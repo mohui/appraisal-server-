@@ -815,10 +815,12 @@ export default {
     async loadNode(node, resolve) {
       //记录该node的选中状态
       const checked = node.checked;
-      console.log('loadNode ', node);
+      console.log('loadNode:', node);
       if (node.level !== 0) this.code = node.data.code;
       // console.log('code:', this.code);
-      const children = (await this.$api.Group?.list(this.code)).map(it => {
+      const children = (
+        await this.$api.Group?.list(this.code, this.checkForm.checkId)
+      ).map(it => {
         return {
           ...it,
           disabled: !it.usable
