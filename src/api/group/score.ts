@@ -120,39 +120,68 @@ export async function getWorkPoints(
   projects: string[],
   year: string
 ) {
-  const result = [];
   // 处理年份
   const date = dayjs(year, 'YYYY');
   const start = date.format('YYYY-MM-DD');
   const end = date.add(1, 'y').format('YYYY-MM-DD');
 
   // 处理工分项映射
-  for (const o of organization) {
-    // 查询his数据
-    const his: string = o.region.startsWith('340222') ? '340222' : '340203';
-    // 当前机构对应的原始工分项
-    const originalProjectIds: string[] = ProjectMapping.filter(it =>
-      projects.find(p => p === it.id)
-    )
-      .map(it => it.mappings.find(m => m.type === his)?.id)
-      .filter(it => it);
-    const [sql, params] = sqlRender(
-      `
-        select
-          cast(sum(score) as float) as score
-        from view_workScoreTotal
-        where MissionTime >= {{? start}}
-          and MissionTime < {{? end}}
-          and OperateOrganization = {{? id}}
-          {{#if projects.length}}
-          and ProjectType in ({{#each projects}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-          {{/if}}
+  const result = (
+    await Promise.all(
+      organization.map(async o => {
+        // 查询his数据
+        const his: string = o.region.startsWith('340222') ? '340222' : '340203';
+        // 当前机构对应的原始工分项
+        const originalProjectIds: string[] = ProjectMapping.filter(it =>
+          projects.find(p => p === it.id)
+        )
+          .map(it => it.mappings.find(m => m.type === his)?.id)
+          .filter(it => it);
+        let sql = '';
+        let params = [];
+        if (projects?.length > 0) {
+          const ret = sqlRender(
+            `
+{{#each projects}}
+(select
+  cast(sum(score) as float) as score
+from view_workScoreTotal
+where MissionTime >= {{? start}}
+  and MissionTime < {{? end}}
+  and OperateOrganization = {{? id}}
+  and ProjectType = {{? this}}
+)
+{{#sep}} union {{/sep}}
+{{/each}}
           `,
-      {projects: originalProjectIds, start, end, id: o.id}
-    );
-    const scores: {score: number}[] = await originalDB.execute(sql, ...params);
-    result.push(...scores);
-  }
+            {projects: originalProjectIds, start, end, id: o.id}
+          );
+          sql = ret[0];
+          params = ret[1];
+        } else {
+          const ret = sqlRender(
+            `
+select
+  cast(sum(score) as float) as score
+from view_workScoreTotal
+where MissionTime >= {{? start}}
+  and MissionTime < {{? end}}
+  and OperateOrganization = {{? id}}
+          `,
+            {start, end, id: o.id}
+          );
+          sql = ret[0];
+          params = ret[1];
+        }
+        const scores: {score: number}[] = await originalDB.execute(
+          sql,
+          ...params
+        );
+
+        return scores;
+      })
+    )
+  ).reduce((prev, current) => [...prev, ...current]);
   return result;
 }
 
