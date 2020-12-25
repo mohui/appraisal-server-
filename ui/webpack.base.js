@@ -46,6 +46,12 @@ module.exports = {
           }
         ]
       },
+      //ts
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        loader: 'ts-loader'
+      },
       //其他raw文件
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
