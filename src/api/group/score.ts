@@ -222,7 +222,7 @@ export default class Score {
         }
       }
       // 地区报告model
-      let reportModel = await ReportAreaModel.findOne({
+      let reportModel: ReportAreaModel = await ReportAreaModel.findOne({
         where: {areaCode: group}
       });
 
@@ -238,6 +238,8 @@ export default class Score {
         });
       // 查询当前地区对应的叶子节点
       const leaves = await getLeaves(group);
+      // 获取原始机构id数组
+      const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
       // 查询考核对象对应的考核体系的考核小项
       // language=PostgreSQL
       const parentRules: {id: string}[] = await appDB.execute(
@@ -712,8 +714,6 @@ export default class Score {
             parentRule.id
           )
         ).map(it => it.id);
-        // 获取原始机构id数组
-        const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
         // 获取工分数组
         const scoreArray: {score: number}[] = await getWorkPoints(
           viewHospitals,
@@ -743,12 +743,24 @@ export default class Score {
         // 地区考核满分
         reportModel.totalScore = parentTotalScore;
       }
-
+      // 地区质量系数
       reportModel.rate =
         reportModel.totalScore === 0
           ? 0
           : reportModel.score / reportModel.totalScore;
+      // 获取总工分数组
+      const scoreArray: {score: number}[] = await getWorkPoints(
+        viewHospitals,
+        [],
+        year
+      );
+      // 地区总工分
+      reportModel.totalWorkPoint = scoreArray.reduce(
+        (prev, current) => (prev += current.score),
+        0
+      );
 
+      // 保存机构报告
       await reportModel.save();
     } catch (e) {
       throw new KatoRuntimeError(e);
