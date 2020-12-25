@@ -11,6 +11,7 @@ import {
   BasicTagDataModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
+  ReportAreaModel,
   sql as sqlRender
 } from '../../database';
 import {Op} from 'sequelize';
@@ -158,10 +159,11 @@ export default class Score {
   /**
    * 系统打分
    *
+   * @param check 考核体系
    * @param group 考核对象
    * @param year 年份
    */
-  async score(group, year) {
+  async score(check, group, year) {
     const mark = await getMarks(group);
     try {
       // 判断group是否合法, 并上锁
@@ -174,6 +176,37 @@ export default class Score {
         group
       );
       if (groups.length != 1) throw new KatoRuntimeError(`${group}不合法`);
+      // 判断check是否合法
+      // language=PostgreSQL
+      const checkModel: {
+        id: string;
+        name: string;
+        year: string;
+        status: boolean;
+      } = (
+        await appDB.execute(
+          `
+            select check_id as id, check_name as name, check_year as year, status
+            from check_system
+            where check_id = ?`,
+          check
+        )
+      )[0];
+      if (!checkModel) throw new KatoRuntimeError(`${check}不合法`);
+      // 判断check与area是否绑定过
+      // language=PostgreSQL
+      const checkAreaModel = await appDB.execute(
+        `select *
+         from check_area
+         where check_system = ?
+           and area = ?`,
+        check,
+        group
+      );
+      if (checkAreaModel.length === 0)
+        throw new KatoRuntimeError(
+          `地区${group}与考核${checkModel.name}未绑定`
+        );
       // 默认年份为当前年, 如果是1月1日, 则为上一年
       if (!year) {
         const now = dayjs();
@@ -188,6 +221,21 @@ export default class Score {
             .toString();
         }
       }
+      // 地区报告model
+      let reportModel = await ReportAreaModel.findOne({
+        where: {areaCode: group}
+      });
+
+      if (!reportModel)
+        reportModel = new ReportAreaModel({
+          checkId: check,
+          areaCode: group,
+          workPoint: 0,
+          totalWorkPoint: 0,
+          score: 0,
+          totalScore: 0,
+          rate: 0
+        });
       // 查询当前地区对应的叶子节点
       const leaves = await getLeaves(group);
       // 查询考核对象对应的考核体系的考核小项
@@ -687,7 +735,21 @@ export default class Score {
           totalScore: parentTotalScore,
           rate: rate
         });
+
+        // 地区参与校正的工分
+        reportModel.workPoint += workPoint;
+        // 地区考核得分
+        reportModel.score = parentScore;
+        // 地区考核满分
+        reportModel.totalScore = parentTotalScore;
       }
+
+      reportModel.rate =
+        reportModel.totalScore === 0
+          ? 0
+          : reportModel.score / reportModel.totalScore;
+
+      await reportModel.save();
     } catch (e) {
       throw new KatoRuntimeError(e);
     }
