@@ -349,6 +349,7 @@
       title="选择机构"
       :visible.sync="dialogSelectVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
+      @closed="handleCheckOrganizationDialogClose"
     >
       <el-row>
         <el-col :span="24">
@@ -888,6 +889,10 @@ export default {
       if (index !== -1) this.checkedNodes.splice(index, 1);
       //取消该节点的选中
       this.$refs.tree.setChecked(tag.code, false);
+    },
+    //关闭选择适用机构的dialog
+    handleCheckOrganizationDialogClose() {
+      this.checkedNodes = [];
     }
   }
 };
