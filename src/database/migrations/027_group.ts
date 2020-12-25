@@ -50,6 +50,21 @@ export class GroupMigration implements IMigration {
                left join check_system s on h.check_system = s.check_id
         where s.check_type = 1);
 
+      -- 考核细则附件表, 用于存储定性指标上传的附件
+      CREATE TABLE IF NOT EXISTS "rule_area_attach"
+      (
+        "id"         VARCHAR(36) primary key,
+        rule         UUID                                               NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
+        area         VARCHAR(36)                                        NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        name         VARCHAR(255)                                       NOT NULL,
+        url          VARCHAR(255)                                       NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+      );
+      COMMENT ON COLUMN "rule_area_attach"."id" IS '主键id';
+      COMMENT ON COLUMN "rule_area_attach"."rule" IS '考核细则id';
+      COMMENT ON COLUMN "rule_area_attach"."area" IS '地区编码';
+
       CREATE TABLE IF NOT EXISTS "rule_area_score" -- 地区得分表
       (
         "rule"       UUID                                               NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE, -- 考核细则id
