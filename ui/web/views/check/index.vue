@@ -408,7 +408,7 @@
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveHospital">确 定</el-button>
+        <el-button type="primary" @click="saveOrganization">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -560,8 +560,16 @@ export default {
       this.dialogSelectVisible = true;
     },
     //保存选取的机构
-    async saveHospital() {
-      //TODO:保存
+    async saveOrganization() {
+      const codes = this.$refs.tree.getCheckedKeys();
+      try {
+        await this.$api.CheckAreaEdit.editArea(this.checkForm.checkId, codes);
+        this.$asyncComputed.listCheck.update();
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.dialogSelectVisible = false;
+      }
     },
     //设置规则标题可点击样式
     cellClassHover({columnIndex}) {
