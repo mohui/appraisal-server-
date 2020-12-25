@@ -9,6 +9,7 @@ import {
 } from '../../../common/rule-score';
 import {
   BasicTagDataModel,
+  RuleAreaBudgetModel,
   RuleAreaScoreModel,
   sql as sqlRender
 } from '../../database';
@@ -652,15 +653,6 @@ export default class Score {
           // 考核小项得分
           parentScore += score;
         }
-        let budgetModel: {
-          rule: string;
-          area: string;
-          workPoint: number;
-          correctWorkPoint: number;
-          score: number;
-          totalScore: number;
-          rate: number;
-        };
         // 计算考核小项的质量系数
         const rate =
           parentTotalScore === 0 ? 0 : parentScore / parentTotalScore;
@@ -685,7 +677,16 @@ export default class Score {
           (prev, current) => (prev += current.score),
           0
         );
-        console.log('考核小项得分: ', parentScore, parentTotalScore, workPoint);
+        // 保存小项考核表
+        await RuleAreaBudgetModel.upsert({
+          ruleId: parentRule.id,
+          areaCode: group,
+          workPoint: workPoint,
+          correctWorkPoint: workPoint * rate,
+          score: parentScore,
+          totalScore: parentTotalScore,
+          rate: rate
+        });
       }
     } catch (e) {
       throw new KatoRuntimeError(e);
