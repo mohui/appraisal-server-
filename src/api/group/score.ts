@@ -149,12 +149,19 @@ from view_workScoreTotal
 where MissionTime >= {{? start}}
   and MissionTime < {{? end}}
   and OperateOrganization = {{? id}}
-  and ProjectType = {{? this}}
+  and ProjectType = {{? project}}
 )
 {{#sep}} union {{/sep}}
 {{/each}}
           `,
-            {projects: originalProjectIds, start, end, id: o.id}
+            {
+              projects: originalProjectIds.map(it => ({
+                start,
+                end,
+                id: o.id,
+                project: it
+              }))
+            }
           );
           sql = ret[0];
           params = ret[1];
@@ -743,7 +750,7 @@ export default class Score {
           (prev, current) => (prev += current.score),
           0
         );
-        debug('考核小项获取总工分结束');
+        debug('考核小项获取总工分结束', workPoint);
 
         // 保存小项考核表
         await RuleAreaBudgetModel.upsert({
@@ -781,7 +788,7 @@ export default class Score {
         (prev, current) => (prev += current.score),
         0
       );
-      debug('考核地区获取总工分结束');
+      debug('考核地区获取总工分结束', reportModel.toJSON());
       // 保存机构报告
       await reportModel.save();
     } catch (e) {
