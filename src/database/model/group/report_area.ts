@@ -13,7 +13,7 @@ import {
 export class ReportArea extends Model<ReportArea> {
   @Comment('考核id')
   @PrimaryKey
-  @Column({field: 'check'})
+  @Column({field: 'check', type: DataType.UUID})
   checkId: string;
 
   @Comment('地区code')
@@ -23,12 +23,12 @@ export class ReportArea extends Model<ReportArea> {
 
   @Comment('参与校正的工分值')
   @Default(0)
-  @Column(DataType.FLOAT)
+  @Column({field: 'workPoint', type: DataType.FLOAT})
   workPoint: number;
 
   @Comment('校正前的工分值')
   @Default(0)
-  @Column(DataType.FLOAT)
+  @Column({field: 'totalWorkPoint', type: DataType.FLOAT})
   totalWorkPoint: number;
 
   @Comment('得分')
