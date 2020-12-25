@@ -48,12 +48,12 @@ export class RuleAreaBudget extends Model<RuleAreaBudget> {
   @Comment('规则得分')
   @AllowNull(false)
   @Default(0)
-  @Column({field: 'ruleScore', type: DataType.FLOAT})
-  ruleScore;
+  @Column({field: 'score', type: DataType.FLOAT})
+  score;
 
   @Comment('规则满分')
   @AllowNull(false)
   @Default(0)
-  @Column({field: 'ruleTotalScore', type: DataType.FLOAT})
-  ruleTotalScore;
+  @Column({field: 'totalScore', type: DataType.FLOAT})
+  totalScore;
 }
