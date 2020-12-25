@@ -357,7 +357,7 @@
             <span>
               <el-tag
                 style="margin: 5px"
-                v-for="tag in this.checkedNodes"
+                v-for="tag in checkedNodes"
                 :key="tag.name"
                 closable
                 @close="handleTagClose(tag)"
@@ -380,6 +380,7 @@
               node-key="code"
               :props="props"
               :load="loadNode"
+              :default-checked-keys="checkedKeys"
               lazy
               show-checkbox
               check-strictly
@@ -451,7 +452,8 @@ export default {
         label: 'name',
         children: 'children'
       },
-      checkedNodes: []
+      checkedNodes: [],
+      checkedKeys: []
     };
   },
   created() {
@@ -502,6 +504,11 @@ export default {
     //树的根节点值
     treeData() {
       return this.treeServerData.map(it => {
+        //记录选中的节点key
+        if (it.selected) {
+          this.checkedKeys.push(it.code);
+        }
+        console.log('keys:', this.checkedKeys);
         return {
           ...it,
           disabled: !it.usable
@@ -847,13 +854,16 @@ export default {
     },
     //加载子树数据
     async loadNode(node, resolve) {
-      //记录该node的选中状态
       console.log('loadNode:', node);
       if (node.level === 0) return resolve(this.treeData);
       const checked = node.checked;
       const children = (
         await this.$api.Group?.list(node.data.code, this.checkForm.checkId)
       ).map(it => {
+        //记录选中的节点key
+        if (it.selected) {
+          this.checkedKeys.push(it.code);
+        }
         return {
           ...it,
           disabled: !it.usable
@@ -904,6 +914,7 @@ export default {
     //关闭选择适用机构的dialog
     handleCheckOrganizationDialogClose() {
       this.checkedNodes = [];
+      this.checkedKeys.length = 0;
     }
   }
 };
