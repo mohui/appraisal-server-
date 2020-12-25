@@ -370,7 +370,10 @@
       </el-row>
       <el-row>
         <el-col :span="24">
-          <div class="organization-box">
+          <div
+            class="organization-box"
+            v-loading="$asyncComputed.treeServerData.updating"
+          >
             <el-tree
               ref="tree"
               :data="treeData"
