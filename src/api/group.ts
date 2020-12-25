@@ -322,8 +322,9 @@ export default class Group {
                "system"."check_name"
         from check_area "area"
                left join check_system system on "area".check_system = system.check_id
-        where system.check_year = ?`,
-      checkYear
+        where system.check_year = ? and system.check_id != ?`,
+      checkYear,
+      checkId
     );
 
     // 排查所有的地区是否已经参加考核
