@@ -2,6 +2,7 @@ import {appDB} from '../app';
 import {sql as sqlRender} from '../database';
 import {Context} from './context';
 import dayjs = require('dayjs');
+import {KatoRuntimeError} from 'kato-server';
 
 /**
  * 获取地区树, 包括自己
@@ -281,7 +282,7 @@ export default class Group {
    * @param code
    * return usable: true:可选, false: 不可选
    */
-  async list(code) {
+  async list(code, checkId) {
     let where = '';
     // 判断code是否为空,如果传值,查询下级,如果没有传值,查询自身权限
     if (code) {
@@ -300,8 +301,25 @@ export default class Group {
       code
     );
 
-    // 查询的年份
-    const checkYear = dayjs().format('YYYY');
+    let checkYear;
+    // 根据checkId获取年份
+    if (checkId) {
+      // 根据checkId获取年份
+      const checkSystem = await appDB.execute(
+        `
+        select check_year
+        from check_system
+        where check_id = ?`,
+        checkId
+      );
+      if (checkSystem.length === 0)
+        throw new KatoRuntimeError(`checkId为${checkId} 的不存在`);
+      checkYear = checkSystem[0]['check_year'];
+    } else {
+      // 查询的年份
+      checkYear = dayjs().format('YYYY');
+    }
+
     // 已经参加考核的地区
     const checkArea = await appDB.execute(
       `
