@@ -1,5 +1,5 @@
 import {appDB} from '../app';
-import {sql as sqlRender} from '../database';
+import {AreaModel, sql as sqlRender} from '../database';
 import {Context} from './context';
 import dayjs = require('dayjs');
 import {KatoRuntimeError} from 'kato-server';
@@ -283,23 +283,18 @@ export default class Group {
    * return usable: true:可选, false: 不可选
    */
   async list(code, checkId) {
-    let where = '';
+    let where;
     // 判断code是否为空,如果传值,查询下级,如果没有传值,查询自身权限
     if (code) {
-      where += ` and parent = ? `;
+      where = {parent: code};
     } else {
-      code = Context.current.user.regionId;
-      // 没传值查本身
-      where += ` and code = ? `;
+      where = {code: Context.current.user.regionId};
     }
     // 地区列表
-    const list = await appDB.execute(
-      `
-            select "code", "name"
-            from "area"
-            where 1 = 1 ${where}`,
-      code
-    );
+    const list = await AreaModel.findAll({
+      where,
+      attributes: ['code', 'name']
+    });
 
     // 根据checkId获取年份
     const checkSystem = await appDB.execute(
@@ -321,23 +316,23 @@ export default class Group {
         select "area"."area",
                "system"."check_name"
         from check_area "area"
-               left join check_system system on "area".check_system = system.check_id
+        left join check_system system on "area".check_system = system.check_id
         where system.check_year = ? and system.check_id != ?`,
       checkYear,
       checkId
     );
 
     // 排查所有的地区是否已经参加考核
-    const regionList = list.map(it => {
+    return list.map(it => {
       const index = checkArea.find(item => item.area === it.code);
       const area = checkSystem.find(item => item.area === it.code);
       return {
-        ...it,
+        code: it.code,
+        name: it.name,
         system: index ? index.check_name : null,
         usable: index ? false : true,
         selected: area ? true : false
       };
     });
-    return regionList;
   }
 }
