@@ -372,6 +372,7 @@
           <div class="organization-box">
             <el-tree
               ref="tree"
+              :data="treeData"
               node-key="code"
               :props="props"
               :load="loadNode"
@@ -493,6 +494,15 @@ export default {
     },
     uploadLoading() {
       return this.progress > 0 && this.progress < 100;
+    },
+    //树的根节点值
+    treeData() {
+      return this.treeServerData.map(it => {
+        return {
+          ...it,
+          disabled: !it.usable
+        };
+      });
     }
   },
   asyncComputed: {
@@ -505,6 +515,18 @@ export default {
           count: 0,
           rows: []
         };
+      }
+    },
+    //服务器返回的树的根节点值
+    treeServerData: {
+      async get() {
+        return await this.$api.Group?.list(this.code, this.checkForm.checkId);
+      },
+      default() {
+        return [];
+      },
+      shouldUpdate() {
+        return this.checkForm.checkId !== '';
       }
     }
   },
@@ -814,12 +836,11 @@ export default {
     //加载子树数据
     async loadNode(node, resolve) {
       //记录该node的选中状态
-      const checked = node.checked;
       console.log('loadNode:', node);
-      if (node.level !== 0) this.code = node.data.code;
-      // console.log('code:', this.code);
+      if (node.level === 0) return resolve(this.treeData);
+      const checked = node.checked;
       const children = (
-        await this.$api.Group?.list(this.code, this.checkForm.checkId)
+        await this.$api.Group?.list(node.data.code, this.checkForm.checkId)
       ).map(it => {
         return {
           ...it,
