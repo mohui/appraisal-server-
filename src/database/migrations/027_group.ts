@@ -64,6 +64,9 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "rule_area_attach"."id" IS '主键id';
       COMMENT ON COLUMN "rule_area_attach"."rule" IS '考核细则id';
       COMMENT ON COLUMN "rule_area_attach"."area" IS '地区编码';
+      COMMENT ON COLUMN "rule_area_attach"."name" IS '附件中文名';
+      COMMENT ON COLUMN "rule_area_attach"."url" IS '附件URL地址';
+      COMMENT ON COLUMN "rule_area_attach"."updated_at" IS '更新时间';
 
       CREATE TABLE IF NOT EXISTS "rule_area_score" -- 地区得分表
       (
