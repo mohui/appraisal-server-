@@ -94,18 +94,20 @@ export class GroupMigration implements IMigration {
 
       CREATE TABLE IF NOT EXISTS "report_area"
       (
-        "area"       VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
-        "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "workpoints" FLOAT                    DEFAULT 0,
-        "scores"     FLOAT                    DEFAULT 0,
-        "total"      FLOAT                    DEFAULT 0,
+        "area"             VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "totalWorkPoint"   FLOAT                    DEFAULT 0,
+        "workPoint"        FLOAT                    DEFAULT 0,
+        "score"            FLOAT                    DEFAULT 0,
+        "rate"             FLOAT                    DEFAULT 0,
+        "created_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         PRIMARY KEY ("area")
       );
       COMMENT ON COLUMN "report_area"."area" IS '地区id';
-      COMMENT ON COLUMN "report_area"."workpoints" IS '工分';
-      COMMENT ON COLUMN "report_area"."scores" IS '得分';
-      COMMENT ON COLUMN "report_area"."total" IS '满分';
+      COMMENT ON COLUMN "report_area"."totalWorkPoint" IS '校正前工分';
+      COMMENT ON COLUMN "report_area"."workPoint" IS '参与校正工分';
+      COMMENT ON COLUMN "report_area"."score" IS '得分';
+      COMMENT ON COLUMN "report_area"."rate" IS '质量系数';
     `);
   }
 

@@ -23,3 +23,4 @@ export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
 export {Area as AreaModel} from './group/area';
 export {CheckArea as CheckAreaModel} from './group/check-area';
 export {RuleAreaBudget as RuleAreaBudgetModel} from './group/rule-area-budget';
+export {ReportArea as ReportAreaModel} from './group/report_area';
