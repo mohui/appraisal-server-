@@ -19,9 +19,7 @@ export default class CheckAreaEdit {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  async editArea(params) {
-    const {checkId, areas} = params;
-
+  async editArea(checkId, areas) {
     // 查询考核体系
     const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
     if (!checkSystem) throw new KatoCommonError('该考核体系不存在');
