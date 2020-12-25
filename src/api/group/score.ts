@@ -8,6 +8,7 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import {
+  CheckAreaModel,
   BasicTagDataModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
@@ -155,6 +156,10 @@ export async function getWorkPoints(
   return result;
 }
 
+function debug(...args) {
+  console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
+}
+
 export default class Score {
   /**
    * 系统打分
@@ -164,49 +169,10 @@ export default class Score {
    * @param year 年份
    */
   async score(check, group, year) {
+    debug('获取marks开始');
     const mark = await getMarks(group);
+    debug('获取marks结束');
     try {
-      // 判断group是否合法, 并上锁
-      // language=PostgreSQL
-      const groups = await appDB.execute(
-        `
-          select *
-          from area
-          where code = ? for update`,
-        group
-      );
-      if (groups.length != 1) throw new KatoRuntimeError(`${group}不合法`);
-      // 判断check是否合法
-      // language=PostgreSQL
-      const checkModel: {
-        id: string;
-        name: string;
-        year: string;
-        status: boolean;
-      } = (
-        await appDB.execute(
-          `
-            select check_id as id, check_name as name, check_year as year, status
-            from check_system
-            where check_id = ?`,
-          check
-        )
-      )[0];
-      if (!checkModel) throw new KatoRuntimeError(`${check}不合法`);
-      // 判断check与area是否绑定过
-      // language=PostgreSQL
-      const checkAreaModel = await appDB.execute(
-        `select *
-         from check_area
-         where check_system = ?
-           and area = ?`,
-        check,
-        group
-      );
-      if (checkAreaModel.length === 0)
-        throw new KatoRuntimeError(
-          `地区${group}与考核${checkModel.name}未绑定`
-        );
       // 默认年份为当前年, 如果是1月1日, 则为上一年
       if (!year) {
         const now = dayjs();
@@ -256,6 +222,7 @@ export default class Score {
       );
       // 根据考核小项, 进行打分
       for (const parentRule of parentRules) {
+        debug('考核小项', parentRule.id, '开始');
         // 考核小项得分
         let parentScore = 0;
         // 考核小项满分
@@ -270,6 +237,7 @@ export default class Score {
           parentRule.id
         );
         for (const rule of rules) {
+          debug('考核细则', rule.id, '开始');
           // 考核小项满分
           parentTotalScore += rule?.score ?? 0;
           // 考核细则得分
@@ -702,6 +670,7 @@ export default class Score {
           });
           // 考核小项得分
           parentScore += score;
+          debug('考核细则', rule.id, '结束');
         }
         // 计算考核小项的质量系数
         const rate =
@@ -714,6 +683,7 @@ export default class Score {
             parentRule.id
           )
         ).map(it => it.id);
+        debug('考核小项获取总工分开始');
         // 获取工分数组
         const scoreArray: {score: number}[] = await getWorkPoints(
           viewHospitals,
@@ -725,6 +695,8 @@ export default class Score {
           (prev, current) => (prev += current.score),
           0
         );
+        debug('考核小项获取总工分结束');
+
         // 保存小项考核表
         await RuleAreaBudgetModel.upsert({
           ruleId: parentRule.id,
@@ -742,12 +714,14 @@ export default class Score {
         reportModel.score = parentScore;
         // 地区考核满分
         reportModel.totalScore = parentTotalScore;
+        debug('考核小项', parentRule.id, '结束');
       }
       // 地区质量系数
       reportModel.rate =
         reportModel.totalScore === 0
           ? 0
           : reportModel.score / reportModel.totalScore;
+      debug('考核地区获取总工分开始');
       // 获取总工分数组
       const scoreArray: {score: number}[] = await getWorkPoints(
         viewHospitals,
@@ -759,7 +733,7 @@ export default class Score {
         (prev, current) => (prev += current.score),
         0
       );
-
+      debug('考核地区获取总工分结束');
       // 保存机构报告
       await reportModel.save();
     } catch (e) {
