@@ -149,10 +149,10 @@ export async function getWorkPoints(
 (select
   cast(sum(score) as float) as score
 from view_workScoreTotal
-where MissionTime >= {{? start}}
-  and MissionTime < {{? end}}
+where ProjectType = {{? project}}
   and OperateOrganization = {{? id}}
-  and ProjectType = {{? project}}
+  and MissionTime >= {{? start}}
+  and MissionTime < {{? end}}
 )
 {{#sep}} union {{/sep}}
 {{/each}}
@@ -174,9 +174,9 @@ where MissionTime >= {{? start}}
 select
   cast(sum(score) as float) as score
 from view_workScoreTotal
-where MissionTime >= {{? start}}
+where OperateOrganization = {{? id}}
+  and MissionTime >= {{? start}}
   and MissionTime < {{? end}}
-  and OperateOrganization = {{? id}}
           `,
             {start, end, id: o.id}
           );
