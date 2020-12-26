@@ -61,23 +61,48 @@ export default class SystemArea {
    *
    * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
    */
-  async total(code, checkId) {
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should.string().description('考核id'),
+    should.string().description('年份')
+  )
+  async total(code, checkId, year) {
+    if (!checkId && !year) throw new KatoCommonError('考核id和年份必须有一个');
     // 查询本级权限
     const areas = await AreaModel.findOne({where: {code}});
 
     if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
 
-    const where = {
-      areaCode: code
-    };
-    if (checkId) {
-      where['checkId'] = checkId;
+    if (!checkId) {
+      // 如果没有传checkId, 通过年份找checkId
+      const check = await appDB.execute(
+        `
+        SELECT check_system.check_id
+        FROM check_system
+        LEFT JOIN check_area on check_system.check_id = check_area.check_system
+        WHERE check_system.check_year = ?
+        and check_area.area = ?
+        `,
+        year,
+        code
+      );
+      if (check.length === 0) checkId = null;
+      else checkId = check[0].check_id;
     }
-    // 查询考核体系
-    const reportArea = await ReportAreaModel.findOne({
-      where,
-      logging: console.log
-    });
+    let reportArea;
+    if (checkId) {
+      // 查询考核体系
+      reportArea = await ReportAreaModel.findOne({
+        where: {
+          areaCode: code,
+          checkId
+        },
+        logging: console.log
+      });
+    }
 
     return {
       id: areas.code,
