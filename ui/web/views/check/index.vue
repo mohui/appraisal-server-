@@ -357,12 +357,12 @@
             <span>
               <el-tag
                 style="margin: 5px"
-                v-for="tag in checkedNodes"
-                :key="tag.name"
+                v-for="key in checkedKeys"
+                :key="key"
                 closable
-                @close="handleTagClose(tag)"
+                @close="handleTagClose(key)"
               >
-                {{ tag.name }}
+                {{ $refs.tree.getNode(key).data.name }}
               </el-tag>
             </span>
           </div>
@@ -453,7 +453,7 @@ export default {
         label: 'name',
         children: 'children'
       },
-      checkedNodes: [],
+      //选中的节点key数组
       checkedKeys: []
     };
   },
@@ -879,8 +879,8 @@ export default {
     //节点选中状态发生变化时的回调
     handleCheckChange(data, checked) {
       console.log('节点选中状态handleCheckChange:', data, checked);
-      //获取目前被选中的节点所组成的数组
-      this.checkedNodes = this.$refs.tree.getCheckedNodes();
+      //获取目前被选中的节点key所组成的数组
+      this.checkedKeys = this.$refs.tree.getCheckedKeys();
     },
     //节点被展开时触发的事件
     handleNodeExpand(data, node, el) {
@@ -904,16 +904,16 @@ export default {
       } else node.checked = false;
     },
     //关闭标签
-    handleTagClose(tag) {
-      const index = this.checkedNodes.findIndex(it => it.code === tag.code);
-      //删除checkedNodes中的该元素
-      if (index !== -1) this.checkedNodes.splice(index, 1);
-      //取消该节点的选中
-      this.$refs.tree.setChecked(tag.code, false);
+    handleTagClose(key) {
+      const index = this.checkedKeys.findIndex(it => it === key);
+      if (index !== -1) {
+        this.checkedKeys.splice(index, 1);
+        //取消该节点的选中
+        this.$refs.tree.setChecked(key, false);
+      }
     },
     //关闭选择适用机构的dialog
     handleCheckOrganizationDialogClose() {
-      this.checkedNodes = [];
       this.checkedKeys.length = 0;
     }
   }
