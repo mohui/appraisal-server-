@@ -1,12 +1,13 @@
 import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
-  HospitalModel,
   AreaModel,
-  RegionModel,
-  ReportAreaModel,
+  CheckAreaModel,
   CheckSystemModel,
-  CheckAreaModel
+  HospitalModel,
+  RegionModel,
+  ReportAreaHistoryModel,
+  ReportAreaModel
 } from '../../database/model';
 import {Op} from 'sequelize';
 import {sql as sqlRender} from '../../database/template';
@@ -14,8 +15,7 @@ import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
-import {Context} from '../context';
-import {getWorkPoints} from './score';
+
 /**
  * 获取机构id
  *
@@ -55,6 +55,33 @@ async function getHospital(code) {
   }
   return hospitalIds.map(it => it.id);
 }
+
+/**
+ * 通过地区编码和时间获取checkId
+ *
+ * @param code
+ * @param year
+ */
+async function yearGetCheckId(code, year) {
+  // 如果checkId为空,根据年份和地区获取checkId
+  const check = await CheckAreaModel.findOne({
+    where: {
+      areaCode: code
+    },
+    attributes: ['checkId'],
+    include: [
+      {
+        model: CheckSystemModel,
+        where: {
+          checkYear: year
+        },
+        attributes: []
+      }
+    ]
+  });
+  return check?.checkId;
+}
+
 export default class SystemArea {
   /**
    * 质量系数,公分值
@@ -205,22 +232,44 @@ export default class SystemArea {
    *
    * @param code
    * @param checkId
+   * @param year
    */
-  async history(code, checkId) {
-    return [
-      {
-        date: '2020-11-16',
-        totalScore: 124915,
-        score: 52363.202326572726,
-        rate: 0.41919066826700335
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should.string().description('年份')
+  )
+  async history(code, year) {
+    // 查询本级权限
+    const areas = await AreaModel.findOne({where: {code}});
+
+    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
+    if (!year) year = dayjs().format('YYYY');
+
+    // 通过地区编码和时间获取checkId
+    const checkId = await yearGetCheckId(code, year);
+    if (!checkId) return [];
+
+    // 查询考核体系
+    return ReportAreaHistoryModel.findAll({
+      order: [['date', 'asc']],
+      where: {
+        areaCode: code,
+        checkId,
+        date: {
+          [Op.gte]: dayjs(year)
+            .startOf('y')
+            .toDate(),
+          [Op.lt]: dayjs(year)
+            .startOf('y')
+            .add(1, 'y')
+            .toDate()
+        }
       },
-      {
-        date: '2020-11-17',
-        totalScore: 124915,
-        score: 52363.202326572726,
-        rate: 0.41919066826700335
-      }
-    ];
+      attributes: ['date', 'workPoint', 'totalWorkPoint', 'rate', 'score']
+    });
   }
 
   /**
