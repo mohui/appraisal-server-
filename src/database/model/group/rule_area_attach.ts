@@ -10,8 +10,8 @@ import {
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 
-@Table({tableName: 'rule_hospital_attach'})
-export class RuleHospitalAttach extends Model<RuleHospitalAttach> {
+@Table({tableName: 'rule_area_attach'})
+export class RuleAreaAttach extends Model<RuleAreaAttach> {
   @PrimaryKey
   @Default(UUIDV4)
   @Comment('主键id')
