@@ -270,13 +270,9 @@ export default class Score {
       const parentRules: {id: string}[] = await appDB.execute(
         `
           select cr.rule_id as id
-          from check_area cg
-                 inner join check_system cs on cs.check_id = cg.check_system -- 关联考核体系
-                 inner join check_rule cr on cg.check_system = cr.check_id -- 关联考核细则
+          from check_rule cr
           where cr.parent_rule_id is null
-            and cs.check_year = ?
-            and cg.area = ?`,
-        year,
+            and cr.check_id`,
         group
       );
       // 根据考核小项, 进行打分
