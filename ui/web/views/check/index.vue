@@ -934,10 +934,9 @@ export default {
   height: 50vh;
   overflow-y: auto;
   overflow-x: hidden;
-  margin-top: 20px;
 }
 .checked-organization-box {
-  height: 100px;
+  max-height: 150px;
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: -30px;
