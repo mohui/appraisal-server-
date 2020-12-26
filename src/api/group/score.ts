@@ -214,7 +214,6 @@ export default class Score {
     });
     for (const ca of checkAreaModels) {
       await this.scoreArea(id, ca.areaCode, null);
-      debug(`${ca.areaCode} 系统打分结束`);
     }
 
     await this.checkBudget(id);
