@@ -217,6 +217,10 @@ export default class Score {
       await this.scoreArea(id, ca.areaCode, null);
       debug(`${ca.areaCode} 系统打分结束`);
     }
+
+    debug(`${id} 金额分配开始`);
+    await this.checkBudget(id);
+    debug(`${id} 金额分配结束`);
   }
 
   /**
@@ -809,7 +813,6 @@ export default class Score {
    *
    * 1. 分配各个地区考核小项(rule_area_budget)的金额
    *    算法为: 地区考核小项的金额 = 地区考核小项校正后的工分 / 所有地区考核小项校正后的工分 * 考核小项的金额
-   *
    * 2. 更新report_area的金额
    * 3. 更新report_area_history的金额
    *
@@ -851,9 +854,7 @@ export default class Score {
             .toNumber();
         }
         debug(
-          ruleAreaBudgetModel.areaCode,
-          '获得金额',
-          ruleAreaBudgetModel.budget
+          `${ruleAreaBudgetModel.areaCode} 获取金额 ${ruleAreaBudgetModel.budget}`
         );
         await ruleAreaBudgetModel.save();
       }
