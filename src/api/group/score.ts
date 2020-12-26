@@ -10,6 +10,7 @@ import {
 import {
   CheckAreaModel,
   BasicTagDataModel,
+  RuleAreaAttachModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
   ReportAreaModel,
@@ -620,29 +621,29 @@ export default class Score {
                 score += tagModel.score * (rate > 1 ? 1 : rate);
               }
             }
-            //TODO: 定性指标得分
-            // if (tagModel.tag === MarkTagUsages.Attach.code) {
-            //   //查询定性指标和机构表
-            //   const attach = await RuleHospitalAttachModel.findAll({
-            //     where: {
-            //       ruleId: tagModel.,
-            //       hospitalId: hospitalId,
-            //       updatedAt: {
-            //         [Op.gt]: tagModel.attachStartDate,
-            //         [Op.lt]: tagModel.attachEndDate
-            //       }
-            //     }
-            //   });
-            //   if (attach?.length) {
-            //     if (!tagModel?.baseline) score += tagModel.score;
-            //
-            //     //有上传文件数量的要求
-            //     if (tagModel?.baseline) {
-            //       const rate = attach.length / tagModel.baseline;
-            //       score += tagModel.score * (rate < 1 ? rate : 1);
-            //     }
-            //   }
-            // }
+            // 定性指标得分
+            if (tagModel.tag === MarkTagUsages.Attach.code) {
+              // 查询定性指标和机构表
+              const attachModels = await RuleAreaAttachModel.findAll({
+                where: {
+                  ruleId: rule.id,
+                  areaCode: group,
+                  updatedAt: {
+                    [Op.gt]: tagModel.attachStartDate,
+                    [Op.lt]: tagModel.attachEndDate
+                  }
+                }
+              });
+              if (attachModels?.length > 0) {
+                if (!tagModel?.baseline) score += tagModel.score;
+
+                // 有上传文件数量的要求
+                if (tagModel?.baseline) {
+                  const rate = attachModels.length / tagModel.baseline;
+                  score += tagModel.score * (rate < 1 ? rate : 1);
+                }
+              }
+            }
 
             //健康教育指标
             if (tagModel.tag.indexOf('HE') == 0) {
