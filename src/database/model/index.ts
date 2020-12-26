@@ -25,3 +25,4 @@ export {CheckArea as CheckAreaModel} from './group/check-area';
 export {RuleAreaBudget as RuleAreaBudgetModel} from './group/rule-area-budget';
 export {RuleAreaAttach as RuleAreaAttachModel} from './group/rule_area_attach';
 export {ReportArea as ReportAreaModel} from './group/report_area';
+export {ReportAreaHistory as ReportAreaHistoryModel} from './group/report_area_history';

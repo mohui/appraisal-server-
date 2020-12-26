@@ -50,7 +50,7 @@ export class GroupMigration implements IMigration {
                left join check_system s on h.check_system = s.check_id
         where s.check_type = 1);
 
-      -- 考核细则附件表, 用于存储定性指标上传的附件
+-- 考核细则附件表, 用于存储定性指标上传的附件
       CREATE TABLE IF NOT EXISTS "rule_area_attach"
       (
         "id"         VARCHAR(36) primary key,
@@ -128,6 +128,29 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "report_area"."score" IS '得分';
       COMMENT ON COLUMN "report_area"."rate" IS '质量系数';
       COMMENT ON COLUMN "report_area"."budget" IS '分配金额';
+
+      CREATE TABLE IF NOT EXISTS "report_area_history"
+      (
+        "date"           DATE,
+        "check"          UUID REFERENCES "check_system" ("check_id") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "area"           VARCHAR(36) REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
+        "rate"           FLOAT                    DEFAULT 0,
+        "totalWorkPoint" FLOAT                    DEFAULT 0,
+        "workPoint"      FLOAT                    DEFAULT 0,
+        "score"          FLOAT                    DEFAULT 0,
+        "budget"         DECIMAL(15, 4)           DEFAULT 0,
+        "created_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        PRIMARY KEY ("date", "area", "check")
+      );
+      COMMENT ON COLUMN "report_area_history"."date" IS '日期';
+      COMMENT ON COLUMN "report_area_history"."check" IS '考核id';
+      COMMENT ON COLUMN "report_area_history"."area" IS '地区id';
+      COMMENT ON COLUMN "report_area_history"."rate" IS '质量系数';
+      COMMENT ON COLUMN "report_area_history"."totalWorkPoint" IS '校正前工分';
+      COMMENT ON COLUMN "report_area_history"."workPoint" IS '参与校正工分';
+      COMMENT ON COLUMN "report_area_history"."score" IS '得分';
+      COMMENT ON COLUMN "report_area_history"."budget" IS '分配金额';
     `);
   }
 
