@@ -15,7 +15,8 @@ import {
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
   ReportAreaModel,
-  sql as sqlRender
+  sql as sqlRender,
+  ReportAreaHistoryModel
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
@@ -793,6 +794,11 @@ export default class Score {
       debug('考核地区获取总工分结束', reportModel.toJSON());
       // 保存机构报告
       await reportModel.save();
+      // 保存机构报告历史
+      await ReportAreaHistoryModel.upsert({
+        ...reportModel.toJSON(),
+        date: dayjs().subtract(1, 'd')
+      });
     } catch (e) {
       throw new KatoRuntimeError(e);
     }
@@ -872,10 +878,17 @@ export default class Score {
           checkAreaModel.areaCode
         )
       )[0];
+      // 保存地区报告金额
       await ReportAreaModel.upsert({
         checkId: check,
         areaCode: checkAreaModel.areaCode,
         budget: budgetModel.budget
+      });
+      // 3. 保存地区报告历史金额
+      await ReportAreaHistoryModel.upsert({
+        date: dayjs().subtract(1, 'd'),
+        checkId: check,
+        areaCode: checkAreaModel.areaCode
       });
     }
   }
