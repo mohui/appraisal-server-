@@ -213,14 +213,11 @@ export default class Score {
       }
     });
     for (const ca of checkAreaModels) {
-      debug(`${ca.areaCode} 系统打分开始`);
       await this.scoreArea(id, ca.areaCode, null);
       debug(`${ca.areaCode} 系统打分结束`);
     }
 
-    debug(`${id} 金额分配开始`);
     await this.checkBudget(id);
-    debug(`${id} 金额分配结束`);
   }
 
   /**
@@ -231,6 +228,7 @@ export default class Score {
    * @param year 年份
    */
   async scoreArea(check, group, year) {
+    debug(`${check} ${group} ${year} 系统打分开始`);
     debug('获取marks开始');
     const mark = await getMarks(group);
     debug('获取marks结束');
@@ -805,6 +803,8 @@ export default class Score {
       });
     } catch (e) {
       throw new KatoRuntimeError(e);
+    } finally {
+      debug(`${check} ${group} ${year} 系统打分开始`);
     }
   }
 
@@ -819,6 +819,7 @@ export default class Score {
    * @param check 考核体系id
    */
   async checkBudget(check) {
+    debug(`${check} 金额分配开始`);
     // 1. 分配rule_area_budget的金额
     // 查询考核小项的金额
     const parentRuleModels: {
@@ -893,5 +894,6 @@ export default class Score {
         budget: budgetModel.budget
       });
     }
+    debug(`${check} 金额分配结束`);
   }
 }
