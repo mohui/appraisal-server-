@@ -357,12 +357,12 @@
             <span>
               <el-tag
                 style="margin: 5px"
-                v-for="key in checkedKeys"
-                :key="key"
+                v-for="node in checkedNodes"
+                :key="node.code"
                 closable
-                @close="handleTagClose(key)"
+                @close="handleTagClose(node.code)"
               >
-                {{ $refs.tree.getNode(key).data.name }}
+                {{ node.name }}
               </el-tag>
             </span>
           </div>
@@ -453,8 +453,8 @@ export default {
         label: 'name',
         children: 'children'
       },
-      //选中的节点key数组
-      checkedKeys: []
+      //选中的节点数组
+      checkedNodes: []
     };
   },
   created() {
@@ -464,6 +464,16 @@ export default {
   },
   destroyed() {
     this.timer && clearInterval(this.timer);
+  },
+  watch: {
+    treeServerData() {
+      this.treeServerData.forEach(it => {
+        //记录选中的节点
+        if (it.selected) {
+          this.checkedNodes.push({...it, disabled: !it.usable});
+        }
+      });
+    }
   },
   computed: {
     checkList() {
@@ -505,15 +515,15 @@ export default {
     //树的根节点值
     treeData() {
       return this.treeServerData.map(it => {
-        //记录选中的节点key
-        if (it.selected) {
-          this.checkedKeys.push(it.code);
-        }
         return {
           ...it,
           disabled: !it.usable
         };
       });
+    },
+    //选中的节点key
+    checkedKeys() {
+      return this.checkedNodes.map(it => it.code);
     }
   },
   asyncComputed: {
@@ -860,14 +870,12 @@ export default {
       const children = (
         await this.$api.Group?.list(node.data.code, this.checkForm.checkId)
       ).map(it => {
-        //记录选中的节点key
+        const node = {...it, disabled: !it.usable};
+        //记录选中的节点
         if (it.selected) {
-          this.checkedKeys.push(it.code);
+          this.checkedNodes.push(node);
         }
-        return {
-          ...it,
-          disabled: !it.usable
-        };
+        return node;
       });
       console.log('children', children);
       //如果有叶子节点，设置该节点不可点击
@@ -879,8 +887,8 @@ export default {
     //节点选中状态发生变化时的回调
     handleCheckChange(data, checked) {
       console.log('节点选中状态handleCheckChange:', data, checked);
-      //获取目前被选中的节点key所组成的数组
-      this.checkedKeys = this.$refs.tree.getCheckedKeys();
+      //获取目前被选中的节点所组成的数组
+      this.checkedNodes = this.$refs.tree.getCheckedNodes();
     },
     //节点被展开时触发的事件
     handleNodeExpand(data, node, el) {
@@ -905,16 +913,17 @@ export default {
     },
     //关闭标签
     handleTagClose(key) {
-      const index = this.checkedKeys.findIndex(it => it === key);
+      const index = this.checkedNodes.findIndex(it => it.code === key);
       if (index !== -1) {
-        this.checkedKeys.splice(index, 1);
+        this.checkedNodes.splice(index, 1);
         //取消该节点的选中
         this.$refs.tree.setChecked(key, false);
       }
     },
     //关闭选择适用机构的dialog
     handleCheckOrganizationDialogClose() {
-      this.checkedKeys.length = 0;
+      //将选中的节点数组清除
+      this.checkedNodes = [];
     }
   }
 };
