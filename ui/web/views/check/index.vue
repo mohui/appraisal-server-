@@ -508,7 +508,6 @@ export default {
         if (it.selected) {
           this.checkedKeys.push(it.code);
         }
-        console.log('keys:', this.checkedKeys);
         return {
           ...it,
           disabled: !it.usable
