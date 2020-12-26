@@ -888,7 +888,8 @@ export default class Score {
       await ReportAreaHistoryModel.upsert({
         date: dayjs().subtract(1, 'd'),
         checkId: check,
-        areaCode: checkAreaModel.areaCode
+        areaCode: checkAreaModel.areaCode,
+        budget: budgetModel.budget
       });
     }
   }
