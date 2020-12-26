@@ -85,9 +85,8 @@ async function yearGetCheckId(code, year) {
 export default class SystemArea {
   /**
    * 质量系数,公分值
-   * @param date
+   *
    * @param code
-   * @param checkId
    * @param year
    *
    * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
@@ -100,29 +99,17 @@ export default class SystemArea {
     should.string().description('考核id'),
     should.string().description('年份')
   )
-  async total(code, checkId, year) {
-    if (!checkId && !year) throw new KatoCommonError('考核id和年份必须有一个');
+  async total(code, year) {
     // 查询本级权限
     const areas = await AreaModel.findOne({where: {code}});
 
     if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
 
-    if (!checkId) {
-      // 如果没有传checkId, 通过年份找checkId
-      const check = await appDB.execute(
-        `
-        SELECT check_system.check_id
-        FROM check_system
-        LEFT JOIN check_area on check_system.check_id = check_area.check_system
-        WHERE check_system.check_year = ?
-        and check_area.area = ?
-        `,
-        year,
-        code
-      );
-      if (check.length === 0) checkId = null;
-      else checkId = check[0].check_id;
-    }
+    if (!year) year = dayjs().format('YYYY');
+
+    // 通过地区编码和时间获取checkId
+    const checkId = await yearGetCheckId(code, year);
+
     let reportArea;
     if (checkId) {
       // 查询考核体系
