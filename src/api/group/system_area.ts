@@ -146,9 +146,7 @@ export default class SystemArea {
     should.string().description('考核id'),
     should.string().description('年份')
   )
-  async rank(code, checkId, year) {
-    if (!checkId && !year) throw new KatoCommonError('考核id和年份必须有一个');
-
+  async rank(code, year) {
     // 地区列表
     const areaList = await AreaModel.findAll({
       where: {
@@ -156,18 +154,7 @@ export default class SystemArea {
       },
       attributes: ['code', 'name']
     });
-
-    // 根据地区id获取年份
-    if (checkId) {
-      year = (
-        await CheckSystemModel.findOne({
-          where: {
-            checkId
-          },
-          attributes: ['checkYear']
-        })
-      ).checkYear;
-    }
+    if (!year) year = dayjs().format('YYYY');
 
     // 根据地区和年份获取考核id
     const checkIdLists = await CheckAreaModel.findAll({
