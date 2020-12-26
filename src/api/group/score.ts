@@ -1,4 +1,5 @@
 import * as dayjs from 'dayjs';
+import {Decimal} from 'decimal.js';
 import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError} from 'kato-server';
 import {getLeaves, getOriginalArray} from '../group';
@@ -212,19 +213,19 @@ export default class Score {
     });
     for (const ca of checkAreaModels) {
       debug(`${ca.areaCode} 系统打分开始`);
-      await this.score(id, ca.areaCode, null);
+      await this.scoreArea(id, ca.areaCode, null);
       debug(`${ca.areaCode} 系统打分结束`);
     }
   }
 
   /**
-   * 系统打分
+   * 地区打分
    *
    * @param check 考核体系
    * @param group 考核对象
    * @param year 年份
    */
-  async score(check, group, year) {
+  async scoreArea(check, group, year) {
     debug('获取marks开始');
     const mark = await getMarks(group);
     debug('获取marks结束');
@@ -794,6 +795,88 @@ export default class Score {
       await reportModel.save();
     } catch (e) {
       throw new KatoRuntimeError(e);
+    }
+  }
+
+  /**
+   * 根据考核结果进行金额分配
+   *
+   * 1. 分配各个地区考核小项(rule_area_budget)的金额
+   *    算法为: 地区考核小项的金额 = 地区考核小项校正后的工分 / 所有地区考核小项校正后的工分 * 考核小项的金额
+   *
+   * 2. 更新report_area的金额
+   * 3. 更新report_area_history的金额
+   *
+   * @param check 考核体系id
+   */
+  async checkBudget(check) {
+    // 1. 分配rule_area_budget的金额
+    // 查询考核小项的金额
+    const parentRuleModels: {
+      id: string;
+      budget: number;
+    }[] = await appDB.execute(
+      `select rule_id as id, budget from check_rule where check_id = ? and parent_rule_id is null`,
+      check
+    );
+    // 循环分配
+    for (const parentRuleModel of parentRuleModels) {
+      debug('考核小项分配金额', parentRuleModel.budget);
+      // 查询考核小项结果
+      const ruleAreaBudgetModels: RuleAreaBudgetModel[] = await RuleAreaBudgetModel.findAll(
+        {
+          where: {ruleId: parentRuleModel.id}
+        }
+      );
+      // 考核小项校正后的总工分
+      const totalCorrectWorkPoints: Decimal = ruleAreaBudgetModels.reduce(
+        (prev, cur) => prev.add(new Decimal(cur.correctWorkPoint)),
+        new Decimal(0)
+      );
+      debug('考核小项校正后总工分', totalCorrectWorkPoints);
+      // 分配考核小项金额
+      for (const ruleAreaBudgetModel of ruleAreaBudgetModels) {
+        if (totalCorrectWorkPoints.toNumber() === 0) {
+          ruleAreaBudgetModel.budget = 0;
+        } else {
+          ruleAreaBudgetModel.budget = new Decimal(parentRuleModel.budget)
+            .mul(new Decimal(ruleAreaBudgetModel.correctWorkPoint))
+            .div(totalCorrectWorkPoints)
+            .toNumber();
+        }
+        debug(
+          ruleAreaBudgetModel.areaCode,
+          '获得金额',
+          ruleAreaBudgetModel.budget
+        );
+        await ruleAreaBudgetModel.save();
+      }
+    }
+
+    // 2. 分配report_area的金额
+    //  累计report表的金额
+    const checkAreaModels: CheckAreaModel[] = await CheckAreaModel.findAll({
+      where: {checkId: check}
+    });
+    for (const checkAreaModel of checkAreaModels) {
+      // language=PostgreSQL
+      const budgetModel: {budget: number} = (
+        await appDB.execute(
+          `
+            select sum(rab.budget) as budget
+            from rule_area_budget rab
+                   inner join check_rule cr on rab.rule = cr.rule_id
+            where cr.check_id = ?
+              and rab.area = ?`,
+          check,
+          checkAreaModel.areaCode
+        )
+      )[0];
+      await ReportAreaModel.upsert({
+        checkId: check,
+        areaCode: checkAreaModel.areaCode,
+        budget: budgetModel.budget
+      });
     }
   }
 }
