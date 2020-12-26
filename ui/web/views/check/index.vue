@@ -368,6 +368,7 @@
           </div>
         </el-col>
       </el-row>
+      <el-divider></el-divider>
       <el-row>
         <el-col :span="24">
           <div
