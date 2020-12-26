@@ -116,6 +116,7 @@ export class GroupMigration implements IMigration {
         "workPoint"      FLOAT                    DEFAULT 0,
         "score"          FLOAT                    DEFAULT 0,
         "rate"           FLOAT                    DEFAULT 0,
+        "budget"         DECIMAL(15, 4)           DEFAULT 0,
         "created_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         PRIMARY KEY ("area", "check")
@@ -126,6 +127,7 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "report_area"."workPoint" IS '参与校正工分';
       COMMENT ON COLUMN "report_area"."score" IS '得分';
       COMMENT ON COLUMN "report_area"."rate" IS '质量系数';
+      COMMENT ON COLUMN "report_area"."budget" IS '分配金额';
     `);
   }
 

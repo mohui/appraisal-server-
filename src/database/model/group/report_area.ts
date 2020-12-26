@@ -43,5 +43,11 @@ export class ReportArea extends Model<ReportArea> {
   @AllowNull(false)
   @Default(0)
   @Column(DataType.FLOAT)
-  rate;
+  rate: number;
+
+  @Comment('分配金额')
+  @AllowNull(false)
+  @Default(0)
+  @Column(DataType.DECIMAL(15, 4))
+  budget: number;
 }
