@@ -4,8 +4,11 @@ import {
   HospitalModel,
   AreaModel,
   RegionModel,
-  ReportAreaModel
+  ReportAreaModel,
+  CheckSystemModel,
+  CheckAreaModel
 } from '../../database/model';
+import {Op} from 'sequelize';
 import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
@@ -58,6 +61,7 @@ export default class SystemArea {
    * @param date
    * @param code
    * @param checkId
+   * @param year
    *
    * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
    */
@@ -99,8 +103,7 @@ export default class SystemArea {
         where: {
           areaCode: code,
           checkId
-        },
-        logging: console.log
+        }
       });
     }
 
@@ -119,22 +122,82 @@ export default class SystemArea {
    *
    * @param code group code
    * @param checkId 考核体系id
+   * @param year
    */
-  async rank(date, code, checkId) {
-    if (!date) date = dayjs().format('YYYY');
-    return [
-      {
-        code: '3402',
-        name: '芜湖市',
-        level: 2,
-        parent: '34',
-        budget: '0.0000',
-        id: '3402',
-        score: 40075986.8594905,
-        originalScore: 54104423,
-        rate: 0.7599249148753187
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should.string().description('考核id'),
+    should.string().description('年份')
+  )
+  async rank(code, checkId, year) {
+    if (!checkId && !year) throw new KatoCommonError('考核id和年份必须有一个');
+
+    // 地区列表
+    const areaList = await AreaModel.findAll({
+      where: {
+        parent: code
+      },
+      attributes: ['code', 'name']
+    });
+
+    // 根据地区id获取年份
+    if (checkId) {
+      year = (
+        await CheckSystemModel.findOne({
+          where: {
+            checkId
+          },
+          attributes: ['checkYear']
+        })
+      ).checkYear;
+    }
+
+    // 根据地区和年份获取考核id
+    const checkIdLists = await CheckAreaModel.findAll({
+      where: {
+        areaCode: {
+          [Op.in]: areaList.map(it => it.code)
+        }
+      },
+      attributes: ['checkId', 'areaCode'],
+      include: [
+        {
+          model: CheckSystemModel,
+          where: {
+            checkYear: year
+          },
+          attributes: []
+        }
+      ]
+    });
+
+    // 查询考核体系
+    const reportAreas = await ReportAreaModel.findAll({
+      where: {
+        areaCode: {
+          [Op.in]: areaList.map(it => it.code)
+        },
+        checkId: {
+          [Op.in]: checkIdLists.map(it => it.checkId)
+        }
       }
-    ];
+    });
+    return areaList.map(it => {
+      const item = reportAreas.find(report => report.areaCode === it.code);
+
+      return {
+        code: it.code,
+        name: it.name,
+        budget: item ? item.budget : 0,
+        workPoint: item ? item.workPoint : 0,
+        totalWorkPoint: item ? item.totalWorkPoint : 0,
+        score: item ? item.score : 0,
+        rate: item ? item.rate : 0
+      };
+    });
   }
 
   /**
