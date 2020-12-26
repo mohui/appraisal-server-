@@ -1,13 +1,18 @@
 import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {HospitalModel, RegionModel} from '../../database/model';
+import {
+  HospitalModel,
+  AreaModel,
+  RegionModel,
+  ReportAreaModel
+} from '../../database/model';
 import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
 import {Context} from '../context';
-
+import {getWorkPoints} from './score';
 /**
  * 获取机构id
  *
@@ -57,70 +62,30 @@ export default class SystemArea {
    * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
    */
   async total(code, checkId) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-    // 所传权限本身的基本信息
-    const currentArea = tree.filter(it => it.code === code);
-    // 获取所有的机构id
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 查询本级权限
+    const areas = await AreaModel.findOne({where: {code}});
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
 
-    const hisHospIds = hisHospIdObjs.map(it => it['id']);
-    // 获取SQL
-    let [sql, params] = sqlRender(
-      `
-      select
-          COALESCE(sum("workpoints"),0) as "originalScore",
-          COALESCE(sum("scores"),0) as "score",
-          COALESCE(sum("scores"),0) as "ruleScore",
-          COALESCE(sum("total"),0) as "total",
-          COALESCE(sum(budget),0) as "budget"
-      from report_hospital
-      where hospital = {{? code}}
-      `,
-      {
-        code
-      }
-    );
-    const resultObject = (await appDB.execute(sql, ...params))[0];
-
-    [sql, params] = sqlRender(
-      `
-        select cast(sum(score) as int) as scores
-        from view_workscoretotal
-        where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-        and missiontime >= {{? startTime}}
-        and missiontime < {{? endTime}}
-        `,
-      {
-        hisHospIds,
-        startTime: dayjs()
-          .startOf('y')
-          .toDate(),
-        endTime: dayjs()
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
-      }
-    );
-
-    const originalWorkPoints =
-      (await originalDB.execute(sql, ...params))[0]?.scores ?? 0;
+    const where = {
+      areaCode: code
+    };
+    if (checkId) {
+      where['checkId'] = checkId;
+    }
+    // 查询考核体系
+    const reportArea = await ReportAreaModel.findOne({
+      where,
+      logging: console.log
+    });
 
     return {
-      id: currentArea[0].code,
-      name: currentArea[0].name,
-      score: Number(resultObject.score),
-      originalScore: Number(resultObject.originalScore),
-      rate: new Decimal(Number(resultObject.ruleScore))
-        .div(Number(resultObject.total))
-        .toNumber(),
-      budget: Number(resultObject.budget),
-      originalWorkPoint: originalWorkPoints
+      id: areas.code,
+      name: areas.name,
+      score: reportArea ? Number(reportArea.score) : 0,
+      workPoint: reportArea ? Number(reportArea.workPoint) : 0,
+      rate: reportArea ? Number(reportArea.rate) : 0,
+      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0
     };
   }
 
