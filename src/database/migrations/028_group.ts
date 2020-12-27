@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class GroupMigration implements IMigration {
   name = '分层考核';
-  version = 27;
+  version = 28;
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
