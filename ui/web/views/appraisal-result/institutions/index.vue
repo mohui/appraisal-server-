@@ -1054,7 +1054,7 @@ export default {
         .filter(it => it.budget)
         .map(it => ({
           name: it.name,
-          id: it.id,
+          id: it.code,
           budget: it.budget.toFixed(2)
         }))
         .map(it => ({
@@ -1064,7 +1064,7 @@ export default {
             this.$router.push({
               name: 'appraisal-result-institutions',
               query: {
-                id: it.id,
+                id: it.code,
                 listFlag: 'score',
                 isInstitution: 'true'
               }
@@ -1075,15 +1075,15 @@ export default {
     //工分：矩形树状图
     mapData() {
       let arr = this.workpointRankServerData
-        .filter(it => it.score)
+        .filter(it => it.correctWorkPoint)
         .map(it => ({
-          name: `${it.name} 工分值：${Math.round(it.score)}分`,
-          value: it.score,
+          name: `${it.name} 工分值：${Math.round(it.correctWorkPoint)}分`,
+          value: it.correctWorkPoint,
           onClick: () =>
             this.$router.push({
               name: 'appraisal-result-institutions',
               query: {
-                id: it.id,
+                id: it.code,
                 listFlag: 'score',
                 isInstitution: 'true'
               }
@@ -1719,9 +1719,9 @@ export default {
     //获取服务器的机构排行数据
     workpointRankServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.rank(
+        return await this.$api.SystemArea.rank(
           this.params.id,
-          this.params.checkId
+          this.params.year
         );
       },
       default() {
