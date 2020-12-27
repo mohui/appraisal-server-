@@ -15,7 +15,7 @@ export default class CheckAreaEdit {
   /**
    * 获取考核地区/机构对应的考核总体情况
    *
-   * @param code 地区或机构的code
+   * @param areas 地区或机构的code
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
@@ -24,20 +24,31 @@ export default class CheckAreaEdit {
     const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
     if (!checkSystem) throw new KatoCommonError('该考核体系不存在');
 
-    // 判断地区是否已经绑定过其他考核了
-    const [sql, areaParam] = sqlRender(
-      `
-      select *
-      from check_area
-      where area in ({{#each areas}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-      and check_system != {{? checkId}}
-      `,
-      {
-        areas,
-        checkId
-      }
-    );
-    const bindOtherAreas = await appDB.execute(sql, ...areaParam);
+    // 取出年份
+    const year = checkSystem.checkYear;
+
+    // 根据地区和年份获取考核id
+    const bindOtherAreas = await CheckAreaModel.findAll({
+      attributes: ['checkId', 'areaCode'],
+      where: {
+        areaCode: {
+          [Op.in]: areas
+        },
+        checkId: {
+          [Op.ne]: checkId
+        }
+      },
+      include: [
+        {
+          model: CheckSystemModel,
+          where: {
+            checkYear: year
+          },
+          attributes: []
+        }
+      ],
+      logging: console.log
+    });
     if (bindOtherAreas.length > 0) {
       throw new KatoCommonError('存在绑定过其他考核的地区');
     }
