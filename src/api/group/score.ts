@@ -264,20 +264,15 @@ export default class Score {
       // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
       const isCheckYear = year === checkModel.checkYear;
       // 地区报告model
-      let reportModel: ReportAreaModel = await ReportAreaModel.findOne({
-        where: {areaCode: group}
-      });
-
-      if (!reportModel)
-        reportModel = new ReportAreaModel({
-          checkId: check,
-          areaCode: group,
-          workPoint: 0,
-          totalWorkPoint: 0,
-          score: 0,
-          totalScore: 0,
-          rate: 0
-        });
+      const reportModel = {
+        checkId: check,
+        areaCode: group,
+        workPoint: 0,
+        totalWorkPoint: 0,
+        score: 0,
+        totalScore: 0,
+        rate: 0
+      };
       // 查询当前地区对应的叶子节点
       const leaves = await getLeaves(group);
       // 获取原始机构id数组
@@ -806,9 +801,13 @@ export default class Score {
           .add(new Decimal(reportModel.workPoint))
           .toNumber();
         // 地区考核得分
-        reportModel.score = parentScore;
+        reportModel.score = new Decimal(parentScore)
+          .add(new Decimal(reportModel.score))
+          .toNumber();
         // 地区考核满分
-        reportModel.totalScore = parentTotalScore;
+        reportModel.totalScore = new Decimal(parentTotalScore)
+          .add(new Decimal(reportModel.totalScore))
+          .toNumber();
         debug('考核小项', parentRule.id, '结束');
       }
       // 地区质量系数
@@ -832,21 +831,21 @@ export default class Score {
           return prev;
         }, new Decimal(0))
         .toNumber();
-      debug('考核地区获取总工分结束', reportModel.toJSON());
+      debug('考核地区获取总工分结束', reportModel);
       // 保存机构报告
-      await reportModel.save();
+      await ReportAreaModel.upsert(reportModel);
       // 保存机构报告历史
       await ReportAreaHistoryModel.upsert({
-        ...reportModel.toJSON(),
+        ...reportModel,
         // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
         date: dayjs()
           .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
           .toDate()
       });
-    } catch (e) {
-      throw new KatoRuntimeError(e);
-    } finally {
       debug(`${check} ${group} 系统打分结束`);
+    } catch (e) {
+      debug(`${check} ${group} 系统打分异常: ${e}`);
+      throw new KatoRuntimeError(e);
     }
   }
 
