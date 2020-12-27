@@ -615,8 +615,8 @@
                           ></el-table-column>
                         </el-table>
                         <el-button
-                          plain
                           slot="reference"
+                          plain
                           type="warning"
                           size="mini"
                           @click="scoreHistory(scope.row)"
