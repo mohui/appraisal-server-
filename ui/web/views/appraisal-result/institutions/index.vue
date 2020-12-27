@@ -689,7 +689,7 @@
         <!--下级工分排行-->
         <el-row
           v-if="params.listFlag === 'score'"
-          v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
+          v-loading="$asyncComputed.workpointRankServerData.updating"
           :gutter="20"
           style="margin-top: 20px"
         >
@@ -699,33 +699,17 @@
                 下级工分
               </p>
               <el-table
-                :data="doctorWorkpointRankData"
+                :data="workpointRankData"
                 :header-cell-style="{background: '#e4e2df', color: '#333'}"
               >
-                <el-table-column type="expand" prop="children">
-                  <template slot-scope="scope">
-                    <el-table :data="scope.row.children" :show-header="false">
-                      <el-table-column type="index" align="center">
-                      </el-table-column>
-                      <el-table-column
-                        prop="name"
-                        align="center"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="score"
-                        align="center"
-                      ></el-table-column>
-                    </el-table>
-                  </template>
-                </el-table-column>
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
                     <span>【{{ scope.$index + 1 }}】</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="医生" align="center">
+                <el-table-column label="地区" align="center">
                   <template slot-scope="scope">
-                    <span>{{ scope.row.doctorname }}</span>
+                    <span>{{ scope.row.name }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column align="center" label="工分值">
@@ -1096,6 +1080,10 @@ export default {
           Number((this.totalServerData.rate * 100).toFixed(2))
         ).toNumber()
       };
+    },
+
+    workpointRankData() {
+      return this.workpointRankServerData;
     },
     //医生工分排行数据
     doctorWorkpointRankData() {
@@ -1598,6 +1586,25 @@ export default {
           this.params.id,
           this.params.year
         );
+      },
+      default() {
+        return [];
+      }
+    },
+    //下级工分数据
+    workpointRankServerData: {
+      async get() {
+        try {
+          return await this.$api.SystemArea.workPointsArea(
+            this.params.id,
+            this.params.year
+          );
+        } catch (e) {
+          return [];
+        }
+      },
+      shouldUpdate() {
+        return this.params.listFlag === 'score';
       },
       default() {
         return [];
