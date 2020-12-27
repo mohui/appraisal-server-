@@ -660,17 +660,14 @@
         <el-row v-if="params.listFlag === 'quality'">
           <el-col :span="24">
             <el-card
-              v-loading="$asyncComputed.subordinateAreaRankServerData.updating"
+              v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
             >
               <h3 class="area-ranking-title">下级地区排行</h3>
-              <div
-                v-for="(item, index) of subordinateAreaRankData"
-                :key="item.id"
-              >
+              <div v-for="(item, index) of rankData" :key="item.code">
                 <div
                   class="pointer"
-                  @click="handleClickSubordinateArea(item.id)"
+                  @click="handleClickSubordinateArea(item.code)"
                 >
                   <p>
                     {{ index + 1 }}、{{ item.name }}
@@ -1225,8 +1222,8 @@ export default {
       return this.reportListSeverData;
     },
     //下级地区排行数据
-    subordinateAreaRankData() {
-      const result = this.subordinateAreaRankServerData.map(item => item);
+    rankData() {
+      const result = this.rankServerData.map(item => item);
       if (this.params.listFlag === 'score') {
         return result
           .sort((a, b) => b.score - a.score)
@@ -1238,10 +1235,6 @@ export default {
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
-    },
-    //最大得分值数
-    subordinateAreaMaxScore() {
-      return Math.max(...this.subordinateAreaRankData.map(it => it.score));
     }
   },
   watch: {
@@ -1709,18 +1702,6 @@ export default {
     reportListSeverData: {
       async get() {
         return await this.$api.Report.list(this.params.id);
-      },
-      default() {
-        return [];
-      }
-    },
-    //下级地区排行
-    subordinateAreaRankServerData: {
-      async get() {
-        return await this.$api.ScoreHospitalCheckRules.areaRank(
-          '3402',
-          this.params.checkId
-        );
       },
       default() {
         return [];
