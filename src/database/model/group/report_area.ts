@@ -21,6 +21,12 @@ export class ReportArea extends Model<ReportArea> {
   @Column({field: 'area'})
   areaCode: string;
 
+  @Comment('校正后的工分值')
+  @AllowNull(false)
+  @Default(0)
+  @Column({field: 'correctWorkPoint', type: DataType.FLOAT})
+  correctWorkPoint;
+
   @Comment('参与校正的工分值')
   @Default(0)
   @Column({field: 'workPoint', type: DataType.FLOAT})
