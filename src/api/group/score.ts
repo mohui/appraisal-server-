@@ -228,7 +228,7 @@ export default class Score {
       await this.scoreArea(id, ca.areaCode, isAuto);
     }
 
-    await this.checkBudget(id);
+    await this.checkBudget(id, isAuto);
   }
 
   /**
@@ -236,6 +236,7 @@ export default class Score {
    *
    * @param check 考核体系
    * @param group 考核对象
+   * @param isAuto 是否是自动打分
    */
   async scoreArea(check, group, isAuto) {
     debug(`${check} ${group} 系统打分开始`);
@@ -837,7 +838,10 @@ export default class Score {
       // 保存机构报告历史
       await ReportAreaHistoryModel.upsert({
         ...reportModel.toJSON(),
-        date: dayjs().subtract(1, 'd')
+        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+        date: dayjs()
+          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+          .toDate()
       });
     } catch (e) {
       throw new KatoRuntimeError(e);
@@ -855,9 +859,31 @@ export default class Score {
    * 3. 更新report_area_history的金额
    *
    * @param check 考核体系id
+   * @param isAuto 是否是自动打分
    */
-  async checkBudget(check) {
+  async checkBudget(check, isAuto) {
     debug(`${check} 金额分配开始`);
+    // 查询考核体系
+    const checkModel: CheckSystemModel = await CheckSystemModel.findOne({
+      where: {checkId: check}
+    });
+    if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
+
+    // 默认年份为当前年, 如果是1月1日, 则为上一年
+    const now = dayjs();
+    let year = dayjs()
+      .year()
+      .toString();
+    if (now.day() === 1 && now.month() === 1) {
+      year = now
+        .subtract(1, 'y')
+        .year()
+        .toString();
+    }
+    debug(`打分年度: ${year}; 考核年度: ${checkModel.checkYear}`);
+    // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
+    const isCheckYear = year === checkModel.checkYear;
+
     // 1. 分配rule_area_budget的金额
     // 查询考核小项的金额
     const parentRuleModels: {
@@ -929,10 +955,13 @@ export default class Score {
       });
       // 3. 保存地区报告历史金额
       await ReportAreaHistoryModel.upsert({
-        date: dayjs().subtract(1, 'd'),
         checkId: check,
         areaCode: checkAreaModel.areaCode,
-        budget: budgetModel.budget
+        budget: budgetModel.budget,
+        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+        date: dayjs()
+          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+          .toDate()
       });
     }
     debug(`${check} 金额分配结束`);
