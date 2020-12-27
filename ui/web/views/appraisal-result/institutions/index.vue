@@ -578,12 +578,49 @@
                       </el-button>
                       <el-button
                         v-if="scope.row.isGradeScore"
+                        style="margin: 0"
                         plain
                         type="primary"
                         size="mini"
                         @click="cancelScore(scope.row)"
-                        >取消
-                      </el-button>
+                        >取消</el-button
+                      >
+                      <el-popover placement="left" width="600" trigger="click">
+                        <el-table
+                          height="200px"
+                          :data="scope.row.scoreHistoryData"
+                          size="mini"
+                        >
+                          <el-table-column
+                            align="center"
+                            property="score"
+                            label="手动打分"
+                          ></el-table-column>
+                          <el-table-column
+                            align="center"
+                            property="remark"
+                            label="备注"
+                          ></el-table-column>
+                          <el-table-column
+                            align="center"
+                            property="creator.name"
+                            label="打分人"
+                          ></el-table-column>
+                          <el-table-column
+                            align="center"
+                            property="created_at"
+                            label="时间"
+                          ></el-table-column>
+                        </el-table>
+                        <el-button
+                          slot="reference"
+                          plain
+                          type="warning"
+                          size="mini"
+                          @click="scoreHistory(scope.row)"
+                          >历史</el-button
+                        >
+                      </el-popover>
                     </template>
                   </el-table-column>
                   <el-table-column
@@ -806,6 +843,24 @@
         <div v-else style="color: red">暂无文件</div>
       </div>
     </el-dialog>
+    <el-dialog
+      title="填写打分备注"
+      :visible.sync="scoreRemarkVisible"
+      @closed="currentRow = {}"
+    >
+      <el-input v-model="scoreRemark" type="textarea" size="mini"></el-input>
+      <div style="text-align: right; margin: 30px">
+        <el-button size="mini" type="text" @click="scoreRemarkVisible = false"
+          >取消</el-button
+        >
+        <el-button
+          type="primary"
+          size="mini"
+          @click="handleSaveScore(currentRow)"
+          >确定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -892,7 +947,10 @@ export default {
       },
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
-      healthEducationTagSelected: ''
+      healthEducationTagSelected: '',
+      scoreRemarkVisible: false, //打分备注填写框框
+      scoreRemark: '', //备注信息
+      currentRow: {}
     };
   },
   computed: {
@@ -1225,6 +1283,7 @@ export default {
               .some(tag => tag === 'attach');
             return {
               ...it,
+              scoreHistoryData: [],
               isGradeScore: false,
               originalScore: it.score,
               isSaveScoreLoaing: false,
@@ -1342,8 +1401,8 @@ export default {
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
     },
-    //保存打分处理
-    async handleSaveScore(row) {
+    //打开填写备注的弹出窗
+    async openRemarkDialog(row) {
       if (row.score > row.ruleScore) {
         this.$message({
           type: 'error',
@@ -1351,12 +1410,27 @@ export default {
         });
         return;
       }
+      this.scoreRemarkVisible = true;
+      this.scoreRemark = '';
+      this.currentRow = row;
+    },
+    //保存打分处理
+    async handleSaveScore(row) {
+      if (!this.scoreRemark) {
+        this.$message({
+          type: 'error',
+          message: '请填写打分备注'
+        });
+        return;
+      }
       try {
+        this.scoreRemarkVisible = false;
         row.isSaveScoreLoaing = true;
         await this.$api.ScoreHospitalCheckRules.score(
           row.ruleId,
           this.totalData.id,
-          row.score
+          row.score,
+          this.scoreRemark
         );
         this.$message({
           type: 'success',
@@ -1523,6 +1597,20 @@ export default {
     //报告下载
     handleDownloadReport(url) {
       FileSaver.saveAs(url);
+    },
+    //查看手动打分的历史
+    async scoreHistory(row) {
+      row.scoreHistoryData = (
+        await this.$api.ScoreHospitalCheckRules.scoreHistory(
+          row.ruleId,
+          this.params.id
+        )
+      ).map(it => ({
+        ...it,
+        creatorName: it.creator.name,
+        created_at: it.created_at.$format(),
+        updated_at: it.updated_at.$format()
+      }));
     }
   },
   asyncComputed: {

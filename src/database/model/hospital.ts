@@ -20,6 +20,7 @@ import {BasicTagData} from './basic-tag-data';
 import {ReportHospital} from './report-hospital';
 import {RuleHospitalBudget} from './rule-hospital-budget';
 import {ReportHospitalHistory} from './report-hospital-history';
+import {ScoreRemarkHistory} from './score-remark-history';
 
 @Table({tableName: 'hospital'})
 export class Hospital extends Model<Hospital> {
@@ -71,4 +72,8 @@ export class Hospital extends Model<Hospital> {
   //多个历史记录
   @HasMany(() => ReportHospitalHistory)
   reportHospitalHistory: ReportHospitalHistory[];
+
+  //多个手动打分记录
+  @HasMany(() => ScoreRemarkHistory)
+  scoreRemarkHistory: ScoreRemarkHistory[];
 }

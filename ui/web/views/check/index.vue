@@ -27,7 +27,6 @@
         border
         size="mini"
         :data="checkList"
-        @row-click="handleCellClick"
         :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
@@ -36,6 +35,7 @@
           color: '#555',
           textAlign: 'center'
         }"
+        @row-click="handleCellClick"
       >
         <el-table-column align="center" label="序号">
           <template slot-scope="scope">
@@ -83,11 +83,11 @@
         <el-table-column align="center" min-width="70" label="适用机构">
           <template slot-scope="scope">
             <el-button
-              plain
               v-permission="{
                 permission: permission.CHECK_SELECT_HOSPITAL,
                 type: 'disabled'
               }"
+              plain
               type="primary"
               size="mini"
               @click.stop="openSelectDialog(scope.row)"
@@ -100,13 +100,13 @@
             <div v-show="!scope.row.running">
               <el-tooltip content="编辑" :enterable="false">
                 <el-button
-                  type="primary"
-                  icon="el-icon-edit"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
                   size="mini"
                   @click.stop="openEditCheckDialog(scope.row)"
                 >
@@ -114,12 +114,12 @@
               </el-tooltip>
               <el-tooltip content="快速复制" :enterable="false">
                 <el-button
-                  icon="el-icon-document-copy"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_CLONE,
                     type: 'disabled'
                   }"
+                  icon="el-icon-document-copy"
+                  circle
                   type="warning"
                   size="mini"
                   @click.stop="openCloneCheckDialog(scope.row)"
@@ -128,12 +128,12 @@
               </el-tooltip>
               <el-tooltip content="删除" :enterable="false">
                 <el-button
-                  icon="el-icon-delete"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_REMOVE,
                     type: 'disabled'
                   }"
+                  icon="el-icon-delete"
+                  circle
                   type="danger"
                   size="mini"
                   @click.stop="delCheck(scope)"
@@ -142,12 +142,12 @@
               </el-tooltip>
               <el-tooltip content="查看考核结果" :enterable="false">
                 <el-button
-                  icon="el-icon-right"
-                  circle
                   v-permission="{
                     permission: permission.APPRAISAL_RESULT,
                     type: 'disabled'
                   }"
+                  icon="el-icon-right"
+                  circle
                   size="mini"
                   type="primary"
                   @click.stop="toCheck(scope.row)"
@@ -159,12 +159,12 @@
                 :enterable="false"
               >
                 <el-button
-                  icon="el-icon-refresh-right"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
+                  icon="el-icon-refresh-right"
+                  circle
                   size="mini"
                   type="info"
                   @click.stop="tempCheck(scope.row)"
@@ -173,13 +173,13 @@
               </el-tooltip>
               <el-tooltip content="全部开启打分" :enterable="false">
                 <el-button
-                  icon="el-icon-check"
-                  circle
+                  v-show="scope.row.isOpen"
                   v-permission="{
                     permission: permission.CHECK_OPEN_GRADE,
                     type: 'disabled'
                   }"
-                  v-show="scope.row.isOpen"
+                  icon="el-icon-check"
+                  circle
                   type="success"
                   size="mini"
                   @click.stop="openCheck(scope.row)"
@@ -188,13 +188,13 @@
               </el-tooltip>
               <el-tooltip content="全部关闭打分" :enterable="false">
                 <el-button
-                  icon="el-icon-close"
-                  circle
+                  v-show="scope.row.isClose"
                   v-permission="{
                     permission: permission.CHECK_CLOSE_GRADE,
                     type: 'disabled'
                   }"
-                  v-show="scope.row.isClose"
+                  icon="el-icon-close"
+                  circle
                   size="mini"
                   @click.stop="closeCheck(scope.row)"
                 >
@@ -209,6 +209,11 @@
       </el-table>
       <el-pagination
         background
+        :current-page="searchForm.pageNo"
+        :page-size="searchForm.pageSize"
+        layout="total, sizes, prev, pager, next"
+        style="margin:10px 0 -20px;"
+        :total="listCheck.count"
         @size-change="
           size => {
             searchForm.pageSize = size;
@@ -220,11 +225,6 @@
             searchForm.pageNo = no;
           }
         "
-        :current-page="searchForm.pageNo"
-        :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, pager, next"
-        style="margin:10px 0 -20px;"
-        :total="listCheck.count"
       >
       </el-pagination>
     </el-card>
@@ -274,7 +274,7 @@
         <el-button @click="dialogFormCloneChecksVisible = false">
           取 消
         </el-button>
-        <el-button type="primary" @click="cloneCheck" :loading="submitting">
+        <el-button type="primary" :loading="submitting" @click="cloneCheck">
           {{ submitting ? '提交中...' : '确 定' }}
         </el-button>
       </div>
@@ -299,8 +299,8 @@
         </el-form-item>
         <el-form-item label="上传文件：">
           <el-upload
-            class="upload-demo"
             ref="uploadForm"
+            class="upload-demo"
             :multiple="false"
             :action="importUrl"
             :headers="headers"
@@ -339,8 +339,8 @@
         <el-button
           plain
           type="primary"
-          @click="saveUploadRules"
           :loading="uploadLoading"
+          @click="saveUploadRules"
           >确 定
         </el-button>
       </div>
@@ -356,9 +356,9 @@
           <div class="checked-organization-box">
             <span>
               <el-tag
-                style="margin: 5px"
                 v-for="node in checkedNodes"
                 :key="node.code"
+                style="margin: 5px"
                 closable
                 @close="handleTagClose(node.code)"
               >
@@ -372,8 +372,8 @@
       <el-row>
         <el-col :span="24">
           <div
-            class="organization-box"
             v-loading="$asyncComputed.treeServerData.updating"
+            class="organization-box"
           >
             <el-tree
               ref="tree"
@@ -389,7 +389,7 @@
               @node-expand="handleNodeExpand"
               @node-collapse="handleNodeCollapse"
             >
-              <span class="custom-tree-node" slot-scope="{node, data}">
+              <span slot-scope="{node, data}" class="custom-tree-node">
                 <span style="font-size: 14px; color: #606266">{{
                   node.label
                 }}</span>
@@ -420,7 +420,7 @@
 import {Permission} from '../../../../common/permission.ts';
 
 export default {
-  name: 'check',
+  name: 'Check',
   data() {
     return {
       timer: null, // 考核体系列表接口调用定时器
@@ -456,24 +456,6 @@ export default {
       //选中的节点数组
       checkedNodes: []
     };
-  },
-  created() {
-    this.timer = setInterval(() => {
-      this.$asyncComputed.listCheck.update();
-    }, 5000);
-  },
-  destroyed() {
-    this.timer && clearInterval(this.timer);
-  },
-  watch: {
-    treeServerData() {
-      this.treeServerData.forEach(it => {
-        //记录选中的节点
-        if (it.selected) {
-          this.checkedNodes.push({...it, disabled: !it.usable});
-        }
-      });
-    }
   },
   computed: {
     checkList() {
@@ -525,6 +507,24 @@ export default {
     checkedKeys() {
       return this.checkedNodes.map(it => it.code);
     }
+  },
+  watch: {
+    treeServerData() {
+      this.treeServerData.forEach(it => {
+        //记录选中的节点
+        if (it.selected) {
+          this.checkedNodes.push({...it, disabled: !it.usable});
+        }
+      });
+    }
+  },
+  created() {
+    this.timer = setInterval(() => {
+      this.$asyncComputed.listCheck.update();
+    }, 5000);
+  },
+  destroyed() {
+    this.timer && clearInterval(this.timer);
   },
   asyncComputed: {
     listCheck: {
@@ -764,7 +764,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.CheckSystem.setAllRuleAuto(item.checkId, false);
+        await this.$api.Hospital.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'
