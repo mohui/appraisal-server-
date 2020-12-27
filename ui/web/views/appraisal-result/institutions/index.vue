@@ -157,7 +157,7 @@
             <!--下级金额分配-->
             <el-col :span="10" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
-                v-loading="$asyncComputed.workpointRankServerData.updating"
+                v-loading="$asyncComputed.rankServerData.updating"
                 shadow="hover"
               >
                 <div class="score-detail">
@@ -172,7 +172,7 @@
             <!--下级工分值图-->
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
-                v-loading="$asyncComputed.workpointRankServerData.updating"
+                v-loading="$asyncComputed.rankServerData.updating"
                 shadow="hover"
               >
                 <div class="score-detail">
@@ -1050,7 +1050,7 @@ export default {
     },
     //金额：矩形树状图
     budgetData() {
-      let arr = this.workpointRankServerData
+      let arr = this.rankServerData
         .filter(it => it.budget)
         .map(it => ({
           name: it.name,
@@ -1074,7 +1074,7 @@ export default {
     },
     //工分：矩形树状图
     mapData() {
-      let arr = this.workpointRankServerData
+      let arr = this.rankServerData
         .filter(it => it.correctWorkPoint)
         .map(it => ({
           name: `${it.name} 工分值：${Math.round(it.correctWorkPoint)}分`,
@@ -1612,7 +1612,7 @@ export default {
       }
     },
     //获取服务器的下级排行数据
-    workpointRankServerData: {
+    rankServerData: {
       async get() {
         return await this.$api.SystemArea.rank(
           this.params.id,
