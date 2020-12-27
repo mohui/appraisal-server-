@@ -189,7 +189,9 @@ where OperateOrganization = {{? id}}
           ...params
         );
 
-        return scores;
+        return scores.map(s => ({
+          score: s?.score ?? 0
+        }));
       })
     )
   ).reduce((prev, current) => [...prev, ...current]);
