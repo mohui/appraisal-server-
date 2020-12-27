@@ -614,13 +614,13 @@
                           ></el-table-column>
                         </el-table>
                         <el-button
-                          slot="reference"
                           plain
+                          slot="reference"
                           type="warning"
                           size="mini"
                           @click="scoreHistory(scope.row)"
-                          >历史
-                        </el-button>
+                          >历史</el-button
+                        >
                       </el-popover>
                     </template>
                   </el-table-column>
