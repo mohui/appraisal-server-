@@ -89,15 +89,17 @@ export default class SystemArea {
    * @param code
    * @param year
    *
-   * return score: 校正后, originalScore:参与校正工分, originalWorkPoint: 校正前总公分 rate: 质量系数
+   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值
    */
   @validate(
     should
       .string()
       .required()
       .description('地区code或机构id'),
-    should.string().description('考核id'),
-    should.string().description('年份')
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async total(code, year) {
     // 查询本级权限
@@ -127,7 +129,8 @@ export default class SystemArea {
       score: reportArea ? Number(reportArea.score) : 0,
       workPoint: reportArea ? Number(reportArea.workPoint) : 0,
       rate: reportArea ? Number(reportArea.rate) : 0,
-      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0
+      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
+      correctWorkPoint: 0
     };
   }
 
@@ -135,16 +138,19 @@ export default class SystemArea {
    * 获取省市排行
    *
    * @param code group code
-   * @param checkId 考核体系id
    * @param year
+   *
+   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
    */
   @validate(
     should
       .string()
       .required()
       .description('地区code或机构id'),
-    should.string().description('考核id'),
-    should.string().description('年份')
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async rank(code, year) {
     // 地区列表
@@ -213,7 +219,10 @@ export default class SystemArea {
       .string()
       .required()
       .description('地区code或机构id'),
-    should.string().description('年份')
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async history(code, year) {
     // 查询本级权限
@@ -255,9 +264,13 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
-  async faceCollect(code) {
+  async faceCollect(code, year) {
     let faceData = {face: 0, total: 0, rate: 0};
     //如果是一个地区
     const region = await RegionModel.findOne({where: {code}});
@@ -324,7 +337,11 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async signRegister(code, year) {
     // 获取树形结构
@@ -422,7 +439,11 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async supervisionReport(code, year) {
     // 获取树形结构
@@ -478,7 +499,11 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async supervisionAssist(code, year) {
     // 获取树形结构
@@ -527,7 +552,11 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async healthEducation(code, year) {
     // 获取树形结构
@@ -601,7 +630,10 @@ export default class SystemArea {
       .string()
       .required()
       .description('地区code或机构id'),
-    should.string().description('年份')
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async workPointsArea(code, year) {
     // 获取树形结构
@@ -725,7 +757,11 @@ export default class SystemArea {
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should
+      .string()
+      .allow(null)
+      .description('年份')
   )
   async workPointsProject(code) {
     // 获取树形结构
