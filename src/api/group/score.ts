@@ -288,8 +288,8 @@ export default class Score {
           select cr.rule_id as id
           from check_rule cr
           where cr.parent_rule_id is null
-            and cr.check_id`,
-        group
+            and cr.check_id = ?`,
+        check
       );
       // 根据考核小项, 进行打分
       for (const parentRule of parentRules) {
