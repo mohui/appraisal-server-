@@ -1462,8 +1462,12 @@ export default {
     },
     //进入下级地区
     handleClickSubordinateArea(id) {
-      //TODO: 跳转到下级地区
-      console.log('跳转到下级地区id:', id);
+      this.params.id = id;
+      this.$router.push({
+        query: {
+          ...this.params
+        }
+      });
     },
     //是否显示返回按钮
     showBackButton() {
