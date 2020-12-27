@@ -316,13 +316,13 @@ export default class Score {
           // 查询rule_area_score
           let ruleAreaScoreModel: RuleAreaScoreModel = await RuleAreaScoreModel.findOne(
             {
-              where: {ruleId: rule.id, areaCore: group}
+              where: {ruleId: rule.id, areaCode: group}
             }
           );
           if (!ruleAreaScoreModel) {
             ruleAreaScoreModel = new RuleAreaScoreModel({
               ruleId: rule.id,
-              areaCore: group,
+              areaCode: group,
               score: 0,
               auto: true
             });
