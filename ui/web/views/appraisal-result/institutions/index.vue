@@ -1100,49 +1100,6 @@ export default {
         ).toNumber()
       };
     },
-    //机构排行数据
-    workpointRankData() {
-      const result = this.workpointRankServerData
-        //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
-        .filter(
-          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
-        )
-        //添加child
-        .map(item => {
-          //对下属二级机构进行排序
-          let child = this.workpointRankServerData.filter(
-            it => it.parent === item.id
-          );
-          if (this.params.listFlag === 'score') {
-            child = child.sort((a, b) => b.score - a.score);
-          } else {
-            child = child.sort((a, b) => b.rate - a.rate);
-          }
-          //添加一级机构和排序后的二级机构的值
-          const returnValue = Object.assign({}, item, {
-            child: [item, ...child]
-          });
-          //累加分数
-          returnValue.score = returnValue.child.reduce(
-            (result, current) => (result += current.score),
-            0
-          );
-          //格式化取整后的分数，用于页面显示
-          returnValue.scoreFormat = Math.round(returnValue.score);
-          //累加质量系数
-          returnValue.rate = returnValue.child.reduce(
-            (result, current) => (result += current.rate),
-            0
-          );
-          returnValue.rate = returnValue.rate / returnValue.child.length;
-          return returnValue;
-        });
-      if (this.params.listFlag === 'score') {
-        return result.sort((a, b) => b.score - a.score);
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
     //医生工分排行数据
     doctorWorkpointRankData() {
       let returnValue = this.doctorWorkpointRankServerData
@@ -1654,7 +1611,7 @@ export default {
         };
       }
     },
-    //获取服务器的机构排行数据
+    //获取服务器的下级排行数据
     workpointRankServerData: {
       async get() {
         return await this.$api.SystemArea.rank(
