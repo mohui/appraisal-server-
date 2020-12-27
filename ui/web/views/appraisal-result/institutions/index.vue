@@ -185,6 +185,7 @@
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
+                style="margin-top: 20px"
               >
                 <div class="score-detail">
                   <div class="second-title" style="text-align: left;">
