@@ -1680,9 +1680,9 @@ export default {
     //历史趋势数据
     historicalTrendLineChartSeverData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.history(
+        return await this.$api.SystemArea.history(
           this.params.id,
-          this.params.checkId
+          this.params.year
         );
       },
       default() {
