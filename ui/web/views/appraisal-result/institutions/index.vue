@@ -1085,41 +1085,6 @@ export default {
     workpointRankData() {
       return this.workpointRankServerData;
     },
-    //医生工分排行数据
-    doctorWorkpointRankData() {
-      let returnValue = this.doctorWorkpointRankServerData
-        .reduce((result, current) => {
-          // let item = result.find(it => it.doctorid === current.doctorid);
-          let item;
-          for (const it of result) {
-            if (it.doctorid === current.doctorid) {
-              item = it;
-              break;
-            }
-          }
-          if (item) {
-            // 医生已存在
-            item.score += current.score;
-            item.children.push(current);
-          } else {
-            // 不存在
-            item = {
-              doctorid: current.doctorid,
-              doctorname: current.doctorname,
-              score: current.score,
-              children: [current]
-            };
-            result.push(item);
-          }
-          return result;
-        }, [])
-        .sort((a, b) => b.score - a.score)
-        .map(item => {
-          item.children.sort((a, b) => b.score - a.score);
-          return item;
-        });
-      return returnValue;
-    },
     //工分项目数据
     categoryWorkpointRankData() {
       return this.doctorWorkpointRankServerData
