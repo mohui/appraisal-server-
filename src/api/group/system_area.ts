@@ -339,6 +339,9 @@ export default class SystemArea {
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
     const hisHospIds = hisHospIdObjs.map(it => it.id);
 
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
+
     let [sql, paramters] = sqlRender(
       `
             select count(distinct vsr.personnum) as "Number"
@@ -412,7 +415,8 @@ export default class SystemArea {
   /**
    * 监督协管报告
    *
-   * @param hospitalId
+   * @param code
+   * @param year
    */
   @validate(
     should
@@ -420,10 +424,24 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id')
   )
-  async supervisionReport(code) {
-    // 根据地区id获取机构id列表
-    const hisHospIds = await getHospital(code);
+  async supervisionReport(code, year) {
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    const hisHospIds = hisHospIdObjs.map(it => it.id);
+
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
+
     const sql = sqlRender(
       `
         select
@@ -438,10 +456,10 @@ export default class SystemArea {
       `,
       {
         hisHospIds,
-        start: dayjs()
+        start: dayjs(year)
           .startOf('y')
           .toDate(),
-        end: dayjs()
+        end: dayjs(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -453,7 +471,8 @@ export default class SystemArea {
   /**
    * 监督协管巡查
    *
-   * @param hospitalId
+   * @param code
+   * @param year
    */
   @validate(
     should
@@ -461,10 +480,22 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id')
   )
-  async supervisionAssist(code) {
-    // 根据地区id获取机构id列表
-    const hisHospIds = await getHospital(code);
+  async supervisionAssist(code, year) {
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    const hisHospIds = hisHospIdObjs.map(it => it.id);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
 
     const [sql, params] = sqlRender(
       `
@@ -479,10 +510,10 @@ export default class SystemArea {
     `,
       {
         hisHospIds,
-        start: dayjs()
+        start: dayjs(year)
           .startOf('y')
           .toDate(),
-        end: dayjs()
+        end: dayjs(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
