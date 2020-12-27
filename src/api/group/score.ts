@@ -308,7 +308,6 @@ export default class Score {
           // 考核小项满分
           parentTotalScore += rule?.score ?? 0;
           // 考核细则得分
-          let score = 0;
           // 查询rule_area_score
           let ruleAreaScoreModel: RuleAreaScoreModel = await RuleAreaScoreModel.findOne(
             {
@@ -325,6 +324,8 @@ export default class Score {
           }
           // 当前考核年份且考核细则是自动打分
           if (isCheckYear && ruleAreaScoreModel.auto) {
+            // 考核细则得分默认0, 重新计算
+            ruleAreaScoreModel.score = 0;
             // 根据考核细则查询关联关系
             // language=PostgreSQL
             const formulas: {
@@ -368,20 +369,21 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S00
                 ) {
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 }
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.S00
                 ) {
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 }
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.S00
                 ) {
                   const rate = mark?.S00 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -391,19 +393,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S23
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.S23
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.S23 &&
                   mark?.S00
                 ) {
                   const rate = mark.S23 / mark.S00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -413,19 +416,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S03
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.S03
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.S03 &&
                   mark?.S00
                 ) {
                   const rate = mark.S03 / mark.S00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -447,18 +451,19 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.O00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.O00
                 ) {
                   const rate = mark.O00 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
               // 老年人中医药健康管理率
@@ -479,19 +484,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.O02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   basicData?.value &&
                   mark?.O02
                 ) {
                   const rate = mark.O02 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -513,18 +519,19 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.H00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.H00
                 ) {
                   const rate = mark.H00 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -534,19 +541,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.H01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.H00 &&
                   mark?.H01
                 ) {
                   const rate = mark.H01 / mark.H00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -556,19 +564,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.H02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.H00 &&
                   mark?.H02
                 ) {
                   const rate = mark.H02 / mark.H00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -590,18 +599,19 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.D00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.D00
                 ) {
                   const rate = mark.D00 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -611,19 +621,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.D01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.D00 &&
                   mark?.D01
                 ) {
                   const rate = mark.D01 / mark.D00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -633,19 +644,20 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.D02
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.D00 &&
                   mark?.D02
                 ) {
                   const rate = mark.D02 / mark.D00 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
               // 定性指标得分
@@ -662,12 +674,14 @@ export default class Score {
                   }
                 });
                 if (attachModels?.length > 0) {
-                  if (!tagModel?.baseline) score += tagModel.score;
+                  if (!tagModel?.baseline)
+                    ruleAreaScoreModel.score += tagModel.score;
 
                   // 有上传文件数量的要求
                   if (tagModel?.baseline) {
                     const rate = attachModels.length / tagModel.baseline;
-                    score += tagModel.score * (rate < 1 ? rate : 1);
+                    ruleAreaScoreModel.score +=
+                      tagModel.score * (rate < 1 ? rate : 1);
                   }
                 }
               }
@@ -678,18 +692,19 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.[tagModel.tag]
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.[tagModel.tag]
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.[tagModel.tag]
                 ) {
                   const rate = mark?.[tagModel.tag] / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -709,18 +724,19 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.SC00
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SC00
                 ) {
                   const rate = mark.SC00 / basicData.value / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
 
@@ -730,26 +746,29 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.N01.code &&
                   !mark?.SC01
                 )
-                  score += tagModel.score;
+                  ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SC01
                 ) {
                   const rate = mark?.SC01 / tagModel.baseline;
-                  score += tagModel.score * (rate > 1 ? 1 : rate);
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
             }
+            // 如果未设置关联关系, 则得满分
+            if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;
           }
           // 保存机构得分
           await ruleAreaScoreModel.save();
           // 考核小项得分
-          parentScore += score;
+          parentScore += ruleAreaScoreModel.score;
           debug('考核细则', rule.id, '结束');
         }
         // 计算考核小项的质量系数
