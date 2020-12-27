@@ -89,7 +89,7 @@
                   校正后
                 </p>
                 <h3 style="font-size: 30px; margin:0; display:inline-block">
-                  {{ totalData.score | fixedDecimal }}
+                  {{ totalData.correctWorkPoint | fixedDecimal }}
                 </h3>
                 <span>分</span>
                 <p style="margin:10px 0;">{{ date }}</p>
@@ -100,10 +100,10 @@
                   }"
                 >
                   <div v-if="params.isInstitution">
-                    <p>校正前总工分： {{ totalData.originalWorkPoint }}分</p>
+                    <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
                   </div>
                   <div>
-                    <p>参与校正工分： {{ totalData.originalScore }}分</p>
+                    <p>参与校正工分： {{ totalData.workPoint }}分</p>
                   </div>
                 </div>
               </div>
@@ -934,7 +934,8 @@ export default {
         listFlag: 'quality', // quality(质量系数) | score（工分值）
         isInstitution: false, // 是否机构
         id: this.$settings.user.code,
-        checkId: ''
+        checkId: '', //TODO:这个字段新接口不需要，对接完后要去掉
+        year: null //考核年份，默认为空，表示当前年
       },
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
@@ -1687,12 +1688,12 @@ export default {
         return [];
       }
     },
-    //获取服务器上该地区/机构的总计工分和系数
+    //获取服务器上该地区/机构的总计工分和质量系数
     totalServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.total(
+        return await this.$api.SystemArea.total(
           this.params.id,
-          this.params.checkId
+          this.params.year
         );
       },
       default() {
