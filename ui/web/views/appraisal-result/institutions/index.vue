@@ -619,8 +619,9 @@
                           type="warning"
                           size="mini"
                           @click="scoreHistory(scope.row)"
-                          >历史</el-button
                         >
+                          历史
+                        </el-button>
                       </el-popover>
                     </template>
                   </el-table-column>
