@@ -756,7 +756,11 @@ export default class Score {
         }
         // 计算考核小项的质量系数
         const rate =
-          parentTotalScore === 0 ? 0 : parentScore / parentTotalScore;
+          parentTotalScore === 0
+            ? 0
+            : new Decimal(parentScore)
+                .div(new Decimal(parentTotalScore))
+                .toNumber();
 
         // 根据考核小项查询绑定的工分项
         const projects = (
@@ -773,10 +777,12 @@ export default class Score {
           year
         );
         // 累计工分, 即参与校正工分值
-        const workPoint = scoreArray.reduce(
-          (prev, current) => (prev += current.score),
-          0
-        );
+        const workPoint = scoreArray
+          .reduce((prev, current) => {
+            prev.add(new Decimal(current.score));
+            return prev;
+          }, new Decimal(0))
+          .toNumber();
         debug('考核小项获取总工分结束', workPoint);
 
         // 保存小项考核表
@@ -784,14 +790,18 @@ export default class Score {
           ruleId: parentRule.id,
           areaCode: group,
           workPoint: workPoint,
-          correctWorkPoint: workPoint * rate,
+          correctWorkPoint: new Decimal(workPoint)
+            .mul(new Decimal(rate))
+            .toNumber(),
           score: parentScore,
           totalScore: parentTotalScore,
           rate: rate
         });
 
         // 地区参与校正的工分
-        reportModel.workPoint += workPoint;
+        reportModel.workPoint = new Decimal(workPoint)
+          .add(new Decimal(reportModel.workPoint))
+          .toNumber();
         // 地区考核得分
         reportModel.score = parentScore;
         // 地区考核满分
@@ -802,7 +812,9 @@ export default class Score {
       reportModel.rate =
         reportModel.totalScore === 0
           ? 0
-          : reportModel.score / reportModel.totalScore;
+          : new Decimal(reportModel.score)
+              .div(new Decimal(reportModel.totalScore))
+              .toNumber();
       debug('考核地区获取总工分开始');
       // 获取总工分数组
       const scoreArray: {score: number}[] = await getWorkPoints(
@@ -811,10 +823,12 @@ export default class Score {
         year
       );
       // 地区总工分
-      reportModel.totalWorkPoint = scoreArray.reduce(
-        (prev, current) => (prev += current.score),
-        0
-      );
+      reportModel.totalWorkPoint = scoreArray
+        .reduce((prev, current) => {
+          prev = prev.add(new Decimal(current.score));
+          return prev;
+        }, new Decimal(0))
+        .toNumber();
       debug('考核地区获取总工分结束', reportModel.toJSON());
       // 保存机构报告
       await reportModel.save();
