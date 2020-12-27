@@ -603,7 +603,7 @@ export default class SystemArea {
       .description('地区code或机构id'),
     should.string().description('年份')
   )
-  async workpointsArea(code, year) {
+  async workPointsArea(code, year) {
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -727,7 +727,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id')
   )
-  async workpointsProject(code) {
+  async workPointsProject(code) {
     // 获取树形结构
     const tree = await getAreaTree(code);
 
