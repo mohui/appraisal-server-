@@ -131,7 +131,7 @@ export default class SystemArea {
       rate: reportArea ? Number(reportArea.rate) : 0,
       totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
       budget: reportArea ? Number(reportArea.budget) : 0,
-      correctWorkPoint: 0
+      correctWorkPoint: reportArea ? Number(reportArea.correctWorkPoint) : 0
     };
   }
 
@@ -202,6 +202,7 @@ export default class SystemArea {
         budget: item ? Number(item.budget) : 0,
         workPoint: item ? Number(item.workPoint) : 0,
         totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
+        correctWorkPoint: item ? Number(item.correctWorkPoint) : 0,
         score: item ? Number(item.score) : 0,
         rate: item ? Number(item.rate) : 0
       };
