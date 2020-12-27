@@ -1662,8 +1662,9 @@ export default {
     //人脸采集数据
     faceCollectSeverData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.faceCollect(
-          this.params.id
+        return await this.$api.SystemArea.faceCollect(
+          this.params.id,
+          this.params.year
         );
       },
       default() {
