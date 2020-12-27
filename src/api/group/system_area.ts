@@ -593,16 +593,17 @@ export default class SystemArea {
   /**
    * 公分列表[地区工分]
    *
-   * 可能存在问题,自己就是最底层的时候
    * @param code
+   * @param year
    */
   @validate(
     should
       .string()
       .required()
-      .description('地区code或机构id')
+      .description('地区code或机构id'),
+    should.string().description('年份')
   )
-  async workpointsArea(code) {
+  async workpointsArea(code, year) {
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -632,6 +633,9 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
+
     const [sql, params] = sqlRender(
       `
             select
@@ -647,10 +651,10 @@ export default class SystemArea {
              `,
       {
         hisHospIds,
-        startTime: dayjs()
+        startTime: dayjs(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs()
+        endTime: dayjs(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
