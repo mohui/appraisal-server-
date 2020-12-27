@@ -46,8 +46,7 @@ export default class CheckAreaEdit {
           },
           attributes: []
         }
-      ],
-      logging: console.log
+      ]
     });
     if (bindOtherAreas.length > 0) {
       throw new KatoCommonError('存在绑定过其他考核的地区');
