@@ -781,7 +781,7 @@ export default class Score {
         // 累计工分, 即参与校正工分值
         const workPoint = scoreArray
           .reduce((prev, current) => {
-            prev.add(new Decimal(current.score));
+            prev = prev.add(new Decimal(current.score));
             return prev;
           }, new Decimal(0))
           .toNumber();
@@ -878,7 +878,10 @@ export default class Score {
       );
       // 考核小项校正后的总工分
       const totalCorrectWorkPoints: Decimal = ruleAreaBudgetModels.reduce(
-        (prev, cur) => prev.add(new Decimal(cur.correctWorkPoint)),
+        (prev, cur) => {
+          prev = prev.add(new Decimal(cur.correctWorkPoint));
+          return prev;
+        },
         new Decimal(0)
       );
       debug('考核小项校正后总工分', totalCorrectWorkPoints);
