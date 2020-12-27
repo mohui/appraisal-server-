@@ -313,6 +313,7 @@ export default class SystemArea {
    * 家庭签约
    *
    * @param code 地区编码
+   * @param year 年份
    * @return {
    * signedNumber: number, //签约人数
    * exeNumber: number, //履约人数
@@ -325,10 +326,18 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id')
   )
-  async signRegister(code) {
-    // 根据地区id获取机构id列表
-    const hisHospIds = await getHospital(code);
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+  async signRegister(code, year) {
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    const hisHospIds = hisHospIdObjs.map(it => it.id);
 
     let [sql, paramters] = sqlRender(
       `
@@ -341,7 +350,7 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        YearDegree: dayjs().year()
+        YearDegree: dayjs(year).year()
       }
     );
     // 签约人数
@@ -360,10 +369,10 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        startTime: dayjs()
+        startTime: dayjs(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs()
+        endTime: dayjs(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -384,11 +393,11 @@ export default class SystemArea {
               and vsr.YearDegree = {{? vsrYearDegree}}
           `,
       {
-        YearDegree: dayjs()
+        YearDegree: dayjs(year)
           .add(-1, 'y')
           .year(),
         hisHospIds,
-        vsrYearDegree: dayjs().year()
+        vsrYearDegree: dayjs(year).year()
       }
     );
     const renewNumber =
