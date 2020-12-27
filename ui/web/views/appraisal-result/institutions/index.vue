@@ -1620,7 +1620,10 @@ export default {
     // 家庭医生签约
     familyDoctorContractServerData: {
       async get() {
-        return await this.$api.SystemArea.signRegister(this.params.id);
+        return await this.$api.SystemArea.signRegister(
+          this.params.id,
+          this.params.year
+        );
       },
       default() {
         return {};
