@@ -583,8 +583,9 @@
                         type="primary"
                         size="mini"
                         @click="cancelScore(scope.row)"
-                        >取消</el-button
                       >
+                        取消
+                      </el-button>
                       <el-popover placement="left" width="600" trigger="click">
                         <el-table
                           height="200px"
@@ -618,8 +619,8 @@
                           type="warning"
                           size="mini"
                           @click="scoreHistory(scope.row)"
-                          >历史</el-button
-                        >
+                          >历史
+                        </el-button>
                       </el-popover>
                     </template>
                   </el-table-column>
@@ -851,14 +852,14 @@
       <el-input v-model="scoreRemark" type="textarea" size="mini"></el-input>
       <div style="text-align: right; margin: 30px">
         <el-button size="mini" type="text" @click="scoreRemarkVisible = false"
-          >取消</el-button
-        >
+          >取消
+        </el-button>
         <el-button
           type="primary"
           size="mini"
           @click="handleSaveScore(currentRow)"
-          >确定</el-button
-        >
+          >确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
