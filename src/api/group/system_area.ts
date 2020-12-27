@@ -199,11 +199,11 @@ export default class SystemArea {
       return {
         code: it.code,
         name: it.name,
-        budget: item ? item.budget : 0,
-        workPoint: item ? item.workPoint : 0,
-        totalWorkPoint: item ? item.totalWorkPoint : 0,
-        score: item ? item.score : 0,
-        rate: item ? item.rate : 0
+        budget: item ? Number(item.budget) : 0,
+        workPoint: item ? Number(item.workPoint) : 0,
+        totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
+        score: item ? Number(item.score) : 0,
+        rate: item ? Number(item.rate) : 0
       };
     });
   }
