@@ -152,6 +152,20 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "report_area_history"."score" IS '得分';
       COMMENT ON COLUMN "report_area_history"."budget" IS '分配金额';
     `);
+    // 处理数据
+
+    //1. 删除临时考核及相关数据
+    // check_system(考核体系表)
+    // check_rule(考核规则表)
+    // rule_tag(考核细则关联关系表)
+    // rule_project(考核小项绑定工分表)
+    // check_hospital(考核体系绑定机构表)
+    // rule_hospital(考核细则绑定机构表)
+    // rule_hospital_attach(考核细则机构附件表)
+    // rule_hospital_score(考核细则机构得分表)
+    // rule_hospital_budget(考核小项机构金额表)
+    // report_hospital(考核机构报告表)
+    // report_hospital_history(考核机构报告表)
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {
