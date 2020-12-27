@@ -1632,10 +1632,10 @@ export default {
     //健康教育数据
     healthEducationServerData: {
       async get() {
-        return await this.$api.Hospital.healthEducation(this.params.id);
-      },
-      shouldUpdate() {
-        return this.params.isInstitution;
+        return await this.$api.SystemArea.healthEducation(
+          this.params.id,
+          this.params.year
+        );
       },
       default() {
         return [];
