@@ -1706,11 +1706,12 @@ export default {
       default() {
         return {
           id: '',
-          detail: [],
           name: '',
-          originalScore: 0,
           score: 0,
-          rate: 0
+          rate: 0,
+          totalWorkPoint: 0,
+          workPoint: 0,
+          correctWorkPoint: 0
         };
       }
     },
