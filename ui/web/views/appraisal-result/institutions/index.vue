@@ -1083,7 +1083,9 @@ export default {
     },
 
     workpointRankData() {
-      return this.workpointRankServerData;
+      return this.workpointRankServerData
+        .map(it => it)
+        .sort((a, b) => b.score - a.score);
     },
     //工分项目数据
     categoryWorkpointRankData() {
