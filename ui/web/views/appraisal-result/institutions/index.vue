@@ -1644,7 +1644,10 @@ export default {
     //监督协管报告
     supervisionReportServerData: {
       async get() {
-        return await this.$api.Hospital.supervisionReport(this.params.id);
+        return await this.$api.SystemArea.supervisionReport(
+          this.params.id,
+          this.params.year
+        );
       },
       default() {
         return [];
@@ -1653,10 +1656,10 @@ export default {
     //监督协管巡查
     supervisionAssistServerData: {
       async get() {
-        return await this.$api.Hospital.supervisionAssist(this.params.id);
-      },
-      shouldUpdate() {
-        return this.params.isInstitution;
+        return await this.$api.SystemArea.supervisionAssist(
+          this.params.id,
+          this.params.year
+        );
       },
       default() {
         return [];
