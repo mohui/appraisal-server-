@@ -1443,23 +1443,6 @@ export default {
         });
       }
     },
-    handleClickInstitution(id) {
-      this.params.isInstitution = true;
-      this.params.id = id;
-      if (this.params.listFlag === 'score') {
-        this.$router.push({
-          query: {
-            ...this.params
-          }
-        });
-      } else if (this.params.listFlag === 'quality') {
-        this.$router.push({
-          query: {
-            ...this.params
-          }
-        });
-      }
-    },
     //进入下级地区
     handleClickSubordinateArea(id) {
       this.params.id = id;
