@@ -1091,24 +1091,6 @@ export default {
         }));
       return arr;
     },
-    //工分值数据，用于柱状图显示
-    workpointBarData() {
-      let value = {xAxisData: [], yAxisData: []};
-      let array = [];
-      if (this.params.isInstitution) {
-        //机构，取医生的前三名
-        array = this.doctorWorkpointRankData.slice(0, 3);
-        value.xAxisData = array.map(it => it.doctorname);
-        value.yAxisData = array.map(it => it.score);
-        return value;
-      } else {
-        //地区，取一级机构的前三名
-        array = this.firstLevelWorkpointRankData.slice(0, 3);
-        value.xAxisData = array.map(it => it.name);
-        value.yAxisData = array.map(it => it.score);
-      }
-      return value;
-    },
     //总计工分和质量系数数据
     totalData() {
       return {
@@ -1160,50 +1142,6 @@ export default {
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
-    },
-    //一级机构排行数据
-    firstLevelWorkpointRankData() {
-      const result = this.workpointRankData
-        .map(item => item.child)
-        .reduce((result, current) => result.concat(current), [])
-        .filter(
-          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
-        );
-      if (this.params.listFlag === 'score') {
-        return result
-          .sort((a, b) => b.score - a.score)
-          .map(it => {
-            //格式化取整后的分数，用于页面显示
-            it.scoreFormat = Math.round(it.score);
-            return it;
-          });
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
-    //二级机构排行数据
-    secondLevelWorkpointRankData() {
-      const result = this.workpointRankServerData
-        .filter(
-          item =>
-            !item.name.endsWith('服务中心') && !item.name.endsWith('卫生院')
-        )
-        .sort((a, b) => b.score - a.score);
-      if (this.params.listFlag === 'score') {
-        return result
-          .sort((a, b) => b.score - a.score)
-          .map(it => {
-            //格式化取整后的分数，用于页面显示
-            it.scoreFormat = Math.round(it.score);
-            return it;
-          });
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
-    //最大得分值数
-    maxScore() {
-      return Math.max(...this.workpointRankData.map(it => it.score));
     },
     //医生工分排行数据
     doctorWorkpointRankData() {
