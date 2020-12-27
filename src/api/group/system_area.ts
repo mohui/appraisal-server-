@@ -89,7 +89,7 @@ export default class SystemArea {
    * @param code
    * @param year
    *
-   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值
+   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
    */
   @validate(
     should
@@ -130,6 +130,7 @@ export default class SystemArea {
       workPoint: reportArea ? Number(reportArea.workPoint) : 0,
       rate: reportArea ? Number(reportArea.rate) : 0,
       totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
+      budget: reportArea ? Number(reportArea.budget) : 0,
       correctWorkPoint: 0
     };
   }
