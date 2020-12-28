@@ -1,7 +1,7 @@
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
 import {appDB, originalDB} from '../../app';
-import {KatoRuntimeError} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError} from 'kato-server';
 import {getLeaves, getOriginalArray} from '../group';
 import {
   BasicTagUsages,
@@ -204,6 +204,11 @@ function debug(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
 }
 
+/**
+ * 考核体系打分任务状态
+ */
+const jobStatus = {};
+
 export default class Score {
   /**
    * 考核体系列表
@@ -258,25 +263,36 @@ export default class Score {
    * @param isAuto 定时打分/实时打分
    */
   async autoScore(id, isAuto) {
-    // 查询考核体系
-    const checkModel: CheckSystemModel = await CheckSystemModel.findOne({
-      where: {checkId: id}
-    });
-    if (!checkModel) throw new KatoRuntimeError(`考核体系 [${id}] 不合法`);
-    // 判断考核体系的启停状态
-    if (!checkModel.status)
-      throw new KatoRuntimeError(`当前考核体系 [${id}]已经停用`);
-    // 查询考核对象
-    const checkAreaModels: CheckAreaModel[] = await CheckAreaModel.findAll({
-      where: {
-        checkId: id
+    if (jobStatus[id]) throw new KatoCommonError('当前考核体系正在打分');
+    // 标记打分状态, 正在打分
+    jobStatus[id] = true;
+    try {
+      // 查询考核体系
+      const checkModel: CheckSystemModel = await CheckSystemModel.findOne({
+        where: {checkId: id}
+      });
+      if (!checkModel) throw new KatoRuntimeError(`考核体系 [${id}] 不合法`);
+      // 判断考核体系的启停状态
+      if (!checkModel.status)
+        throw new KatoRuntimeError(`当前考核体系 [${id}]已经停用`);
+      // 查询考核对象
+      const checkAreaModels: CheckAreaModel[] = await CheckAreaModel.findAll({
+        where: {
+          checkId: id
+        }
+      });
+      for (const ca of checkAreaModels) {
+        await this.scoreArea(id, ca.areaCode, isAuto);
       }
-    });
-    for (const ca of checkAreaModels) {
-      await this.scoreArea(id, ca.areaCode, isAuto);
-    }
 
-    await this.checkBudget(id, isAuto);
+      await this.checkBudget(id, isAuto);
+    } catch (e) {
+      console.error('autoScoreCheck: ', e);
+      throw new KatoCommonError('当前考核体系打分失败');
+    } finally {
+      // 标记打分状态, 打分结束
+      jobStatus[id] = false;
+    }
   }
 
   /**
