@@ -3,11 +3,14 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {
   AreaModel,
   CheckAreaModel,
+  CheckRuleModel,
   CheckSystemModel,
   HospitalModel,
   RegionModel,
   ReportAreaHistoryModel,
-  ReportAreaModel
+  ReportAreaModel,
+  RuleHospitalBudgetModel,
+  RuleProjectModel
 } from '../../database/model';
 import {Op} from 'sequelize';
 import {sql as sqlRender} from '../../database/template';
@@ -15,6 +18,63 @@ import {appDB, originalDB} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
+import {RuleAreaBudget} from '../../database/model/group/rule-area-budget';
+import {getWorkPoints} from './score';
+
+async function queryProjectWorkPoint(params) {
+  const hisHospitalId = (
+    await appDB.execute(
+      `select hishospid as id from hospital_mapping where h_id = ?`,
+      params.hospitalId
+    )
+  )?.[0]?.id;
+  params.operateorganization = hisHospitalId;
+  const [sql, paramters] = sqlRender(
+    `select
+        projecttype as "projectId",
+        cast(sum(vw.score) as int) as workPoint
+        from view_workscoretotal vw
+        where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        and missiontime >= {{? start}}
+        and missiontime < {{? end}}
+        and operateorganization = {{? operateorganization}}
+        group by projecttype`,
+    params
+  );
+  return await originalDB.execute(sql, ...paramters);
+}
+
+async function hospitalProjectGetWorkScore(params) {
+  // return params;
+  const projectSql = [],
+    projectParam = [];
+  params.forEach(it => {
+    const [sql, param] = sqlRender(
+      `
+        select
+          projecttype as "projectId",
+          operateorganization,
+          cast(sum(score) as int) as workPoint
+        from view_workscoretotal
+        where projecttype in ({{#each projects}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          and missiontime >= {{? start}}
+          and missiontime < {{? end}}
+          and operateorganization = {{? operateorganization}}
+          group by projecttype, operateorganization
+       `,
+      {
+        projects: it.projectType,
+        start: it.start,
+        end: it.end,
+        operateorganization: it.id
+      }
+    );
+    projectSql.push(sql);
+    projectParam.push(param);
+  });
+  const sql1 = projectSql.join(' union ');
+  return {sql1, projectParam};
+}
 
 /**
  * 通过地区编码和时间获取checkId
@@ -771,5 +831,114 @@ export default class SystemArea {
     );
 
     return originalDB.execute(sql, ...params);
+  }
+
+  /**
+   * 各个工分项的详情
+   *
+   * @param code 机构id
+   * @param year 考核体系id
+   */
+  async projectDetail(code, year) {
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
+
+    // 根据地区和时间查找考核Id
+    const checkSystem = await CheckAreaModel.findOne({
+      where: {areaCode: code},
+      attributes: ['checkId'],
+      include: [
+        {
+          model: CheckSystemModel,
+          attributes: [],
+          required: false,
+          where: {checkYear: year}
+        }
+      ]
+    });
+
+    if (!checkSystem) throw new KatoCommonError('该地区不存在.');
+
+    // 获取树形结构
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    // 取出所有的原始机构id
+    // const hisHospitalId = hisHospIdObjs.map(it => it.id);
+
+    // 取出考核id
+    const checkId = checkSystem.checkId;
+
+    // 根据checkId找到所有的考核小项,工分项
+    const checkRule = await CheckRuleModel.findAll({
+      where: {
+        checkId,
+        parentRuleId: null
+      },
+      attributes: ['ruleId', 'ruleName'],
+      include: [
+        {
+          model: RuleProjectModel,
+          required: false
+        },
+        {
+          model: RuleAreaBudget,
+          where: {
+            areaCode: code
+          },
+          required: false
+        }
+      ]
+    });
+
+    // 取出所有的公分项
+    const checkRuleList = checkRule.map(it => ({
+      ruleId: it.ruleId,
+      ruleName: it.ruleName,
+      rate: it?.ruleAreaBudgets[0]?.rate,
+      project: it?.ruleProject.map(item => item.projectId)
+    }));
+
+    // 取出公分id
+    const workTypes = [];
+    checkRuleList.forEach(it => {
+      workTypes.push(...it?.project);
+    });
+
+    const returnList = [];
+    // 循环工分项
+    for (const it of workTypes) {
+      // 获取此工分项下的所有公分
+      const hospitalProint = await getWorkPoints(hisHospIdObjs, [it], year);
+
+      // 把工分值累加一起
+      const workPoint = hospitalProint.reduce(
+        (prev, curr) => Number(prev) + Number(curr.score),
+        0
+      );
+
+      // 查找
+      const index = checkRuleList.find(rule =>
+        rule?.project.some(p => p === it)
+      );
+
+      returnList.push({
+        projectId: it,
+        projectName: Projects.find(p => p.id === it)?.name,
+        ruleId: index ? index.ruleId : '',
+        ruleName: index ? index.ruleName : '',
+        workPoint,
+        rate: index ? index.rate : 0,
+        correctWorkPoint: workPoint * (index ? index.rate : 0)
+      });
+    }
+
+    return returnList;
   }
 }
