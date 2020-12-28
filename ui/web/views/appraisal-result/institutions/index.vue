@@ -369,7 +369,7 @@
         </el-row>
         <!--考核指标规则-->
         <el-row
-          v-if="params.isInstitution && params.listFlag === 'quality'"
+          v-if="params.listFlag === 'quality'"
           v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
           class="appraisal-indicators-rule"
         >
@@ -1596,13 +1596,23 @@ export default {
     //获取服务器绩效考核指标的规则和评分数据
     appraisalIndicatorsServerData: {
       async get() {
-        return await this.$api.Hospital.checks(
-          this.params.id,
-          this.params.checkId
-        );
+        try {
+          return await this.$api.SystemRule.checks(
+            this.params.id,
+            this.params.year
+          );
+        } catch (e) {
+          console.log('api systemRule checks error:', e);
+          return {
+            checkId: null,
+            checkName: null,
+            status: true,
+            children: []
+          };
+        }
       },
       shouldUpdate() {
-        return this.params.listFlag === 'quality' && this.params.isInstitution;
+        return this.params.listFlag === 'quality';
       },
       default() {
         return {
