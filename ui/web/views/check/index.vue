@@ -537,7 +537,7 @@ export default {
     async tempCheck(row) {
       if (!row.running) {
         row.running = true;
-        this.$api.ScoreHospitalCheckRules.autoScoreCheck(row.checkId);
+        this.$api.Score.autoScore(row.checkId, false);
         //刷新列表
         this.$asyncComputed.listCheck.update();
       }
