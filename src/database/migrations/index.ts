@@ -28,6 +28,7 @@ import {DeleteRuleHospitalScoreRepeatDataMigration} from './025_rule_hospital_sc
 import {ProfileTagsDetailMigration} from './026_profile_tags_permission';
 import {ScoreRemarkHistoryMigration} from './027_score_remark_history';
 import {GroupMigration} from './028_group';
+import {ManualScoreHistoryMigration} from './028_manual_socre_history';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -59,5 +60,6 @@ export const migrations: IMigration[] = [
   new DeleteRuleHospitalScoreRepeatDataMigration(),
   new ProfileTagsDetailMigration(),
   new ScoreRemarkHistoryMigration(),
-  new GroupMigration()
+  new GroupMigration(),
+  new ManualScoreHistoryMigration()
 ];
