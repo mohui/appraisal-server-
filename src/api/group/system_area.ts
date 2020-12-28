@@ -17,46 +17,6 @@ import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
 
 /**
- * 获取机构id
- *
- * @param code
- */
-async function getHospital(code) {
-  // 先校验权限是否合法
-  const area = await appDB.execute(
-    `
-            select "code"
-            from "area"
-            where code = ?`,
-    code
-  );
-  if (area.length < 1) return [];
-
-  // 根据权限查询所有机构
-  let hospitalIds = await appDB.execute(
-    `
-        select mapping.hishospid as id
-        from hospital
-        left join hospital_mapping mapping on hospital.id = mapping.h_id
-        where hospital.region like '${code}%'
-        `,
-    code
-  );
-  if (hospitalIds.length === 0) {
-    hospitalIds = await appDB.execute(
-      `
-        select mapping.hishospid as id
-        from hospital
-        left join hospital_mapping mapping on hospital.id = mapping.h_id
-        where hospital.id = '${code}'
-        `,
-      code
-    );
-  }
-  return hospitalIds.map(it => it.id);
-}
-
-/**
  * 通过地区编码和时间获取checkId
  *
  * @param code
@@ -776,6 +736,7 @@ export default class SystemArea {
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    return hisHospIdObjs;
 
     const hisHospIds = hisHospIdObjs.map(it => it['id']);
 
