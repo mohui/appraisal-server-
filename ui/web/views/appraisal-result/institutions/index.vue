@@ -11,16 +11,16 @@
         class="box-card"
         shadow="never"
       >
-        <div class="header-title" style="float: left">
+        <span class="header-title">
           {{ totalData.name }}基本公共卫生服务两卡制绩效考核
           <span
             v-if="params.isInstitution && totalData.budget"
             style="color: #606266;"
-            >({{ totalData.budget }}元)</span
-          >
-        </div>
-        <div class="kpiSum-select">
-          <el-button-group style="margin-left:20px">
+            >({{ totalData.budget }}元)
+          </span>
+        </span>
+        <span style="margin:  0 10px">
+          <el-button-group>
             <el-button
               size="small"
               :class="{'el-button--primary': params.listFlag === 'quality'}"
@@ -36,42 +36,42 @@
               工分值
             </el-button>
           </el-button-group>
-          <el-button
-            v-if="reportListData.length === 1"
-            size="small"
-            type="primary"
-            style="margin-left: 30px"
-            @click="handleDownloadReport(reportListData[0].url)"
-          >
-            报告下载
+        </span>
+        <el-button
+          v-if="reportListData.length === 1"
+          size="small"
+          type="primary"
+          style="margin: 0 10px"
+          @click="handleDownloadReport(reportListData[0].url)"
+        >
+          报告下载
+        </el-button>
+        <el-dropdown
+          v-else-if="reportListData.length > 1"
+          style="margin-left: 30px"
+          @command="handleDownloadReport"
+        >
+          <el-button type="primary" size="small">
+            报告下载<i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
-          <el-dropdown
-            v-else-if="reportListData.length > 1"
-            style="margin-left: 30px"
-            @command="handleDownloadReport"
-          >
-            <el-button type="primary" size="small">
-              报告下载<i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item
-                v-for="it of reportListData"
-                :key="it.id"
-                :command="it.url"
-              >
-                {{ it.name }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-          <el-button
-            v-if="showBackButton()"
-            size="small"
-            style="float:right; margin: 4px 0 10px 30px"
-            type="primary"
-            @click="handleBack"
-            >返回
-          </el-button>
-        </div>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item
+              v-for="it of reportListData"
+              :key="it.id"
+              :command="it.url"
+            >
+              {{ it.name }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <el-button
+          v-if="showBackButton()"
+          size="small"
+          style="float:right; margin: 4px 0 10px 30px"
+          type="primary"
+          @click="handleBack"
+          >返回
+        </el-button>
       </el-card>
       <!--自身考核结果-->
       <div>
@@ -1691,12 +1691,7 @@ export default {
 .header-title {
   font: bold 20px/2 Arial;
   color: $color-primary;
-}
-
-.kpiSum-select {
-  width: 100%;
-  height: 35px;
-  line-height: 40px;
+  margin-right: 10px;
 }
 
 .box-card {
