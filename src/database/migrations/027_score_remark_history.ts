@@ -12,7 +12,7 @@ export class ScoreRemarkHistoryMigration implements IMigration {
         (
           "id" UUID,
           "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE NO ACTION ON UPDATE CASCADE,
-          "hospital"   UUID                     NOT NULL REFERENCES "hospital" ("id") ON DELETE NO ACTION ON UPDATE CASCADE,
+          "code"       varchar(36)              NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
           "score"      FLOAT        DEFAULT 0,
           "remark"     VARCHAR(255) DEFAULT '',
           "creator"    UUID REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
@@ -21,7 +21,7 @@ export class ScoreRemarkHistoryMigration implements IMigration {
           PRIMARY KEY ("id")
         );
       COMMENT ON COLUMN "score_remark_history"."rule" IS '考核小项id';
-      COMMENT ON COLUMN "score_remark_history"."hospital" IS '机构id';
+      COMMENT ON COLUMN "score_remark_history"."code" IS '被打分的地区或机构';
       COMMENT ON COLUMN "score_remark_history"."score" IS '手动打分分数';
       COMMENT ON COLUMN "score_remark_history"."remark" IS '备注信息';
       COMMENT ON COLUMN "score_remark_history"."creator" IS '打分者';
