@@ -374,7 +374,10 @@
           class="appraisal-indicators-rule"
         >
           <el-col :span="24">
-            <div>
+            <el-card v-if="!appraisalIndicatorsData.checkId">
+              绩效考核评价细则：暂无考核
+            </el-card>
+            <div v-else>
               <div style="width: 100%; height:40px;">
                 <div class="appraisal-indicators-rule-title" style="float:left">
                   {{ appraisalIndicatorsData.checkName }}
@@ -655,7 +658,7 @@
         </el-row>
       </div>
       <!--下级排行-->
-      <div>
+      <div style="margin-top: 20px">
         <!--下级质量系数排行-->
         <el-row v-if="params.listFlag === 'quality'">
           <el-col :span="24">
