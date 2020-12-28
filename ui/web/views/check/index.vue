@@ -524,7 +524,7 @@ export default {
   asyncComputed: {
     listCheck: {
       async get() {
-        return await this.$api.CheckSystem.list();
+        return await this.$api.Score.checks();
       },
       default() {
         return {
