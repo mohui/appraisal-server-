@@ -32,10 +32,14 @@ export class ScoreRemarkHistory extends Model<ScoreRemarkHistory> {
   @BelongsTo(() => CheckRule)
   rule: CheckRule;
 
-  @Comment('地区code或者机构id')
+  @Comment('机构id')
   @AllowNull(false)
-  @Column({field: 'code', type: DataType.UUID})
-  code: string;
+  @ForeignKey(() => Hospital)
+  @Column({field: 'hospital', type: DataType.UUID})
+  hospitalId: string;
+
+  @BelongsTo(() => Hospital)
+  hospital: Hospital;
 
   @Comment('打分者')
   @ForeignKey(() => User)
