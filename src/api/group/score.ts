@@ -290,8 +290,11 @@ export default class Score {
       for (const ca of checkAreaModels) {
         await this.scoreArea(id, ca.areaCode, isAuto);
       }
-
+      // 金额分配
       await this.checkBudget(id, isAuto);
+      // 更新打分时间
+      checkModel.runTime = new Date();
+      await checkModel.save();
     } catch (e) {
       console.error('autoScoreCheck: ', e);
       throw new KatoCommonError('当前考核体系打分失败');
