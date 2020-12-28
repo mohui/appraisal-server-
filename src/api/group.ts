@@ -1,7 +1,6 @@
 import {appDB} from '../app';
-import {AreaModel, sql as sqlRender} from '../database';
+import {AreaModel} from '../database';
 import {Context} from './context';
-import dayjs = require('dayjs');
 import {KatoRuntimeError} from 'kato-server';
 
 /**
@@ -251,29 +250,50 @@ export default class Group {
       `);
       for (const region of regions) await upsert(region);
 
-      // 同步一级机构
+      // 同步中心层
       // language=PostgreSQL
-      const centers: GroupModel[] = await appDB.execute(`
-        select h.name as name, h.id as code, foo.region as parent
+      const centers: {
+        u_id: string;
+        id: string;
+        name: string;
+        region: string;
+      }[] = await appDB.execute(`
+        select h.id, h.name as name, hm.u_id, foo.region
         from hospital h
                inner join (
           select h1.id, r.code as region
           from hospital h1
                  inner join region r on h1.region = r.code and r.level = 3
         ) foo on h.parent = foo.id
+               inner join hospital_mapping hm on hm.h_id = h.id
       `);
-      for (const center of centers) await upsert(center);
-
-      // 同步二级机构
-      const [sql, params] = sqlRender(
-        `
-          select id as code, name as name, parent as parent
-          from hospital
-          where parent in ({{#each centers}}{{? this}}{{#sep}},{{/sep}}{{/ each}})`,
-        {centers: centers.map(it => it.code)}
-      );
-      const hospitals: GroupModel[] = await appDB.execute(sql, ...params);
-      for (const hospital of hospitals) await upsert(hospital);
+      for (const center of centers) {
+        // 同步中心层
+        await upsert({
+          code: center.u_id,
+          name: center.name,
+          parent: center.region
+        });
+        // 同步一级机构
+        await upsert({
+          code: center.id,
+          name: center.name,
+          parent: center.u_id
+        });
+        // 同步二级机构
+        const hospitals: {code: string; name: string}[] = await appDB.execute(
+          `select id as code, name from hospital where parent = ?`,
+          center.id
+        );
+        await Promise.all(
+          hospitals.map(it =>
+            upsert({
+              ...it,
+              parent: center.u_id
+            })
+          )
+        );
+      }
     });
   }
 
