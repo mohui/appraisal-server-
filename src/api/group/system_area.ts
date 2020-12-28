@@ -21,61 +21,6 @@ import {getAreaTree, getOriginalArray} from '../group';
 import {RuleAreaBudget} from '../../database/model/group/rule-area-budget';
 import {getWorkPoints} from './score';
 
-async function queryProjectWorkPoint(params) {
-  const hisHospitalId = (
-    await appDB.execute(
-      `select hishospid as id from hospital_mapping where h_id = ?`,
-      params.hospitalId
-    )
-  )?.[0]?.id;
-  params.operateorganization = hisHospitalId;
-  const [sql, paramters] = sqlRender(
-    `select
-        projecttype as "projectId",
-        cast(sum(vw.score) as int) as workPoint
-        from view_workscoretotal vw
-        where projecttype in ({{#each projectIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-        and missiontime >= {{? start}}
-        and missiontime < {{? end}}
-        and operateorganization = {{? operateorganization}}
-        group by projecttype`,
-    params
-  );
-  return await originalDB.execute(sql, ...paramters);
-}
-
-async function hospitalProjectGetWorkScore(params) {
-  // return params;
-  const projectSql = [],
-    projectParam = [];
-  params.forEach(it => {
-    const [sql, param] = sqlRender(
-      `
-        select
-          projecttype as "projectId",
-          operateorganization,
-          cast(sum(score) as int) as workPoint
-        from view_workscoretotal
-        where projecttype in ({{#each projects}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-          and missiontime >= {{? start}}
-          and missiontime < {{? end}}
-          and operateorganization = {{? operateorganization}}
-          group by projecttype, operateorganization
-       `,
-      {
-        projects: it.projectType,
-        start: it.start,
-        end: it.end,
-        operateorganization: it.id
-      }
-    );
-    projectSql.push(sql);
-    projectParam.push(param);
-  });
-  const sql1 = projectSql.join(' union ');
-  return {sql1, projectParam};
-}
-
 /**
  * 通过地区编码和时间获取checkId
  *
