@@ -107,20 +107,6 @@
                 >
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="快速复制" :enterable="false">
-                <el-button
-                  v-permission="{
-                    permission: permission.CHECK_CLONE,
-                    type: 'disabled'
-                  }"
-                  icon="el-icon-document-copy"
-                  circle
-                  type="warning"
-                  size="mini"
-                  @click.stop="openCloneCheckDialog(scope.row)"
-                >
-                </el-button>
-              </el-tooltip>
               <el-tooltip content="删除" :enterable="false">
                 <el-button
                   v-permission="{
