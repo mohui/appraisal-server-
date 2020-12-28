@@ -115,18 +115,6 @@ export default {
     //点击标题跳转详情
     handleCellClick(row, column) {
       if (column.property === 'name') {
-        if (row.level < 3) {
-          //判断进入地区页还是区、机构页
-          //地区
-          return this.$router.push({
-            name: 'appraisal-result-area',
-            query: {
-              id: row.code,
-              listFlag: 'quality'
-            }
-          });
-        }
-        //区、机构
         return this.$router.push({
           name: 'appraisal-result-institutions',
           query: {

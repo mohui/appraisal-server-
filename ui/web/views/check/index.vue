@@ -150,7 +150,7 @@
                   circle
                   size="mini"
                   type="primary"
-                  @click.stop="toCheck(scope.row)"
+                  @click.stop="toCheck()"
                 >
                 </el-button>
               </el-tooltip>
@@ -562,13 +562,10 @@ export default {
       }
     },
     //跳转考核结果页
-    toCheck(row) {
+    toCheck() {
       this.$router.push({
-        path:
-          this.$settings.user.isRegion && this.$settings.user.region.level < 3
-            ? 'appraisal-result-area'
-            : 'appraisal-result-institutions',
-        query: {id: this.$settings.user.code, checkId: row.checkId}
+        path: 'appraisal-result-institutions',
+        query: {id: this.$settings.user.code}
       });
     },
     //打开机构对话框
