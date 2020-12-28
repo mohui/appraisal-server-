@@ -239,16 +239,18 @@ export default class Score {
       limit: pageSize
     });
 
-    // 补充绑定对象的字段
     // TODO: 暂无地区权限判断
     result.rows = await Promise.all(
       result.rows.map(async it => {
+        // 补充绑定对象的字段
         const counts = await CheckAreaModel.count({
           where: {checkId: it.checkId}
         });
         return {
           ...it.toJSON(),
-          hospitalCount: counts
+          hospitalCount: counts,
+          // 实时打分状态
+          running: jobStatus[it.checkId] || false
         };
       })
     );
