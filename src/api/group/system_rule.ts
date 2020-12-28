@@ -28,7 +28,7 @@ export default class SystemRule {
     if (!year) year = dayjs().format('YYYY');
 
     // 通过地区编码和年份获取考核主信息
-    const {checkSystem} = await CheckAreaModel.findOne({
+    const areaSystem = await CheckAreaModel.findOne({
       where: {
         areaCode: code
       },
@@ -42,8 +42,10 @@ export default class SystemRule {
       ]
     });
 
-    if (!checkSystem) throw new KatoCommonError(`该机构未绑定考核`);
-    // 查询
+    if (!areaSystem) throw new KatoCommonError(`该机构未绑定考核`);
+
+    // 取出考核主信息
+    const checkSystem = areaSystem.checkSystem;
 
     // 待看
     const children = await Promise.all(
