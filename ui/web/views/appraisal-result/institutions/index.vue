@@ -709,8 +709,8 @@
         >
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-card
-              shadow="hover"
               v-loading="$asyncComputed.workpointRankServerData.updating"
+              shadow="hover"
             >
               <p style="color:#1096d0; font-size:20px; font-weight:500;">
                 下级工分
@@ -1055,9 +1055,8 @@ export default {
             this.$router.push({
               name: 'appraisal-result-institutions',
               query: {
-                id: it.code,
-                listFlag: 'score',
-                isInstitution: 'true'
+                ...this.params,
+                id: it.code
               }
             })
         }));
@@ -1074,9 +1073,8 @@ export default {
             this.$router.push({
               name: 'appraisal-result-institutions',
               query: {
-                id: it.code,
-                listFlag: 'score',
-                isInstitution: 'true'
+                ...this.params,
+                id: it.code
               }
             })
         }));
