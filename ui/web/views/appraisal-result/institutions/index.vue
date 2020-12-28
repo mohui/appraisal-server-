@@ -1073,7 +1073,7 @@ export default {
         ).toNumber()
       };
     },
-
+    //下级工分排行
     workpointRankData() {
       return this.workpointRankServerData
         .map(it => it)
