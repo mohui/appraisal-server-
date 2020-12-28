@@ -111,7 +111,7 @@
                     'padding-top': params.isInstitution ? '10px' : '40px'
                   }"
                 >
-                  <div v-if="params.isInstitution">
+                  <div>
                     <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
                   </div>
                   <div>
