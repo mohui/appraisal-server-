@@ -205,7 +205,7 @@ async function upsert(node: GroupModel): Promise<void> {
   const group = (
     await appDB.execute(
       `select *
-       from "group"
+       from area
        where code = ?
        limit 1`,
       node.code
@@ -214,7 +214,7 @@ async function upsert(node: GroupModel): Promise<void> {
   if (group) {
     // language=PostgreSQL
     await appDB.execute(
-      `update "group"
+      `update area
        set name   = ?,
            parent = ?
        where code = ?`,
@@ -225,8 +225,7 @@ async function upsert(node: GroupModel): Promise<void> {
   } else {
     // language=PostgreSQL
     await appDB.execute(
-      `insert into "group"(code, name, parent)
-       values (?, ?, ?)`,
+      `insert into area(code, name, parent) values (?, ?, ?)`,
       node.code,
       node.name,
       node.parent
