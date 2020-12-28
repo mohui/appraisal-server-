@@ -692,12 +692,14 @@
         <!--下级工分排行-->
         <el-row
           v-if="params.listFlag === 'score'"
-          v-loading="$asyncComputed.workpointRankServerData.updating"
           :gutter="20"
           style="margin-top: 20px"
         >
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.workpointRankServerData.updating"
+            >
               <p style="color:#1096d0; font-size:20px; font-weight:500;">
                 下级工分
               </p>
