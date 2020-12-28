@@ -4,16 +4,19 @@ import {
   Comment,
   DataType,
   Default,
+  ForeignKey,
   Model,
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
+import {CheckRule} from '../check_rule';
 
 @Table({tableName: 'rule_area_score'})
 export class RuleAreaScore extends Model<RuleAreaScore> {
   @Comment('考核细则id')
   @AllowNull(false)
   @PrimaryKey
+  @ForeignKey(() => CheckRule)
   @Column({field: 'rule'})
   ruleId: string;
 
