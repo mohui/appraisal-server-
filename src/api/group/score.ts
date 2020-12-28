@@ -233,6 +233,21 @@ export default class Score {
       offset: (pageNo - 1) * pageSize,
       limit: pageSize
     });
+
+    // 补充绑定对象的字段
+    // TODO: 暂无地区权限判断
+    result.rows = await Promise.all(
+      result.rows.map(async it => {
+        const counts = await CheckAreaModel.count({
+          where: {checkId: it.checkId}
+        });
+        return {
+          ...it.toJSON(),
+          hospitalCount: counts
+        };
+      })
+    );
+
     return result;
   }
 
