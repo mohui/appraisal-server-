@@ -17,7 +17,11 @@ import {
   RuleAreaScoreModel,
   ReportAreaModel,
   ReportAreaHistoryModel,
-  sql as sqlRender
+  sql as sqlRender,
+  CheckRuleModel,
+  ScoreRemarkHistoryModel,
+  AreaModel,
+  UserModel
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
@@ -1049,5 +1053,55 @@ export default class Score {
       });
     }
     debug(`${check} 金额分配结束`);
+  }
+
+  /**
+   * 手动打分
+   * @param ruleId 细则id
+   * @param code 地区code或机构id
+   * @param score 分数
+   * @param remark 备注
+   */
+  async manualScore(ruleId, code, score, remark) {
+    const rule = await CheckRuleModel.findOne({where: {ruleId: ruleId}});
+    if (!rule) throw new KatoCommonError('规则不存在');
+    const area = await AreaModel.findOne({where: {code}});
+    if (!area) {
+      throw new KatoCommonError('打分对象不存在');
+    }
+    const areaRule = await RuleAreaScoreModel.findOne({
+      where: {ruleId, areaCode: code}
+    });
+    if (!areaRule)
+      throw new KatoCommonError('打分对象与细则并未绑定，不允许打分');
+    if (score > rule.ruleScore)
+      throw new KatoCommonError('分数不能高于细则的满分');
+    //保存打分结果
+    await RuleAreaScoreModel.upsert({
+      ruleId,
+      areaCode: code,
+      score
+    });
+    //保存打分备注和历史
+    await ScoreRemarkHistoryModel.upsert({
+      ruleId: ruleId,
+      code: code,
+      creatorId: Context.current.user.id,
+      score: score,
+      remark: remark
+    });
+  }
+
+  /***
+   * 获取手动打分历史
+   * @param ruleId 细则id
+   * @param code  地区code或者机构id
+   */
+  async manualScoreHistory(ruleId, code) {
+    return ScoreRemarkHistoryModel.findAll({
+      where: {ruleId, code},
+      include: [UserModel],
+      order: [['created_at', 'DESC']]
+    });
   }
 }
