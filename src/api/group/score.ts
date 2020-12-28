@@ -21,6 +21,8 @@ import {
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
+import {Context} from '../context';
+import {Permission} from '../../../common/permission';
 
 /**
  * 查询考核对象的标记数据
@@ -203,6 +205,37 @@ function debug(...args) {
 }
 
 export default class Score {
+  /**
+   * 考核体系列表
+   *
+   * @param params {
+   *   pageSize: '分页大小',
+   *   pageNo: '分页页码',
+   *   checkId: '考核体系id',
+   * }
+   */
+  async checks(params) {
+    const {pageSize = 20, pageNo = 1, checkId} = params || {};
+    const whereOptions = {};
+    // 如果没有"管理所有考核"或者"超级管理员"的权限,则仅能看当前用户创建的
+    if (
+      !Context.current.user.permissions.some(
+        p => p === Permission.ALL_CHECK || p === Permission.SUPER_ADMIN
+      )
+    ) {
+      whereOptions['create_by'] = Context.current.user.id;
+    }
+    // 考核体系id
+    if (checkId) whereOptions['checkId'] = checkId;
+    const result = await CheckSystemModel.findAndCountAll({
+      where: whereOptions,
+      order: [['created_at', 'DESC']],
+      offset: (pageNo - 1) * pageSize,
+      limit: pageSize
+    });
+    return result;
+  }
+
   /**
    * 考核体系自动打分
    *
