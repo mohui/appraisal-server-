@@ -50,6 +50,12 @@
         ></el-table-column>
         <el-table-column
           align="center"
+          prop="checkYear"
+          :min-width="50"
+          label="考核年度"
+        ></el-table-column>
+        <el-table-column
+          align="center"
           prop="created_at"
           :min-width="computedColWidth('created_at')"
           label="创建时间"
