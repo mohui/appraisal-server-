@@ -63,17 +63,6 @@
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
-        <el-table-column align="center" :min-width="50" label="类型">
-          <template slot-scope="scope">
-            {{ scope.row.checkType ? '主要' : '临时' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          align="center"
-          prop="autoScore"
-          :min-width="computedColWidth('autoScore')"
-          label="自动打分"
-        ></el-table-column>
         <el-table-column
           align="center"
           prop="runTime"
