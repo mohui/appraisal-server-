@@ -19,6 +19,18 @@
             >({{ totalData.budget }}元)
           </span>
         </span>
+        <!--年度选择-->
+        <span style="margin: 0 10px">
+          <el-select v-model="params.year" placeholder="请选择考核年度">
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </span>
         <span style="margin:  0 10px">
           <el-button-group>
             <el-button
@@ -911,8 +923,12 @@ export default {
         isInstitution: false, // 是否机构
         id: this.$settings.user.code,
         checkId: '', //TODO:这个字段新接口不需要，对接完后要去掉
-        year: null //考核年份，默认为空，表示当前年
+        year: '2020' //考核年份，默认为空，表示当前年
       },
+      yearList: [
+        {value: '2020', label: '2020年度'},
+        {value: '2021', label: '2021年度'}
+      ],
       date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
         'YYYY-MM-DD'
       ),
