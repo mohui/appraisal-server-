@@ -6,7 +6,7 @@ import {
   ReportAreaModel,
   RuleAreaScoreModel
 } from '../../database/model';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {appDB} from '../../app';
 import {sql as sqlRender} from '../../database/template';
@@ -152,5 +152,35 @@ export default class CheckAreaEdit {
     //批量添加规则与机构的关系数据
     return RuleHospitalModel.bulkCreate(newRuleHospitals);
     */
+  }
+
+  /**
+   * 开启关闭细则的自动打分
+   * @param code
+   * @param ruleId
+   * @param isAuto
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区id'),
+    should.string().description('细则id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分')
+  )
+  async setRuleAuto(code, ruleId, isAuto) {
+    //此关联是否存在
+    const result = await RuleAreaScoreModel.findOne({
+      where: {
+        rule: ruleId,
+        areaCode: code
+      }
+    });
+    if (!result) throw new KatoCommonError('机构与规则未关联');
+    result.auto = isAuto;
+    await result.save();
   }
 }
