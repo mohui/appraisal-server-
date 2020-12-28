@@ -320,8 +320,8 @@ export default class SystemArea {
 
     // 如果没传时间,默认当前年
     if (!year) year = dayjs().format('YYYY');
-
-    let [sql, paramters] = sqlRender(
+    // 签约人数
+    const signedSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.personnum) as "Number"
             from view_SignRegiste vsr
@@ -335,12 +335,8 @@ export default class SystemArea {
         YearDegree: dayjs(year).year()
       }
     );
-    // 签约人数
-    const signedNumber =
-      (await originalDB.execute(sql, ...paramters))[0]?.Number ?? 0;
-
     // 履约人数
-    [sql, paramters] = sqlRender(
+    const exeSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
             from view_SignRegisteCheckMain vsrcm
@@ -360,11 +356,8 @@ export default class SystemArea {
           .toDate()
       }
     );
-    const exeNumber =
-      (await originalDB.execute(sql, ...paramters))[0]?.Number ?? 0;
-
     // 续约人数
-    [sql, paramters] = sqlRender(
+    const renewSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
             from view_SignRegiste vsr
@@ -382,8 +375,16 @@ export default class SystemArea {
         vsrYearDegree: dayjs(year).year()
       }
     );
-    const renewNumber =
-      (await originalDB.execute(sql, ...paramters))[0]?.Number ?? 0;
+    const sqlResults = await Promise.all(
+      [
+        signedSqlRenderResult,
+        exeSqlRenderResult,
+        renewSqlRenderResult
+      ].map(it => originalDB.execute(it[0], ...it[1]))
+    );
+    const signedNumber = sqlResults[0][0]?.Number ?? 0;
+    const exeNumber = sqlResults[1][0]?.Number ?? 0;
+    const renewNumber = sqlResults[2][0]?.Number ?? 0;
     return {
       signedNumber: Number(signedNumber),
       exeNumber: Number(exeNumber),
