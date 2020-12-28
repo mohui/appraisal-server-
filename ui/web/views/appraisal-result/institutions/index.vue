@@ -732,25 +732,9 @@
               </p>
               <el-table
                 ref="refTable"
-                :data="categoryWorkpointRankData"
+                :data="workPointsProjectData"
                 :header-cell-style="{background: '#e4e2df', color: '#333'}"
               >
-                <el-table-column type="expand" prop="children">
-                  <template slot-scope="scope">
-                    <el-table :data="scope.row.children" :show-header="false">
-                      <el-table-column type="index" align="center">
-                      </el-table-column>
-                      <el-table-column
-                        prop="doctorname"
-                        align="center"
-                      ></el-table-column>
-                      <el-table-column
-                        prop="score"
-                        align="center"
-                      ></el-table-column>
-                    </el-table>
-                  </template>
-                </el-table-column>
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
                     <span>【{{ scope.$index + 1 }}】</span>
@@ -1093,30 +1077,8 @@ export default {
         .sort((a, b) => b.score - a.score);
     },
     //工分项目数据
-    categoryWorkpointRankData() {
-      return this.doctorWorkpointRankServerData
-        .reduce((result, current) => {
-          let item = result.find(it => it.name === current.name);
-          if (item) {
-            //类别已存在
-            item.score += current.score;
-            item.children.push(current);
-          } else {
-            //类别不存在
-            item = {
-              name: current.name,
-              score: current.score,
-              children: [current]
-            };
-            result.push(item);
-          }
-          return result;
-        }, [])
-        .sort((a, b) => b.score - a.score)
-        .map(item => {
-          item.children.sort((a, b) => b.score - a.score);
-          return item;
-        });
+    workPointsProjectData() {
+      return this.workPointsProjectServerData;
     },
     //绩效考核指标的规则和评分数据
     appraisalIndicatorsData() {
@@ -1582,11 +1544,14 @@ export default {
         return [];
       }
     },
-    //获取服务器的医生工分和工分项目数据
-    doctorWorkpointRankServerData: {
+    //获取服务器工分项目数据
+    workPointsProjectServerData: {
       async get() {
         try {
-          return await this.$api.Hospital.workpoints(this.params.id);
+          return await this.$api.SystemArea.workPointsProject(
+            this.params.id,
+            this.params.year
+          );
         } catch (e) {
           return [];
         }
