@@ -19,7 +19,7 @@ import {
   ReportAreaHistoryModel,
   sql as sqlRender,
   CheckRuleModel,
-  ScoreRemarkHistoryModel,
+  ManualScoreHistoryModel,
   AreaModel,
   UserModel
 } from '../../database';
@@ -1083,7 +1083,7 @@ export default class Score {
       score
     });
     //保存打分备注和历史
-    await ScoreRemarkHistoryModel.upsert({
+    await ManualScoreHistoryModel.upsert({
       ruleId: ruleId,
       code: code,
       creatorId: Context.current.user.id,
@@ -1098,7 +1098,7 @@ export default class Score {
    * @param code  地区code或者机构id
    */
   async manualScoreHistory(ruleId, code) {
-    return ScoreRemarkHistoryModel.findAll({
+    return ManualScoreHistoryModel.findAll({
       where: {ruleId, code},
       include: [UserModel],
       order: [['created_at', 'DESC']]
