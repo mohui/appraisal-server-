@@ -6,11 +6,73 @@ import {
   ReportAreaModel,
   RuleAreaScoreModel
 } from '../../database/model';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {appDB} from '../../app';
+import {getAreaTree, getGroupTree} from '../group';
+import {Context} from '../context';
 
 export default class CheckAreaEdit {
+  /**
+   * 获取下级列表
+   * @param code
+   * @param checkId
+   */
+  async list(code, checkId) {
+    if (!code) code = Context.current.user.regionId;
+    // 是否需要渲染选中的树
+    const renderTree = code === Context.current.user.code;
+    // 查询考核体系
+    const checkModel: CheckSystemModel = await CheckSystemModel.findOne({
+      where: {checkId: checkId}
+    });
+    if (!checkModel) throw new KatoRuntimeError(`考核体系id ${checkId} 不合法`);
+    // 获取code的子树
+    const childTree = await getAreaTree(code);
+    // 获取考核地区
+    const checkAreaModels: {code: string}[] = await appDB.execute(
+      `select area as code from check_area where check_system = ?`,
+      checkId
+    );
+    // 获取本年度其他考核体系绑定的地区
+    const otherCheckAreaModels: {code: string}[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select area as code
+        from check_area ca
+               inner join check_system cs on ca.check_system = cs.check_id
+        where check_system != ?
+          and cs.check_year = ?`,
+      checkModel.checkId,
+      checkModel.checkYear
+    );
+    // 树节点的转换函数
+    const nodeMapping = (c: {
+      name: string;
+      code: string;
+      parent: string;
+      level: number;
+      root: string;
+      path: string;
+      cycle: boolean;
+      leaf: boolean;
+    }) => ({
+      usable: !otherCheckAreaModels.find(ca => ca.code === c.code),
+      selected: !!checkAreaModels.find(ca => ca.code === c.code),
+      system: null,
+      code: c.code,
+      name: c.name,
+      path: c.path,
+      leaf: c.leaf
+    });
+    // 转换子节点
+    const children = childTree.filter(c => c.parent === code);
+    if (!renderTree) {
+      // 无需渲染树
+      return children.map(nodeMapping);
+    }
+  }
+
   /**
    * 获取考核地区/机构对应的考核总体情况
    *
