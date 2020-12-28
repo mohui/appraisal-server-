@@ -725,7 +725,7 @@ export default class SystemArea {
       .allow(null)
       .description('年份')
   )
-  async workPointsProject(code) {
+  async workPointsProject(code, year) {
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -736,48 +736,39 @@ export default class SystemArea {
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    return hisHospIdObjs;
 
     const hisHospIds = hisHospIdObjs.map(it => it['id']);
 
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
+    // 如果没传时间,默认当前年
+    if (!year) year = dayjs().format('YYYY');
+
     const [sql, params] = sqlRender(
       `
-            select
-                cast(sum(vws.score) as int) as score,
-                vws.operateorganization,
-                vws.projecttype as "projectId"
-            from view_workscoretotal vws
-            where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-                and missiontime >= {{? startTime}}
-                and missiontime < {{? endTime}}
-            group by vws.projecttype, vws.operateorganization
+        select
+            cast(sum(vws.score) as int) as score,
+            vws.projectname as "name",
+            vws.projecttype as "code"
+        from view_workscoretotal vws
+        where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+         and missiontime >= {{? startTime}}
+         and missiontime < {{? endTime}}
+         group by vws.projecttype, vws.projectname
          `,
       {
         hisHospIds,
-        startTime: dayjs()
+        startTime: dayjs(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs()
+        endTime: dayjs(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
       }
     );
 
-    const workPoint = await originalDB.execute(sql, ...params);
-    return workPoint;
-
-    const a = workPoint.map(it => ({
-      ...it,
-      name: Projects.find(p => {
-        return p.mappings.find(
-          mapping => mapping.id === it.projectId && mapping.type === '340222'
-        );
-      })?.name
-    }));
-    return workPoint;
+    return originalDB.execute(sql, ...params);
   }
 }
