@@ -9,7 +9,6 @@ import {
 import {KatoCommonError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {appDB} from '../../app';
-import {sql as sqlRender} from '../../database/template';
 
 export default class CheckAreaEdit {
   /**
@@ -182,5 +181,40 @@ export default class CheckAreaEdit {
     if (!result) throw new KatoCommonError('机构与规则未关联');
     result.auto = isAuto;
     await result.save();
+  }
+
+  /**
+   * 设置考核下地区的自动打分
+   * @param checkId 考核id
+   * @param code 机构id
+   * @param isAuto 是否开启 true || false
+   * @returns {Promise<unknown[]>}
+   */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.boolean().required()
+  )
+  async setCheckAuto(checkId, code, isAuto) {
+    const check = await CheckSystemModel.findOne({where: {checkId}});
+    if (!check) throw new KatoCommonError('该考核体系不存在');
+
+    //修改该机构在考核系统下的所有规则的自动打分
+    return appDB.execute(
+      `
+          update rule_area_score set auto = ?
+          where area = ?
+           and rule in (
+            select rule_id
+            from check_rule rule
+            left join check_system system on rule.check_id = system.check_id
+            where parent_rule_id is not null
+             and system.check_id = ?
+          )
+      `,
+      isAuto,
+      code,
+      checkId
+    );
   }
 }
