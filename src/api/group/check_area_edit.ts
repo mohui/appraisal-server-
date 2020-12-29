@@ -9,8 +9,19 @@ import {
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {appDB} from '../../app';
-import {getAreaTree, getGroupTree} from '../group';
+import {getAreaTree} from '../group';
 import {Context} from '../context';
+
+function getTree(data: any[], parentCode) {
+  const root = data.filter(it => it.parent === parentCode);
+  const list = [];
+  for (const item of root) {
+    const obj = {...item, children: getTree(data, item.code)};
+    list.push(obj);
+  }
+
+  return list;
+}
 
 export default class CheckAreaEdit {
   /**
@@ -61,8 +72,8 @@ export default class CheckAreaEdit {
       selected: !!checkAreaModels.find(ca => ca.code === c.code),
       system: null,
       code: c.code,
+      parent: c.parent,
       name: c.name,
-      path: c.path,
       leaf: c.leaf
     });
     // 转换子节点
@@ -70,6 +81,19 @@ export default class CheckAreaEdit {
     if (!renderTree) {
       // 无需渲染树
       return children.map(nodeMapping);
+    } else {
+      // 渲染树
+      const data = checkAreaModels
+        .map(it => childTree.find(c => it.code === c.code))
+        .reduce((prev, current) => {
+          for (const p of current.path) {
+            if (!prev.some(it => it === p)) prev.push(p);
+          }
+          return prev;
+        }, [])
+        .map(it => childTree.find(c => it === c.code))
+        .map(nodeMapping);
+      return {tree: getTree(data, code), data};
     }
   }
 
