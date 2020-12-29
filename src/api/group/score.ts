@@ -2,7 +2,7 @@ import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
 import {appDB, originalDB} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
-import {getLeaves, getOriginalArray} from '../group';
+import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
 import {
   BasicTagUsages,
   MarkTagUsages,
@@ -202,6 +202,26 @@ where OperateOrganization = {{? id}}
     )
   ).reduce((prev, current) => [...prev, ...current]);
   return result;
+}
+
+/**
+ * 获取指定年份的基础数据
+ *
+ * @param leaves code对应的所有叶子节点
+ * @param tag 基础数据的tag
+ * @param year 年份
+ */
+async function getBasicData(leaves: AreaTreeNode[], tag, year) {
+  return BasicTagDataModel.sum('value', {
+    where: {
+      hospital: {
+        [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
+      },
+      code: tag,
+      year
+    },
+    logging: true
+  });
 }
 
 function debug(...args) {
