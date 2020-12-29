@@ -104,11 +104,7 @@
                 <span>分</span>
                 <p style="margin:10px 0;">{{ date }}</p>
                 <p style="font-size:13px;">{{ totalData.name }}</p>
-                <div
-                  :style="{
-                    'padding-top': params.isInstitution ? '10px' : '40px'
-                  }"
-                >
+                <div style="padding-top: 40px">
                   <div>
                     <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
                   </div>
@@ -923,7 +919,6 @@ export default {
       ],
       params: {
         listFlag: 'quality', // quality(质量系数) | score（工分值）
-        isInstitution: false, // 是否机构
         id: this.$settings.user.code,
         checkId: '', //TODO:这个字段新接口不需要，对接完后要去掉
         year: '2020' //考核年份，默认为空，表示当前年
@@ -1372,9 +1367,6 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
-      this.params.isInstitution = route.query.isInstitution
-        ? JSON.parse(route.query.isInstitution)
-        : !this.$settings.user.isRegion;
       this.params.id = route.query.id ?? this.$settings.user.code;
       this.params.checkId = route.query.checkId ?? undefined;
     },
