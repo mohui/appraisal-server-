@@ -382,295 +382,6 @@
             </el-card>
           </el-col>
         </el-row>
-        <!--考核指标规则-->
-        <el-row
-          v-if="params.listFlag === 'quality'"
-          v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
-          class="appraisal-indicators-rule"
-        >
-          <el-col :span="24">
-            <el-card v-if="!appraisalIndicatorsData.checkId">
-              绩效考核评价细则：暂无考核
-            </el-card>
-            <div v-else>
-              <div style="width: 100%; height:40px;">
-                <div class="appraisal-indicators-rule-title" style="float:left">
-                  {{ appraisalIndicatorsData.checkName }}
-                  <span style="color: #666;font-size: 14px;"
-                    >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
-                      appraisalIndicatorsData.ruleScore
-                    }}分</span
-                  >
-                  <el-button
-                    style="margin-left: 30px;"
-                    size="mini"
-                    plain
-                    type="primary"
-                    @click="handleAppraisalResultsDownload()"
-                    >考核结果下载
-                  </el-button>
-                </div>
-                <div v-if="totalData.parent" style="float: right">
-                  <span style="font-size: 14px">系统自动打分：</span>
-                  <el-switch
-                    v-model="appraisalIndicatorsData.auto"
-                    style="padding-right: 20px;"
-                    active-text="开启"
-                    inactive-text="关闭"
-                    @change="handleSystemAllAutoScore"
-                  >
-                  </el-switch>
-                </div>
-              </div>
-              <div
-                v-for="(item, index) in appraisalIndicatorsData.children"
-                :key="index"
-              >
-                <div class="check-table-title">
-                  <div>
-                    {{ item.ruleName }}
-                    <span style="color: #606266">({{ item.budget }}元)</span>
-                  </div>
-                </div>
-                <el-table
-                  :data="item.children"
-                  show-summary
-                  :summary-method="handleSummaries"
-                  style="width: 100%"
-                >
-                  <el-table-column
-                    type="index"
-                    align="center"
-                    label="序号"
-                  ></el-table-column>
-                  <el-table-column
-                    prop="ruleName"
-                    header-align="center"
-                    align="left"
-                    min-width="150px"
-                    label="考核内容"
-                  >
-                  </el-table-column>
-                  <el-table-column
-                    prop="ruleScore"
-                    align="center"
-                    width="100px"
-                    label="分值"
-                  >
-                  </el-table-column>
-                  <el-table-column
-                    prop="checkStandard"
-                    header-align="center"
-                    align="left"
-                    min-width="200px"
-                    label="考核标准"
-                  >
-                  </el-table-column>
-                  <el-table-column
-                    prop="checkMethod"
-                    header-align="center"
-                    align="left"
-                    min-width="100px"
-                    label="考核方法"
-                  >
-                  </el-table-column>
-                  <el-table-column
-                    prop="evaluateStandard"
-                    header-align="center"
-                    align="left"
-                    min-width="150px"
-                    label="评分标准"
-                  >
-                  </el-table-column>
-                  <el-table-column
-                    v-if="totalData.parent"
-                    prop="isLock"
-                    align="center"
-                    width="160px"
-                    label="系统打分"
-                  >
-                    <template slot-scope="scope">
-                      <el-switch
-                        v-model="scope.row.auto"
-                        active-text="开启"
-                        inactive-text="关闭"
-                        @change="handleChangeSystemAutoScore(scope.row)"
-                      >
-                      </el-switch>
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    prop="score"
-                    :formatter="fixedDecimal"
-                    align="center"
-                    width="170px"
-                    label="得分"
-                  >
-                    <template slot-scope="scope">
-                      <span v-if="scope.row.isGradeScore">
-                        <el-input-number
-                          v-model="scope.row.score"
-                          size="mini"
-                          :step="1"
-                          :precision="2"
-                          style="width:84%"
-                          :max="scope.row.ruleScore"
-                        >
-                        </el-input-number>
-                      </span>
-                      <span v-else>{{ scope.row.score | fixedDecimal }}</span>
-                      <i
-                        v-if="scope.row.isAttach"
-                        style="padding-left:5px; color:#ff9800"
-                        class="el-icon-document"
-                        @click="handleDialogAppraisalFileListVisible(scope.row)"
-                      ></i>
-                      <el-popover
-                        v-if="!scope.row.isAttach"
-                        :ref="scope.row.ruleId"
-                        :popper-options="{
-                          boundariesElement: 'viewport',
-                          removeOnDestroy: true
-                        }"
-                        placement="top"
-                        title="指标结果"
-                        width="500"
-                        trigger="hover"
-                        @show="
-                          handleAppraisalResultInstructionsPopoverVisible(
-                            scope.row
-                          )
-                        "
-                      >
-                        <div
-                          v-loading="
-                            $asyncComputed.appraisalResultInstructionsServerData
-                              .updating
-                          "
-                        >
-                          <p
-                            style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
-                          >
-                            评分标准：{{ curRule.evaluateStandard }}
-                          </p>
-                          <ul>
-                            <li
-                              v-for="it of appraisalResultInstructionsData"
-                              :key="it"
-                              style="margin-left: -20px"
-                            >
-                              {{ it }}
-                            </li>
-                          </ul>
-                        </div>
-                        <i
-                          slot="reference"
-                          class="el-icon-warning"
-                          style="padding-left:5px; color:#ff9800"
-                        ></i>
-                      </el-popover>
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    v-if="totalData.parent"
-                    align="center"
-                    label="操作"
-                    width="220px"
-                  >
-                    <template slot-scope="scope">
-                      <el-button
-                        v-if="scope.row.isGradeScore"
-                        plain
-                        type="primary"
-                        size="mini"
-                        :loading="scope.row.isSaveScoreLoaing"
-                        @click="openRemarkDialog(scope.row)"
-                        >保存
-                      </el-button>
-                      <el-button
-                        v-if="!scope.row.isGradeScore"
-                        plain
-                        type="primary"
-                        size="mini"
-                        @click="handleScore(scope.row)"
-                        >打分
-                      </el-button>
-                      <el-button
-                        v-if="scope.row.isGradeScore"
-                        style="margin: 0"
-                        plain
-                        type="primary"
-                        size="mini"
-                        @click="cancelScore(scope.row)"
-                      >
-                        取消
-                      </el-button>
-                      <el-popover placement="left" width="600" trigger="click">
-                        <el-table
-                          height="200px"
-                          :data="scope.row.scoreHistoryData"
-                          size="mini"
-                        >
-                          <el-table-column
-                            align="center"
-                            property="score"
-                            label="手动打分"
-                          ></el-table-column>
-                          <el-table-column
-                            align="center"
-                            property="remark"
-                            label="备注"
-                          ></el-table-column>
-                          <el-table-column
-                            align="center"
-                            property="creator.name"
-                            label="打分人"
-                          ></el-table-column>
-                          <el-table-column
-                            align="center"
-                            property="created_at"
-                            label="时间"
-                          ></el-table-column>
-                        </el-table>
-                        <el-button
-                          slot="reference"
-                          plain
-                          type="warning"
-                          size="mini"
-                          @click="scoreHistory(scope.row)"
-                        >
-                          历史
-                        </el-button>
-                      </el-popover>
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    v-else
-                    align="center"
-                    label="操作"
-                    width="150px"
-                  >
-                    <template slot-scope="scope">
-                      <el-button
-                        v-if="scope.row.isAttach"
-                        :disabled="!scope.row.isUploadAttach"
-                        plain
-                        type="primary"
-                        size="mini"
-                        @click="handleUploadAppraisalFile(scope.row)"
-                        >{{
-                          scope.row.isUploadAttach
-                            ? '上传考核资料'
-                            : '超出上传时间'
-                        }}
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-              </div>
-            </div>
-          </el-col>
-        </el-row>
       </div>
       <!--下级排行-->
       <div style="margin-top: 20px">
@@ -775,6 +486,295 @@
           </el-col>
         </el-row>
       </div>
+      <!--考核指标规则-->
+      <el-row
+        v-if="params.listFlag === 'quality'"
+        v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
+        class="appraisal-indicators-rule"
+      >
+        <el-col :span="24">
+          <el-card v-if="!appraisalIndicatorsData.checkId">
+            绩效考核评价细则：暂无考核
+          </el-card>
+          <div v-else>
+            <div style="width: 100%; height:40px;">
+              <div class="appraisal-indicators-rule-title" style="float:left">
+                {{ appraisalIndicatorsData.checkName }}
+                <span style="color: #666;font-size: 14px;"
+                  >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+                    appraisalIndicatorsData.ruleScore
+                  }}分</span
+                >
+                <el-button
+                  style="margin-left: 30px;"
+                  size="mini"
+                  plain
+                  type="primary"
+                  @click="handleAppraisalResultsDownload()"
+                  >考核结果下载
+                </el-button>
+              </div>
+              <div v-if="totalData.parent" style="float: right">
+                <span style="font-size: 14px">系统自动打分：</span>
+                <el-switch
+                  v-model="appraisalIndicatorsData.auto"
+                  style="padding-right: 20px;"
+                  active-text="开启"
+                  inactive-text="关闭"
+                  @change="handleSystemAllAutoScore"
+                >
+                </el-switch>
+              </div>
+            </div>
+            <div
+              v-for="(item, index) in appraisalIndicatorsData.children"
+              :key="index"
+            >
+              <div class="check-table-title">
+                <div>
+                  {{ item.ruleName }}
+                  <span style="color: #606266">({{ item.budget }}元)</span>
+                </div>
+              </div>
+              <el-table
+                :data="item.children"
+                show-summary
+                :summary-method="handleSummaries"
+                style="width: 100%"
+              >
+                <el-table-column
+                  type="index"
+                  align="center"
+                  label="序号"
+                ></el-table-column>
+                <el-table-column
+                  prop="ruleName"
+                  header-align="center"
+                  align="left"
+                  min-width="150px"
+                  label="考核内容"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="ruleScore"
+                  align="center"
+                  width="100px"
+                  label="分值"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="checkStandard"
+                  header-align="center"
+                  align="left"
+                  min-width="200px"
+                  label="考核标准"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="checkMethod"
+                  header-align="center"
+                  align="left"
+                  min-width="100px"
+                  label="考核方法"
+                >
+                </el-table-column>
+                <el-table-column
+                  prop="evaluateStandard"
+                  header-align="center"
+                  align="left"
+                  min-width="150px"
+                  label="评分标准"
+                >
+                </el-table-column>
+                <el-table-column
+                  v-if="totalData.parent"
+                  prop="isLock"
+                  align="center"
+                  width="160px"
+                  label="系统打分"
+                >
+                  <template slot-scope="scope">
+                    <el-switch
+                      v-model="scope.row.auto"
+                      active-text="开启"
+                      inactive-text="关闭"
+                      @change="handleChangeSystemAutoScore(scope.row)"
+                    >
+                    </el-switch>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="score"
+                  :formatter="fixedDecimal"
+                  align="center"
+                  width="170px"
+                  label="得分"
+                >
+                  <template slot-scope="scope">
+                    <span v-if="scope.row.isGradeScore">
+                      <el-input-number
+                        v-model="scope.row.score"
+                        size="mini"
+                        :step="1"
+                        :precision="2"
+                        style="width:84%"
+                        :max="scope.row.ruleScore"
+                      >
+                      </el-input-number>
+                    </span>
+                    <span v-else>{{ scope.row.score | fixedDecimal }}</span>
+                    <i
+                      v-if="scope.row.isAttach"
+                      style="padding-left:5px; color:#ff9800"
+                      class="el-icon-document"
+                      @click="handleDialogAppraisalFileListVisible(scope.row)"
+                    ></i>
+                    <el-popover
+                      v-if="!scope.row.isAttach"
+                      :ref="scope.row.ruleId"
+                      :popper-options="{
+                        boundariesElement: 'viewport',
+                        removeOnDestroy: true
+                      }"
+                      placement="top"
+                      title="指标结果"
+                      width="500"
+                      trigger="hover"
+                      @show="
+                        handleAppraisalResultInstructionsPopoverVisible(
+                          scope.row
+                        )
+                      "
+                    >
+                      <div
+                        v-loading="
+                          $asyncComputed.appraisalResultInstructionsServerData
+                            .updating
+                        "
+                      >
+                        <p
+                          style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
+                        >
+                          评分标准：{{ curRule.evaluateStandard }}
+                        </p>
+                        <ul>
+                          <li
+                            v-for="it of appraisalResultInstructionsData"
+                            :key="it"
+                            style="margin-left: -20px"
+                          >
+                            {{ it }}
+                          </li>
+                        </ul>
+                      </div>
+                      <i
+                        slot="reference"
+                        class="el-icon-warning"
+                        style="padding-left:5px; color:#ff9800"
+                      ></i>
+                    </el-popover>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  v-if="totalData.parent"
+                  align="center"
+                  label="操作"
+                  width="220px"
+                >
+                  <template slot-scope="scope">
+                    <el-button
+                      v-if="scope.row.isGradeScore"
+                      plain
+                      type="primary"
+                      size="mini"
+                      :loading="scope.row.isSaveScoreLoaing"
+                      @click="openRemarkDialog(scope.row)"
+                      >保存
+                    </el-button>
+                    <el-button
+                      v-if="!scope.row.isGradeScore"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="handleScore(scope.row)"
+                      >打分
+                    </el-button>
+                    <el-button
+                      v-if="scope.row.isGradeScore"
+                      style="margin: 0"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="cancelScore(scope.row)"
+                    >
+                      取消
+                    </el-button>
+                    <el-popover placement="left" width="600" trigger="click">
+                      <el-table
+                        height="200px"
+                        :data="scope.row.scoreHistoryData"
+                        size="mini"
+                      >
+                        <el-table-column
+                          align="center"
+                          property="score"
+                          label="手动打分"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="remark"
+                          label="备注"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="creator.name"
+                          label="打分人"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="created_at"
+                          label="时间"
+                        ></el-table-column>
+                      </el-table>
+                      <el-button
+                        slot="reference"
+                        plain
+                        type="warning"
+                        size="mini"
+                        @click="scoreHistory(scope.row)"
+                      >
+                        历史
+                      </el-button>
+                    </el-popover>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  v-else
+                  align="center"
+                  label="操作"
+                  width="150px"
+                >
+                  <template slot-scope="scope">
+                    <el-button
+                      v-if="scope.row.isAttach"
+                      :disabled="!scope.row.isUploadAttach"
+                      plain
+                      type="primary"
+                      size="mini"
+                      @click="handleUploadAppraisalFile(scope.row)"
+                      >{{
+                        scope.row.isUploadAttach
+                          ? '上传考核资料'
+                          : '超出上传时间'
+                      }}
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
     </div>
     <el-dialog
       title="上传考核资料"
