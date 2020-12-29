@@ -406,7 +406,7 @@
                     >考核结果下载
                   </el-button>
                 </div>
-                <div v-if="$settings.user.isRegion" style="float: right">
+                <div v-if="totalData.parent" style="float: right">
                   <span style="font-size: 14px">系统自动打分：</span>
                   <el-switch
                     v-model="appraisalIndicatorsData.auto"
@@ -479,7 +479,7 @@
                   >
                   </el-table-column>
                   <el-table-column
-                    v-if="$settings.user.isRegion"
+                    v-if="totalData.parent"
                     prop="isLock"
                     align="center"
                     width="160px"
@@ -568,7 +568,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column
-                    v-if="$settings.user.isRegion"
+                    v-if="totalData.parent"
                     align="center"
                     label="操作"
                     width="220px"
