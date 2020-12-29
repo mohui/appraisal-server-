@@ -9,7 +9,7 @@ import {
   RegionModel,
   ReportAreaHistoryModel,
   ReportAreaModel,
-  RuleHospitalBudgetModel,
+  RuleAreaScoreModel,
   RuleProjectModel
 } from '../../database/model';
 import {Op} from 'sequelize';
@@ -20,6 +20,9 @@ import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
 import {RuleAreaBudget} from '../../database/model/group/rule-area-budget';
 import {getWorkPoints} from './score';
+import {Workbook} from 'exceljs';
+import {Context} from '../context';
+import * as ContentDisposition from 'content-disposition';
 
 /**
  * 通过地区编码和时间获取checkId
@@ -802,7 +805,7 @@ export default class SystemArea {
       ]
     });
 
-    if (!checkSystem) throw new KatoCommonError('该地区不存在.');
+    if (!checkSystem) throw new KatoCommonError('该地区无考核.');
 
     // 获取树形结构
     const tree = await getAreaTree(code);
@@ -814,8 +817,6 @@ export default class SystemArea {
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    // 取出所有的原始机构id
-    // const hisHospitalId = hisHospIdObjs.map(it => it.id);
 
     // 取出考核id
     const checkId = checkSystem.checkId;
@@ -886,5 +887,99 @@ export default class SystemArea {
     }
 
     return returnList;
+  }
+
+  /**
+   * 导出考核
+   *
+   * @param code 地区/机构id
+   * @param year 年份
+   */
+  async downloadCheck(code, year) {
+    // 校验地区是否存在
+    const areas = await AreaModel.findOne({where: {code}});
+    if (areas.length === 0)
+      throw new KatoCommonError(`code为 [${code}] 不合法`);
+
+    // 获取checkId
+    if (!year) year = dayjs().format('YYYY');
+
+    // 通过地区编码和年份获取考核主信息
+    const areaSystem = await CheckAreaModel.findOne({
+      where: {
+        areaCode: code
+      },
+      attributes: ['checkId'],
+      include: [
+        {
+          model: CheckSystemModel,
+          attributes: [],
+          where: {checkYear: year}
+        }
+      ]
+    });
+    if (!areaSystem) throw new KatoCommonError(`该地区未绑定考核`);
+
+    // 取出考核主信息
+    const checkId = areaSystem.checkId;
+
+    // 查询考核细则和小项
+    const rules = await CheckRuleModel.findAll({
+      where: {
+        checkId,
+        parentRuleId: {[Op.not]: null}
+      },
+      attributes: ['ruleId', 'ruleName']
+    });
+
+    // 查询机构考核细则得分
+    const ruleScores = await RuleAreaScoreModel.findAll({
+      where: {
+        areaCode: code,
+        ruleId: {
+          [Op.in]: rules.map(rule => rule.ruleId)
+        }
+      },
+      attributes: ['score', 'ruleId']
+    });
+    // 把得分放到数组中
+    const checkRules = rules.map(it => {
+      const index = ruleScores.find(item => item.ruleId === it.ruleId);
+      return {
+        ruleId: it.ruleId,
+        ruleName: it.ruleName,
+        score: index?.score ?? 0
+      };
+    });
+
+    // 导出方法
+    const workBook = new Workbook();
+    //开始创建Excel表格
+    const workSheet = workBook.addWorksheet(`${areas.name}考核结果`);
+
+    //添加标题内容
+    const firstRow = checkRules.map(item => `${item.ruleName}`);
+
+    // 填充每行数据
+    const childrenHospitalCheckResult = checkRules.map(item =>
+      Number(item?.score?.toFixed(2) ?? 0)
+    );
+
+    workSheet.addRows([firstRow, childrenHospitalCheckResult]);
+
+    Context.current.bypassing = true;
+    const res = Context.current.res;
+
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader(
+      'Content-Disposition',
+      ContentDisposition(`${areas.name}考核结果.xls`)
+    );
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+
+    const buffer = await workBook.xlsx.writeBuffer();
+    res.send(buffer);
+    //导出结束
   }
 }
