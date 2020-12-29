@@ -211,9 +211,9 @@
                     >
                     </el-table-column>
                     <el-table-column
-                      prop="workPoint"
+                      prop="workPointFormat"
                       label="工分"
-                      :min-width="computedColWidth('workPoint')"
+                      :min-width="computedColWidth('workPointFormat')"
                     >
                     </el-table-column>
                     <el-table-column
@@ -223,15 +223,15 @@
                     >
                     </el-table-column>
                     <el-table-column
-                      prop="rate"
+                      prop="rateFormat"
                       label="质量系数"
                       min-width="80"
                     >
                     </el-table-column>
                     <el-table-column
-                      prop="correctWorkPoint"
+                      prop="correctWorkPointFormat"
                       label="得分"
-                      :min-width="computedColWidth('correctWorkPoint')"
+                      :min-width="computedColWidth('correctWorkPointFormat')"
                     >
                     </el-table-column>
                   </el-table>
@@ -1032,13 +1032,12 @@ export default {
     },
     //工分值校正明细
     projectDetailData() {
-      return this.projectDetailServerData?.map(it =>
-        Object.assign({}, it, {
-          rate: (it.rate * 100).toFixed(2) + '%',
-          workpoint: it.workpoint ?? 0,
-          correctWorkpoint: Number.parseInt(it.correctWorkpoint)
-        })
-      );
+      return this.projectDetailServerData?.map(it => ({
+        ...it,
+        rateFormat: (it.rate * 100).toFixed(2) + '%',
+        workPointFormat: it.workPoint.toFixed(2),
+        correctWorkPointFormat: it.correctWorkPoint.toFixed(2)
+      }));
     },
     //金额：矩形树状图
     budgetData() {
