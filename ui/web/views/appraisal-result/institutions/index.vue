@@ -920,7 +920,6 @@ export default {
       params: {
         listFlag: 'quality', // quality(质量系数) | score（工分值）
         id: this.$settings.user.code,
-        checkId: '', //TODO:这个字段新接口不需要，对接完后要去掉
         year: '2020' //考核年份，默认为空，表示当前年
       },
       yearList: [
@@ -1368,7 +1367,6 @@ export default {
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
       this.params.id = route.query.id ?? this.$settings.user.code;
-      this.params.checkId = route.query.checkId ?? undefined;
     },
     //纬度切换
     latTypeChanged(type) {
