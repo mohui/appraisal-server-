@@ -195,7 +195,7 @@
             <!--工分值校正明细-->
             <el-col :span="24">
               <el-card
-                v-loading="$asyncComputed.totalServerData.updating"
+                v-loading="$asyncComputed.projectDetailServerData.updating"
                 shadow="hover"
                 style="margin-top: 20px"
               >
@@ -203,7 +203,7 @@
                   <div class="second-title" style="text-align: left;">
                     工分值校正明细
                   </div>
-                  <el-table :data="scoreList" size="mini" height="100%">
+                  <el-table :data="projectDetailData" size="mini" height="100%">
                     <el-table-column
                       prop="projectName"
                       label="工分项"
@@ -211,9 +211,9 @@
                     >
                     </el-table-column>
                     <el-table-column
-                      prop="workpoint"
+                      prop="workPoint"
                       label="工分"
-                      :min-width="computedColWidth('workpoint')"
+                      :min-width="computedColWidth('workPoint')"
                     >
                     </el-table-column>
                     <el-table-column
@@ -229,9 +229,9 @@
                     >
                     </el-table-column>
                     <el-table-column
-                      prop="correctWorkpoint"
+                      prop="correctWorkPoint"
                       label="得分"
-                      :min-width="computedColWidth('correctWorkpoint')"
+                      :min-width="computedColWidth('correctWorkPoint')"
                     >
                     </el-table-column>
                   </el-table>
@@ -1030,8 +1030,9 @@ export default {
       });
       return result;
     },
-    scoreList() {
-      return this.hospitalProject?.map(it =>
+    //工分值校正明细
+    projectDetailData() {
+      return this.projectDetailServerData?.map(it =>
         Object.assign({}, it, {
           rate: (it.rate * 100).toFixed(2) + '%',
           workpoint: it.workpoint ?? 0,
@@ -1197,8 +1198,10 @@ export default {
   },
   methods: {
     computedColWidth(field) {
-      if (this.scoreList?.length > 0) {
-        return this.$widthCompute(this.scoreList.map(item => item[field]));
+      if (this.projectDetailData?.length > 0) {
+        return this.$widthCompute(
+          this.projectDetailData.map(item => item[field])
+        );
       }
     },
     //系统自动打分开关事件
@@ -1642,13 +1645,13 @@ export default {
         return [];
       }
     },
-    //获取机构的各项工分详情
-    hospitalProject: {
+    //获取工分值校正明细数据
+    projectDetailServerData: {
       async get() {
         try {
-          return await this.$api.ScoreHospitalCheckRules.projectDetail(
+          return await this.$api.SystemArea.projectDetail(
             this.params.id,
-            this.params.checkId
+            this.params.year
           );
         } catch (e) {
           return [];
