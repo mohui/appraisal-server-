@@ -136,11 +136,6 @@ export default {
     cellClassHover({columnIndex}) {
       if (columnIndex === 1) return 'hospital-name';
     },
-    //年度选择
-    handleYearChange(value) {
-      console.log(value);
-      this.year = value;
-    },
     //点击标题跳转详情
     handleCellClick(row, column) {
       if (column.property === 'name') {
@@ -153,6 +148,11 @@ export default {
           }
         });
       }
+    },
+    //年度选择
+    handleYearChange(value) {
+      console.log(value);
+      this.year = value;
     }
   }
 };
