@@ -445,17 +445,12 @@ export default class Score {
               // 健康档案建档率
               if (tagModel.tag === MarkTagUsages.S01.code) {
                 // 查询服务总人口数
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.DocPeople,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.DocPeople,
+                  year
+                );
                 // 如果服务总人口数不存在, 直接跳过
-                if (!basicData?.value) continue;
 
                 // 根据指标算法, 计算得分
                 if (
@@ -474,7 +469,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.S00
                 ) {
-                  const rate = mark?.S00 / basicData.value / tagModel.baseline;
+                  const rate = mark?.S00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -529,17 +524,13 @@ export default class Score {
               // 老年人健康管理率
               if (tagModel.tag === MarkTagUsages.O00.code) {
                 // 查询老年人人数
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.OldPeople,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.OldPeople,
+                  year
+                );
                 // 如果老年人人数不存在, 直接跳过
-                if (!basicData?.value) continue;
+                if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O00
@@ -554,7 +545,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.O00
                 ) {
-                  const rate = mark.O00 / basicData.value / tagModel.baseline;
+                  const rate = mark.O00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -562,17 +553,13 @@ export default class Score {
               // 老年人中医药健康管理率
               if (tagModel.tag === MarkTagUsages.O02.code) {
                 // 查询老年人人数
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.OldPeople,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.OldPeople,
+                  year
+                );
                 // 如果查询老年人人数不存在, 直接跳过
-                if (!basicData?.value) continue;
+                if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O02
@@ -585,10 +572,10 @@ export default class Score {
                   ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
-                  basicData?.value &&
+                  basicData &&
                   mark?.O02
                 ) {
-                  const rate = mark.O02 / basicData.value / tagModel.baseline;
+                  const rate = mark.O02 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -597,17 +584,13 @@ export default class Score {
               // 高血压健康管理
               if (tagModel.tag === MarkTagUsages.H00.code) {
                 // 查询高血压人数
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.HypertensionPeople,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HypertensionPeople,
+                  year
+                );
                 // 如果查询高血压人数不存在, 直接跳过
-                if (!basicData?.value) continue;
+                if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H00
@@ -622,7 +605,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.H00
                 ) {
-                  const rate = mark.H00 / basicData.value / tagModel.baseline;
+                  const rate = mark.H00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -677,17 +660,13 @@ export default class Score {
               // 糖尿病健康管理
               if (tagModel.tag === MarkTagUsages.D00.code) {
                 // 查询糖尿病人数
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.DiabetesPeople,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.DiabetesPeople,
+                  year
+                );
                 // 如果查询糖尿病人数不存在, 直接跳过
-                if (!basicData?.value) continue;
+                if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D00
@@ -702,7 +681,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.D00
                 ) {
-                  const rate = mark.D00 / basicData.value / tagModel.baseline;
+                  const rate = mark.D00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -803,16 +782,12 @@ export default class Score {
 
               //卫生计生监督协管信息报告率
               if (tagModel.tag === MarkTagUsages.SC00.code) {
-                const basicData = await BasicTagDataModel.findOne({
-                  where: {
-                    code: BasicTagUsages.Supervision,
-                    hospital: {
-                      [Op.in]: leaves.map(it => it.code)
-                    },
-                    year: year
-                  }
-                });
-                if (!basicData?.value) continue;
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.Supervision,
+                  year
+                );
+                if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC00
@@ -827,7 +802,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SC00
                 ) {
-                  const rate = mark.SC00 / basicData.value / tagModel.baseline;
+                  const rate = mark.SC00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
