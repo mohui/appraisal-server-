@@ -1648,10 +1648,14 @@ export default {
     //获取服务器单项考核得分解读数据
     appraisalResultInstructionsServerData: {
       async get() {
-        return await this.$api.Score.detail(
-          this.params.id,
-          this.curRule.ruleId
-        );
+        try {
+          return await this.$api.Score.detail(
+            this.params.id,
+            this.curRule.ruleId
+          );
+        } catch (e) {
+          return [e?.message ?? e];
+        }
       },
       shouldUpdate() {
         return this.appraisalResultInstructionsPopoverVisible;
