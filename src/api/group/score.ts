@@ -1117,7 +1117,7 @@ export default class Score {
    * @param rule 考核细则id
    * @param code 地区code
    */
-  async detail(rule, code) {
+  async detail(code, rule) {
     // 根据地区查询考核体系
     // language=PostgreSQL
     const ruleModel: {year: string; rule: string} = (
@@ -1129,17 +1129,18 @@ export default class Score {
                      inner join check_rule cr on ca.check_system = cr.check_id
             where ca.area = ?
               and cr.rule_id = ?
-              and cr.parent_rule_id is null`,
+              and cr.parent_rule_id is not null`,
         code,
         rule
       )
     )[0];
-    if (!ruleModel) throw KatoRuntimeError('参数不合法');
+    if (!ruleModel) throw new KatoRuntimeError('参数不合法');
     // 判断年份
     const now = dayjs();
     if (
-      now.year().toString() != ruleModel.year ||
-      (now.month() != 1 && now.day() != 1)
+      now.year().toString() != ruleModel.year &&
+      now.month() != 1 &&
+      now.day() != 1
     ) {
       return [];
     }
@@ -1166,7 +1167,7 @@ export default class Score {
       ruleModel.rule
     );
     if (formulas.length === 0)
-      throw KatoCommonError('当前考核项没有绑定关联关系');
+      throw new KatoCommonError('当前考核项没有绑定关联关系');
 
     const leaves = await getLeaves(code);
     const markHospitalModel = await getMarks(code);
@@ -1382,5 +1383,6 @@ export default class Score {
         result.push(`${MarkTagUsages.SC01.name} = ${markHospitalModel?.SC01}`);
       }
     }
+    return result;
   }
 }
