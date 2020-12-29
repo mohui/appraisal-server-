@@ -1210,7 +1210,7 @@ export default {
     },
     //系统自动打分开关事件
     async handleSystemAllAutoScore() {
-      await this.$api.Hospital.setCheckAuto(
+      await this.$api.CheckAreaEdit.setCheckAuto(
         this.appraisalIndicatorsData.checkId,
         this.params.id,
         this.appraisalIndicatorsData.auto
