@@ -73,6 +73,10 @@ export default class SystemArea {
     // 查询本级权限
     const areas = await AreaModel.findOne({where: {code}});
 
+    // 获取树形结构
+    const tree = await getAreaTree(Context.current.user.code);
+    const parentIndex = tree.findIndex(it => it.code === areas.parent);
+
     if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     if (!year) year = dayjs().format('YYYY');
@@ -94,6 +98,7 @@ export default class SystemArea {
     return {
       id: areas.code,
       name: areas.name,
+      parent: parentIndex > -1 ? areas.parent : null,
       score: reportArea ? Number(reportArea.score) : 0,
       workPoint: reportArea ? Number(reportArea.workPoint) : 0,
       rate: reportArea ? Number(reportArea.rate) : 0,
