@@ -3,25 +3,23 @@ import {AreaModel} from '../database';
 import {Context} from './context';
 import {KatoRuntimeError} from 'kato-server';
 
+export type AreaTreeNode = {
+  name: string;
+  code: string;
+  parent: string;
+  level: number;
+  root: string;
+  path: string[];
+  cycle: boolean;
+  leaf: boolean;
+};
+
 /**
  * 获取地区树, 包括自己
  *
  * @param code 地区code
  */
-export async function getAreaTree(
-  code
-): Promise<
-  {
-    name: string;
-    code: string;
-    parent: string;
-    level: number;
-    root: string;
-    path: string[];
-    cycle: boolean;
-    leaf: boolean;
-  }[]
-> {
+export async function getAreaTree(code): Promise<AreaTreeNode[]> {
   const condition = code ? `code = '${code}'` : 'parent is null';
   // language=PostgreSQL
   return await appDB.execute(`
@@ -74,20 +72,7 @@ export async function getAreaTree(
  *
  * @param code 地区code
  */
-export async function getLeaves(
-  code: string
-): Promise<
-  {
-    name: string;
-    code: string;
-    parent: string;
-    level: number;
-    root: string;
-    path: string[];
-    cycle: boolean;
-    leaf: boolean;
-  }[]
-> {
+export async function getLeaves(code: string): Promise<AreaTreeNode[]> {
   return (await getAreaTree(code)).filter(it => it.leaf);
 }
 
@@ -130,20 +115,7 @@ export async function getOriginalArray(
  *
  * @param code 地区code
  */
-export async function getGroupTree(
-  code
-): Promise<
-  {
-    name: string;
-    code: string;
-    parent: string;
-    level: number;
-    root: string;
-    path: string[];
-    cycle: boolean;
-    leaf: boolean;
-  }[]
-> {
+export async function getGroupTree(code): Promise<AreaTreeNode[]> {
   const condition = code ? `parent = '${code}'` : 'parent is null';
   // language=PostgreSQL
   return await appDB.execute(`
