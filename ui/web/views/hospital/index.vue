@@ -77,9 +77,9 @@ export default {
       async get() {
         let code = this.$settings.user.region.code;
         return await Promise.all(
-          (await this.$api.Region.listAllHospital(code)).map(async item => {
+          (await this.$api.SystemArea.rank(code)).map(async item => {
             item.hasChildren =
-              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+              (await this.$api.SystemArea.rank(item.code)).length > 0;
             return item;
           })
         );
@@ -92,7 +92,7 @@ export default {
   methods: {
     async load(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (await this.$api.Region.listAllHospital(tree.code))
+        (await this.$api.SystemArea.rank(tree.code))
           //根据金额排序
           .sort((a, b) => b.budget - a.budget)
           .map(async (item, index) => {
@@ -102,7 +102,7 @@ export default {
             item.uuid = `${tree.uuid}-${index + 1}`;
             item.hasChildren =
               item.code !== tree.code &&
-              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+              (await this.$api.SystemArea.rank(item.code)).length > 0;
             return item;
           })
       );
