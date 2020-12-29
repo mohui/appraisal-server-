@@ -647,15 +647,15 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
             select
-                cast(sum(vws.score) as int) as score,
-                vws.operateorganization,
-                vws.operatorid as "doctorId",
-                vws.doctor as "doctorName"
-            from view_workscoretotal vws
-            where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+                cast(sum(score) as int) as score,
+                operateorganization,
+                operatorid as "doctorId",
+                doctor as "doctorName"
+            from view_workscoretotal
+            where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
              and missiontime >= {{? startTime}}
              and missiontime < {{? endTime}}
-             group by vws.operatorid, vws.doctor, vws.operateorganization
+             group by operatorid, doctor, operateorganization
              `,
       {
         hisHospIds,
@@ -762,14 +762,14 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
         select
-            cast(sum(vws.score) as int) as score,
-            vws.projectname as "name",
-            vws.projecttype as "code"
-        from view_workscoretotal vws
-        where vws.operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            cast(sum(score) as int) as score,
+            projectname as "name",
+            projecttype as "code"
+        from view_workscoretotal
+        where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
          and missiontime >= {{? startTime}}
          and missiontime < {{? endTime}}
-         group by vws.projecttype, vws.projectname
+         group by projecttype, projectname
          `,
       {
         hisHospIds,
