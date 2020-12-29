@@ -1428,10 +1428,7 @@ export default {
     //查看手动打分的历史
     async scoreHistory(row) {
       row.scoreHistoryData = (
-        await this.$api.ScoreHospitalCheckRules.scoreHistory(
-          row.ruleId,
-          this.params.id
-        )
+        await this.$api.Score.manualScoreHistory(row.ruleId, this.params.id)
       ).map(it => ({
         ...it,
         creatorName: it.creator.name,
