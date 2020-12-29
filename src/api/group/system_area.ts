@@ -860,10 +860,10 @@ export default class SystemArea {
     // 循环工分项
     for (const it of workTypes) {
       // 获取此工分项下的所有公分
-      const hospitalProint = await getWorkPoints(hisHospIdObjs, [it], year);
+      const hospitalPoints = await getWorkPoints(hisHospIdObjs, [it], year);
 
       // 把工分值累加一起
-      const workPoint = hospitalProint.reduce(
+      const workPoint = hospitalPoints.reduce(
         (prev, curr) => Number(prev) + Number(curr.score),
         0
       );
@@ -873,14 +873,15 @@ export default class SystemArea {
         rule?.project.some(p => p === it)
       );
 
+      const rate = index?.rate ?? 0;
       returnList.push({
         projectId: it,
         projectName: Projects.find(p => p.id === it)?.name,
         ruleId: index ? index.ruleId : '',
         ruleName: index ? index.ruleName : '',
         workPoint,
-        rate: index ? index.rate : 0,
-        correctWorkPoint: workPoint * (index ? index.rate : 0)
+        rate,
+        correctWorkPoint: workPoint * rate
       });
     }
 
