@@ -433,13 +433,15 @@
                 :data="workpointRankData"
                 max-height="600"
                 :header-cell-style="{background: '#e4e2df', color: '#333'}"
+                @row-click="handleCellClick"
+                :cell-class-name="cellClassHover"
               >
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
                     <span>【{{ scope.$index + 1 }}】</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="名称" align="center">
+                <el-table-column label="名称" align="center" prop="name">
                   <template slot-scope="scope">
                     <span>{{ scope.row.name }}</span>
                   </template>
@@ -1437,6 +1439,16 @@ export default {
         created_at: it.created_at.$format(),
         updated_at: it.updated_at.$format()
       }));
+    },
+    //设置标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'appraisal-result-subordinate-name';
+    },
+    //点击标题跳转详情
+    handleCellClick(row, column) {
+      if (column.property === 'name') {
+        this.handleClickSubordinateArea(row.code);
+      }
     }
   },
   asyncComputed: {
@@ -1786,5 +1798,14 @@ export default {
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
+}
+</style>
+
+<style lang="scss">
+.appraisal-result-subordinate-name {
+  cursor: pointer;
+  :hover {
+    color: #1a95d7;
+  }
 }
 </style>
