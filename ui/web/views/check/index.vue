@@ -363,6 +363,7 @@
               :props="props"
               :load="loadNode"
               :default-checked-keys="checkedKeys"
+              :default-expanded-keys="expandedKeys"
               lazy
               show-checkbox
               check-strictly
@@ -435,7 +436,9 @@ export default {
         children: 'children'
       },
       //选中的节点数组
-      checkedNodes: []
+      checkedNodes: [],
+      //默认展开的节点
+      expandedKeys: []
     };
   },
   computed: {
@@ -492,10 +495,11 @@ export default {
   watch: {
     treeServerData() {
       this.treeServerData.forEach(it => {
+        this.expandedKeys.push(it.code);
         //记录选中的节点
-        if (it.selected) {
-          this.checkedNodes.push({...it, disabled: !it.usable});
-        }
+        if (it.selected) this.checkedNodes.push({...it, disabled: !it.usable});
+        //展开含有选中项的节点
+        this.expandDefaultSelected(it.children, this.expandedKeys);
       });
     }
   },
@@ -522,7 +526,10 @@ export default {
     //服务器返回的树的根节点值
     treeServerData: {
       async get() {
-        return await this.$api.Group?.list(this.code, this.checkForm.checkId);
+        return await this.$api.CheckAreaEdit.list(
+          this.code,
+          this.checkForm.checkId
+        );
       },
       default() {
         return [];
@@ -533,6 +540,31 @@ export default {
     }
   },
   methods: {
+    //查找各级别的所有需要默认展开的节点
+    expandDefaultSelected(tree, result) {
+      if (tree?.length ?? 0 > 0) {
+        tree.forEach(t => {
+          //没有被选中的节点,但该节点的下级有被选中的项,则该节点需要展开
+          if (!t.selected && this.hasChildrenSelected(t.children))
+            result.push(t.code);
+          if (t.children?.length ?? 0 > 0)
+            this.expandDefaultSelected(t.children, result);
+        });
+      }
+    },
+    //递归判断节点的某一下级含有被选中的子节点
+    hasChildrenSelected(nodes) {
+      if (nodes.length > 0) {
+        for (let i = 0; i < nodes.length; i++) {
+          //找到有被选中的节点直接返回true;
+          if (nodes[i].selected) return true;
+          //如果节点下面还有子节点数组需要判断
+          if (nodes[i].children?.length ?? 0 > 0)
+            return this.hasChildrenSelected(nodes[i].children);
+        }
+      }
+      return false;
+    },
     //临时考核打分
     async tempCheck(row) {
       if (!row.running) {
@@ -842,20 +874,20 @@ export default {
     },
     //加载子树数据
     async loadNode(node, resolve) {
-      console.log('loadNode:', node);
       if (node.level === 0) return resolve(this.treeData);
       const checked = node.checked;
       const children = (
-        await this.$api.Group?.list(node.data.code, this.checkForm.checkId)
+        await this.$api.CheckAreaEdit?.list(
+          node.data.code,
+          this.checkForm.checkId
+        )
       ).map(it => {
         const node = {...it, disabled: !it.usable};
-        //记录选中的节点
-        if (it.selected) {
+        //记录选中的节点,并没有重复添加
+        if (it.selected && !this.checkedNodes.some(c => c.code === it.code))
           this.checkedNodes.push(node);
-        }
         return node;
       });
-      console.log('children', children);
       //如果有叶子节点，设置该节点不可点击
       if (node.data && children.length > 0) node.data.disabled = true;
       //如果没有叶子节点，将该节点的选中状态还原（因为在handleNodeExpand方法中，节点展开时会设置节点的选中状态为false）
@@ -863,20 +895,17 @@ export default {
       return resolve(children);
     },
     //节点选中状态发生变化时的回调
-    handleCheckChange(data, checked) {
-      console.log('节点选中状态handleCheckChange:', data, checked);
+    handleCheckChange() {
       //获取目前被选中的节点所组成的数组
       this.checkedNodes = this.$refs.tree.getCheckedNodes();
     },
     //节点被展开时触发的事件
-    handleNodeExpand(data, node, el) {
-      console.log('节点被展开handleNodeExpand：', data, node, el);
+    handleNodeExpand(data, node) {
       if (node.childNodes?.length ?? 0 > 0) data.disabled = true;
       node.checked = false;
     },
     //节点被关闭时触发的事件
-    handleNodeCollapse(data, node, el) {
-      console.log('节点被关闭handleNodeCollapse：', data, node, el);
+    handleNodeCollapse(data, node) {
       if (data.usable) data.disabled = false;
       //取消叶子节点的选中
       this.handleUncheck(node);
@@ -902,6 +931,8 @@ export default {
     handleCheckOrganizationDialogClose() {
       //将选中的节点数组清除
       this.checkedNodes = [];
+      //默认展开的节点数组清除
+      this.expandedKeys = [];
     }
   }
 };
