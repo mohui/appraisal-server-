@@ -139,7 +139,7 @@ export async function getGroupTree(
     parent: string;
     level: number;
     root: string;
-    path: string;
+    path: string[];
     cycle: boolean;
     leaf: boolean;
   }[]
