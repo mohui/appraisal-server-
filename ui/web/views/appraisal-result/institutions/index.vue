@@ -82,7 +82,7 @@
           style="float:right; margin: 4px 0 10px 30px"
           type="primary"
           @click="handleBack"
-          >返回
+          >返回上级
         </el-button>
       </el-card>
       <!--自身考核结果-->
@@ -1402,20 +1402,16 @@ export default {
     },
     //是否显示返回按钮
     showBackButton() {
-      if (this.$route.query.isInstitution) {
-        if (JSON.parse(this.$route.query.isInstitution)) {
-          return this.$settings.user.isRegion;
-        }
-      }
-      return false;
+      return this.totalData.parent;
     },
-    //返回
+    //返回上级
     handleBack() {
-      //这里不需要设置this.params.isInstitution=false，
-      //因为执行initParams方法时
-      //会将route.query.isInstitution赋值给this.params.isInstitution
-      //this.params.isInstitution = false;
-      this.$router.go(-1);
+      this.params.id = this.totalData.parent;
+      this.$router.push({
+        query: {
+          ...this.params
+        }
+      });
     },
     //考核结果下载
     async handleAppraisalResultsDownload() {
