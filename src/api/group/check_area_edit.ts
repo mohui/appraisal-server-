@@ -96,7 +96,7 @@ export default class CheckAreaEdit {
         }, [])
         .map(it => childTree.find(c => it === c.code))
         .map(nodeMapping);
-      return {tree: getTree(data, code), data};
+      return getTree(data, code);
     }
   }
 
