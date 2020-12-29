@@ -1220,7 +1220,7 @@ export default {
     //单项指标系统自动打分开关
     async handleChangeSystemAutoScore(row) {
       try {
-        await this.$api.Hospital.setRuleAuto(
+        await this.$api.CheckAreaEdit.setRuleAuto(
           this.params.id,
           row.ruleId,
           row.auto
