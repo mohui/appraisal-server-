@@ -19,7 +19,11 @@
         </span>
         <!--年度选择-->
         <span style="margin: 0 10px">
-          <el-select v-model="params.year" placeholder="请选择考核年度">
+          <el-select
+            v-model="params.year"
+            placeholder="请选择考核年度"
+            @change="handleYearChange(params.year)"
+          >
             <el-option
               v-for="item in yearList"
               :key="item.value"
@@ -1366,6 +1370,7 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
+      if (route.query.year) this.params.year = route.query.year;
       this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
@@ -1378,6 +1383,16 @@ export default {
           }
         });
       }
+    },
+    //年度选择
+    handleYearChange(value) {
+      console.log(value);
+      this.params.year = value;
+      this.$router.replace({
+        query: {
+          ...this.params
+        }
+      });
     },
     //进入下级地区
     handleClickSubordinateArea(id) {
