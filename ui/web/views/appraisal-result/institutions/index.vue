@@ -586,7 +586,7 @@
                         type="primary"
                         size="mini"
                         :loading="scope.row.isSaveScoreLoaing"
-                        @click="handleSaveScore(scope.row)"
+                        @click="openRemarkDialog(scope.row)"
                         >保存
                       </el-button>
                       <el-button
@@ -1266,7 +1266,7 @@ export default {
       try {
         this.scoreRemarkVisible = false;
         row.isSaveScoreLoaing = true;
-        await this.$api.ScoreHospitalCheckRules.score(
+        await this.$api.Score.manualScore(
           row.ruleId,
           this.totalData.id,
           row.score,
