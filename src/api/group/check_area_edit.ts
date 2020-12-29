@@ -4,6 +4,8 @@ import {
   CheckSystemModel,
   RuleAreaBudgetModel,
   ReportAreaModel,
+  ReportAreaHistoryModel,
+  RuleAreaAttachModel,
   RuleAreaScoreModel
 } from '../../database/model';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
@@ -11,6 +13,7 @@ import {Op} from 'sequelize';
 import {appDB} from '../../app';
 import {getAreaTree} from '../group';
 import {Context} from '../context';
+import * as dayjs from 'dayjs';
 
 function getTree(data: any[], parentCode) {
   const root = data.filter(it => it.parent === parentCode);
@@ -146,6 +149,8 @@ export default class CheckAreaEdit {
     });
     if (allRules.length === 0)
       throw new KatoCommonError('该考核系统下没有细则');
+    // 取出所有的考核细则id
+    const checkRules = allRules.map(it => it.ruleId);
     // todo: 有个权限问题,过滤掉自己权限以外地区
 
     // 查询考核原有的考核地区
@@ -176,8 +181,7 @@ export default class CheckAreaEdit {
           where: {
             areaCode: {[Op.in]: deleteAreas},
             checkId: checkId
-          },
-          logging: console.log
+          }
         });
 
         //删除地区金额数据
@@ -202,6 +206,27 @@ export default class CheckAreaEdit {
         });
       }
 
+      //删除解绑结构的今日历史打分结果
+      await ReportAreaHistoryModel.destroy({
+        where: {
+          areaCode: {[Op.in]: deleteAreas},
+          date: dayjs().toDate(),
+          checkId
+        }
+      });
+
+      //删除机构定性指标文件
+      await RuleAreaAttachModel.destroy({
+        where: {
+          areaCode: {
+            [Op.in]: deleteAreas
+          },
+          ruleId: {
+            [Op.in]: checkRules
+          }
+        }
+      });
+
       // 批量添加考核系统和机构的关系
       return CheckAreaModel.bulkCreate(
         insertAreas.map(it => ({
@@ -209,34 +234,8 @@ export default class CheckAreaEdit {
           checkId: checkId
         }))
       );
-      //return insertCheckArea;
     });
     return ret;
-
-    /*
-    //解绑的机构  unHospitals
-
-    //删除机构定性指标文件
-    await RuleHospitalAttachModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}},
-      include: [{model: CheckRuleModel, where: {checkId}}]
-    });
-
-    //删除解绑结构的今日历史打分结果
-    await ReportHospitalHistoryModel.destroy({
-      where: {
-        hospitalId: {[Op.in]: unHospitals},
-        date: dayjs().toDate(),
-        checkId
-      }
-    });
-    //添加新增的机构和规则对应关系
-    let newRuleHospitals = [];
-
-
-    //批量添加规则与机构的关系数据
-    return RuleHospitalModel.bulkCreate(newRuleHospitals);
-    */
   }
 
   /**
