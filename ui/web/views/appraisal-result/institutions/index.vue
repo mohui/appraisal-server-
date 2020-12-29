@@ -577,7 +577,7 @@
                     v-if="$settings.user.isRegion"
                     align="center"
                     label="操作"
-                    width="184px"
+                    width="220px"
                   >
                     <template slot-scope="scope">
                       <el-button
