@@ -1648,7 +1648,7 @@ export default {
     //获取服务器单项考核得分解读数据
     appraisalResultInstructionsServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.detail(
+        return await this.$api.Score.detail(
           this.params.id,
           this.curRule.ruleId
         );
