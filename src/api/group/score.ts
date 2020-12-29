@@ -342,6 +342,7 @@ export default class Score {
         areaCode: group,
         workPoint: 0,
         totalWorkPoint: 0,
+        correctWorkPoint: 0,
         score: 0,
         totalScore: 0,
         rate: 0
@@ -844,14 +845,6 @@ export default class Score {
           parentScore += ruleAreaScoreModel.score;
           debug('考核细则', rule.id, '结束');
         }
-        // 计算考核小项的质量系数
-        const rate =
-          parentTotalScore === 0
-            ? 0
-            : new Decimal(parentScore)
-                .div(new Decimal(parentTotalScore))
-                .toNumber();
-
         // 根据考核小项查询绑定的工分项
         const projects = (
           await appDB.execute(
@@ -874,15 +867,21 @@ export default class Score {
           }, new Decimal(0))
           .toNumber();
         debug('考核小项获取总工分结束', workPoint);
-
+        // 计算考核小项的质量系数
+        let rate = 0;
+        if (parentTotalScore != 0) {
+          rate = new Decimal(parentScore)
+            .div(new Decimal(parentTotalScore))
+            .toNumber();
+        }
+        // 校正后的工分值
+        const correctWorkPoint = new Decimal(workPoint).mul(new Decimal(rate));
         // 保存小项考核表
         await RuleAreaBudgetModel.upsert({
           ruleId: parentRule.id,
           areaCode: group,
           workPoint: workPoint,
-          correctWorkPoint: new Decimal(workPoint)
-            .mul(new Decimal(rate))
-            .toNumber(),
+          correctWorkPoint: correctWorkPoint.toNumber(),
           score: parentScore,
           totalScore: parentTotalScore,
           rate: rate
@@ -891,6 +890,10 @@ export default class Score {
         // 地区参与校正的工分
         reportModel.workPoint = new Decimal(workPoint)
           .add(new Decimal(reportModel.workPoint))
+          .toNumber();
+        // 地区校正后的工分
+        reportModel.correctWorkPoint = new Decimal(reportModel.correctWorkPoint)
+          .add(correctWorkPoint)
           .toNumber();
         // 地区考核得分
         reportModel.score = new Decimal(parentScore)
