@@ -730,7 +730,7 @@
                     <span>【{{ scope.$index + 1 }}】</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="地区" align="center">
+                <el-table-column label="名称" align="center">
                   <template slot-scope="scope">
                     <span>{{ scope.row.name }}</span>
                   </template>
