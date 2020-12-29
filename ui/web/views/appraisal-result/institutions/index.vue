@@ -207,30 +207,35 @@
                     <el-table-column
                       prop="projectName"
                       label="工分项"
+                      align="center"
                       :min-width="computedColWidth('projectName')"
                     >
                     </el-table-column>
                     <el-table-column
                       prop="workPointFormat"
                       label="工分"
+                      align="center"
                       :min-width="computedColWidth('workPointFormat')"
                     >
                     </el-table-column>
                     <el-table-column
                       prop="ruleName"
                       label="考核项"
+                      align="center"
                       :min-width="computedColWidth('ruleName')"
                     >
                     </el-table-column>
                     <el-table-column
                       prop="rateFormat"
                       label="质量系数"
+                      align="center"
                       min-width="80"
                     >
                     </el-table-column>
                     <el-table-column
                       prop="correctWorkPointFormat"
                       label="得分"
+                      align="center"
                       :min-width="computedColWidth('correctWorkPointFormat')"
                     >
                     </el-table-column>
