@@ -704,7 +704,7 @@
             </el-card>
           </el-col>
         </el-row>
-        <!--下级工分排行-->
+        <!--下级工分排行 / 工分项目-->
         <el-row
           v-if="params.listFlag === 'score'"
           :gutter="20"
