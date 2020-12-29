@@ -17,7 +17,7 @@ export async function getAreaTree(
     parent: string;
     level: number;
     root: string;
-    path: string;
+    path: string[];
     cycle: boolean;
     leaf: boolean;
   }[]
@@ -83,7 +83,7 @@ export async function getLeaves(
     parent: string;
     level: number;
     root: string;
-    path: string;
+    path: string[];
     cycle: boolean;
     leaf: boolean;
   }[]

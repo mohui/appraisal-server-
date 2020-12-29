@@ -53,7 +53,7 @@ export default class CheckAreaEdit {
       parent: string;
       level: number;
       root: string;
-      path: string;
+      path: string[];
       cycle: boolean;
       leaf: boolean;
     }) => ({
