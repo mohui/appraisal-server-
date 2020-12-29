@@ -219,8 +219,7 @@ async function getBasicData(leaves: AreaTreeNode[], tag, year) {
       },
       code: tag,
       year
-    },
-    logging: true
+    }
   });
 }
 
