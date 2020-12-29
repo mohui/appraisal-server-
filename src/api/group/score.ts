@@ -27,6 +27,7 @@ import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
+import {percentString} from '../score_hospital_check_rules';
 
 /**
  * 查询考核对象的标记数据
@@ -211,8 +212,12 @@ where OperateOrganization = {{? id}}
  * @param tag 基础数据的tag
  * @param year 年份
  */
-async function getBasicData(leaves: AreaTreeNode[], tag, year) {
-  return BasicTagDataModel.sum('value', {
+async function getBasicData(
+  leaves: AreaTreeNode[],
+  tag,
+  year
+): Promise<number> {
+  const data: number = await BasicTagDataModel.sum('value', {
     where: {
       hospital: {
         [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
@@ -221,6 +226,7 @@ async function getBasicData(leaves: AreaTreeNode[], tag, year) {
       year
     }
   });
+  return data;
 }
 
 function debug(...args) {
@@ -1103,5 +1109,278 @@ export default class Score {
       include: [UserModel],
       order: [['created_at', 'DESC']]
     });
+  }
+
+  /**
+   * 获取考核细则得分解读
+   *
+   * @param rule 考核细则id
+   * @param code 地区code
+   */
+  async detail(rule, code) {
+    // 根据地区查询考核体系
+    // language=PostgreSQL
+    const ruleModel: {year: string; rule: string} = (
+      await appDB.execute(
+        `
+            select cs.check_year as year, rule_id as rule
+            from check_area ca
+                     inner join check_system cs on ca.check_system = cs.check_id
+                     inner join check_rule cr on ca.check_system = cr.check_id
+            where ca.area = ?
+              and cr.rule_id = ?
+              and cr.parent_rule_id is null`,
+        code,
+        rule
+      )
+    )[0];
+    if (!ruleModel) throw KatoRuntimeError('参数不合法');
+    // 判断年份
+    const now = dayjs();
+    if (
+      now.year().toString() != ruleModel.year ||
+      (now.month() != 1 && now.day() != 1)
+    ) {
+      return [];
+    }
+    const year = ruleModel.year;
+    // 查询考核细则的关联关系
+    // language=PostgreSQL
+    const formulas: {
+      tag: string;
+      algorithm: string;
+      baseline: number;
+      score: number;
+      attachStartDate?: Date;
+      attachEndDate?: Date;
+    }[] = await appDB.execute(
+      `
+          select tag,
+                 algorithm,
+                 baseline,
+                 score,
+                 attach_start_date as attachStartDate,
+                 attach_end_date   as attachEndDate
+          from rule_tag
+          where rule = ?`,
+      ruleModel.rule
+    );
+    if (formulas.length === 0)
+      throw KatoCommonError('当前考核项没有绑定关联关系');
+
+    const leaves = await getLeaves(code);
+    const markHospitalModel = await getMarks(code);
+    const result = [];
+    // 根据关联关系计算得分
+    for (const tagModel of formulas) {
+      // 健康档案建档率
+      if (tagModel.tag === MarkTagUsages.S01.code) {
+        // 查询服务总人口数
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.DocPeople,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.S01.name
+          } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
+            markHospitalModel?.S00
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.S00,
+            basicData
+          )}`
+        );
+      }
+      // 健康档案规范率
+      if (tagModel.tag === MarkTagUsages.S23.code) {
+        result.push(
+          `${
+            MarkTagUsages.S23.name
+          } = 规范的电子档案数 / 建立电子健康档案人数 = ${
+            markHospitalModel?.S23
+          } / ${markHospitalModel.S00} = ${percentString(
+            markHospitalModel?.S23,
+            markHospitalModel?.S00
+          )}`
+        );
+      }
+      // 健康档案使用率
+      if (tagModel.tag === MarkTagUsages.S03.code) {
+        result.push(
+          `${
+            MarkTagUsages.S03.name
+          } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
+            markHospitalModel?.S03
+          } / ${markHospitalModel?.S00} = ${percentString(
+            markHospitalModel?.S03,
+            markHospitalModel?.S00
+          )}`
+        );
+      }
+
+      // 老年人健康管理率
+      if (tagModel.tag === MarkTagUsages.O00.code) {
+        // 查询老年人人数
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.OldPeople,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.O00.name
+          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+            markHospitalModel?.O00
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.O00,
+            basicData
+          )}`
+        );
+      }
+      // 老年人中医药健康管理率
+      if (tagModel.tag === MarkTagUsages.O02.code) {
+        // 查询老年人人数
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.OldPeople,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.O02.name
+          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+            markHospitalModel?.O02
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.O02,
+            basicData
+          )}`
+        );
+      }
+
+      // 高血压健康管理
+      if (tagModel.tag === MarkTagUsages.H00.code) {
+        // 查询高血压人数
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.HypertensionPeople,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.H00.name
+          } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
+            markHospitalModel?.H00
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.H00,
+            basicData
+          )}`
+        );
+      }
+      // 高血压规范管理率
+      if (tagModel.tag === MarkTagUsages.H01.code) {
+        result.push(
+          `${
+            MarkTagUsages.H01.name
+          } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
+            markHospitalModel?.H01
+          } / ${markHospitalModel?.H00} = ${percentString(
+            markHospitalModel?.H01,
+            markHospitalModel?.H00
+          )}`
+        );
+      }
+      // 高血压控制率
+      if (tagModel.tag === MarkTagUsages.H02.code) {
+        result.push(
+          `${
+            MarkTagUsages.H02.name
+          } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
+            markHospitalModel?.H02
+          } / ${markHospitalModel?.H00} = ${percentString(
+            markHospitalModel?.H02,
+            markHospitalModel?.H00
+          )}`
+        );
+      }
+
+      // 糖尿病健康管理
+      if (tagModel.tag === MarkTagUsages.D00.code) {
+        // 查询糖尿病人数
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.DiabetesPeople,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.D00.name
+          } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+            markHospitalModel?.D00
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.D00,
+            basicData
+          )}`
+        );
+      }
+      // 糖尿病规范管理率
+      if (tagModel.tag === MarkTagUsages.D01.code) {
+        result.push(
+          `${
+            MarkTagUsages.D01.name
+          } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel?.D01
+          } / ${markHospitalModel?.D00} = ${percentString(
+            markHospitalModel?.D01,
+            markHospitalModel?.D00
+          )}`
+        );
+      }
+      // 糖尿病控制率
+      if (tagModel.tag === MarkTagUsages.D02.code) {
+        result.push(
+          `${
+            MarkTagUsages.D02.name
+          } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+            markHospitalModel?.D02
+          } / ${markHospitalModel?.D00} = ${percentString(
+            markHospitalModel?.D02,
+            markHospitalModel?.D00
+          )}`
+        );
+      }
+
+      //健康教育指标
+      if (tagModel.tag.indexOf('HE') == 0) {
+        result.push(
+          `${MarkTagUsages[tagModel.tag].name} = ${
+            markHospitalModel?.[tagModel.tag]
+          }`
+        );
+      }
+
+      //卫生计生监督协管信息报告率
+      if (tagModel.tag === MarkTagUsages.SC00.code) {
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.Supervision,
+          year
+        );
+        result.push(
+          `${
+            MarkTagUsages.SC00.name
+          } = 报告的事件或线索次数 / 发现的事件或线索次数 x 100% = ${
+            markHospitalModel?.SC00
+          } / ${basicData} = ${percentString(
+            markHospitalModel?.SC00,
+            basicData
+          )}`
+        );
+      }
+      //协助开展的实地巡查次数
+      if (tagModel.tag === MarkTagUsages.SC01.code) {
+        result.push(`${MarkTagUsages.SC01.name} = ${markHospitalModel?.SC01}`);
+      }
+    }
   }
 }

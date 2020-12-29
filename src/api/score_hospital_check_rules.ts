@@ -39,7 +39,7 @@ import {Projects} from '../../common/project';
  * @param numerator 分子
  * @param denominator 分母
  */
-function percentString(numerator: number, denominator: number): string {
+export function percentString(numerator: number, denominator: number): string {
   if (denominator) {
     const rate = numerator / denominator;
     if (rate > 1) return '100%';
