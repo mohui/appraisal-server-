@@ -1418,7 +1418,10 @@ export default {
     },
     //考核结果下载
     async handleAppraisalResultsDownload() {
-      await this.$api.Hospital.checkDownload(this.params.id);
+      await this.$api.SystemArea.downloadCheck(
+        this.params.id,
+        this.params.year
+      );
     },
     //报告下载
     handleDownloadReport(url) {
