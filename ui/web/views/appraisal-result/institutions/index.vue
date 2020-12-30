@@ -1249,6 +1249,10 @@ export default {
           this.$refs[this.curRule.ruleId][0].updatePopper();
         });
       }
+    },
+    healthEducationType() {
+      //切换type时将no还原为1
+      this.healthEducationPageNo = 1;
     }
   },
   created() {
