@@ -6,7 +6,9 @@ import {
   ReportAreaModel,
   ReportAreaHistoryModel,
   RuleAreaAttachModel,
-  RuleAreaScoreModel
+  RuleAreaScoreModel,
+  RuleProjectModel,
+  RuleTagModel
 } from '../../database/model';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
@@ -272,5 +274,74 @@ export default class CheckAreaEdit {
       code,
       checkId
     );
+  }
+
+  //删除规则
+  @validate(
+    should
+      .string()
+      .required()
+      .description('规则id')
+  )
+  async deleteRule(ruleId) {
+    //查询并锁定
+    const rule = await CheckRuleModel.findOne({
+      where: {ruleId}
+    });
+    if (!rule) throw new KatoCommonError('该规则不存在');
+
+    // 要删除的ruleId(包含小项和细则)
+    let ruleIds = [];
+    // 判断是否是考核小项,是需要删除其下的细则
+    if (!rule.parentRuleId) {
+      const childRules = await CheckRuleModel.findAll({
+        where: {parentRuleId: rule.ruleId}
+      });
+      ruleIds = childRules.map(it => it.ruleId);
+    }
+    ruleIds.push(ruleId);
+
+    // 事务执行语句
+    return appDB.transaction(async () => {
+      // 删除考核细则
+      await CheckRuleModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除细则指标对应[考核细则]
+      await RuleTagModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除考核小项和公分项对应[考核小项]
+      await RuleProjectModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+
+      //删除地区金额数据[考核小项]
+      await RuleAreaBudgetModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除地区得分数据[考核细则]
+      await RuleAreaScoreModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      //删除机构定性指标文件[考核细则]
+      await RuleAreaAttachModel.destroy({
+        where: {
+          ruleId: {
+            [Op.in]: ruleIds
+          }
+        }
+      });
+    });
   }
 }
