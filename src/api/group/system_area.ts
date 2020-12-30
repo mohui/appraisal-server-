@@ -550,7 +550,15 @@ export default class SystemArea {
     return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
 
-  // 健康教育
+  /**
+   * 健康教育
+   *
+   * @param code 地区编码
+   * @param year 年份
+   * @param type 健康教育编码
+   * @param pageNo 当前页
+   * @param pageSize 每页显示条数
+   */
   @validate(
     should
       .string()
@@ -559,9 +567,27 @@ export default class SystemArea {
     should
       .string()
       .allow(null)
-      .description('年份')
+      .description('年份'),
+    should
+      .string()
+      .allow(null)
+      .description('健康教育编码'),
+    should
+      .number()
+      .allow(null)
+      .description('当前页'),
+    should
+      .number()
+      .allow(null)
+      .description('每页显示条数')
   )
-  async healthEducation(code, year) {
+  async healthEducation(code, year, type, pageNo, pageSize) {
+    // 默认健康教育编码
+    if (!type) type = '1';
+    // 默认页数
+    if (!pageNo) pageNo = 1;
+    // 默认条数
+    if (!pageSize) pageSize = 20;
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -578,48 +604,56 @@ export default class SystemArea {
     // 如果没传时间,默认当前年
     if (!year) year = dayjs().format('YYYY');
 
+    /**
+     * 发放印刷资料 ActivityFormCode = '1' PrintDataName 名称 ActivityTime 活动时间
+     * 播放音像资料 ActivityFormCode = '2' VideotapeName 名称 ActivityTime 活动时间
+     * 健康教育宣传栏 ActivityFormCode = '3' ActivityName 名称 ActivityTime 活动时间
+     * 健康知识讲座 ActivityFormCode = '4' ActivityName 名称 ActivityTime 活动时间
+     * 公众健康咨询 ActivityFormCode = '5' ActivityName 名称 ActivityTime 活动时间
+     * 个体化健康教育 ActivityFormCode = '6' ActivityName 名称 ActivityTime 活动时间
+     */
     const [sql, params] = sqlRender(
       `
-        SELECT vhe.ActivityFormCode as "ActivityFormCode",
-               vhe.PrintDataName    as "PrintDataName",
+        SELECT vhe.PrintDataName    as "PrintDataName",
                vhe.ActivityName     as "ActivityName",
-               vcd.CodeName         as "CodeName",
-               vcd.CodeName         as "ActivityFormName",
+               vhe.VideotapeName    as "VideotapeName",
                vhe.ActivityTime     as "ActivityTime"
         FROM view_HealthEducation vhe
-               LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
-          AND vcd.CategoryNo = '270105'
-        where vhe.OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-          and vhe.ActivityTime >= {{? startTime}}
+        where  vhe.ActivityTime >= {{? startTime}}
           and vhe.ActivityTime < {{? endTime}}
+          and vhe.ActivityFormCode = {{? activityFormCode}}
           and vhe.State = 1
+          and vhe.OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
         order by vhe.ActivityTime desc
       `,
       {
-        hisHospIds,
         startTime: dayjs(year)
           .startOf('y')
           .toDate(),
         endTime: dayjs(year)
           .startOf('y')
           .add(1, 'y')
-          .toDate()
+          .toDate(),
+        activityFormCode: type,
+        hisHospIds
       }
     );
 
-    const data = await originalDB.execute(sql, ...params);
-    return data.map(i => ({
-      ActivityName:
-        i.ActivityFormCode === '1' || i.ActivityFormCode === '2'
-          ? i.PrintDataName
-          : i.ActivityFormCode === '3' ||
-            i.ActivityFormCode === '4' ||
-            i.ActivityFormCode === '5'
-          ? i.ActivityName
-          : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
-      ActivityFormName: i.ActivityFormName,
-      ActivityTime: i.ActivityTime
-    }));
+    const data = await originalDB.page(sql, pageNo, pageSize, ...params);
+    return {
+      ...data,
+      data: data.data.map(it => {
+        return {
+          name:
+            type === '1'
+              ? it.PrintDataName
+              : type === '2'
+              ? it.VideotapeName
+              : it.ActivityName,
+          time: it.ActivityTime
+        };
+      })
+    };
   }
 
   /**
