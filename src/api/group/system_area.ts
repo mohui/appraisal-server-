@@ -819,21 +819,14 @@ export default class SystemArea {
             cast(sum(score) as int) as score,
             projectname as "name",
             projecttype as "code"
-        from view_workscoretotal
+        from mark_workpoint
         where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-         and missiontime >= {{? startTime}}
-         and missiontime < {{? endTime}}
+         and year = {{? year}}
          group by projecttype, projectname
          `,
       {
         hisHospIds,
-        startTime: dayjs(year)
-          .startOf('y')
-          .toDate(),
-        endTime: dayjs(year)
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
+        year
       }
     );
 
