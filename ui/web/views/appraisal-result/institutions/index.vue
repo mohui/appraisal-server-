@@ -388,7 +388,7 @@
                         $asyncComputed.healthEducationServerData.updating
                       "
                       :data="healthEducationData"
-                      height="280px"
+                      height="210px"
                       style="width: 100%"
                       size="mini"
                     >
@@ -410,6 +410,21 @@
                       </el-table-column>
                     </el-table>
                   </el-tab-pane>
+                  <div style="margin-top: 3px">
+                    <el-pagination
+                      small
+                      background
+                      :page-size="healthEducationPageSize"
+                      :current-page="healthEducationPageNo"
+                      layout="total, prev, pager, next"
+                      :total="healthEducationServerData.rows"
+                      @current-change="
+                        no => {
+                          healthEducationPageNo = no;
+                        }
+                      "
+                    ></el-pagination>
+                  </div>
                 </el-tabs>
                 <div v-else class="el-table__empty-text empty-data">
                   暂无数据
@@ -999,7 +1014,9 @@ export default {
         {type: '4', name: '健康知识讲座'},
         {type: '5', name: '公众健康咨询'},
         {type: '6', name: '个体化健康教育'}
-      ]
+      ],
+      healthEducationPageSize: 20, // 每页数量
+      healthEducationPageNo: 1 // 当前第几页
     };
   },
   computed: {
@@ -1509,7 +1526,9 @@ export default {
         return await this.$api.SystemArea.healthEducation(
           this.params.id,
           this.params.year,
-          this.healthEducationType
+          this.healthEducationType,
+          this.healthEducationPageNo,
+          this.healthEducationPageSize
         );
       },
       default() {
