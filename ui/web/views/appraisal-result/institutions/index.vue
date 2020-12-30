@@ -275,14 +275,17 @@
                   监督协管
                 </p>
                 <el-tabs>
-                  <el-tab-pane label="报告">
+                  <el-tab-pane
+                    style="display: flex;flex-direction: column"
+                    label="报告"
+                  >
                     <el-table
                       v-loading="
                         $asyncComputed.supervisionReportServerData.updating
                       "
                       :data="supervisionReportData"
-                      height="280px"
-                      style="width: 100%"
+                      height="210px"
+                      style="width: 100%;flex:1"
                       size="mini"
                     >
                       <el-table-column
