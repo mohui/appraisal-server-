@@ -22,7 +22,7 @@ export class ManualScoreHistory extends Model<ManualScoreHistory> {
   @Column(DataType.UUID)
   id: string;
 
-  @Comment('考核小项id')
+  @Comment('考核细则id')
   @AllowNull(false)
   @ForeignKey(() => CheckRule)
   @Column({field: 'rule', type: DataType.UUID})
@@ -33,7 +33,7 @@ export class ManualScoreHistory extends Model<ManualScoreHistory> {
 
   @Comment('地区code或者机构id')
   @AllowNull(false)
-  @Column({field: 'code', type: DataType.UUID})
+  @Column({field: 'code'})
   code: string;
 
   @Comment('打分者')
