@@ -15,17 +15,6 @@ import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 
-function getTree(data: any[], parentCode) {
-  const root = data.filter(it => it.parent === parentCode);
-  const list = [];
-  for (const item of root) {
-    const obj = {...item, children: getTree(data, item.code)};
-    list.push(obj);
-  }
-
-  return list;
-}
-
 export default class CheckAreaEdit {
   /**
    * 获取下级列表
@@ -34,8 +23,6 @@ export default class CheckAreaEdit {
    */
   async list(code, checkId) {
     if (!code) code = Context.current.user.regionId;
-    // 是否需要渲染选中的树
-    const renderTree = code === Context.current.user.code;
     // 查询考核体系
     const checkModel: CheckSystemModel = await CheckSystemModel.findOne({
       where: {checkId: checkId}
@@ -48,11 +35,18 @@ export default class CheckAreaEdit {
       `select area as code from check_area where check_system = ?`,
       checkId
     );
+    // 选中的节点
+    const checkedNodes = checkAreaModels
+      .map(it => childTree.find(c => it.code === c.code))
+      .filter(it => it);
     // 获取本年度其他考核体系绑定的地区
-    const otherCheckAreaModels: {code: string}[] = await appDB.execute(
+    const otherCheckAreaModels: {
+      code: string;
+      name: string;
+    }[] = await appDB.execute(
       // language=PostgreSQL
       `
-        select area as code
+        select area as code, cs.check_name as name
         from check_area ca
                inner join check_system cs on ca.check_system = cs.check_id
         where check_system != ?
@@ -60,43 +54,21 @@ export default class CheckAreaEdit {
       checkModel.checkId,
       checkModel.checkYear
     );
-    // 树节点的转换函数
-    const nodeMapping = (c: {
-      name: string;
-      code: string;
-      parent: string;
-      level: number;
-      root: string;
-      path: string[];
-      cycle: boolean;
-      leaf: boolean;
-    }) => ({
-      usable: !otherCheckAreaModels.find(ca => ca.code === c.code),
-      selected: !!checkAreaModels.find(ca => ca.code === c.code),
-      system: null,
-      code: c.code,
-      parent: c.parent,
-      name: c.name,
-      leaf: c.leaf
-    });
     // 转换子节点
-    const children = childTree.filter(c => c.parent === code);
-    if (renderTree && checkAreaModels.length > 0) {
-      // 渲染树
-      const data = checkAreaModels
-        .map(it => childTree.find(c => it.code === c.code))
-        .reduce((prev, current) => {
-          for (const p of current.path) {
-            if (!prev.some(it => it === p)) prev.push(p);
-          }
-          return prev;
-        }, [])
-        .map(it => childTree.find(c => it === c.code))
-        .map(nodeMapping);
-      return getTree(data, code);
-    } else {
-      return children.map(nodeMapping);
-    }
+    return childTree
+      .filter(c => c.parent === code)
+      .map(c => ({
+        name: c.name,
+        code: c.code,
+        parent: c.parent,
+        system: otherCheckAreaModels.find(ca => ca.code === c.code)?.name,
+        leaf: c.leaf,
+        usable: !otherCheckAreaModels.find(ca => ca.code === c.code),
+        selected: !!checkAreaModels.find(ca => ca.code === c.code),
+        childSelected:
+          !checkAreaModels.some(ca => ca.code === c.code) &&
+          checkedNodes.some(cn => cn.path.some(ca => ca === c.code))
+      }));
   }
 
   /**
