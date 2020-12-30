@@ -270,7 +270,7 @@
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-card shadow="hover">
-              <div style="height: 300px">
+              <div style="height: 300px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
@@ -369,7 +369,7 @@
           </el-col>
           <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
             <el-card shadow="hover">
-              <div class="score-detail">
+              <div style="height: 300px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   健康教育
                 </p>
