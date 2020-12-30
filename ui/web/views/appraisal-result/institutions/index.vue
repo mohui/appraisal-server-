@@ -1744,6 +1744,7 @@ export default {
 .second-title {
   font-size: 18px;
   font-weight: bold;
+  color: $color-primary;
 }
 
 .header-title {
