@@ -1001,7 +1001,7 @@ export default {
     },
     //监督协管巡查
     supervisionAssistData() {
-      return this.supervisionAssistServerData.map(it => ({
+      return this.supervisionAssistServerData.data.map(it => ({
         ...it,
         Time: it.Date.$format('YYYY-MM-DD')
       }));
@@ -1497,7 +1497,7 @@ export default {
         );
       },
       default() {
-        return [];
+        return {data: [], pages: 0, rows: 0};
       }
     },
     //人脸采集数据
