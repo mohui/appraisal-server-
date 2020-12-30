@@ -495,12 +495,11 @@ export default {
   watch: {
     treeServerData() {
       this.treeServerData.forEach(it => {
-        this.expandedKeys.push(it.code);
         //记录选中的节点
         if (it.selected) this.checkedNodes.push({...it, disabled: !it.usable});
-        //展开含有选中项的节点
-        this.expandDefaultSelected(it.children, this.expandedKeys);
       });
+      //展开含有选中项的节点
+      this.expandDefaultSelected(this.treeServerData, this.expandedKeys);
     }
   },
   created() {
@@ -545,10 +544,10 @@ export default {
       if (tree?.length ?? 0 > 0) {
         tree.forEach(t => {
           //没有被选中的节点,但该节点的下级有被选中的项,则该节点需要展开
-          if (!t.selected && this.hasChildrenSelected(t.children))
+          if (!t.selected && this.hasChildrenSelected(t?.children))
             result.push(t.code);
-          if (t.children?.length ?? 0 > 0)
-            this.expandDefaultSelected(t.children, result);
+          if (t?.children?.length ?? 0 > 0)
+            this.expandDefaultSelected(t?.children, result);
         });
       }
     },
