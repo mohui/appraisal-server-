@@ -410,6 +410,8 @@ export default class SystemArea {
    *
    * @param code
    * @param year
+   * @param pageNo
+   * @param pageSize
    */
   @validate(
     should
@@ -429,7 +431,10 @@ export default class SystemArea {
       .allow(null)
       .description('每页显示条数')
   )
-  async supervisionReport(code, year, pageNo = 1, pageSize = 20) {
+  async supervisionReport(code, year, pageNo, pageSize) {
+    // 赋值默认值
+    if (!pageNo) pageNo = 1;
+    if (!pageSize) pageSize = 20;
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -478,6 +483,8 @@ export default class SystemArea {
    *
    * @param code
    * @param year
+   * @param pageNo 当前页
+   * @param pageSize 每页显示条数
    */
   @validate(
     should
@@ -487,9 +494,21 @@ export default class SystemArea {
     should
       .string()
       .allow(null)
-      .description('年份')
+      .description('年份'),
+    should
+      .number()
+      .allow(null)
+      .description('当前页'),
+    should
+      .number()
+      .allow(null)
+      .description('每页显示条数')
   )
-  async supervisionAssist(code, year) {
+  async supervisionAssist(code, year, pageNo, pageSize) {
+    // 赋值默认值
+    if (!pageNo) pageNo = 1;
+    if (!pageSize) pageSize = 20;
+
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -528,7 +547,7 @@ export default class SystemArea {
           .toDate()
       }
     );
-    return await originalDB.execute(sql, ...params);
+    return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
 
   // 健康教育
