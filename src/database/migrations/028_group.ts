@@ -1,5 +1,18 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
+import {
+  AreaModel,
+  CheckAreaModel,
+  CheckHospitalModel,
+  ManualScoreHistoryModel,
+  ReportAreaHistoryModel,
+  ReportHospitalHistoryModel,
+  RuleAreaAttachModel,
+  RuleAreaScoreModel,
+  RuleHospitalAttachModel,
+  RuleHospitalModel,
+  ScoreRemarkHistoryModel
+} from '../model';
 
 export class GroupMigration implements IMigration {
   name = '分层考核';
@@ -147,8 +160,8 @@ export class GroupMigration implements IMigration {
         "score"      FLOAT        DEFAULT 0,
         "remark"     VARCHAR(255) DEFAULT '',
         "creator"    UUID REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         PRIMARY KEY ("id")
       );
       COMMENT ON COLUMN "manual_score_history"."rule" IS '考核小项id';
@@ -236,7 +249,111 @@ export class GroupMigration implements IMigration {
     `);
 
     // 3. 迁移数据
-    await client.execute(``);
+
+    // 3.1 构造area表
+    // 同步区级及以上的地区数据
+    // language=PostgreSQL
+    const regions = await client.execute(
+      `
+        select code, name, parent
+        from region
+        where level < 4
+        order by level
+      `
+    );
+    for (const region of regions) await AreaModel.upsert(region);
+
+    // 同步中心层
+    // language=PostgreSQL
+    const centers: {
+      u_id: string;
+      id: string;
+      name: string;
+      region: string;
+    }[] = await client.execute(
+      `
+        select h.id, h.name as name, hm.u_id, foo.region
+        from hospital h
+               inner join (
+          select h1.id, r.code as region
+          from hospital h1
+                 inner join region r on h1.region = r.code and r.level = 3
+        ) foo on h.parent = foo.id
+               inner join hospital_mapping hm on hm.h_id = h.id
+      `
+    );
+    for (const center of centers) {
+      // 同步中心层
+      await AreaModel.upsert({
+        code: center.u_id,
+        name: center.name,
+        parent: center.region
+      });
+      // 同步一级机构
+      await AreaModel.upsert({
+        code: center.id,
+        name: center.name,
+        parent: center.u_id
+      });
+      // 同步二级机构
+      const hospitals: {code: string; name: string}[] = await client.execute(
+        `select id as code, name from hospital where parent = ?`,
+        center.id
+      );
+      await Promise.all(
+        hospitals.map(it =>
+          AreaModel.upsert({
+            ...it,
+            parent: center.u_id
+          })
+        )
+      );
+    }
+
+    // 3.2 迁移考核相关数据
+
+    // 3.2.1 考核体系数据
+    const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
+    for (const model of checkHospitalModels) {
+      await CheckAreaModel.upsert({
+        checkId: model.checkId,
+        areaCode: model.hospitalId
+      });
+    }
+    // 3.2.2 考核细则数据
+    const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
+    for (const model of ruleAttachModels) {
+      await RuleAreaAttachModel.upsert(model.toJSON());
+    }
+    const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll();
+    for (const model of ruleHospitalModels) {
+      await RuleAreaScoreModel.upsert({
+        ruleId: model.ruleId,
+        areaCode: model.hospitalId,
+        auto: model.auto
+      });
+    }
+
+    // 3.2.3 手动打分备注
+    const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
+    for (const model of scoreRemarkModels) {
+      await ManualScoreHistoryModel.upsert({
+        ...model.toJSON(),
+        code: model.hospitalId
+      });
+    }
+
+    // 3.2.4 考核历史
+    const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
+    for (const model of reportHospitalModels) {
+      ReportAreaHistoryModel.upsert({
+        date: model.date,
+        checkId: model.checkId,
+        areaCode: model.hospitalId,
+        rate: model.rate,
+        score: model.score
+      });
+    }
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {
