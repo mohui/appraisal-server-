@@ -497,9 +497,9 @@ export default {
       this.treeServerData.forEach(it => {
         //记录选中的节点
         if (it.selected) this.checkedNodes.push({...it, disabled: !it.usable});
+        //展开含有选中项的节点
+        if (it.childSelected) this.expandedKeys.push(it.code);
       });
-      //展开含有选中项的节点
-      this.expandDefaultSelected(this.treeServerData, this.expandedKeys);
     }
   },
   created() {
@@ -539,31 +539,6 @@ export default {
     }
   },
   methods: {
-    //查找各级别的所有需要默认展开的节点
-    expandDefaultSelected(tree, result) {
-      if (tree?.length ?? 0 > 0) {
-        tree.forEach(t => {
-          //没有被选中的节点,但该节点的下级有被选中的项,则该节点需要展开
-          if (!t.selected && this.hasChildrenSelected(t?.children))
-            result.push(t.code);
-          if (t?.children?.length ?? 0 > 0)
-            this.expandDefaultSelected(t?.children, result);
-        });
-      }
-    },
-    //递归判断节点的某一下级含有被选中的子节点
-    hasChildrenSelected(nodes) {
-      if (nodes.length > 0) {
-        for (let i = 0; i < nodes.length; i++) {
-          //找到有被选中的节点直接返回true;
-          if (nodes[i].selected) return true;
-          //如果节点下面还有子节点数组需要判断
-          if (nodes[i].children?.length ?? 0 > 0)
-            return this.hasChildrenSelected(nodes[i].children);
-        }
-      }
-      return false;
-    },
     //临时考核打分
     async tempCheck(row) {
       if (!row.running) {
@@ -885,6 +860,11 @@ export default {
         //记录选中的节点,并没有重复添加
         if (it.selected && !this.checkedNodes.some(c => c.code === it.code))
           this.checkedNodes.push(node);
+        if (
+          it.childSelected &&
+          !this.expandedKeys.some(c => c.code === it.code)
+        )
+          this.expandedKeys.push(it.code);
         return node;
       });
       //如果有叶子节点，设置该节点不可点击
