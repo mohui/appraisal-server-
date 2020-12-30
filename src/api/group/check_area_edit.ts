@@ -81,10 +81,7 @@ export default class CheckAreaEdit {
     });
     // 转换子节点
     const children = childTree.filter(c => c.parent === code);
-    if (!renderTree) {
-      // 无需渲染树
-      return children.map(nodeMapping);
-    } else {
+    if (renderTree && checkAreaModels.length > 0) {
       // 渲染树
       const data = checkAreaModels
         .map(it => childTree.find(c => it.code === c.code))
@@ -97,6 +94,8 @@ export default class CheckAreaEdit {
         .map(it => childTree.find(c => it === c.code))
         .map(nodeMapping);
       return getTree(data, code);
+    } else {
+      return children.map(nodeMapping);
     }
   }
 
