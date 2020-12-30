@@ -419,9 +419,17 @@ export default class SystemArea {
     should
       .string()
       .allow(null)
-      .description('年份')
+      .description('年份'),
+    should
+      .number()
+      .allow(null)
+      .description('当前页'),
+    should
+      .number()
+      .allow(null)
+      .description('每页显示条数')
   )
-  async supervisionReport(code, year) {
+  async supervisionReport(code, year, pageNo = 1, pageSize = 20) {
     // 获取树形结构
     const tree = await getAreaTree(code);
 
@@ -439,7 +447,7 @@ export default class SystemArea {
     // 如果没传时间,默认当前年
     if (!year) year = dayjs().format('YYYY');
 
-    const sql = sqlRender(
+    const [sql, params] = sqlRender(
       `
         select
             institutionname as "InstitutionName",
@@ -462,7 +470,7 @@ export default class SystemArea {
           .toDate()
       }
     );
-    return await originalDB.execute(sql[0], ...sql[1]);
+    return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
 
   /**
