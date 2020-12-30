@@ -325,8 +325,8 @@
                         $asyncComputed.supervisionAssistServerData.updating
                       "
                       :data="supervisionAssistData"
-                      height="280px"
-                      style="width: 100%"
+                      height="210px"
+                      style="width: 100%; flex:1"
                       size="mini"
                     >
                       <el-table-column
