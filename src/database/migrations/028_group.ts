@@ -13,12 +13,37 @@ import {
   RuleHospitalModel,
   ScoreRemarkHistoryModel
 } from '../model';
+import {v4 as uuid} from 'uuid';
 
 export class GroupMigration implements IMigration {
   name = '分层考核';
   version = 28;
 
   async up(client: ExtendedSequelize): Promise<void> {
+    // 0. 补充hospital_mapping表的u_id字段
+    // language=PostgreSQL
+    await client.execute(`
+      alter table hospital_mapping
+        add column if not exists u_id UUID;
+    `);
+    const hospitalMappings = await client.execute(
+      `select * from hospital_mapping where u_id is null`
+    );
+    // language=PostgreSQL
+    await Promise.all(
+      hospitalMappings.map(model =>
+        client.execute(
+          `
+            update hospital_mapping
+            set u_id = ?
+            where id = ?
+          `,
+          uuid(),
+          model.id
+        )
+      )
+    );
+    console.log('0. 补充hospital_mapping表的u_id字段');
     // 1. 新建表结构
     // language=PostgreSQL
     await client.execute(`
@@ -70,7 +95,7 @@ export class GroupMigration implements IMigration {
       (
         "rule"       UUID                                               NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE CASCADE ON UPDATE CASCADE, -- 考核细则id
         "area"       VARCHAR(36)                                        NOT NULL REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,          -- 地区编码
-        "score"      FLOAT                                              NOT NULL,                                                                         -- 得分
+        "score"      FLOAT                    default 0                 NOT NULL,                                                                         -- 得分
         "auto"       BOOLEAN                  DEFAULT true,
         "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -155,10 +180,10 @@ export class GroupMigration implements IMigration {
       CREATE TABLE IF NOT EXISTS "manual_score_history"
       (
         "id"         UUID,
-        "rule"       UUID                     NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "code"       varchar(36)              NOT NULL REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
-        "score"      FLOAT        DEFAULT 0,
-        "remark"     VARCHAR(255) DEFAULT '',
+        "rule"       UUID                                               NOT NULL REFERENCES "check_rule" ("rule_id") ON DELETE CASCADE ON UPDATE CASCADE,
+        "code"       varchar(36)                                        NOT NULL REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
+        "score"      FLOAT                    DEFAULT 0,
+        "remark"     VARCHAR(255)             DEFAULT '',
         "creator"    UUID REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
         "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -172,6 +197,7 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "manual_score_history"."created_at" IS '创建时间';
       COMMENT ON COLUMN "manual_score_history"."updated_at" IS '更新时间';
     `);
+    console.log('1. 新建表结构');
 
     // 2. 删除数据
     // language=PostgreSQL
@@ -247,11 +273,12 @@ export class GroupMigration implements IMigration {
       from check_system cs
       where cs.check_type = 0;
     `);
+    console.log('2. 删除数据');
 
     // 3. 迁移数据
 
     // 3.1 构造area表
-    // 同步区级及以上的地区数据
+    // 3.1.1 同步区级及以上的地区数据
     // language=PostgreSQL
     const regions = await client.execute(
       `
@@ -261,7 +288,8 @@ export class GroupMigration implements IMigration {
         order by level
       `
     );
-    for (const region of regions) await AreaModel.upsert(region);
+    await Promise.all(regions.map(region => AreaModel.upsert(region)));
+    console.log('3.1.1 同步区级及以上的地区数据');
 
     // 同步中心层
     // language=PostgreSQL
@@ -309,51 +337,65 @@ export class GroupMigration implements IMigration {
         )
       );
     }
+    console.log('3.1.2 中心层及机构');
 
     // 3.2 迁移考核相关数据
 
     // 3.2.1 考核体系数据
     const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
-    for (const model of checkHospitalModels) {
-      await CheckAreaModel.upsert({
-        checkId: model.checkId,
-        areaCode: model.hospitalId
-      });
-    }
+    await Promise.all(
+      checkHospitalModels.map(model =>
+        CheckAreaModel.upsert({
+          checkId: model.checkId,
+          areaCode: model.hospitalId
+        })
+      )
+    );
+    console.log('3.2.1 考核体系数据');
+
     // 3.2.2 考核细则数据
     const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
-    for (const model of ruleAttachModels) {
-      await RuleAreaAttachModel.upsert(model.toJSON());
-    }
+    await Promise.all(
+      ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
+    );
     const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll();
-    for (const model of ruleHospitalModels) {
-      await RuleAreaScoreModel.upsert({
-        ruleId: model.ruleId,
-        areaCode: model.hospitalId,
-        auto: model.auto
-      });
-    }
+    await Promise.all(
+      ruleHospitalModels.map(model =>
+        RuleAreaScoreModel.upsert({
+          ruleId: model.ruleId,
+          areaCode: model.hospitalId,
+          auto: model.auto
+        })
+      )
+    );
+    console.log('3.2.2 考核细则数据');
 
     // 3.2.3 手动打分备注
     const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
-    for (const model of scoreRemarkModels) {
-      await ManualScoreHistoryModel.upsert({
-        ...model.toJSON(),
-        code: model.hospitalId
-      });
-    }
+    await Promise.all(
+      scoreRemarkModels.map(model =>
+        ManualScoreHistoryModel.upsert({
+          ...model.toJSON(),
+          code: model.hospitalId
+        })
+      )
+    );
+    console.log('3.2.3 手动打分备注');
 
     // 3.2.4 考核历史
     const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
-    for (const model of reportHospitalModels) {
-      ReportAreaHistoryModel.upsert({
-        date: model.date,
-        checkId: model.checkId,
-        areaCode: model.hospitalId,
-        rate: model.rate,
-        score: model.score
-      });
-    }
+    await Promise.all(
+      reportHospitalModels.map(model =>
+        ReportAreaHistoryModel.upsert({
+          date: model.date,
+          checkId: model.checkId,
+          areaCode: model.hospitalId,
+          rate: model.rate,
+          score: model.score
+        })
+      )
+    );
+    console.log('3.2.4 考核历史');
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {
