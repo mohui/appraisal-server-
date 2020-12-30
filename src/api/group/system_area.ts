@@ -712,21 +712,14 @@ export default class SystemArea {
                 operateorganization,
                 operatorid as "doctorId",
                 doctor as "doctorName"
-            from view_workscoretotal
+            from mark_workpoint
             where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-             and missiontime >= {{? startTime}}
-             and missiontime < {{? endTime}}
+             and year = {{? year}}
              group by operatorid, doctor, operateorganization
              `,
       {
         hisHospIds,
-        startTime: dayjs(year)
-          .startOf('y')
-          .toDate(),
-        endTime: dayjs(year)
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
+        year
       }
     );
 
