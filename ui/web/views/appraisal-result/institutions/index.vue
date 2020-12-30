@@ -994,7 +994,7 @@ export default {
     },
     //监督协管报告
     supervisionReportData() {
-      return this.supervisionReportServerData.map(it => ({
+      return this.supervisionReportServerData.data.map(it => ({
         ...it,
         Time: it.Date.$format('YYYY-MM-DD')
       }));
@@ -1485,7 +1485,7 @@ export default {
         );
       },
       default() {
-        return [];
+        return {data: [], pages: 0, rows: 0};
       }
     },
     //监督协管巡查
