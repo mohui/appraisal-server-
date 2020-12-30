@@ -319,7 +319,10 @@
                       ></el-pagination>
                     </div>
                   </el-tab-pane>
-                  <el-tab-pane label="巡查">
+                  <el-tab-pane
+                    style="display: flex;flex-direction: column"
+                    label="巡查"
+                  >
                     <el-table
                       v-loading="
                         $asyncComputed.supervisionAssistServerData.updating
