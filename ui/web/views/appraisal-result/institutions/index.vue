@@ -303,6 +303,21 @@
                         label="报告时间"
                       ></el-table-column>
                     </el-table>
+                    <div style="margin-top: 3px">
+                      <el-pagination
+                        small
+                        background
+                        :page-size="supervisionReportPageSize"
+                        :current-page="supervisionReportPageNo"
+                        layout="total, prev, pager, next"
+                        :total="supervisionReportServerData.rows"
+                        @current-change="
+                          no => {
+                            supervisionReportPageNo = no;
+                          }
+                        "
+                      ></el-pagination>
+                    </div>
                   </el-tab-pane>
                   <el-tab-pane label="巡查">
                     <el-table
@@ -951,7 +966,9 @@ export default {
       healthEducationTagSelected: '',
       scoreRemarkVisible: false, //打分备注填写框框
       scoreRemark: '', //备注信息
-      currentRow: {}
+      currentRow: {},
+      supervisionReportPageSize: 20, // 每页数量
+      supervisionReportPageNo: 1 // 当前第几页
     };
   },
   computed: {
@@ -1484,7 +1501,9 @@ export default {
       async get() {
         return await this.$api.SystemArea.supervisionReport(
           this.params.id,
-          this.params.year
+          this.params.year,
+          this.supervisionReportPageNo,
+          this.supervisionReportPageSize
         );
       },
       default() {
