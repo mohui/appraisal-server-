@@ -375,13 +375,13 @@
                 </p>
                 <el-tabs
                   v-if="healthEducationTagsName.length !== 0"
-                  v-model="healthEducationTagSelected"
+                  v-model="healthEducationType"
                 >
                   <el-tab-pane
                     v-for="tag in healthEducationTagsName"
-                    :key="tag"
-                    :label="tag"
-                    :name="tag"
+                    :key="tag.type"
+                    :label="tag.name"
+                    :name="tag.type"
                   >
                     <el-table
                       v-loading="
@@ -393,7 +393,7 @@
                       size="mini"
                     >
                       <el-table-column
-                        prop="ActivityTime"
+                        prop="time"
                         header-align="center"
                         align="center"
                         min-width="20px"
@@ -401,7 +401,7 @@
                       >
                       </el-table-column>
                       <el-table-column
-                        prop="ActivityName"
+                        prop="name"
                         header-align="center"
                         align="center"
                         min-width="40px"
@@ -981,7 +981,7 @@ export default {
       },
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
-      healthEducationTagSelected: '',
+      healthEducationType: '1',
       scoreRemarkVisible: false, //打分备注填写框框
       scoreRemark: '', //备注信息
       currentRow: {},
@@ -990,7 +990,16 @@ export default {
       supervisionReportPageNo: 1, // 当前第几页
       //监督协管巡查
       supervisionAssistPageSize: 20, // 每页数量
-      supervisionAssistPageNo: 1 // 当前第几页
+      supervisionAssistPageNo: 1, // 当前第几页
+      //健康教育
+      healthEducationTagsName: [
+        {type: '1', name: '发放印刷资料'},
+        {type: '2', name: '播放音像资料'},
+        {type: '3', name: '健康教育宣传栏'},
+        {type: '4', name: '健康知识讲座'},
+        {type: '5', name: '公众健康咨询'},
+        {type: '6', name: '个体化健康教育'}
+      ]
     };
   },
   computed: {
@@ -1018,21 +1027,12 @@ export default {
         value: this.familyDoctorContractServerData[it.label]
       }));
     },
-    healthEducationTagsName() {
-      return Array.from(
-        new Set(
-          this.healthEducationServerData?.map(it => it.ActivityFormName) ?? []
-        )
-      );
-    },
     //健康教育
     healthEducationData() {
-      return this.healthEducationServerData
-        .filter(e => e.ActivityFormName === this.healthEducationTagSelected)
-        .map(it => ({
-          ...it,
-          ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
-        }));
+      return this.healthEducationServerData.data.map(it => ({
+        ...it,
+        time: it.time.$format('YYYY-MM-DD')
+      }));
     },
     //监督协管报告
     supervisionReportData() {
@@ -1232,9 +1232,6 @@ export default {
           this.$refs[this.curRule.ruleId][0].updatePopper();
         });
       }
-    },
-    healthEducationTagsName(val) {
-      this.healthEducationTagSelected = val[0];
     }
   },
   created() {
@@ -1511,11 +1508,12 @@ export default {
       async get() {
         return await this.$api.SystemArea.healthEducation(
           this.params.id,
-          this.params.year
+          this.params.year,
+          this.healthEducationType
         );
       },
       default() {
-        return [];
+        return {data: [], pages: 0, rows: 0};
       }
     },
     //监督协管报告
