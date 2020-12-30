@@ -162,20 +162,78 @@ export class GroupMigration implements IMigration {
 
     // 2. 删除数据
     // language=PostgreSQL
-    await client.execute(``);
-
-    //1. 删除临时考核及相关数据
-    // check_system(考核体系表)
-    // check_rule(考核规则表)
-    // rule_tag(考核细则关联关系表)
-    // rule_project(考核小项绑定工分表)
-    // check_hospital(考核体系绑定机构表)
-    // rule_hospital(考核细则绑定机构表)
-    // rule_hospital_attach(考核细则机构附件表)
-    // rule_hospital_score(考核细则机构得分表)
-    // rule_hospital_budget(考核小项机构金额表)
-    // report_hospital(考核机构报告表)
-    // report_hospital_history(考核机构报告表)
+    await client.execute(`
+      -- 1.清理考核细则附件
+      delete
+      from rule_hospital_attach
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 2.清理考核细则得分
+      delete
+      from rule_hospital_score
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 3.清理考核细则关联关系表
+      delete
+      from rule_tag ch
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 4.清理考核细则绑定机构表
+      delete
+      from rule_hospital
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 5.清理考核小项机构金额表
+      delete
+      from rule_hospital_budget
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 6.清理考核小项绑定工分表
+      delete
+      from rule_project ch
+      where rule in (
+        select cr.rule_id
+        from check_rule cr
+               inner join check_system cs on cr.check_id = cs.check_id
+        where cs.check_type = 0
+      );
+      -- 7.清理考核机构报告表
+      delete
+      from report_hospital rh
+      where rh.check_id in (select check_id from check_system cs where cs.check_type = 0);
+      -- 8.清理考核机构报告历史表
+      delete
+      from report_hospital_history rh
+      where rh.check_id in (select check_id from check_system cs where cs.check_type = 0);
+      -- 9.清理考核机构绑定关系
+      delete
+      from check_hospital ch
+      where ch.check_system in (select check_id from check_system cs where cs.check_type = 0);
+      -- 10.清理考核体系表
+      delete
+      from check_system cs
+      where cs.check_type = 0;
+    `);
 
     // 3. 迁移数据
     await client.execute(``);
