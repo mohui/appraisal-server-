@@ -347,6 +347,21 @@
                         label="巡查时间"
                       ></el-table-column>
                     </el-table>
+                    <div style="margin-top: 3px">
+                      <el-pagination
+                        small
+                        background
+                        :page-size="supervisionAssistPageSize"
+                        :current-page="supervisionAssistPageNo"
+                        layout="total, prev, pager, next"
+                        :total="supervisionAssistServerData.rows"
+                        @current-change="
+                          no => {
+                            supervisionAssistPageNo = no;
+                          }
+                        "
+                      ></el-pagination>
+                    </div>
                   </el-tab-pane>
                 </el-tabs>
               </div>
@@ -970,8 +985,12 @@ export default {
       scoreRemarkVisible: false, //打分备注填写框框
       scoreRemark: '', //备注信息
       currentRow: {},
+      //监督协管报告
       supervisionReportPageSize: 20, // 每页数量
-      supervisionReportPageNo: 1 // 当前第几页
+      supervisionReportPageNo: 1, // 当前第几页
+      //监督协管巡查
+      supervisionAssistPageSize: 20, // 每页数量
+      supervisionAssistPageNo: 1 // 当前第几页
     };
   },
   computed: {
@@ -1518,7 +1537,9 @@ export default {
       async get() {
         return await this.$api.SystemArea.supervisionAssist(
           this.params.id,
-          this.params.year
+          this.params.year,
+          this.supervisionAssistPageNo,
+          this.supervisionAssistPageSize
         );
       },
       default() {
