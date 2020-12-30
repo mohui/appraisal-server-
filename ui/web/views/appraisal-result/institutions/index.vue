@@ -270,7 +270,7 @@
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-card shadow="hover">
-              <div class="score-detail">
+              <div style="height: 300px">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
