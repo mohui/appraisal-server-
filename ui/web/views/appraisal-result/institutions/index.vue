@@ -483,7 +483,6 @@
               <el-table
                 :data="workpointRankData"
                 height="600"
-                :header-cell-style="{background: '#e4e2df', color: '#333'}"
                 @row-click="handleCellClick"
                 :cell-class-name="cellClassHover"
               >
@@ -515,7 +514,6 @@
                 ref="refTable"
                 :data="workPointsProjectData"
                 height="600"
-                :header-cell-style="{background: '#e4e2df', color: '#333'}"
               >
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
