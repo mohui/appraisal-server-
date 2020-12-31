@@ -445,7 +445,7 @@
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
             >
-              <h3 class="area-ranking-title">下级地区排行</h3>
+              <div class="second-title">下级地区排行</div>
               <div v-for="(item, index) of rankData" :key="item.code">
                 <div
                   class="pointer"
@@ -548,8 +548,18 @@
         class="appraisal-indicators-rule"
       >
         <el-col :span="24">
-          <el-card v-if="!appraisalIndicatorsData.checkId">
-            绩效考核评价细则：暂无考核
+          <el-card
+            v-if="!appraisalIndicatorsData.checkId"
+            style="min-height: 300px"
+          >
+            <div class="second-title">
+              绩效考核评价细则
+            </div>
+            <div
+              style="color: #909399; font-size: 12px; text-align: center; line-height: 250px"
+            >
+              暂无考核
+            </div>
           </el-card>
           <div v-else>
             <div style="width: 100%; height:40px;">
