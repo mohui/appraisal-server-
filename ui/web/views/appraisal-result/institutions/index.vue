@@ -937,6 +937,10 @@ export default {
   },
   beforeRouteUpdate(to, from, next) {
     this.initParams(to);
+    //路由更新时还原pageNo
+    this.supervisionReportPageNo = 1;
+    this.supervisionAssistPageNo = 1;
+    this.healthEducationPageNo = 1;
     next();
   },
   directives: {
