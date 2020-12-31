@@ -287,6 +287,18 @@ export default class Score {
     return result;
   }
 
+  async autoScoreAllChecks(isAuto) {
+    await Promise.all(
+      (
+        await CheckSystemModel.findAll({
+          where: {
+            status: true
+          }
+        })
+      ).map(it => this.autoScore(it.checkId, true))
+    );
+  }
+
   /**
    * 考核体系自动打分
    *

@@ -132,8 +132,8 @@ export class Application {
     //每天凌晨4点执行自动打分
     cron.schedule(config.get('queue.cron'), async () => {
       try {
-        const scoreAPI = new (require('./api/score_hospital_check_rules').default)();
-        await scoreAPI.autoScoreAllCheck();
+        const scoreAPI = new (require('./api/group/score').default)();
+        await scoreAPI.autoScoreAllChecks(true);
       } catch (e) {
         console.log(`定时任务失败: ${e}`);
       }
