@@ -78,7 +78,7 @@ export default class SystemRule {
           );
           it.auto =
             it.ruleAreaScores.find(area => area.areaCode === code)?.auto ??
-            false;
+            true;
           it.isUploadAttach = false;
           //含定性指标,并且判断是否在可上传时间范围内
           const ruleTagDateRange = it.ruleTags.find(
