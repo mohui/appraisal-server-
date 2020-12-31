@@ -479,9 +479,7 @@
               v-loading="$asyncComputed.workpointRankServerData.updating"
               shadow="hover"
             >
-              <p style="color:#1096d0; font-size:20px; font-weight:500;">
-                下级工分
-              </p>
+              <div class="second-title">下级工分</div>
               <el-table
                 :data="workpointRankData"
                 height="600"
@@ -512,9 +510,7 @@
               shadow="hover"
               v-loading="$asyncComputed.workPointsProjectServerData.updating"
             >
-              <p style="color:#1096d0; font-size:20px; font-weight:500;">
-                工分项目
-              </p>
+              <div class="second-title">工分项目</div>
               <el-table
                 ref="refTable"
                 :data="workPointsProjectData"
