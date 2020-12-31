@@ -41,7 +41,7 @@ export default class CheckSystem {
       checkType: 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id,
-      checkYear: dayjs().year()
+      checkYear: params.checkYear || dayjs().year()
     });
   }
 
@@ -60,7 +60,10 @@ export default class CheckSystem {
         .boolean()
         .required()
         .description('状态值:true||false'),
-      checkYear: should.string().description('考核年份')
+      checkYear: should
+        .string()
+        .required()
+        .description('考核年份')
     })
   )
   updateName(params) {
@@ -115,7 +118,7 @@ export default class CheckSystem {
           checkName: params.checkName,
           update_by: Context.current.user.id,
           status: params.status,
-          checkYear: params.checkYear ?? 2021
+          checkYear: params.checkYear
         },
         {where: {checkId: params.checkId}}
       );

@@ -422,7 +422,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkYear: 2021,
+        checkYear: this.$dayjs().year(),
         status: true
       },
       searchForm: {
@@ -597,7 +597,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkYear: 2021,
+        checkYear: this.$dayjs().year(),
         status: true
       };
     },
