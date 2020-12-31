@@ -223,8 +223,11 @@
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
         <el-form-item label="类型：">
-          <el-radio v-model="checkForm.checkType" :label="1">主要</el-radio>
-          <el-radio v-model="checkForm.checkType" :label="0">临时</el-radio>
+          <el-select v-model="checkForm.checkYear">
+            <el-option value="2019">2019</el-option>
+            <el-option value="2020">2020</el-option>
+            <el-option value="2021">2021</el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -419,7 +422,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkType: 1,
+        checkYear: 2021,
         status: true
       },
       searchForm: {
@@ -594,7 +597,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkType: 1,
+        checkYear: 2021,
         status: true
       };
     },
@@ -608,13 +611,13 @@ export default {
     },
     //添加规则
     async addCheck() {
-      const {checkName, checkType = 1} = this.checkForm;
+      const {checkName, checkYear = 2021} = this.checkForm;
       if (!checkName) {
         this.$message.error('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.add({checkName, checkType});
+        await this.$api.CheckSystem.add({checkName, checkYear});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -629,7 +632,7 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName, status, checkType} = this.checkForm;
+      const {checkId, checkName, status, checkYear} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
@@ -639,7 +642,7 @@ export default {
           checkId,
           checkName,
           status,
-          checkType
+          checkYear
         });
         this.$asyncComputed.listCheck.update();
       } catch (e) {
