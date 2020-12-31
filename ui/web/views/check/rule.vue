@@ -813,7 +813,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'
@@ -1011,7 +1011,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'
