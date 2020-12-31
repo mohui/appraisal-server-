@@ -484,7 +484,7 @@
               </p>
               <el-table
                 :data="workpointRankData"
-                max-height="600"
+                height="600"
                 :header-cell-style="{background: '#e4e2df', color: '#333'}"
                 @row-click="handleCellClick"
                 :cell-class-name="cellClassHover"
@@ -518,7 +518,7 @@
               <el-table
                 ref="refTable"
                 :data="workPointsProjectData"
-                max-height="600"
+                height="600"
                 :header-cell-style="{background: '#e4e2df', color: '#333'}"
               >
                 <el-table-column label="序号" align="center">
