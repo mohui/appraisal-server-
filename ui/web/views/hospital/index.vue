@@ -144,7 +144,7 @@ export default {
           query: {
             id: row.code,
             listFlag: 'quality',
-            isInstitution: row.level === 3 ? 'false' : 'true'
+            year: this.year
           }
         });
       }
