@@ -201,7 +201,7 @@
                   <div class="second-title" style="text-align: left;">
                     工分值校正明细
                   </div>
-                  <el-table :data="projectDetailData" size="mini" height="100%">
+                  <el-table :data="projectDetailData" height="99%">
                     <el-table-column
                       prop="projectName"
                       label="工分项"
