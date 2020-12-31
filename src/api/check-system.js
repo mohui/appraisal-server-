@@ -31,18 +31,14 @@ export default class CheckSystem {
         .string()
         .required()
         .description('考核系统名'),
-      checkType: should
-        .number()
-        .max(1)
-        .min(0)
-        .description('考核类型 0为临时考核规则 1为主考核规则')
+      checkYear: should.string().description('考核年份')
     })
   )
   async add(params) {
-    const {checkName, checkType} = params;
+    const {checkName} = params;
     return CheckSystemModel.create({
       checkName,
-      checkType: checkType ?? 1,
+      checkType: 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id,
       checkYear: dayjs().year()
@@ -64,12 +60,7 @@ export default class CheckSystem {
         .boolean()
         .required()
         .description('状态值:true||false'),
-      checkType: should
-        .number()
-        .required()
-        .max(1)
-        .min(0)
-        .description('考核类型 0为临时考核规则 1为主考核规则')
+      checkYear: should.string().description('考核年份')
     })
   )
   updateName(params) {
@@ -80,7 +71,7 @@ export default class CheckSystem {
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
       //当考核体系保存成主考核时，检查机构是否冲突
-      if (sys.checkType !== params.checkType && params.checkType === 1) {
+      if (params.checkType === 1) {
         //查询原有的考核与机构的关系
         const checkHospitals = await CheckHospitalModel.findAll({
           where: {
@@ -124,7 +115,7 @@ export default class CheckSystem {
           checkName: params.checkName,
           update_by: Context.current.user.id,
           status: params.status,
-          checkType: params.checkType ?? 1
+          checkYear: params.checkYear ?? 2021
         },
         {where: {checkId: params.checkId}}
       );
