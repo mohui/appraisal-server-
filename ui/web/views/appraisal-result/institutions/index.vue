@@ -437,7 +437,9 @@
       <!--下级排行-->
       <div style="margin-top: 20px">
         <!--下级质量系数排行-->
-        <el-row v-if="params.listFlag === 'quality'">
+        <el-row
+          v-if="params.listFlag === 'quality' && this.rankData.length > 0"
+        >
           <el-col :span="24">
             <el-card
               v-loading="$asyncComputed.rankServerData.updating"
