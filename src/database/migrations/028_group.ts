@@ -14,6 +14,11 @@ import {
   ScoreRemarkHistoryModel
 } from '../model';
 import {v4 as uuid} from 'uuid';
+import * as dayjs from 'dayjs';
+
+function debug(...args) {
+  console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
+}
 
 export class GroupMigration implements IMigration {
   name = '分层考核';
@@ -43,7 +48,7 @@ export class GroupMigration implements IMigration {
         )
       )
     );
-    console.log('0. 补充hospital_mapping表的u_id字段');
+    debug('0. 补充hospital_mapping表的u_id字段');
     // 1. 新建表结构
     // language=PostgreSQL
     await client.execute(`
@@ -133,21 +138,23 @@ export class GroupMigration implements IMigration {
       -- 地区考核表
       CREATE TABLE IF NOT EXISTS "report_area"
       (
-        "check"          UUID REFERENCES "check_system" ("check_id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "area"           VARCHAR(36) REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
-        "totalWorkPoint" FLOAT                    DEFAULT 0,
-        "workPoint"      FLOAT                    DEFAULT 0,
-        "score"          FLOAT                    DEFAULT 0,
-        "rate"           FLOAT                    DEFAULT 0,
-        "budget"         DECIMAL(15, 4)           DEFAULT 0,
-        "created_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "updated_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "check"            UUID REFERENCES "check_system" ("check_id") ON DELETE CASCADE ON UPDATE CASCADE,
+        "area"             VARCHAR(36) REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
+        "totalWorkPoint"   FLOAT                    DEFAULT 0,
+        "workPoint"        FLOAT                    DEFAULT 0,
+        "correctWorkPoint" FLOAT                    DEFAULT 0,
+        "score"            FLOAT                    DEFAULT 0,
+        "rate"             FLOAT                    DEFAULT 0,
+        "budget"           DECIMAL(15, 4)           DEFAULT 0,
+        "created_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         PRIMARY KEY ("area", "check")
       );
       COMMENT ON COLUMN "report_area"."check" IS '考核id';
       COMMENT ON COLUMN "report_area"."area" IS '地区id';
       COMMENT ON COLUMN "report_area"."totalWorkPoint" IS '校正前工分';
       COMMENT ON COLUMN "report_area"."workPoint" IS '参与校正工分';
+      COMMENT ON COLUMN "report_area"."correctWorkPoint" IS '校正后工分';
       COMMENT ON COLUMN "report_area"."score" IS '得分';
       COMMENT ON COLUMN "report_area"."rate" IS '质量系数';
       COMMENT ON COLUMN "report_area"."budget" IS '分配金额';
@@ -155,16 +162,17 @@ export class GroupMigration implements IMigration {
       -- 地区考核历史表
       CREATE TABLE IF NOT EXISTS "report_area_history"
       (
-        "date"           DATE,
-        "check"          UUID REFERENCES "check_system" ("check_id") ON DELETE CASCADE ON UPDATE CASCADE,
-        "area"           VARCHAR(36) REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
-        "rate"           FLOAT                    DEFAULT 0,
-        "totalWorkPoint" FLOAT                    DEFAULT 0,
-        "workPoint"      FLOAT                    DEFAULT 0,
-        "score"          FLOAT                    DEFAULT 0,
-        "budget"         DECIMAL(15, 4)           DEFAULT 0,
-        "created_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        "updated_at"     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "date"             DATE,
+        "check"            UUID REFERENCES "check_system" ("check_id") ON DELETE CASCADE ON UPDATE CASCADE,
+        "area"             VARCHAR(36) REFERENCES "area" ("code") ON DELETE CASCADE ON UPDATE CASCADE,
+        "rate"             FLOAT                    DEFAULT 0,
+        "totalWorkPoint"   FLOAT                    DEFAULT 0,
+        "workPoint"        FLOAT                    DEFAULT 0,
+        "correctWorkPoint" FLOAT                    DEFAULT 0,
+        "score"            FLOAT                    DEFAULT 0,
+        "budget"           DECIMAL(15, 4)           DEFAULT 0,
+        "created_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at"       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
         PRIMARY KEY ("date", "area", "check")
       );
       COMMENT ON COLUMN "report_area_history"."date" IS '日期';
@@ -173,6 +181,7 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "report_area_history"."rate" IS '质量系数';
       COMMENT ON COLUMN "report_area_history"."totalWorkPoint" IS '校正前工分';
       COMMENT ON COLUMN "report_area_history"."workPoint" IS '参与校正工分';
+      COMMENT ON COLUMN "report_area_history"."correctWorkPoint" IS '校正后工分';
       COMMENT ON COLUMN "report_area_history"."score" IS '得分';
       COMMENT ON COLUMN "report_area_history"."budget" IS '分配金额';
 
@@ -197,7 +206,7 @@ export class GroupMigration implements IMigration {
       COMMENT ON COLUMN "manual_score_history"."created_at" IS '创建时间';
       COMMENT ON COLUMN "manual_score_history"."updated_at" IS '更新时间';
     `);
-    console.log('1. 新建表结构');
+    debug('1. 新建表结构');
 
     // 2. 删除数据
     // language=PostgreSQL
@@ -273,7 +282,7 @@ export class GroupMigration implements IMigration {
       from check_system cs
       where cs.check_type = 0;
     `);
-    console.log('2. 删除数据');
+    debug('2. 删除数据');
 
     // 3. 迁移数据
 
@@ -289,7 +298,7 @@ export class GroupMigration implements IMigration {
       `
     );
     await Promise.all(regions.map(region => AreaModel.upsert(region)));
-    console.log('3.1.1 同步区级及以上的地区数据');
+    debug('3.1.1 同步区级及以上的地区数据');
 
     // 同步中心层
     // language=PostgreSQL
@@ -337,7 +346,7 @@ export class GroupMigration implements IMigration {
         )
       );
     }
-    console.log('3.1.2 中心层及机构');
+    debug('3.1.2 中心层及机构');
 
     // 3.2 迁移考核相关数据
 
@@ -351,14 +360,18 @@ export class GroupMigration implements IMigration {
         })
       )
     );
-    console.log('3.2.1 考核体系数据');
+    debug('3.2.1 考核体系数据');
 
     // 3.2.2 考核细则数据
     const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
     await Promise.all(
       ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
     );
-    const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll();
+    debug('3.2.2.1 考核细则附件数据');
+    const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll(
+      {where: {auto: false}}
+    );
+    debug('3.2.2.2 考核细则auto: ', ruleHospitalModels.length);
     await Promise.all(
       ruleHospitalModels.map(model =>
         RuleAreaScoreModel.upsert({
@@ -368,7 +381,7 @@ export class GroupMigration implements IMigration {
         })
       )
     );
-    console.log('3.2.2 考核细则数据');
+    debug('3.2.2 考核细则数据');
 
     // 3.2.3 手动打分备注
     const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
@@ -380,19 +393,20 @@ export class GroupMigration implements IMigration {
         })
       )
     );
-    console.log('3.2.3 手动打分备注');
+    debug('3.2.3 手动打分备注');
 
     // 3.2.4 考核历史
     const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
-    await Promise.all(
-      reportHospitalModels.map(model =>
-        ReportAreaHistoryModel.upsert({
+    await ReportAreaHistoryModel.bulkCreate(
+      reportHospitalModels.map(
+        model => ({
           date: model.date,
           checkId: model.checkId,
           areaCode: model.hospitalId,
           rate: model.rate,
           score: model.score
-        })
+        }),
+        {updateOnDuplicate: ['data', 'check', 'area']}
       )
     );
     console.log('3.2.4 考核历史');
