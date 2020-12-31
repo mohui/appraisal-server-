@@ -20,6 +20,7 @@
         <!--年度选择-->
         <span style="margin: 0 10px">
           <el-select
+            size="small"
             v-model="params.year"
             placeholder="请选择考核年度"
             @change="handleYearChange(params.year)"
