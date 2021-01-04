@@ -1,7 +1,6 @@
 import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {
-  HospitalModel,
   RegionModel,
   RoleModel,
   UserHospitalModel,
@@ -536,24 +535,6 @@ export default class User {
         .filter(h => !params.hospitals.includes(h.hospitalId))
         .map(async hospital => hospital.destroy({force: true}))
     );
-  }
-
-  //查询该用户的机构关系
-  @validate(should.string().required())
-  async listHospital(id) {
-    //查询用户是否存在
-    const result = await UserModel.findOne({
-      where: {id},
-      paranoid: false,
-      attributes: {exclude: ['deleted_at']},
-      include: {
-        model: HospitalModel,
-        paranoid: false,
-        attributes: {exclude: ['deleted_at']}
-      }
-    });
-    if (!result) throw new KatoCommonError('该用户不存在');
-    return result;
   }
 
   async profile() {
