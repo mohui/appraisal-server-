@@ -269,6 +269,71 @@
               </div>
             </el-card>
           </el-col>
+          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+            <el-card shadow="hover">
+              <div style="height: 300px; text-align: center">
+                <p class="second-title" style="margin:0; text-align:left;">
+                  健康教育
+                </p>
+                <el-tabs
+                  v-if="healthEducationTagsName.length !== 0"
+                  v-model="healthEducationType"
+                >
+                  <el-tab-pane
+                    v-for="tag in healthEducationTagsName"
+                    :key="tag.type"
+                    :label="tag.name"
+                    :name="tag.type"
+                  >
+                    <el-table
+                      v-loading="
+                        $asyncComputed.healthEducationServerData.updating
+                      "
+                      :data="healthEducationData"
+                      height="210px"
+                      style="width: 100%"
+                      size="mini"
+                    >
+                      <el-table-column
+                        prop="time"
+                        header-align="center"
+                        align="center"
+                        min-width="20px"
+                        label="活动时间"
+                      >
+                      </el-table-column>
+                      <el-table-column
+                        prop="name"
+                        header-align="center"
+                        align="center"
+                        min-width="40px"
+                        label="活动名称"
+                      >
+                      </el-table-column>
+                    </el-table>
+                  </el-tab-pane>
+                  <div style="margin-top: 3px">
+                    <el-pagination
+                      small
+                      background
+                      :page-size="healthEducationPageSize"
+                      :current-page="healthEducationPageNo"
+                      layout="total, prev, pager, next"
+                      :total="healthEducationServerData.rows"
+                      @current-change="
+                        no => {
+                          healthEducationPageNo = no;
+                        }
+                      "
+                    ></el-pagination>
+                  </div>
+                </el-tabs>
+                <div v-else class="el-table__empty-text empty-data">
+                  暂无数据
+                </div>
+              </div>
+            </el-card>
+          </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-card shadow="hover">
               <div style="height: 300px; text-align: center">
@@ -365,71 +430,6 @@
                     </div>
                   </el-tab-pane>
                 </el-tabs>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
-            <el-card shadow="hover">
-              <div style="height: 300px; text-align: center">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  健康教育
-                </p>
-                <el-tabs
-                  v-if="healthEducationTagsName.length !== 0"
-                  v-model="healthEducationType"
-                >
-                  <el-tab-pane
-                    v-for="tag in healthEducationTagsName"
-                    :key="tag.type"
-                    :label="tag.name"
-                    :name="tag.type"
-                  >
-                    <el-table
-                      v-loading="
-                        $asyncComputed.healthEducationServerData.updating
-                      "
-                      :data="healthEducationData"
-                      height="210px"
-                      style="width: 100%"
-                      size="mini"
-                    >
-                      <el-table-column
-                        prop="time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
-                        label="活动时间"
-                      >
-                      </el-table-column>
-                      <el-table-column
-                        prop="name"
-                        header-align="center"
-                        align="center"
-                        min-width="40px"
-                        label="活动名称"
-                      >
-                      </el-table-column>
-                    </el-table>
-                  </el-tab-pane>
-                  <div style="margin-top: 3px">
-                    <el-pagination
-                      small
-                      background
-                      :page-size="healthEducationPageSize"
-                      :current-page="healthEducationPageNo"
-                      layout="total, prev, pager, next"
-                      :total="healthEducationServerData.rows"
-                      @current-change="
-                        no => {
-                          healthEducationPageNo = no;
-                        }
-                      "
-                    ></el-pagination>
-                  </div>
-                </el-tabs>
-                <div v-else class="el-table__empty-text empty-data">
-                  暂无数据
-                </div>
               </div>
             </el-card>
           </el-col>
