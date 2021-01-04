@@ -11,7 +11,9 @@ import {
   RuleAreaScoreModel,
   RuleHospitalAttachModel,
   RuleHospitalModel,
-  ScoreRemarkHistoryModel
+  ScoreRemarkHistoryModel,
+  UserHospitalModel,
+  UserModel
 } from '../model';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
@@ -413,8 +415,39 @@ export class GroupMigration implements IMigration {
 
     // 用户表添加area字段
     await client.execute(
-      `alter table "user" add column if not exists area varchar (36);`
+      `
+      alter table "user" add column if not exists area varchar(36);
+      -- 清理用户表region字段不合理的数
+        delete
+        from "user"
+        where id in (
+          select u.id
+          from "user" u
+                 left join user_hospital_mapping uhm on u.id = uhm.user_id
+                 inner join region r on u.region = r.code
+          where uhm.hospital_id is null
+            and r.level > 3
+        );
+      `
     );
+
+    // 补充用户area值
+    const userHospitals = await UserHospitalModel.findAll();
+    await Promise.all(
+      userHospitals.map(async it =>
+        client.execute(
+          `update "user" set "area" = ? where id = ?`,
+          it.hospitalId,
+          it.userId
+        )
+      )
+    );
+
+    const userModels = await UserModel.findAll({where: {areaCode: null}});
+    for (const user of userModels) {
+      user.areaCode = user.regionId;
+      await user.save();
+    }
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {
