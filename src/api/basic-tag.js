@@ -23,8 +23,6 @@ export default class BasicTag {
       try {
         //id不存在则插入新数据
         if (!id) {
-          //自动设置当前的年份
-          params.year = dayjs().year();
           //自动设置修改人姓名
           params.editor = Context.current.user.name;
           return await BasicTagDataModel.create(params);
@@ -62,8 +60,7 @@ export default class BasicTag {
           parent: hospitals[j].parent,
           hospitalId: hospitals[j].id,
           code: childrenTag[i].code,
-          value: 0,
-          year: dayjs().year()
+          value: 0
         });
       }
     }
@@ -94,7 +91,6 @@ export default class BasicTag {
           (h[tag.code] = {
             id: tag.id,
             code: tag.code,
-            year: tag.year,
             value: tag.value
           })
       );
@@ -135,7 +131,7 @@ export default class BasicTag {
     //文件名
     const fileName = `${Context.current.user.region.name}-${
       BasicTags.find(bt => bt.code === tagCode).name
-    }基础数据表(${dayjs().year()}).xls`;
+    }基础数据表.xls`;
 
     const buffer = await workBook.xlsx.writeBuffer();
     Context.current.bypassing = true;
