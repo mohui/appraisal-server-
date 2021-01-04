@@ -275,12 +275,9 @@
                 <p class="second-title" style="margin:0; text-align:left;">
                   健康教育
                 </p>
-                <el-tabs
-                  v-if="healthEducationTagsName.length !== 0"
-                  v-model="healthEducationType"
-                >
+                <el-tabs v-model="healthEducationType">
                   <el-tab-pane
-                    v-for="tag in healthEducationTagsName"
+                    v-for="tag in healthEducationTags"
                     :key="tag.type"
                     :label="tag.name"
                     :name="tag.type"
@@ -328,9 +325,6 @@
                     ></el-pagination>
                   </div>
                 </el-tabs>
-                <div v-else class="el-table__empty-text empty-data">
-                  暂无数据
-                </div>
               </div>
             </el-card>
           </el-col>
@@ -1018,7 +1012,7 @@ export default {
       supervisionAssistPageSize: 20, // 每页数量
       supervisionAssistPageNo: 1, // 当前第几页
       //健康教育
-      healthEducationTagsName: [
+      healthEducationTags: [
         {type: '1', name: '发放印刷资料'},
         {type: '2', name: '播放音像资料'},
         {type: '3', name: '健康教育宣传栏'},
