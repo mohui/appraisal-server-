@@ -336,7 +336,7 @@ export default class User {
     })
   )
   update(user) {
-    return appDB.transaction(async () => {
+    return appDB.joinTx(async () => {
       //查询用户,并锁定
       let userModel = await UserModel.findOne({
         where: {id: user.id},
@@ -361,33 +361,38 @@ export default class User {
           .map(roleId => ({userId: user.id, roleId: roleId}))
       );
       //修改操作
-      await UserModel.update(
-        {...user, editorId: Context.current.user.id},
-        {where: {id: user.id}}
-      );
+      user.editorId = Context.current.user.id;
 
       // 兼容老代码
-      //清空其机构绑定
-      await UserHospitalModel.destroy({where: {userId: userModel.id}});
-      try {
-        const hospital = await HospitalModel.findOne({
-          where: {id: userModel.areaCode}
+      await UserHospitalModel.destroy({where: {userId: user.id}});
+      user.regionId = user.areaCode;
+      const regionModel = await RegionModel.findOne({
+        where: {code: user.areaCode}
+      });
+      if (regionModel) {
+        user.regionId = user.areaCode;
+      } else {
+        const hospitalModel = await HospitalModel.findOne({
+          where: {id: user.areaCode}
         });
-        if (hospital) {
-          userModel.regionId = hospital.regionId;
-          // 绑定机构
+        if (hospitalModel) {
+          user.regionId = hospitalModel.regionId;
           await UserHospitalModel.create({
-            userId: userModel.id,
-            hospitalId: hospital.id
+            hospitalId: hospitalModel.id,
+            userId: user.id
           });
         } else {
-          userModel.regionId = userModel.areaCode;
+          // 中心层, 既不是区划, 也不是机构
+          const hospitalRegions = await appDB.execute(
+            `select h.region from hospital_mapping hm inner join hospital h on hm.h_id = h.id where u_id = ?`,
+            user.areaCode
+          );
+          if (hospitalRegions.length === 1) {
+            user.regionId = hospitalRegions[0].region;
+          }
         }
-      } catch (e) {
-        // areaCode不是机构, 那么就去找区划
-        userModel.regionId = userModel.areaCode;
       }
-      await userModel.save();
+      await UserModel.update(user, {where: {id: user.id}});
     });
   }
 
