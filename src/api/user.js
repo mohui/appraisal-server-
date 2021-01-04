@@ -291,25 +291,32 @@ export default class User {
       await UserRoleModel.bulkCreate(roleUser);
 
       // 兼容老代码
-      //清空其机构绑定
-      await UserHospitalModel.destroy({where: {userId: newUser.id}});
-      try {
-        const hospital = await HospitalModel.findOne({
+      newUser.regionId = user.areaCode;
+      const regionModel = await RegionModel.findOne({
+        where: {code: newUser.areaCode}
+      });
+      if (regionModel) {
+        newUser.regionId = newUser.areaCode;
+      } else {
+        const hospitalModel = await HospitalModel.findOne({
           where: {id: newUser.areaCode}
         });
-        if (hospital) {
-          newUser.regionId = hospital.regionId;
-          // 绑定机构
+        if (hospitalModel) {
+          newUser.regionId = hospitalModel.regionId;
           await UserHospitalModel.create({
-            userId: newUser.id,
-            hospitalId: hospital.id
+            hospitalId: hospitalModel.id,
+            userId: newUser.id
           });
         } else {
-          newUser.regionId = newUser.areaCode;
+          // 中心层, 既不是区划, 也不是机构
+          const hospitalRegions = await appDB.execute(
+            `select h.region from hospital_mapping hm inner join hospital h on hm.h_id = h.id where u_id = ?`,
+            newUser.areaCode
+          );
+          if (hospitalRegions.length === 1) {
+            newUser.regionId = hospitalRegions[0].region;
+          }
         }
-      } catch (e) {
-        // areaCode不是机构, 那么就去找区划
-        newUser.regionId = newUser.areaCode;
       }
       await newUser.save();
 
