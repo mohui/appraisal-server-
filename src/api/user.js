@@ -264,7 +264,7 @@ export default class User {
         .required()
         .allow([])
         .description('角色数组'),
-      regionId: should
+      areaCode: should
         .string()
         .required()
         .description('地区code')
@@ -305,7 +305,7 @@ export default class User {
         .items(should.string())
         .allow([])
         .description('角色数组'),
-      regionId: should
+      areaCode: should
         .string()
         .required()
         .description('地区code')
