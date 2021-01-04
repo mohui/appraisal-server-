@@ -410,6 +410,11 @@ export class GroupMigration implements IMigration {
       )
     );
     console.log('3.2.4 考核历史');
+
+    // 用户表添加area字段
+    await client.execute(
+      `alter table "user" add column if not exists area varchar (36);`
+    );
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {
