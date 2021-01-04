@@ -1,6 +1,7 @@
 import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {
+  HospitalModel,
   RegionModel,
   RoleModel,
   UserHospitalModel,
@@ -288,6 +289,30 @@ export default class User {
       }));
       //批量设置用户角色关系
       await UserRoleModel.bulkCreate(roleUser);
+
+      // 兼容老代码
+      //清空其机构绑定
+      await UserHospitalModel.destroy({where: {userId: newUser.id}});
+      try {
+        const hospital = await HospitalModel.findOne({
+          where: {id: newUser.areaCode}
+        });
+        if (hospital) {
+          newUser.regionId = hospital.regionId;
+          // 绑定机构
+          await UserHospitalModel.create({
+            userId: newUser.id,
+            hospitalId: hospital.id
+          });
+        } else {
+          newUser.regionId = newUser.areaCode;
+        }
+      } catch (e) {
+        // areaCode不是机构, 那么就去找区划
+        newUser.regionId = newUser.areaCode;
+      }
+      await newUser.save();
+
       return newUser;
     });
   }
@@ -313,8 +338,11 @@ export default class User {
   update(user) {
     return appDB.transaction(async () => {
       //查询用户,并锁定
-      let result = await UserModel.findOne({where: {id: user.id}, lock: true});
-      if (!result) throw new KatoCommonError('该用户不存在');
+      let userModel = await UserModel.findOne({
+        where: {id: user.id},
+        lock: true
+      });
+      if (!userModel) throw new KatoCommonError('该用户不存在');
       //查询该用户所有的角色
       const roleList = await UserRoleModel.findAll({
         where: {userId: user.id},
@@ -337,6 +365,29 @@ export default class User {
         {...user, editorId: Context.current.user.id},
         {where: {id: user.id}}
       );
+
+      // 兼容老代码
+      //清空其机构绑定
+      await UserHospitalModel.destroy({where: {userId: userModel.id}});
+      try {
+        const hospital = await HospitalModel.findOne({
+          where: {id: userModel.areaCode}
+        });
+        if (hospital) {
+          userModel.regionId = hospital.regionId;
+          // 绑定机构
+          await UserHospitalModel.create({
+            userId: userModel.id,
+            hospitalId: hospital.id
+          });
+        } else {
+          userModel.regionId = userModel.areaCode;
+        }
+      } catch (e) {
+        // areaCode不是机构, 那么就去找区划
+        userModel.regionId = userModel.areaCode;
+      }
+      await userModel.save();
     });
   }
 
