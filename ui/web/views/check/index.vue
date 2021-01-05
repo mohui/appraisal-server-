@@ -121,20 +121,6 @@
                 >
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="查看考核结果" :enterable="false">
-                <el-button
-                  v-permission="{
-                    permission: permission.APPRAISAL_RESULT,
-                    type: 'disabled'
-                  }"
-                  icon="el-icon-right"
-                  circle
-                  size="mini"
-                  type="primary"
-                  @click.stop="toCheck()"
-                >
-                </el-button>
-              </el-tooltip>
               <el-tooltip
                 :content="scope.row.running ? '正在打分...' : `实时打分`"
                 :enterable="false"
@@ -550,13 +536,6 @@ export default {
         //刷新列表
         this.$asyncComputed.listCheck.update();
       }
-    },
-    //跳转考核结果页
-    toCheck() {
-      this.$router.push({
-        path: 'appraisal-result-institutions',
-        query: {id: this.$settings.user.code}
-      });
     },
     //打开机构对话框
     openSelectDialog(item) {
