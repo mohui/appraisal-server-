@@ -107,7 +107,6 @@
                   {{ totalData.correctWorkPoint | fixedDecimal }}
                 </h3>
                 <span>分</span>
-                <p style="margin:10px 0;">{{ date }}</p>
                 <p style="font-size:13px;">{{ totalData.name }}</p>
                 <div style="padding-top: 40px">
                   <div>
@@ -121,7 +120,6 @@
               <div v-if="params.listFlag === 'quality'" class=" score-detail">
                 <two-card-circle
                   :coefficient="totalData.fixedDecimalRate"
-                  :point-date="date"
                 ></two-card-circle>
                 <span style="position: absolute; bottom: 20px; left: 31%;">
                   (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
@@ -1010,9 +1008,6 @@ export default {
         {value: '2020', label: '2020年度'},
         {value: '2021', label: '2021年度'}
       ],
-      date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
-        'YYYY-MM-DD'
-      ),
       totalShowMore: false,
       dialogUploadAppraisalFileVisible: false,
       curRule: {
