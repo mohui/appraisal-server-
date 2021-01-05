@@ -99,7 +99,7 @@
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
-                  :disabled="scope.row.checkYear !== '2020'"
+                  :disabled="scope.row.checkYear !== $dayjs().year()"
                   type="primary"
                   icon="el-icon-edit"
                   circle
@@ -114,7 +114,7 @@
                     permission: permission.CHECK_REMOVE,
                     type: 'disabled'
                   }"
-                  :disabled="scope.row.checkYear !== '2020'"
+                  :disabled="scope.row.checkYear !== $dayjs().year()"
                   icon="el-icon-delete"
                   circle
                   type="danger"
@@ -386,7 +386,7 @@
         <el-button
           type="primary"
           @click="saveOrganization"
-          :disabled="checkForm.checkYear !== '2020'"
+          :disabled="checkForm.checkYear !== $dayjs().year()"
           >确 定</el-button
         >
       </div>
