@@ -650,25 +650,12 @@
                     </span>
                     <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                     <i
-                      v-if="
-                        scope.row.isAttach &&
-                          params.year ===
-                            $dayjs()
-                              .year()
-                              .toString()
-                      "
+                      v-if="scope.row.isAttach"
                       style="padding-left:5px; color:#ff9800"
                       class="el-icon-document"
                       @click="handleDialogAppraisalFileListVisible(scope.row)"
                     ></i>
                     <el-popover
-                      v-if="
-                        !scope.row.isAttach &&
-                          params.year ===
-                            $dayjs()
-                              .year()
-                              .toString()
-                      "
                       :ref="scope.row.ruleId"
                       :popper-options="{
                         boundariesElement: 'viewport',
@@ -698,7 +685,7 @@
                         <div
                           v-if="appraisalResultInstructionsData.length === 0"
                         >
-                          未绑定关联关系
+                          暂未考核
                         </div>
                         <div v-else>
                           <ul>
@@ -1871,13 +1858,16 @@ export default {
 <style lang="scss">
 .appraisal-result-subordinate-name {
   cursor: pointer;
+
   :hover {
     color: #1a95d7;
   }
 }
+
 .appraisal-result-health-education-table {
   display: flex;
   flex-direction: column;
+
   .el-table__body-wrapper {
     flex: 1;
   }
