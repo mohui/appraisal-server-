@@ -427,11 +427,14 @@ export default class Score {
               ruleId: rule.id,
               areaCode: group,
               score: 0,
-              auto: true
+              auto: true,
+              details: []
             });
           }
           // 当前考核年份且考核细则是自动打分
           if (isCheckYear && ruleAreaScoreModel.auto) {
+            // 指标解释数组清空
+            ruleAreaScoreModel.details = [];
             // 考核细则得分默认0, 重新计算
             ruleAreaScoreModel.score = 0;
             // 根据考核细则查询关联关系
@@ -464,8 +467,14 @@ export default class Score {
                   leaves,
                   BasicTagUsages.DocPeople
                 );
-                // 如果服务总人口数不存在, 直接跳过
-
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S01.name
+                  } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
+                    mark?.S00
+                  } / ${basicData} = ${percentString(mark?.S00, basicData)}`
+                );
                 // 根据指标算法, 计算得分
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
@@ -491,6 +500,14 @@ export default class Score {
 
               // 健康档案规范率
               if (tagModel.tag === MarkTagUsages.S23.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S23.name
+                  } = 规范的电子档案数 / 建立电子健康档案人数 = ${
+                    mark?.S23
+                  } / ${mark?.S00} = ${percentString(mark?.S23, mark?.S00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S23
@@ -514,6 +531,14 @@ export default class Score {
 
               // 健康档案使用率
               if (tagModel.tag === MarkTagUsages.S03.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S03.name
+                  } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
+                    mark?.S03
+                  } / ${mark?.S00} = ${percentString(mark?.S03, mark?.S00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S03
@@ -542,7 +567,14 @@ export default class Score {
                   leaves,
                   BasicTagUsages.OldPeople
                 );
-                // 如果老年人人数不存在, 直接跳过
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.O00.name
+                  } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+                    mark?.O00
+                  } / ${basicData} = ${percentString(mark?.O00, basicData)}`
+                );
                 if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
@@ -570,8 +602,14 @@ export default class Score {
                   leaves,
                   BasicTagUsages.OldPeople
                 );
-                // 如果查询老年人人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.O02.name
+                  } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+                    mark?.O02
+                  } / ${basicData} = ${percentString(mark?.O02, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O02
@@ -600,8 +638,14 @@ export default class Score {
                   leaves,
                   BasicTagUsages.HypertensionPeople
                 );
-                // 如果查询高血压人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H00.name
+                  } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
+                    mark?.H00
+                  } / ${basicData} = ${percentString(mark?.H00, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H00
@@ -624,6 +668,14 @@ export default class Score {
 
               // 高血压规范管理率
               if (tagModel.tag === MarkTagUsages.H01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H01.name
+                  } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
+                    mark?.H01
+                  } / ${mark?.H00} = ${percentString(mark?.H01, mark?.H00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H01
@@ -647,6 +699,14 @@ export default class Score {
 
               // 高血压控制率
               if (tagModel.tag === MarkTagUsages.H02.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H02.name
+                  } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
+                    mark?.H02
+                  } / ${mark?.H00} = ${percentString(mark?.H02, mark?.H00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H02
@@ -675,8 +735,14 @@ export default class Score {
                   leaves,
                   BasicTagUsages.DiabetesPeople
                 );
-                // 如果查询糖尿病人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D00.name
+                  } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+                    mark?.D00
+                  } / ${basicData} = ${percentString(mark?.D00, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D00
@@ -699,6 +765,14 @@ export default class Score {
 
               // 糖尿病规范管理率
               if (tagModel.tag === MarkTagUsages.D01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D01.name
+                  } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+                    mark?.D01
+                  } / ${mark?.D00} = ${percentString(mark?.D01, mark?.D00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D01
@@ -722,6 +796,14 @@ export default class Score {
 
               // 糖尿病控制率
               if (tagModel.tag === MarkTagUsages.D02.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D02.name
+                  } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+                    mark?.D02
+                  } / ${mark?.D00} = ${percentString(mark?.D02, mark?.D00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D02
@@ -770,6 +852,12 @@ export default class Score {
 
               //健康教育指标
               if (tagModel.tag.indexOf('HE') == 0) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${MarkTagUsages[tagModel.tag].name} = ${
+                    mark?.[tagModel.tag]
+                  }`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.[tagModel.tag]
@@ -796,7 +884,15 @@ export default class Score {
                   leaves,
                   BasicTagUsages.Supervision
                 );
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SC00.name
+                  } = 报告的事件或线索次数 / 发现的事件或线索次数 x 100% = ${
+                    mark?.SC00
+                  } / ${basicData} = ${percentString(mark?.SC00, basicData)}`
+                );
+
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC00
@@ -819,6 +915,10 @@ export default class Score {
 
               //协助开展的实地巡查次数
               if (tagModel.tag === MarkTagUsages.SC01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${MarkTagUsages.SC01.name} = ${mark?.SC01}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC01
