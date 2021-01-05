@@ -288,6 +288,7 @@
                       "
                       :data="healthEducationData"
                       height="210px"
+                      class="appraisal-result-health-education-table"
                       style="width: 100%"
                       size="mini"
                     >
@@ -1883,6 +1884,14 @@ export default {
   cursor: pointer;
   :hover {
     color: #1a95d7;
+  }
+}
+.appraisal-result-health-education-table {
+  display: flex;
+  flex-direction: column;
+  .el-table__body-wrapper {
+    background: #6c7177;
+    flex: 1;
   }
 }
 </style>
