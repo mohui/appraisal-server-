@@ -13,6 +13,7 @@
     >
       <div slot="header" class="clearfix">
         <span>个人档案列表</span>
+        <el-button @click="getTableData()"> 获取花名册</el-button>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -301,6 +302,11 @@ export default {
         return getTagsList(it);
       });
     },
+    tableData2() {
+      return this.serverData2.rows.map(it => {
+        return getTagsList(it);
+      });
+    },
     //居民标签不规范的具体原因
     nonstandardCauses() {
       if (!this.nonstandardCausesSeverData) return '数据出错了';
@@ -395,6 +401,31 @@ export default {
         };
       }
     },
+    serverData2: {
+      async get() {
+        return this.$api.Person.list2({
+          name: this.queryForm.name,
+          idCard: this.queryForm.idCard,
+          hospital: this.queryForm.hospital,
+          region: this.queryForm.region,
+          tags: this.queryForm.tags
+            .concat(this.queryForm.personTags)
+            .reduce((res, next) => {
+              res[`${next}`] = next.includes('C') || next.includes('E');
+              return res;
+            }, {}),
+          include: this.queryForm.include,
+          personOr: this.queryForm.personOr,
+          documentOr: this.queryForm.documentOr
+        });
+      },
+      default() {
+        return {
+          count: 0,
+          rows: []
+        };
+      }
+    },
     nonstandardCausesSeverData: {
       async get() {
         let result = await this.$api.Person.markContent(
@@ -415,6 +446,23 @@ export default {
     }
   },
   methods: {
+    async getTableData() {
+      await this.$api.Person.list2({
+        name: this.queryForm.name,
+        idCard: this.queryForm.idCard,
+        hospital: this.queryForm.hospital,
+        region: this.queryForm.region,
+        tags: this.queryForm.tags
+          .concat(this.queryForm.personTags)
+          .reduce((res, next) => {
+            res[`${next}`] = next.includes('C') || next.includes('E');
+            return res;
+          }, {}),
+        include: this.queryForm.include,
+        personOr: this.queryForm.personOr,
+        documentOr: this.queryForm.documentOr
+      });
+    },
     initParams(route) {
       this.isInit = true;
       if (route.query.name) this.queryForm.name = route.query.name;

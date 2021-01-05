@@ -5,6 +5,9 @@ import {Context} from './context';
 import dayjs from 'dayjs';
 import {HospitalModel} from '../database/model';
 import {Op} from 'sequelize';
+import {getTagsList} from '../../common/person-tag';
+import Excel from 'exceljs';
+import ContentDisposition from 'content-disposition';
 
 async function dictionaryQuery(categoryno) {
   return await originalDB.execute(
@@ -19,6 +22,7 @@ function listRender(params) {
       from mark_person mp
              inner join view_personinfo vp on mp.personnum = vp.personnum
              inner join view_hospital vh on vp.adminorganization = vh.hospid
+             left join mark_content mc on mc.id = vp.personnum
       where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
@@ -175,6 +179,9 @@ export default class Person {
       `select vp.personnum   as id,
                 vp.name,
                 vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
                 mp."S03",
                 mp."S23",
                 mp."O00",
@@ -214,6 +221,198 @@ export default class Person {
       count: Number(count),
       rows: person
     };
+  }
+
+  async list2(params) {
+    const {
+      hospital,
+      region,
+      idCard,
+      tags,
+      include,
+      personOr = false,
+      documentOr = false
+    } = params;
+    const his = '340203';
+    let {name} = params;
+    if (name) name = `%${name}%`;
+    let hospitals = [];
+    //没有选机构和地区,则默认查询当前用户所拥有的机构
+    if (!region && !hospital)
+      hospitals = Context.current.user.hospitals.map(it => it.id);
+    //仅有地区,则查询该地区下的所有机构
+    if (region && !hospital) {
+      hospitals = (
+        await HospitalModel.findAll({
+          where: {region: {[Op.like]: `${region}%`}}
+        })
+      ).map(it => it.id);
+    }
+    if (hospital) hospitals = [hospital];
+
+    //如果查询出来的机构列表为空,则数据都为空
+    if (hospitals.length === 0) return {count: 0, rows: []};
+    // language=PostgreSQL
+    hospitals = (
+      await Promise.all(
+        hospitals.map(it =>
+          appDB.execute(
+            `select hishospid as id from hospital_mapping where h_id = ?`,
+            it
+          )
+        )
+      )
+    )
+      .filter(it => it.length > 0)
+      .reduce(
+        (result, current) => [...result, ...current.map(it => it.id)],
+        []
+      );
+    if (include && hospital)
+      hospitals = (
+        await Promise.all(
+          hospitals.map(item =>
+            //查询机构的下属机构
+            originalDB.execute(
+              `select hospid as id from view_hospital where hos_hospid = ?`,
+              item
+            )
+          )
+        )
+      )
+        .filter(it => it.length > 0)
+        .reduce(
+          (result, current) => [...result, ...current.map(it => it.id)],
+          []
+        )
+        .concat(hospitals);
+
+    const sqlRenderResult = listRender({
+      his,
+      name,
+      hospitals,
+      idCard,
+      ...tags,
+      personOr,
+      documentOr
+    });
+    let person = await originalDB.execute(
+      `select vp.personnum   as id,
+                vp.name,
+                vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
+                mp."S03",
+                mp."S23",
+                mp."O00",
+                mp."O02",
+                mp."H00",
+                mp."H01",
+                mp."H02",
+                mp."D00",
+                mp."D01",
+                mp."D02",
+                mp."C01",
+                mp."C02",
+                mp."C03",
+                mp."C04",
+                mp."C05",
+                mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
+                mc.name as "markName",
+                mc.content as "markContent",
+                vh.hospname    as "hospitalName",
+                vp.operatetime as date
+         ${sqlRenderResult[0]}
+         order by vp.operatetime desc, vp.personnum desc
+         `,
+      ...sqlRenderResult[1]
+    );
+    person.forEach(p => {
+      for (let i in p) {
+        //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
+        if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
+      }
+    });
+    person = person
+      .map(it => getTagsList(it))
+      .reduce((pre, next) => {
+        const current = pre.find(p => p.id === next.id);
+        if (current) {
+          let tag = current.tags.find(t => t.code === current.markName);
+          if (tag) {
+            if (tag.content.indexOf(current.markContent) < 0)
+              tag.content.push(current.markContent);
+          } else
+            current.tags.push({
+              label: current.label,
+              code: current.markName,
+              content: [current.markContent]
+            });
+        } else {
+          let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
+          pre.push({
+            ...next,
+            tags: tags
+          });
+        }
+        return pre;
+      }, [])
+      .map(it => ({
+        name: it.name,
+        idCard: it.idCard,
+        address: it.address,
+        gender: it.gender === '1' ? '男' : '女',
+        phone: it.phone,
+        personTags: it.personTags.map(tag => tag.label).join(','),
+        tags: it.tags
+          .map(item => item.label + ':[' + item.content + ']')
+          .join(',')
+      }));
+    //开始创建Excel表格
+    const workBook = new Excel.Workbook();
+    const workSheet = workBook.addWorksheet(`申元街...`);
+    //添加标题
+    workSheet.addRow([
+      '序号',
+      '姓名',
+      '身份证号',
+      '住址',
+      '性别',
+      '电话',
+      '人群分类',
+      '档案问题'
+    ]);
+    const rows = person.map((it, index) => {
+      let current = [index + 1];
+      for (let k in it) {
+        current.push(it[k]);
+      }
+      return current;
+    });
+
+    workSheet.addRows(rows);
+    const buffer = await workBook.xlsx.writeBuffer();
+    Context.current.bypassing = true;
+    let res = Context.current.res;
+    //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
+    res.setHeader(
+      'Content-Disposition',
+      ContentDisposition(`申元街-档案问题.xls`)
+    );
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.send(buffer);
+    res.end();
   }
 
   async detail(id) {
