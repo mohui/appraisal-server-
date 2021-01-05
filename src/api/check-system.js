@@ -30,8 +30,7 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名'),
-      checkYear: should.string().description('考核年份')
+        .description('考核系统名')
     })
   )
   async add(params) {
@@ -41,7 +40,7 @@ export default class CheckSystem {
       checkType: 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id,
-      checkYear: params.checkYear || dayjs().year()
+      checkYear: dayjs().year()
     });
   }
 
@@ -59,11 +58,7 @@ export default class CheckSystem {
       status: should
         .boolean()
         .required()
-        .description('状态值:true||false'),
-      checkYear: should
-        .string()
-        .required()
-        .description('考核年份')
+        .description('状态值:true||false')
     })
   )
   updateName(params) {
@@ -117,8 +112,7 @@ export default class CheckSystem {
         {
           checkName: params.checkName,
           update_by: Context.current.user.id,
-          status: params.status,
-          checkYear: params.checkYear
+          status: params.status
         },
         {where: {checkId: params.checkId}}
       );
