@@ -1890,7 +1890,6 @@ export default {
   display: flex;
   flex-direction: column;
   .el-table__body-wrapper {
-    background: #6c7177;
     flex: 1;
   }
 }
