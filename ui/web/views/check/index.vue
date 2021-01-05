@@ -516,7 +516,7 @@ export default {
   asyncComputed: {
     listCheck: {
       async get() {
-        return await this.$api.Score.checks();
+        return await this.$api.Score.checks(this.searchForm);
       },
       default() {
         return {
