@@ -53,33 +53,6 @@
           </el-button-group>
         </span>
         <el-button
-          v-if="reportListData.length === 1"
-          size="small"
-          type="primary"
-          style="margin: 0 10px"
-          @click="handleDownloadReport(reportListData[0].url)"
-        >
-          报告下载
-        </el-button>
-        <el-dropdown
-          v-else-if="reportListData.length > 1"
-          style="margin-left: 30px"
-          @command="handleDownloadReport"
-        >
-          <el-button type="primary" size="small">
-            报告下载<i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item
-              v-for="it of reportListData"
-              :key="it.id"
-              :command="it.url"
-            >
-              {{ it.name }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <el-button
           v-if="showBackButton()"
           size="small"
           style="float:right; margin: 4px 0 10px 30px"
