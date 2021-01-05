@@ -442,8 +442,8 @@ import Vue from 'vue';
 import dayjs from 'dayjs';
 import {
   MarkTags,
-  TagAlgorithm,
   MarkTagUsages,
+  TagAlgorithm,
   TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
