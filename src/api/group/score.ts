@@ -206,24 +206,18 @@ where OperateOrganization = {{? id}}
 }
 
 /**
- * 获取指定年份的基础数据
+ * 获取基础数据
  *
  * @param leaves code对应的所有叶子节点
  * @param tag 基础数据的tag
- * @param year 年份
  */
-async function getBasicData(
-  leaves: AreaTreeNode[],
-  tag,
-  year
-): Promise<number> {
+async function getBasicData(leaves: AreaTreeNode[], tag): Promise<number> {
   const data: number = await BasicTagDataModel.sum('value', {
     where: {
       hospital: {
         [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
       },
-      code: tag,
-      year
+      code: tag
     }
   });
   return data;
@@ -468,8 +462,7 @@ export default class Score {
                 // 查询服务总人口数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.DocPeople,
-                  year
+                  BasicTagUsages.DocPeople
                 );
                 // 如果服务总人口数不存在, 直接跳过
 
@@ -547,8 +540,7 @@ export default class Score {
                 // 查询老年人人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.OldPeople,
-                  year
+                  BasicTagUsages.OldPeople
                 );
                 // 如果老年人人数不存在, 直接跳过
                 if (!basicData) continue;
@@ -576,8 +568,7 @@ export default class Score {
                 // 查询老年人人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.OldPeople,
-                  year
+                  BasicTagUsages.OldPeople
                 );
                 // 如果查询老年人人数不存在, 直接跳过
                 if (!basicData) continue;
@@ -607,8 +598,7 @@ export default class Score {
                 // 查询高血压人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.HypertensionPeople,
-                  year
+                  BasicTagUsages.HypertensionPeople
                 );
                 // 如果查询高血压人数不存在, 直接跳过
                 if (!basicData) continue;
@@ -683,8 +673,7 @@ export default class Score {
                 // 查询糖尿病人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.DiabetesPeople,
-                  year
+                  BasicTagUsages.DiabetesPeople
                 );
                 // 如果查询糖尿病人数不存在, 直接跳过
                 if (!basicData) continue;
@@ -805,8 +794,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.SC00.code) {
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.Supervision,
-                  year
+                  BasicTagUsages.Supervision
                 );
                 if (!basicData) continue;
                 if (
