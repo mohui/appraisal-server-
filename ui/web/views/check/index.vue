@@ -572,7 +572,8 @@ export default {
           name: 'rule',
           query: {
             checkId: row.checkId,
-            checkName: encodeURIComponent(row.checkName)
+            checkName: encodeURIComponent(row.checkName),
+            checkYear: row.checkYear
           }
         });
     },
