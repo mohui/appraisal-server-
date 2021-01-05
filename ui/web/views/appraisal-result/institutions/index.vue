@@ -712,15 +712,22 @@
                         >
                           评分标准：{{ curRule.evaluateStandard }}
                         </p>
-                        <ul>
-                          <li
-                            v-for="it of appraisalResultInstructionsData"
-                            :key="it"
-                            style="margin-left: -20px"
-                          >
-                            {{ it }}
-                          </li>
-                        </ul>
+                        <div
+                          v-if="appraisalResultInstructionsData.length === 0"
+                        >
+                          未绑定关联关系
+                        </div>
+                        <div v-else>
+                          <ul>
+                            <li
+                              v-for="it of appraisalResultInstructionsData"
+                              :key="it"
+                              style="margin-left: -20px"
+                            >
+                              {{ it }}
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                       <i
                         slot="reference"
