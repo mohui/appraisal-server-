@@ -1180,11 +1180,7 @@ export default class Score {
       // 健康档案建档率
       if (tagModel.tag === MarkTagUsages.S01.code) {
         // 查询服务总人口数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.DocPeople,
-          year
-        );
+        const basicData = await getBasicData(leaves, BasicTagUsages.DocPeople);
         result.push(
           `${
             MarkTagUsages.S01.name
@@ -1226,11 +1222,7 @@ export default class Score {
       // 老年人健康管理率
       if (tagModel.tag === MarkTagUsages.O00.code) {
         // 查询老年人人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.OldPeople,
-          year
-        );
+        const basicData = await getBasicData(leaves, BasicTagUsages.OldPeople);
         result.push(
           `${
             MarkTagUsages.O00.name
@@ -1245,11 +1237,7 @@ export default class Score {
       // 老年人中医药健康管理率
       if (tagModel.tag === MarkTagUsages.O02.code) {
         // 查询老年人人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.OldPeople,
-          year
-        );
+        const basicData = await getBasicData(leaves, BasicTagUsages.OldPeople);
         result.push(
           `${
             MarkTagUsages.O02.name
@@ -1267,8 +1255,7 @@ export default class Score {
         // 查询高血压人数
         const basicData = await getBasicData(
           leaves,
-          BasicTagUsages.HypertensionPeople,
-          year
+          BasicTagUsages.HypertensionPeople
         );
         result.push(
           `${
@@ -1313,8 +1300,7 @@ export default class Score {
         // 查询糖尿病人数
         const basicData = await getBasicData(
           leaves,
-          BasicTagUsages.DiabetesPeople,
-          year
+          BasicTagUsages.DiabetesPeople
         );
         result.push(
           `${
@@ -1367,8 +1353,7 @@ export default class Score {
       if (tagModel.tag === MarkTagUsages.SC00.code) {
         const basicData = await getBasicData(
           leaves,
-          BasicTagUsages.Supervision,
-          year
+          BasicTagUsages.Supervision
         );
         result.push(
           `${
