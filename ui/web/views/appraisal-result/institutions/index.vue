@@ -679,13 +679,25 @@
                     </span>
                     <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                     <i
-                      v-if="scope.row.isAttach"
+                      v-if="
+                        scope.row.isAttach &&
+                          params.year ===
+                            $dayjs()
+                              .year()
+                              .toString()
+                      "
                       style="padding-left:5px; color:#ff9800"
                       class="el-icon-document"
                       @click="handleDialogAppraisalFileListVisible(scope.row)"
                     ></i>
                     <el-popover
-                      v-if="!scope.row.isAttach"
+                      v-if="
+                        !scope.row.isAttach &&
+                          params.year ===
+                            $dayjs()
+                              .year()
+                              .toString()
+                      "
                       :ref="scope.row.ruleId"
                       :popper-options="{
                         boundariesElement: 'viewport',
@@ -990,7 +1002,9 @@ export default {
       params: {
         listFlag: 'quality', // quality(质量系数) | score（工分值）
         id: this.$settings.user.code,
-        year: '2020' //考核年份，默认为空，表示当前年
+        year: this.$dayjs()
+          .year()
+          .toString() //考核年份，默认为空，表示当前年
       },
       yearList: [
         {value: '2020', label: '2020年度'},
