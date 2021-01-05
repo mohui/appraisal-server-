@@ -292,7 +292,10 @@ export default class Score {
       (
         await CheckSystemModel.findAll({
           where: {
-            status: true
+            status: true,
+            checkYear: dayjs()
+              .year()
+              .toString()
           }
         })
       ).map(it => this.autoScore(it.checkId, true))
