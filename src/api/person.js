@@ -348,10 +348,10 @@ export default class Person {
       .reduce((pre, next) => {
         const current = pre.find(p => p.id === next.id);
         if (current) {
-          let tag = current.tags.find(t => t.code === current.markName);
+          let tag = current.tags.find(t => t.code === next.markName);
           if (tag) {
-            if (tag.content.indexOf(current.markContent) < 0)
-              tag.content.push(current.markContent);
+            if (tag.content.indexOf(next.markContent) < 0)
+              tag.content.push(next.markContent);
           } else
             current.tags.push({
               label: current.label,
