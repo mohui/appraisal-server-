@@ -60,6 +60,8 @@ dev_deploy:
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server-temp -p 3210:3000 -v /data/etc/appraisal-server/group.js:/home/node/app/config/production.js $IMAGE_NAME"
   dependencies:
     - docker_build
+  only:
+    - feature/group-check
 
 prod_deploy:
   stage: deploy
