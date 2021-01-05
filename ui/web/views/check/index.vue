@@ -208,7 +208,7 @@
       </el-pagination>
     </el-card>
     <el-dialog
-      :title="checkForm.id ? '修改规则' : '新建规则'"
+      :title="checkForm.checkId ? '修改规则' : '新建规则'"
       :visible.sync="dialogFormAddChecksVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
