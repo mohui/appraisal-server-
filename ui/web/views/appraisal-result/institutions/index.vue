@@ -967,7 +967,7 @@ export default {
         id: this.$settings.user.code,
         year: this.$dayjs()
           .year()
-          .toString() //考核年份，默认为空，表示当前年
+          .toString() //考核年份，默认为当前年
       },
       yearList: [
         {value: '2020', label: '2020年度'},
@@ -1419,7 +1419,11 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
-      if (route.query.year) this.params.year = route.query.year;
+      this.params.year =
+        route.query.year ??
+        this.$dayjs()
+          .year()
+          .toString();
       this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
