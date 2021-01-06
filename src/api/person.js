@@ -20,6 +20,7 @@ function listRender(params) {
              inner join view_personinfo vp on mp.personnum = vp.personnum
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where 1 = 1
+        and year = {{? year}}
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
@@ -85,7 +86,8 @@ export default class Person {
         .allow([]),
       include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
-      documentOr: should.boolean().description('档案问题是否or查询')
+      documentOr: should.boolean().description('档案问题是否or查询'),
+      year: should.number().allow(null)
     })
   )
   async list(params) {
@@ -98,7 +100,8 @@ export default class Person {
       tags,
       include,
       personOr = false,
-      documentOr = false
+      documentOr = false,
+      year = dayjs().year()
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
@@ -163,7 +166,8 @@ export default class Person {
       idCard,
       ...tags,
       personOr,
-      documentOr
+      documentOr,
+      year
     });
     const count = (
       await originalDB.execute(
@@ -200,6 +204,7 @@ export default class Person {
                 mp."C13",
                 mp."C14",
                 mp."E00",
+                mp.year,
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
