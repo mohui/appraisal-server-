@@ -170,10 +170,16 @@ const {job} = workerData;
 (async () => {
   let jobResult: string;
   try {
-    //初始化文件挂载
-    await initFS();
+    //考核打分
+    if (job === 'scoreCheck') {
+      //TODO:打分方法执行
+      console.log('考核打分...', workerData);
+      parentPort.postMessage({result: '考核打分中.', error: null});
+    }
     //考核报表任务
     if (job === 'reportCheck') {
+      //初始化文件挂载
+      await initFS();
       const {code, id} = workerData;
       jobResult = await reportCheck(code, id);
     }

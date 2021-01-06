@@ -29,6 +29,7 @@ import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
 import {percentString} from '../score_hospital_check_rules';
+import {createBackJob} from '../../utils/back-job';
 
 /**
  * 查询考核对象的标记数据
@@ -339,6 +340,17 @@ export default class Score {
     }
   }
 
+  /***
+   * 后台任务打分
+   * @param id
+   * @param isAuto
+   */
+  async autoScoreBackJob(id, isAuto) {
+    return createBackJob('scoreCheck', `考核打分....`, {
+      checkId: id,
+      isAuto: isAuto
+    });
+  }
   /**
    * 地区打分
    *
