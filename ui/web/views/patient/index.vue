@@ -5,7 +5,7 @@
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
         <el-alert
           title="注意: 档案内容为最近一次同步数据, 与年度无关!"
-          type="warning"
+          type="error"
           center
           :closable="false"
           show-icon
