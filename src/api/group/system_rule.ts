@@ -100,7 +100,7 @@ export default class SystemRule {
           ruleScore: rule.ruleScore,
           budget:
             rule.ruleAreaBudgets
-              .filter(it => it.hospitalId === code)
+              .filter(it => it.areaCode === code)
               .reduce(
                 (res, next) => new Decimal(res).add(next.budget),
                 new Decimal(0)
