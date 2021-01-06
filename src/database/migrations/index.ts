@@ -27,6 +27,9 @@ import {AlterCheckSystemMigration} from './024_check_system';
 import {DeleteRuleHospitalScoreRepeatDataMigration} from './025_rule_hospital_score';
 import {ProfileTagsDetailMigration} from './026_profile_tags_permission';
 import {ScoreRemarkHistoryMigration} from './027_score_remark_history';
+import {GroupMigration} from './028_group';
+import {BasicTagDelYearMigration} from './029_basic_tag';
+import {RuleDetailsMigration} from './030_rule_details';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -57,5 +60,8 @@ export const migrations: IMigration[] = [
   new AlterCheckSystemMigration(),
   new DeleteRuleHospitalScoreRepeatDataMigration(),
   new ProfileTagsDetailMigration(),
-  new ScoreRemarkHistoryMigration()
+  new ScoreRemarkHistoryMigration(),
+  new GroupMigration(),
+  new BasicTagDelYearMigration(),
+  new RuleDetailsMigration()
 ];

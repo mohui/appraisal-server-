@@ -78,7 +78,7 @@ export default {
   components: {MultiMenu, KnBackJob},
   data() {
     return {
-      menus: [],
+      menus: require('../../utils/menus'),
       device: 'desktop',
       hiddenMenu: false,
       timer: null,
@@ -91,24 +91,6 @@ export default {
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
     }
-  },
-  async created() {
-    this.menus = require('../../utils/menus').map(it => {
-      if (it.children) {
-        it.children = it.children.map(item => {
-          if (item.index === 'appraisal-result-institutions') {
-            // 根据用户权限判断进入省市地区页还是区、机构页
-            if (this.$settings.user.isRegion) {
-              if (this.$settings.user.region.level < 3) {
-                item.router = '/appraisal-result-area';
-              }
-            }
-          }
-          return item;
-        });
-      }
-      return it;
-    });
   },
   watch: {
     $route() {

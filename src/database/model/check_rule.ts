@@ -19,6 +19,8 @@ import {RuleHospital} from './rule-hospital';
 import {RuleProject} from './rule-project';
 import {RuleHospitalBudget} from './rule-hospital-budget';
 import {ScoreRemarkHistory} from './score-remark-history';
+import {RuleAreaBudget} from './group/rule-area-budget';
+import {RuleAreaScore} from './group/rule-area-score';
 
 @Table({tableName: 'check_rule'})
 export class CheckRule extends Model<CheckRule> {
@@ -96,4 +98,10 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => ScoreRemarkHistory)
   scoreRemarkHistory: ScoreRemarkHistory[];
+
+  @HasMany(() => RuleAreaBudget)
+  ruleAreaBudgets: RuleAreaBudget[];
+
+  @HasMany(() => RuleAreaScore)
+  ruleAreaScores: RuleAreaScore[];
 }

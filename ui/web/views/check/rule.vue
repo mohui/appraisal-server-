@@ -33,6 +33,12 @@
             <span v-if="!!item.isEdit">
               <el-input
                 v-model="item.ruleName"
+                :disabled="
+                  $route.query.checkYear !==
+                    $dayjs()
+                      .year()
+                      .toString()
+                "
                 size="mini"
                 placeholder="请输入考核分类名称"
               >
@@ -46,6 +52,12 @@
               ></el-input-number>
               <el-tooltip content="选择工分项" :enterable="false">
                 <el-button
+                  :disabled="
+                    $route.query.checkYear !==
+                      $dayjs()
+                        .year()
+                        .toString()
+                  "
                   icon="el-icon-s-claim"
                   circle
                   type="primary"
@@ -94,6 +106,12 @@
             </span>
             <div>
               <el-button
+                :disabled="
+                  $route.query.checkYear !==
+                    $dayjs()
+                      .year()
+                      .toString()
+                "
                 plain
                 type="primary"
                 size="mini"
@@ -113,6 +131,12 @@
               </el-button>
               <el-button
                 v-show="!item.isEdit"
+                :disabled="
+                  $route.query.checkYear !==
+                    $dayjs()
+                      .year()
+                      .toString()
+                "
                 plain
                 type="danger"
                 size="mini"
@@ -243,6 +267,12 @@
                 </div>
                 <div v-else>
                   <el-button
+                    :disabled="
+                      $route.query.checkYear !==
+                        $dayjs()
+                          .year()
+                          .toString()
+                    "
                     plain
                     v-permission="{
                       permission: permission.RULE_UPDATE,
@@ -254,6 +284,12 @@
                     >修改
                   </el-button>
                   <el-button
+                    :disabled="
+                      $route.query.checkYear !==
+                        $dayjs()
+                          .year()
+                          .toString()
+                    "
                     plain
                     v-permission="{
                       permission: permission.RULE_REMOVE,
@@ -442,8 +478,8 @@ import Vue from 'vue';
 import dayjs from 'dayjs';
 import {
   MarkTags,
-  TagAlgorithm,
   MarkTagUsages,
+  TagAlgorithm,
   TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
@@ -813,7 +849,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'
@@ -1011,7 +1047,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'

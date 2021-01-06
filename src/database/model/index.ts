@@ -18,3 +18,13 @@ export {RuleHospitalBudget as RuleHospitalBudgetModel} from './rule-hospital-bud
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
 export {ReportHospitalHistory as ReportHospitalHistoryModel} from './report-hospital-history';
 export {ScoreRemarkHistory as ScoreRemarkHistoryModel} from './score-remark-history';
+
+export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
+
+export {Area as AreaModel} from './group/area';
+export {CheckArea as CheckAreaModel} from './group/check-area';
+export {RuleAreaBudget as RuleAreaBudgetModel} from './group/rule-area-budget';
+export {RuleAreaAttach as RuleAreaAttachModel} from './group/rule_area_attach';
+export {ReportArea as ReportAreaModel} from './group/report_area';
+export {ReportAreaHistory as ReportAreaHistoryModel} from './group/report_area_history';
+export {ManualScoreHistory as ManualScoreHistoryModel} from './group/manual-score-history';
