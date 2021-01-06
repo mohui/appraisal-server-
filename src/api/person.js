@@ -318,10 +318,11 @@ export default class Person {
                  mp."E00",
                  vp.operatetime as "updateAt"
           from view_personinfo vp
-             inner join mark_person mp on mp.personnum = vp.personnum
+             inner join mark_person mp on mp.personnum = vp.personnum and year = ?
           where vp.personnum = ?
           limit 1
         `,
+        dayjs().year(),
         id
       )
     )[0];
