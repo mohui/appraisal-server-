@@ -1093,12 +1093,8 @@ export default {
       let arr = this.rankServerData
         .filter(it => it.budget)
         .map(it => ({
-          name: it.name,
           id: it.code,
-          budget: it.budget.toFixed(2)
-        }))
-        .map(it => ({
-          name: `${it.name} 金额：${it.budget}元`,
+          name: `${it.name} 金额：${it.budget.toFixed(2)}元`,
           value: it.budget,
           onClick: () =>
             this.$router.push({
