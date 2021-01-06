@@ -127,6 +127,7 @@
                   <el-select
                     v-model="queryForm.year"
                     placeholder="请选择考核年度"
+                    style="width: 100%;"
                   >
                     <el-option
                       v-for="item in yearList"
@@ -139,7 +140,7 @@
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
+            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="8" :xl="4">
               <el-form-item label="">
                 <el-button
                   type="primary"
