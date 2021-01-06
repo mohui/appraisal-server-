@@ -4,12 +4,12 @@
       <!--顶部表头-->
       <el-card
         v-sticky
-        class="box-card"
-        shadow="never"
         v-loading="
           $asyncComputed.reportListSeverData.updating ||
             $asyncComputed.totalServerData.updating
         "
+        class="box-card"
+        shadow="never"
       >
         <div class="header-title" style="float: left">
           {{ totalData.name }}基本公共卫生服务两卡制绩效考核
@@ -47,8 +47,8 @@
           </el-button>
           <el-dropdown
             v-else-if="reportListData.length > 1"
-            @command="handleDownloadReport"
             style="margin-left: 30px"
+            @command="handleDownloadReport"
           >
             <el-button type="primary" size="small">
               报告下载<i class="el-icon-arrow-down el-icon--right"></i>
@@ -56,19 +56,19 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item
                 v-for="it of reportListData"
-                :command="it.url"
                 :key="it.id"
+                :command="it.url"
               >
                 {{ it.name }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
           <el-button
+            v-if="showBackButton()"
             size="small"
             style="float:right; margin: 4px 0 10px 30px"
             type="primary"
             @click="handleBack"
-            v-if="showBackButton()"
             >返回
           </el-button>
         </div>
@@ -76,10 +76,10 @@
       <el-row :gutter="20" style="margin: 20px -10px">
         <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
           <el-card
-            shadow="hover"
             v-loading="$asyncComputed.totalServerData.updating"
+            shadow="hover"
           >
-            <div class="score-detail" v-if="params.listFlag === 'score'">
+            <div v-if="params.listFlag === 'score'" class="score-detail">
               <div class="second-title" style="text-align:left">
                 工分值
               </div>
@@ -103,10 +103,10 @@
                 </div>
               </div>
             </div>
-            <div class=" score-detail" v-if="params.listFlag === 'quality'">
+            <div v-if="params.listFlag === 'quality'" class=" score-detail">
               <two-card-circle
                 :coefficient="totalData.fixedDecimalRate"
-                :pointDate="date"
+                :point-date="date"
               ></two-card-circle>
               <span style="position: absolute; bottom: 20px; left: 31%;">
                 (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
@@ -117,8 +117,8 @@
         <div v-if="params.listFlag === 'quality'">
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-card
-              shadow="hover"
               v-loading="$asyncComputed.faceCollectSeverData.updating"
+              shadow="hover"
             >
               <div class="score-detail">
                 <p class="second-title" style="margin:0; text-align:left;">
@@ -133,17 +133,17 @@
           </el-col>
           <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
             <el-card
-              shadow="hover"
               v-loading="
                 $asyncComputed.historicalTrendLineChartSeverData.updating
               "
+              shadow="hover"
             >
               <div class="score-detail">
                 <line-chart
-                  :xAxisData="historicalTrendLineChartData.xAxisData"
-                  :yAxisData="historicalTrendLineChartData.yAxisData"
-                  lineText="%"
-                  :listFlag="params.listFlag"
+                  :x-axis-data="historicalTrendLineChartData.xAxisData"
+                  :y-axis-data="historicalTrendLineChartData.yAxisData"
+                  line-text="%"
+                  :list-flag="params.listFlag"
                 ></line-chart>
               </div>
             </el-card>
@@ -151,63 +151,63 @@
         </div>
         <div v-else>
           <el-col
+            v-if="!params.isInstitution"
             :span="10"
             :xs="24"
             :sm="12"
             :md="8"
             :lg="8"
             :xl="8"
-            v-if="!params.isInstitution"
           >
             <el-card
-              shadow="hover"
               v-loading="
                 $asyncComputed.doctorWorkpointRankServerData.updating ||
                   $asyncComputed.workpointRankServerData.updating
               "
+              shadow="hover"
             >
               <div class="score-detail">
                 <two-card-tree-map
-                  :mapData="budgetData"
+                  :map-data="budgetData"
                   :color="color"
-                  emptyText="尚未配置金额"
+                  empty-text="尚未配置金额"
                 ></two-card-tree-map>
               </div>
             </el-card>
           </el-col>
           <el-col
+            v-if="!params.isInstitution"
             :span="6"
             :xs="24"
             :sm="12"
             :md="8"
             :lg="8"
             :xl="8"
-            v-if="!params.isInstitution"
           >
             <el-card
-              shadow="hover"
               v-loading="
                 $asyncComputed.doctorWorkpointRankServerData.updating ||
                   $asyncComputed.workpointRankServerData.updating
               "
+              shadow="hover"
             >
               <div class="score-detail">
-                <two-card-tree-map :mapData="mapData"></two-card-tree-map>
+                <two-card-tree-map :map-data="mapData"></two-card-tree-map>
               </div>
             </el-card>
           </el-col>
           <el-col
+            v-if="params.isInstitution"
             :span="16"
             :xs="24"
             :sm="12"
             :md="16"
             :lg="16"
             :xl="16"
-            v-if="params.isInstitution"
           >
             <el-card
-              shadow="hover"
               v-loading="$asyncComputed.totalServerData.updating"
+              shadow="hover"
             >
               <div class="score-detail">
                 <div class="second-title" style="text-align: left;">
@@ -248,11 +248,11 @@
       </el-row>
 
       <el-row
+        v-if="params.isInstitution"
         :gutter="20"
         style="margin: 20px -10px"
-        v-if="params.isInstitution"
       >
-        <el-col :span="4" :xs="8" :sm="4" :md="4" :lg="4" :xl="4">
+        <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
@@ -262,66 +262,17 @@
                 v-loading="
                   $asyncComputed.familyDoctorContractServerData.updating
                 "
-                class="family-doctor"
+                style="height: 100%"
               >
-                <span
-                  >签约人数:
-                  {{ familyDoctorContractServerData.signedNumber }}</span
-                >
-                <span
-                  >履约人数:
-                  {{ familyDoctorContractServerData.exeNumber }}</span
-                >
-                <span
-                  >续约人数:
-                  {{ familyDoctorContractServerData.renewNumber }}</span
-                >
+                <doctor-bar
+                  style="padding-top: 20px;"
+                  :bar-data="familyDoctorContractData"
+                ></doctor-bar>
               </div>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-          <el-card shadow="hover">
-            <div class="score-detail">
-              <p class="second-title" style="margin:0; text-align:left;">
-                健康教育
-              </p>
-              <el-table
-                :data="healthEducationData"
-                height="280px"
-                v-loading="$asyncComputed.healthEducationServerData.updating"
-                style="width: 100%"
-                size="mini"
-              >
-                <el-table-column
-                  prop="ActivityFormName"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动类型"
-                >
-                </el-table-column>
-                <el-table-column
-                  prop="ActivityTime"
-                  header-align="center"
-                  align="center"
-                  min-width="20px"
-                  label="活动时间"
-                >
-                </el-table-column>
-                <el-table-column
-                  prop="ActivityName"
-                  header-align="center"
-                  align="center"
-                  min-width="40px"
-                  label="活动名称"
-                >
-                </el-table-column>
-              </el-table>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+        <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-card shadow="hover">
             <div class="score-detail">
               <p class="second-title" style="margin:0; text-align:left;">
@@ -330,10 +281,10 @@
               <el-tabs>
                 <el-tab-pane label="报告">
                   <el-table
-                    :data="supervisionReportData"
                     v-loading="
                       $asyncComputed.supervisionReportServerData.updating
                     "
+                    :data="supervisionReportData"
                     height="280px"
                     style="width: 100%"
                     size="mini"
@@ -356,10 +307,10 @@
                 </el-tab-pane>
                 <el-tab-pane label="巡查">
                   <el-table
-                    :data="supervisionAssistData"
                     v-loading="
                       $asyncComputed.supervisionAssistServerData.updating
                     "
+                    :data="supervisionAssistData"
                     height="280px"
                     style="width: 100%"
                     size="mini"
@@ -384,6 +335,56 @@
             </div>
           </el-card>
         </el-col>
+        <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+          <el-card shadow="hover">
+            <div class="score-detail">
+              <p class="second-title" style="margin:0; text-align:left;">
+                健康教育
+              </p>
+              <el-tabs
+                v-if="healthEducationTagsName.length !== 0"
+                v-model="healthEducationTagSelected"
+              >
+                <el-tab-pane
+                  v-for="tag in healthEducationTagsName"
+                  :key="tag"
+                  :label="tag"
+                  :name="tag"
+                >
+                  <el-table
+                    v-loading="
+                      $asyncComputed.healthEducationServerData.updating
+                    "
+                    :data="healthEducationData"
+                    height="280px"
+                    style="width: 100%"
+                    size="mini"
+                  >
+                    <el-table-column
+                      prop="ActivityTime"
+                      header-align="center"
+                      align="center"
+                      min-width="20px"
+                      label="活动时间"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                      prop="ActivityName"
+                      header-align="center"
+                      align="center"
+                      min-width="40px"
+                      label="活动名称"
+                    >
+                    </el-table-column>
+                  </el-table>
+                </el-tab-pane>
+              </el-tabs>
+              <div v-else class="el-table__empty-text empty-data">
+                暂无数据
+              </div>
+            </div>
+          </el-card>
+        </el-col>
       </el-row>
 
       <!--机构排行-->
@@ -403,8 +404,8 @@
             <!--质量系数机构排行-->
             <accordion
               v-if="params.listFlag === 'quality'"
-              :Accordionindex="0"
-              :AccordionData="`${index + 1}、${item.name}`"
+              :accordionindex="0"
+              :accordion-data="`${index + 1}、${item.name}`"
             >
               <div
                 slot="Sizes"
@@ -421,23 +422,22 @@
                 </el-progress>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ Math.round(i.rate * 100) }}%
-                  </li>
-                </ul>
+                <div
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ Math.round(i.rate * 100) }}%
+                </div>
               </div>
             </accordion>
             <!--工分值机构排行-->
             <accordion
               v-if="params.listFlag === 'score'"
-              :Accordionindex="0"
-              :AccordionData="`${index + 1}、${item.name}`"
+              :accordionindex="0"
+              :accordion-data="`${index + 1}、${item.name}`"
             >
               <div
                 slot="Sizes"
@@ -459,17 +459,15 @@
                 </progress-score>
               </div>
               <div slot="First" style="padding: 0 20px">
-                <ul>
-                  <li
-                    class="pointer"
-                    style="margin: 8px 0; font-size: 14px"
-                    v-for="(i, index) of item.child"
-                    :key="index"
-                    @click="handleClickInstitution(i.id)"
-                  >
-                    {{ i.name }} {{ i.score | fixedDecimal }}分
-                  </li>
-                </ul>
+                <div
+                  v-for="(i, index) of item.child"
+                  :key="index"
+                  class="pointer"
+                  style="margin:10px 20px; font-size: 14px; color: #303133;"
+                  @click="handleClickInstitution(i.id)"
+                >
+                  {{ index }}. {{ i.name }} {{ i.score | fixedDecimal }}分
+                </div>
               </div>
             </accordion>
           </div>
@@ -480,9 +478,9 @@
         </div>
         <!--一、二级机构排行-->
         <el-row
+          v-loading="$asyncComputed.workpointRankServerData.updating"
           :gutter="20"
           style="margin-top: 20px"
-          v-loading="$asyncComputed.workpointRankServerData.updating"
         >
           <!--一级机构排行-->
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
@@ -513,8 +511,8 @@
                 </div>
                 <!--一级机构工分值排行-->
                 <div
-                  class="pointer"
                   v-else-if="params.listFlag === 'score'"
+                  class="pointer"
                   @click="handleClickInstitution(item.id)"
                 >
                   <p>{{ index + 1 }}、{{ item.name }}</p>
@@ -562,8 +560,8 @@
                 </div>
                 <!--二级机构工分值排行-->
                 <div
-                  class="pointer"
                   v-else-if="params.listFlag === 'score'"
+                  class="pointer"
                   @click="handleClickInstitution(item.id)"
                 >
                   <p>{{ index + 1 }}、{{ item.name }}</p>
@@ -586,9 +584,9 @@
       </div>
       <!--考核指标规则-->
       <el-row
+        v-if="params.isInstitution && params.listFlag === 'quality'"
         v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
         class="appraisal-indicators-rule"
-        v-if="params.isInstitution && params.listFlag === 'quality'"
       >
         <el-col :span="24">
           <div>
@@ -609,14 +607,14 @@
                   >考核结果下载</el-button
                 >
               </div>
-              <div style="float: right" v-if="$settings.user.isRegion">
+              <div v-if="$settings.user.isRegion" style="float: right">
                 <span style="font-size: 14px">系统自动打分：</span>
                 <el-switch
                   v-model="appraisalIndicatorsData.auto"
-                  @change="handleSystemAllAutoScore"
                   style="padding-right: 20px;"
                   active-text="开启"
                   inactive-text="关闭"
+                  @change="handleSystemAllAutoScore"
                 >
                 </el-switch>
               </div>
@@ -754,9 +752,9 @@
                         </p>
                         <ul>
                           <li
-                            style="margin-left: -20px"
                             v-for="item of appraisalResultInstructionsData"
                             :key="item"
+                            style="margin-left: -20px"
                           >
                             {{ item }}
                           </li>
@@ -774,16 +772,16 @@
                   v-if="$settings.user.isRegion"
                   align="center"
                   label="操作"
-                  width="184px"
+                  width="220px"
                 >
                   <template slot-scope="scope">
                     <el-button
-                      v-if="scope.row.isGradeScore"
+                      v-show="scope.row.isGradeScore"
                       plain
                       type="primary"
                       size="mini"
-                      @click="handleSaveScore(scope.row)"
                       :loading="scope.row.isSaveScoreLoaing"
+                      @click="openRemarkDialog(scope.row)"
                       >保存
                     </el-button>
                     <el-button
@@ -796,12 +794,49 @@
                     </el-button>
                     <el-button
                       v-if="scope.row.isGradeScore"
+                      style="margin: 0"
                       plain
                       type="primary"
                       size="mini"
                       @click="cancelScore(scope.row)"
                       >取消
                     </el-button>
+                    <el-popover placement="left" width="600" trigger="click">
+                      <el-table
+                        height="200px"
+                        :data="scope.row.scoreHistoryData"
+                        size="mini"
+                      >
+                        <el-table-column
+                          align="center"
+                          property="score"
+                          label="手动打分"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="remark"
+                          label="备注"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="creator.name"
+                          label="打分人"
+                        ></el-table-column>
+                        <el-table-column
+                          align="center"
+                          property="created_at"
+                          label="时间"
+                        ></el-table-column>
+                      </el-table>
+                      <el-button
+                        slot="reference"
+                        plain
+                        type="warning"
+                        size="mini"
+                        @click="scoreHistory(scope.row)"
+                        >历史
+                      </el-button>
+                    </el-popover>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -832,8 +867,8 @@
         </el-col>
       </el-row>
       <el-row
-        v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
         v-if="params.isInstitution && params.listFlag === 'score'"
+        v-loading="$asyncComputed.doctorWorkpointRankServerData.updating"
         :gutter="20"
         style="margin-top: 20px"
       >
@@ -886,9 +921,9 @@
               工分项目
             </p>
             <el-table
+              ref="refTable"
               :data="categoryWorkpointRankData"
               :header-cell-style="{background: '#e4e2df', color: '#333'}"
-              ref="refTable"
             >
               <el-table-column type="expand" prop="children">
                 <template slot-scope="scope">
@@ -937,9 +972,9 @@
         </el-form-item>
         <el-form-item label="上传文件">
           <el-upload
+            ref="uploadForm"
             name="attachments"
             accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
-            ref="uploadForm"
             :auto-upload="false"
             :limit="1"
             :on-exceed="handleExceed"
@@ -948,7 +983,7 @@
             action="/api/Score/upload.ac"
             :data="curRule.data"
           >
-            <el-button plain slot="trigger" size="small" type="primary"
+            <el-button slot="trigger" plain size="small" type="primary"
               >选取文件</el-button
             >
             <div slot="tip" class="el-upload__tip" style="font-size:12px;">
@@ -986,10 +1021,29 @@
         <div v-else style="color: red">暂无文件</div>
       </div>
     </el-dialog>
+    <el-dialog
+      title="填写打分备注"
+      :visible.sync="scoreRemarkVisible"
+      @closed="currentRow = {}"
+    >
+      <el-input v-model="scoreRemark" type="textarea" size="mini"></el-input>
+      <div style="text-align: right; margin: 30px">
+        <el-button size="mini" type="text" @click="scoreRemarkVisible = false"
+          >取消</el-button
+        >
+        <el-button
+          type="primary"
+          size="mini"
+          @click="handleSaveScore(currentRow)"
+          >确定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
 import twoCardPie from '../components/twocardPie';
+import doctorBar from '../components/doctorBar';
 import twoCardTreeMap from '../components/twocardTreemap';
 import twoCardCircle from '../components/twocardCircle';
 import accordion from '../components/twocardAccordion';
@@ -1000,9 +1054,10 @@ import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
 
 export default {
-  name: 'index',
+  name: 'Index',
   components: {
     twoCardPie,
+    doctorBar,
     twoCardTreeMap,
     twoCardCircle,
     accordion,
@@ -1013,8 +1068,15 @@ export default {
     this.initParams(to);
     next();
   },
-  created() {
-    this.initParams(this.$route);
+  directives: {
+    sticky: VueSticky
+  },
+  filters: {
+    //过滤器，保留两位小数
+    fixedDecimal: function(value) {
+      if (!value) return 0;
+      return value.toFixed(2);
+    }
   },
   data() {
     return {
@@ -1066,18 +1128,402 @@ export default {
         data: ''
       },
       dialogAppraisalFileListVisible: false,
-      appraisalResultInstructionsPopoverVisible: false //单项指标考核结果说明
+      appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
+      healthEducationTagSelected: '',
+      scoreRemarkVisible: false, //打分备注填写框框
+      scoreRemark: '', //备注信息
+      currentRow: {}
     };
   },
-  directives: {
-    sticky: VueSticky
-  },
-  filters: {
-    //过滤器，保留两位小数
-    fixedDecimal: function(value) {
-      if (!value) return 0;
-      return value.toFixed(2);
+  computed: {
+    //家庭医生签约
+    familyDoctorContractData() {
+      let arr = [
+        {
+          name: '签约人数',
+          label: 'signedNumber',
+          value: ''
+        },
+        {
+          name: '履约人数',
+          label: 'exeNumber',
+          value: ''
+        },
+        {
+          name: '续约人数',
+          label: 'renewNumber',
+          value: ''
+        }
+      ];
+      return arr.map(it => ({
+        ...it,
+        value: this.familyDoctorContractServerData[it.label]
+      }));
+    },
+    healthEducationTagsName() {
+      return Array.from(
+        new Set(
+          this.healthEducationServerData?.map(it => it.ActivityFormName) ?? []
+        )
+      );
+    },
+    //健康教育
+    healthEducationData() {
+      return this.healthEducationServerData
+        .filter(e => e.ActivityFormName === this.healthEducationTagSelected)
+        .map(it => ({
+          ...it,
+          ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
+        }));
+    },
+    //监督协管报告
+    supervisionReportData() {
+      return this.supervisionReportServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
+    //监督协管巡查
+    supervisionAssistData() {
+      return this.supervisionAssistServerData.map(it => ({
+        ...it,
+        Time: it.Date.$format('YYYY-MM-DD')
+      }));
+    },
+    //人脸采集信息
+    faceCollectData() {
+      let arr = [
+        {
+          value: this.faceCollectSeverData.face,
+          name: '人脸采集数'
+        },
+        {
+          value:
+            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
+          name: '人脸未采集数'
+        }
+      ];
+      return arr;
+    },
+    //历史趋势数据，折线图展示
+    historicalTrendLineChartData() {
+      const data = this.historicalTrendLineChartSeverData;
+      let result = {};
+      result.xAxisData = data.map(it => {
+        return it.date;
+      });
+      result.yAxisData = data.map(it => {
+        return Number((it.rate * 100).toFixed(2));
+      });
+      return result;
+    },
+    scoreList() {
+      return this.hospitalProject?.map(it =>
+        Object.assign({}, it, {
+          rate: (it.rate * 100).toFixed(2) + '%',
+          workpoint: it.workpoint ?? 0,
+          correctWorkpoint: Number.parseInt(it.correctWorkpoint)
+        })
+      );
+    },
+    //金额：矩形树状图
+    budgetData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.budget)
+        .map(it => ({
+          name: it.name,
+          id: it.id,
+          budget: it.budget.toFixed(2)
+        }))
+        .map(it => ({
+          name: `${it.name} 金额：${it.budget}元`,
+          value: it.budget,
+          onClick: () =>
+            this.$router.push({
+              name: 'appraisal-result-institutions',
+              query: {
+                id: it.id,
+                listFlag: 'score',
+                isInstitution: 'true'
+              }
+            })
+        }));
+      return arr;
+    },
+    //工分：矩形树状图
+    mapData() {
+      let arr = this.workpointRankServerData
+        .filter(it => it.score)
+        .map(it => ({
+          name: `${it.name} 工分值：${Math.round(it.score)}分`,
+          value: it.score,
+          onClick: () =>
+            this.$router.push({
+              name: 'appraisal-result-institutions',
+              query: {
+                id: it.id,
+                listFlag: 'score',
+                isInstitution: 'true'
+              }
+            })
+        }));
+      return arr;
+    },
+    //工分值数据，用于柱状图显示
+    workpointBarData() {
+      let value = {xAxisData: [], yAxisData: []};
+      let array = [];
+      if (this.params.isInstitution) {
+        //机构，取医生的前三名
+        array = this.doctorWorkpointRankData.slice(0, 3);
+        value.xAxisData = array.map(it => it.doctorname);
+        value.yAxisData = array.map(it => it.score);
+        return value;
+      } else {
+        //地区，取一级机构的前三名
+        array = this.firstLevelWorkpointRankData.slice(0, 3);
+        value.xAxisData = array.map(it => it.name);
+        value.yAxisData = array.map(it => it.score);
+      }
+      return value;
+    },
+    //总计工分和质量系数数据
+    totalData() {
+      return {
+        ...this.totalServerData,
+        fixedDecimalRate: decimal(
+          Number((this.totalServerData.rate * 100).toFixed(2))
+        ).toNumber()
+      };
+    },
+    //机构排行数据
+    workpointRankData() {
+      const result = this.workpointRankServerData
+        //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
+        .filter(
+          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+        )
+        //添加child
+        .map(item => {
+          //对下属二级机构进行排序
+          let child = this.workpointRankServerData.filter(
+            it => it.parent === item.id
+          );
+          if (this.params.listFlag === 'score') {
+            child = child.sort((a, b) => b.score - a.score);
+          } else {
+            child = child.sort((a, b) => b.rate - a.rate);
+          }
+          //添加一级机构和排序后的二级机构的值
+          const returnValue = Object.assign({}, item, {
+            child: [item, ...child]
+          });
+          //累加分数
+          returnValue.score = returnValue.child.reduce(
+            (result, current) => (result += current.score),
+            0
+          );
+          //格式化取整后的分数，用于页面显示
+          returnValue.scoreFormat = Math.round(returnValue.score);
+          //累加质量系数
+          returnValue.rate = returnValue.child.reduce(
+            (result, current) => (result += current.rate),
+            0
+          );
+          returnValue.rate = returnValue.rate / returnValue.child.length;
+          return returnValue;
+        });
+      if (this.params.listFlag === 'score') {
+        return result.sort((a, b) => b.score - a.score);
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
+    },
+    //一级机构排行数据
+    firstLevelWorkpointRankData() {
+      const result = this.workpointRankData
+        .map(item => item.child)
+        .reduce((result, current) => result.concat(current), [])
+        .filter(
+          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+        );
+      if (this.params.listFlag === 'score') {
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
+    },
+    //二级机构排行数据
+    secondLevelWorkpointRankData() {
+      const result = this.workpointRankServerData
+        .filter(
+          item =>
+            !item.name.endsWith('服务中心') && !item.name.endsWith('卫生院')
+        )
+        .sort((a, b) => b.score - a.score);
+      if (this.params.listFlag === 'score') {
+        return result
+          .sort((a, b) => b.score - a.score)
+          .map(it => {
+            //格式化取整后的分数，用于页面显示
+            it.scoreFormat = Math.round(it.score);
+            return it;
+          });
+      } else {
+        return result.sort((a, b) => b.rate - a.rate);
+      }
+    },
+    //最大得分值数
+    maxScore() {
+      return Math.max(...this.workpointRankData.map(it => it.score));
+    },
+    //医生工分排行数据
+    doctorWorkpointRankData() {
+      let returnValue = this.doctorWorkpointRankServerData
+        .reduce((result, current) => {
+          // let item = result.find(it => it.doctorid === current.doctorid);
+          let item;
+          for (const it of result) {
+            if (it.doctorid === current.doctorid) {
+              item = it;
+              break;
+            }
+          }
+          if (item) {
+            // 医生已存在
+            item.score += current.score;
+            item.children.push(current);
+          } else {
+            // 不存在
+            item = {
+              doctorid: current.doctorid,
+              doctorname: current.doctorname,
+              score: current.score,
+              children: [current]
+            };
+            result.push(item);
+          }
+          return result;
+        }, [])
+        .sort((a, b) => b.score - a.score)
+        .map(item => {
+          item.children.sort((a, b) => b.score - a.score);
+          return item;
+        });
+      return returnValue;
+    },
+    //工分项目数据
+    categoryWorkpointRankData() {
+      return this.doctorWorkpointRankServerData
+        .reduce((result, current) => {
+          let item = result.find(it => it.name === current.name);
+          if (item) {
+            //类别已存在
+            item.score += current.score;
+            item.children.push(current);
+          } else {
+            //类别不存在
+            item = {
+              name: current.name,
+              score: current.score,
+              children: [current]
+            };
+            result.push(item);
+          }
+          return result;
+        }, [])
+        .sort((a, b) => b.score - a.score)
+        .map(item => {
+          item.children.sort((a, b) => b.score - a.score);
+          return item;
+        });
+    },
+    //绩效考核指标的规则和评分数据
+    appraisalIndicatorsData() {
+      const returnValue = {...this.appraisalIndicatorsServerData};
+      returnValue.children =
+        returnValue.children.map(item => {
+          // 得分
+          item.score = item?.children.reduce(
+            (result, current) => (result += current?.score ?? 0),
+            0
+          );
+          item.ruleScore = item?.children.reduce(
+            (result, current) => (result += current?.ruleScore ?? 0),
+            0
+          );
+          item.children = item.children.map(it => {
+            //判断ruleTags里面是否包含需要上传附件的关联关系
+            const isAttach = it.ruleTags
+              .map(tag => tag.algorithm)
+              .some(tag => tag === 'attach');
+            return {
+              ...it,
+              scoreHistoryData: [],
+              isGradeScore: false,
+              originalScore: it.score,
+              isSaveScoreLoaing: false,
+              isAttach: isAttach
+            };
+          });
+          return item;
+        }) ?? [];
+      returnValue.score = returnValue.children.reduce(
+        (result, current) => (result += current.score ?? 0),
+        0
+      );
+      returnValue.ruleScore = returnValue.children.reduce(
+        (result, current) => (result += current.ruleScore ?? 0),
+        0
+      );
+      //系统自动打分
+      returnValue.auto = true;
+      //循环各单项指标规则里面的系统自动打分是否开启，有一项是关闭状态，则returnValue.auto = false
+      for (let item of returnValue.children) {
+        for (let it of item.children) {
+          if (it.auto === false) {
+            returnValue.auto = false;
+            break;
+          }
+        }
+      }
+      return returnValue;
+    },
+    //单项考核规则的考核文件列表数据
+    appraisalFileListData() {
+      return this.appraisalFileListServerData;
+    },
+    //单项考核得分解读数据
+    appraisalResultInstructionsData() {
+      return this.appraisalResultInstructionsServerData;
+    },
+    //报告下载列表数据
+    reportListData() {
+      return this.reportListSeverData;
     }
+  },
+  watch: {
+    //指标得分解读详情数据
+    appraisalResultInstructionsData() {
+      if (this.$refs[this.curRule.ruleId]) {
+        //数据返回后更新popper，重新修正定位
+        this.$nextTick(() => {
+          this.$refs[this.curRule.ruleId][0].updatePopper();
+        });
+      }
+    },
+    healthEducationTagsName(val) {
+      this.healthEducationTagSelected = val[0];
+    }
+  },
+  created() {
+    this.initParams(this.$route);
   },
   methods: {
     computedColWidth(field) {
@@ -1118,8 +1564,8 @@ export default {
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
     },
-    //保存打分处理
-    async handleSaveScore(row) {
+    //打开填写备注的弹出窗
+    async openRemarkDialog(row) {
       if (row.score > row.ruleScore) {
         this.$message({
           type: 'error',
@@ -1127,12 +1573,27 @@ export default {
         });
         return;
       }
+      this.scoreRemarkVisible = true;
+      this.scoreRemark = '';
+      this.currentRow = row;
+    },
+    //保存打分处理
+    async handleSaveScore(row) {
+      if (!this.scoreRemark) {
+        this.$message({
+          type: 'error',
+          message: '请填写打分备注'
+        });
+        return;
+      }
       try {
+        this.scoreRemarkVisible = false;
         row.isSaveScoreLoaing = true;
         await this.$api.ScoreHospitalCheckRules.score(
           row.ruleId,
           this.totalData.id,
-          row.score
+          row.score,
+          this.scoreRemark
         );
         this.$message({
           type: 'success',
@@ -1289,364 +1750,25 @@ export default {
     },
     //考核结果下载
     async handleAppraisalResultsDownload() {
-      try {
-        await this.$api.Report.downloadCheckBackJob(
-          this.params.id,
-          this.params.checkId
-        );
-        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
-      } catch (e) {
-        this.$message.error(e.message);
-      }
+      await this.$api.Hospital.checkDownload(this.params.id);
     },
     //报告下载
     handleDownloadReport(url) {
       FileSaver.saveAs(url);
-    }
-  },
-  watch: {
-    //指标得分解读详情数据
-    appraisalResultInstructionsData() {
-      if (this.$refs[this.curRule.ruleId]) {
-        //数据返回后更新popper，重新修正定位
-        this.$nextTick(() => {
-          this.$refs[this.curRule.ruleId][0].updatePopper();
-        });
-      }
-    }
-  },
-  computed: {
-    //健康教育
-    healthEducationData() {
-      return this.healthEducationServerData.map(it => ({
-        ...it,
-        ActivityTime: it.ActivityTime.$format('YYYY-MM-DD')
-      }));
     },
-    //监督协管报告
-    supervisionReportData() {
-      return this.supervisionReportServerData.map(it => ({
-        ...it,
-        Time: it.Date.$format('YYYY-MM-DD')
-      }));
-    },
-    //监督协管巡查
-    supervisionAssistData() {
-      return this.supervisionAssistServerData.map(it => ({
-        ...it,
-        Time: it.Date.$format('YYYY-MM-DD')
-      }));
-    },
-    //人脸采集信息
-    faceCollectData() {
-      let arr = [
-        {
-          value: this.faceCollectSeverData.face,
-          name: '人脸采集数'
-        },
-        {
-          value:
-            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
-          name: '人脸未采集数'
-        }
-      ];
-      return arr;
-    },
-    //历史趋势数据，折线图展示
-    historicalTrendLineChartData() {
-      const data = this.historicalTrendLineChartSeverData;
-      let result = {};
-      result.xAxisData = data.map(it => {
-        return it.date;
-      });
-      result.yAxisData = data.map(it => {
-        return Number((it.rate * 100).toFixed(2));
-      });
-      return result;
-    },
-    scoreList() {
-      return this.hospitalProject?.map(it =>
-        Object.assign({}, it, {
-          rate: (it.rate * 100).toFixed(2) + '%',
-          workpoint: it.workpoint ?? 0,
-          correctWorkpoint: Number.parseInt(it.correctWorkpoint)
-        })
-      );
-    },
-    //金额：矩形树状图
-    budgetData() {
-      let arr = this.workpointRankServerData
-        .filter(it => it.budget)
-        .map(it => ({
-          name: it.name,
-          id: it.id,
-          budget: it.budget.toFixed(2)
-        }))
-        .map(it => ({
-          name: `${it.name} 金额：${it.budget}元`,
-          value: it.budget,
-          onClick: () =>
-            this.$router.push({
-              name: 'appraisal-result-institutions',
-              query: {
-                id: it.id,
-                listFlag: 'score',
-                isInstitution: 'true'
-              }
-            })
-        }));
-      return arr;
-    },
-    //工分：矩形树状图
-    mapData() {
-      let arr = this.workpointRankServerData
-        .filter(it => it.score)
-        .map(it => ({
-          name: `${it.name} 工分值：${Math.round(it.score)}分`,
-          value: it.score,
-          onClick: () =>
-            this.$router.push({
-              name: 'appraisal-result-institutions',
-              query: {
-                id: it.id,
-                listFlag: 'score',
-                isInstitution: 'true'
-              }
-            })
-        }));
-      return arr;
-    },
-    //工分值数据，用于柱状图显示
-    workpointBarData() {
-      let value = {xAxisData: [], yAxisData: []};
-      let array = [];
-      if (this.params.isInstitution) {
-        //机构，取医生的前三名
-        array = this.doctorWorkpointRankData.slice(0, 3);
-        value.xAxisData = array.map(it => it.doctorname);
-        value.yAxisData = array.map(it => it.score);
-        return value;
-      } else {
-        //地区，取一级机构的前三名
-        array = this.firstLevelWorkpointRankData.slice(0, 3);
-        value.xAxisData = array.map(it => it.name);
-        value.yAxisData = array.map(it => it.score);
-      }
-      return value;
-    },
-    //总计工分和质量系数数据
-    totalData() {
-      return {
-        ...this.totalServerData,
-        fixedDecimalRate: decimal(
-          Number((this.totalServerData.rate * 100).toFixed(2))
-        ).toNumber()
-      };
-    },
-    //机构排行数据
-    workpointRankData() {
-      const result = this.workpointRankServerData
-        //过滤，只取一级机构（name以"服务中心"和"卫生院"结尾）的值
-        .filter(
-          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
+    //查看手动打分的历史
+    async scoreHistory(row) {
+      row.scoreHistoryData = (
+        await this.$api.ScoreHospitalCheckRules.scoreHistory(
+          row.ruleId,
+          this.params.id
         )
-        //添加child
-        .map(item => {
-          const returnValue = Object.assign({}, item, {
-            child: [
-              item,
-              ...this.workpointRankServerData.filter(
-                it => it.parent === item.id
-              )
-            ]
-          });
-          //累加分数
-          returnValue.score = returnValue.child.reduce(
-            (result, current) => (result += current.score),
-            0
-          );
-          //格式化取整后的分数，用于页面显示
-          returnValue.scoreFormat = Math.round(returnValue.score);
-          //累加质量系数
-          returnValue.rate = returnValue.child.reduce(
-            (result, current) => (result += current.rate),
-            0
-          );
-          returnValue.rate = returnValue.rate / returnValue.child.length;
-          return returnValue;
-        });
-      if (this.params.listFlag === 'score') {
-        return result.sort((a, b) => b.score - a.score);
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
-    //一级机构排行数据
-    firstLevelWorkpointRankData() {
-      const result = this.workpointRankData
-        .map(item => item.child)
-        .reduce((result, current) => result.concat(current), [])
-        .filter(
-          item => item.name.endsWith('服务中心') || item.name.endsWith('卫生院')
-        );
-      if (this.params.listFlag === 'score') {
-        return result
-          .sort((a, b) => b.score - a.score)
-          .map(it => {
-            //格式化取整后的分数，用于页面显示
-            it.scoreFormat = Math.round(it.score);
-            return it;
-          });
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
-    //二级机构排行数据
-    secondLevelWorkpointRankData() {
-      const result = this.workpointRankServerData
-        .filter(
-          item =>
-            !item.name.endsWith('服务中心') && !item.name.endsWith('卫生院')
-        )
-        .sort((a, b) => b.score - a.score);
-      if (this.params.listFlag === 'score') {
-        return result
-          .sort((a, b) => b.score - a.score)
-          .map(it => {
-            //格式化取整后的分数，用于页面显示
-            it.scoreFormat = Math.round(it.score);
-            return it;
-          });
-      } else {
-        return result.sort((a, b) => b.rate - a.rate);
-      }
-    },
-    //最大得分值数
-    maxScore() {
-      return Math.max(...this.workpointRankData.map(it => it.score));
-    },
-    //医生工分排行数据
-    doctorWorkpointRankData() {
-      let returnValue = this.doctorWorkpointRankServerData
-        .reduce((result, current) => {
-          // let item = result.find(it => it.doctorid === current.doctorid);
-          let item;
-          for (const it of result) {
-            if (it.doctorid === current.doctorid) {
-              item = it;
-              break;
-            }
-          }
-          if (item) {
-            // 医生已存在
-            item.score += current.score;
-            item.children.push(current);
-          } else {
-            // 不存在
-            item = {
-              doctorid: current.doctorid,
-              doctorname: current.doctorname,
-              score: current.score,
-              children: [current]
-            };
-            result.push(item);
-          }
-          return result;
-        }, [])
-        .sort((a, b) => b.score - a.score)
-        .map(item => {
-          item.children.sort((a, b) => b.score - a.score);
-          return item;
-        });
-      return returnValue;
-    },
-    //工分项目数据
-    categoryWorkpointRankData() {
-      return this.doctorWorkpointRankServerData
-        .reduce((result, current) => {
-          let item = result.find(it => it.name === current.name);
-          if (item) {
-            //类别已存在
-            item.score += current.score;
-            item.children.push(current);
-          } else {
-            //类别不存在
-            item = {
-              name: current.name,
-              score: current.score,
-              children: [current]
-            };
-            result.push(item);
-          }
-          return result;
-        }, [])
-        .sort((a, b) => b.score - a.score)
-        .map(item => {
-          item.children.sort((a, b) => b.score - a.score);
-          return item;
-        });
-    },
-    //绩效考核指标的规则和评分数据
-    appraisalIndicatorsData() {
-      const returnValue = {...this.appraisalIndicatorsServerData};
-      returnValue.children =
-        returnValue.children.map(item => {
-          // 得分
-          item.score = item?.children.reduce(
-            (result, current) => (result += current?.score ?? 0),
-            0
-          );
-          item.ruleScore = item?.children.reduce(
-            (result, current) => (result += current?.ruleScore ?? 0),
-            0
-          );
-          item.children = item.children.map(it => {
-            //判断ruleTags里面是否包含需要上传附件的关联关系
-            const isAttach = it.ruleTags
-              .map(tag => tag.algorithm)
-              .some(tag => tag === 'attach');
-            return {
-              ...it,
-              isGradeScore: false,
-              originalScore: it.score,
-              isSaveScoreLoaing: false,
-              isAttach: isAttach
-            };
-          });
-          return item;
-        }) ?? [];
-      returnValue.score = returnValue.children.reduce(
-        (result, current) => (result += current.score ?? 0),
-        0
-      );
-      returnValue.ruleScore = returnValue.children.reduce(
-        (result, current) => (result += current.ruleScore ?? 0),
-        0
-      );
-      //系统自动打分
-      returnValue.auto = true;
-      //循环各单项指标规则里面的系统自动打分是否开启，有一项是关闭状态，则returnValue.auto = false
-      for (let item of returnValue.children) {
-        for (let it of item.children) {
-          if (it.auto === false) {
-            returnValue.auto = false;
-            break;
-          }
-        }
-      }
-      return returnValue;
-    },
-    //单项考核规则的考核文件列表数据
-    appraisalFileListData() {
-      return this.appraisalFileListServerData;
-    },
-    //单项考核得分解读数据
-    appraisalResultInstructionsData() {
-      return this.appraisalResultInstructionsServerData;
-    },
-    //报告下载列表数据
-    reportListData() {
-      return this.reportListSeverData;
+      ).map(it => ({
+        ...it,
+        creatorName: it.creator.name,
+        created_at: it.created_at.$format(),
+        updated_at: it.updated_at.$format()
+      }));
     }
   },
   asyncComputed: {
@@ -1863,6 +1985,14 @@ export default {
     width: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+
+  .empty-data {
+    font-size: 12px;
+    position: relative;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 

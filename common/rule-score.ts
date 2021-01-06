@@ -498,28 +498,8 @@ export const MarkTags = [
             enabled: true
           },
           {
-            name: '发放健康教育印刷资料的数量',
-            code: 'HE01',
-            enabled: true
-          },
-          {
             name: '播放健康教育音像资料的种类',
             code: 'HE02',
-            enabled: true
-          },
-          {
-            name: '播放健康教育音像资料的次数',
-            code: 'HE03',
-            enabled: true
-          },
-          {
-            name: '播放健康教育音像资料的播放时间',
-            code: 'HE04',
-            enabled: true
-          },
-          {
-            name: '健康教育宣传栏的设置地点',
-            code: 'HE05',
             enabled: true
           },
           {
