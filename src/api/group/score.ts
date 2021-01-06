@@ -956,21 +956,26 @@ export default class Score {
             parentRule.id
           )
         ).map(it => it.id);
-        debug('考核小项获取总工分开始');
-        // 获取工分数组
-        const scoreArray: {score: number}[] = await getWorkPoints(
-          viewHospitals,
-          projects,
-          year
-        );
-        // 累计工分, 即参与校正工分值
-        const workPoint = scoreArray
-          .reduce((prev, current) => {
-            prev = prev.add(new Decimal(current.score));
-            return prev;
-          }, new Decimal(0))
-          .toNumber();
-        debug('考核小项获取总工分结束', workPoint);
+        let workPoint = 0;
+        if (projects.length) {
+          debug('考核小项获取参与校正工分开始');
+          // 获取工分数组
+          const scoreArray: {score: number}[] = await getWorkPoints(
+            viewHospitals,
+            projects,
+            checkModel.checkYear
+          );
+          // 累计工分, 即参与校正工分值
+          workPoint = scoreArray
+            .reduce((prev, current) => {
+              prev = prev.add(new Decimal(current.score));
+              return prev;
+            }, new Decimal(0))
+            .toNumber();
+          debug('考核小项获取参与校正工分结束', workPoint);
+        } else {
+          debug('考核小项未绑定工分项');
+        }
         // 计算考核小项的质量系数
         let rate = 0;
         if (parentTotalScore != 0) {
