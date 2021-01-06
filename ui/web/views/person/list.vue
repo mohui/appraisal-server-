@@ -276,7 +276,11 @@
 </template>
 
 <script>
-import {documentTagList, getTagsList, personTagList} from '../../../../common/person-tag.ts';
+import {
+  documentTagList,
+  getTagsList,
+  personTagList
+} from '../../../../common/person-tag.ts';
 import {Permission} from '../../../../common/permission.ts';
 
 export default {
