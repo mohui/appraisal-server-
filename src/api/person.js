@@ -1688,9 +1688,11 @@ export default class Person {
       .required()
       .description('标签code')
   )
-  async markContent(id, code) {
+  async markContent(id, code, year) {
+    if (!year) year = dayjs().year();
     return originalDB.execute(
-      `select * from mark_content where id=? and name=?`,
+      `select * from mark_content where year = ? and id=? and name=?`,
+      year,
       id,
       code
     );

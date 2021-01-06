@@ -425,7 +425,8 @@ export default {
       async get() {
         let result = await this.$api.Person.markContent(
           this.archivesID,
-          this.code
+          this.code,
+          this.queryForm.year
         );
         if (result.length === 0) {
           result = [{content: '暂无数据'}];
