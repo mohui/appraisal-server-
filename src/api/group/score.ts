@@ -1222,18 +1222,13 @@ export default class Score {
    * @param code 地区code
    */
   async detail(code, rule) {
-    // 查询是否绑定关联关系
-    const ruleTagModels = await RuleTagModel.findAll({where: {ruleId: rule}});
-    // 未绑定, 直接抛出异常
-    if (ruleTagModels.length === 0)
-      throw new KatoCommonError('暂未设置关联关系');
-    // 查询指标解释
-    const model: RuleAreaScoreModel = await RuleAreaScoreModel.findOne({
-      where: {
-        areaCode: code,
-        ruleId: rule
-      }
-    });
-    return model?.details ?? [];
+    return (
+      await RuleAreaScoreModel.findOne({
+        where: {
+          areaCode: code,
+          ruleId: rule
+        }
+      })
+    )?.details;
   }
 }

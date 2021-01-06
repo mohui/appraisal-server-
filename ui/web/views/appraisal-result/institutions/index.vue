@@ -682,10 +682,15 @@
                         >
                           评分标准：{{ curRule.evaluateStandard }}
                         </p>
+                        <div v-if="!appraisalResultInstructionsData">
+                          得分尚未计算
+                        </div>
                         <div
-                          v-if="appraisalResultInstructionsData.length === 0"
+                          v-else-if="
+                            appraisalResultInstructionsData.length === 0
+                          "
                         >
-                          暂未考核
+                          尚未绑定关联关系
                         </div>
                         <div v-else>
                           <ul>
