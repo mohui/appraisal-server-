@@ -34,9 +34,11 @@ import {percentString} from '../score_hospital_check_rules';
  * 查询考核对象的标记数据
  *
  * @param group 地区code
+ * @param year 标记数据的年份
  */
 async function getMarks(
-  group: string
+  group: string,
+  year: number
 ): Promise<{
   id: string;
   S00: number;
@@ -76,8 +78,10 @@ async function getMarks(
         select *
         from mark_organization
         where id = ?
+          and year = ?
       `,
-      id
+      id,
+      year
     );
     if (marks[0]) result.push(marks[0]);
   }
@@ -354,7 +358,7 @@ export default class Score {
     });
     if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
     debug('获取marks开始');
-    const mark = await getMarks(group);
+    const mark = await getMarks(group, Number(checkModel.checkYear));
     debug('获取marks结束');
     try {
       // 默认年份为当前年, 如果是1月1日, 则为上一年

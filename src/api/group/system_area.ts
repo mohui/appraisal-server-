@@ -234,6 +234,7 @@ export default class SystemArea {
    * 人脸采集信息
    *
    * @param code 地区code或机构id
+   * @param year 年份
    */
   @validate(
     should
@@ -254,7 +255,7 @@ export default class SystemArea {
         `select
             coalesce(sum("S00"),0)::integer as "total",
             coalesce(sum("S30"),0)::integer as "face" from mark_organization
-            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}})`,
+            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}}) and year = {{? year}}`,
         {
           hishospid: (
             await appDB.execute(
@@ -265,7 +266,8 @@ export default class SystemArea {
                     where h.region like ?`,
               `${code}%`
             )
-          ).map(i => i.hishospid)
+          ).map(i => i.hishospid),
+          year
         }
       );
       faceData = (await originalDB.execute(sql[0], ...sql[1]))[0];
@@ -279,13 +281,14 @@ export default class SystemArea {
               `select
                 coalesce(sum("S00"),0)::integer as "total",
                 coalesce(sum("S30"),0)::integer as "face" from mark_organization
-                where id=?`,
+                where id=? and year = ?`,
               (
                 await appDB.execute(
                   `select hishospid from hospital_mapping where h_id=?`,
                   code
                 )
-              )?.[0]?.hishospid
+              )?.[0]?.hishospid,
+              year
             )
           )[0];
       } catch (e) {
