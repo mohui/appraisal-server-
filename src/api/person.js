@@ -16,11 +16,10 @@ async function dictionaryQuery(categoryno) {
 function listRender(params) {
   return sqlRender(
     `
-      from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum
+      from view_personinfo vp
+             left join mark_person mp on mp.personnum = vp.personnum and mp.year = {{? year}}
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where 1 = 1
-        and year = {{? year}}
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
@@ -318,7 +317,7 @@ export default class Person {
                  mp."E00",
                  vp.operatetime as "updateAt"
           from view_personinfo vp
-             inner join mark_person mp on mp.personnum = vp.personnum and year = ?
+             left join mark_person mp on mp.personnum = vp.personnum and year = ?
           where vp.personnum = ?
           limit 1
         `,
