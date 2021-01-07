@@ -30,17 +30,16 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名')
+        .description('考核系统名'),
+      checkYear: should.number().required()
     })
   )
   async add(params) {
-    const {checkName} = params;
     return CheckSystemModel.create({
-      checkName,
+      ...params,
       checkType: 1,
       create_by: Context.current.user.id,
-      update_by: Context.current.user.id,
-      checkYear: dayjs().year()
+      update_by: Context.current.user.id
     });
   }
 
