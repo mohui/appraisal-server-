@@ -42,9 +42,13 @@ export default class BasicTag {
     should
       .string()
       .required()
-      .description('大类指标的code')
+      .description('大类指标的code'),
+    should
+      .number()
+      .required()
+      .description('年份')
   )
-  async list(tagCode) {
+  async list(tagCode, year) {
     //当前用户地区权限下所直属的机构
     const hospitals = Context.current.user.hospitals;
     //获取大类指标下的所有的小类
@@ -69,7 +73,7 @@ export default class BasicTag {
       hospitalTags.map(async it => {
         //查询某个机构下某个指标的数据
         const basicData = await BasicTagDataModel.findOne({
-          where: {code: it.code, hospitalId: it.hospitalId}
+          where: {code: it.code, hospitalId: it.hospitalId, year}
         });
         //该数据存在则赋值相关字段
         return basicData ? {...it, ...basicData.toJSON()} : it;
