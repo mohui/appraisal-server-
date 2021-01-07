@@ -20,6 +20,7 @@ function listRender(params) {
              left join mark_person mp on mp.personnum = vp.personnum and mp.year = {{? year}}
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where 1 = 1
+        and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
@@ -319,6 +320,7 @@ export default class Person {
           from view_personinfo vp
              left join mark_person mp on mp.personnum = vp.personnum and year = ?
           where vp.personnum = ?
+            and vp.WriteOff = false
           limit 1
         `,
         dayjs().year(),
