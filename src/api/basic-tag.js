@@ -6,6 +6,7 @@ import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
+import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -100,6 +101,45 @@ export default class BasicTag {
       );
       return h;
     });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('大类指标的code'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
+  async importable(tagCode, year) {
+    //当前用户地区权限下所直属的机构
+    const hospitals = Context.current.user.hospitals;
+    //获取大类指标下的所有的小类
+    const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
+    year = Number(year);
+    const lastYear = year - 1;
+
+    //当前年份的基础数据大于0的总计
+    const thisYearCount = await BasicTagDataModel.count({
+      where: {
+        year: year,
+        hospitalId: {[Op.in]: hospitals.map(h => h.id)},
+        code: {[Op.in]: childrenTag.map(c => c.code)},
+        value: {[Op.gt]: 0}
+      }
+    });
+    //上一年的基础数据大于0的总数
+    const lastYearCount = await BasicTagDataModel.count({
+      where: {
+        year: lastYear,
+        hospitalId: {[Op.in]: hospitals.map(h => h.id)},
+        code: {[Op.in]: childrenTag.map(c => c.code)},
+        value: {[Op.gt]: 0}
+      }
+    });
+    return thisYearCount === 0 && lastYearCount > 0;
   }
 
   @validate(
