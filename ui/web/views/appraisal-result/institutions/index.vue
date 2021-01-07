@@ -1470,7 +1470,7 @@ export default {
       try {
         await this.$api.Report.downloadCheckBackJob(
           this.params.id,
-          this.params.checkId
+          this.params.year
         );
         this.$message.success('后台任务已进行, 请关注右上角任务进度~');
       } catch (e) {

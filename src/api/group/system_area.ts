@@ -945,13 +945,7 @@ export default class SystemArea {
     return returnList;
   }
 
-  /**
-   * 导出考核
-   *
-   * @param code 地区/机构id
-   * @param year 年份
-   */
-  async downloadCheck(code, year) {
+  async getReportBuffer(code, year) {
     // 校验地区是否存在
     const areas = await AreaModel.findOne({where: {code}});
     if (areas.length === 0)
@@ -1022,10 +1016,21 @@ export default class SystemArea {
     );
 
     workSheet.addRows([firstRow, childrenHospitalCheckResult]);
+    return await workBook.xlsx.writeBuffer();
+    //获取buffer结束
+  }
 
+  /**
+   * 导出考核
+   *
+   * @param code 地区/机构id
+   * @param year 年份
+   */
+  async downloadCheck(code, year) {
+    const buffer = await this.getReportBuffer(code, year);
     Context.current.bypassing = true;
     const res = Context.current.res;
-
+    const areas = await AreaModel.findOne({where: {code}});
     //设置请求头信息，设置下载文件名称,同时处理中文乱码问题
     res.setHeader(
       'Content-Disposition',
@@ -1034,8 +1039,6 @@ export default class SystemArea {
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
 
-    const buffer = await workBook.xlsx.writeBuffer();
     res.send(buffer);
-    //导出结束
   }
 }

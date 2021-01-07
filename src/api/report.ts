@@ -7,7 +7,8 @@ import {
   CheckRuleModel,
   HospitalModel,
   RegionModel,
-  RuleHospitalScoreModel
+  RuleHospitalScoreModel,
+  AreaModel
 } from '../database';
 import {KatoCommonError} from 'kato-server';
 import {Workbook} from 'exceljs';
@@ -64,18 +65,17 @@ export default class Report {
       }));
   }
 
-  async downloadCheckBackJob(code, id) {
+  async downloadCheckBackJob(code, year) {
     try {
       let fileName = '';
-      let dataInfo = await RegionModel.findOne({where: {code}});
-      if (!dataInfo)
-        dataInfo = await HospitalModel.findOne({where: {id: code}});
-      if (!dataInfo) throw new KatoCommonError('机构或地区id错误!');
+      const area = await AreaModel.findOne({where: {code}});
+      if (!area) throw new KatoCommonError('机构或地区id错误!');
 
-      fileName = dataInfo.name;
+      fileName = area.name;
       return createBackJob('reportCheck', `${fileName}考核结果导出`, {
         code,
-        id
+        year,
+        fileName
       });
     } catch (e) {
       throw new KatoCommonError(e.message);
