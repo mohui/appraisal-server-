@@ -43,4 +43,8 @@ export class BasicTagData extends Model<BasicTagData> {
   @Comment('编辑人姓名')
   @Column
   editor: string;
+
+  @Comment('年份')
+  @Column
+  year: number;
 }
