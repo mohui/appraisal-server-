@@ -16,7 +16,7 @@
           size="mini"
           v-model="year"
           placeholder="请选择考核年度"
-          @change="handleYearChange(year)"
+          @change="handleYearChange()"
         >
           <el-option
             v-for="item in yearList"
@@ -399,8 +399,7 @@ export default {
         .catch(err => this.$message.error(err.message));
     },
     //年度选择
-    async handleYearChange(value) {
-      console.log(value);
+    async handleYearChange() {
       this.isLoading = true;
       this.$router.replace({
         query: {
