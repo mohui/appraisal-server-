@@ -145,7 +145,7 @@
             :multiple="false"
             action="/api/BasicTag/dataImport.ac"
             :headers="headers"
-            :data="{tagCode: JSON.stringify(curCode)}"
+            :data="{tagCode: JSON.stringify(curCode), year}"
             :before-upload="handleBeforeUpload"
             :on-progress="handleProgress"
             :on-success="uploadSuccess"
@@ -321,7 +321,7 @@ export default {
     },
     async dataDownload() {
       try {
-        await this.$api.BasicTag.dataDownload(this.curCode);
+        await this.$api.BasicTag.dataDownload(this.curCode, this.year);
       } catch (e) {
         this.$message.error(e.message);
       }
