@@ -81,6 +81,14 @@ export class CheckRule extends Model<CheckRule> {
   @Column({type: DataType.DECIMAL(15, 4)})
   budget: number;
 
+  @Comment('创建时间')
+  @Column({field: 'created_at', type: DataType.DATE})
+  created_at;
+
+  @Comment('更新时间')
+  @Column({field: 'updated_at', type: DataType.DATE})
+  updated_at;
+
   @HasMany(() => RuleTag)
   ruleTags: RuleTag[];
 
