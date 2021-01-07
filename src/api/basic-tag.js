@@ -98,7 +98,7 @@ export default class BasicTag {
             id: tag.id,
             code: tag.code,
             value: tag.value,
-            year: tag.year
+            year: tag?.year ?? year
           })
       );
       return h;
