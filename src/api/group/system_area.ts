@@ -734,7 +734,8 @@ export default class SystemArea {
         return {
           code: it.doctorId,
           name: it.doctorName,
-          score: it.score
+          score: it.score,
+          isDoctor: true
         };
       });
     }
