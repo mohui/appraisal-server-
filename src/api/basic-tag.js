@@ -94,7 +94,6 @@ export default class BasicTag {
         });
       })
     );
-    return lastResult;
   }
 
   @validate(
