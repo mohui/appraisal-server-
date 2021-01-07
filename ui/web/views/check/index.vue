@@ -99,12 +99,6 @@
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
-                  :disabled="
-                    scope.row.checkYear !==
-                      $dayjs()
-                        .year()
-                        .toString()
-                  "
                   type="primary"
                   icon="el-icon-edit"
                   circle
@@ -119,12 +113,6 @@
                     permission: permission.CHECK_REMOVE,
                     type: 'disabled'
                   }"
-                  :disabled="
-                    scope.row.checkYear !==
-                      $dayjs()
-                        .year()
-                        .toString()
-                  "
                   icon="el-icon-delete"
                   circle
                   type="danger"
@@ -386,17 +374,7 @@
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
-        <el-button
-          type="primary"
-          @click="saveOrganization"
-          :disabled="
-            checkForm.checkYear !==
-              $dayjs()
-                .year()
-                .toString()
-          "
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="saveOrganization">确 定</el-button>
       </div>
     </el-dialog>
   </div>
