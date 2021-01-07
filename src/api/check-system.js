@@ -63,7 +63,6 @@ export default class CheckSystem {
   )
   updateName(params) {
     return appDB.transaction(async () => {
-      params.checkYear = params.checkYear.toString();
       const sys = await CheckSystemModel.findOne({
         where: {checkId: params.checkId},
         lock: true
