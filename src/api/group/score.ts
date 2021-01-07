@@ -1042,14 +1042,14 @@ export default class Score {
       debug('考核地区获取总工分结束', reportModel);
       // 保存机构报告
       await ReportAreaModel.upsert(reportModel);
-      // 保存机构报告历史
-      await ReportAreaHistoryModel.upsert({
-        ...reportModel,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 保存机构报告历史
+      // await ReportAreaHistoryModel.upsert({
+      //   ...reportModel,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
       debug(`${check} ${group} 系统打分结束`);
     } catch (e) {
       debug(`${check} ${group} 系统打分异常: ${e}`);
