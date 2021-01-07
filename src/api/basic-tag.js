@@ -204,14 +204,18 @@ export default class BasicTag {
     should
       .string()
       .required()
-      .description('基础数据code')
+      .description('基础数据code'),
+    should
+      .number()
+      .required()
+      .description('年份')
   )
-  async dataDownload(tagCode) {
+  async dataDownload(tagCode, year) {
     //当前基础数据下的所有属性
     const tags = BasicTags.find(bt => bt.code === tagCode)?.children;
     if (!tags) throw new KatoCommonError('该基础数据不存在');
     //组装机构与基础数据的关系数据
-    const listData = (await this.list(tagCode)).map(item => {
+    const listData = (await this.list(tagCode, year)).map(item => {
       return [item.id, item.name].concat(tags.map(tag => item[tag.code].value));
     });
 
