@@ -15,7 +15,8 @@ export default class BasicTag {
       id: should.string().description('基础数据id'),
       value: should.number().description('数据值'),
       hospitalId: should.string().description('机构id'),
-      code: should.string().description('基础数据code')
+      code: should.string().description('基础数据code'),
+      year: should.number().description('年份')
     })
   )
   async upsert(params) {
@@ -96,7 +97,8 @@ export default class BasicTag {
           (h[tag.code] = {
             id: tag.id,
             code: tag.code,
-            value: tag.value
+            value: tag.value,
+            year: tag.year
           })
       );
       return h;
