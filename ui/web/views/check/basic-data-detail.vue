@@ -11,6 +11,21 @@
     >
       <div slot="header" class="clearfix">
         <span>{{ standardName }}</span>
+        <el-select
+          style="margin:0 20px"
+          size="mini"
+          v-model="year"
+          placeholder="请选择考核年度"
+          @change="handleYearChange(year)"
+        >
+          <el-option
+            v-for="item in yearList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          >
+          </el-option>
+        </el-select>
         <el-button
           plain
           style="margin: -9px 20px;"
@@ -230,7 +245,12 @@ export default {
       curCode: '',
       errorTable: [],
       errorResultVisible: false,
-      importLoading: false
+      importLoading: false,
+      year: this.$dayjs().year(), //考核年份，默认为当前年
+      yearList: [
+        {value: 2020, label: '2020年度'},
+        {value: 2021, label: '2021年度'}
+      ]
     };
   },
   async created() {
@@ -306,7 +326,7 @@ export default {
       }
     },
     async getLists(code) {
-      let result = await this.$api.BasicTag.list(code);
+      let result = await this.$api.BasicTag.list(code, this.year);
       result = result.map(it => ({
         ...it,
         original: JSON.parse(JSON.stringify(it)),
@@ -375,6 +395,19 @@ export default {
           item.active = false;
         })
         .catch(err => this.$message.error(err.message));
+    },
+    //年度选择
+    async handleYearChange(value) {
+      console.log(value);
+      this.isLoading = true;
+      this.$router.replace({
+        query: {
+          ...this.$route.query,
+          year: this.year
+        }
+      });
+      await this.getLists(this.curCode);
+      this.isLoading = false;
     }
   }
 };
