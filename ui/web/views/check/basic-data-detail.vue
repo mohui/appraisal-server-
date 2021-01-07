@@ -11,6 +11,21 @@
     >
       <div slot="header" class="clearfix">
         <span>{{ standardName }}</span>
+        <el-select
+          style="margin:0 20px"
+          size="mini"
+          v-model="year"
+          placeholder="请选择考核年度"
+          @change="handleYearChange()"
+        >
+          <el-option
+            v-for="item in yearList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          >
+          </el-option>
+        </el-select>
         <el-button
           plain
           style="margin: -9px 20px;"
@@ -38,7 +53,15 @@
           >返回
         </el-button>
       </div>
-      <div style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
+      <div
+        v-if="isImportable"
+        style="height: 100%; display: flex; justify-content: center; align-items: center"
+      >
+        <el-button plain type="primary" @click="handleImportData"
+          >导入上年度数据
+        </el-button>
+      </div>
+      <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
         <div v-for="(item, i) of listData" :key="i" style="">
           <p>{{ i + 1 }} {{ item.name }}</p>
           <el-table
@@ -130,7 +153,7 @@
             :multiple="false"
             action="/api/BasicTag/dataImport.ac"
             :headers="headers"
-            :data="{tagCode: JSON.stringify(curCode)}"
+            :data="{tagCode: JSON.stringify(curCode), year}"
             :before-upload="handleBeforeUpload"
             :on-progress="handleProgress"
             :on-success="uploadSuccess"
@@ -218,6 +241,7 @@ export default {
   name: 'BasicDataDetail',
   data() {
     return {
+      isImportable: false, //是否需要导入上年度数据
       dialogImportVisible: false,
       maxSize: 5,
       progress: 0,
@@ -230,16 +254,23 @@ export default {
       curCode: '',
       errorTable: [],
       errorResultVisible: false,
-      importLoading: false
+      importLoading: false,
+      year: this.$dayjs().year(), //考核年份，默认为当前年
+      yearList: [
+        {value: 2020, label: '2020年度'},
+        {value: 2021, label: '2021年度'}
+      ]
     };
   },
   async created() {
     this.isLoading = true;
     this.standardName = this.$route.query.name;
+    this.year = Number(this.$route.query.year) || this.$dayjs().year();
     this.curTag = BasicTags.filter(
       s => s.name === this.standardName
     )[0].children;
     let code = (this.curCode = this.$route.query.code);
+    await this.handleIsimportable();
     await this.getLists(code);
     this.isLoading = false;
   },
@@ -247,6 +278,23 @@ export default {
     async dataImport() {
       this.importLoading = true;
       await this.$refs.uploadForm.submit();
+    },
+    //判断是否导入上年度数据
+    async handleIsimportable() {
+      this.isImportable = await this.$api.BasicTag.importable(
+        this.curCode,
+        this.year
+      );
+    },
+    //导入上年度数据
+    async handleImportData() {
+      try {
+        await this.$api.BasicTag.upsertLastYear(this.curCode, this.year);
+        await this.handleIsimportable();
+        await this.getLists(this.curCode);
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
     handleClose() {
       this.fileList = [];
@@ -300,13 +348,13 @@ export default {
     },
     async dataDownload() {
       try {
-        await this.$api.BasicTag.dataDownload(this.curCode);
+        await this.$api.BasicTag.dataDownload(this.curCode, this.year);
       } catch (e) {
         this.$message.error(e.message);
       }
     },
     async getLists(code) {
-      let result = await this.$api.BasicTag.list(code);
+      let result = await this.$api.BasicTag.list(code, this.year);
       result = result.map(it => ({
         ...it,
         original: JSON.parse(JSON.stringify(it)),
@@ -362,12 +410,13 @@ export default {
                 id: it.id,
                 value: +it.value,
                 hospitalId: item.id,
-                code: it.code
+                code: it.code,
+                year: it.year
               })
           )
       )
         .then(res => {
-          console.log(res);
+          console.log('BasicTag.upsert res:', res);
           this.$message({
             type: 'success',
             message: '数据保存成功！'
@@ -375,6 +424,19 @@ export default {
           item.active = false;
         })
         .catch(err => this.$message.error(err.message));
+    },
+    //年度选择
+    async handleYearChange() {
+      this.isLoading = true;
+      this.$router.replace({
+        query: {
+          ...this.$route.query,
+          year: this.year
+        }
+      });
+      await this.handleIsimportable();
+      await this.getLists(this.curCode);
+      this.isLoading = false;
     }
   }
 };

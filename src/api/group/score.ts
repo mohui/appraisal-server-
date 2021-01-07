@@ -9,20 +9,18 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import {
+  AreaModel,
   BasicTagDataModel,
   CheckAreaModel,
+  CheckRuleModel,
   CheckSystemModel,
+  ManualScoreHistoryModel,
+  ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
-  ReportAreaModel,
-  ReportAreaHistoryModel,
   sql as sqlRender,
-  CheckRuleModel,
-  ManualScoreHistoryModel,
-  AreaModel,
-  UserModel,
-  RuleTagModel
+  UserModel
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
@@ -135,10 +133,10 @@ async function getMarks(
 export async function getWorkPoints(
   organization: {id: string; code: string; region: string}[],
   projects: string[],
-  year: string
+  year: number
 ) {
   // 处理年份
-  const date = dayjs(year, 'YYYY');
+  const date = dayjs(year.toString(), 'YYYY');
   const start = date.format('YYYY-MM-DD');
   const end = date.add(1, 'y').format('YYYY-MM-DD');
 
@@ -216,14 +214,20 @@ where OperateOrganization = {{? id}}
  *
  * @param leaves code对应的所有叶子节点
  * @param tag 基础数据的tag
+ * @param year 年份
  */
-async function getBasicData(leaves: AreaTreeNode[], tag): Promise<number> {
+async function getBasicData(
+  leaves: AreaTreeNode[],
+  tag: string,
+  year: number
+): Promise<number> {
   const data: number = await BasicTagDataModel.sum('value', {
     where: {
       hospital: {
         [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
       },
-      code: tag
+      code: tag,
+      year
     }
   });
   return data;
@@ -372,24 +376,23 @@ export default class Score {
       where: {checkId: check}
     });
     if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
+    // 考核年度
+    const year = Number(checkModel.checkYear);
     debug('获取marks开始');
-    const mark = await getMarks(group, Number(checkModel.checkYear));
+    const mark = await getMarks(group, year);
     debug('获取marks结束');
+    const t = await appDB.transaction();
     try {
-      // 默认年份为当前年, 如果是1月1日, 则为上一年
-      const now = dayjs();
-      let year = dayjs()
-        .year()
-        .toString();
-      if (now.day() === 1 && now.month() === 1) {
-        year = now
-          .subtract(1, 'y')
-          .year()
-          .toString();
-      }
-      debug(`打分年度: ${year}; 考核年度: ${checkModel.checkYear}`);
-      // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
-      const isCheckYear = year === checkModel.checkYear;
+      debug(`打分年度: ${dayjs().year()}; 考核年度: ${year}`);
+      await CheckAreaModel.findOne({
+        where: {
+          areaCode: group,
+          checkId: check
+        },
+        transaction: t,
+        lock: true,
+        logging: true
+      });
       // 地区报告model
       const reportModel = {
         checkId: check,
@@ -451,8 +454,8 @@ export default class Score {
               details: []
             });
           }
-          // 当前考核年份且考核细则是自动打分
-          if (isCheckYear && ruleAreaScoreModel.auto) {
+          // 考核细则是自动打分
+          if (ruleAreaScoreModel.auto) {
             // 指标解释数组清空
             ruleAreaScoreModel.details = [];
             // 考核细则得分默认0, 重新计算
@@ -485,7 +488,8 @@ export default class Score {
                 // 查询服务总人口数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.DocPeople
+                  BasicTagUsages.DocPeople,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -585,7 +589,8 @@ export default class Score {
                 // 查询老年人人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.OldPeople
+                  BasicTagUsages.OldPeople,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -620,7 +625,8 @@ export default class Score {
                 // 查询老年人人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.OldPeople
+                  BasicTagUsages.OldPeople,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -656,7 +662,8 @@ export default class Score {
                 // 查询高血压人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.HypertensionPeople
+                  BasicTagUsages.HypertensionPeople,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -753,7 +760,8 @@ export default class Score {
                 // 查询糖尿病人数
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.DiabetesPeople
+                  BasicTagUsages.DiabetesPeople,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -902,7 +910,8 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.SC00.code) {
                 const basicData = await getBasicData(
                   leaves,
-                  BasicTagUsages.Supervision
+                  BasicTagUsages.Supervision,
+                  year
                 );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
@@ -982,7 +991,7 @@ export default class Score {
           const scoreArray: {score: number}[] = await getWorkPoints(
             viewHospitals,
             projects,
-            checkModel.checkYear
+            year
           );
           // 累计工分, 即参与校正工分值
           workPoint = scoreArray
@@ -1057,16 +1066,18 @@ export default class Score {
       debug('考核地区获取总工分结束', reportModel);
       // 保存机构报告
       await ReportAreaModel.upsert(reportModel);
-      // 保存机构报告历史
-      await ReportAreaHistoryModel.upsert({
-        ...reportModel,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 保存机构报告历史
+      // await ReportAreaHistoryModel.upsert({
+      //   ...reportModel,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
+      await t.commit();
       debug(`${check} ${group} 系统打分结束`);
     } catch (e) {
+      await t.rollback();
       debug(`${check} ${group} 系统打分异常: ${e}`);
       throw new KatoRuntimeError(e);
     }
@@ -1102,10 +1113,7 @@ export default class Score {
         .year()
         .toString();
     }
-    debug(`打分年度: ${year}; 考核年度: ${checkModel.checkYear}`);
-    // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
-    const isCheckYear = year === checkModel.checkYear;
-
+    debug(`打分年度: ${year}; 考核年度: ${year}`);
     // 1. 分配rule_area_budget的金额
     // 查询考核小项的金额
     const parentRuleModels: {
@@ -1175,16 +1183,16 @@ export default class Score {
         areaCode: checkAreaModel.areaCode,
         budget: budgetModel.budget
       });
-      // 3. 保存地区报告历史金额
-      await ReportAreaHistoryModel.upsert({
-        checkId: check,
-        areaCode: checkAreaModel.areaCode,
-        budget: budgetModel.budget,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 3. 保存地区报告历史金额
+      // await ReportAreaHistoryModel.upsert({
+      //   checkId: check,
+      //   areaCode: checkAreaModel.areaCode,
+      //   budget: budgetModel.budget,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
     }
     debug(`${check} 金额分配结束`);
   }
