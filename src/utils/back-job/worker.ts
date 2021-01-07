@@ -13,7 +13,8 @@ import * as models from '../../database/model';
 import {Op} from 'sequelize';
 import {KatoCommonError} from 'kato-server';
 import dayjs = require('dayjs');
-
+import Score from '../../api/group/score';
+const ScoreApi = new Score();
 appDB.addModels(Object.values(models));
 
 // 考核报表下载
@@ -172,9 +173,7 @@ const {job} = workerData;
   try {
     //考核打分
     if (job === 'scoreCheck') {
-      //TODO:打分方法执行
-      console.log('考核打分...', workerData);
-      parentPort.postMessage({result: '考核打分中.', error: null});
+      await ScoreApi.autoScore(workerData.checkId, workerData.isAuto);
     }
     //考核报表任务
     if (job === 'reportCheck') {
