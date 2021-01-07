@@ -121,7 +121,26 @@
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="4">
+            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
+              <el-form-item label="年度:">
+                <div>
+                  <el-select
+                    v-model="queryForm.year"
+                    placeholder="请选择考核年度"
+                    style="width: 100%;"
+                  >
+                    <el-option
+                      v-for="item in yearList"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    >
+                    </el-option>
+                  </el-select>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="8" :xl="4">
               <el-form-item label="">
                 <el-button
                   type="primary"
@@ -259,9 +278,9 @@
 
 <script>
 import {
-  personTagList,
   documentTagList,
-  getTagsList
+  getTagsList,
+  personTagList
 } from '../../../../common/person-tag.ts';
 import {Permission} from '../../../../common/permission.ts';
 
@@ -281,6 +300,7 @@ export default {
         hospital: '',
         idCard: '',
         tags: [],
+        year: this.$dayjs().year(),
         region: '',
         include: false,
         personTags: [],
@@ -290,6 +310,10 @@ export default {
       permission: Permission,
       personTagList: personTagList,
       tagList: documentTagList,
+      yearList: [
+        {value: 2020, label: '2020年度'},
+        {value: 2021, label: '2021年度'}
+      ],
       archivesID: '', //档案id
       code: '', //tag code
       isInit: false //是否初始化页面,
@@ -330,6 +354,7 @@ export default {
         if (this.queryForm.personTags.length) query.personTags = urlPersonTags;
         else delete query.urlPersonTags;
         if (this.queryForm.personOr) query.personOr = this.queryForm.personOr;
+        if (this.queryForm.year) query.year = this.queryForm.year;
         this.$router.replace({query: query}).catch(err => {
           err;
         });
@@ -385,7 +410,8 @@ export default {
             }, {}),
           include: this.queryForm.include,
           personOr: this.queryForm.personOr,
-          documentOr: this.queryForm.documentOr
+          documentOr: this.queryForm.documentOr,
+          year: this.queryForm.year
         });
       },
       default() {
@@ -399,7 +425,8 @@ export default {
       async get() {
         let result = await this.$api.Person.markContent(
           this.archivesID,
-          this.code
+          this.code,
+          this.queryForm.year
         );
         if (result.length === 0) {
           result = [{content: '暂无数据'}];

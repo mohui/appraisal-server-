@@ -405,6 +405,7 @@ export default class CheckSystem {
     //查询该体系下所有rules
     let allRules = await CheckRuleModel.findAll({
       where: whereOptions,
+      order: [['created_at', 'ASC']],
       include: {
         model: RuleTagModel,
         attributes: [

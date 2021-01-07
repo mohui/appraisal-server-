@@ -53,6 +53,7 @@ export default class SystemRule {
       (
         await CheckRuleModel.findAll({
           where: {checkId: checkSystem.checkId, parentRuleId: null},
+          order: [['created_at', 'ASC']],
           include: [RuleAreaBudgetModel]
         })
       ).map(async rule => {
@@ -61,6 +62,7 @@ export default class SystemRule {
           await CheckRuleModel.findAll({
             attributes: {exclude: ['budget']},
             where: {parentRuleId: rule.ruleId},
+            order: [['created_at', 'ASC']],
             include: [
               {
                 model: RuleAreaScoreModel,
