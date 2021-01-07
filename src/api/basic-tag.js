@@ -256,9 +256,13 @@ export default class BasicTag {
     should
       .string()
       .required()
-      .description('基础数据code')
+      .description('基础数据code'),
+    should
+      .number()
+      .required()
+      .description('年份')
   )
-  async dataImport(file, tagCode) {
+  async dataImport(file, tagCode, year) {
     return appDB.transaction(async () => {
       //读取基础数据声明文件
       const basicTags = BasicTags.find(tag => tag.code === tagCode)?.children;
@@ -289,7 +293,8 @@ export default class BasicTag {
             tagHospital.push({
               hospitalId: row.values[1],
               code: tag,
-              value: row.values[3]
+              value: row.values[3],
+              year
             })
           );
         }
