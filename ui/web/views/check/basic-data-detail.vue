@@ -53,15 +53,7 @@
           >返回
         </el-button>
       </div>
-      <div
-        v-if="isImportable"
-        style="height: 100%; display: flex; justify-content: center; align-items: center"
-      >
-        <el-button plain type="primary" @click="handleImportData"
-          >导入上年度数据
-        </el-button>
-      </div>
-      <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
+      <div style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
         <div v-for="(item, i) of listData" :key="i" style="">
           <p>{{ i + 1 }} {{ item.name }}</p>
           <el-table
