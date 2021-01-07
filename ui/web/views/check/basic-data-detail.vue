@@ -265,7 +265,7 @@ export default {
   async created() {
     this.isLoading = true;
     this.standardName = this.$route.query.name;
-    this.year = Number(this.$route.query.year) ?? this.$dayjs().year();
+    this.year = Number(this.$route.query.year) || this.$dayjs().year();
     this.curTag = BasicTags.filter(
       s => s.name === this.standardName
     )[0].children;
