@@ -9,17 +9,17 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import {
+  AreaModel,
   BasicTagDataModel,
   CheckAreaModel,
+  CheckRuleModel,
   CheckSystemModel,
+  ManualScoreHistoryModel,
+  ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
-  ReportAreaModel,
   sql as sqlRender,
-  CheckRuleModel,
-  ManualScoreHistoryModel,
-  AreaModel,
   UserModel
 } from '../../database';
 import {Op} from 'sequelize';
