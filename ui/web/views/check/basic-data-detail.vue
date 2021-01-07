@@ -256,6 +256,7 @@ export default {
   async created() {
     this.isLoading = true;
     this.standardName = this.$route.query.name;
+    this.year = Number(this.$route.query.year) ?? this.$dayjs().year();
     this.curTag = BasicTags.filter(
       s => s.name === this.standardName
     )[0].children;
@@ -372,6 +373,7 @@ export default {
     },
     //保存数据
     async updateTaskCount(item) {
+      console.log('curTag:', this.curTag);
       Promise.all(
         this.curTag
           .map(it => item[it.code])
