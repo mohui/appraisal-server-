@@ -366,8 +366,18 @@ export default class Score {
     debug('获取marks开始');
     const mark = await getMarks(group, year);
     debug('获取marks结束');
+    const t = await appDB.transaction();
     try {
       debug(`打分年度: ${dayjs().year()}; 考核年度: ${year}`);
+      await CheckAreaModel.findOne({
+        where: {
+          areaCode: group,
+          checkId: check
+        },
+        transaction: t,
+        lock: true,
+        logging: true
+      });
       // 地区报告model
       const reportModel = {
         checkId: check,
@@ -1049,8 +1059,10 @@ export default class Score {
       //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
       //     .toDate()
       // });
+      await t.commit();
       debug(`${check} ${group} 系统打分结束`);
     } catch (e) {
+      await t.rollback();
       debug(`${check} ${group} 系统打分异常: ${e}`);
       throw new KatoRuntimeError(e);
     }
