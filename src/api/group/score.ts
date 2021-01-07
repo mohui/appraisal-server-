@@ -291,18 +291,14 @@ export default class Score {
   }
 
   async autoScoreAllChecks(isAuto) {
-    await Promise.all(
-      (
-        await CheckSystemModel.findAll({
-          where: {
-            status: true,
-            checkYear: dayjs()
-              .year()
-              .toString()
-          }
-        })
-      ).map(it => this.autoScore(it.checkId, true))
-    );
+    const checkModel = await CheckSystemModel.findAll({
+      where: {
+        status: true
+      }
+    });
+    for (const it of checkModel) {
+      await this.autoScore(it.checkId, true);
+    }
   }
 
   /**
