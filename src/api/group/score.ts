@@ -1160,16 +1160,16 @@ export default class Score {
         areaCode: checkAreaModel.areaCode,
         budget: budgetModel.budget
       });
-      // 3. 保存地区报告历史金额
-      await ReportAreaHistoryModel.upsert({
-        checkId: check,
-        areaCode: checkAreaModel.areaCode,
-        budget: budgetModel.budget,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 3. 保存地区报告历史金额
+      // await ReportAreaHistoryModel.upsert({
+      //   checkId: check,
+      //   areaCode: checkAreaModel.areaCode,
+      //   budget: budgetModel.budget,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
     }
     debug(`${check} 金额分配结束`);
   }
