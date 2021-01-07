@@ -40,7 +40,7 @@ export class CheckSystem extends Model<CheckSystem> {
 
   @Comment('考核年度')
   @Column
-  checkYear: string;
+  checkYear: number;
 
   @Comment('状态:默认为true')
   @Default(true)
