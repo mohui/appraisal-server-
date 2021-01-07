@@ -373,7 +373,6 @@ export default {
     },
     //保存数据
     async updateTaskCount(item) {
-      console.log('curTag:', this.curTag);
       Promise.all(
         this.curTag
           .map(it => item[it.code])
@@ -384,12 +383,13 @@ export default {
                 id: it.id,
                 value: +it.value,
                 hospitalId: item.id,
-                code: it.code
+                code: it.code,
+                year: it.year
               })
           )
       )
         .then(res => {
-          console.log(res);
+          console.log('BasicTag.upsert res:', res);
           this.$message({
             type: 'success',
             message: '数据保存成功！'
