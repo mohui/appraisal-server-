@@ -53,7 +53,15 @@
           >返回
         </el-button>
       </div>
-      <div style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
+      <div
+        v-if="isImportable"
+        style="height: 100%; display: flex; justify-content: center; align-items: center"
+      >
+        <el-button plain type="primary" @click="handleImportData"
+          >导入上年度数据
+        </el-button>
+      </div>
+      <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
         <div v-for="(item, i) of listData" :key="i" style="">
           <p>{{ i + 1 }} {{ item.name }}</p>
           <el-table
@@ -233,6 +241,7 @@ export default {
   name: 'BasicDataDetail',
   data() {
     return {
+      isImportable: false, //是否需要导入上年度数据
       dialogImportVisible: false,
       maxSize: 5,
       progress: 0,
@@ -261,6 +270,7 @@ export default {
       s => s.name === this.standardName
     )[0].children;
     let code = (this.curCode = this.$route.query.code);
+    await this.handleIsimportable();
     await this.getLists(code);
     this.isLoading = false;
   },
@@ -268,6 +278,23 @@ export default {
     async dataImport() {
       this.importLoading = true;
       await this.$refs.uploadForm.submit();
+    },
+    //判断是否导入上年度数据
+    async handleIsimportable() {
+      this.isImportable = await this.$api.BasicTag.importable(
+        this.curCode,
+        this.year
+      );
+    },
+    //导入上年度数据
+    async handleImportData() {
+      try {
+        await this.$api.BasicTag.upsertLastYear(this.curCode, this.year);
+        await this.handleIsimportable();
+        await this.getLists(this.curCode);
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
     handleClose() {
       this.fileList = [];
@@ -407,6 +434,7 @@ export default {
           year: this.year
         }
       });
+      await this.handleIsimportable();
       await this.getLists(this.curCode);
       this.isLoading = false;
     }
