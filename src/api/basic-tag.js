@@ -52,48 +52,57 @@ export default class BasicTag {
       .description('需要导入的年份')
   )
   async upsertLastYear(tagCode, year) {
-    const importable = this.importable(tagCode, year);
-    if (!importable) throw new KatoCommonError('上一年数据导入有误');
-    //当前用户地区权限下所直属的机构
-    const hospitals = Context.current.user.hospitals;
-    //获取大类指标下的所有的小类
-    const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
+    await appDB.transaction(async () => {
+      //锁数据
+      await BasicTagDataModel.findAll({
+        where: {year: year - 1},
+        lock: true
+      });
+      const importable = await this.importable(tagCode, year);
+      if (!importable) throw new KatoCommonError('当前年份已有数据,无法导入');
+      //当前用户地区权限下所直属的机构
+      const hospitals = Context.current.user.hospitals;
+      //获取大类指标下的所有的小类
+      const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
 
-    //机构和指标对应数组
-    let hospitalTags = [];
-    for (let i = 0; i < childrenTag.length; i++) {
-      for (let j = 0; j < hospitals.length; j++) {
-        hospitalTags.push({
-          name: hospitals[j].name,
-          regionId: hospitals[j].regionId,
-          parent: hospitals[j].parent,
-          hospitalId: hospitals[j].id,
-          code: childrenTag[i].code,
-          value: 0
-        });
+      //机构和指标对应数组
+      let hospitalTags = [];
+      for (let i = 0; i < childrenTag.length; i++) {
+        for (let j = 0; j < hospitals.length; j++) {
+          hospitalTags.push({
+            name: hospitals[j].name,
+            regionId: hospitals[j].regionId,
+            parent: hospitals[j].parent,
+            hospitalId: hospitals[j].id,
+            code: childrenTag[i].code,
+            value: 0
+          });
+        }
       }
-    }
 
-    const lastResult = await Promise.all(
-      hospitalTags.map(async it => {
-        //查询某个机构下某个指标的数据
-        const basicData = await BasicTagDataModel.findOne({
-          where: {code: it.code, hospitalId: it.hospitalId, year: year - 1}
-        });
-        //该数据存在则赋值相关字段
-        return basicData ? {...it, ...basicData.toJSON()} : it;
-      })
-    );
-    await Promise.all(
-      lastResult.map(async it => {
-        await this.upsert({
+      //上一年的数据
+      const lastResult = await Promise.all(
+        hospitalTags.map(async it => {
+          //查询某个机构下某个指标的数据
+          const basicData = await BasicTagDataModel.findOne({
+            lock: true,
+            where: {code: it.code, hospitalId: it.hospitalId, year: year - 1}
+          });
+          //该数据存在则赋值相关字段
+          return basicData ? {...it, ...basicData.toJSON()} : it;
+        })
+      );
+
+      //批量更新当前年的数据
+      await BasicTagDataModel.bulkCreate(
+        lastResult.map(it => ({
           value: it.value,
           hospitalId: it.hospitalId,
           code: it.code,
           year: year
-        });
-      })
-    );
+        }))
+      );
+    });
   }
 
   @validate(
