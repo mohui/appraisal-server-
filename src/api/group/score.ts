@@ -292,18 +292,14 @@ export default class Score {
   }
 
   async autoScoreAllChecks(isAuto) {
-    await Promise.all(
-      (
-        await CheckSystemModel.findAll({
-          where: {
-            status: true,
-            checkYear: dayjs()
-              .year()
-              .toString()
-          }
-        })
-      ).map(it => this.autoScore(it.checkId, true))
-    );
+    const checkModel = await CheckSystemModel.findAll({
+      where: {
+        status: true
+      }
+    });
+    for (const it of checkModel) {
+      await this.autoScore(it.checkId, true);
+    }
   }
 
   /**
@@ -390,8 +386,7 @@ export default class Score {
           checkId: check
         },
         transaction: t,
-        lock: true,
-        logging: true
+        lock: true
       });
       // 地区报告model
       const reportModel = {
@@ -1011,14 +1006,20 @@ export default class Score {
             .div(new Decimal(parentTotalScore))
             .toNumber();
         }
-        // 校正后的工分值
-        const correctWorkPoint = new Decimal(workPoint).mul(new Decimal(rate));
+        // 校正后的工分值, 默认为参与校正工分值
+        let correctWorkPoint = workPoint;
+        // 质量系数小于85%, 则使用质量系数校正
+        if (rate < 0.85) {
+          correctWorkPoint = new Decimal(workPoint)
+            .mul(new Decimal(rate))
+            .toNumber();
+        }
         // 保存小项考核表
         await RuleAreaBudgetModel.upsert({
           ruleId: parentRule.id,
           areaCode: group,
           workPoint: workPoint,
-          correctWorkPoint: correctWorkPoint.toNumber(),
+          correctWorkPoint: correctWorkPoint,
           score: parentScore,
           totalScore: parentTotalScore,
           rate: rate

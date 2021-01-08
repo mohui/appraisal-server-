@@ -457,6 +457,7 @@ export default {
         this.queryForm.personTags = JSON.parse(route.query.personTags);
       if (route.query.personOr)
         this.queryForm.personOr = JSON.parse(route.query.personOr);
+      if (route.query.year) this.queryForm.year = JSON.parse(route.query.year);
     },
     //设置标题可点击样式
     cellClassHover({columnIndex}) {

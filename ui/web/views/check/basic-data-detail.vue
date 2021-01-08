@@ -1,6 +1,7 @@
 <template>
   <div style="height: 100%;">
     <el-card
+      v-loading="isLoading"
       style="height: 100%;"
       shadow="never"
       :body-style="{
@@ -54,7 +55,7 @@
         </el-button>
       </div>
       <div
-        v-if="isImportable"
+        v-if="isImportTable"
         style="height: 100%; display: flex; justify-content: center; align-items: center"
       >
         <el-button plain type="primary" @click="handleImportData"
@@ -68,7 +69,6 @@
             stripe
             size="mini"
             :data="item.child"
-            v-loading="isLoading"
             border
             highlight-current-row
           >
@@ -241,7 +241,7 @@ export default {
   name: 'BasicDataDetail',
   data() {
     return {
-      isImportable: false, //是否需要导入上年度数据
+      isImportTable: false, //是否需要导入上年度数据
       dialogImportVisible: false,
       maxSize: 5,
       progress: 0,
@@ -270,7 +270,7 @@ export default {
       s => s.name === this.standardName
     )[0].children;
     let code = (this.curCode = this.$route.query.code);
-    await this.handleIsimportable();
+    await this.handleIsimportTable();
     await this.getLists(code);
     this.isLoading = false;
   },
@@ -280,21 +280,27 @@ export default {
       await this.$refs.uploadForm.submit();
     },
     //判断是否导入上年度数据
-    async handleIsimportable() {
-      this.isImportable = await this.$api.BasicTag.importable(
-        this.curCode,
-        this.year
-      );
+    async handleIsimportTable() {
+      try {
+        this.isImportTable = await this.$api.BasicTag.importable(
+          this.curCode,
+          this.year
+        );
+      } catch (e) {
+        this.isImportTable = false;
+      }
     },
     //导入上年度数据
     async handleImportData() {
+      this.isLoading = true;
       try {
         await this.$api.BasicTag.upsertLastYear(this.curCode, this.year);
-        await this.handleIsimportable();
+        await this.handleIsimportTable();
         await this.getLists(this.curCode);
       } catch (e) {
         this.$message.error(e.message);
       }
+      this.isLoading = false;
     },
     handleClose() {
       this.fileList = [];
@@ -434,7 +440,7 @@ export default {
           year: this.year
         }
       });
-      await this.handleIsimportable();
+      await this.handleIsimportTable();
       await this.getLists(this.curCode);
       this.isLoading = false;
     }

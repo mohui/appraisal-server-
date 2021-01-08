@@ -8,7 +8,7 @@ export class BasicTagAddYearMigration implements IMigration {
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(
       `
-        alter table basic_tag_data drop column if exists year;
+        alter table basic_tag_data add column if not exists year integer;
         update basic_tag_data set year = 2020 where year is null;
       `
     );

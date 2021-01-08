@@ -30,17 +30,16 @@ export default class CheckSystem {
       checkName: should
         .string()
         .required()
-        .description('考核系统名')
+        .description('考核系统名'),
+      checkYear: should.number().required()
     })
   )
   async add(params) {
-    const {checkName} = params;
     return CheckSystemModel.create({
-      checkName,
+      ...params,
       checkType: 1,
       create_by: Context.current.user.id,
-      update_by: Context.current.user.id,
-      checkYear: dayjs().year()
+      update_by: Context.current.user.id
     });
   }
 
@@ -58,7 +57,8 @@ export default class CheckSystem {
       status: should
         .boolean()
         .required()
-        .description('状态值:true||false')
+        .description('状态值:true||false'),
+      checkYear: should.number().required()
     })
   )
   updateName(params) {
@@ -68,51 +68,34 @@ export default class CheckSystem {
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
-      //当考核体系保存成主考核时，检查机构是否冲突
-      if (params.checkType === 1) {
-        //查询原有的考核与机构的关系
-        const checkHospitals = await CheckHospitalModel.findAll({
-          where: {
-            checkId: params.checkId
-          }
-        });
-        //当登陆账户无"原有考核机构其中之一"的权限时不允许修改
-        if (
-          checkHospitals.filter(
-            a =>
-              Context.current.user.hospitals.filter(b => b.id === a.hospitalId)
-                .length === 0
-          ).length > 0
-        )
-          throw new KatoCommonError('因授权不匹配，不允许修改');
-        //当原有机构已有主考核体系时不允许修改
-        if (
-          (
-            await CheckHospitalModel.findAll({
-              where: {
-                hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
-              },
-              include: [
-                {
-                  model: CheckSystemModel,
-                  where: {
-                    checkType: 1,
-                    checkId: {[Op.not]: params.checkId}
-                  }
-                }
-              ]
-            })
-          ).length > 0
-        )
-          throw new KatoCommonError(
-            '当前变更体系中某些机构已存在主考核需要解绑操作，不允许修改'
-          );
-      }
+      // 现有考核体系
+      // language=PostgreSQL
+      const checkAreaModels = await appDB.execute(
+        `
+          select a.name
+          from check_area ca
+                 inner join check_system cs on ca.check_system = cs.check_id
+                 inner join area a on ca.area = a.code
+          where check_year = ?
+            and ca.area in (
+            select c.area
+            from check_area c
+            where c.check_system = ?
+          )
+        `,
+        params.checkYear,
+        params.checkId
+      );
+      if (checkAreaModels.length > 0)
+        throw new KatoCommonError(
+          `${checkAreaModels.map(it => it.name).join()} 已被其他考核体系绑定`
+        );
       await CheckSystemModel.update(
         {
           checkName: params.checkName,
           update_by: Context.current.user.id,
-          status: params.status
+          status: params.status,
+          checkYear: params.checkYear
         },
         {where: {checkId: params.checkId}}
       );
