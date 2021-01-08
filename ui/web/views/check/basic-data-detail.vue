@@ -272,11 +272,15 @@ export default {
       await this.$refs.uploadForm.submit();
     },
     //判断是否导入上年度数据
-    async handleIsimportable() {
-      this.isImportable = await this.$api.BasicTag.importable(
-        this.curCode,
-        this.year
-      );
+    async handleIsimportTable() {
+      try {
+        this.isImportTable = await this.$api.BasicTag.importable(
+          'this.curCode',
+          this.year
+        );
+      } catch (e) {
+        this.isImportTable = false;
+      }
     },
     //导入上年度数据
     async handleImportData() {
