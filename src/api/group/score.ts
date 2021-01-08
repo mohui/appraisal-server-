@@ -371,8 +371,7 @@ export default class Score {
           checkId: check
         },
         transaction: t,
-        lock: true,
-        logging: true
+        lock: true
       });
       // 地区报告model
       const reportModel = {
