@@ -30,6 +30,13 @@
             @click="deleteJob(row.id)"
             circle
           ></el-button>
+          <el-button
+            v-show="row.status === 'success' || row.status === 'error'"
+            size="mini"
+            type="success"
+            icon="el-icon-check"
+            circle
+          ></el-button>
           <div v-show="row.status === 'running'">
             <i class="el-icon-loading"></i>正在运行...
           </div>

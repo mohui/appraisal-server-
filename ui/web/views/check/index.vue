@@ -532,9 +532,7 @@ export default {
       if (!row.running) {
         row.running = true;
         this.$api.Score.autoScoreBackJob(row.checkId, false);
-        // this.$api.Score.autoScore(row.checkId, false);
-        //刷新列表
-        this.$asyncComputed.listCheck.update();
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
       }
     },
     //打开机构对话框
