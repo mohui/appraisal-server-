@@ -1083,7 +1083,10 @@ export default {
     projectDetailData() {
       return this.projectDetailServerData?.map(it => ({
         ...it,
-        rateFormat: (it.rate * 100).toFixed(2) + '%',
+        rateFormat:
+          (it?.rate ?? 0) >= 0.85 && (it?.rate ?? 0) < 1
+            ? `100% (真实值: ${(it.rate * 100).toFixed(2)}%)`
+            : `${(it.rate * 100).toFixed(2)}%`,
         workPointFormat: it.workPoint.toFixed(2),
         correctWorkPointFormat: it.correctWorkPoint.toFixed(2)
       }));
