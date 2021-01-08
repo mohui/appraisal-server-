@@ -242,7 +242,6 @@ export default {
   data() {
     return {
       isImportTable: false, //是否需要导入上年度数据
-      isImportableLoading: false, //导入上年度数据中
       dialogImportVisible: false,
       maxSize: 5,
       progress: 0,
