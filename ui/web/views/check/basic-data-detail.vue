@@ -275,7 +275,7 @@ export default {
     async handleIsimportTable() {
       try {
         this.isImportTable = await this.$api.BasicTag.importable(
-          'this.curCode',
+          this.curCode,
           this.year
         );
       } catch (e) {
