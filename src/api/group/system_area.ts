@@ -938,7 +938,7 @@ export default class SystemArea {
         ruleName: index ? index.ruleName : '',
         workPoint,
         rate,
-        correctWorkPoint: workPoint * rate
+        correctWorkPoint: workPoint * (rate >= 0.85 ? 1 : rate)
       });
     }
 
