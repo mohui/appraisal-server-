@@ -1,6 +1,7 @@
 <template>
   <div style="height: 100%;">
     <el-card
+      v-loading="isLoading"
       style="height: 100%;"
       shadow="never"
       :body-style="{
@@ -53,14 +54,21 @@
           >返回
         </el-button>
       </div>
-      <div style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
+      <div
+        v-if="isImportTable"
+        style="height: 100%; display: flex; justify-content: center; align-items: center"
+      >
+        <el-button plain type="primary" @click="handleImportData"
+          >导入上年度数据
+        </el-button>
+      </div>
+      <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
         <div v-for="(item, i) of listData" :key="i" style="">
           <p>{{ i + 1 }} {{ item.name }}</p>
           <el-table
             stripe
             size="mini"
             :data="item.child"
-            v-loading="isLoading"
             border
             highlight-current-row
           >
@@ -233,7 +241,8 @@ export default {
   name: 'BasicDataDetail',
   data() {
     return {
-      isImportable: false, //是否需要导入上年度数据
+      isImportTable: false, //是否需要导入上年度数据
+      isImportableLoading: false, //导入上年度数据中
       dialogImportVisible: false,
       maxSize: 5,
       progress: 0,
@@ -262,7 +271,7 @@ export default {
       s => s.name === this.standardName
     )[0].children;
     let code = (this.curCode = this.$route.query.code);
-    await this.handleIsimportable();
+    await this.handleIsimportTable();
     await this.getLists(code);
     this.isLoading = false;
   },
@@ -284,13 +293,15 @@ export default {
     },
     //导入上年度数据
     async handleImportData() {
+      this.isLoading = true;
       try {
         await this.$api.BasicTag.upsertLastYear(this.curCode, this.year);
-        await this.handleIsimportable();
+        await this.handleIsimportTable();
         await this.getLists(this.curCode);
       } catch (e) {
         this.$message.error(e.message);
       }
+      this.isLoading = false;
     },
     handleClose() {
       this.fileList = [];
@@ -430,7 +441,7 @@ export default {
           year: this.year
         }
       });
-      await this.handleIsimportable();
+      await this.handleIsimportTable();
       await this.getLists(this.curCode);
       this.isLoading = false;
     }
