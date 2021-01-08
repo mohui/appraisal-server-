@@ -218,6 +218,16 @@ export const BasicTags = [
         name: '发现的事件或线索次数'
       }
     ]
+  },
+  {
+    code: 'HealthEducation',
+    name: '健康教务管理服务',
+    children: [
+      {
+        code: 'HE07',
+        name: '健康教育讲座次数'
+      }
+    ]
   }
 ];
 
@@ -226,7 +236,8 @@ export const BasicTagUsages = {
   OldPeople: 'old-people',
   HypertensionPeople: 'hypertension-people',
   DiabetesPeople: 'diabetes-people',
-  Supervision: 'Supervision00'
+  Supervision: 'Supervision00',
+  HE07: 'HE07'
 };
 
 /**
@@ -508,7 +519,7 @@ export const MarkTags = [
             enabled: true
           },
           {
-            name: '健康教育讲座的次数',
+            name: '健康教育讲座次数合格率', // 每个乡镇卫生院和社区卫生服务中心每月至少举办1次健康知识讲座，村卫生室和社区卫生服务站每两个月至少举办1次健康知识讲座。
             code: 'HE07',
             enabled: true
           },
@@ -703,7 +714,7 @@ export const MarkTagUsages = {
     code: 'HE06'
   },
   HE07: {
-    name: '健康教育讲座的次数',
+    name: '健康教育讲座次数合格率',
     code: 'HE07'
   },
   HE08: {

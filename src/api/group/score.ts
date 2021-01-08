@@ -858,8 +858,41 @@ export default class Score {
                 }
               }
 
-              //健康教育指标
-              if (tagModel.tag.indexOf('HE') == 0) {
+              // 健康教育指标 - 健康教育讲座次数合格率
+              if (tagModel.tag === MarkTagUsages.HE07.code) {
+                // 查询健康知识讲座的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE07,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE07.name
+                  } = 一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数 x 100% = ${
+                    mark?.[tagModel.tag]
+                  } / ${basicData} =  ${percentString(mark?.HE07, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE07
+                ) {
+                  const rate = mark.D00 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              } else if (tagModel.tag.indexOf('HE') == 0) {
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${MarkTagUsages[tagModel.tag].name} = ${
