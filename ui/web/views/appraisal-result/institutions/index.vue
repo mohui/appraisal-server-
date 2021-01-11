@@ -656,7 +656,6 @@
                       @click="handleDialogAppraisalFileListVisible(scope.row)"
                     ></i>
                     <el-popover
-                      :ref="scope.row.ruleId"
                       :popper-options="{
                         boundariesElement: 'viewport',
                         removeOnDestroy: true
@@ -665,37 +664,23 @@
                       title="指标结果"
                       width="500"
                       trigger="hover"
-                      @show="
-                        handleAppraisalResultInstructionsPopoverVisible(
-                          scope.row
-                        )
-                      "
                     >
-                      <div
-                        v-loading="
-                          $asyncComputed.appraisalResultInstructionsServerData
-                            .updating
-                        "
-                      >
+                      <div>
                         <p
                           style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
                         >
-                          评分标准：{{ curRule.evaluateStandard }}
+                          评分标准：{{ scope.row.evaluateStandard }}
                         </p>
-                        <div v-if="!appraisalResultInstructionsData">
+                        <div v-if="!scope.row.details">
                           得分尚未计算
                         </div>
-                        <div
-                          v-else-if="
-                            appraisalResultInstructionsData.length === 0
-                          "
-                        >
+                        <div v-else-if="scope.row.details.length === 0">
                           尚未绑定关联关系
                         </div>
                         <div v-else>
                           <ul>
                             <li
-                              v-for="it of appraisalResultInstructionsData"
+                              v-for="it of scope.row.details"
                               :key="it"
                               style="margin-left: -20px"
                             >
@@ -1202,10 +1187,6 @@ export default {
     appraisalFileListData() {
       return this.appraisalFileListServerData;
     },
-    //单项考核得分解读数据
-    appraisalResultInstructionsData() {
-      return this.appraisalResultInstructionsServerData;
-    },
     //报告下载列表数据
     reportListData() {
       return this.reportListSeverData;
@@ -1227,15 +1208,6 @@ export default {
     }
   },
   watch: {
-    //指标得分解读详情数据
-    appraisalResultInstructionsData() {
-      if (this.$refs[this.curRule.ruleId]) {
-        //数据返回后更新popper，重新修正定位
-        this.$nextTick(() => {
-          this.$refs[this.curRule.ruleId][0].updatePopper();
-        });
-      }
-    },
     healthEducationType() {
       //切换type时将no还原为1
       this.healthEducationPageNo = 1;
@@ -1373,20 +1345,6 @@ export default {
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
       this.dialogAppraisalFileListVisible = true;
-    },
-    //单项指标考核得分解读
-    handleAppraisalResultInstructionsPopoverVisible(row) {
-      //如果查看的和前一条不同，则先清空前一条的数据
-      if (
-        this.appraisalResultInstructionsServerData &&
-        this.curRule.ruleId !== row.ruleId
-      ) {
-        this.appraisalResultInstructionsServerData = [];
-      }
-      this.appraisalResultInstructionsPopoverVisible = true;
-      this.curRule.ruleName = row.ruleName;
-      this.curRule.ruleId = row.ruleId;
-      this.curRule.evaluateStandard = row.evaluateStandard;
     },
     handleSummaries(param) {
       const {columns, data} = param;
@@ -1697,25 +1655,6 @@ export default {
       },
       shouldUpdate() {
         return this.dialogAppraisalFileListVisible;
-      },
-      default() {
-        return [];
-      }
-    },
-    //获取服务器单项考核得分解读数据
-    appraisalResultInstructionsServerData: {
-      async get() {
-        try {
-          return await this.$api.Score.detail(
-            this.params.id,
-            this.curRule.ruleId
-          );
-        } catch (e) {
-          return [e?.message ?? e];
-        }
-      },
-      shouldUpdate() {
-        return this.appraisalResultInstructionsPopoverVisible;
       },
       default() {
         return [];
