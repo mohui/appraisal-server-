@@ -1265,21 +1265,4 @@ export default class Score {
       order: [['created_at', 'DESC']]
     });
   }
-
-  /**
-   * 获取考核细则关联关系的指标解释
-   *
-   * @param rule 考核细则id
-   * @param code 地区code
-   */
-  async detail(code, rule) {
-    return (
-      await RuleAreaScoreModel.findOne({
-        where: {
-          areaCode: code,
-          ruleId: rule
-        }
-      })
-    )?.details;
-  }
 }
