@@ -273,8 +273,7 @@
                 是否转诊：
               </td>
               <td>
-                <em> {{ person.referral === 'false' ? '否' : '是' }} </em>。 原
-                因：
+                <em> {{ person.referral ? '是' : '否' }} </em>。 原 因：
                 <em>
                   {{ person.referralReason }}
                 </em>
