@@ -489,7 +489,7 @@ export default class Person {
         vh.SystolicPressure as "systolicPressure",
         vh.AssertPressure as "assertPressure",
         vh.Weight as "weight",
-        vh.Weight_Suggest as "weigthSuggest",
+        vh.Weight_Suggest as "weightSuggest",
         vh.Stature as "stature",
         vh.BMI as "BMI",
         vh.HeartRate as "heartRate",
