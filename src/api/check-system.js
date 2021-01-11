@@ -9,8 +9,7 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
-  RuleTagModel,
-  UserModel
+  RuleTagModel
 } from '../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -19,9 +18,6 @@ import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 import dayjs from 'dayjs';
-
-import {Permission} from '../../common/permission';
-import {jobStatus} from './score_hospital_check_rules';
 
 export default class CheckSystem {
   //添加考核系统
@@ -436,89 +432,6 @@ export default class CheckSystem {
         }))
     }));
     return {count: ruleGroup.length, rows: allRules};
-  }
-
-  //查询考核系统
-  @validate(
-    should
-      .object({
-        pageSize: should.number(),
-        pageNo: should.number(),
-        checkId: should.string()
-      })
-      .allow(null)
-  )
-  async list(params) {
-    const {pageSize = 20, pageNo = 1, checkId} = params || {};
-    let whereOptions = {};
-
-    //if没有"管理所有考核"或者"超级管理员"的权限,则仅能看当前用户创建的
-    if (
-      !Context.current.user.permissions.some(
-        p => p === Permission.ALL_CHECK || p === Permission.SUPER_ADMIN
-      )
-    )
-      whereOptions['create_by'] = Context.current.user.id;
-
-    if (checkId) whereOptions['checkId'] = checkId;
-
-    let result = await CheckSystemModel.findAndCountAll({
-      where: whereOptions,
-      distinct: true,
-      order: [['created_at', 'DESC']],
-      offset: (pageNo - 1) * pageSize,
-      limit: pageSize
-    });
-    //当前用户拥有的机构
-    const userHospital = Context.current.user.hospitals.map(it => it.id);
-    result.rows = await Promise.all(
-      result.rows.map(async row => {
-        row = row.toJSON();
-        //该考核系统下的所有细则
-        const allRules = await CheckRuleModel.findAll({
-          where: {checkId: row.checkId, parentRuleId: {[Op.not]: null}}
-        }).map(it => it.ruleId);
-        // 统计该用户该考核系统下的机构
-        const ruleHospital = await RuleHospitalModel.findAll({
-          where: {
-            ruleId: {[Op.in]: allRules},
-            hospitalId: {[Op.in]: userHospital}
-          }
-        });
-        const checkHospitalCount = await CheckHospitalModel.count({
-          where: {
-            checkId: row.checkId,
-            hospitalId: {[Op.in]: userHospital}
-          }
-        });
-        //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
-        const autoTrue = !!ruleHospital.find(it => it.auto);
-        const autoFalse = !!ruleHospital.find(it => !it.auto);
-        let auto;
-        if (autoFalse && autoTrue) auto = 'part';
-        if (autoFalse && !autoTrue) auto = 'no';
-        if (!autoFalse && autoTrue) auto = 'all';
-        //考核创建者的名称
-        const createUser = await UserModel.findOne({
-          where: {id: row.create_by},
-          attributes: {exclude: ['password']}
-        });
-        //考核修改者的名称
-        const updateUser = await UserModel.findOne({
-          where: {id: row.update_by},
-          attributes: {exclude: ['password']}
-        });
-        return {
-          ...row,
-          hospitalCount: checkHospitalCount,
-          auto,
-          createUser,
-          updateUser,
-          running: jobStatus[row.checkId] || false
-        };
-      })
-    );
-    return result;
   }
 
   @validate(

@@ -26,7 +26,22 @@ import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
-import {percentString} from '../score_hospital_check_rules';
+
+/**
+ * 获取百分数字符串, 默认返回'0'
+ *
+ * @param numerator 分子
+ * @param denominator 分母
+ */
+export function percentString(numerator: number, denominator: number): string {
+  if (denominator) {
+    const rate = numerator / denominator;
+    if (rate > 1) return '100%';
+    return ((numerator / denominator) * 100).toFixed(2) + '%';
+  } else {
+    return '0';
+  }
+}
 
 /**
  * 查询考核对象的标记数据
