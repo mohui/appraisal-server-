@@ -131,9 +131,9 @@
               <td>运 动</td>
               <td>
                 <em> {{ person.exerciseWeek }} </em>次/周
-                <em> {{ person.exerciseMinute }} </em>分钟/次 <br />建议：{{
-                  person.exerciseWeekSuggest
-                }}次/周 {{ person.exerciseMinuteSuggest }}分钟/次
+                <em> {{ person.exerciseMinute }} </em>分钟/次 <br />建议：
+                <em> {{ person.exerciseWeekSuggest }} </em>次/周
+                <em> {{ person.exerciseMinuteSuggest }} </em>分钟/次
               </td>
             </tr>
             <tr>
