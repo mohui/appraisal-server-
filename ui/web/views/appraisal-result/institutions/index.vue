@@ -1070,7 +1070,7 @@ export default {
         ...it,
         rateFormat:
           (it?.rate ?? 0) >= 0.85 && (it?.rate ?? 0) < 1
-            ? `100% / ${(it.rate * 100).toFixed(2)}%`
+            ? `100.00% / ${(it.rate * 100).toFixed(2)}%`
             : `${(it.rate * 100).toFixed(2)}% / ${(it.rate * 100).toFixed(2)}%`,
         workPointFormat: it.workPoint.toFixed(2),
         correctWorkPointFormat: it.correctWorkPoint.toFixed(2)
