@@ -85,17 +85,15 @@
             <tr>
               <td>体 重<sub>（kg）</sub></td>
               <td>
-                <em>
-                  {{ person.weight }}
-                </em>
+                <em>{{ person.weight }}</em> /
+                <em>{{ person.weightSuggest }}</em>
               </td>
             </tr>
             <tr>
               <td>体质指数<sub>（kg/m2）</sub></td>
               <td>
-                <em>
-                  {{ person.BMI }}
-                </em>
+                <em>{{ person.BMI }}</em> /
+                <em>{{ person.BMISuggest }}</em>
               </td>
             </tr>
             <tr>
@@ -118,19 +116,15 @@
               <td rowspan="6">生活方式指导</td>
               <td>日吸烟量</td>
               <td>
-                <em>
-                  {{ person.daySmoke }}
-                </em>
-                / 支
+                <em>{{ person.daySmoke }}</em> /
+                <em>{{ person.daySmokeSuggest }}</em> 支
               </td>
             </tr>
             <tr>
               <td>日饮酒量</td>
               <td>
-                <em>
-                  {{ person.dayDrink }}
-                </em>
-                / 两
+                <em>{{ person.dayDrink }}</em> /
+                <em>{{ person.dayDrinkSuggest }}</em> 两
               </td>
             </tr>
             <tr>
