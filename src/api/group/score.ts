@@ -923,7 +923,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.HE07
                 ) {
-                  const rate = mark.D00 / basicData / tagModel.baseline;
+                  const rate = mark.HE07 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
