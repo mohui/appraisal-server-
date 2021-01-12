@@ -858,8 +858,43 @@ export default class Score {
                 }
               }
 
+              // 健康教育指标 - 健康教育咨询次数合格率
+              if (tagModel.tag === MarkTagUsages.HE09.code) {
+                // 查询健康教育咨询的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE09,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE09.name
+                  } = 一年内举办健康教育咨询的次数 / 一年内应举办健康教育咨询的次数 x 100% = ${
+                    mark?.HE09
+                  } / ${basicData} =  ${percentString(mark?.HE09, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE09
+                ) {
+                  const rate = mark.HE09 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
               // 健康教育指标 - 健康教育讲座次数合格率
-              if (tagModel.tag === MarkTagUsages.HE07.code) {
+              else if (tagModel.tag === MarkTagUsages.HE07.code) {
                 // 查询健康知识讲座的次数
                 const basicData = await getBasicData(
                   leaves,
@@ -892,7 +927,9 @@ export default class Score {
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
-              } else if (tagModel.tag.indexOf('HE') == 0) {
+              }
+              // 剩余健康教育指标
+              else if (tagModel.tag.indexOf('HE') == 0) {
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${MarkTagUsages[tagModel.tag].name} = ${
