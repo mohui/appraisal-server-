@@ -72,11 +72,11 @@ export default class SystemArea {
     // 查询本级权限
     const areas = await AreaModel.findOne({where: {code}});
 
+    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
+
     // 获取树形结构
     const tree = await getAreaTree(Context.current.user.code);
     const parentIndex = tree.findIndex(it => it.code === areas.parent);
-
-    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     if (!year) year = dayjs().format('YYYY');
 
@@ -202,7 +202,7 @@ export default class SystemArea {
     // 查询本级权限
     const areas = await AreaModel.findOne({where: {code}});
 
-    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
+    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
     if (!year) year = dayjs().format('YYYY');
 
     // 通过地区编码和时间获取checkId
