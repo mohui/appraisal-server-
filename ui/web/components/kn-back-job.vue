@@ -15,6 +15,16 @@
       <el-table-column align="center" label="状态" width="100">
         <template slot-scope="{row}">
           <el-button
+            v-show="
+              (row.status === 'success' && row.job === 'scoreCheck') ||
+                row.status === 'error'
+            "
+            size="mini"
+            type="success"
+            icon="el-icon-check"
+            circle
+          ></el-button>
+          <el-button
             v-show="row.status === 'success' && row.job !== 'scoreCheck'"
             size="mini"
             type="success"
@@ -28,13 +38,6 @@
             type="danger"
             icon="el-icon-delete"
             @click="deleteJob(row.id)"
-            circle
-          ></el-button>
-          <el-button
-            v-show="row.status === 'success' || row.status === 'error'"
-            size="mini"
-            type="success"
-            icon="el-icon-check"
             circle
           ></el-button>
           <div v-show="row.status === 'running'">
