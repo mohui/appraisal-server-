@@ -475,7 +475,6 @@ export default {
   },
   created() {
     this.checkId = this.$route.query.checkId;
-    this.checkName = decodeURIComponent(this.$route.query.checkName);
     this.getRuleList();
   },
   methods: {
@@ -546,7 +545,7 @@ export default {
     async getRuleList() {
       try {
         let result = await this.$api.CheckSystem.detail(this.checkId);
-
+        this.checkName = result.check_name;
         if (result.rows.length > 0) {
           this.ruleList = result.rows.map(
             it =>

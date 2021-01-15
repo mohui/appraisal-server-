@@ -563,9 +563,7 @@ export default {
         return this.$router.push({
           name: 'rule',
           query: {
-            checkId: row.checkId,
-            checkName: encodeURIComponent(row.checkName),
-            checkYear: row.checkYear
+            checkId: row.checkId
           }
         });
     },
