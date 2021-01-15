@@ -873,8 +873,78 @@ export default class Score {
                 }
               }
 
-              //健康教育指标
-              if (tagModel.tag.indexOf('HE') == 0) {
+              // 健康教育指标 - 健康教育咨询次数合格率
+              if (tagModel.tag === MarkTagUsages.HE09.code) {
+                // 查询健康教育咨询的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE09,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE09.name
+                  } = 一年内举办健康教育咨询的次数 / 一年内应举办健康教育咨询的次数 x 100% = ${
+                    mark?.HE09
+                  } / ${basicData} =  ${percentString(mark?.HE09, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE09
+                ) {
+                  const rate = mark.HE09 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 健康教育指标 - 健康教育讲座次数合格率
+              else if (tagModel.tag === MarkTagUsages.HE07.code) {
+                // 查询健康知识讲座的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE07,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE07.name
+                  } = 一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数 x 100% = ${
+                    mark?.[tagModel.tag]
+                  } / ${basicData} =  ${percentString(mark?.HE07, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE07
+                ) {
+                  const rate = mark.HE07 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 剩余健康教育指标
+              else if (tagModel.tag.indexOf('HE') == 0) {
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${MarkTagUsages[tagModel.tag].name} = ${
@@ -1246,22 +1316,5 @@ export default class Score {
       include: [UserModel],
       order: [['created_at', 'DESC']]
     });
-  }
-
-  /**
-   * 获取考核细则关联关系的指标解释
-   *
-   * @param rule 考核细则id
-   * @param code 地区code
-   */
-  async detail(code, rule) {
-    return (
-      await RuleAreaScoreModel.findOne({
-        where: {
-          areaCode: code,
-          ruleId: rule
-        }
-      })
-    )?.details;
   }
 }

@@ -12,7 +12,7 @@ import {
   RuleTagModel,
   UserModel
 } from '../database/model';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
@@ -24,6 +24,61 @@ import {Permission} from '../../common/permission';
 import {jobStatus} from './score_hospital_check_rules';
 
 export default class CheckSystem {
+  /**
+   * 获取考核体系详细数据
+   *
+   * 包括自身和规则
+   *
+   * @returns {Promise<void>}
+   */
+  async detail(id) {
+    // 1. 查询考核体系
+    const checkSystem = (
+      await appDB.execute(`select * from check_system where check_id = ?`, id)
+    )[0];
+
+    if (!checkSystem) throw new KatoRuntimeError(`id为 ${id} 的考核体系不存在`);
+
+    // 2. 查询考核小项
+    const parentRules = await appDB.execute(
+      `select * from check_rule where check_id = ? and parent_rule_id is null`,
+      checkSystem.check_id
+    );
+    // 3. 查询考核细则
+    const childRules = await appDB.execute(
+      `select * from check_rule where check_id = ? and parent_rule_id is not null`,
+      checkSystem.check_id
+    );
+    // 4. 添加考核细则到考核小项中
+    for (let i = 0; i < parentRules.length; i++) {
+      // 4.1 查询小项绑定的工分项
+      const ruleProjects = await appDB.execute(
+        `select * from rule_project where rule = ?`,
+        parentRules[i].rule_id
+      );
+      parentRules[i].ruleProjects = ruleProjects;
+
+      for (let j = 0; j < childRules.length; j++) {
+        // 4.2 查询考核细则绑定的关联关系
+        // language=PostgreSQL
+        const ruleTags = await appDB.execute(
+          `select * from rule_tag where rule = ?`,
+          childRules[j].rule_id
+        );
+        childRules[j].ruleTags = ruleTags;
+        if (parentRules[i].rule_id === childRules[j].parent_rule_id) {
+          (parentRules[i].childRules = parentRules[i].childRules || []).push(
+            childRules[j]
+          );
+        }
+      }
+    }
+    return {
+      ...checkSystem,
+      parentRules
+    };
+  }
+
   //添加考核系统
   @validate(
     should.object({

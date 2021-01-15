@@ -74,6 +74,15 @@ export default class SystemRule {
           })
         ).map(it => {
           it = it.toJSON();
+          // 指标解释数组, 默认为null, 即考核细则未配置关联关系
+          it.details = null;
+          // rul_area_score表有数据, 构造数组
+          if (it?.ruleAreaScores?.length > 0) {
+            it.details = it.ruleAreaScores.reduce(
+              (prev, current) => [...prev, ...current.details],
+              []
+            );
+          }
           it.score = it.ruleAreaScores.reduce(
             (result, current) => (result += current.score),
             0
