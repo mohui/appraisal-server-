@@ -26,6 +26,9 @@ import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
+import {v4 as uuid} from 'uuid';
+import * as path from 'path';
+import {ossClient} from '../../../util/oss';
 
 /**
  * 获取百分数字符串, 默认返回'0'
@@ -1296,5 +1299,71 @@ export default class Score {
         }
       })
     )?.details;
+  }
+
+  /**
+   * 上传定性考核附件
+   *
+   * @param rule
+   * @param area
+   * @param attachment
+   */
+  async upload(rule, area, attachment) {
+    const ossName = `/appraisal/attachment/${uuid()}${path.extname(
+      attachment.originalname
+    )}`;
+
+    let attachURL;
+    try {
+      attachURL = await ossClient.save(ossName, attachment.buffer);
+    } catch (e) {
+      console.log(e);
+      throw new KatoCommonError('文件上传失败');
+    }
+
+    const name = attachment.originalname;
+    await appDB.execute(
+      `insert into rule_area_attach(id, rule, area, name, url) values (?, ?, ?, ?, ?)`,
+      uuid(),
+      rule,
+      area,
+      name,
+      attachURL
+    );
+
+    return attachURL;
+  }
+
+  /**
+   * 获取指定考核细则和地区的附件列表
+   *
+   * @param rule 考核细则id
+   * @param area 地区code
+   */
+  async listAttachments(rule, area) {
+    // 判断当前考核细则, 拥有定性指标关联关系
+    const ruleTags = await appDB.execute(
+      `select * from rule_tag where rule = ? and tag = ?`,
+      rule,
+      MarkTagUsages.Attach
+    );
+    if (ruleTags.length === 0)
+      throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
+
+    // 查询附件表
+    return appDB.execute(
+      `select * from rule_area_attach where rule = ? and area = ?`,
+      rule,
+      area
+    );
+  }
+
+  /**
+   * 删除定性指标附件
+   *
+   * @param id 定性指标附件id
+   */
+  async delAttachment(id) {
+    await appDB.execute(`delete from rule_area_attach where id = ?`, id);
   }
 }
