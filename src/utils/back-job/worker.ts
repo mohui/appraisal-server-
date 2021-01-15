@@ -1,5 +1,4 @@
 import {parentPort, isMainThread, workerData} from 'worker_threads';
-import {AreaModel} from '../../database';
 import {appDB, initFS, unifs} from '../../app';
 import * as models from '../../database/model';
 import dayjs = require('dayjs');
