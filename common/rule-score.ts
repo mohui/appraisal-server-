@@ -226,6 +226,10 @@ export const BasicTags = [
       {
         code: 'HE07',
         name: '健康教育讲座次数'
+      },
+      {
+        code: 'HE09',
+        name: '健康教育咨询次数'
       }
     ]
   }
@@ -237,7 +241,8 @@ export const BasicTagUsages = {
   HypertensionPeople: 'hypertension-people',
   DiabetesPeople: 'diabetes-people',
   Supervision: 'Supervision00',
-  HE07: 'HE07'
+  HE07: 'HE07',
+  HE09: 'HE09'
 };
 
 /**
@@ -529,7 +534,7 @@ export const MarkTags = [
             enabled: true
           },
           {
-            name: '健康教育咨询的次数',
+            name: '健康教育咨询次数的合格率', // 每个乡镇卫生院、社区卫生服务中心每年至少开展 9 次公众健康咨询活动。
             code: 'HE09',
             enabled: true
           },
@@ -722,7 +727,7 @@ export const MarkTagUsages = {
     code: 'HE08'
   },
   HE09: {
-    name: '健康教育咨询的次数',
+    name: '健康教育咨询次数的合格率',
     code: 'HE09'
   },
   HE10: {
