@@ -7,7 +7,8 @@ import {
   CheckRuleModel,
   HospitalModel,
   RegionModel,
-  RuleHospitalScoreModel
+  RuleHospitalScoreModel,
+  AreaModel
 } from '../database';
 import {KatoCommonError} from 'kato-server';
 import {Workbook} from 'exceljs';
@@ -15,6 +16,8 @@ import {Context} from './context';
 import * as ContentDisposition from 'content-disposition';
 
 import {Op} from 'sequelize';
+import {createBackJob} from '../utils/back-job';
+import {unifs} from '../app';
 
 /**
  * 语义化时间
@@ -60,6 +63,15 @@ export default class Report {
         name: displayTime(path.parse(it.name).name.split('_')[1]),
         url: it.url
       }));
+  }
+
+  /**
+   * unifs文件地址
+   *
+   * @param file 签名
+   */
+  async sign(file) {
+    return await unifs.getExternalUrl(file);
   }
 
   /**

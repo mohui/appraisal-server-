@@ -27,6 +27,7 @@ import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
 import {percentString} from '../score_hospital_check_rules';
+import {createBackJob} from '../../utils/back-job';
 
 /**
  * 查询考核对象的标记数据
@@ -343,6 +344,20 @@ export default class Score {
     }
   }
 
+  /***
+   * 后台任务打分
+   * @param checkId
+   * @param isAuto
+   */
+  async autoScoreBackJob(checkId, isAuto) {
+    const checkModel = await CheckSystemModel.findOne({
+      where: {checkId: checkId}
+    });
+    return createBackJob('scoreCheck', `${checkModel.checkName}考核打分`, {
+      checkId: checkId,
+      isAuto: isAuto
+    });
+  }
   /**
    * 地区打分
    *

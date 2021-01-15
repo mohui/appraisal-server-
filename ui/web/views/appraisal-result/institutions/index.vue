@@ -1428,10 +1428,15 @@ export default {
     },
     //考核结果下载
     async handleAppraisalResultsDownload() {
-      await this.$api.SystemArea.downloadCheck(
-        this.params.id,
-        this.params.year
-      );
+      try {
+        await this.$api.SystemArea.downloadCheck(
+          this.params.id,
+          this.params.year
+        );
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
     //报告下载
     handleDownloadReport(url) {
