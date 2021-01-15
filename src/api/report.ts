@@ -65,23 +65,6 @@ export default class Report {
       }));
   }
 
-  async downloadCheckBackJob(code, year) {
-    try {
-      let fileName = '';
-      const area = await AreaModel.findOne({where: {code}});
-      if (!area) throw new KatoCommonError('机构或地区id错误!');
-
-      fileName = area.name;
-      return createBackJob('reportCheck', `${fileName}考核结果导出`, {
-        code,
-        year,
-        fileName
-      });
-    } catch (e) {
-      throw new KatoCommonError(e.message);
-    }
-  }
-
   /**
    * unifs文件地址
    *
