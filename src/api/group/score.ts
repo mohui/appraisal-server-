@@ -834,6 +834,8 @@ export default class Score {
               }
               // 定性指标得分
               if (tagModel.tag === MarkTagUsages.Attach.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push('请查看机构上传的资料');
                 // 查询定性指标和机构表
                 const attachModels = await RuleAreaAttachModel.findAll({
                   where: {
