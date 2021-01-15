@@ -847,20 +847,23 @@ export default class SystemArea {
     if (!year) year = dayjs().format('YYYY');
 
     // 根据地区和时间查找考核Id
-    const checkSystem = await CheckAreaModel.findOne({
-      where: {areaCode: code},
-      attributes: ['checkId'],
-      include: [
-        {
-          model: CheckSystemModel,
-          attributes: [],
-          required: true,
-          where: {checkYear: year}
-        }
-      ]
-    });
+    const [sql, params] = sqlRender(
+      `
+          SELECT
+            checkArea.check_system AS "checkId"
+          FROM check_area AS checkArea
+          LEFT JOIN check_system checkSystem ON checkArea.check_system = checkSystem.check_id
+          WHERE checkArea.area = {{? code}}
+            AND checkSystem.check_year = {{? year}}
+      `,
+      {
+        code,
+        year
+      }
+    );
+    const checkSystem = await appDB.execute(sql, ...params);
 
-    if (!checkSystem) throw new KatoCommonError('该地区无考核.');
+    if (checkSystem.length === 0) throw new KatoCommonError('该地区无考核.');
 
     // 获取树形结构
     const tree = await getAreaTree(code);
@@ -874,7 +877,7 @@ export default class SystemArea {
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
 
     // 取出考核id
-    const checkId = checkSystem.checkId;
+    const checkId = checkSystem[0]?.checkId;
 
     // 根据checkId找到所有的考核小项,工分项
     const checkRule = await CheckRuleModel.findAll({
