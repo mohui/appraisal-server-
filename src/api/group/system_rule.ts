@@ -22,8 +22,7 @@ export default class SystemRule {
   async checks(code, year) {
     // 校验地区是否存在
     const areas = await AreaModel.findOne({where: {code}});
-
-    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
+    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     if (!year) year = dayjs().format('YYYY');
 
@@ -42,7 +41,7 @@ export default class SystemRule {
       ]
     });
 
-    if (!areaSystem) throw new KatoCommonError(`该机构未绑定考核`);
+    if (!areaSystem) throw new KatoCommonError(`该地区未绑定考核`);
 
     // 取出考核主信息
     const checkSystem = areaSystem.checkSystem;
