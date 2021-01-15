@@ -1429,7 +1429,7 @@ export default {
     //考核结果下载
     async handleAppraisalResultsDownload() {
       try {
-        await this.$api.Report.downloadCheckBackJob(
+        await this.$api.SystemArea.downloadCheck(
           this.params.id,
           this.params.year
         );
