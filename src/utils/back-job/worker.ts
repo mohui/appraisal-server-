@@ -3,9 +3,8 @@ import {appDB, initFS, unifs} from '../../app';
 import * as models from '../../database/model';
 import dayjs = require('dayjs');
 import Score from '../../api/group/score';
-import SystemArea from '../../api/group/system_area';
 const ScoreApi = new Score();
-const SystemAreaApi = new SystemArea();
+import {getReportBuffer} from '../../api/group/system_area';
 appDB.addModels(Object.values(models));
 
 if (isMainThread) throw new Error('线程错误');
@@ -22,10 +21,7 @@ const {job} = workerData;
     //考核报表任务
     if (job === 'reportCheck') {
       const {code, year, fileName} = workerData;
-      const buffer = (await SystemAreaApi.getReportBuffer(
-        code,
-        year
-      )) as Buffer;
+      const buffer = (await getReportBuffer(code, year)) as Buffer;
       //初始化文件挂载
       await initFS();
       //写入本地
