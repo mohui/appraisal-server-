@@ -545,11 +545,9 @@ export default {
     //获取细则列表
     async getRuleList() {
       try {
-        let result = await this.$api.CheckSystem.listRule({
-          checkId: this.checkId
-        });
+        let result = await this.$api.CheckSystem.detail(this.checkId);
 
-        if (result.count > 0) {
+        if (result.rows.length > 0) {
           this.ruleList = result.rows.map(
             it =>
               new Vue({
