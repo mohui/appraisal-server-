@@ -854,7 +854,7 @@ export default class SystemArea {
         {
           model: CheckSystemModel,
           attributes: [],
-          required: false,
+          required: true,
           where: {checkYear: year}
         }
       ]
