@@ -15,10 +15,7 @@
       <el-table-column align="center" label="状态" width="100">
         <template slot-scope="{row}">
           <el-button
-            v-show="
-              (row.status === 'success' && row.job === 'scoreCheck') ||
-                row.status === 'error'
-            "
+            v-show="row.status === 'success' && row.job === 'scoreCheck'"
             size="mini"
             type="success"
             icon="el-icon-check"
