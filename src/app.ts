@@ -17,6 +17,7 @@ import {
   FileSystemError,
   LocalFileSystem,
   OverlayFileSystem,
+  OSSFileSystem,
   UnionFileSystem
 } from './unifs';
 
@@ -155,9 +156,11 @@ export class Application {
   async initBackJob(app) {
     await initBackJob(app);
   }
+
   async initFS() {
     const typeMapToFS: {[typeName: string]: typeof UnionFileSystem} = {
-      local: LocalFileSystem
+      local: LocalFileSystem,
+      oss: OSSFileSystem
     };
     console.log('初始化联合文件系统');
     (config.get('unifs') as any[]).forEach(c => {
