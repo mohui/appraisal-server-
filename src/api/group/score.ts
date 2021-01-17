@@ -1,6 +1,6 @@
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
 import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
 import {
@@ -1327,34 +1327,39 @@ export default class Score {
   /**
    * 上传定性考核附件
    *
-   * @param rule
-   * @param area
-   * @param attachment
+   * @param rule 细则id
+   * @param area 地区code
+   * @param attachments 附件文件对象
    */
-  async upload(rule, area, attachment) {
-    const ossName = `/appraisal/attachment/${uuid()}${path.extname(
-      attachment.originalname
-    )}`;
+  async upload(rule, area, attachments) {
+    return await appDB.joinTx(async () => {
+      // 判断当前考核细则, 拥有定性指标关联关系
+      const ruleTags = await appDB.execute(
+        `select * from rule_tag where rule = ? and tag = ?`,
+        rule,
+        MarkTagUsages.Attach.code
+      );
+      if (ruleTags.length === 0)
+        throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
 
-    let attachURL;
-    try {
-      attachURL = await ossClient.save(ossName, attachment.buffer);
-    } catch (e) {
-      console.log(e);
-      throw new KatoCommonError('文件上传失败');
-    }
-
-    const name = attachment.originalname;
-    await appDB.execute(
-      `insert into rule_area_attach(id, rule, area, name, url) values (?, ?, ?, ?, ?)`,
-      uuid(),
-      rule,
-      area,
-      name,
-      attachURL
-    );
-
-    return attachURL;
+      // 设置oss的key
+      const ossName = `/attach/appraisal/attachment/${uuid()}${path.extname(
+        attachments.originalname
+      )}`;
+      // 插入数据
+      await appDB.execute(
+        `insert into rule_area_attach(id, rule, area, name, url) values (?, ?, ?, ?, ?)`,
+        uuid(),
+        rule,
+        area,
+        attachments.originalname,
+        ossName
+      );
+      // 写入oss
+      await unifs.writeFile(ossName, attachments.buffer);
+      // 返回URL
+      return await unifs.getExternalUrl(ossName);
+    });
   }
 
   /**
@@ -1368,16 +1373,20 @@ export default class Score {
     const ruleTags = await appDB.execute(
       `select * from rule_tag where rule = ? and tag = ?`,
       rule,
-      MarkTagUsages.Attach
+      MarkTagUsages.Attach.code
     );
     if (ruleTags.length === 0)
       throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
 
     // 查询附件表
-    return appDB.execute(
-      `select * from rule_area_attach where rule = ? and area = ?`,
-      rule,
-      area
+    return await Promise.all(
+      (
+        await appDB.execute(
+          `select * from rule_area_attach where rule = ? and area = ?`,
+          rule,
+          area
+        )
+      ).map(async it => ({...it, url: await unifs.getExternalUrl(it.url)}))
     );
   }
 
@@ -1387,6 +1396,13 @@ export default class Score {
    * @param id 定性指标附件id
    */
   async delAttachment(id) {
-    await appDB.execute(`delete from rule_area_attach where id = ?`, id);
+    await appDB.joinTx(async () => {
+      const url = (
+        await appDB.execute(`select url from rule_area_attach where id = ?`, id)
+      )[0]?.url;
+      if (url) await unifs.deleteFile(url);
+
+      await appDB.execute(`delete from rule_area_attach where id = ?`, id);
+    });
   }
 }
