@@ -88,6 +88,8 @@
 <script>
 import io from 'socket.io-client';
 import {getToken} from '../utils/cache';
+import FileSaver from 'file-saver';
+
 const DateStringRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
 
 export default {
@@ -144,7 +146,7 @@ export default {
     },
     async downloadFile(file) {
       const fileUrl = await this.$api.Report.sign(file);
-      if (fileUrl) window.open(fileUrl);
+      if (fileUrl) FileSaver.saveAs(fileUrl);
     }
   },
   destroyed() {
