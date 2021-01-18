@@ -1653,7 +1653,7 @@ export default {
     //获取服务器单项考核规则的考核文件列表数据
     appraisalFileListServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.listAttachments(
+        return await this.$api.Score.listAttachments(
           this.curRule.ruleId,
           this.params.id
         );
