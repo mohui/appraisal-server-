@@ -362,6 +362,21 @@ export default class Score {
     }
   }
 
+  /***
+   * 后台任务打分
+   * @param checkId
+   * @param isAuto
+   */
+  async autoScoreBackJob(checkId, isAuto) {
+    const checkModel = await CheckSystemModel.findOne({
+      where: {checkId: checkId}
+    });
+    return createBackJob('scoreCheck', `${checkModel.checkName}考核打分`, {
+      checkId: checkId,
+      isAuto: isAuto
+    });
+  }
+
   /**
    * 地区打分
    *

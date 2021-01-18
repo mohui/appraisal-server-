@@ -81,34 +81,37 @@ export default class CheckSystem {
         projects: pRule.ruleProjects.map(it =>
           Projects.find(p => p.id === it.projectId)
         ),
-        group: pRule.childRules
-          .map(cRule => ({
-            budget: cRule.budget,
-            checkId: cRule.check_id,
-            checkMethod: cRule.check_method,
-            checkStandard: cRule.evaluate_standard,
-            create_by: cRule.create_by,
-            created_at: cRule.created_at,
-            evaluateStandard: cRule.evaluate_standard,
-            parentRuleId: cRule.parent_rule_id,
-            ruleId: cRule.rule_id,
-            ruleName: cRule.rule_name,
-            ruleScore: cRule.rule_score,
-            ruleTags: cRule.ruleTags.map(it => ({
-              id: it.id,
-              algorithm: it.algorithm,
-              baseline: it.baseline,
-              score: it.score,
-              attachStartDate: it.attach_start_data ?? null,
-              attachEndDate: it.attach_end_data ?? null,
-              tag: it.tag,
-              name: MarkTagUsages[it.tag].name
-            })),
-            status: cRule.status,
-            update_by: cRule.update_by,
-            updated_at: cRule.updated_at
-          }))
-          .sort((a, b) => (dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1))
+        group:
+          pRule.childRules
+            ?.map(cRule => ({
+              budget: cRule.budget,
+              checkId: cRule.check_id,
+              checkMethod: cRule.check_method,
+              checkStandard: cRule.evaluate_standard,
+              create_by: cRule.create_by,
+              created_at: cRule.created_at,
+              evaluateStandard: cRule.evaluate_standard,
+              parentRuleId: cRule.parent_rule_id,
+              ruleId: cRule.rule_id,
+              ruleName: cRule.rule_name,
+              ruleScore: cRule.rule_score,
+              ruleTags: cRule.ruleTags.map(it => ({
+                id: it.id,
+                algorithm: it.algorithm,
+                baseline: it.baseline,
+                score: it.score,
+                attachStartDate: it.attach_start_data ?? null,
+                attachEndDate: it.attach_end_data ?? null,
+                tag: it.tag,
+                name: MarkTagUsages[it.tag].name
+              })),
+              status: cRule.status,
+              update_by: cRule.update_by,
+              updated_at: cRule.updated_at
+            }))
+            .sort((a, b) =>
+              dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1
+            ) ?? []
       }))
       .sort((a, b) => (dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1));
     return {
