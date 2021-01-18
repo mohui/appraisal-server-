@@ -1318,7 +1318,7 @@ export default {
       this.curRule.ruleId = row.ruleId;
       this.curRule.data = {
         ruleId: JSON.stringify(this.curRule.ruleId),
-        hospitalId: JSON.stringify(this.params.id)
+        area: JSON.stringify(this.params.id)
       };
       this.dialogUploadAppraisalFileVisible = true;
     },
