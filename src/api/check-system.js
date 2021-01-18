@@ -9,7 +9,8 @@ import {
   RuleHospitalModel,
   RuleHospitalScoreModel,
   RuleProjectModel,
-  RuleTagModel
+  RuleTagModel,
+  CheckAreaModel
 } from '../database/model';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -347,12 +348,27 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
-      if (await CheckHospitalModel.findOne({where: {checkId: id}}))
+
+      if (await CheckAreaModel.findOne({where: {checkId: id}}))
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
+      const ruleIds = sys.checkRules.map(rule => rule.ruleId);
+
       //删除该考核系统下的所有规则
       await Promise.all(
         sys.checkRules.map(async rule => await rule.destroy({force: true}))
       );
+      // 删除细则指标对应[考核细则]
+      await RuleTagModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除考核小项和公分项对应[考核小项]
+      await RuleProjectModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
       //删除该考核系统
       return await sys.destroy({force: true});
     });
