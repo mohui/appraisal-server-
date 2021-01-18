@@ -32,10 +32,10 @@ const router = new Router({
           component: () => import('./views/user/index')
         },
         {
-          path: 'appraisal-result-institutions',
-          name: 'appraisal-result-institutions',
+          path: 'appraisal-result',
+          name: 'appraisal-result',
           meta: {permission: [Permission.APPRAISAL_RESULT]},
-          component: () => import('./views/appraisal-result/institutions/index')
+          component: () => import('./views/appraisal-result/index')
         },
         {
           path: 'check',

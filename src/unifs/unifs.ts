@@ -209,8 +209,6 @@ export abstract class UnionFileSystem {
     expireTime?: Date
   ): Promise<string>;
 
-  abstract getExternalUrlSync(name: string, expireTime?: Date): string;
-
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor(options?: any) {}
 

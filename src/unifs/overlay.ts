@@ -148,14 +148,6 @@ export class OverlayFileSystem extends UnionFileSystem {
     );
   }
 
-  getExternalUrlSync(name: string, expireTime?: Date): string {
-    const mountPoint = this.getMountPointByPath(name);
-    return mountPoint.fs.getExternalUrlSync(
-      parsePath(mountPoint.subPath, name),
-      expireTime
-    );
-  }
-
   async statFile(name: string): Promise<UnionFileStats> {
     const mountPoint = this.getMountPointByPath(name);
     const s = await mountPoint.fs.statFile(parsePath(mountPoint.subPath, name));

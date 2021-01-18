@@ -879,11 +879,11 @@
   </div>
 </template>
 <script>
-import twoCardPie from '../components/twocardPie';
-import doctorBar from '../components/doctorBar';
-import twoCardTreeMap from '../components/twocardTreemap';
-import twoCardCircle from '../components/twocardCircle';
-import lineChart from '../components/twocardLine';
+import twoCardPie from './components/twocardPie';
+import doctorBar from './components/doctorBar';
+import twoCardTreeMap from './components/twocardTreemap';
+import twoCardCircle from './components/twocardCircle';
+import lineChart from './components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
@@ -1086,7 +1086,7 @@ export default {
           value: it.budget,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1104,7 +1104,7 @@ export default {
           value: it.correctWorkPoint,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1317,8 +1317,8 @@ export default {
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.data = {
-        ruleId: JSON.stringify(this.curRule.ruleId),
-        hospitalId: JSON.stringify(this.params.id)
+        rule: JSON.stringify(this.curRule.ruleId),
+        area: JSON.stringify(this.params.id)
       };
       this.dialogUploadAppraisalFileVisible = true;
     },
@@ -1653,7 +1653,7 @@ export default {
     //获取服务器单项考核规则的考核文件列表数据
     appraisalFileListServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.listAttachments(
+        return await this.$api.Score.listAttachments(
           this.curRule.ruleId,
           this.params.id
         );
@@ -1695,7 +1695,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '../../../styles/vars';
+@import '../../styles/vars';
 
 .wrapper {
   height: 100%;

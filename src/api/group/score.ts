@@ -1,6 +1,6 @@
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
 import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
 import {
@@ -26,8 +26,26 @@ import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
-import {percentString} from '../score_hospital_check_rules';
 import {createBackJob} from '../../utils/back-job';
+import {v4 as uuid} from 'uuid';
+import * as path from 'path';
+import {ossClient} from '../../../util/oss';
+
+/**
+ * 获取百分数字符串, 默认返回'0'
+ *
+ * @param numerator 分子
+ * @param denominator 分母
+ */
+export function percentString(numerator: number, denominator: number): string {
+  if (denominator) {
+    const rate = numerator / denominator;
+    if (rate > 1) return '100%';
+    return ((numerator / denominator) * 100).toFixed(2) + '%';
+  } else {
+    return '0';
+  }
+}
 
 /**
  * 查询考核对象的标记数据
@@ -344,20 +362,6 @@ export default class Score {
     }
   }
 
-  /***
-   * 后台任务打分
-   * @param checkId
-   * @param isAuto
-   */
-  async autoScoreBackJob(checkId, isAuto) {
-    const checkModel = await CheckSystemModel.findOne({
-      where: {checkId: checkId}
-    });
-    return createBackJob('scoreCheck', `${checkModel.checkName}考核打分`, {
-      checkId: checkId,
-      isAuto: isAuto
-    });
-  }
   /**
    * 地区打分
    *
@@ -1317,6 +1321,88 @@ export default class Score {
       where: {ruleId, code},
       include: [UserModel],
       order: [['created_at', 'DESC']]
+    });
+  }
+
+  /**
+   * 上传定性考核附件
+   *
+   * @param rule 细则id
+   * @param area 地区code
+   * @param attachments 附件文件对象
+   */
+  async upload(rule, area, attachments) {
+    return await appDB.joinTx(async () => {
+      // 判断当前考核细则, 拥有定性指标关联关系
+      const ruleTags = await appDB.execute(
+        `select * from rule_tag where rule = ? and tag = ?`,
+        rule,
+        MarkTagUsages.Attach.code
+      );
+      if (ruleTags.length === 0)
+        throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
+
+      // 设置oss的key
+      const ossName = `/attach/appraisal/attachment/${uuid()}${path.extname(
+        attachments.originalname
+      )}`;
+      // 插入数据
+      await appDB.execute(
+        `insert into rule_area_attach(id, rule, area, name, url) values (?, ?, ?, ?, ?)`,
+        uuid(),
+        rule,
+        area,
+        attachments.originalname,
+        ossName
+      );
+      // 写入oss
+      await unifs.writeFile(ossName, attachments.buffer);
+      // 返回URL
+      return await unifs.getExternalUrl(ossName);
+    });
+  }
+
+  /**
+   * 获取指定考核细则和地区的附件列表
+   *
+   * @param rule 考核细则id
+   * @param area 地区code
+   */
+  async listAttachments(rule, area) {
+    // 判断当前考核细则, 拥有定性指标关联关系
+    const ruleTags = await appDB.execute(
+      `select * from rule_tag where rule = ? and tag = ?`,
+      rule,
+      MarkTagUsages.Attach.code
+    );
+    if (ruleTags.length === 0)
+      throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
+
+    // 查询附件表
+    return await Promise.all(
+      (
+        await appDB.execute(
+          `select * from rule_area_attach where rule = ? and area = ?`,
+          rule,
+          area
+        )
+      ).map(async it => ({...it, url: await unifs.getExternalUrl(it.url)}))
+    );
+  }
+
+  /**
+   * 删除定性指标附件
+   *
+   * @param id 定性指标附件id
+   */
+  async delAttachment(id) {
+    await appDB.joinTx(async () => {
+      const url = (
+        await appDB.execute(`select url from rule_area_attach where id = ?`, id)
+      )[0]?.url;
+      if (url) await unifs.deleteFile(url);
+
+      await appDB.execute(`delete from rule_area_attach where id = ?`, id);
     });
   }
 }

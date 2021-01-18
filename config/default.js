@@ -62,17 +62,27 @@ module.exports = {
     prefix: '' // 报告存储key的前缀
   },
   unifs: [
-    //     {
-    //       path: '/reportCheck',
-    //       type: 'local',
-    //       options: {
-    //         base: '/default',
-    //         external: {
-    //           baseUrl: 'http://127.0.0.1:3000',
-    //           prefix: '/default',
-    //           key: 'default'
-    //         }
-    //       }
+    // {
+    //   path: '/reportCheck',
+    //   type: 'local',
+    //   options: {
+    //     base: '/default',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/default',
+    //       key: 'default'
     //     }
+    //   }
+    // },
+    // {
+    //   path: '/attach',
+    //   type: 'oss',
+    //   options: {
+    //     accessKey: '',
+    //     secretKey: '',
+    //     region: 'oss-cn-shanghai',
+    //     bucket: 'knrt-doctor-app'
+    //   }
+    // }
   ]
 };
