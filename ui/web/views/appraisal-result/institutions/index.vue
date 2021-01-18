@@ -1317,7 +1317,7 @@ export default {
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.data = {
-        ruleId: JSON.stringify(this.curRule.ruleId),
+        rule: JSON.stringify(this.curRule.ruleId),
         area: JSON.stringify(this.params.id)
       };
       this.dialogUploadAppraisalFileVisible = true;
