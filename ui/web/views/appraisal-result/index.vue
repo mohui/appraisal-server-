@@ -1734,7 +1734,7 @@ export default {
 
 .header-box-card {
   width: auto;
-  z-index: 9999 !important;
+  z-index: 2001 !important;
 }
 
 .score-detail {
