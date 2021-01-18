@@ -146,7 +146,10 @@ export default {
     },
     async downloadFile(file) {
       const fileUrl = await this.$api.Report.sign(file);
-      if (fileUrl) FileSaver.saveAs(fileUrl);
+      if (fileUrl) {
+        const fileName = file.split('/')[2];
+        FileSaver.saveAs(fileUrl, fileName);
+      }
     }
   },
   destroyed() {
