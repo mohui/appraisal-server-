@@ -879,11 +879,11 @@
   </div>
 </template>
 <script>
-import twoCardPie from '../components/twocardPie';
-import doctorBar from '../components/doctorBar';
-import twoCardTreeMap from '../components/twocardTreemap';
-import twoCardCircle from '../components/twocardCircle';
-import lineChart from '../components/twocardLine';
+import twoCardPie from './components/twocardPie';
+import doctorBar from './components/doctorBar';
+import twoCardTreeMap from './components/twocardTreemap';
+import twoCardCircle from './components/twocardCircle';
+import lineChart from './components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
@@ -1086,7 +1086,7 @@ export default {
           value: it.budget,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1104,7 +1104,7 @@ export default {
           value: it.correctWorkPoint,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1695,7 +1695,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '../../../styles/vars';
+@import '../../styles/vars';
 
 .wrapper {
   height: 100%;
