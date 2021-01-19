@@ -371,11 +371,25 @@ export default class CheckAreaEdit {
       where: {
         ruleId: {[Op.in]: ruleIds},
         areaCode: {[Op.in]: areaIds}
-      },
-      logging: true
+      }
     });
     if (ruleAreas.length === 0)
       throw new KatoCommonError('该考核没有关联的地区可设置');
+    // 取出所有地区
+    const areaLists = [];
+    for (const rule of ruleAreas) {
+      const item = areaLists.find(it => it === rule.areaCode);
+      if (!item) {
+        areaLists.push(rule.areaCode);
+      }
+    }
+    // 取出当前考核下的所有地区
+    const checkArea = await appDB.execute(
+      ` select area from check_area checkArea where check_system = ?`,
+      checkId
+    );
+    if (areaLists.length != checkArea.length)
+      throw new KatoCommonError('无开启考核和关闭考核权限');
 
     await Promise.all(
       ruleAreas.map(async it => {
