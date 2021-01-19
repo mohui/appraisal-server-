@@ -813,6 +813,7 @@
             name="attachments"
             accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
             :auto-upload="false"
+            :file-list="fileList"
             :limit="1"
             :on-exceed="handleExceed"
             :on-success="handleUploadAppraisalFileSuccess"
@@ -966,6 +967,7 @@ export default {
         evaluateStandard: '',
         data: ''
       },
+      fileList: [], //考核评价细则上传的文件列表
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
       healthEducationType: '1',
@@ -1331,8 +1333,14 @@ export default {
       this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
     },
     //文件上传成功
-    handleUploadAppraisalFileSuccess() {
-      this.$message.success('文件上传成功');
+    handleUploadAppraisalFileSuccess(res) {
+      if (res._KatoErrorCode_) {
+        this.$message.error('文件上传失败');
+      } else {
+        this.$message.success('文件上传成功');
+      }
+      //手动将文件列表清空
+      this.fileList = [];
       this.dialogUploadAppraisalFileVisible = false;
     },
     //文件上传失败
