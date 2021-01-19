@@ -344,4 +344,44 @@ export default class CheckAreaEdit {
       });
     });
   }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核系统id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分,true false')
+  )
+  async setAllRuleAuto(checkId, isAuto) {
+    //该考核系统下所有的细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId, parentRuleId: {[Op.not]: null}}
+    });
+    const ruleIds = allRules.map(rule => rule.ruleId);
+
+    // 取出权限下的地区
+    const areaList = await getAreaTree(Context.current.user.code);
+    const areaIds = areaList.map(area => area.code);
+
+    // 查询权限下的考核地区
+    const ruleAreas = await RuleAreaScoreModel.findAll({
+      where: {
+        ruleId: {[Op.in]: ruleIds},
+        areaCode: {[Op.in]: areaIds}
+      },
+      logging: true
+    });
+    if (ruleAreas.length === 0)
+      throw new KatoCommonError('该考核没有关联的地区可设置');
+
+    await Promise.all(
+      ruleAreas.map(async it => {
+        it.auto = isAuto;
+        await it.save();
+      })
+    );
+  }
 }
