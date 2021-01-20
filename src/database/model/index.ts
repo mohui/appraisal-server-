@@ -9,7 +9,6 @@ export {UserHospital as UserHospitalModel} from './user_hospital';
 export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
 export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
-export {RuleHospitalScore as RuleHospitalScoreModel} from './rule-hospital-score';
 export {ReportHospital as ReportHospitalModel} from './report-hospital';
 export {CheckHospital as CheckHospitalModel} from './check-hospital';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
