@@ -345,6 +345,7 @@ export default class CheckAreaEdit {
     });
   }
 
+  // 开启,关闭考核下所有地区,如果没有打过分会自动生成
   @validate(
     should
       .string()
@@ -356,46 +357,40 @@ export default class CheckAreaEdit {
       .description('是否自动打分,true false')
   )
   async setAllRuleAuto(checkId, isAuto) {
-    //该考核系统下所有的细则
-    const allRules = await CheckRuleModel.findAll({
-      where: {checkId, parentRuleId: {[Op.not]: null}}
-    });
-    const ruleIds = allRules.map(rule => rule.ruleId);
-
     // 取出权限下的地区
     const areaList = await getAreaTree(Context.current.user.code);
-    const areaIds = areaList.map(area => area.code);
-
-    // 查询权限下的考核地区
-    const ruleAreas = await RuleAreaScoreModel.findAll({
-      where: {
-        ruleId: {[Op.in]: ruleIds},
-        areaCode: {[Op.in]: areaIds}
-      }
-    });
-    if (ruleAreas.length === 0)
-      throw new KatoCommonError('该考核没有关联的地区可设置');
-    // 取出所有地区
-    const areaLists = [];
-    for (const rule of ruleAreas) {
-      const item = areaLists.find(it => it === rule.areaCode);
-      if (!item) {
-        areaLists.push(rule.areaCode);
-      }
-    }
     // 取出当前考核下的所有地区
     const checkArea = await appDB.execute(
       ` select area from check_area checkArea where check_system = ?`,
       checkId
     );
-    if (areaLists.length != checkArea.length)
+
+    // 权限下的考核地区
+    const areaIds = [];
+    for (const it of areaList) {
+      // 查找到自己权限下的考核地区
+      const item = checkArea.find(area => area.area === it.code);
+      if (item) areaIds.push(item.area);
+    }
+    if (areaIds.length != checkArea.length)
       throw new KatoCommonError('无开启考核和关闭考核权限');
 
-    await Promise.all(
-      ruleAreas.map(async it => {
-        it.auto = isAuto;
-        await it.save();
-      })
-    );
+    //该考核系统下所有的细则
+    const allRules = await CheckRuleModel.findAll({
+      where: {checkId, parentRuleId: {[Op.not]: null}}
+    });
+    return appDB.transaction(async () => {
+      for (const rule of allRules) {
+        await Promise.all(
+          areaIds.map(async area => {
+            await RuleAreaScoreModel.upsert({
+              ruleId: rule.ruleId,
+              areaCode: area,
+              auto: isAuto
+            });
+          })
+        );
+      }
+    });
   }
 }
