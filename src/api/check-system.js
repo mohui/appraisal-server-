@@ -4,7 +4,8 @@ import {
   CheckSystemModel,
   RuleHospitalModel,
   RuleProjectModel,
-  RuleTagModel
+  RuleTagModel,
+  CheckAreaModel
 } from '../database/model';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
@@ -231,21 +232,7 @@ export default class CheckSystem {
   )
   async addRule(params) {
     return appDB.transaction(async () => {
-      const rule = await CheckRuleModel.create(params);
-      //将用户所拥有,并且没有关联其他考核的机构,关联上这个rule
-      const limitHospitals = await CheckHospitalModel.findAll({
-        where: {
-          checkId: params.checkId,
-          hospitalId: {[Op.in]: Context.current.user.hospitals.map(it => it.id)}
-        }
-      });
-      await RuleHospitalModel.bulkCreate(
-        limitHospitals.map(h => ({
-          hospitalId: h.hospitalId,
-          ruleId: rule.ruleId
-        }))
-      );
-      return rule;
+      return CheckRuleModel.create(params);
     });
   }
 
@@ -345,12 +332,27 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
-      if (await CheckHospitalModel.findOne({where: {checkId: id}}))
+
+      if (await CheckAreaModel.findOne({where: {checkId: id}}))
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
+      const ruleIds = sys.checkRules.map(rule => rule.ruleId);
+
       //删除该考核系统下的所有规则
       await Promise.all(
         sys.checkRules.map(async rule => await rule.destroy({force: true}))
       );
+      // 删除细则指标对应[考核细则]
+      await RuleTagModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除考核小项和公分项对应[考核小项]
+      await RuleProjectModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
       //删除该考核系统
       return await sys.destroy({force: true});
     });
