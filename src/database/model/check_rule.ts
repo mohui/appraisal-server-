@@ -16,7 +16,6 @@ import {CheckSystem} from './check_system';
 import {RuleTag} from './rule-tag';
 import {RuleHospital} from './rule-hospital';
 import {RuleProject} from './rule-project';
-import {RuleHospitalBudget} from './rule-hospital-budget';
 import {ScoreRemarkHistory} from './score-remark-history';
 import {RuleAreaBudget} from './group/rule-area-budget';
 import {RuleAreaScore} from './group/rule-area-score';
@@ -96,9 +95,6 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => RuleProject)
   ruleProject: RuleProject[];
-
-  @HasMany(() => RuleHospitalBudget)
-  ruleHospitalBudget: RuleHospitalBudget[];
 
   @HasMany(() => ScoreRemarkHistory)
   scoreRemarkHistory: ScoreRemarkHistory[];
