@@ -360,32 +360,27 @@ export default class CheckAreaEdit {
     // 取出权限下的地区
     const areaList = await getAreaTree(Context.current.user.code);
     // 取出当前考核下的所有地区
-    const checkArea = await appDB.execute(
+    const checkAreaModels: {area: string}[] = await appDB.execute(
       ` select area from check_area checkArea where check_system = ?`,
       checkId
     );
 
-    // 权限下的考核地区
-    const areaIds = [];
-    for (const it of areaList) {
-      // 查找到自己权限下的考核地区
-      const item = checkArea.find(area => area.area === it.code);
-      if (item) areaIds.push(item.area);
+    for (const checkArea of checkAreaModels) {
+      const item = areaList.find(it => checkArea.area === it.code);
+      if (!item) throw new KatoCommonError('无开启考核和关闭考核权限');
     }
-    if (areaIds.length != checkArea.length)
-      throw new KatoCommonError('无开启考核和关闭考核权限');
 
     //该考核系统下所有的细则
-    const allRules = await CheckRuleModel.findAll({
+    const allRules: CheckRuleModel[] = await CheckRuleModel.findAll({
       where: {checkId, parentRuleId: {[Op.not]: null}}
     });
     return appDB.transaction(async () => {
       for (const rule of allRules) {
         await Promise.all(
-          areaIds.map(async area => {
+          areaList.map(async area => {
             await RuleAreaScoreModel.upsert({
               ruleId: rule.ruleId,
-              areaCode: area,
+              areaCode: area.code,
               auto: isAuto
             });
           })
