@@ -1,8 +1,6 @@
 import {
-  CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
-  RuleHospitalModel,
   RuleProjectModel,
   RuleTagModel,
   CheckAreaModel
