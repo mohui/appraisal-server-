@@ -8,7 +8,7 @@
           $asyncComputed.reportListSeverData.updating ||
             $asyncComputed.totalServerData.updating
         "
-        class="box-card"
+        class="header-box-card"
         shadow="never"
       >
         <span class="header-title">
@@ -1740,8 +1740,9 @@ export default {
   margin-right: 10px;
 }
 
-.box-card {
+.header-box-card {
   width: auto;
+  z-index: 2001 !important;
 }
 
 .score-detail {
