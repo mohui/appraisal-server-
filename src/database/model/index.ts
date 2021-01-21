@@ -10,7 +10,6 @@ export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
 export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
 export {ReportHospital as ReportHospitalModel} from './report-hospital';
-export {CheckHospital as CheckHospitalModel} from './check-hospital';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
 export {RuleProject as RuleProjectModel} from './rule-project';
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';

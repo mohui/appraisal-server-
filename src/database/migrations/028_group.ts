@@ -2,8 +2,8 @@ import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
 import {
   AreaModel,
-  CheckAreaModel,
-  CheckHospitalModel,
+  // CheckAreaModel,
+  // CheckHospitalModel,
   ManualScoreHistoryModel,
   ReportAreaHistoryModel,
   ReportHospitalHistoryModel,
@@ -352,17 +352,17 @@ export class GroupMigration implements IMigration {
 
     // 3.2 迁移考核相关数据
 
-    // 3.2.1 考核体系数据
-    const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
-    await Promise.all(
-      checkHospitalModels.map(model =>
-        CheckAreaModel.upsert({
-          checkId: model.checkId,
-          areaCode: model.hospitalId
-        })
-      )
-    );
-    debug('3.2.1 考核体系数据');
+    // // 3.2.1 考核体系数据
+    // const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
+    // await Promise.all(
+    //   checkHospitalModels.map(model =>
+    //     CheckAreaModel.upsert({
+    //       checkId: model.checkId,
+    //       areaCode: model.hospitalId
+    //     })
+    //   )
+    // );
+    // debug('3.2.1 考核体系数据');
 
     // 3.2.2 考核细则数据
     const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
