@@ -5,8 +5,8 @@ import {
   // CheckAreaModel,
   // CheckHospitalModel,
   ManualScoreHistoryModel,
-  ReportAreaHistoryModel,
-  ReportHospitalHistoryModel,
+  // ReportAreaHistoryModel,
+  // ReportHospitalHistoryModel,
   RuleAreaAttachModel,
   RuleAreaScoreModel,
   RuleHospitalAttachModel,
@@ -397,21 +397,21 @@ export class GroupMigration implements IMigration {
     );
     debug('3.2.3 手动打分备注');
 
-    // 3.2.4 考核历史
-    const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
-    await ReportAreaHistoryModel.bulkCreate(
-      reportHospitalModels.map(
-        model => ({
-          date: model.date,
-          checkId: model.checkId,
-          areaCode: model.hospitalId,
-          rate: model.rate,
-          score: model.score
-        }),
-        {updateOnDuplicate: ['data', 'check', 'area']}
-      )
-    );
-    console.log('3.2.4 考核历史');
+    // // 3.2.4 考核历史
+    // const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
+    // await ReportAreaHistoryModel.bulkCreate(
+    //   reportHospitalModels.map(
+    //     model => ({
+    //       date: model.date,
+    //       checkId: model.checkId,
+    //       areaCode: model.hospitalId,
+    //       rate: model.rate,
+    //       score: model.score
+    //     }),
+    //     {updateOnDuplicate: ['data', 'check', 'area']}
+    //   )
+    // );
+    // console.log('3.2.4 考核历史');
 
     // 用户表添加area字段
     await client.execute(

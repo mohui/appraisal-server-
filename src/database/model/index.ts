@@ -13,7 +13,6 @@ export {ReportHospital as ReportHospitalModel} from './report-hospital';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
 export {RuleProject as RuleProjectModel} from './rule-project';
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
-export {ReportHospitalHistory as ReportHospitalHistoryModel} from './report-hospital-history';
 export {ScoreRemarkHistory as ScoreRemarkHistoryModel} from './score-remark-history';
 
 export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
