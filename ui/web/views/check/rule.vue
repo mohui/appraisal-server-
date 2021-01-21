@@ -280,15 +280,6 @@
       </div>
     </el-card>
     <el-dialog title="指标库" :visible.sync="dialogStandardVisible">
-      <el-link
-        target="_blank"
-        download
-        href="/2020系统考核规则详解共识.pdf"
-        :underline="false"
-        style="position: absolute;top: 20px;left: 100px;"
-      >
-        <el-button plain size="small" type="primary">指标解读下载</el-button>
-      </el-link>
       <el-tabs type="card" @tab-click="handleClick" v-model="curTag">
         <el-tab-pane
           v-for="i of markTags"
