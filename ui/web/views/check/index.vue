@@ -715,7 +715,7 @@ export default {
     //开启规则
     async openCheck(item) {
       try {
-        await this.$api.Hospital.setAllRuleAuto(item.checkId, true);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, true);
         this.$message({
           type: 'success',
           message: '全部开启成功！'
@@ -728,7 +728,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.Hospital.setAllRuleAuto(item.checkId, false);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'

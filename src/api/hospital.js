@@ -1,14 +1,6 @@
-import {
-  CheckRuleModel,
-  HospitalModel,
-  RegionModel,
-  RuleHospitalModel,
-  sql as sqlRender
-} from '../database';
+import {HospitalModel, RegionModel, sql as sqlRender} from '../database';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
-import {Op} from 'sequelize';
-import {Context} from './context';
 import * as dayjs from 'dayjs';
 import {Projects} from '../../common/project';
 
@@ -34,46 +26,6 @@ export default class Hospital {
         }
       }
     });
-  }
-
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核系统id'),
-    should
-      .boolean()
-      .required()
-      .description('是否自动打分,true false')
-  )
-  async setAllRuleAuto(checkId, isAuto) {
-    //该考核系统下所有的细则
-    const allRules = await CheckRuleModel.findAll({
-      where: {checkId, parentRuleId: {[Op.not]: null}}
-    });
-    //当前用户所拥有的机构权限
-    const hospitals = Context.current.user.hospitals.map(h => h.id);
-
-    //用户拥有的机构和对应的规则关系
-    const ruleHospital = (
-      await Promise.all(
-        allRules.map(
-          async rule =>
-            await RuleHospitalModel.findAll({
-              where: {ruleId: rule.ruleId, hospitalId: {[Op.in]: hospitals}}
-            })
-        )
-      )
-    ).reduce((per, next) => per.concat(next), []);
-    if (ruleHospital.length === 0)
-      throw new KatoCommonError('该考核没有关联的机构可设置');
-    //批量修改自动打分选项
-    await Promise.all(
-      ruleHospital.map(async item => {
-        item.auto = isAuto;
-        await item.save();
-      })
-    );
   }
 
   async workpoints(code) {
