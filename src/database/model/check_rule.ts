@@ -14,7 +14,6 @@ import {
 import {UUIDV4} from 'sequelize';
 import {CheckSystem} from './check_system';
 import {RuleTag} from './rule-tag';
-import {RuleHospital} from './rule-hospital';
 import {RuleProject} from './rule-project';
 import {ScoreRemarkHistory} from './score-remark-history';
 import {RuleAreaBudget} from './group/rule-area-budget';
@@ -89,9 +88,6 @@ export class CheckRule extends Model<CheckRule> {
 
   @HasMany(() => RuleTag)
   ruleTags: RuleTag[];
-
-  @HasMany(() => RuleHospital)
-  ruleHospitals: RuleHospital[];
 
   @HasMany(() => RuleProject)
   ruleProject: RuleProject[];

@@ -7,10 +7,10 @@ import {
   ManualScoreHistoryModel,
   // ReportAreaHistoryModel,
   // ReportHospitalHistoryModel,
-  RuleAreaAttachModel,
-  RuleAreaScoreModel,
-  RuleHospitalAttachModel,
-  RuleHospitalModel,
+  // RuleAreaAttachModel,
+  // RuleAreaScoreModel,
+  // RuleHospitalAttachModel,
+  // RuleHospitalModel,
   ScoreRemarkHistoryModel,
   UserHospitalModel,
   UserModel
@@ -364,26 +364,26 @@ export class GroupMigration implements IMigration {
     // );
     // debug('3.2.1 考核体系数据');
 
-    // 3.2.2 考核细则数据
-    const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
-    await Promise.all(
-      ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
-    );
-    debug('3.2.2.1 考核细则附件数据');
-    const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll(
-      {where: {auto: false}}
-    );
-    debug('3.2.2.2 考核细则auto: ', ruleHospitalModels.length);
-    await Promise.all(
-      ruleHospitalModels.map(model =>
-        RuleAreaScoreModel.upsert({
-          ruleId: model.ruleId,
-          areaCode: model.hospitalId,
-          auto: model.auto
-        })
-      )
-    );
-    debug('3.2.2 考核细则数据');
+    // // 3.2.2 考核细则数据
+    // const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
+    // await Promise.all(
+    //   ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
+    // );
+    // debug('3.2.2.1 考核细则附件数据');
+    // const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll(
+    //   {where: {auto: false}}
+    // );
+    // debug('3.2.2.2 考核细则auto: ', ruleHospitalModels.length);
+    // await Promise.all(
+    //   ruleHospitalModels.map(model =>
+    //     RuleAreaScoreModel.upsert({
+    //       ruleId: model.ruleId,
+    //       areaCode: model.hospitalId,
+    //       auto: model.auto
+    //     })
+    //   )
+    // );
+    // debug('3.2.2 考核细则数据');
 
     // 3.2.3 手动打分备注
     const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();

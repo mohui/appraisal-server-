@@ -7,7 +7,6 @@ export {CheckSystem as CheckSystemModel} from './check_system';
 export {CheckRule as CheckRuleModel} from './check_rule';
 export {UserHospital as UserHospitalModel} from './user_hospital';
 export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
-export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
 export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
 export {RuleProject as RuleProjectModel} from './rule-project';
