@@ -1005,7 +1005,13 @@ export async function getReportBuffer(code, year) {
   );
 
   // 查询当前权限节点下的所有[考核]和[考核地区]的列表
-  const systemAreaList = await appDB.execute(sql, ...params);
+  const systemAreas = await appDB.execute(sql, ...params);
+
+  const systemAreaList = codeList
+    .map(code => {
+      return systemAreas.find(it => code === it.area);
+    })
+    .filter(it => it);
 
   // 把考核地区放在其所属的考核项目下
   const systemList = [];
