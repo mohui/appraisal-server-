@@ -1042,6 +1042,7 @@ export async function getReportBuffer(code, year) {
               checkRule.parent_rule_id
               ,checkRule.rule_id
               ,checkRule.rule_name
+              ,checkRule.rule_score
             from check_rule checkRule
             where checkRule.check_id = {{? checkId}}
           `,
@@ -1062,6 +1063,7 @@ export async function getReportBuffer(code, year) {
         checkObj.parentRule.push({
           parentId: ruleItem.rule_id,
           parentName: ruleItem.rule_name,
+          parentScore: 0,
           children: []
         });
       }
@@ -1076,8 +1078,10 @@ export async function getReportBuffer(code, year) {
       if (item) {
         item.children.push({
           ruleId: ruleItem.rule_id,
-          ruleName: ruleItem.rule_name
+          ruleName: ruleItem.rule_name,
+          ruleScore: ruleItem.rule_score
         });
+        item.parentScore += ruleItem.rule_score;
       }
     }
 
@@ -1155,11 +1159,19 @@ export async function getReportBuffer(code, year) {
       // 把最后一个空字符串改为小项金额;
       childrenRule[childrenRule.length - 1] = `${parentIt.parentName}金额`;
 
-      firstRow.push(parentIt.parentName, ...childrenRule);
+      firstRow.push(
+        `${parentIt.parentName}(${parentIt.parentScore}分)`,
+        ...childrenRule
+      );
       cells.push(parentIt.children.length);
 
       // 设置第二行的内容[细则标题]
-      secondRow.push(...parentIt.children.map(rule => rule.ruleName), '');
+      secondRow.push(
+        ...parentIt.children.map(
+          rule => `${rule.ruleName}(${rule.ruleScore}分)`
+        ),
+        ''
+      );
     }
 
     // 构造data部分 按地区分组 {area: string, scores: []}
@@ -1209,7 +1221,7 @@ export async function getReportBuffer(code, year) {
         const budgetObj = area.scores.find(
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
-        scores.push(budgetObj?.score ?? 0);
+        scores.push(`${budgetObj?.score ?? 0}元`);
         result.push(...scores);
       }
 
