@@ -18,7 +18,7 @@
           </span>
         </span>
         <!--年度选择-->
-        <span style="margin: 0 10px">
+        <span style="margin:0 10px">
           <el-select
             size="small"
             v-model="params.year"
@@ -34,7 +34,7 @@
             </el-option>
           </el-select>
         </span>
-        <span style="margin:  0 10px">
+        <span style="margin:0 10px">
           <el-button-group>
             <el-button
               size="small"
@@ -51,6 +51,19 @@
               工分值
             </el-button>
           </el-button-group>
+        </span>
+        <span style="margin:0 10px">
+          <el-button
+            plain
+            size="small"
+            type="primary"
+            @click="
+              handleFileDownload(
+                'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2021-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
+              )
+            "
+            >考核共识下载</el-button
+          >
         </span>
         <el-button
           v-if="showBackButton()"
@@ -1446,8 +1459,8 @@ export default {
         this.$message.error(e.message);
       }
     },
-    //报告下载
-    handleDownloadReport(url) {
+    //文件下载（考核共识）
+    handleFileDownload(url) {
       FileSaver.saveAs(url);
     },
     //查看手动打分的历史
