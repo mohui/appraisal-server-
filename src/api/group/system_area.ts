@@ -1116,6 +1116,8 @@ export async function getReportBuffer(code, year) {
               ,checkRule.rule_id
               ,checkRule.rule_name
               ,ruleBudget.budget score
+              ,ruleBudget."workPoint" point
+              ,ruleBudget.rate
               ,ruleBudget.area
               ,area.name area_name
             from check_rule checkRule
@@ -1153,11 +1155,16 @@ export async function getReportBuffer(code, year) {
     // 计算每个rule组需要合并多少个单元格
     const cells = [];
     for (const parentIt of checkDetail.parentRule) {
-      // 此小项下有多少个细则,就补充[n-1]个空字符串
-      const childrenRule = parentIt.children.map(rule => '');
+      // 此小项下有多少个细则,就补充[n+2]个空字符串,因为后面多三个[金额,公分,质量系数]
+      // eslint-disable-next-line prefer-spread
+      const childrenRule = Array(parentIt.children.length + 2).fill('');
 
       // 把最后一个空字符串改为小项金额;
-      childrenRule[childrenRule.length - 1] = `${parentIt.parentName}金额`;
+      childrenRule[childrenRule.length - 3] = `${parentIt.parentName}金额`;
+      childrenRule[childrenRule.length - 2] = `${parentIt.parentName}总工分`;
+      childrenRule[
+        childrenRule.length - 1
+      ] = `${parentIt.parentName}质量系数/校正系数`;
 
       firstRow.push(
         `${parentIt.parentName}(${parentIt.parentScore}分)`,
@@ -1170,6 +1177,8 @@ export async function getReportBuffer(code, year) {
         ...parentIt.children.map(
           rule => `${rule.ruleName}(${rule.ruleScore}分)`
         ),
+        '',
+        '',
         ''
       );
     }
@@ -1182,7 +1191,9 @@ export async function getReportBuffer(code, year) {
           // eslint-disable-next-line @typescript-eslint/camelcase
           rule_id: current.rule_id,
           area: current.area,
-          score: current.score
+          score: current.score,
+          point: current?.point ?? 0,
+          rate: current?.rate ?? 0
         });
       } else {
         areaObj = {
@@ -1193,7 +1204,9 @@ export async function getReportBuffer(code, year) {
               // eslint-disable-next-line @typescript-eslint/camelcase
               rule_id: current.rule_id,
               area: current.area,
-              score: current.score
+              score: current.score,
+              point: current?.point ?? 0,
+              rate: current?.rate ?? 0
             }
           ]
         };
@@ -1222,6 +1235,14 @@ export async function getReportBuffer(code, year) {
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
         scores.push(`${budgetObj?.score ?? 0}元`);
+        scores.push(`${budgetObj?.point ?? 0}`);
+        // 质量系数
+        const rate = budgetObj?.rate ?? 0;
+        scores.push(
+          `${(rate * 100).toFixed(2)}%/${
+            rate >= 0.85 ? '100.00' : (rate * 100).toFixed(2)
+          }%`
+        );
         result.push(...scores);
       }
 
