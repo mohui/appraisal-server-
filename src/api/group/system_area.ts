@@ -1186,7 +1186,7 @@ export async function getReportBuffer(code, year) {
         `${parentIt.parentName}总工分`,
         `${parentIt.parentName}质量系数/校正系数`,
         `${parentIt.parentName}校正后工分`,
-        `${parentIt.parentName}金额`
+        `${parentIt.parentName}金额(元)`
       ];
       // 设置第二行的内容[细则标题]
       secondRow.push(
@@ -1264,7 +1264,7 @@ export async function getReportBuffer(code, year) {
           `${parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2)}`
         );
         // 分配金额
-        scores.push(`${budgetObj?.score ?? 0}元`);
+        scores.push(`${budgetObj?.score ?? 0}`);
         result.push(...scores);
       }
 
