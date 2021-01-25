@@ -1049,6 +1049,7 @@ export async function getReportBuffer(code, year) {
               ,checkRule.rule_id
               ,checkRule.rule_name
               ,checkRule.rule_score
+              ,checkRule.budget
             from check_rule checkRule
             where checkRule.check_id = {{? checkId}}
           `,
@@ -1070,6 +1071,7 @@ export async function getReportBuffer(code, year) {
           parentId: ruleItem.rule_id,
           parentName: ruleItem.rule_name,
           parentScore: 0,
+          parentBudget: parseFloat(ruleItem.budget).toFixed(2),
           children: []
         });
       }
@@ -1123,6 +1125,7 @@ export async function getReportBuffer(code, year) {
               ,checkRule.rule_name
               ,ruleBudget.budget score
               ,ruleBudget."workPoint" point
+              ,ruleBudget."correctWorkPoint"
               ,ruleBudget.rate
               ,ruleBudget.area
               ,area.name area_name
@@ -1163,29 +1166,34 @@ export async function getReportBuffer(code, year) {
     for (const parentIt of checkDetail.parentRule) {
       // 此小项下有多少个细则,就补充[n+2]个空字符串,因为后面多三个[金额,公分,质量系数]
       // eslint-disable-next-line prefer-spread
-      const childrenRule = Array(parentIt.children.length + 2).fill('');
+      const childrenRule = Array(parentIt.children.length - 1).fill('');
 
-      // 把最后一个空字符串改为小项金额;
-      childrenRule[childrenRule.length - 3] = `${parentIt.parentName}金额`;
-      childrenRule[childrenRule.length - 2] = `${parentIt.parentName}总工分`;
-      childrenRule[
-        childrenRule.length - 1
-      ] = `${parentIt.parentName}质量系数/校正系数`;
+      const parentRuleChildren = [
+        `${parentIt.parentName}总金额(${parentIt.parentBudget}元)`,
+        ``,
+        ``,
+        ``
+      ];
 
       firstRow.push(
         `${parentIt.parentName}(${parentIt.parentScore}分)`,
-        ...childrenRule
+        ...childrenRule,
+        ...parentRuleChildren
       );
-      cells.push(parentIt.children.length);
+      cells.push(parentIt.children.length, 4);
 
+      const parentRuleSecond = [
+        `${parentIt.parentName}总工分`,
+        `${parentIt.parentName}质量系数/校正系数`,
+        `${parentIt.parentName}校正后工分`,
+        `${parentIt.parentName}金额`
+      ];
       // 设置第二行的内容[细则标题]
       secondRow.push(
         ...parentIt.children.map(
           rule => `${rule.ruleName}(${rule.ruleScore}分)`
         ),
-        '',
-        '',
-        ''
+        ...parentRuleSecond
       );
     }
 
@@ -1199,7 +1207,8 @@ export async function getReportBuffer(code, year) {
           area: current.area,
           score: current.score,
           point: current?.point ?? 0,
-          rate: current?.rate ?? 0
+          rate: current?.rate ?? 0,
+          correctWorkPoint: current?.correctWorkPoint ?? 0
         });
       } else {
         areaObj = {
@@ -1212,7 +1221,8 @@ export async function getReportBuffer(code, year) {
               area: current.area,
               score: current.score,
               point: current?.point ?? 0,
-              rate: current?.rate ?? 0
+              rate: current?.rate ?? 0,
+              correctWorkPoint: current?.correctWorkPoint ?? 0
             }
           ]
         };
@@ -1240,7 +1250,7 @@ export async function getReportBuffer(code, year) {
         const budgetObj = area.scores.find(
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
-        scores.push(`${budgetObj?.score ?? 0}元`);
+        // 总工分
         scores.push(`${budgetObj?.point ?? 0}`);
         // 质量系数
         const rate = budgetObj?.rate ?? 0;
@@ -1249,6 +1259,12 @@ export async function getReportBuffer(code, year) {
             rate >= 0.85 ? '100.00' : (rate * 100).toFixed(2)
           }%`
         );
+        // 校正公分
+        scores.push(
+          `${parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2)}`
+        );
+        // 分配金额
+        scores.push(`${budgetObj?.score ?? 0}元`);
         result.push(...scores);
       }
 
@@ -1262,9 +1278,6 @@ export async function getReportBuffer(code, year) {
     firstRow.forEach((row, index) => {
       if (firstRow[index] && !(firstRow[index] && !secondRow[index])) {
         workSheet.mergeCells(1, index + 1, 1, index + cells[cellCount++]);
-      }
-      if (firstRow[index] && !secondRow[index]) {
-        workSheet.mergeCells(1, index + 1, 2, index + 1);
       }
     });
     workSheet.mergeCells('A1', 'A2');
