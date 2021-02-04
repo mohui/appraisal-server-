@@ -1408,6 +1408,60 @@ export default class Person {
     }));
   }
 
+  /**
+   *获取孕产妇健康检查表数据
+   * @param id 个人id
+   * newlyDiagnosed 第一次产前检查信息表
+   * prenatalCare 第2~5次产前随访服务信息表
+   * maternalVisits 产后访视记录表
+   * examine42thDay 产后42天健康检查记录表
+   */
+  async maternalHealthCheck(id) {
+    // 母子健康手册表
+    // 通过身份证号（idcardno）查询
+    // language=PostgreSQL
+    const pregnancyBooks = await originalDB.execute(
+      `select * from v_pregnancybooks_kn where idcardno=?`,
+      id
+    );
+    const result = [];
+    for (const pregnancyBook of pregnancyBooks) {
+      const maternalDate = {};
+
+      // 通过母子健康手册表中的主键（newlydiagnosedcode）查询以下表
+
+      // 第一次产前检查信息表
+      // language=PostgreSQL
+      const newlyDiagnosed = await originalDB.execute(
+        `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      maternalDate.newlyDiagnosed = newlyDiagnosed;
+
+      // 第2~5次产前随访服务信息表
+      // language=PostgreSQL
+      const prenatalCare = await originalDB.execute(
+        `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      maternalDate.prenatalCare = prenatalCare;
+      // 产后访视记录表
+      // maternalVisits
+      //TODO:待实现
+
+      // 产后42天健康检查记录表
+      // language=PostgreSQL
+      const examine42thDay = await originalDB.execute(
+        `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      maternalDate.examine42thDay = examine42thDay;
+
+      result.push(maternalDate);
+    }
+    return result;
+  }
+
   /***
    * 个人档案详情
    * @param id
