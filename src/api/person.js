@@ -1450,7 +1450,7 @@ export default class Person {
 
       maternalDate.newlyDiagnosed = {};
       maternalDate.newlyDiagnosed.name = '第一次产前检查信息表';
-      maternalDate.newlyDiagnosed.item = newlyDiagnosed;
+      maternalDate.newlyDiagnosed.records = newlyDiagnosed;
 
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
@@ -1460,7 +1460,7 @@ export default class Person {
       );
       maternalDate.prenatalCare = {};
       maternalDate.prenatalCare.name = '第2~5次产前随访服务信息表';
-      maternalDate.prenatalCare.item = prenatalCare;
+      maternalDate.prenatalCare.records = prenatalCare;
 
       // 产后访视记录表
       // maternalVisits
@@ -1474,7 +1474,7 @@ export default class Person {
       );
       maternalDate.examine42thDay = {};
       maternalDate.examine42thDay.name = '产后42天健康检查记录表';
-      maternalDate.examine42thDay.item = examine42thDay;
+      maternalDate.examine42thDay.records = examine42thDay;
 
       result.push(maternalDate);
     }
