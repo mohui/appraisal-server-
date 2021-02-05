@@ -344,4 +344,48 @@ export default class CheckAreaEdit {
       });
     });
   }
+
+  // 开启,关闭考核下所有地区,如果没有打过分会自动生成
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核系统id'),
+    should
+      .boolean()
+      .required()
+      .description('是否自动打分,true false')
+  )
+  async setAllRuleAuto(checkId, isAuto) {
+    // 取出权限下的地区
+    const areaList = await getAreaTree(Context.current.user.code);
+    // 取出当前考核下的所有地区
+    const checkAreaModels: {area: string}[] = await appDB.execute(
+      ` select area from check_area checkArea where check_system = ?`,
+      checkId
+    );
+
+    for (const checkArea of checkAreaModels) {
+      const item = areaList.find(it => checkArea.area === it.code);
+      if (!item) throw new KatoCommonError('无开启考核和关闭考核权限');
+    }
+
+    //该考核系统下所有的细则
+    const allRules: CheckRuleModel[] = await CheckRuleModel.findAll({
+      where: {checkId, parentRuleId: {[Op.not]: null}}
+    });
+    return appDB.transaction(async () => {
+      for (const rule of allRules) {
+        await Promise.all(
+          areaList.map(async area => {
+            await RuleAreaScoreModel.upsert({
+              ruleId: rule.ruleId,
+              areaCode: area.code,
+              auto: isAuto
+            });
+          })
+        );
+      }
+    });
+  }
 }

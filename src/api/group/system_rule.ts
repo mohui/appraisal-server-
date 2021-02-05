@@ -22,8 +22,7 @@ export default class SystemRule {
   async checks(code, year) {
     // 校验地区是否存在
     const areas = await AreaModel.findOne({where: {code}});
-
-    if (areas.length === 0) throw new KatoCommonError(`地区 ${code} 不合法`);
+    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     if (!year) year = dayjs().format('YYYY');
 
@@ -42,7 +41,7 @@ export default class SystemRule {
       ]
     });
 
-    if (!areaSystem) throw new KatoCommonError(`该机构未绑定考核`);
+    if (!areaSystem) throw new KatoCommonError(`该地区未绑定考核`);
 
     // 取出考核主信息
     const checkSystem = areaSystem.checkSystem;
@@ -53,6 +52,7 @@ export default class SystemRule {
       (
         await CheckRuleModel.findAll({
           where: {checkId: checkSystem.checkId, parentRuleId: null},
+          order: [['created_at', 'ASC']],
           include: [RuleAreaBudgetModel]
         })
       ).map(async rule => {
@@ -61,6 +61,7 @@ export default class SystemRule {
           await CheckRuleModel.findAll({
             attributes: {exclude: ['budget']},
             where: {parentRuleId: rule.ruleId},
+            order: [['created_at', 'ASC']],
             include: [
               {
                 model: RuleAreaScoreModel,
@@ -72,6 +73,15 @@ export default class SystemRule {
           })
         ).map(it => {
           it = it.toJSON();
+          // 指标解释数组, 默认为null, 即考核细则未配置关联关系
+          it.details = null;
+          // rul_area_score表有数据, 构造数组
+          if (it?.ruleAreaScores?.length > 0) {
+            it.details = it.ruleAreaScores.reduce(
+              (prev, current) => [...prev, ...current.details],
+              []
+            );
+          }
           it.score = it.ruleAreaScores.reduce(
             (result, current) => (result += current.score),
             0
@@ -100,7 +110,7 @@ export default class SystemRule {
           ruleScore: rule.ruleScore,
           budget:
             rule.ruleAreaBudgets
-              .filter(it => it.hospitalId === code)
+              .filter(it => it.areaCode === code)
               .reduce(
                 (res, next) => new Decimal(res).add(next.budget),
                 new Decimal(0)

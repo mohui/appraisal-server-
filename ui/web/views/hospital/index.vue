@@ -140,7 +140,7 @@ export default {
     handleCellClick(row, column) {
       if (column.property === 'name') {
         return this.$router.push({
-          name: 'appraisal-result-institutions',
+          name: 'appraisal-result',
           query: {
             id: row.code,
             listFlag: 'quality',

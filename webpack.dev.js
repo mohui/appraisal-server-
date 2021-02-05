@@ -6,7 +6,12 @@ const StartServerPlugin = require('start-server-webpack-plugin');
 module.exports = merge(base, {
   mode: 'development',
   entry: {
-    main: ['source-map-support/register', 'webpack/hot/poll?1000', './index.js']
+    main: [
+      'source-map-support/register',
+      'webpack/hot/poll?1000',
+      './index.js'
+    ],
+    worker: ['./src/utils/back-job/worker']
   },
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),

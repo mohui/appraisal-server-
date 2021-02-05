@@ -3,6 +3,14 @@
     <el-row :gutter="20" style="height: 100%;">
       <el-col :span="6" :xs="24">
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
+        <el-alert
+          title="注意: 档案内容为最近一次同步数据, 与年度无关!"
+          type="error"
+          center
+          :closable="false"
+          show-icon
+        >
+        </el-alert>
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card

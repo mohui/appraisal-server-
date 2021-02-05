@@ -1,18 +1,11 @@
 import {
-  CheckHospitalModel,
   CheckRuleModel,
   CheckSystemModel,
-  ReportHospitalHistoryModel,
-  ReportHospitalModel,
-  RuleHospitalAttachModel,
-  RuleHospitalBudgetModel,
-  RuleHospitalModel,
-  RuleHospitalScoreModel,
   RuleProjectModel,
   RuleTagModel,
-  UserModel
+  CheckAreaModel
 } from '../database/model';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
 import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
@@ -20,27 +13,122 @@ import {Projects} from '../../common/project';
 import {Context} from './context';
 import dayjs from 'dayjs';
 
-import {Permission} from '../../common/permission';
-import {jobStatus} from './score_hospital_check_rules';
-
 export default class CheckSystem {
+  /**
+   * 获取考核体系详细数据
+   *
+   * 包括自身和规则
+   *
+   * @returns {Promise<void>}
+   */
+  async detail(id) {
+    // 1. 查询考核体系
+    const checkSystem = (
+      await appDB.execute(`select * from check_system where check_id = ?`, id)
+    )[0];
+
+    if (!checkSystem) throw new KatoRuntimeError(`id为 ${id} 的考核体系不存在`);
+
+    // 2. 查询考核小项
+    const parentRules = await appDB.execute(
+      `select * from check_rule where check_id = ? and parent_rule_id is null`,
+      checkSystem.check_id
+    );
+    // 3. 查询考核细则
+    const childRules = await appDB.execute(
+      `select * from check_rule where check_id = ? and parent_rule_id is not null`,
+      checkSystem.check_id
+    );
+    // 4. 添加考核细则到考核小项中
+    for (let i = 0; i < parentRules.length; i++) {
+      // 4.1 查询小项绑定的工分项
+      const ruleProjects = await appDB.execute(
+        `select * from rule_project where rule = ?`,
+        parentRules[i].rule_id
+      );
+      parentRules[i].ruleProjects = ruleProjects;
+
+      for (let j = 0; j < childRules.length; j++) {
+        // 4.2 查询考核细则绑定的关联关系
+        // language=PostgreSQL
+        const ruleTags = await appDB.execute(
+          `select * from rule_tag where rule = ?`,
+          childRules[j].rule_id
+        );
+        childRules[j].ruleTags = ruleTags;
+        if (parentRules[i].rule_id === childRules[j].parent_rule_id) {
+          (parentRules[i].childRules = parentRules[i].childRules || []).push(
+            childRules[j]
+          );
+        }
+      }
+    }
+    const rows = parentRules
+      .map(pRule => ({
+        ruleId: pRule.rule_id,
+        ruleName: pRule.rule_name,
+        checkId: pRule.check_id,
+        budget: pRule.budget,
+        created_at: pRule.created_at,
+        updated_at: pRule.updated_at,
+        projects: pRule.ruleProjects.map(it =>
+          Projects.find(p => p.id === it.projectId)
+        ),
+        group:
+          pRule.childRules
+            ?.map(cRule => ({
+              budget: cRule.budget,
+              checkId: cRule.check_id,
+              checkMethod: cRule.check_method,
+              checkStandard: cRule.evaluate_standard,
+              create_by: cRule.create_by,
+              created_at: cRule.created_at,
+              evaluateStandard: cRule.evaluate_standard,
+              parentRuleId: cRule.parent_rule_id,
+              ruleId: cRule.rule_id,
+              ruleName: cRule.rule_name,
+              ruleScore: cRule.rule_score,
+              ruleTags: cRule.ruleTags.map(it => ({
+                id: it.id,
+                algorithm: it.algorithm,
+                baseline: it.baseline,
+                score: it.score,
+                attachStartDate: it.attach_start_data ?? null,
+                attachEndDate: it.attach_end_data ?? null,
+                tag: it.tag,
+                name: MarkTagUsages[it.tag].name
+              })),
+              status: cRule.status,
+              update_by: cRule.update_by,
+              updated_at: cRule.updated_at
+            }))
+            .sort((a, b) =>
+              dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1
+            ) ?? []
+      }))
+      .sort((a, b) => (dayjs(a.created_at).isAfter(b.created_at) ? 1 : -1));
+    return {
+      ...checkSystem,
+      rows
+    };
+  }
+
   //添加考核系统
   @validate(
     should.object({
       checkName: should
         .string()
         .required()
-        .description('考核系统名')
+        .description('考核系统名'),
+      checkYear: should.number().required()
     })
   )
   async add(params) {
-    const {checkName} = params;
     return CheckSystemModel.create({
-      checkName,
+      ...params,
       checkType: 1,
       create_by: Context.current.user.id,
-      update_by: Context.current.user.id,
-      checkYear: dayjs().year()
+      update_by: Context.current.user.id
     });
   }
 
@@ -58,7 +146,8 @@ export default class CheckSystem {
       status: should
         .boolean()
         .required()
-        .description('状态值:true||false')
+        .description('状态值:true||false'),
+      checkYear: should.number().required()
     })
   )
   updateName(params) {
@@ -68,51 +157,34 @@ export default class CheckSystem {
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
-      //当考核体系保存成主考核时，检查机构是否冲突
-      if (params.checkType === 1) {
-        //查询原有的考核与机构的关系
-        const checkHospitals = await CheckHospitalModel.findAll({
-          where: {
-            checkId: params.checkId
-          }
-        });
-        //当登陆账户无"原有考核机构其中之一"的权限时不允许修改
-        if (
-          checkHospitals.filter(
-            a =>
-              Context.current.user.hospitals.filter(b => b.id === a.hospitalId)
-                .length === 0
-          ).length > 0
-        )
-          throw new KatoCommonError('因授权不匹配，不允许修改');
-        //当原有机构已有主考核体系时不允许修改
-        if (
-          (
-            await CheckHospitalModel.findAll({
-              where: {
-                hospitalId: {[Op.in]: checkHospitals.map(i => i.hospitalId)}
-              },
-              include: [
-                {
-                  model: CheckSystemModel,
-                  where: {
-                    checkType: 1,
-                    checkId: {[Op.not]: params.checkId}
-                  }
-                }
-              ]
-            })
-          ).length > 0
-        )
-          throw new KatoCommonError(
-            '当前变更体系中某些机构已存在主考核需要解绑操作，不允许修改'
-          );
-      }
+      // 现有考核体系
+      // language=PostgreSQL
+      const checkAreaModels = await appDB.execute(
+        `
+          select a.name
+          from check_area ca
+                 inner join check_system cs on ca.check_system = cs.check_id
+                 inner join area a on ca.area = a.code
+          where check_year = ?
+            and ca.area in (
+            select c.area
+            from check_area c
+            where c.check_system = ?
+          )
+        `,
+        params.checkYear,
+        params.checkId
+      );
+      if (checkAreaModels.length > 0)
+        throw new KatoCommonError(
+          `${checkAreaModels.map(it => it.name).join()} 已被其他考核体系绑定`
+        );
       await CheckSystemModel.update(
         {
           checkName: params.checkName,
           update_by: Context.current.user.id,
-          status: params.status
+          status: params.status,
+          checkYear: params.checkYear
         },
         {where: {checkId: params.checkId}}
       );
@@ -158,21 +230,7 @@ export default class CheckSystem {
   )
   async addRule(params) {
     return appDB.transaction(async () => {
-      const rule = await CheckRuleModel.create(params);
-      //将用户所拥有,并且没有关联其他考核的机构,关联上这个rule
-      const limitHospitals = await CheckHospitalModel.findAll({
-        where: {
-          checkId: params.checkId,
-          hospitalId: {[Op.in]: Context.current.user.hospitals.map(it => it.id)}
-        }
-      });
-      await RuleHospitalModel.bulkCreate(
-        limitHospitals.map(h => ({
-          hospitalId: h.hospitalId,
-          ruleId: rule.ruleId
-        }))
-      );
-      return rule;
+      return CheckRuleModel.create(params);
     });
   }
 
@@ -272,12 +330,27 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
-      if (await CheckHospitalModel.findOne({where: {checkId: id}}))
+
+      if (await CheckAreaModel.findOne({where: {checkId: id}}))
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
+      const ruleIds = sys.checkRules.map(rule => rule.ruleId);
+
       //删除该考核系统下的所有规则
       await Promise.all(
         sys.checkRules.map(async rule => await rule.destroy({force: true}))
       );
+      // 删除细则指标对应[考核细则]
+      await RuleTagModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
+      // 删除考核小项和公分项对应[考核小项]
+      await RuleProjectModel.destroy({
+        where: {
+          ruleId: {[Op.in]: ruleIds}
+        }
+      });
       //删除该考核系统
       return await sys.destroy({force: true});
     });
@@ -405,6 +478,7 @@ export default class CheckSystem {
     //查询该体系下所有rules
     let allRules = await CheckRuleModel.findAll({
       where: whereOptions,
+      order: [['created_at', 'ASC']],
       include: {
         model: RuleTagModel,
         attributes: [
@@ -452,273 +526,5 @@ export default class CheckSystem {
         }))
     }));
     return {count: ruleGroup.length, rows: allRules};
-  }
-
-  //查询考核系统
-  @validate(
-    should
-      .object({
-        pageSize: should.number(),
-        pageNo: should.number(),
-        checkId: should.string()
-      })
-      .allow(null)
-  )
-  async list(params) {
-    const {pageSize = 20, pageNo = 1, checkId} = params || {};
-    let whereOptions = {};
-
-    //if没有"管理所有考核"或者"超级管理员"的权限,则仅能看当前用户创建的
-    if (
-      !Context.current.user.permissions.some(
-        p => p === Permission.ALL_CHECK || p === Permission.SUPER_ADMIN
-      )
-    )
-      whereOptions['create_by'] = Context.current.user.id;
-
-    if (checkId) whereOptions['checkId'] = checkId;
-
-    let result = await CheckSystemModel.findAndCountAll({
-      where: whereOptions,
-      distinct: true,
-      order: [['created_at', 'DESC']],
-      offset: (pageNo - 1) * pageSize,
-      limit: pageSize
-    });
-    //当前用户拥有的机构
-    const userHospital = Context.current.user.hospitals.map(it => it.id);
-    result.rows = await Promise.all(
-      result.rows.map(async row => {
-        row = row.toJSON();
-        //该考核系统下的所有细则
-        const allRules = await CheckRuleModel.findAll({
-          where: {checkId: row.checkId, parentRuleId: {[Op.not]: null}}
-        }).map(it => it.ruleId);
-        // 统计该用户该考核系统下的机构
-        const ruleHospital = await RuleHospitalModel.findAll({
-          where: {
-            ruleId: {[Op.in]: allRules},
-            hospitalId: {[Op.in]: userHospital}
-          }
-        });
-        const checkHospitalCount = await CheckHospitalModel.count({
-          where: {
-            checkId: row.checkId,
-            hospitalId: {[Op.in]: userHospital}
-          }
-        });
-        //查询全部自动打分(all),部分自动打分(part),全不自动打分(no)
-        const autoTrue = !!ruleHospital.find(it => it.auto);
-        const autoFalse = !!ruleHospital.find(it => !it.auto);
-        let auto;
-        if (autoFalse && autoTrue) auto = 'part';
-        if (autoFalse && !autoTrue) auto = 'no';
-        if (!autoFalse && autoTrue) auto = 'all';
-        //考核创建者的名称
-        const createUser = await UserModel.findOne({
-          where: {id: row.create_by},
-          attributes: {exclude: ['password']}
-        });
-        //考核修改者的名称
-        const updateUser = await UserModel.findOne({
-          where: {id: row.update_by},
-          attributes: {exclude: ['password']}
-        });
-        return {
-          ...row,
-          hospitalCount: checkHospitalCount,
-          auto,
-          createUser,
-          updateUser,
-          running: jobStatus[row.checkId] || false
-        };
-      })
-    );
-    return result;
-  }
-
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核系统id')
-  )
-  async listHospitals(checkId) {
-    //新增考核类型后，只考虑主考核类型(checkType:1)的1对1的绑定关系
-    const checkSystem = await CheckSystemModel.findOne({
-      where: {checkId}
-    });
-    if (!checkSystem) throw new KatoCommonError('未找到该考核系统');
-    //绑定在其他考核系统下的机构
-    let extraHospitals = [];
-    // 如果当前考核体系是主考核, 那么排除绑定在其他主考核下的机构
-    if (checkSystem.checkType === 1) {
-      extraHospitals = await CheckHospitalModel.findAll({
-        where: {checkId: {[Op.not]: checkId}},
-        include: [
-          {
-            model: CheckSystemModel,
-            where: {checkType: checkSystem.checkType},
-            required: true // 外联查询时, 默认required为true
-          }
-        ]
-      });
-    }
-    //用户所拥有的机构
-    const result = Context.current.user.hospitals;
-    //绑定在该考核系统的机构
-    const hospitals = await CheckHospitalModel.findAll({where: {checkId}});
-
-    return result
-      .filter(h => !extraHospitals.find(item => h.id === item.hospitalId)) //用户可供修改的机构
-      .map(h => ({
-        ...h,
-        selected: !!hospitals.find(item => h.id === item.hospitalId) //是否选择的标记
-      }));
-  }
-
-  @validate(
-    should.object({
-      checkId: should
-        .string()
-        .required()
-        .description('考核体系id'),
-      hospitals: should
-        .array()
-        .allow([])
-        .description('机构数组')
-    })
-  )
-  async setHospitals(params) {
-    const {checkId, hospitals} = params;
-    // 查询考核体系
-    const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
-    if (!checkSystem) throw new KatoCommonError('该考核体系不存在');
-    // 判断是否是主考核
-    if (checkSystem.checkType === 1) {
-      // 主考核, 那么判断机构是否已经绑定过其他主考核了
-      const bindOtherHospitals = await CheckHospitalModel.findAll({
-        where: {
-          hospitalId: {[Op.in]: hospitals}
-        },
-        include: [
-          {
-            model: CheckSystemModel,
-            where: {
-              checkType: 1,
-              checkId: {[Op.not]: checkId}
-            }
-          }
-        ]
-      });
-      if (bindOtherHospitals.length > 0) {
-        throw new KatoCommonError('存在绑定过其他考核的机构');
-      }
-    }
-
-    //查询该体系下所有细则
-    const allRules = await CheckRuleModel.findAll({
-      where: {checkId: checkId, parentRuleId: {[Op.not]: null}}
-    });
-    if (allRules.length === 0)
-      throw new KatoCommonError('该考核系统下没有细则');
-    //当前用户所拥有的机构
-    const userHospital = Context.current.user.hospitals.map(it => it.id);
-
-    //查询这些细则原有的机构关系
-    const ruleHospital = (
-      await Promise.all(
-        allRules.map(
-          async rule =>
-            await RuleHospitalModel.findAll({
-              where: {
-                ruleId: rule.ruleId,
-                hospitalId: {[Op.in]: userHospital}
-              } //过滤出不属于该用户管的机构
-            })
-        )
-      )
-    ).reduce((pre, next) => pre.concat(next), []);
-
-    if (hospitals.find(h => !userHospital.find(u => u === h)))
-      throw new KatoCommonError('权限不足');
-    //删除被解绑的机构
-    await Promise.all(
-      ruleHospital
-        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-        .map(async it => await it.destroy())
-    );
-    //查询原有的考核与机构的关系
-    const checkHospitals = await CheckHospitalModel.findAll({
-      where: {
-        checkId,
-        hospitalId: {[Op.in]: userHospital}
-      }
-    });
-    //删除被解绑的考核体系和机构的关系
-    await Promise.all(
-      checkHospitals
-        .filter(item => !hospitals.find(h => h === item.hospitalId)) //过滤出需要解绑的机构
-        .map(async it => await it.destroy())
-    );
-    //筛选出解绑的机构
-    const unHospitals = ruleHospital
-      .filter(item => !hospitals.find(h => h === item.hospitalId))
-      .map(r => r.hospitalId);
-    //删除机构金额数据
-    await RuleHospitalBudgetModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}},
-      include: [{model: CheckRuleModel, where: {checkId}}]
-    });
-    //删除机构得分数据
-    await RuleHospitalScoreModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}},
-      include: [{model: CheckRuleModel, where: {checkId}}]
-    });
-    //删除机构定性指标文件
-    await RuleHospitalAttachModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}},
-      include: [{model: CheckRuleModel, where: {checkId}}]
-    });
-    //删除机构的打分结果
-    await ReportHospitalModel.destroy({
-      where: {hospitalId: {[Op.in]: unHospitals}, checkId}
-    });
-    //删除解绑结构的今日历史打分结果
-    await ReportHospitalHistoryModel.destroy({
-      where: {
-        hospitalId: {[Op.in]: unHospitals},
-        date: dayjs().toDate(),
-        checkId
-      }
-    });
-    //添加新增的机构和规则对应关系
-    let newRuleHospitals = [];
-    hospitals
-      .filter(
-        //过滤出新增的机构
-        hospitalId => !ruleHospital.find(r => r.hospitalId === hospitalId)
-      )
-      .forEach(hId => {
-        allRules.forEach(rule => {
-          //新增的机构与各个规则相对于的数据
-          newRuleHospitals.push({
-            hospitalId: hId,
-            ruleId: rule.ruleId,
-            auto: true
-          });
-        });
-      });
-    //批量添加考核系统和机构的关系
-    CheckHospitalModel.bulkCreate(
-      hospitals
-        .filter(hId => !checkHospitals.find(h => h.hospitalId === hId))
-        .map(item => ({
-          hospitalId: item,
-          checkId: checkId
-        }))
-    );
-    //批量添加规则与机构的关系数据
-    return RuleHospitalModel.bulkCreate(newRuleHospitals);
   }
 }

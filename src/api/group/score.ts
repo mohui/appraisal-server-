@@ -1,6 +1,6 @@
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
 import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
 import {
@@ -9,33 +9,53 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import {
+  AreaModel,
   BasicTagDataModel,
   CheckAreaModel,
+  CheckRuleModel,
   CheckSystemModel,
+  ManualScoreHistoryModel,
+  ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
-  ReportAreaModel,
-  ReportAreaHistoryModel,
   sql as sqlRender,
-  CheckRuleModel,
-  ManualScoreHistoryModel,
-  AreaModel,
   UserModel
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
 import {Context} from '../context';
 import {Permission} from '../../../common/permission';
-import {percentString} from '../score_hospital_check_rules';
+import {createBackJob} from '../../utils/back-job';
+import {v4 as uuid} from 'uuid';
+import * as path from 'path';
+import {ossClient} from '../../../util/oss';
+
+/**
+ * 获取百分数字符串, 默认返回'0'
+ *
+ * @param numerator 分子
+ * @param denominator 分母
+ */
+export function percentString(numerator: number, denominator: number): string {
+  if (denominator) {
+    const rate = numerator / denominator;
+    if (rate > 1) return '100%';
+    return ((numerator / denominator) * 100).toFixed(2) + '%';
+  } else {
+    return '0';
+  }
+}
 
 /**
  * 查询考核对象的标记数据
  *
  * @param group 地区code
+ * @param year 标记数据的年份
  */
 async function getMarks(
-  group: string
+  group: string,
+  year: number
 ): Promise<{
   id: string;
   S00: number;
@@ -75,8 +95,10 @@ async function getMarks(
         select *
         from mark_organization
         where id = ?
+          and year = ?
       `,
-      id
+      id,
+      year
     );
     if (marks[0]) result.push(marks[0]);
   }
@@ -129,10 +151,10 @@ async function getMarks(
 export async function getWorkPoints(
   organization: {id: string; code: string; region: string}[],
   projects: string[],
-  year: string
+  year: number
 ) {
   // 处理年份
-  const date = dayjs(year, 'YYYY');
+  const date = dayjs(year.toString(), 'YYYY');
   const start = date.format('YYYY-MM-DD');
   const end = date.add(1, 'y').format('YYYY-MM-DD');
 
@@ -206,7 +228,7 @@ where OperateOrganization = {{? id}}
 }
 
 /**
- * 获取指定年份的基础数据
+ * 获取基础数据
  *
  * @param leaves code对应的所有叶子节点
  * @param tag 基础数据的tag
@@ -214,8 +236,8 @@ where OperateOrganization = {{? id}}
  */
 async function getBasicData(
   leaves: AreaTreeNode[],
-  tag,
-  year
+  tag: string,
+  year: number
 ): Promise<number> {
   const data: number = await BasicTagDataModel.sum('value', {
     where: {
@@ -288,18 +310,14 @@ export default class Score {
   }
 
   async autoScoreAllChecks(isAuto) {
-    await Promise.all(
-      (
-        await CheckSystemModel.findAll({
-          where: {
-            status: true,
-            checkYear: dayjs()
-              .year()
-              .toString()
-          }
-        })
-      ).map(it => this.autoScore(it.checkId, true))
-    );
+    const checkModel = await CheckSystemModel.findAll({
+      where: {
+        status: true
+      }
+    });
+    for (const it of checkModel) {
+      await this.autoScore(it.checkId, true);
+    }
   }
 
   /**
@@ -344,6 +362,21 @@ export default class Score {
     }
   }
 
+  /***
+   * 后台任务打分
+   * @param checkId
+   * @param isAuto
+   */
+  async autoScoreBackJob(checkId, isAuto) {
+    const checkModel = await CheckSystemModel.findOne({
+      where: {checkId: checkId}
+    });
+    return createBackJob('scoreCheck', `${checkModel.checkName}考核打分`, {
+      checkId: checkId,
+      isAuto: isAuto
+    });
+  }
+
   /**
    * 地区打分
    *
@@ -358,24 +391,22 @@ export default class Score {
       where: {checkId: check}
     });
     if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
+    // 考核年度
+    const year = Number(checkModel.checkYear);
     debug('获取marks开始');
-    const mark = await getMarks(group);
+    const mark = await getMarks(group, year);
     debug('获取marks结束');
+    const t = await appDB.transaction();
     try {
-      // 默认年份为当前年, 如果是1月1日, 则为上一年
-      const now = dayjs();
-      let year = dayjs()
-        .year()
-        .toString();
-      if (now.day() === 1 && now.month() === 1) {
-        year = now
-          .subtract(1, 'y')
-          .year()
-          .toString();
-      }
-      debug(`打分年度: ${year}; 考核年度: ${checkModel.checkYear}`);
-      // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
-      const isCheckYear = year === checkModel.checkYear;
+      debug(`打分年度: ${dayjs().year()}; 考核年度: ${year}`);
+      await CheckAreaModel.findOne({
+        where: {
+          areaCode: group,
+          checkId: check
+        },
+        transaction: t,
+        lock: true
+      });
       // 地区报告model
       const reportModel = {
         checkId: check,
@@ -433,11 +464,14 @@ export default class Score {
               ruleId: rule.id,
               areaCode: group,
               score: 0,
-              auto: true
+              auto: true,
+              details: []
             });
           }
-          // 当前考核年份且考核细则是自动打分
-          if (isCheckYear && ruleAreaScoreModel.auto) {
+          // 考核细则是自动打分
+          if (ruleAreaScoreModel.auto) {
+            // 指标解释数组清空
+            ruleAreaScoreModel.details = [];
             // 考核细则得分默认0, 重新计算
             ruleAreaScoreModel.score = 0;
             // 根据考核细则查询关联关系
@@ -471,8 +505,14 @@ export default class Score {
                   BasicTagUsages.DocPeople,
                   year
                 );
-                // 如果服务总人口数不存在, 直接跳过
-
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S01.name
+                  } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
+                    mark?.S00
+                  } / ${basicData} = ${percentString(mark?.S00, basicData)}`
+                );
                 // 根据指标算法, 计算得分
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
@@ -498,6 +538,14 @@ export default class Score {
 
               // 健康档案规范率
               if (tagModel.tag === MarkTagUsages.S23.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S23.name
+                  } = 规范的电子档案数 / 建立电子健康档案人数 = ${
+                    mark?.S23
+                  } / ${mark?.S00} = ${percentString(mark?.S23, mark?.S00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S23
@@ -521,6 +569,14 @@ export default class Score {
 
               // 健康档案使用率
               if (tagModel.tag === MarkTagUsages.S03.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.S03.name
+                  } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
+                    mark?.S03
+                  } / ${mark?.S00} = ${percentString(mark?.S03, mark?.S00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.S03
@@ -550,7 +606,14 @@ export default class Score {
                   BasicTagUsages.OldPeople,
                   year
                 );
-                // 如果老年人人数不存在, 直接跳过
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.O00.name
+                  } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
+                    mark?.O00
+                  } / ${basicData} = ${percentString(mark?.O00, basicData)}`
+                );
                 if (!basicData) continue;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
@@ -579,8 +642,14 @@ export default class Score {
                   BasicTagUsages.OldPeople,
                   year
                 );
-                // 如果查询老年人人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.O02.name
+                  } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
+                    mark?.O02
+                  } / ${basicData} = ${percentString(mark?.O02, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.O02
@@ -610,8 +679,14 @@ export default class Score {
                   BasicTagUsages.HypertensionPeople,
                   year
                 );
-                // 如果查询高血压人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H00.name
+                  } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
+                    mark?.H00
+                  } / ${basicData} = ${percentString(mark?.H00, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H00
@@ -634,6 +709,14 @@ export default class Score {
 
               // 高血压规范管理率
               if (tagModel.tag === MarkTagUsages.H01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H01.name
+                  } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
+                    mark?.H01
+                  } / ${mark?.H00} = ${percentString(mark?.H01, mark?.H00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H01
@@ -657,6 +740,14 @@ export default class Score {
 
               // 高血压控制率
               if (tagModel.tag === MarkTagUsages.H02.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.H02.name
+                  } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
+                    mark?.H02
+                  } / ${mark?.H00} = ${percentString(mark?.H02, mark?.H00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.H02
@@ -686,8 +777,14 @@ export default class Score {
                   BasicTagUsages.DiabetesPeople,
                   year
                 );
-                // 如果查询糖尿病人数不存在, 直接跳过
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D00.name
+                  } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
+                    mark?.D00
+                  } / ${basicData} = ${percentString(mark?.D00, basicData)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D00
@@ -710,6 +807,14 @@ export default class Score {
 
               // 糖尿病规范管理率
               if (tagModel.tag === MarkTagUsages.D01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D01.name
+                  } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+                    mark?.D01
+                  } / ${mark?.D00} = ${percentString(mark?.D01, mark?.D00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D01
@@ -733,6 +838,14 @@ export default class Score {
 
               // 糖尿病控制率
               if (tagModel.tag === MarkTagUsages.D02.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.D02.name
+                  } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
+                    mark?.D02
+                  } / ${mark?.D00} = ${percentString(mark?.D02, mark?.D00)}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.D02
@@ -755,6 +868,8 @@ export default class Score {
               }
               // 定性指标得分
               if (tagModel.tag === MarkTagUsages.Attach.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push('请查看机构上传的资料');
                 // 查询定性指标和机构表
                 const attachModels = await RuleAreaAttachModel.findAll({
                   where: {
@@ -779,8 +894,84 @@ export default class Score {
                 }
               }
 
-              //健康教育指标
-              if (tagModel.tag.indexOf('HE') == 0) {
+              // 健康教育指标 - 健康教育咨询次数合格率
+              if (tagModel.tag === MarkTagUsages.HE09.code) {
+                // 查询健康教育咨询的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE09,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE09.name
+                  } = 一年内举办健康教育咨询的次数 / 一年内应举办健康教育咨询的次数 x 100% = ${
+                    mark?.HE09
+                  } / ${basicData} =  ${percentString(mark?.HE09, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE09
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE09
+                ) {
+                  const rate = mark.HE09 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 健康教育指标 - 健康教育讲座次数合格率
+              else if (tagModel.tag === MarkTagUsages.HE07.code) {
+                // 查询健康知识讲座的次数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HE07,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.HE07.name
+                  } = 一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数 x 100% = ${
+                    mark?.[tagModel.tag]
+                  } / ${basicData} =  ${percentString(mark?.HE07, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.HE07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.HE07
+                ) {
+                  const rate = mark.HE07 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 剩余健康教育指标
+              else if (tagModel.tag.indexOf('HE') == 0) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${MarkTagUsages[tagModel.tag].name} = ${
+                    mark?.[tagModel.tag]
+                  }`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.[tagModel.tag]
@@ -808,7 +999,15 @@ export default class Score {
                   BasicTagUsages.Supervision,
                   year
                 );
-                if (!basicData) continue;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SC00.name
+                  } = 报告的事件或线索次数 / 发现的事件或线索次数 x 100% = ${
+                    mark?.SC00
+                  } / ${basicData} = ${percentString(mark?.SC00, basicData)}`
+                );
+
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC00
@@ -831,6 +1030,10 @@ export default class Score {
 
               //协助开展的实地巡查次数
               if (tagModel.tag === MarkTagUsages.SC01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${MarkTagUsages.SC01.name} = ${mark?.SC01}`
+                );
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
                   mark?.SC01
@@ -867,21 +1070,26 @@ export default class Score {
             parentRule.id
           )
         ).map(it => it.id);
-        debug('考核小项获取总工分开始');
-        // 获取工分数组
-        const scoreArray: {score: number}[] = await getWorkPoints(
-          viewHospitals,
-          projects,
-          year
-        );
-        // 累计工分, 即参与校正工分值
-        const workPoint = scoreArray
-          .reduce((prev, current) => {
-            prev = prev.add(new Decimal(current.score));
-            return prev;
-          }, new Decimal(0))
-          .toNumber();
-        debug('考核小项获取总工分结束', workPoint);
+        let workPoint = 0;
+        if (projects.length) {
+          debug('考核小项获取参与校正工分开始');
+          // 获取工分数组
+          const scoreArray: {score: number}[] = await getWorkPoints(
+            viewHospitals,
+            projects,
+            year
+          );
+          // 累计工分, 即参与校正工分值
+          workPoint = scoreArray
+            .reduce((prev, current) => {
+              prev = prev.add(new Decimal(current.score));
+              return prev;
+            }, new Decimal(0))
+            .toNumber();
+          debug('考核小项获取参与校正工分结束', workPoint);
+        } else {
+          debug('考核小项未绑定工分项');
+        }
         // 计算考核小项的质量系数
         let rate = 0;
         if (parentTotalScore != 0) {
@@ -889,14 +1097,20 @@ export default class Score {
             .div(new Decimal(parentTotalScore))
             .toNumber();
         }
-        // 校正后的工分值
-        const correctWorkPoint = new Decimal(workPoint).mul(new Decimal(rate));
+        // 校正后的工分值, 默认为参与校正工分值
+        let correctWorkPoint = workPoint;
+        // 质量系数小于85%, 则使用质量系数校正
+        if (rate < 0.85) {
+          correctWorkPoint = new Decimal(workPoint)
+            .mul(new Decimal(rate))
+            .toNumber();
+        }
         // 保存小项考核表
         await RuleAreaBudgetModel.upsert({
           ruleId: parentRule.id,
           areaCode: group,
           workPoint: workPoint,
-          correctWorkPoint: correctWorkPoint.toNumber(),
+          correctWorkPoint: correctWorkPoint,
           score: parentScore,
           totalScore: parentTotalScore,
           rate: rate
@@ -944,16 +1158,18 @@ export default class Score {
       debug('考核地区获取总工分结束', reportModel);
       // 保存机构报告
       await ReportAreaModel.upsert(reportModel);
-      // 保存机构报告历史
-      await ReportAreaHistoryModel.upsert({
-        ...reportModel,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 保存机构报告历史
+      // await ReportAreaHistoryModel.upsert({
+      //   ...reportModel,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
+      await t.commit();
       debug(`${check} ${group} 系统打分结束`);
     } catch (e) {
+      await t.rollback();
       debug(`${check} ${group} 系统打分异常: ${e}`);
       throw new KatoRuntimeError(e);
     }
@@ -989,10 +1205,7 @@ export default class Score {
         .year()
         .toString();
     }
-    debug(`打分年度: ${year}; 考核年度: ${checkModel.checkYear}`);
-    // 是否是考核年度; 是: 系统打分得计算关联关系, 否: 系统打分直接累加细则得分
-    const isCheckYear = year === checkModel.checkYear;
-
+    debug(`打分年度: ${year}; 考核年度: ${year}`);
     // 1. 分配rule_area_budget的金额
     // 查询考核小项的金额
     const parentRuleModels: {
@@ -1062,16 +1275,16 @@ export default class Score {
         areaCode: checkAreaModel.areaCode,
         budget: budgetModel.budget
       });
-      // 3. 保存地区报告历史金额
-      await ReportAreaHistoryModel.upsert({
-        checkId: check,
-        areaCode: checkAreaModel.areaCode,
-        budget: budgetModel.budget,
-        // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
-        date: dayjs()
-          .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
-          .toDate()
-      });
+      // TODO: 历史功能暂时禁用 3. 保存地区报告历史金额
+      // await ReportAreaHistoryModel.upsert({
+      //   checkId: check,
+      //   areaCode: checkAreaModel.areaCode,
+      //   budget: budgetModel.budget,
+      //   // 是考核年份且是自动打分, 则日期减一天, 因为算的是前一天的数据
+      //   date: dayjs()
+      //     .subtract(isCheckYear && isAuto ? 0 : 1, 'd')
+      //     .toDate()
+      // });
     }
     debug(`${check} 金额分配结束`);
   }
@@ -1127,277 +1340,84 @@ export default class Score {
   }
 
   /**
-   * 获取考核细则得分解读
+   * 上传定性考核附件
+   *
+   * @param rule 细则id
+   * @param area 地区code
+   * @param attachments 附件文件对象
+   */
+  async upload(rule, area, attachments) {
+    return await appDB.joinTx(async () => {
+      // 判断当前考核细则, 拥有定性指标关联关系
+      const ruleTags = await appDB.execute(
+        `select * from rule_tag where rule = ? and tag = ?`,
+        rule,
+        MarkTagUsages.Attach.code
+      );
+      if (ruleTags.length === 0)
+        throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
+
+      // 设置oss的key
+      const ossName = `/attach/appraisal/attachment/${uuid()}${path.extname(
+        attachments.originalname
+      )}`;
+      // 插入数据
+      await appDB.execute(
+        `insert into rule_area_attach(id, rule, area, name, url) values (?, ?, ?, ?, ?)`,
+        uuid(),
+        rule,
+        area,
+        attachments.originalname,
+        ossName
+      );
+      // 写入oss
+      await unifs.writeFile(ossName, attachments.buffer);
+      // 返回URL
+      return await unifs.getExternalUrl(ossName);
+    });
+  }
+
+  /**
+   * 获取指定考核细则和地区的附件列表
    *
    * @param rule 考核细则id
-   * @param code 地区code
+   * @param area 地区code
    */
-  async detail(code, rule) {
-    // 根据地区查询考核体系
-    // language=PostgreSQL
-    const ruleModel: {year: string; rule: string} = (
-      await appDB.execute(
-        `
-            select cs.check_year as year, rule_id as rule
-            from check_area ca
-                     inner join check_system cs on ca.check_system = cs.check_id
-                     inner join check_rule cr on ca.check_system = cr.check_id
-            where ca.area = ?
-              and cr.rule_id = ?
-              and cr.parent_rule_id is not null`,
-        code,
-        rule
-      )
-    )[0];
-    if (!ruleModel) throw new KatoRuntimeError('参数不合法');
-    // 判断年份
-    const now = dayjs();
-    if (
-      now.year().toString() != ruleModel.year &&
-      now.month() != 1 &&
-      now.day() != 1
-    ) {
-      return [];
-    }
-    const year = ruleModel.year;
-    // 查询考核细则的关联关系
-    // language=PostgreSQL
-    const formulas: {
-      tag: string;
-      algorithm: string;
-      baseline: number;
-      score: number;
-      attachStartDate?: Date;
-      attachEndDate?: Date;
-    }[] = await appDB.execute(
-      `
-          select tag,
-                 algorithm,
-                 baseline,
-                 score,
-                 attach_start_date as attachStartDate,
-                 attach_end_date   as attachEndDate
-          from rule_tag
-          where rule = ?`,
-      ruleModel.rule
+  async listAttachments(rule, area) {
+    // 判断当前考核细则, 拥有定性指标关联关系
+    const ruleTags = await appDB.execute(
+      `select * from rule_tag where rule = ? and tag = ?`,
+      rule,
+      MarkTagUsages.Attach.code
     );
-    if (formulas.length === 0)
-      throw new KatoCommonError('当前考核项没有绑定关联关系');
+    if (ruleTags.length === 0)
+      throw new KatoRuntimeError(`当前考核细则未绑定定性指标`);
 
-    const leaves = await getLeaves(code);
-    const markHospitalModel = await getMarks(code);
-    const result = [];
-    // 根据关联关系计算得分
-    for (const tagModel of formulas) {
-      // 健康档案建档率
-      if (tagModel.tag === MarkTagUsages.S01.code) {
-        // 查询服务总人口数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.DocPeople,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.S01.name
-          } = 建立电子健康档案人数 / 辖区内常住居民数 = ${
-            markHospitalModel?.S00
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.S00,
-            basicData
-          )}`
-        );
-      }
-      // 健康档案规范率
-      if (tagModel.tag === MarkTagUsages.S23.code) {
-        result.push(
-          `${
-            MarkTagUsages.S23.name
-          } = 规范的电子档案数 / 建立电子健康档案人数 = ${
-            markHospitalModel?.S23
-          } / ${markHospitalModel.S00} = ${percentString(
-            markHospitalModel?.S23,
-            markHospitalModel?.S00
-          )}`
-        );
-      }
-      // 健康档案使用率
-      if (tagModel.tag === MarkTagUsages.S03.code) {
-        result.push(
-          `${
-            MarkTagUsages.S03.name
-          } = 档案中有动态记录的档案份数 / 建立电子健康档案人数 = ${
-            markHospitalModel?.S03
-          } / ${markHospitalModel?.S00} = ${percentString(
-            markHospitalModel?.S03,
-            markHospitalModel?.S00
-          )}`
-        );
-      }
+    // 查询附件表
+    return await Promise.all(
+      (
+        await appDB.execute(
+          `select * from rule_area_attach where rule = ? and area = ?`,
+          rule,
+          area
+        )
+      ).map(async it => ({...it, url: await unifs.getExternalUrl(it.url)}))
+    );
+  }
 
-      // 老年人健康管理率
-      if (tagModel.tag === MarkTagUsages.O00.code) {
-        // 查询老年人人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.OldPeople,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.O00.name
-          } = 年内接受老年人健康管理人数 / 辖区内65岁及以上常住居民数 = ${
-            markHospitalModel?.O00
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.O00,
-            basicData
-          )}`
-        );
-      }
-      // 老年人中医药健康管理率
-      if (tagModel.tag === MarkTagUsages.O02.code) {
-        // 查询老年人人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.OldPeople,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.O02.name
-          } = 年内接受中医药健康管理服务的65岁及以上居民数 / 年内接受健康管理的65岁及以上常住居民数 = ${
-            markHospitalModel?.O02
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.O02,
-            basicData
-          )}`
-        );
-      }
+  /**
+   * 删除定性指标附件
+   *
+   * @param id 定性指标附件id
+   */
+  async delAttachment(id) {
+    await appDB.joinTx(async () => {
+      const url = (
+        await appDB.execute(`select url from rule_area_attach where id = ?`, id)
+      )[0]?.url;
+      if (url) await unifs.deleteFile(url);
 
-      // 高血压健康管理
-      if (tagModel.tag === MarkTagUsages.H00.code) {
-        // 查询高血压人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.HypertensionPeople,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.H00.name
-          } = 一年内已管理的高血压患者数 / 年内辖区应管理高血压患者总数 = ${
-            markHospitalModel?.H00
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.H00,
-            basicData
-          )}`
-        );
-      }
-      // 高血压规范管理率
-      if (tagModel.tag === MarkTagUsages.H01.code) {
-        result.push(
-          `${
-            MarkTagUsages.H01.name
-          } = 按照规范要求进行高血压患者健康管理的人数 / 一年内已管理的高血压患者人数 = ${
-            markHospitalModel?.H01
-          } / ${markHospitalModel?.H00} = ${percentString(
-            markHospitalModel?.H01,
-            markHospitalModel?.H00
-          )}`
-        );
-      }
-      // 高血压控制率
-      if (tagModel.tag === MarkTagUsages.H02.code) {
-        result.push(
-          `${
-            MarkTagUsages.H02.name
-          } = 一年内最近一次随访血压达标人数 / 一年内已管理的高血压患者人数 = ${
-            markHospitalModel?.H02
-          } / ${markHospitalModel?.H00} = ${percentString(
-            markHospitalModel?.H02,
-            markHospitalModel?.H00
-          )}`
-        );
-      }
-
-      // 糖尿病健康管理
-      if (tagModel.tag === MarkTagUsages.D00.code) {
-        // 查询糖尿病人数
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.DiabetesPeople,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.D00.name
-          } = 一年内已管理的2型糖尿病患者数 / 年内辖区2型糖尿病患者总数 x 100% = ${
-            markHospitalModel?.D00
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.D00,
-            basicData
-          )}`
-        );
-      }
-      // 糖尿病规范管理率
-      if (tagModel.tag === MarkTagUsages.D01.code) {
-        result.push(
-          `${
-            MarkTagUsages.D01.name
-          } = 按照规范要求进行2型糖尿病患者健康管理的人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
-            markHospitalModel?.D01
-          } / ${markHospitalModel?.D00} = ${percentString(
-            markHospitalModel?.D01,
-            markHospitalModel?.D00
-          )}`
-        );
-      }
-      // 糖尿病控制率
-      if (tagModel.tag === MarkTagUsages.D02.code) {
-        result.push(
-          `${
-            MarkTagUsages.D02.name
-          } = 一年内最近一次随访空腹血糖达标人数 / 一年内已管理的2型糖尿病患者人数 x 100% = ${
-            markHospitalModel?.D02
-          } / ${markHospitalModel?.D00} = ${percentString(
-            markHospitalModel?.D02,
-            markHospitalModel?.D00
-          )}`
-        );
-      }
-
-      //健康教育指标
-      if (tagModel.tag.indexOf('HE') == 0) {
-        result.push(
-          `${MarkTagUsages[tagModel.tag].name} = ${
-            markHospitalModel?.[tagModel.tag]
-          }`
-        );
-      }
-
-      //卫生计生监督协管信息报告率
-      if (tagModel.tag === MarkTagUsages.SC00.code) {
-        const basicData = await getBasicData(
-          leaves,
-          BasicTagUsages.Supervision,
-          year
-        );
-        result.push(
-          `${
-            MarkTagUsages.SC00.name
-          } = 报告的事件或线索次数 / 发现的事件或线索次数 x 100% = ${
-            markHospitalModel?.SC00
-          } / ${basicData} = ${percentString(
-            markHospitalModel?.SC00,
-            basicData
-          )}`
-        );
-      }
-      //协助开展的实地巡查次数
-      if (tagModel.tag === MarkTagUsages.SC01.code) {
-        result.push(`${MarkTagUsages.SC01.name} = ${markHospitalModel?.SC01}`);
-      }
-    }
-    return result;
+      await appDB.execute(`delete from rule_area_attach where id = ?`, id);
+    });
   }
 }

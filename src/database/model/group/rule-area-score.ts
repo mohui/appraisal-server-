@@ -36,4 +36,8 @@ export class RuleAreaScore extends Model<RuleAreaScore> {
   @Default(true)
   @Column
   auto: boolean;
+
+  @Comment('指标解释')
+  @Column(DataType.ARRAY(DataType.STRING))
+  details: string[];
 }

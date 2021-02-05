@@ -33,12 +33,6 @@
             <span v-if="!!item.isEdit">
               <el-input
                 v-model="item.ruleName"
-                :disabled="
-                  $route.query.checkYear !==
-                    $dayjs()
-                      .year()
-                      .toString()
-                "
                 size="mini"
                 placeholder="请输入考核分类名称"
               >
@@ -52,12 +46,6 @@
               ></el-input-number>
               <el-tooltip content="选择工分项" :enterable="false">
                 <el-button
-                  :disabled="
-                    $route.query.checkYear !==
-                      $dayjs()
-                        .year()
-                        .toString()
-                  "
                   icon="el-icon-s-claim"
                   circle
                   type="primary"
@@ -106,12 +94,6 @@
             </span>
             <div>
               <el-button
-                :disabled="
-                  $route.query.checkYear !==
-                    $dayjs()
-                      .year()
-                      .toString()
-                "
                 plain
                 type="primary"
                 size="mini"
@@ -131,12 +113,6 @@
               </el-button>
               <el-button
                 v-show="!item.isEdit"
-                :disabled="
-                  $route.query.checkYear !==
-                    $dayjs()
-                      .year()
-                      .toString()
-                "
                 plain
                 type="danger"
                 size="mini"
@@ -267,12 +243,6 @@
                 </div>
                 <div v-else>
                   <el-button
-                    :disabled="
-                      $route.query.checkYear !==
-                        $dayjs()
-                          .year()
-                          .toString()
-                    "
                     plain
                     v-permission="{
                       permission: permission.RULE_UPDATE,
@@ -284,12 +254,6 @@
                     >修改
                   </el-button>
                   <el-button
-                    :disabled="
-                      $route.query.checkYear !==
-                        $dayjs()
-                          .year()
-                          .toString()
-                    "
                     plain
                     v-permission="{
                       permission: permission.RULE_REMOVE,
@@ -316,15 +280,6 @@
       </div>
     </el-card>
     <el-dialog title="指标库" :visible.sync="dialogStandardVisible">
-      <el-link
-        target="_blank"
-        download
-        href="/2020系统考核规则详解共识.pdf"
-        :underline="false"
-        style="position: absolute;top: 20px;left: 100px;"
-      >
-        <el-button plain size="small" type="primary">指标解读下载</el-button>
-      </el-link>
       <el-tabs type="card" @tab-click="handleClick" v-model="curTag">
         <el-tab-pane
           v-for="i of markTags"
@@ -511,7 +466,6 @@ export default {
   },
   created() {
     this.checkId = this.$route.query.checkId;
-    this.checkName = decodeURIComponent(this.$route.query.checkName);
     this.getRuleList();
   },
   methods: {
@@ -581,11 +535,9 @@ export default {
     //获取细则列表
     async getRuleList() {
       try {
-        let result = await this.$api.CheckSystem.listRule({
-          checkId: this.checkId
-        });
-
-        if (result.count > 0) {
+        let result = await this.$api.CheckSystem.detail(this.checkId);
+        this.checkName = result.check_name;
+        if (result.rows.length > 0) {
           this.ruleList = result.rows.map(
             it =>
               new Vue({

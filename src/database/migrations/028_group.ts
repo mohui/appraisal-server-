@@ -2,15 +2,15 @@ import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
 import {
   AreaModel,
-  CheckAreaModel,
-  CheckHospitalModel,
+  // CheckAreaModel,
+  // CheckHospitalModel,
   ManualScoreHistoryModel,
-  ReportAreaHistoryModel,
-  ReportHospitalHistoryModel,
-  RuleAreaAttachModel,
-  RuleAreaScoreModel,
-  RuleHospitalAttachModel,
-  RuleHospitalModel,
+  // ReportAreaHistoryModel,
+  // ReportHospitalHistoryModel,
+  // RuleAreaAttachModel,
+  // RuleAreaScoreModel,
+  // RuleHospitalAttachModel,
+  // RuleHospitalModel,
   ScoreRemarkHistoryModel,
   UserHospitalModel,
   UserModel
@@ -352,38 +352,38 @@ export class GroupMigration implements IMigration {
 
     // 3.2 迁移考核相关数据
 
-    // 3.2.1 考核体系数据
-    const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
-    await Promise.all(
-      checkHospitalModels.map(model =>
-        CheckAreaModel.upsert({
-          checkId: model.checkId,
-          areaCode: model.hospitalId
-        })
-      )
-    );
-    debug('3.2.1 考核体系数据');
+    // // 3.2.1 考核体系数据
+    // const checkHospitalModels: CheckHospitalModel[] = await CheckHospitalModel.findAll();
+    // await Promise.all(
+    //   checkHospitalModels.map(model =>
+    //     CheckAreaModel.upsert({
+    //       checkId: model.checkId,
+    //       areaCode: model.hospitalId
+    //     })
+    //   )
+    // );
+    // debug('3.2.1 考核体系数据');
 
-    // 3.2.2 考核细则数据
-    const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
-    await Promise.all(
-      ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
-    );
-    debug('3.2.2.1 考核细则附件数据');
-    const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll(
-      {where: {auto: false}}
-    );
-    debug('3.2.2.2 考核细则auto: ', ruleHospitalModels.length);
-    await Promise.all(
-      ruleHospitalModels.map(model =>
-        RuleAreaScoreModel.upsert({
-          ruleId: model.ruleId,
-          areaCode: model.hospitalId,
-          auto: model.auto
-        })
-      )
-    );
-    debug('3.2.2 考核细则数据');
+    // // 3.2.2 考核细则数据
+    // const ruleAttachModels: RuleHospitalAttachModel[] = await RuleHospitalAttachModel.findAll();
+    // await Promise.all(
+    //   ruleAttachModels.map(model => RuleAreaAttachModel.upsert(model.toJSON()))
+    // );
+    // debug('3.2.2.1 考核细则附件数据');
+    // const ruleHospitalModels: RuleHospitalModel[] = await RuleHospitalModel.findAll(
+    //   {where: {auto: false}}
+    // );
+    // debug('3.2.2.2 考核细则auto: ', ruleHospitalModels.length);
+    // await Promise.all(
+    //   ruleHospitalModels.map(model =>
+    //     RuleAreaScoreModel.upsert({
+    //       ruleId: model.ruleId,
+    //       areaCode: model.hospitalId,
+    //       auto: model.auto
+    //     })
+    //   )
+    // );
+    // debug('3.2.2 考核细则数据');
 
     // 3.2.3 手动打分备注
     const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
@@ -397,21 +397,21 @@ export class GroupMigration implements IMigration {
     );
     debug('3.2.3 手动打分备注');
 
-    // 3.2.4 考核历史
-    const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
-    await ReportAreaHistoryModel.bulkCreate(
-      reportHospitalModels.map(
-        model => ({
-          date: model.date,
-          checkId: model.checkId,
-          areaCode: model.hospitalId,
-          rate: model.rate,
-          score: model.score
-        }),
-        {updateOnDuplicate: ['data', 'check', 'area']}
-      )
-    );
-    console.log('3.2.4 考核历史');
+    // // 3.2.4 考核历史
+    // const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
+    // await ReportAreaHistoryModel.bulkCreate(
+    //   reportHospitalModels.map(
+    //     model => ({
+    //       date: model.date,
+    //       checkId: model.checkId,
+    //       areaCode: model.hospitalId,
+    //       rate: model.rate,
+    //       score: model.score
+    //     }),
+    //     {updateOnDuplicate: ['data', 'check', 'area']}
+    //   )
+    // );
+    // console.log('3.2.4 考核历史');
 
     // 用户表添加area字段
     await client.execute(

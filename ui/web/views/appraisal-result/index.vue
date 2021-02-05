@@ -8,7 +8,7 @@
           $asyncComputed.reportListSeverData.updating ||
             $asyncComputed.totalServerData.updating
         "
-        class="box-card"
+        class="header-box-card"
         shadow="never"
       >
         <span class="header-title">
@@ -18,7 +18,7 @@
           </span>
         </span>
         <!--年度选择-->
-        <span style="margin: 0 10px">
+        <span style="margin:0 10px">
           <el-select
             size="small"
             v-model="params.year"
@@ -34,7 +34,7 @@
             </el-option>
           </el-select>
         </span>
-        <span style="margin:  0 10px">
+        <span style="margin:0 10px">
           <el-button-group>
             <el-button
               size="small"
@@ -52,33 +52,19 @@
             </el-button>
           </el-button-group>
         </span>
-        <el-button
-          v-if="reportListData.length === 1"
-          size="small"
-          type="primary"
-          style="margin: 0 10px"
-          @click="handleDownloadReport(reportListData[0].url)"
-        >
-          报告下载
-        </el-button>
-        <el-dropdown
-          v-else-if="reportListData.length > 1"
-          style="margin-left: 30px"
-          @command="handleDownloadReport"
-        >
-          <el-button type="primary" size="small">
-            报告下载<i class="el-icon-arrow-down el-icon--right"></i>
-          </el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item
-              v-for="it of reportListData"
-              :key="it.id"
-              :command="it.url"
-            >
-              {{ it.name }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <span style="margin:0 10px">
+          <el-button
+            plain
+            size="small"
+            type="primary"
+            @click="
+              handleFileDownload(
+                'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2021-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
+              )
+            "
+            >考核共识下载</el-button
+          >
+        </span>
         <el-button
           v-if="showBackButton()"
           size="small"
@@ -107,7 +93,6 @@
                   {{ totalData.correctWorkPoint | fixedDecimal }}
                 </h3>
                 <span>分</span>
-                <p style="margin:10px 0;">{{ date }}</p>
                 <p style="font-size:13px;">{{ totalData.name }}</p>
                 <div style="padding-top: 40px">
                   <div>
@@ -121,7 +106,6 @@
               <div v-if="params.listFlag === 'quality'" class=" score-detail">
                 <two-card-circle
                   :coefficient="totalData.fixedDecimalRate"
-                  :point-date="date"
                 ></two-card-circle>
                 <span style="position: absolute; bottom: 20px; left: 31%;">
                   (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
@@ -226,7 +210,7 @@
                     </el-table-column>
                     <el-table-column
                       prop="rateFormat"
-                      label="质量系数"
+                      label="校正系数 / 质量系数"
                       align="center"
                       min-width="80"
                     >
@@ -679,26 +663,12 @@
                     </span>
                     <span v-else>{{ scope.row.score | fixedDecimal }}</span>
                     <i
-                      v-if="
-                        scope.row.isAttach &&
-                          params.year ===
-                            $dayjs()
-                              .year()
-                              .toString()
-                      "
+                      v-if="scope.row.isAttach"
                       style="padding-left:5px; color:#ff9800"
                       class="el-icon-document"
                       @click="handleDialogAppraisalFileListVisible(scope.row)"
                     ></i>
                     <el-popover
-                      v-if="
-                        !scope.row.isAttach &&
-                          params.year ===
-                            $dayjs()
-                              .year()
-                              .toString()
-                      "
-                      :ref="scope.row.ruleId"
                       :popper-options="{
                         boundariesElement: 'viewport',
                         removeOnDestroy: true
@@ -707,32 +677,23 @@
                       title="指标结果"
                       width="500"
                       trigger="hover"
-                      @show="
-                        handleAppraisalResultInstructionsPopoverVisible(
-                          scope.row
-                        )
-                      "
                     >
-                      <div
-                        v-loading="
-                          $asyncComputed.appraisalResultInstructionsServerData
-                            .updating
-                        "
-                      >
+                      <div>
                         <p
                           style="border-bottom: 1px solid #ccc;padding-bottom: 10px;"
                         >
-                          评分标准：{{ curRule.evaluateStandard }}
+                          评分标准：{{ scope.row.evaluateStandard }}
                         </p>
-                        <div
-                          v-if="appraisalResultInstructionsData.length === 0"
-                        >
-                          未绑定关联关系
+                        <div v-if="!scope.row.details">
+                          得分尚未计算
+                        </div>
+                        <div v-else-if="scope.row.details.length === 0">
+                          尚未绑定关联关系
                         </div>
                         <div v-else>
                           <ul>
                             <li
-                              v-for="it of appraisalResultInstructionsData"
+                              v-for="it of scope.row.details"
                               :key="it"
                               style="margin-left: -20px"
                             >
@@ -865,6 +826,7 @@
             name="attachments"
             accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
             :auto-upload="false"
+            :file-list="fileList"
             :limit="1"
             :on-exceed="handleExceed"
             :on-success="handleUploadAppraisalFileSuccess"
@@ -931,11 +893,11 @@
   </div>
 </template>
 <script>
-import twoCardPie from '../components/twocardPie';
-import doctorBar from '../components/doctorBar';
-import twoCardTreeMap from '../components/twocardTreemap';
-import twoCardCircle from '../components/twocardCircle';
-import lineChart from '../components/twocardLine';
+import twoCardPie from './components/twocardPie';
+import doctorBar from './components/doctorBar';
+import twoCardTreeMap from './components/twocardTreemap';
+import twoCardCircle from './components/twocardCircle';
+import lineChart from './components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
@@ -1004,15 +966,12 @@ export default {
         id: this.$settings.user.code,
         year: this.$dayjs()
           .year()
-          .toString() //考核年份，默认为空，表示当前年
+          .toString() //考核年份，默认为当前年
       },
       yearList: [
         {value: '2020', label: '2020年度'},
         {value: '2021', label: '2021年度'}
       ],
-      date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).$format(
-        'YYYY-MM-DD'
-      ),
       totalShowMore: false,
       dialogUploadAppraisalFileVisible: false,
       curRule: {
@@ -1021,6 +980,7 @@ export default {
         evaluateStandard: '',
         data: ''
       },
+      fileList: [], //考核评价细则上传的文件列表
       dialogAppraisalFileListVisible: false,
       appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
       healthEducationType: '1',
@@ -1123,7 +1083,10 @@ export default {
     projectDetailData() {
       return this.projectDetailServerData?.map(it => ({
         ...it,
-        rateFormat: (it.rate * 100).toFixed(2) + '%',
+        rateFormat:
+          (it?.rate ?? 0) >= 0.85 && (it?.rate ?? 0) < 1
+            ? `100.00% / ${(it.rate * 100).toFixed(2)}%`
+            : `${(it.rate * 100).toFixed(2)}% / ${(it.rate * 100).toFixed(2)}%`,
         workPointFormat: it.workPoint.toFixed(2),
         correctWorkPointFormat: it.correctWorkPoint.toFixed(2)
       }));
@@ -1133,16 +1096,12 @@ export default {
       let arr = this.rankServerData
         .filter(it => it.budget)
         .map(it => ({
-          name: it.name,
           id: it.code,
-          budget: it.budget.toFixed(2)
-        }))
-        .map(it => ({
-          name: `${it.name} 金额：${it.budget}元`,
+          name: `${it.name} 金额：${it.budget.toFixed(2)}元`,
           value: it.budget,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1160,7 +1119,7 @@ export default {
           value: it.correctWorkPoint,
           onClick: () =>
             this.$router.push({
-              name: 'appraisal-result-institutions',
+              name: 'appraisal-result',
               query: {
                 ...this.params,
                 id: it.code
@@ -1243,10 +1202,6 @@ export default {
     appraisalFileListData() {
       return this.appraisalFileListServerData;
     },
-    //单项考核得分解读数据
-    appraisalResultInstructionsData() {
-      return this.appraisalResultInstructionsServerData;
-    },
     //报告下载列表数据
     reportListData() {
       return this.reportListSeverData;
@@ -1268,15 +1223,6 @@ export default {
     }
   },
   watch: {
-    //指标得分解读详情数据
-    appraisalResultInstructionsData() {
-      if (this.$refs[this.curRule.ruleId]) {
-        //数据返回后更新popper，重新修正定位
-        this.$nextTick(() => {
-          this.$refs[this.curRule.ruleId][0].updatePopper();
-        });
-      }
-    },
     healthEducationType() {
       //切换type时将no还原为1
       this.healthEducationPageNo = 1;
@@ -1386,8 +1332,8 @@ export default {
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.data = {
-        ruleId: JSON.stringify(this.curRule.ruleId),
-        hospitalId: JSON.stringify(this.params.id)
+        rule: JSON.stringify(this.curRule.ruleId),
+        area: JSON.stringify(this.params.id)
       };
       this.dialogUploadAppraisalFileVisible = true;
     },
@@ -1400,8 +1346,14 @@ export default {
       this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
     },
     //文件上传成功
-    handleUploadAppraisalFileSuccess() {
-      this.$message.success('文件上传成功');
+    handleUploadAppraisalFileSuccess(res) {
+      if (res._KatoErrorCode_) {
+        this.$message.error('文件上传失败');
+      } else {
+        this.$message.success('文件上传成功');
+      }
+      //手动将文件列表清空
+      this.fileList = [];
       this.dialogUploadAppraisalFileVisible = false;
     },
     //文件上传失败
@@ -1414,20 +1366,6 @@ export default {
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
       this.dialogAppraisalFileListVisible = true;
-    },
-    //单项指标考核得分解读
-    handleAppraisalResultInstructionsPopoverVisible(row) {
-      //如果查看的和前一条不同，则先清空前一条的数据
-      if (
-        this.appraisalResultInstructionsServerData &&
-        this.curRule.ruleId !== row.ruleId
-      ) {
-        this.appraisalResultInstructionsServerData = [];
-      }
-      this.appraisalResultInstructionsPopoverVisible = true;
-      this.curRule.ruleName = row.ruleName;
-      this.curRule.ruleId = row.ruleId;
-      this.curRule.evaluateStandard = row.evaluateStandard;
     },
     handleSummaries(param) {
       const {columns, data} = param;
@@ -1459,7 +1397,11 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
-      if (route.query.year) this.params.year = route.query.year;
+      this.params.year =
+        route.query.year ??
+        this.$dayjs()
+          .year()
+          .toString();
       this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
@@ -1507,13 +1449,18 @@ export default {
     },
     //考核结果下载
     async handleAppraisalResultsDownload() {
-      await this.$api.SystemArea.downloadCheck(
-        this.params.id,
-        this.params.year
-      );
+      try {
+        await this.$api.SystemArea.downloadCheck(
+          this.params.id,
+          this.params.year
+        );
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
-    //报告下载
-    handleDownloadReport(url) {
+    //文件下载（考核共识）
+    handleFileDownload(url) {
       FileSaver.saveAs(url);
     },
     //查看手动打分的历史
@@ -1727,32 +1674,13 @@ export default {
     //获取服务器单项考核规则的考核文件列表数据
     appraisalFileListServerData: {
       async get() {
-        return await this.$api.ScoreHospitalCheckRules.listAttachments(
+        return await this.$api.Score.listAttachments(
           this.curRule.ruleId,
           this.params.id
         );
       },
       shouldUpdate() {
         return this.dialogAppraisalFileListVisible;
-      },
-      default() {
-        return [];
-      }
-    },
-    //获取服务器单项考核得分解读数据
-    appraisalResultInstructionsServerData: {
-      async get() {
-        try {
-          return await this.$api.Score.detail(
-            this.params.id,
-            this.curRule.ruleId
-          );
-        } catch (e) {
-          return [e?.message ?? e];
-        }
-      },
-      shouldUpdate() {
-        return this.appraisalResultInstructionsPopoverVisible;
       },
       default() {
         return [];
@@ -1788,7 +1716,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '../../../styles/vars';
+@import '../../styles/vars';
 
 .wrapper {
   height: 100%;
@@ -1825,8 +1753,9 @@ export default {
   margin-right: 10px;
 }
 
-.box-card {
+.header-box-card {
   width: auto;
+  z-index: 2001 !important;
 }
 
 .score-detail {
@@ -1903,13 +1832,16 @@ export default {
 <style lang="scss">
 .appraisal-result-subordinate-name {
   cursor: pointer;
+
   :hover {
     color: #1a95d7;
   }
 }
+
 .appraisal-result-health-education-table {
   display: flex;
   flex-direction: column;
+
   .el-table__body-wrapper {
     flex: 1;
   }

@@ -11,7 +11,6 @@ import {
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 import {CheckRule} from './check_rule';
-import {ReportHospitalHistory} from './report-hospital-history';
 
 @Table({tableName: 'check_system'})
 export class CheckSystem extends Model<CheckSystem> {
@@ -40,7 +39,7 @@ export class CheckSystem extends Model<CheckSystem> {
 
   @Comment('考核年度')
   @Column
-  checkYear: string;
+  checkYear: number;
 
   @Comment('状态:默认为true')
   @Default(true)
@@ -58,7 +57,4 @@ export class CheckSystem extends Model<CheckSystem> {
   @Comment('跑分时间')
   @Column({field: 'run_time'})
   runTime: Date;
-
-  @HasMany(() => ReportHospitalHistory)
-  reportHospitalHistories: ReportHospitalHistory[];
 }

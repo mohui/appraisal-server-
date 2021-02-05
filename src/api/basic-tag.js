@@ -6,6 +6,7 @@ import {BasicTags} from '../../common/rule-score';
 import {Context} from './context';
 import Excel from 'exceljs';
 import ContentDisposition from 'content-disposition';
+import {Op} from 'sequelize';
 
 export default class BasicTag {
   //设置基础数据
@@ -14,7 +15,8 @@ export default class BasicTag {
       id: should.string().description('基础数据id'),
       value: should.number().description('数据值'),
       hospitalId: should.string().description('机构id'),
-      code: should.string().description('基础数据code')
+      code: should.string().description('基础数据code'),
+      year: should.number().description('年份')
     })
   )
   async upsert(params) {
@@ -38,13 +40,57 @@ export default class BasicTag {
     });
   }
 
+  //导入上一年基础数据
   @validate(
     should
       .string()
       .required()
-      .description('大类指标的code')
+      .description('大类指标的code'),
+    should
+      .number()
+      .required()
+      .description('需要导入的年份')
   )
-  async list(tagCode) {
+  async upsertLastYear(tagCode, year) {
+    await appDB.transaction(async () => {
+      //获取大类指标下的所有的小类
+      const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
+      const thisYearBasicData = await BasicTagDataModel.findAll({
+        where: {year, code: {[Op.in]: childrenTag.map(c => c.code)}},
+        lock: true
+      });
+      if (thisYearBasicData?.length > 0) {
+        throw new KatoCommonError('当前年份已有数据,无法导入');
+      }
+      await BasicTagDataModel.bulkCreate(
+        (
+          await BasicTagDataModel.findAll({
+            where: {
+              year: year - 1,
+              code: {[Op.in]: childrenTag.map(c => c.code)}
+            }
+          })
+        ).map(data => ({
+          value: data.value,
+          hospitalId: data.hospitalId,
+          code: data.code,
+          year: data.year + 1
+        }))
+      );
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('大类指标的code'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
+  async list(tagCode, year) {
     //当前用户地区权限下所直属的机构
     const hospitals = Context.current.user.hospitals;
     //获取大类指标下的所有的小类
@@ -69,7 +115,7 @@ export default class BasicTag {
       hospitalTags.map(async it => {
         //查询某个机构下某个指标的数据
         const basicData = await BasicTagDataModel.findOne({
-          where: {code: it.code, hospitalId: it.hospitalId}
+          where: {code: it.code, hospitalId: it.hospitalId, year}
         });
         //该数据存在则赋值相关字段
         return basicData ? {...it, ...basicData.toJSON()} : it;
@@ -91,7 +137,8 @@ export default class BasicTag {
           (h[tag.code] = {
             id: tag.id,
             code: tag.code,
-            value: tag.value
+            value: tag.value,
+            year: tag?.year ?? year
           })
       );
       return h;
@@ -102,14 +149,57 @@ export default class BasicTag {
     should
       .string()
       .required()
-      .description('基础数据code')
+      .description('大类指标的code'),
+    should
+      .number()
+      .required()
+      .description('年份')
   )
-  async dataDownload(tagCode) {
+  async importable(tagCode, year) {
+    //当前用户地区权限下所直属的机构
+    const hospitals = Context.current.user.hospitals;
+    //获取大类指标下的所有的小类
+    const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
+    year = Number(year);
+    const lastYear = year - 1;
+
+    //当前年份的基础数据大于0的总计
+    const thisYearCount = await BasicTagDataModel.count({
+      where: {
+        year: year,
+        hospitalId: {[Op.in]: hospitals.map(h => h.id)},
+        code: {[Op.in]: childrenTag.map(c => c.code)},
+        value: {[Op.gt]: 0}
+      }
+    });
+    //上一年的基础数据大于0的总数
+    const lastYearCount = await BasicTagDataModel.count({
+      where: {
+        year: lastYear,
+        hospitalId: {[Op.in]: hospitals.map(h => h.id)},
+        code: {[Op.in]: childrenTag.map(c => c.code)},
+        value: {[Op.gt]: 0}
+      }
+    });
+    return thisYearCount === 0 && lastYearCount > 0;
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('基础数据code'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
+  async dataDownload(tagCode, year) {
     //当前基础数据下的所有属性
     const tags = BasicTags.find(bt => bt.code === tagCode)?.children;
     if (!tags) throw new KatoCommonError('该基础数据不存在');
     //组装机构与基础数据的关系数据
-    const listData = (await this.list(tagCode)).map(item => {
+    const listData = (await this.list(tagCode, year)).map(item => {
       return [item.id, item.name].concat(tags.map(tag => item[tag.code].value));
     });
 
@@ -150,9 +240,13 @@ export default class BasicTag {
     should
       .string()
       .required()
-      .description('基础数据code')
+      .description('基础数据code'),
+    should
+      .number()
+      .required()
+      .description('年份')
   )
-  async dataImport(file, tagCode) {
+  async dataImport(file, tagCode, year) {
     return appDB.transaction(async () => {
       //读取基础数据声明文件
       const basicTags = BasicTags.find(tag => tag.code === tagCode)?.children;
@@ -183,7 +277,8 @@ export default class BasicTag {
             tagHospital.push({
               hospitalId: row.values[1],
               code: tag,
-              value: row.values[3]
+              value: row.values[3],
+              year
             })
           );
         }

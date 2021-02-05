@@ -99,12 +99,6 @@
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
-                  :disabled="
-                    scope.row.checkYear !==
-                      $dayjs()
-                        .year()
-                        .toString()
-                  "
                   type="primary"
                   icon="el-icon-edit"
                   circle
@@ -119,12 +113,6 @@
                     permission: permission.CHECK_REMOVE,
                     type: 'disabled'
                   }"
-                  :disabled="
-                    scope.row.checkYear !==
-                      $dayjs()
-                        .year()
-                        .toString()
-                  "
                   icon="el-icon-delete"
                   circle
                   type="danger"
@@ -219,6 +207,12 @@
         <el-form-item label="状态：">
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
+        </el-form-item>
+        <el-form-item label="年度：">
+          <el-select v-model="checkForm.checkYear">
+            <el-option :value="2020">2020</el-option>
+            <el-option :value="2021">2021</el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -386,17 +380,7 @@
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
-        <el-button
-          type="primary"
-          @click="saveOrganization"
-          :disabled="
-            checkForm.checkYear !==
-              $dayjs()
-                .year()
-                .toString()
-          "
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="saveOrganization">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -547,9 +531,9 @@ export default {
     async tempCheck(row) {
       if (!row.running) {
         row.running = true;
-        this.$api.Score.autoScore(row.checkId, false);
-        //刷新列表
-        this.$asyncComputed.listCheck.update();
+        await this.$api.Score.autoScoreBackJob(row.checkId, false);
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
+        row.running = false;
       }
     },
     //打开机构对话框
@@ -579,9 +563,7 @@ export default {
         return this.$router.push({
           name: 'rule',
           query: {
-            checkId: row.checkId,
-            checkName: encodeURIComponent(row.checkName),
-            checkYear: row.checkYear
+            checkId: row.checkId
           }
         });
     },
@@ -606,13 +588,13 @@ export default {
     },
     //添加规则
     async addCheck() {
-      const {checkName} = this.checkForm;
+      const {checkName, checkYear} = this.checkForm;
       if (!checkName) {
         this.$message.error('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.add({checkName});
+        await this.$api.CheckSystem.add({checkName, checkYear});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -627,7 +609,7 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName, status} = this.checkForm;
+      const {checkId, checkName, status, checkYear} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
@@ -636,7 +618,8 @@ export default {
         await this.$api.CheckSystem.updateName({
           checkId,
           checkName,
-          status
+          status,
+          checkYear
         });
         this.$asyncComputed.listCheck.update();
       } catch (e) {
@@ -732,7 +715,7 @@ export default {
     //开启规则
     async openCheck(item) {
       try {
-        await this.$api.Hospital.setAllRuleAuto(item.checkId, true);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, true);
         this.$message({
           type: 'success',
           message: '全部开启成功！'
@@ -745,7 +728,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.Hospital.setAllRuleAuto(item.checkId, false);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'

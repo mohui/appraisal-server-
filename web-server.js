@@ -14,10 +14,14 @@ const fallback = require('connect-history-api-fallback');
     }
 
     const app = express();
-    app.use(fallback());
+    app.use(
+      fallback({
+        htmlAcceptHeaders: ['text/html', 'application/xhtml+xml']
+      })
+    );
     app.use(devServer);
     app.use(
-      proxy.createProxyMiddleware('/api', {
+      proxy.createProxyMiddleware(['/api', '/back-job'], {
         target: apiServer,
         changeOrigin: true,
         logLevel: 'warn',

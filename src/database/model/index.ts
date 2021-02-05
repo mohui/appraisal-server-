@@ -7,16 +7,9 @@ export {CheckSystem as CheckSystemModel} from './check_system';
 export {CheckRule as CheckRuleModel} from './check_rule';
 export {UserHospital as UserHospitalModel} from './user_hospital';
 export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
-export {RuleHospital as RuleHospitalModel} from './rule-hospital';
 export {RuleTag as RuleTagModel} from './rule-tag';
-export {RuleHospitalScore as RuleHospitalScoreModel} from './rule-hospital-score';
-export {ReportHospital as ReportHospitalModel} from './report-hospital';
-export {CheckHospital as CheckHospitalModel} from './check-hospital';
-export {RuleHospitalAttach as RuleHospitalAttachModel} from './rule-hospital-attach';
 export {RuleProject as RuleProjectModel} from './rule-project';
-export {RuleHospitalBudget as RuleHospitalBudgetModel} from './rule-hospital-budget';
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
-export {ReportHospitalHistory as ReportHospitalHistoryModel} from './report-hospital-history';
 export {ScoreRemarkHistory as ScoreRemarkHistoryModel} from './score-remark-history';
 
 export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
