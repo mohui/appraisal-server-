@@ -691,6 +691,7 @@ export default {
 
 <style lang="scss">
 .patient-tab-list {
+  width: calc(100% - 70px);
   height: 100%;
   display: flex;
   flex-direction: column;
