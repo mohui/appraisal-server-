@@ -476,7 +476,7 @@ export default {
   },
   methods: {
     async getTableData() {
-      await this.$api.Person.list2({
+      await this.$api.Person.personExcel({
         name: this.queryForm.name,
         idCard: this.queryForm.idCard,
         hospital: this.queryForm.hospital,
@@ -491,6 +491,7 @@ export default {
         personOr: this.queryForm.personOr,
         documentOr: this.queryForm.documentOr
       });
+      this.$message.success('后台任务已进行, 请关注右上角任务进度~');
     },
     initParams(route) {
       this.isInit = true;
