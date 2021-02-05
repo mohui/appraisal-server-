@@ -1447,11 +1447,10 @@ export default class Person {
         `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-      if (newlyDiagnosed.length) {
-        maternalDate.newlyDiagnosed = {};
-        maternalDate.newlyDiagnosed.name = '第一次产前检查信息表';
-        maternalDate.newlyDiagnosed.item = newlyDiagnosed;
-      }
+
+      maternalDate.newlyDiagnosed = {};
+      maternalDate.newlyDiagnosed.name = '第一次产前检查信息表';
+      maternalDate.newlyDiagnosed.item = newlyDiagnosed;
 
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
@@ -1459,11 +1458,9 @@ export default class Person {
         `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-      if (prenatalCare.length) {
-        maternalDate.prenatalCare = {};
-        maternalDate.prenatalCare.name = '第2~5次产前随访服务信息表';
-        maternalDate.prenatalCare.item = prenatalCare;
-      }
+      maternalDate.prenatalCare = {};
+      maternalDate.prenatalCare.name = '第2~5次产前随访服务信息表';
+      maternalDate.prenatalCare.item = prenatalCare;
 
       // 产后访视记录表
       // maternalVisits
@@ -1475,11 +1472,9 @@ export default class Person {
         `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-      if (examine42thDay.length) {
-        maternalDate.examine42thDay = {};
-        maternalDate.examine42thDay.name = '产后42天健康检查记录表';
-        maternalDate.examine42thDay.item = prenatalCare;
-      }
+      maternalDate.examine42thDay = {};
+      maternalDate.examine42thDay.name = '产后42天健康检查记录表';
+      maternalDate.examine42thDay.item = examine42thDay;
 
       result.push(maternalDate);
     }
