@@ -15,8 +15,57 @@ async function dictionaryQuery(categoryno) {
     categoryno
   );
 }
-
+//查询档案列表的sql
 function listRender(params) {
+  return sqlRender(
+    `
+      from mark_person mp
+             inner join view_personinfo vp on mp.personnum = vp.personnum
+             inner join view_hospital vh on vp.adminorganization = vh.hospid
+      where 1 = 1
+        {{#if name}} and vp.name like {{? name}} {{/if}}
+        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        and
+          (
+            1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
+            {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
+            {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
+            {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
+            {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
+            {{#compare H00}}{{#if documentOr}} or {{else}} and {{/if}} mp."H00"={{? H00}} {{/compare}}
+            {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
+            {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
+            {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
+            {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
+            {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
+            {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+          )
+          and
+          (
+            1 = {{#if personOr}} 0 {{else}} 1 {{/if}}
+            {{#compare C01}}{{#if personOr}} or {{else}} and {{/if}} mp."C01"={{? C01}} {{/compare}}
+            {{#compare C02}}{{#if personOr}} or {{else}} and {{/if}} mp."C02"={{? C02}} {{/compare}}
+            {{#compare C03}}{{#if personOr}} or {{else}} and {{/if}} mp."C03"={{? C03}} {{/compare}}
+            {{#compare C04}}{{#if personOr}} or {{else}} and {{/if}} mp."C04"={{? C04}} {{/compare}}
+            {{#compare C05}}{{#if personOr}} or {{else}} and {{/if}} mp."C05"={{? C05}} {{/compare}}
+            {{#compare C00}}{{#if personOr}} or {{else}} and {{/if}} mp."C00"={{? C00}} {{/compare}}
+            {{#compare C06}}{{#if personOr}} or {{else}} and {{/if}} mp."C06"={{? C06}} {{/compare}}
+            {{#compare C07}}{{#if personOr}} or {{else}} and {{/if}} mp."C07"={{? C07}} {{/compare}}
+            {{#compare C08}}{{#if personOr}} or {{else}} and {{/if}} mp."C08"={{? C08}} {{/compare}}
+            {{#compare C09}}{{#if personOr}} or {{else}} and {{/if}} mp."C09"={{? C09}} {{/compare}}
+            {{#compare C10}}{{#if personOr}} or {{else}} and {{/if}} mp."C10"={{? C10}} {{/compare}}
+            {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
+            {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
+            {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
+          )
+    `,
+    params
+  );
+}
+
+//查询档案列表,并列出问题档案原因sql
+function listRenderForExcel(params) {
   return sqlRender(
     `
       from mark_person mp
@@ -287,7 +336,7 @@ export default class Person {
         )
         .concat(hospitals);
 
-    const sqlRenderResult = listRender({
+    const sqlRenderResult = listRenderForExcel({
       his,
       name,
       hospitals,
