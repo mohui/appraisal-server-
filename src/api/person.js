@@ -1,5 +1,5 @@
 import {appDB, originalDB} from '../app';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
@@ -1417,12 +1417,23 @@ export default class Person {
    * examine42thDay 产后42天健康检查记录表
    */
   async maternalHealthCheck(id) {
+    // 通过居民id查找到身份证号
+    // language=PostgreSQL
+    const idCardNo = (
+      await originalDB.execute(
+        `select idcardno from view_personinfo where personnum=?`,
+        id
+      )
+    )[0]?.idcardno;
+
+    if (!idCardNo) throw new KatoRuntimeError(`id为 ${id} 的居民不存在`);
+
     // 母子健康手册表
-    // 通过身份证号（idcardno）查询
+    // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
       `select * from v_pregnancybooks_kn where idcardno=?`,
-      id
+      idCardNo
     );
     const result = [];
     for (const pregnancyBook of pregnancyBooks) {
