@@ -13,7 +13,6 @@
     >
       <div slot="header" class="clearfix">
         <span>个人档案列表</span>
-        <el-button @click="getTableData()"> 获取花名册</el-button>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -137,6 +136,9 @@
                 >
                   重置条件
                 </el-button>
+                <el-button size="mini" @click="getTableData()">
+                  导出表格</el-button
+                >
               </el-form-item>
             </el-col>
           </el-row>
