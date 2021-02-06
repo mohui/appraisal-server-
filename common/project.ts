@@ -391,6 +391,7 @@ export const Projects: {
       }
     ]
   },
+  // region 家庭医生签约
   {
     id: '20010101',
     name: '无偿签约',
@@ -546,6 +547,17 @@ export const Projects: {
     ]
   },
   {
+    id: '20010313',
+    name: '骨密度测定或眼底',
+    mappings: [
+      {
+        id: '20010313',
+        name: '骨密度测定或眼底',
+        type: '340203'
+      }
+    ]
+  },
+  {
     id: '20010314',
     name: '血常规检查（三分类）',
     mappings: [
@@ -645,6 +657,29 @@ export const Projects: {
     ]
   },
   {
+    id: '20010323',
+    name: '乙肝两对半检查',
+    mappings: [
+      {
+        id: '20010323',
+        name: '乙肝两对半检查',
+        type: '340203'
+      }
+    ]
+  },
+  {
+    id: '20010324',
+    name: '颈椎正侧位片',
+    mappings: [
+      {
+        id: '20010324',
+        name: '颈椎正侧位片',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  {
     id: '3',
     name: '签约服务',
     mappings: [
@@ -711,39 +746,6 @@ export const Projects: {
       {
         id: '81',
         name: '糖尿病年检',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010313',
-    name: '骨密度测定或眼底',
-    mappings: [
-      {
-        id: '20010313',
-        name: '骨密度测定或眼底',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010323',
-    name: '乙肝两对半检查',
-    mappings: [
-      {
-        id: '20010323',
-        name: '乙肝两对半检查',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010324',
-    name: '颈椎正侧位片',
-    mappings: [
-      {
-        id: '20010324',
-        name: '颈椎正侧位片',
         type: '340203'
       }
     ]
