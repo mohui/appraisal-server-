@@ -324,6 +324,19 @@ export const Projects: {
     ]
   },
   // endregion
+  // region 中医药健康管理相关工分项
+  {
+    id: '110101',
+    name: '老年人中医体质辨识',
+    mappings: [
+      {
+        id: '110101',
+        name: '老年人中医体质辨识',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
   {
     id: '090302',
     name: '年检精神病健康体检',
@@ -348,17 +361,6 @@ export const Projects: {
         id: '1',
         name: '高血压',
         type: '340222'
-      }
-    ]
-  },
-  {
-    id: '110101',
-    name: '中医药指导',
-    mappings: [
-      {
-        id: '110101',
-        name: '中医药指导',
-        type: '340203'
       }
     ]
   },
