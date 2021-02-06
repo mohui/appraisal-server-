@@ -6,13 +6,14 @@ export const Projects: {
   name: string;
   mappings: {id: string; name: string; type: string}[];
 }[] = [
+  // region 居民健康档案相关工分项
   {
     id: '010101',
-    name: '建立居民健康档案',
+    name: '新建电子档案',
     mappings: [
       {
         id: '010101',
-        name: '建立居民健康档案',
+        name: '新建电子档案',
         type: '340203'
       }
     ]
@@ -30,29 +31,29 @@ export const Projects: {
   },
   {
     id: '010201',
-    name: '健康档案的更新维护',
+    name: '动态记录档案管理',
     mappings: [
       {
         id: '010201',
-        name: '健康档案的更新维护',
+        name: '动态记录档案管理',
         type: '340203'
       }
     ]
   },
   {
     id: '010202',
-    name: '常规体格检查相关',
+    name: '常规体格检查',
     mappings: [
       {
         id: '010202',
-        name: '常规体格检查相关',
+        name: '常规体格检查',
         type: '340203'
       }
     ]
   },
   {
     id: '010301',
-    name: '居民电子健康档案数据核对',
+    name: '档案核查',
     mappings: [
       {
         id: '010301',
@@ -72,6 +73,8 @@ export const Projects: {
       }
     ]
   },
+  // endregion
+  // region 健康教育相关工分项
   {
     id: '020101',
     name: '发放印刷材料',
@@ -127,6 +130,8 @@ export const Projects: {
       }
     ]
   },
+  // endregion
+  // region 老年人健康管理相关工分项
   {
     id: '060101',
     name: '老年人健康体检',
@@ -134,6 +139,19 @@ export const Projects: {
       {
         id: '060101',
         name: '老年人健康体检',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  // region 高血压相关工分项
+  {
+    id: '070101',
+    name: '新增1例高血压患者',
+    mappings: [
+      {
+        id: '070101',
+        name: '新增1例高血压患者',
         type: '340203'
       }
     ]
@@ -215,6 +233,19 @@ export const Projects: {
       }
     ]
   },
+  // endregion
+  // region 糖尿病相关工分项
+  {
+    id: '080101',
+    name: '新增1例2-型糖尿病患者',
+    mappings: [
+      {
+        id: '080101',
+        name: '新增1例2-型糖尿病患者',
+        type: '340203'
+      }
+    ]
+  },
   {
     id: '080201',
     name: '糖尿病第一次随访',
@@ -292,6 +323,7 @@ export const Projects: {
       }
     ]
   },
+  // endregion
   {
     id: '090302',
     name: '年检精神病健康体检',
