@@ -175,25 +175,18 @@ export async function getWorkPoints(
         if (projects?.length > 0) {
           const ret = sqlRender(
             `
-{{#each projects}}
-(select
-  cast(sum(score) as float) as score
+select cast(sum(score) as float) as score
 from view_workScoreTotal
-where ProjectType = {{? project}}
+where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
   and OperateOrganization = {{? id}}
   and MissionTime >= {{? start}}
   and MissionTime < {{? end}}
-)
-{{#sep}} union {{/sep}}
-{{/each}}
           `,
             {
-              projects: originalProjectIds.map(it => ({
-                start,
-                end,
-                id: o.id,
-                project: it
-              }))
+              start,
+              end,
+              id: o.id,
+              projects: originalProjectIds
             }
           );
           sql = ret[0];

@@ -324,6 +324,19 @@ export const Projects: {
     ]
   },
   // endregion
+  // region 中医药健康管理相关工分项
+  {
+    id: '110101',
+    name: '老年人中医体质辨识',
+    mappings: [
+      {
+        id: '110101',
+        name: '老年人中医体质辨识',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
   {
     id: '090302',
     name: '年检精神病健康体检',
@@ -348,17 +361,6 @@ export const Projects: {
         id: '1',
         name: '高血压',
         type: '340222'
-      }
-    ]
-  },
-  {
-    id: '110101',
-    name: '中医药指导',
-    mappings: [
-      {
-        id: '110101',
-        name: '中医药指导',
-        type: '340203'
       }
     ]
   },
@@ -389,6 +391,7 @@ export const Projects: {
       }
     ]
   },
+  // region 家庭医生签约
   {
     id: '20010101',
     name: '无偿签约',
@@ -544,6 +547,17 @@ export const Projects: {
     ]
   },
   {
+    id: '20010313',
+    name: '骨密度测定或眼底',
+    mappings: [
+      {
+        id: '20010313',
+        name: '骨密度测定或眼底',
+        type: '340203'
+      }
+    ]
+  },
+  {
     id: '20010314',
     name: '血常规检查（三分类）',
     mappings: [
@@ -643,6 +657,29 @@ export const Projects: {
     ]
   },
   {
+    id: '20010323',
+    name: '乙肝两对半检查',
+    mappings: [
+      {
+        id: '20010323',
+        name: '乙肝两对半检查',
+        type: '340203'
+      }
+    ]
+  },
+  {
+    id: '20010324',
+    name: '颈椎正侧位片',
+    mappings: [
+      {
+        id: '20010324',
+        name: '颈椎正侧位片',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  {
     id: '3',
     name: '签约服务',
     mappings: [
@@ -709,39 +746,6 @@ export const Projects: {
       {
         id: '81',
         name: '糖尿病年检',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010313',
-    name: '骨密度测定或眼底',
-    mappings: [
-      {
-        id: '20010313',
-        name: '骨密度测定或眼底',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010323',
-    name: '乙肝两对半检查',
-    mappings: [
-      {
-        id: '20010323',
-        name: '乙肝两对半检查',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010324',
-    name: '颈椎正侧位片',
-    mappings: [
-      {
-        id: '20010324',
-        name: '颈椎正侧位片',
         type: '340203'
       }
     ]
