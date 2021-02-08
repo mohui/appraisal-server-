@@ -1086,9 +1086,13 @@ export default class Score {
         // 计算考核小项的质量系数
         let rate = 0;
         if (parentTotalScore != 0) {
-          rate = new Decimal(parentScore)
-            .div(new Decimal(parentTotalScore))
-            .toNumber();
+          // 质量系数保留4位小数
+          rate = Number(
+            new Decimal(parentScore)
+              .div(new Decimal(parentTotalScore))
+              .toNumber()
+              .toFixed(4)
+          );
         }
         // 校正后的工分值, 默认为参与校正工分值
         let correctWorkPoint = workPoint;
@@ -1231,10 +1235,13 @@ export default class Score {
         if (totalCorrectWorkPoints.toNumber() === 0) {
           ruleAreaBudgetModel.budget = 0;
         } else {
-          ruleAreaBudgetModel.budget = new Decimal(parentRuleModel.budget)
-            .mul(new Decimal(ruleAreaBudgetModel.correctWorkPoint))
-            .div(totalCorrectWorkPoints)
-            .toNumber();
+          // 金额取整
+          ruleAreaBudgetModel.budget = Math.round(
+            new Decimal(parentRuleModel.budget)
+              .mul(new Decimal(ruleAreaBudgetModel.correctWorkPoint))
+              .div(totalCorrectWorkPoints)
+              .toNumber()
+          );
         }
         debug(
           `${ruleAreaBudgetModel.areaCode} 获取金额 ${ruleAreaBudgetModel.budget}`
