@@ -240,7 +240,8 @@ export default class Report {
       markStartDate: dayjs(dayjs().format('YYYY-MM-DD 02:00:00')).toDate(),
       markEndDate: dayjs().toDate(),
       ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 00:00:00')).toDate(),
-      ruleEndDate: dayjs().toDate()
+      ruleEndDate: dayjs().toDate(),
+      year: dayjs().year()
     };
 
     /**
@@ -285,8 +286,11 @@ export default class Report {
     const selView = await Promise.all(
       viewList.map(async it => {
         let list;
-        // 同步视图数据
+        let oldList;
         if (it.startsWith('view')) {
+          /**
+           * 检查同步视图数据
+           */
           const [sql, params] = sqlRender(
             `
               select 1 as counts
@@ -297,6 +301,16 @@ export default class Report {
             paramObj
           );
           list = await originalDB.execute(sql, ...params);
+          // 检查是否删除掉了老数据
+          const [oldSql, oldParams] = sqlRender(
+            `
+              select 1 as counts
+              from ${it}
+              where created_at < {{? viewStartDate}}
+              limit 1`,
+            paramObj
+          );
+          oldList = await originalDB.execute(oldSql, ...oldParams);
         } else if (it.startsWith('mark')) {
           /**
            * 同步Mark数据
@@ -311,6 +325,17 @@ export default class Report {
             paramObj
           );
           list = await originalDB.execute(sql, ...params);
+          // 检查是否删除掉了老数据
+          const [oldSql, oldParams] = sqlRender(
+            `
+              select 1 as counts
+              from ${it}
+              where created_at < {{? markStartDate}}
+              and year = {{? year}}
+              limit 1`,
+            paramObj
+          );
+          oldList = await originalDB.execute(oldSql, ...oldParams);
         } else {
           /**
            * 考核得分表
@@ -319,25 +344,37 @@ export default class Report {
             `
               select 1 as counts
               from ${it}
-              where run_time < {{? ruleStartDate}}
+              where run_time > {{? ruleStartDate}}
               and status = true
               limit 1`,
             paramObj
           );
           list = await appDB.execute(sql, ...params);
+          // 检查是否存在没有打分的数据
+          const [oldSql, oldParams] = sqlRender(
+            `
+              select 1 as counts
+              from ${it}
+              where run_time < {{? ruleStartDate}}
+              and status = true
+              limit 1`,
+            paramObj
+          );
+          oldList = await appDB.execute(oldSql, ...oldParams);
         }
 
         return {
           table: it,
-          count: list[0]?.counts ?? 0
+          count: list[0]?.counts ?? 0,
+          oldCount: oldList[0]?.counts ?? 0
         };
       })
     );
+    return selView;
 
-    const selViewZero = selView.filter(it => it.count < 1);
+    const selViewZero = selView.filter(it => it.count < 1 || it.oldCount > 0);
     const tableName = selViewZero.map(it => it.table).join(',');
     if (selViewZero.length === 0) return;
-
     /**
      * 如果存在为零的数据, 说明有的表跑数据失败, 需要发送邮件
      */
