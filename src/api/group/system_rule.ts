@@ -37,7 +37,7 @@ export default class SystemRule {
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     // 如果没有传年份,获取年份
-    year = getYear(year, false);
+    year = getYear(year);
 
     // 通过地区编码和年份获取考核主信息
     const areaSystem = await CheckAreaModel.findOne({
