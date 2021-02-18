@@ -49,6 +49,19 @@ async function yearGetCheckId(code, year) {
   return check?.checkId;
 }
 
+/**
+ * 获取年份
+ */
+export function getYear(year, isNumeric = true) {
+  // 如果年份为空, isNumeric为true,生成类型为数字的年份
+  if (!year && isNumeric === true) year = dayjs().year();
+  // 如果年份为空, isNumeric为false,生成类型为字符串的年份
+  else if (!year && isNumeric === false) year = dayjs().format('YYYY');
+  // 如果年份为空, isNumeric为false,转换为类型为字符串的年份
+  else if (year && isNumeric === false) year = year.toString();
+  return year;
+}
+
 export default class SystemArea {
   /**
    * 质量系数,公分值
@@ -78,7 +91,8 @@ export default class SystemArea {
     const tree = await getAreaTree(Context.current.user.code);
     const parentIndex = tree.findIndex(it => it.code === areas.parent);
 
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份,获取年份
+    year = getYear(year, false);
 
     // 通过地区编码和时间获取checkId
     const checkId = await yearGetCheckId(code, year);
@@ -133,7 +147,8 @@ export default class SystemArea {
       },
       attributes: ['code', 'name']
     });
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year, false);
 
     // 根据地区和年份获取考核id
     const checkIdLists = await CheckAreaModel.findAll({
@@ -203,7 +218,8 @@ export default class SystemArea {
     const areas = await AreaModel.findOne({where: {code}});
 
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year, false);
 
     // 通过地区编码和时间获取checkId
     const checkId = await yearGetCheckId(code, year);
@@ -333,8 +349,8 @@ export default class SystemArea {
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
     const hisHospIds = hisHospIdObjs.map(it => it.id);
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year, false);
     // 签约人数
     const signedSqlRenderResult = sqlRender(
       `
@@ -451,8 +467,8 @@ export default class SystemArea {
 
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year, false);
 
     const [sql, params] = sqlRender(
       `
@@ -524,8 +540,8 @@ export default class SystemArea {
     const hisHospIds = hisHospIdObjs.map(it => it.id);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year, false);
 
     const [sql, params] = sqlRender(
       `
@@ -603,8 +619,8 @@ export default class SystemArea {
     const hisHospIds = hisHospIdObjs.map(it => it.id);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year, false);
 
     /**
      * 发放印刷资料 ActivityFormCode = '1' PrintDataName 名称 ActivityTime 活动时间
@@ -704,8 +720,8 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year, false);
 
     const [sql, params] = sqlRender(
       `
@@ -813,8 +829,8 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year, false);
 
     const [sql, params] = sqlRender(
       `
@@ -843,8 +859,8 @@ export default class SystemArea {
    * @param year 考核体系id
    */
   async projectDetail(code, year) {
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year, false);
 
     // 根据地区和时间查找考核Id
     const [sql, params] = sqlRender(
