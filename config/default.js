@@ -83,6 +83,18 @@ module.exports = {
     //     region: 'oss-cn-shanghai',
     //     bucket: 'knrt-doctor-app'
     //   }
+    // },
+    // {
+    //   path: '/personExcel',
+    //   type: 'local',
+    //   options: {
+    //     base: '/local',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/personExcel',
+    //       key: '1234'
+    //     }
+    //   }
     // }
   ]
 };
