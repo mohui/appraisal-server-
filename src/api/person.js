@@ -3,7 +3,7 @@ import {KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
-import {HospitalModel} from '../database/model';
+import {HospitalModel, RegionModel} from '../database/model';
 import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
@@ -284,7 +284,20 @@ export default class Person {
    */
   async personExcel(params) {
     try {
-      return createBackJob('personExcel', '人员档案表格', {params});
+      const {hospital, region} = params;
+      //需要查询的机构或者地区code
+      let code = '';
+      //code默认为hospital,否则为region
+      code = hospital ? hospital : region;
+      //两者都没有,则用用户默认code
+      if (!code) code = Context.current.user.code;
+      let fileName = '';
+      const hospitalModel = await HospitalModel.findOne({where: {id: code}});
+      if (hospitalModel) fileName = hospitalModel?.name + '人员档案表格';
+      if (!hospitalModel)
+        fileName =
+          (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
+      return createBackJob('personExcel', fileName, {params, fileName});
     } catch (e) {
       throw new KatoCommonError(e.message);
     }

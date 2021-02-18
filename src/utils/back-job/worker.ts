@@ -33,12 +33,12 @@ const {job} = workerData;
     }
     //档案人员表格任务
     if (job === 'personExcel') {
-      const {params} = workerData;
+      const {params, fileName} = workerData;
       const buffer = (await getPersonExcelBuffer(params)) as Buffer;
       //初始化文件挂载
       await initFS();
       //写入本地
-      jobResult = `/reportCheck/档案人员表格-${dayjs().format(
+      jobResult = `/reportCheck/${fileName}-${dayjs().format(
         'YYYY-MM-DDTHH:mm:ss'
       )}.xls`;
       await unifs.writeFile(jobResult, buffer);
