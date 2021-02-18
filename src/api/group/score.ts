@@ -172,7 +172,7 @@ export async function getWorkPoints(
           .filter(it => it);
         let sql = '';
         let params = [];
-        if (projects?.length > 0) {
+        if (originalProjectIds?.length > 0) {
           const ret = sqlRender(
             `
 select cast(sum(score) as float) as score
