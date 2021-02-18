@@ -239,7 +239,7 @@ export default class Report {
       viewEndDate: dayjs().toDate(),
       markStartDate: dayjs(dayjs().format('YYYY-MM-DD 02:00:00')).toDate(),
       markEndDate: dayjs().toDate(),
-      ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 04:00:00')).toDate(),
+      ruleStartDate: dayjs(dayjs().format('YYYY-MM-DD 00:00:00')).toDate(),
       ruleEndDate: dayjs().toDate()
     };
 
@@ -279,7 +279,7 @@ export default class Report {
       'mark_organization',
       'mark_person',
 
-      'report_hospital'
+      'check_system'
     ];
 
     const selView = await Promise.all(
@@ -319,8 +319,8 @@ export default class Report {
             `
               select 1 as counts
               from ${it}
-              where updated_at >= {{? ruleStartDate}}
-              and updated_at < {{? ruleEndDate}}
+              where run_time < {{? ruleStartDate}}
+              and status = true
               limit 1`,
             paramObj
           );
