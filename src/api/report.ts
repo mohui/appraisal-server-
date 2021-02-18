@@ -370,7 +370,6 @@ export default class Report {
         };
       })
     );
-    return selView;
 
     const selViewZero = selView.filter(it => it.count < 1 || it.oldCount > 0);
     const tableName = selViewZero.map(it => it.table).join(',');
