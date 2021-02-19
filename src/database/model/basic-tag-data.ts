@@ -40,12 +40,11 @@ export class BasicTagData extends Model<BasicTagData> {
   @Column(DataType.FLOAT)
   value: number;
 
-  @Comment('基础数据年度')
-  @AllowNull(false)
-  @Column
-  year: string;
-
   @Comment('编辑人姓名')
   @Column
   editor: string;
+
+  @Comment('年份')
+  @Column
+  year: number;
 }

@@ -27,7 +27,6 @@
         border
         size="mini"
         :data="checkList"
-        @row-click="handleCellClick"
         :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
@@ -36,6 +35,7 @@
           color: '#555',
           textAlign: 'center'
         }"
+        @row-click="handleCellClick"
       >
         <el-table-column align="center" label="序号">
           <template slot-scope="scope">
@@ -47,6 +47,12 @@
           prop="checkName"
           :min-width="computedColWidth('checkName')"
           label="考核名称"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="checkYear"
+          :min-width="50"
+          label="考核年度"
         ></el-table-column>
         <el-table-column
           align="center"
@@ -63,17 +69,6 @@
             {{ scope.row.status ? '启用' : '停用' }}
           </template>
         </el-table-column>
-        <el-table-column align="center" :min-width="50" label="类型">
-          <template slot-scope="scope">
-            {{ scope.row.checkType ? '主要' : '临时' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          align="center"
-          prop="autoScore"
-          :min-width="computedColWidth('autoScore')"
-          label="自动打分"
-        ></el-table-column>
         <el-table-column
           align="center"
           prop="runTime"
@@ -83,11 +78,11 @@
         <el-table-column align="center" min-width="70" label="适用机构">
           <template slot-scope="scope">
             <el-button
-              plain
               v-permission="{
                 permission: permission.CHECK_SELECT_HOSPITAL,
                 type: 'disabled'
               }"
+              plain
               type="primary"
               size="mini"
               @click.stop="openSelectDialog(scope.row)"
@@ -100,57 +95,29 @@
             <div v-show="!scope.row.running">
               <el-tooltip content="编辑" :enterable="false">
                 <el-button
-                  type="primary"
-                  icon="el-icon-edit"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
                   size="mini"
                   @click.stop="openEditCheckDialog(scope.row)"
                 >
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="快速复制" :enterable="false">
-                <el-button
-                  icon="el-icon-document-copy"
-                  circle
-                  v-permission="{
-                    permission: permission.CHECK_CLONE,
-                    type: 'disabled'
-                  }"
-                  type="warning"
-                  size="mini"
-                  @click.stop="openCloneCheckDialog(scope.row)"
-                >
-                </el-button>
-              </el-tooltip>
               <el-tooltip content="删除" :enterable="false">
                 <el-button
-                  icon="el-icon-delete"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_REMOVE,
                     type: 'disabled'
                   }"
+                  icon="el-icon-delete"
+                  circle
                   type="danger"
                   size="mini"
                   @click.stop="delCheck(scope)"
-                >
-                </el-button>
-              </el-tooltip>
-              <el-tooltip content="查看考核结果" :enterable="false">
-                <el-button
-                  icon="el-icon-right"
-                  circle
-                  v-permission="{
-                    permission: permission.APPRAISAL_RESULT,
-                    type: 'disabled'
-                  }"
-                  size="mini"
-                  type="primary"
-                  @click.stop="toCheck(scope.row)"
                 >
                 </el-button>
               </el-tooltip>
@@ -159,12 +126,12 @@
                 :enterable="false"
               >
                 <el-button
-                  icon="el-icon-refresh-right"
-                  circle
                   v-permission="{
                     permission: permission.CHECK_UPDATE,
                     type: 'disabled'
                   }"
+                  icon="el-icon-refresh-right"
+                  circle
                   size="mini"
                   type="info"
                   @click.stop="tempCheck(scope.row)"
@@ -173,13 +140,13 @@
               </el-tooltip>
               <el-tooltip content="全部开启打分" :enterable="false">
                 <el-button
-                  icon="el-icon-check"
-                  circle
+                  v-show="scope.row.isOpen"
                   v-permission="{
                     permission: permission.CHECK_OPEN_GRADE,
                     type: 'disabled'
                   }"
-                  v-show="scope.row.isOpen"
+                  icon="el-icon-check"
+                  circle
                   type="success"
                   size="mini"
                   @click.stop="openCheck(scope.row)"
@@ -188,13 +155,13 @@
               </el-tooltip>
               <el-tooltip content="全部关闭打分" :enterable="false">
                 <el-button
-                  icon="el-icon-close"
-                  circle
+                  v-show="scope.row.isClose"
                   v-permission="{
                     permission: permission.CHECK_CLOSE_GRADE,
                     type: 'disabled'
                   }"
-                  v-show="scope.row.isClose"
+                  icon="el-icon-close"
+                  circle
                   size="mini"
                   @click.stop="closeCheck(scope.row)"
                 >
@@ -209,6 +176,11 @@
       </el-table>
       <el-pagination
         background
+        :current-page="searchForm.pageNo"
+        :page-size="searchForm.pageSize"
+        layout="total, sizes, prev, pager, next"
+        style="margin:10px 0 -20px;"
+        :total="listCheck.count"
         @size-change="
           size => {
             searchForm.pageSize = size;
@@ -220,16 +192,11 @@
             searchForm.pageNo = no;
           }
         "
-        :current-page="searchForm.pageNo"
-        :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, pager, next"
-        style="margin:10px 0 -20px;"
-        :total="listCheck.count"
       >
       </el-pagination>
     </el-card>
     <el-dialog
-      :title="checkForm.id ? '修改规则' : '新建规则'"
+      :title="checkForm.checkId ? '修改规则' : '新建规则'"
       :visible.sync="dialogFormAddChecksVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
@@ -241,9 +208,11 @@
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
         </el-form-item>
-        <el-form-item label="类型：">
-          <el-radio v-model="checkForm.checkType" :label="1">主要</el-radio>
-          <el-radio v-model="checkForm.checkType" :label="0">临时</el-radio>
+        <el-form-item label="年度：">
+          <el-select v-model="checkForm.checkYear">
+            <el-option :value="2020">2020</el-option>
+            <el-option :value="2021">2021</el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -274,7 +243,7 @@
         <el-button @click="dialogFormCloneChecksVisible = false">
           取 消
         </el-button>
-        <el-button type="primary" @click="cloneCheck" :loading="submitting">
+        <el-button type="primary" :loading="submitting" @click="cloneCheck">
           {{ submitting ? '提交中...' : '确 定' }}
         </el-button>
       </div>
@@ -299,8 +268,8 @@
         </el-form-item>
         <el-form-item label="上传文件：">
           <el-upload
-            class="upload-demo"
             ref="uploadForm"
+            class="upload-demo"
             :multiple="false"
             :action="importUrl"
             :headers="headers"
@@ -339,8 +308,8 @@
         <el-button
           plain
           type="primary"
-          @click="saveUploadRules"
           :loading="uploadLoading"
+          @click="saveUploadRules"
           >确 定
         </el-button>
       </div>
@@ -349,42 +318,69 @@
       title="选择机构"
       :visible.sync="dialogSelectVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
+      @closed="handleCheckOrganizationDialogClose"
     >
-      <div class="hos-box">
-        <div v-for="(item, i) of hospitalList" :key="i">
-          <div class="center-title">
-            <el-checkbox
-              :indeterminate="item.isIndeterminate"
-              v-model="item.selected"
-              @change="toggleChange($event, item)"
-            >
-              <span>[{{ item.name }}]</span>
-            </el-checkbox>
-          </div>
-          <el-row :gutter="20">
-            <el-col
-              :xs="24"
-              :sm="24"
-              :md="12"
-              :lg="12"
-              :xl="8"
-              v-for="(it, index) of item.child"
-              :key="index"
-              class="el-cols"
-            >
-              <el-checkbox
-                v-model="it.selected"
-                @change="() => childToggleChange(item)"
+      <el-row>
+        <el-col :span="24">
+          <div class="checked-organization-box">
+            <span>
+              <el-tag
+                v-for="node in checkedNodes"
+                :key="node.code"
+                style="margin: 5px"
+                closable
+                @close="handleTagClose(node.code)"
               >
-                {{ index + 1 }} {{ it.name }}
-              </el-checkbox>
-            </el-col>
-          </el-row>
-        </div>
-      </div>
+                {{ node.name }}
+              </el-tag>
+            </span>
+          </div>
+        </el-col>
+      </el-row>
+      <el-divider></el-divider>
+      <el-row>
+        <el-col :span="24">
+          <div
+            v-loading="$asyncComputed.treeServerData.updating"
+            class="organization-box"
+          >
+            <el-tree
+              ref="tree"
+              :data="treeData"
+              node-key="code"
+              :props="props"
+              :load="loadNode"
+              :default-checked-keys="checkedKeys"
+              :default-expanded-keys="expandedKeys"
+              lazy
+              show-checkbox
+              check-strictly
+              @check-change="handleCheckChange"
+              @node-expand="handleNodeExpand"
+              @node-collapse="handleNodeCollapse"
+            >
+              <span slot-scope="{node, data}" class="custom-tree-node">
+                <span style="font-size: 14px; color: #606266">{{
+                  node.label
+                }}</span>
+                <span v-if="!data.usable">
+                  <el-popover
+                    placement="right"
+                    width="200"
+                    trigger="hover"
+                    :content="`该组织已被《${data.system}》考核`"
+                  >
+                    <i slot="reference" class="el-icon-warning-outline"> </i>
+                  </el-popover>
+                </span>
+              </span>
+            </el-tree>
+          </div>
+        </el-col>
+      </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogSelectVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveHospital">确 定</el-button>
+        <el-button type="primary" @click="saveOrganization">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -394,7 +390,7 @@
 import {Permission} from '../../../../common/permission.ts';
 
 export default {
-  name: 'check',
+  name: 'Check',
   data() {
     return {
       timer: null, // 考核体系列表接口调用定时器
@@ -411,7 +407,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkType: 1,
+        checkYear: this.$dayjs().year(),
         status: true
       },
       searchForm: {
@@ -421,16 +417,17 @@ export default {
       hospitalList: [],
       fileList: [],
       importUrl: 'uploadUrl',
-      headers: {token: "getCookie('account')"}
+      headers: {token: "getCookie('account')"},
+      code: this.$settings.user.code,
+      props: {
+        label: 'name',
+        children: 'children'
+      },
+      //选中的节点数组
+      checkedNodes: [],
+      //默认展开的节点
+      expandedKeys: []
     };
-  },
-  created() {
-    this.timer = setInterval(() => {
-      this.$asyncComputed.listCheck.update();
-    }, 5000);
-  },
-  destroyed() {
-    this.timer && clearInterval(this.timer);
   },
   computed: {
     checkList() {
@@ -468,18 +465,64 @@ export default {
     },
     uploadLoading() {
       return this.progress > 0 && this.progress < 100;
+    },
+    //树的根节点值
+    treeData() {
+      return this.treeServerData.map(it => {
+        return {
+          ...it,
+          disabled: !it.usable
+        };
+      });
+    },
+    //选中的节点key
+    checkedKeys() {
+      return this.checkedNodes.map(it => it.code);
     }
+  },
+  watch: {
+    treeServerData() {
+      this.treeServerData.forEach(it => {
+        //记录选中的节点
+        if (it.selected) this.checkedNodes.push({...it, disabled: !it.usable});
+        //展开含有选中项的节点
+        if (it.childSelected) this.expandedKeys.push(it.code);
+      });
+    }
+  },
+  created() {
+    this.timer = setInterval(() => {
+      this.$asyncComputed.listCheck.update();
+    }, 5000);
+  },
+  destroyed() {
+    this.timer && clearInterval(this.timer);
   },
   asyncComputed: {
     listCheck: {
       async get() {
-        return await this.$api.CheckSystem.list();
+        return await this.$api.Score.checks(this.searchForm);
       },
       default() {
         return {
           count: 0,
           rows: []
         };
+      }
+    },
+    //服务器返回的树的根节点值
+    treeServerData: {
+      async get() {
+        return await this.$api.CheckAreaEdit.list(
+          this.code,
+          this.checkForm.checkId
+        );
+      },
+      default() {
+        return [];
+      },
+      shouldUpdate() {
+        return this.checkForm.checkId !== '';
       }
     }
   },
@@ -488,82 +531,21 @@ export default {
     async tempCheck(row) {
       if (!row.running) {
         row.running = true;
-        this.$api.ScoreHospitalCheckRules.autoScoreCheck(row.checkId);
-        //刷新列表
-        this.$asyncComputed.listCheck.update();
+        await this.$api.Score.autoScoreBackJob(row.checkId, false);
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
+        row.running = false;
       }
-    },
-    //跳转考核结果页
-    toCheck(row) {
-      this.$router.push({
-        path:
-          this.$settings.user.isRegion && this.$settings.user.region.level < 3
-            ? 'appraisal-result-area'
-            : 'appraisal-result-institutions',
-        query: {id: this.$settings.user.code, checkId: row.checkId}
-      });
-    },
-    //下属机构未全选状态切换
-    childToggleChange(item) {
-      const checkedCount = item.child.filter(it => it.selected).length;
-      item.selected = checkedCount === item.child.length;
-      item.isIndeterminate =
-        checkedCount > 0 && checkedCount < item.child.length;
-    },
-    //中心下属机构全选切换
-    toggleChange(event, item) {
-      item.isIndeterminate = false;
-      item.child.forEach(it => (it.selected = event));
-    },
-    //获取机构列表
-    async getHospitalList(checkId) {
-      const result = await this.$api.CheckSystem.listHospitals(checkId);
-      let arr = result
-        .filter(
-          it => it.name.endsWith('服务中心') || it.name.endsWith('卫生院')
-        )
-        .map(it => ({
-          ...it,
-          isIndeterminate: false,
-          child: result.filter(
-            item => item.parent === it.id || item.id === it.id
-          )
-        }));
-
-      let cur = arr.map(it => it.child).flat();
-
-      let other = {
-        name: '其它',
-        id: 'other',
-        child: result.filter(it => cur.indexOf(it) === -1)
-      };
-
-      if (other.child.length) {
-        arr.push(other);
-      }
-
-      this.hospitalList = arr.map(it => ({
-        ...it,
-        selected: !it.child.some(it => !it.selected),
-        isIndeterminate: it.child.some(it => !it.selected)
-      }));
     },
     //打开机构对话框
     openSelectDialog(item) {
       this.checkForm = Object.assign({}, item);
-      this.getHospitalList(item.checkId);
       this.dialogSelectVisible = true;
     },
     //保存选取的机构
-    async saveHospital() {
-      const {checkId} = this.checkForm;
-      const hospitals = this.hospitalList
-        .map(it => it.child)
-        .flat()
-        .filter(it => it.selected)
-        .map(it => it.id);
+    async saveOrganization() {
+      const codes = this.$refs.tree.getCheckedKeys();
       try {
-        await this.$api.CheckSystem.setHospitals({checkId, hospitals});
+        await this.$api.CheckAreaEdit.editArea(this.checkForm.checkId, codes);
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -581,8 +563,7 @@ export default {
         return this.$router.push({
           name: 'rule',
           query: {
-            checkId: row.checkId,
-            checkName: encodeURIComponent(row.checkName)
+            checkId: row.checkId
           }
         });
     },
@@ -593,7 +574,7 @@ export default {
         checkId: '',
         checkName: '',
         cloneName: '',
-        checkType: 1,
+        checkYear: this.$dayjs().year(),
         status: true
       };
     },
@@ -607,13 +588,13 @@ export default {
     },
     //添加规则
     async addCheck() {
-      const {checkName, checkType = 1} = this.checkForm;
+      const {checkName, checkYear} = this.checkForm;
       if (!checkName) {
         this.$message.error('考核名称不能为空');
         return;
       }
       try {
-        await this.$api.CheckSystem.add({checkName, checkType});
+        await this.$api.CheckSystem.add({checkName, checkYear});
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
@@ -628,7 +609,7 @@ export default {
     },
     //修改规则
     async editCheck() {
-      const {checkId, checkName, status, checkType} = this.checkForm;
+      const {checkId, checkName, status, checkYear} = this.checkForm;
       if (!checkName) {
         this.$message.info('考核名称不能为空');
         return;
@@ -638,7 +619,7 @@ export default {
           checkId,
           checkName,
           status,
-          checkType
+          checkYear
         });
         this.$asyncComputed.listCheck.update();
       } catch (e) {
@@ -734,7 +715,7 @@ export default {
     //开启规则
     async openCheck(item) {
       try {
-        await this.$api.Hospital.setAllRuleAuto(item.checkId, true);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, true);
         this.$message({
           type: 'success',
           message: '全部开启成功！'
@@ -747,7 +728,7 @@ export default {
     //关闭规则
     async closeCheck(item) {
       try {
-        await this.$api.CheckSystem.setAllRuleAuto(item.checkId, false);
+        await this.$api.CheckAreaEdit.setAllRuleAuto(item.checkId, false);
         this.$message({
           type: 'success',
           message: '全部关闭成功！'
@@ -844,6 +825,73 @@ export default {
       if (this.checkList.length > 0) {
         return this.$widthCompute(this.checkList.map(item => item[field]));
       }
+    },
+    //加载子树数据
+    async loadNode(node, resolve) {
+      if (node.level === 0) return resolve(this.treeData);
+      const checked = node.checked;
+      const children = (
+        await this.$api.CheckAreaEdit?.list(
+          node.data.code,
+          this.checkForm.checkId
+        )
+      ).map(it => {
+        const node = {...it, disabled: !it.usable};
+        //记录选中的节点,并没有重复添加
+        if (it.selected && !this.checkedNodes.some(c => c.code === it.code))
+          this.checkedNodes.push(node);
+        if (
+          it.childSelected &&
+          !this.expandedKeys.some(c => c.code === it.code)
+        )
+          this.expandedKeys.push(it.code);
+        return node;
+      });
+      //如果有叶子节点，设置该节点不可点击
+      if (node.data && children.length > 0) node.data.disabled = true;
+      //如果没有叶子节点，将该节点的选中状态还原（因为在handleNodeExpand方法中，节点展开时会设置节点的选中状态为false）
+      if (node.checked && children.length === 0) node.checked = checked;
+      return resolve(children);
+    },
+    //节点选中状态发生变化时的回调
+    handleCheckChange() {
+      //获取目前被选中的节点所组成的数组
+      this.checkedNodes = this.$refs.tree.getCheckedNodes();
+    },
+    //节点被展开时触发的事件
+    handleNodeExpand(data, node) {
+      if (node.childNodes?.length ?? 0 > 0) data.disabled = true;
+      node.checked = false;
+    },
+    //节点被关闭时触发的事件
+    handleNodeCollapse(data, node) {
+      if (data.usable) data.disabled = false;
+      //取消叶子节点的选中
+      this.handleUncheck(node);
+    },
+    //递归该节点下所有页节点并取消选中
+    handleUncheck(node) {
+      if (node.childNodes?.length > 0) {
+        for (const node of node.childNodes) {
+          this.handleUncheck(node);
+        }
+      } else node.checked = false;
+    },
+    //关闭标签
+    handleTagClose(key) {
+      const index = this.checkedNodes.findIndex(it => it.code === key);
+      if (index !== -1) {
+        this.checkedNodes.splice(index, 1);
+        //取消该节点的选中
+        this.$refs.tree.setChecked(key, false);
+      }
+    },
+    //关闭选择适用机构的dialog
+    handleCheckOrganizationDialogClose() {
+      //将选中的节点数组清除
+      this.checkedNodes = [];
+      //默认展开的节点数组清除
+      this.expandedKeys = [];
     }
   }
 };
@@ -859,27 +907,15 @@ export default {
 }
 </style>
 <style scoped lang="scss">
-.hos-box {
+.organization-box {
   height: 50vh;
   overflow-y: auto;
   overflow-x: hidden;
-  margin-top: -20px;
-
-  .center-title {
-    margin: 20px 0 10px 0;
-
-    span {
-      font-size: 16px;
-    }
-  }
-
-  .el-cols {
-    margin-bottom: 10px;
-    padding-left: 38px !important;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
+}
+.checked-organization-box {
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: -30px;
 }
 </style>

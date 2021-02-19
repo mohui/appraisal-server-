@@ -12,6 +12,14 @@ import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
 import * as models from './database/model';
 import * as cron from 'node-cron';
+import {init as initBackJob} from './utils/back-job/index';
+import {
+  FileSystemError,
+  LocalFileSystem,
+  OverlayFileSystem,
+  OSSFileSystem,
+  UnionFileSystem
+} from './unifs';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -21,6 +29,7 @@ export class Application {
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
+  unifs: UnionFileSystem = new OverlayFileSystem();
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -45,6 +54,10 @@ export class Application {
     await this.initExpress();
     //初始化kato
     await this.initKato();
+    //初始化文件系统
+    await this.initFS();
+    //初始化socket
+    await this.initBackJob(this.server);
     //初始化web资源
     await this.initWebResource();
     //初始化定时任务
@@ -82,7 +95,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(26);
+      await migrate.migrate(33);
     }
   }
 
@@ -132,8 +145,8 @@ export class Application {
     //每天凌晨4点执行自动打分
     cron.schedule(config.get('queue.cron'), async () => {
       try {
-        const scoreAPI = new (require('./api/score_hospital_check_rules').default)();
-        await scoreAPI.autoScoreAllCheck();
+        const scoreAPI = new (require('./api/group/score').default)();
+        await scoreAPI.autoScoreAllChecks(true);
       } catch (e) {
         console.log(`定时任务失败: ${e}`);
       }
@@ -148,6 +161,35 @@ export class Application {
       }
     });
   }
+
+  async initBackJob(app) {
+    await initBackJob(app);
+  }
+
+  async initFS() {
+    const typeMapToFS: {[typeName: string]: typeof UnionFileSystem} = {
+      local: LocalFileSystem,
+      oss: OSSFileSystem
+    };
+    console.log('初始化联合文件系统');
+    (config.get('unifs') as any[]).forEach(c => {
+      const fs = typeMapToFS[c.type];
+      if (fs) {
+        (this.unifs as OverlayFileSystem).mount(
+          c.path,
+          new (fs as any)(c.options)
+        );
+        console.log(
+          `===> 挂载 '${c.path}' 类型 ${c.type} 选项: ${JSON.stringify(
+            c.options
+          )}`
+        );
+      } else
+        throw new FileSystemError(`不存在对应type ${c.type} 的文件系统实现`);
+    });
+    await this.unifs.init();
+    console.log('文件系统初始化完毕');
+  }
 }
 
 //实例化一个app
@@ -157,3 +199,5 @@ export const app = new Application();
 export const appDB = app.appDB;
 export const etlDB = app.etlDB;
 export const originalDB = app.originalDB;
+export const unifs = app.unifs;
+export const initFS = app.initFS;

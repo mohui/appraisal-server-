@@ -106,7 +106,15 @@ export default {
               show: true,
               rotate: 0,
               fontSize: 12,
-              color: '#6E7D9C'
+              color: '#6E7D9C',
+              // 使用函数模板，函数参数分别为刻度数值（类目），刻度的索引
+              formatter: function(value) {
+                let text = value;
+                if (value >= 10000) {
+                  text = `${value / 10000}万`;
+                }
+                return text;
+              }
             },
             splitLine: {
               show: true,

@@ -12,9 +12,9 @@ module.exports = [
     icon: 'el-icon-data-analysis',
     children: [
       {
-        index: 'appraisal-result-institutions',
+        index: 'appraisal-result',
         permission: [Permission.APPRAISAL_RESULT],
-        router: '/appraisal-result-institutions',
+        router: '/appraisal-result',
         label: '考核结果'
       },
       {

@@ -10,23 +10,29 @@
         ></i>
         {{ $settings.user.region.name }}基层医疗机构绩效考核系统</span
       >
-      <el-dropdown
-        class="dropdown"
-        @command="handCommand"
-        @visible-change="v => (dropdownVisible = v)"
-      >
-        <div>
-          <i style="padding: 0 6px" class="el-icon-user"></i>
-          {{ $settings.user.name }}
-          <i
-            :class="dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
-          ></i>
-        </div>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-          <el-dropdown-item command="logout">退出</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
+      <div>
+        <kn-back-job></kn-back-job>
+        <el-dropdown
+          class="dropdown"
+          @command="handCommand"
+          @visible-change="v => (dropdownVisible = v)"
+        >
+          <div>
+            <i style="padding: 0 6px" class="el-icon-user"></i>
+            {{ $settings.user.name }}
+            <i
+              :class="
+                dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+              "
+            ></i>
+          </div>
+
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+            <el-dropdown-item command="logout">退出</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </div>
     </el-header>
     <el-container>
       <el-aside
@@ -65,13 +71,14 @@
 <script>
 import {removeToken} from '../../utils/cache';
 import MultiMenu from '../../components/multi-menu.vue';
+import KnBackJob from '../../components/kn-back-job';
 const WIDTH = 992;
 export default {
   name: 'Layout',
-  components: {MultiMenu},
+  components: {MultiMenu, KnBackJob},
   data() {
     return {
-      menus: [],
+      menus: require('../../utils/menus'),
       device: 'desktop',
       hiddenMenu: false,
       timer: null,
@@ -84,24 +91,6 @@ export default {
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
     }
-  },
-  async created() {
-    this.menus = require('../../utils/menus').map(it => {
-      if (it.children) {
-        it.children = it.children.map(item => {
-          if (item.index === 'appraisal-result-institutions') {
-            // 根据用户权限判断进入省市地区页还是区、机构页
-            if (this.$settings.user.isRegion) {
-              if (this.$settings.user.region.level < 3) {
-                item.router = '/appraisal-result-area';
-              }
-            }
-          }
-          return item;
-        });
-      }
-      return it;
-    });
   },
   watch: {
     $route() {
@@ -177,7 +166,7 @@ export default {
 
 .dropdown {
   line-height: $header-height;
-  padding: 0 25px;
+  padding: 0 25px 0 5px;
   color: #fff;
   cursor: pointer;
 }

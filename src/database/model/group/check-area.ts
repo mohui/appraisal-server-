@@ -9,11 +9,11 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
-import {Hospital} from './hospital';
-import {CheckSystem} from './check_system';
+import {Area} from './area';
+import {CheckSystem} from '../check_system';
 
-@Table({tableName: 'check_hospital'})
-export class CheckHospital extends Model<CheckHospital> {
+@Table({tableName: 'check_area'})
+export class CheckArea extends Model<CheckArea> {
   @Comment('考核id')
   @PrimaryKey
   @AllowNull(false)
@@ -24,13 +24,13 @@ export class CheckHospital extends Model<CheckHospital> {
   @BelongsTo(() => CheckSystem)
   checkSystem: CheckSystem;
 
-  @Comment('机构')
+  @Comment('地区id')
   @PrimaryKey
   @AllowNull(false)
-  @ForeignKey(() => Hospital)
-  @Column({field: 'hospital', type: DataType.UUID})
-  hospitalId: string;
+  @ForeignKey(() => Area)
+  @Column({field: 'area', type: DataType.UUID})
+  areaCode: string;
 
-  @BelongsTo(() => Hospital)
-  hospital: Hospital;
+  @BelongsTo(() => Area)
+  area: Area;
 }

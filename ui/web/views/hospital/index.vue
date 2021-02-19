@@ -5,13 +5,29 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 120px)',
         display: 'flex',
         'flex-direction': 'column'
       }"
     >
       <div slot="header" class="clearfix">
         <span>金额列表</span>
+        <!--年度选择-->
+        <span style="margin: 0 10px">
+          <el-select
+            v-model="year"
+            placeholder="请选择考核年度"
+            @change="handleYearChange(year)"
+          >
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </span>
       </div>
       <el-table
         v-loading="$asyncComputed.hospitalListServerData.updating"
@@ -55,7 +71,13 @@
 export default {
   name: 'hospital',
   data() {
-    return {};
+    return {
+      year: '2020',
+      yearList: [
+        {value: '2020', label: '2020年度'},
+        {value: '2021', label: '2021年度'}
+      ]
+    };
   },
   computed: {
     hospitalListData() {
@@ -77,9 +99,10 @@ export default {
       async get() {
         let code = this.$settings.user.region.code;
         return await Promise.all(
-          (await this.$api.Region.listAllHospital(code)).map(async item => {
+          (await this.$api.SystemArea.rank(code, this.year)).map(async item => {
             item.hasChildren =
-              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+              (await this.$api.SystemArea.rank(item.code, this.year)).length >
+              0;
             return item;
           })
         );
@@ -92,7 +115,7 @@ export default {
   methods: {
     async load(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (await this.$api.Region.listAllHospital(tree.code))
+        (await this.$api.SystemArea.rank(tree.code, this.year))
           //根据金额排序
           .sort((a, b) => b.budget - a.budget)
           .map(async (item, index) => {
@@ -102,7 +125,8 @@ export default {
             item.uuid = `${tree.uuid}-${index + 1}`;
             item.hasChildren =
               item.code !== tree.code &&
-              (await this.$api.Region.listAllHospital(item.code)).length > 0;
+              (await this.$api.SystemArea.rank(item.code, this.year)).length >
+                0;
             return item;
           })
       );
@@ -115,27 +139,20 @@ export default {
     //点击标题跳转详情
     handleCellClick(row, column) {
       if (column.property === 'name') {
-        if (row.level < 3) {
-          //判断进入地区页还是区、机构页
-          //地区
-          return this.$router.push({
-            name: 'appraisal-result-area',
-            query: {
-              id: row.code,
-              listFlag: 'quality'
-            }
-          });
-        }
-        //区、机构
         return this.$router.push({
-          name: 'appraisal-result-institutions',
+          name: 'appraisal-result',
           query: {
             id: row.code,
             listFlag: 'quality',
-            isInstitution: row.level === 3 ? 'false' : 'true'
+            year: this.year
           }
         });
       }
+    },
+    //年度选择
+    handleYearChange(value) {
+      console.log(value);
+      this.year = value;
     }
   }
 };

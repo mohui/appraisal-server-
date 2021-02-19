@@ -21,12 +21,10 @@ function countUserRender(params) {
          LEFT OUTER JOIN ( "user_role_mapping" AS "roles->UserRole" INNER JOIN "role" AS "roles" ON "roles"."id" = "roles->UserRole"."role_id")
                          ON "User"."id" = "roles->UserRole"."user_id"
          LEFT OUTER JOIN "user" AS "editor" ON "User"."editor" = "editor"."id"
-         INNER JOIN "region" AS "region" ON "User"."region" = "region"."code"
-         LEFT OUTER JOIN ( "user_hospital_mapping" AS "hospitals->UserHospital" INNER JOIN "hospital" AS "hospitals" ON "hospitals"."id" = "hospitals->UserHospital"."hospital_id")
-                         ON "User"."id" = "hospitals->UserHospital"."user_id"
+         INNER JOIN "area" AS "area" ON "User"."area" = "area"."code"
          WHERE true
         {{#if regions}}
-            AND "User"."region" IN
+            AND "User"."area" IN
             ({{#each regions}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         {{/if}}
         {{#if account}}
@@ -53,37 +51,27 @@ function userListRender(params) {
        "roles"."creator"                       AS "rolesCreator",
        "roles"."permissions"                   AS "rolesPermissions",
        "editor"."name"                         AS "editorName",
-       "creator"."name"                        AS "creatorName",
-       "hospitals"."id"                        AS "hospitalId",
-       "hospitals"."name"                      AS "hospitalName",
-       "hospitals"."parent"                    AS "hospitalParent",
-       "hospitals"."region"                    AS "hospitalRegionId",
-       "uhm"."user_id"     AS "hospitals.UserHospital.userId",
-       "uhm"."hospital_id" AS "hospitals.UserHospital.hospitalId"
+       "creator"."name"                        AS "creatorName"
     FROM (
         SELECT "User"."id",
              "User"."account",
              "User"."name",
              "User"."password",
+             "User"."area",
              "User"."region"       AS "regionId",
              "User"."creator"      AS "creatorId",
              "User"."editor"       AS "editorId",
              "User"."created_at",
              "User"."updated_at",
               json_build_object(
-               'code', _region.code,
-               'name', _region.name,
-               'level', _region.level,
-               'parent', _region.parent,
-               'budget', _region.budget,
-               'created_at', _region.created_at,
-               'updated_at', _region.updated_at
+               'code', _area.code,
+               'name', _area.name
            ) AS "region"
         FROM "user" AS "User"
-               INNER JOIN "region" AS "_region" ON "User"."region" = "_region"."code"
+               INNER JOIN "area" AS _area ON "User"."area" = _area."code"
         WHERE true
         {{#if regions}}
-            AND "User"."region" IN
+            AND "User"."area" IN
             ({{#each regions}}{{? this}}{{#sep}},{{/sep}}{{/each}})
         {{/if}}
         {{#if account}}
@@ -102,8 +90,6 @@ function userListRender(params) {
                          ON "User"."id" = "ru"."user_id"
          LEFT OUTER JOIN "user" AS "editor" ON "User"."editorId" = "editor"."id"
          LEFT OUTER JOIN "user" AS "creator" ON "User"."creatorId" = "creator"."id"
-         LEFT OUTER JOIN ("user_hospital_mapping" AS "uhm" INNER JOIN "hospital" AS "hospitals" ON "hospitals"."id" = "uhm"."hospital_id")
-                         ON "User"."id" = "uhm"."user_id"
       ORDER BY "User"."created_at" DESC
      `,
     params
@@ -154,16 +140,16 @@ export default class User {
         await appDB.query(
           `
             with recursive r as (
-                select * from region
-                where code='${Context.current.user.regionId}'
+                select * from area
+                where code='${Context.current.user.areaCode}'
                 union all
-                select region.*
-                from region,
+                select area.*
+                from area,
                     r
-                where r.code = region.parent
+                where r.code = area.parent
             )
             select code
-            from r where code!='${Context.current.user.regionId}';
+            from r where code!='${Context.current.user.areaCode}';
           `,
           {
             replacements: params,
@@ -187,8 +173,10 @@ export default class User {
     const sqlObject = userListRender(sqlParams);
 
     const rows = (await appDB.execute(sqlObject[0], ...sqlObject[1])).reduce(
+      //1个用户多个角色的情况,将角色信息折叠进该用户信息内
       (pre, next) => {
         let current = pre.find(p => p.id === next.id);
+        //查找出有过这个用户,并发现有另一个角色信息,push进该用户的roles数组内
         if (current) {
           current.roles.push({
             id: next.rolesId,
@@ -216,24 +204,7 @@ export default class User {
             region: next.region,
             editorName: next.editorName,
             creatorName: next.creatorName,
-            hospital: next.hospitalId
-              ? {
-                  id: next.hospitalId,
-                  name: next.hospitalName,
-                  parent: next.hospitalParent,
-                  region: next.hospitalRegionId
-                }
-              : undefined,
-            hospitals: next.hospitalId
-              ? [
-                  {
-                    id: next.hospitalId,
-                    name: next.hospitalName,
-                    parent: next.hospitalParent,
-                    region: next.hospitalRegionId
-                  }
-                ]
-              : []
+            areaCode: next.area || ''
           });
         return pre;
       },
@@ -264,7 +235,7 @@ export default class User {
         .required()
         .allow([])
         .description('角色数组'),
-      regionId: should
+      areaCode: should
         .string()
         .required()
         .description('地区code')
@@ -289,6 +260,37 @@ export default class User {
       }));
       //批量设置用户角色关系
       await UserRoleModel.bulkCreate(roleUser);
+
+      // 兼容老代码
+      newUser.regionId = user.areaCode;
+      const regionModel = await RegionModel.findOne({
+        where: {code: newUser.areaCode}
+      });
+      if (regionModel) {
+        newUser.regionId = newUser.areaCode;
+      } else {
+        const hospitalModel = await HospitalModel.findOne({
+          where: {id: newUser.areaCode}
+        });
+        if (hospitalModel) {
+          newUser.regionId = hospitalModel.regionId;
+          await UserHospitalModel.create({
+            hospitalId: hospitalModel.id,
+            userId: newUser.id
+          });
+        } else {
+          // 中心层, 既不是区划, 也不是机构
+          const hospitalRegions = await appDB.execute(
+            `select h.region from hospital_mapping hm inner join hospital h on hm.h_id = h.id where u_id = ?`,
+            newUser.areaCode
+          );
+          if (hospitalRegions.length === 1) {
+            newUser.regionId = hospitalRegions[0].region;
+          }
+        }
+      }
+      await newUser.save();
+
       return newUser;
     });
   }
@@ -305,17 +307,20 @@ export default class User {
         .items(should.string())
         .allow([])
         .description('角色数组'),
-      regionId: should
+      areaCode: should
         .string()
         .required()
         .description('地区code')
     })
   )
   update(user) {
-    return appDB.transaction(async () => {
+    return appDB.joinTx(async () => {
       //查询用户,并锁定
-      let result = await UserModel.findOne({where: {id: user.id}, lock: true});
-      if (!result) throw new KatoCommonError('该用户不存在');
+      let userModel = await UserModel.findOne({
+        where: {id: user.id},
+        lock: true
+      });
+      if (!userModel) throw new KatoCommonError('该用户不存在');
       //查询该用户所有的角色
       const roleList = await UserRoleModel.findAll({
         where: {userId: user.id},
@@ -334,10 +339,38 @@ export default class User {
           .map(roleId => ({userId: user.id, roleId: roleId}))
       );
       //修改操作
-      await UserModel.update(
-        {...user, editorId: Context.current.user.id},
-        {where: {id: user.id}}
-      );
+      user.editorId = Context.current.user.id;
+
+      // 兼容老代码
+      await UserHospitalModel.destroy({where: {userId: user.id}});
+      user.regionId = user.areaCode;
+      const regionModel = await RegionModel.findOne({
+        where: {code: user.areaCode}
+      });
+      if (regionModel) {
+        user.regionId = user.areaCode;
+      } else {
+        const hospitalModel = await HospitalModel.findOne({
+          where: {id: user.areaCode}
+        });
+        if (hospitalModel) {
+          user.regionId = hospitalModel.regionId;
+          await UserHospitalModel.create({
+            hospitalId: hospitalModel.id,
+            userId: user.id
+          });
+        } else {
+          // 中心层, 既不是区划, 也不是机构
+          const hospitalRegions = await appDB.execute(
+            `select h.region from hospital_mapping hm inner join hospital h on hm.h_id = h.id where u_id = ?`,
+            user.areaCode
+          );
+          if (hospitalRegions.length === 1) {
+            user.regionId = hospitalRegions[0].region;
+          }
+        }
+      }
+      await UserModel.update(user, {where: {id: user.id}});
     });
   }
 
@@ -538,24 +571,6 @@ export default class User {
     );
   }
 
-  //查询该用户的机构关系
-  @validate(should.string().required())
-  async listHospital(id) {
-    //查询用户是否存在
-    const result = await UserModel.findOne({
-      where: {id},
-      paranoid: false,
-      attributes: {exclude: ['deleted_at']},
-      include: {
-        model: HospitalModel,
-        paranoid: false,
-        attributes: {exclude: ['deleted_at']}
-      }
-    });
-    if (!result) throw new KatoCommonError('该用户不存在');
-    return result;
-  }
-
   async profile() {
     return Context.current.user;
   }
@@ -574,48 +589,6 @@ export default class User {
       if (!user) throw new KatoCommonError('该用户不存在');
       user.name = params.name;
       return UserModel.update(user, {where: {id: user.id}});
-    });
-  }
-
-  @validate(
-    should.object({
-      id: should
-        .string()
-        .required()
-        .description('用户id'),
-      region: should
-        .string()
-        .required()
-        .description('地区code'),
-      hospitalId: should
-        .string()
-        .allow('', null)
-        .description('机构id')
-    })
-  )
-  async setPermission(params) {
-    return appDB.transaction(async () => {
-      let {id, region, hospitalId} = params;
-      //查询用户是否存在
-      const user = await UserModel.findOne({
-        where: {id}
-      });
-      if (!user) throw new KatoCommonError('该用户不存在');
-      //清空其机构绑定
-      await UserHospitalModel.destroy({where: {userId: id}});
-      if (hospitalId) {
-        //查询机构是否存在
-        const hospital = await HospitalModel.findOne({
-          where: {id: hospitalId}
-        });
-        if (!hospital) throw new KatoCommonError('该机构不存在');
-        //绑定新的机构
-        await UserHospitalModel.create({userId: id, hospitalId: hospitalId});
-        //修改地区绑定
-        region = hospital.regionId;
-      }
-      user.regionId = region;
-      return await user.save();
     });
   }
 

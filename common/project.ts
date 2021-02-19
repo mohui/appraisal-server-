@@ -1,14 +1,19 @@
 /**
  * 工分项
  */
-export const Projects = [
+export const Projects: {
+  id: string;
+  name: string;
+  mappings: {id: string; name: string; type: string}[];
+}[] = [
+  // region 居民健康档案相关工分项
   {
     id: '010101',
-    name: '建立居民健康档案',
+    name: '新建电子档案',
     mappings: [
       {
         id: '010101',
-        name: '建立居民健康档案',
+        name: '新建电子档案',
         type: '340203'
       }
     ]
@@ -18,7 +23,7 @@ export const Projects = [
     name: '档案核查',
     mappings: [
       {
-        id: '010104',
+        id: '010301',
         name: '档案核查',
         type: '340203'
       }
@@ -26,29 +31,29 @@ export const Projects = [
   },
   {
     id: '010201',
-    name: '健康档案的更新维护',
+    name: '动态记录档案管理',
     mappings: [
       {
         id: '010201',
-        name: '健康档案的更新维护',
+        name: '动态记录档案管理',
         type: '340203'
       }
     ]
   },
   {
     id: '010202',
-    name: '常规体格检查相关',
+    name: '常规体格检查',
     mappings: [
       {
         id: '010202',
-        name: '常规体格检查相关',
+        name: '常规体格检查',
         type: '340203'
       }
     ]
   },
   {
     id: '010301',
-    name: '居民电子健康档案数据核对',
+    name: '档案核查',
     mappings: [
       {
         id: '010301',
@@ -68,6 +73,8 @@ export const Projects = [
       }
     ]
   },
+  // endregion
+  // region 健康教育相关工分项
   {
     id: '020101',
     name: '发放印刷材料',
@@ -123,6 +130,8 @@ export const Projects = [
       }
     ]
   },
+  // endregion
+  // region 老年人健康管理相关工分项
   {
     id: '060101',
     name: '老年人健康体检',
@@ -130,6 +139,19 @@ export const Projects = [
       {
         id: '060101',
         name: '老年人健康体检',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  // region 高血压相关工分项
+  {
+    id: '070101',
+    name: '新增1例高血压患者',
+    mappings: [
+      {
+        id: '070101',
+        name: '新增1例高血压患者',
         type: '340203'
       }
     ]
@@ -211,6 +233,19 @@ export const Projects = [
       }
     ]
   },
+  // endregion
+  // region 糖尿病相关工分项
+  {
+    id: '080101',
+    name: '新增1例2-型糖尿病患者',
+    mappings: [
+      {
+        id: '080101',
+        name: '新增1例2-型糖尿病患者',
+        type: '340203'
+      }
+    ]
+  },
   {
     id: '080201',
     name: '糖尿病第一次随访',
@@ -288,6 +323,20 @@ export const Projects = [
       }
     ]
   },
+  // endregion
+  // region 中医药健康管理相关工分项
+  {
+    id: '110101',
+    name: '老年人中医体质辨识',
+    mappings: [
+      {
+        id: '110101',
+        name: '老年人中医体质辨识',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
   {
     id: '090302',
     name: '年检精神病健康体检',
@@ -312,17 +361,6 @@ export const Projects = [
         id: '1',
         name: '高血压',
         type: '340222'
-      }
-    ]
-  },
-  {
-    id: '110101',
-    name: '中医药指导',
-    mappings: [
-      {
-        id: '110101',
-        name: '中医药指导',
-        type: '340203'
       }
     ]
   },
@@ -353,13 +391,14 @@ export const Projects = [
       }
     ]
   },
+  // region 家庭医生签约
   {
     id: '20010101',
-    name: '签约服务',
+    name: '无偿签约',
     mappings: [
       {
         id: '20010101',
-        name: '签约服务',
+        name: '无偿签约',
         type: '340203'
       }
     ]
@@ -508,6 +547,17 @@ export const Projects = [
     ]
   },
   {
+    id: '20010313',
+    name: '骨密度测定或眼底',
+    mappings: [
+      {
+        id: '20010313',
+        name: '骨密度测定或眼底',
+        type: '340203'
+      }
+    ]
+  },
+  {
     id: '20010314',
     name: '血常规检查（三分类）',
     mappings: [
@@ -607,6 +657,29 @@ export const Projects = [
     ]
   },
   {
+    id: '20010323',
+    name: '乙肝两对半检查',
+    mappings: [
+      {
+        id: '20010323',
+        name: '乙肝两对半检查',
+        type: '340203'
+      }
+    ]
+  },
+  {
+    id: '20010324',
+    name: '颈椎正侧位片',
+    mappings: [
+      {
+        id: '20010324',
+        name: '颈椎正侧位片',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  {
     id: '3',
     name: '签约服务',
     mappings: [
@@ -673,39 +746,6 @@ export const Projects = [
       {
         id: '81',
         name: '糖尿病年检',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010313',
-    name: '骨密度测定或眼底',
-    mappings: [
-      {
-        id: '20010313',
-        name: '骨密度测定或眼底',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010323',
-    name: '乙肝两对半检查',
-    mappings: [
-      {
-        id: '20010323',
-        name: '乙肝两对半检查',
-        type: '340203'
-      }
-    ]
-  },
-  {
-    id: '20010324',
-    name: '颈椎正侧位片',
-    mappings: [
-      {
-        id: '20010324',
-        name: '颈椎正侧位片',
         type: '340203'
       }
     ]

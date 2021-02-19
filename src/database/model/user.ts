@@ -17,6 +17,7 @@ import {UserRole} from './user_role';
 import {Hospital} from './hospital';
 import {UserHospital} from './user_hospital';
 import {Region} from './region';
+import {Area} from './group/area';
 
 @Table({tableName: 'user'})
 export class User extends Model<User> {
@@ -38,6 +39,13 @@ export class User extends Model<User> {
   @Comment('密码')
   @Column
   password: string;
+
+  @ForeignKey(() => Area)
+  @Comment('地区code')
+  @Column({field: 'area'})
+  areaCode: string;
+  @BelongsTo(() => Area)
+  area: Area;
 
   //多对一个地区
   @ForeignKey(() => Region)

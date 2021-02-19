@@ -280,15 +280,6 @@
       </div>
     </el-card>
     <el-dialog title="指标库" :visible.sync="dialogStandardVisible">
-      <el-link
-        target="_blank"
-        download
-        href="/2020系统考核规则详解共识.pdf"
-        :underline="false"
-        style="position: absolute;top: 20px;left: 100px;"
-      >
-        <el-button plain size="small" type="primary">指标解读下载</el-button>
-      </el-link>
       <el-tabs type="card" @tab-click="handleClick" v-model="curTag">
         <el-tab-pane
           v-for="i of markTags"
@@ -442,8 +433,8 @@ import Vue from 'vue';
 import dayjs from 'dayjs';
 import {
   MarkTags,
-  TagAlgorithm,
   MarkTagUsages,
+  TagAlgorithm,
   TagAlgorithmUsages
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
@@ -475,7 +466,6 @@ export default {
   },
   created() {
     this.checkId = this.$route.query.checkId;
-    this.checkName = decodeURIComponent(this.$route.query.checkName);
     this.getRuleList();
   },
   methods: {
@@ -545,11 +535,9 @@ export default {
     //获取细则列表
     async getRuleList() {
       try {
-        let result = await this.$api.CheckSystem.listRule({
-          checkId: this.checkId
-        });
-
-        if (result.count > 0) {
+        let result = await this.$api.CheckSystem.detail(this.checkId);
+        this.checkName = result.check_name;
+        if (result.rows.length > 0) {
           this.ruleList = result.rows.map(
             it =>
               new Vue({
@@ -813,7 +801,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'
@@ -1011,7 +999,7 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.CheckSystem.removeRule(row.ruleId);
+            await this.$api.CheckAreaEdit.deleteRule(row.ruleId);
             this.$message({
               type: 'success',
               message: '删除成功!'

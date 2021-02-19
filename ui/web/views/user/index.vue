@@ -225,54 +225,16 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label=" " :label-width="formLabelWidth">
-          <el-button-group>
-            <el-button
-              :type="userForm.isRegion ? 'primary' : 'default'"
-              size="mini"
-              @click="toggleRegion"
-            >
-              行政区域
-            </el-button>
-            <el-button
-              :type="!userForm.isRegion ? 'primary' : 'default'"
-              @click="toggleRegion"
-              size="mini"
-            >
-              医疗机构
-            </el-button>
-          </el-button-group>
-        </el-form-item>
         <el-form-item
-          label="所属地区"
-          prop="regionId"
+          label="所属权限"
+          prop="areaCode"
           :label-width="formLabelWidth"
         >
           <el-cascader
-            v-model="userForm.regionId"
+            v-model="userForm.areaCode"
             :placeholder="userForm.region.name || '请选择地区'"
             style="width: 100%"
             :props="regionList"
-            collapse-tags
-            filterable
-          ></el-cascader>
-        </el-form-item>
-        <el-form-item
-          label="管理机构"
-          prop="hospitals"
-          v-show="!userForm.isRegion"
-          :label-width="formLabelWidth"
-        >
-          <el-cascader
-            ref="hospital"
-            v-model="userForm.hospitals"
-            placeholder="请选择机构"
-            style="width: 100%"
-            :props="{
-              lazy: true,
-              checkStrictly: true,
-              lazyLoad: hospitalResolver
-            }"
             collapse-tags
             filterable
           ></el-cascader>
@@ -338,54 +300,16 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label=" " :label-width="formLabelWidth">
-          <el-button-group>
-            <el-button
-              :type="userForm.isRegion ? 'primary' : 'default'"
-              size="mini"
-              @click="toggleRegion"
-            >
-              行政区域
-            </el-button>
-            <el-button
-              :type="!userForm.isRegion ? 'primary' : 'default'"
-              @click="toggleRegion"
-              size="mini"
-            >
-              医疗机构
-            </el-button>
-          </el-button-group>
-        </el-form-item>
         <el-form-item
-          label="所属地区"
-          prop="regionId"
+          label="所属权限"
+          prop="areaCode"
           :label-width="formLabelWidth"
         >
           <el-cascader
-            v-model="userForm.regionId"
+            v-model="userForm.areaCode"
             :placeholder="userForm.region.name || '请选择地区'"
             style="width: 100%"
             :props="regionList"
-            collapse-tags
-            filterable
-          ></el-cascader>
-        </el-form-item>
-        <el-form-item
-          label="管理机构"
-          prop="hospitals"
-          v-show="!userForm.isRegion"
-          :label-width="formLabelWidth"
-        >
-          <el-cascader
-            ref="hospital"
-            v-model="userForm.hospitals"
-            :placeholder="userForm.hospital.name || '请选择机构'"
-            style="width: 100%"
-            :props="{
-              lazy: true,
-              checkStrictly: true,
-              lazyLoad: hospitalResolver
-            }"
             collapse-tags
             filterable
           ></el-cascader>
@@ -420,7 +344,7 @@ export default {
         roles: [],
         isRegion: true,
         region: {name: ''},
-        regionId: '',
+        areaCode: '',
         hospital: {name: ''},
         hospitals: []
       },
@@ -442,6 +366,7 @@ export default {
       regionList: {
         lazy: true,
         checkStrictly: true,
+        emitPath: false,
         async lazyLoad(node, resolve) {
           const {level, value = null} = node;
           const region = (await that.region(value)).map(it => ({
@@ -484,12 +409,6 @@ export default {
         this.searchForm.pageNo = 1;
       },
       deep: true
-    },
-    ['userForm.regionId']: {
-      handler() {
-        this.$refs.hospital?.panel?.lazyLoad();
-      },
-      deep: true
     }
   },
   asyncComputed: {
@@ -524,11 +443,6 @@ export default {
     }
   },
   methods: {
-    toggleRegion() {
-      this.userForm.isRegion = !this.userForm.isRegion;
-      this.userForm.hospitals = [];
-      this.userForm.hospital.name = '';
-    },
     async resetPassword() {
       try {
         await this.$api.User.resetPassword(this.userForm.id);
@@ -553,32 +467,9 @@ export default {
         pageNo: 1
       };
     },
-    //异步加载机构列表
-    async hospitalResolver(node, resolve) {
-      const regionId = Array.isArray(this.userForm.regionId)
-        ? this.userForm.regionId[this.userForm.regionId.length - 1]
-        : this.userForm.regionId || null;
-      try {
-        let {level, value = regionId} = node;
-        const region = (level === 0
-          ? await this.$api.Region.listHospital(value)
-          : await this.$api.Hospital.list(value)
-        ).map(it => ({
-          value: it.code || it.id,
-          label: it.name,
-          leaf: level >= 2
-        }));
-        resolve(region);
-      } catch (e) {
-        console.log(e);
-        resolve([
-          {value: 'err', label: '请先选择所属地区', disabled: true, leaf: true}
-        ]);
-      }
-    },
     //异步加载地区列表
     async region(code) {
-      return await this.$api.Region.list(code);
+      return await this.$api.Group.children(code);
     },
     //打开新建用户对话框
     openAddUserDialog() {
@@ -590,7 +481,7 @@ export default {
         roles: [],
         isRegion: true,
         region: {name: ''},
-        regionId: '',
+        areaCode: '',
         hospital: {name: ''},
         hospitals: []
       };
@@ -599,35 +490,15 @@ export default {
     async addUser() {
       this.$refs.userFormAdd.validate(async valid => {
         if (valid) {
-          let {
-            account,
-            password,
-            name,
-            roles,
-            regionId,
-            hospitals
-          } = this.userForm;
-          regionId = Array.isArray(regionId)
-            ? regionId[regionId.length - 1]
-            : regionId;
+          let {account, password, name, roles, areaCode} = this.userForm;
           try {
-            let result = await this.$api.User.addUser({
+            await this.$api.User.addUser({
               account,
               password,
               name,
               roles,
-              regionId
+              areaCode
             });
-            let hospitalId = hospitals.length
-              ? hospitals[hospitals.length - 1]
-              : '';
-            if (regionId) {
-              await this.$api.User.setPermission({
-                id: result.id,
-                region: regionId,
-                hospitalId: hospitalId
-              });
-            }
             this.$message({
               type: 'success',
               message: '新建用户成功!'
@@ -645,10 +516,7 @@ export default {
     },
     //设置用户编辑状态，并打开对话框
     editUser(item) {
-      this.userForm = Object.assign(
-        {hospital: {name: ''}, isRegion: !item.row.hospitals.length},
-        item.row
-      );
+      this.userForm = Object.assign({}, item.row);
       this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
@@ -656,23 +524,8 @@ export default {
       this.$refs.userFormEdit.validate(async valid => {
         if (valid) {
           try {
-            let {id, name, roles, regionId, hospitals} = this.userForm;
-            regionId = Array.isArray(regionId)
-              ? regionId[regionId.length - 1]
-              : regionId;
-            await this.$api.User.update({id, name, roles, regionId});
-            if (regionId) {
-              let hospitalId = hospitals.length
-                ? hospitals[hospitals.length - 1].id
-                  ? hospitals[hospitals.length - 1].id
-                  : hospitals[hospitals.length - 1]
-                : '';
-              await this.$api.User.setPermission({
-                id,
-                region: regionId,
-                hospitalId: hospitalId
-              });
-            }
+            let {id, name, roles, areaCode} = this.userForm;
+            await this.$api.User.update({id, name, roles, areaCode});
             this.$message({
               type: 'success',
               message: '保存成功!'
