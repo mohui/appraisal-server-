@@ -151,6 +151,15 @@ export class Application {
         console.log(`定时任务失败: ${e}`);
       }
     });
+    // 数据同步和数据标记的邮件报警
+    cron.schedule(config.get('checkETL.cron'), async () => {
+      try {
+        const api = new (require('./api/report').default)();
+        await api.checkTimming();
+      } catch (e) {
+        console.log(`定时任务检查表数据失败: ${e}`);
+      }
+    });
   }
 
   async initBackJob(app) {

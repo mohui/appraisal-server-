@@ -84,5 +84,20 @@ module.exports = {
     //     bucket: 'knrt-doctor-app'
     //   }
     // }
-  ]
+  ],
+  // etl检查任务的配置
+  checkETL: {
+    cron: '00 00 07 * * *',
+    email: {
+      // 发件人配置
+      sender: {
+        host: '',
+        port: '',
+        email: '',
+        password: ''
+      },
+      // 收件人配置
+      receivers: ['']
+    }
+  }
 };
