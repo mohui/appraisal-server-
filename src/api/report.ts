@@ -375,7 +375,7 @@ export default class Report {
     const tableName = selViewZero.map(it => it.table).join(',');
     if (selViewZero.length === 0) return;
     /**
-     * 如果存在为零的数据, 说明有的表跑数据失败, 需要发送邮件
+     * 如果存在为零的数据或者历史记录没有删除干净的数据, 说明有的表跑数据失败, 需要发送邮件
      */
     const transporter = createTransport({
       host: config.get('checkETL.email.sender.host'),
@@ -391,7 +391,7 @@ export default class Report {
       from: config.get<string>('checkETL.email.sender.email'), // 发件地址
       to: config.get<Array<string>>('checkETL.email.receivers').join(','), // 收件列表
       subject: '自动任务有异常数据', // 标题
-      html: `以下表的数据没有跑${tableName}`
+      html: `以下表的数据存在异常${tableName}`
     };
 
     try {
