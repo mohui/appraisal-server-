@@ -53,8 +53,7 @@ async function yearGetCheckId(code, year) {
  * 获取年份
  */
 export function getYear(year) {
-  if (!year) year = dayjs().format('YYYY');
-  else year = year.toString();
+  if (!year) year = dayjs().year();
   return year;
 }
 
@@ -815,7 +814,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
