@@ -2,6 +2,7 @@ const nodeExternals = require('webpack-node-externals');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const {CheckerPlugin: TSCheckerPlugin} = require('awesome-typescript-loader');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   target: 'node',
@@ -76,6 +77,10 @@ module.exports = {
   ],
   plugins: [
     new CleanWebpackPlugin(),
+    new CopyWebpackPlugin([{from: 'src/resources/template.docx'}], {
+      ignore: ['.DS_Store'],
+      copyUnmodified: true
+    }),
     new TSCheckerPlugin(),
     new FriendlyErrorsWebpackPlugin()
   ]
