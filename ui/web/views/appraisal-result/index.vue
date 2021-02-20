@@ -964,13 +964,11 @@ export default {
       params: {
         listFlag: 'quality', // quality(质量系数) | score（工分值）
         id: this.$settings.user.code,
-        year: this.$dayjs()
-          .year()
-          .toString() //考核年份，默认为当前年
+        year: this.$dayjs().year() //考核年份，默认为当前年
       },
       yearList: [
-        {value: '2020', label: '2020年度'},
-        {value: '2021', label: '2021年度'}
+        {value: 2020, label: '2020年度'},
+        {value: 2021, label: '2021年度'}
       ],
       totalShowMore: false,
       dialogUploadAppraisalFileVisible: false,
@@ -1397,11 +1395,7 @@ export default {
     },
     initParams(route) {
       this.params.listFlag = route.query.listFlag ?? 'quality';
-      this.params.year =
-        route.query.year ??
-        this.$dayjs()
-          .year()
-          .toString();
+      this.params.year = Number(route.query.year ?? this.$dayjs().year());
       this.params.id = route.query.id ?? this.$settings.user.code;
     },
     //纬度切换
