@@ -156,8 +156,9 @@ export class Application {
       try {
         const api = new (require('./api/report').default)();
         await api.checkTimming();
+        console.log('数据同步检查任务完成');
       } catch (e) {
-        console.log(`定时任务检查表数据失败: ${e}`);
+        console.log(`数据同步检查任务失败: ${e}`);
       }
     });
   }
