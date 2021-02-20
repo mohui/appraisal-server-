@@ -84,7 +84,10 @@ export default class JxReport {
     //TODO: 调试代码, 正式完成后删除
     if (!params) params = exampleData;
     //读取模板文件
-    const content = await fs.readFile('./template.docx', 'binary');
+    const content = await fs.readFile(
+      path.join(__dirname, './template.docx'),
+      'binary'
+    );
     //新建doc对象
     const doc = new Docxtemplater(new PizZip(content));
     //设置数据
