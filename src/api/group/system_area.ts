@@ -54,6 +54,7 @@ async function yearGetCheckId(code, year) {
  */
 export function getYear(year) {
   if (!year) year = dayjs().format('YYYY');
+  else year = year.toString();
   return year;
 }
 
@@ -72,7 +73,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -130,7 +131,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -204,7 +205,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -227,10 +228,10 @@ export default class SystemArea {
         areaCode: code,
         checkId,
         date: {
-          [Op.gte]: dayjs(year)
+          [Op.gte]: dayjs(year.toString())
             .startOf('y')
             .toDate(),
-          [Op.lt]: dayjs(year)
+          [Op.lt]: dayjs(year.toString())
             .startOf('y')
             .add(1, 'y')
             .toDate()
@@ -252,7 +253,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -327,7 +328,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -358,7 +359,7 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        YearDegree: dayjs(year).year()
+        YearDegree: year
       }
     );
     // 履约人数
@@ -373,10 +374,12 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        startTime: dayjs(year)
+        startTime: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs(year)
+        endTime: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -394,11 +397,14 @@ export default class SystemArea {
               and vsr.YearDegree = {{? vsrYearDegree}}
           `,
       {
-        YearDegree: dayjs(year)
+        YearDegree: dayjs()
+          .year(year)
           .add(-1, 'y')
           .year(),
         hisHospIds,
-        vsrYearDegree: dayjs(year).year()
+        vsrYearDegree: dayjs()
+          .year(year)
+          .year()
       }
     );
     const sqlResults = await Promise.all(
@@ -432,7 +438,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -479,10 +485,12 @@ export default class SystemArea {
       `,
       {
         hisHospIds,
-        start: dayjs(year)
+        start: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        end: dayjs(year)
+        end: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -505,7 +513,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -551,10 +559,12 @@ export default class SystemArea {
     `,
       {
         hisHospIds,
-        start: dayjs(year)
+        start: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        end: dayjs(year)
+        end: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -578,7 +588,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -640,10 +650,12 @@ export default class SystemArea {
         order by vhe.ActivityTime desc
       `,
       {
-        startTime: dayjs(year)
+        startTime: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs(year)
+        endTime: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate(),
@@ -681,7 +693,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )

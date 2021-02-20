@@ -27,7 +27,7 @@ export default class SystemRule {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
