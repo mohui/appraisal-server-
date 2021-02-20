@@ -227,10 +227,12 @@ export default class SystemArea {
         areaCode: code,
         checkId,
         date: {
-          [Op.gte]: dayjs(year.toString())
+          [Op.gte]: dayjs()
+            .year(year)
             .startOf('y')
             .toDate(),
-          [Op.lt]: dayjs(year.toString())
+          [Op.lt]: dayjs()
+            .year(year)
             .startOf('y')
             .add(1, 'y')
             .toDate()
@@ -401,9 +403,7 @@ export default class SystemArea {
           .add(-1, 'y')
           .year(),
         hisHospIds,
-        vsrYearDegree: dayjs()
-          .year(year)
-          .year()
+        vsrYearDegree: year
       }
     );
     const sqlResults = await Promise.all(
