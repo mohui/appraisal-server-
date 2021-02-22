@@ -103,7 +103,7 @@ export default {
   asyncComputed: {
     hospitalListServerData: {
       async get() {
-        let code = this.$settings.user.region.code;
+        let code = this.$settings.user.code;
         return await Promise.all(
           (await this.$api.SystemArea.rank(code, this.year)).map(async item => {
             item.hasChildren =
