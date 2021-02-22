@@ -535,6 +535,52 @@
                 </div>
               </div>
             </el-tab-pane>
+            <el-tab-pane name="maternal" :disabled="!maternalDate.length">
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.maternalServerDate.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                孕产妇健康管理记录
+              </span>
+              <div>
+                <div v-for="(item, index) of maternalDate" :key="index">
+                  <div style="font-size: 22px; margin:20px 0">
+                    第{{ index + 1 }}次生产记录
+                  </div>
+                  <div>
+                    <div
+                      style="font-size: 20px; margin:10px 0"
+                      v-for="(it, itIndex) in item"
+                      :key="itIndex"
+                    >
+                      <div>{{ it.name }}</div>
+                      <div
+                        v-for="(record, recordIndex) of it.records"
+                        :key="recordIndex"
+                      >
+                        <div class="notes-block">
+                          <span class="hospital"
+                            >体检时间：{{ record.updated_at }}</span
+                          >
+                        </div>
+                        <p>
+                          身高：{{ record.stature }} 体重：{{
+                            record.weight
+                          }}
+                          体温：{{ record.temperature }} 症状：{{
+                            record.symptom
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -602,6 +648,9 @@ export default {
         it.checkDate = it.checkDate ? it.checkDate.$format('YYYY-MM-DD') : '';
         return it;
       });
+    },
+    maternalDate() {
+      return this.maternalServerDate;
     }
   },
   asyncComputed: {
@@ -675,6 +724,14 @@ export default {
     oldManSelfCare: {
       async get() {
         return await this.$api.Person.oldManSelfCare(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    maternalServerDate: {
+      async get() {
+        return await this.$api.Person.maternalHealthCheck(this.id);
       },
       default() {
         return [];
