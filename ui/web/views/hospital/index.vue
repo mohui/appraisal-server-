@@ -79,6 +79,12 @@ export default {
       ]
     };
   },
+  watch: {
+    year() {
+      // 年度改变时先将数据清空再重新在异步计算属性中加载
+      this.hospitalListServerData = [];
+    }
+  },
   computed: {
     hospitalListData() {
       const currentData = this.hospitalListServerData;
