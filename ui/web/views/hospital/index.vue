@@ -79,6 +79,12 @@ export default {
       ]
     };
   },
+  watch: {
+    year() {
+      // 年度改变时先将数据清空再重新在异步计算属性中加载
+      this.hospitalListServerData = [];
+    }
+  },
   computed: {
     hospitalListData() {
       const currentData = this.hospitalListServerData;
@@ -97,7 +103,7 @@ export default {
   asyncComputed: {
     hospitalListServerData: {
       async get() {
-        let code = this.$settings.user.region.code;
+        let code = this.$settings.user.code;
         return await Promise.all(
           (await this.$api.SystemArea.rank(code, this.year)).map(async item => {
             item.hasChildren =
