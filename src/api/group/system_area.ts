@@ -14,7 +14,7 @@ import {
 } from '../../database/model';
 import {Op} from 'sequelize';
 import {sql as sqlRender} from '../../database/template';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
@@ -973,16 +973,20 @@ export default class SystemArea {
 
   //机构付款凭证接口
   @validate(
-    should.object({
-      area: should.string(),
-      year: should.string().description('年份'),
-      money: should.number().description('金额'),
-      vouchers: should.array().description('凭证')
-    })
+    should.string(),
+    should.string().description('年份'),
+    should.number().description('金额'),
+    should.description('凭证')
   )
-  async vouchers(params) {
+  async vouchers(area, year, money, vouchers) {
     return appDB.transaction(async () => {
-      return AreaVoucherModel.upsert(params);
+      const fileName =
+        '/vouchers/' +
+        dayjs().format('YYYY-MM-DDTHH:mm:ss') +
+        vouchers.originalname;
+      await unifs.writeFile(fileName, vouchers.buffer);
+
+      return AreaVoucherModel.upsert({area, year, money, vouchers: [fileName]});
     });
   }
 }
