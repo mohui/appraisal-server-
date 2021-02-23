@@ -1481,6 +1481,20 @@ export default class Person {
     return result;
   }
 
+  /**
+   * 第 1 次产前检查服务记录表详情
+   * @param id 母子健康手册表中的主键（pre_newlydiagnosedcode）
+   */
+  async firstPrenatalCheck(code) {
+    // 第一次产前检查信息表
+    // language=PostgreSQL
+    const newlyDiagnosed = await originalDB.execute(
+      `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
+      code
+    );
+    return newlyDiagnosed[0];
+  }
+
   /***
    * 个人档案详情
    * @param id
