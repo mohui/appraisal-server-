@@ -2,6 +2,7 @@ import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
   AreaModel,
+  AreaVoucherModel,
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
@@ -968,6 +969,21 @@ export default class SystemArea {
     } catch (e) {
       throw new KatoCommonError(e.message);
     }
+  }
+
+  //机构付款凭证接口
+  @validate(
+    should.object({
+      area: should.string(),
+      year: should.string().description('年份'),
+      money: should.number().description('金额'),
+      vouchers: should.array().description('凭证')
+    })
+  )
+  async vouchers(params) {
+    return appDB.transaction(async () => {
+      return AreaVoucherModel.upsert(params);
+    });
   }
 }
 
