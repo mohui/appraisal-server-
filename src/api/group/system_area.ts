@@ -166,20 +166,29 @@ export default class SystemArea {
         }
       }
     });
-    return areaList.map(it => {
-      const item = reportAreas.find(report => report.areaCode === it.code);
-
-      return {
-        code: it.code,
-        name: it.name,
-        budget: item ? Number(item.budget) : 0,
-        workPoint: item ? Number(item.workPoint) : 0,
-        totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
-        correctWorkPoint: item ? Number(item.correctWorkPoint) : 0,
-        score: item ? Number(item.score) : 0,
-        rate: item ? Number(item.rate) : 0
-      };
-    });
+    return await Promise.all(
+      areaList.map(async it => {
+        const item = reportAreas.find(report => report.areaCode === it.code);
+        const areaVouchers: {
+          money: 0;
+          vouchers: [];
+        } = await AreaVoucherModel.findOne({
+          where: {area: it.code, year: year}
+        });
+        return {
+          code: it.code,
+          name: it.name,
+          budget: item ? Number(item.budget) : 0,
+          workPoint: item ? Number(item.workPoint) : 0,
+          totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
+          correctWorkPoint: item ? Number(item.correctWorkPoint) : 0,
+          score: item ? Number(item.score) : 0,
+          rate: item ? Number(item.rate) : 0,
+          money: areaVouchers?.money ?? 0,
+          vouchers: areaVouchers?.vouchers ?? []
+        };
+      })
+    );
   }
 
   /**
