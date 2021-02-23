@@ -99,6 +99,7 @@
             accept=".jpg,.jpeg,.gif,.png,.doc"
             :headers="headers"
             multiple
+            :file-list="fileList"
             :auto-upload="false"
             :on-success="voucherUploadVisibleSuccess"
             :on-error="voucherUploadVisibleError"
@@ -115,6 +116,13 @@
           </el-upload>
         </el-form-item>
       </el-form>
+      <div v-for="image of currentHospital.vouchers" :key="image">
+        <el-image
+          style="max-height: 300px;max-width: 600px;margin: 10px"
+          :src="image"
+          fit="cover"
+        ></el-image>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button plain @click="voucherUploadVisible = false"
           >取 消
@@ -139,6 +147,7 @@ export default {
         {value: '2020', label: '2020年度'},
         {value: '2021', label: '2021年度'}
       ],
+      fileList: [],
       voucherUploadVisible: false,
       currentHospital: {},
       headers: {token: getToken()}
@@ -225,8 +234,11 @@ export default {
       console.log(value);
       this.year = value;
     },
-    openVoucherDialog(row) {
+    async openVoucherDialog(row) {
       this.currentHospital = row;
+      this.currentHospital.vouchers = await Promise.all(
+        this.currentHospital.vouchers.map(async it => this.getImageUrl(it))
+      );
       this.voucherUploadVisible = true;
     },
     async handleSaveUploadFile() {
@@ -241,12 +253,20 @@ export default {
       }
       //手动将文件列表清空
       this.fileList = [];
-      this.dialogUploadAppraisalFileVisible = false;
+      this.voucherUploadVisible = false;
+      this.$asyncComputed.hospitalListServerData.update();
     },
     //文件上传失败
     voucherUploadVisibleError() {
       this.$message.error('文件上传失败');
       this.dialogUploadAppraisalFileVisible = false;
+    },
+    async getImageUrl(url) {
+      try {
+        return await this.$api.Report.sign(url);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 };
