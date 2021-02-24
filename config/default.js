@@ -85,7 +85,7 @@ module.exports = {
     //   }
     // },
     // {
-    //   path: '/vouchers',
+    //   path: '/vouchers/appraisal/vouchers/', //文件路径
     //   type: 'local',
     //   options: {
     //     base: '/vouchers',

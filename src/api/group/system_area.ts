@@ -990,7 +990,7 @@ export default class SystemArea {
   async vouchers(area, year, money, vouchers) {
     return appDB.transaction(async () => {
       const fileName =
-        '/vouchers/' +
+        '/vouchers/appraisal/vouchers/' +
         dayjs().format('YYYY-MM-DDTHH:mm:ss') +
         vouchers.originalname;
       await unifs.writeFile(fileName, vouchers.buffer);
