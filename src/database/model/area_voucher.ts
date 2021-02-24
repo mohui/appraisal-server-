@@ -8,7 +8,7 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript';
-import {Area} from './area';
+import {Area} from './group/area';
 
 @Table({tableName: 'area_voucher'})
 export class AreaVoucher extends Model<AreaVoucher> {
