@@ -1000,7 +1000,16 @@ export default class SystemArea {
   }
 
   //凭证查询
-  @validate(should.string().allow(null), should.string().allow(null))
+  @validate(
+    should
+      .string()
+      .required()
+      .allow(null),
+    should
+      .string()
+      .required()
+      .allow(null)
+  )
   async getVouchers(area, year) {
     return AreaVoucherModel.findOne({where: {area, year}});
   }
