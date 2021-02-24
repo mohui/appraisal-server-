@@ -13,7 +13,7 @@ export class AreaVoucherMigration implements IMigration {
         (
           "year"       varchar(10)              NOT NULL,
           "area"       varchar(255)             NOT NULL REFERENCES "area" ("code") ON DELETE NO ACTION ON UPDATE CASCADE,
-          "money"      FLOAT DEFAULT 0,
+          "money"      decimal(15,4) DEFAULT 0,
           "vouchers"   varchar(255)[],
           "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
