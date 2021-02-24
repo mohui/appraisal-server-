@@ -116,27 +116,32 @@
             </el-button>
           </el-upload>
         </el-form-item>
-        <el-form-item label="图片凭证">
+        <div
+          v-show="currentHospital.vouchers.length > 0"
+          style="height: 300px; display: flex;"
+        >
           <div
-            style="display: flex;flex-direction: column;height: 300px;overflow: scroll"
+            v-for="image of currentHospital.vouchers"
+            style="height: 200px;width: 200px;margin: 5px"
+            :key="image.key"
           >
-            <div v-for="image of currentHospital.vouchers" :key="image.key">
-              <el-image
-                style="max-height: 300px;width: 100%;margin: 10px 0"
-                :src="image.url"
-                fit="cover"
-              >
-              </el-image>
+            <el-image
+              style="height: 100%;width: 100%;cursor: pointer"
+              :src="image.url"
+              fit="fill"
+              @click="viewImage(image.url)"
+            />
+            <div style="text-align: center;">
               <el-button
+                style="margin: 0"
+                type="text"
                 size="mini"
-                type="danger"
-                icon="el-icon-delete"
                 @click="removeVoucher(image)"
                 >删除</el-button
               >
             </div>
           </div>
-        </el-form-item>
+        </div>
       </el-form>
 
       <div slot="footer" class="dialog-footer">
@@ -165,7 +170,7 @@ export default {
       ],
       fileList: [],
       voucherUploadVisible: false,
-      currentHospital: {},
+      currentHospital: {vouchers: []},
       headers: {token: getToken()}
     };
   },
@@ -277,6 +282,9 @@ export default {
     },
     onChange(file, fileList) {
       this.fileList = fileList;
+    },
+    viewImage(url) {
+      window.open(url);
     },
     async removeVoucher(image) {
       this.currentHospital.vouchers = this.currentHospital.vouchers.filter(
