@@ -998,6 +998,12 @@ export default class SystemArea {
       return AreaVoucherModel.upsert({area, year, money, vouchers: [fileName]});
     });
   }
+
+  //凭证查询
+  @validate(should.string().allow(null), should.string().allow(null))
+  async getVouchers(area, year) {
+    return AreaVoucherModel.findOne({where: {area, year}});
+  }
 }
 
 /**
