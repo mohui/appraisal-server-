@@ -53,7 +53,7 @@ export function percentString(numerator: number, denominator: number): string {
  * @param group 地区code
  * @param year 标记数据的年份
  */
-async function getMarks(
+export async function getMarks(
   group: string,
   year: number
 ): Promise<{
@@ -227,7 +227,7 @@ where OperateOrganization = {{? id}}
  * @param tag 基础数据的tag
  * @param year 年份
  */
-async function getBasicData(
+export async function getBasicData(
   leaves: AreaTreeNode[],
   tag: string,
   year: number
