@@ -1027,6 +1027,29 @@ export default class SystemArea {
   async getVouchers(area, year) {
     return AreaVoucherModel.findOne({where: {area, year}});
   }
+
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.string().allow(null)
+  )
+  async removeVoucher(area, year, imageKey) {
+    return appDB.transaction(async () => {
+      const areaVoucher = await AreaVoucherModel.findOne({
+        where: {area, year}
+      });
+      if (!areaVoucher) throw new KatoCommonError('凭证还未上传');
+      //删除一个图
+      if (imageKey) {
+        areaVoucher.vouchers = areaVoucher.vouchers.filter(
+          it => it !== imageKey
+        );
+        await areaVoucher.save();
+      }
+      //删除整条数据
+      if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
+    });
+  }
 }
 
 /**
