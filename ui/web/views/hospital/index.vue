@@ -103,6 +103,7 @@
             :auto-upload="false"
             :on-success="voucherUploadVisibleSuccess"
             :on-error="voucherUploadVisibleError"
+            :on-change="onChange"
             action="/api/SystemArea/vouchers.ac"
             :data="{
               area: JSON.stringify(currentHospital.code),
@@ -116,12 +117,20 @@
           </el-upload>
         </el-form-item>
       </el-form>
-      <div v-for="image of currentHospital.vouchers" :key="image">
+      <div v-for="image of currentHospital.vouchers" :key="image.key">
         <el-image
-          style="max-height: 300px;max-width: 600px;margin: 10px"
-          :src="image"
+          style="max-height: 300px;width: 100%;margin: 10px"
+          :src="image.url"
           fit="cover"
-        ></el-image>
+        >
+        </el-image>
+        <el-button
+          size="mini"
+          type="danger"
+          icon="el-icon-delete"
+          @click="removeVoucher(image)"
+          >删除</el-button
+        >
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button plain @click="voucherUploadVisible = false"
@@ -236,17 +245,42 @@ export default {
     },
     async openVoucherDialog(row) {
       this.currentHospital = row;
+      this.fileList = [];
       const result =
         (await this.$api.SystemArea.getVouchers(row.code, this.year))
           ?.vouchers || [];
+      //获取图片url
       if (result.length > 0)
         this.currentHospital.vouchers = await Promise.all(
-          result.map(async it => this.getImageUrl(it))
+          result.map(async it => ({key: it, url: await this.getImageUrl(it)}))
         );
       this.voucherUploadVisible = true;
     },
     async handleSaveUploadFile() {
-      await this.$refs.uploadForm.submit();
+      if (this.$refs.uploadForm.fileList.length === 0) {
+        //不传图片只修改金额
+        await this.$api.SystemArea.vouchers(
+          this.currentHospital.code,
+          this.year,
+          this.currentHospital.money
+        );
+        this.$message.success('上传成功');
+      } else await this.$refs.uploadForm.submit();
+      this.voucherUploadVisible = false;
+    },
+    onChange(file, fileList) {
+      this.fileList = fileList;
+    },
+    async removeVoucher(image) {
+      this.currentHospital.vouchers = this.currentHospital.vouchers.filter(
+        it => it.key !== image.key
+      );
+      await this.$api.SystemArea.removeVoucher(
+        this.currentHospital.code,
+        this.year,
+        image.key
+      );
+      this.$message.success('删除成功');
     },
     //文件上传成功
     voucherUploadVisibleSuccess(res) {
