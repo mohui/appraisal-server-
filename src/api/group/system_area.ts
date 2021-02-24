@@ -989,13 +989,27 @@ export default class SystemArea {
   )
   async vouchers(area, year, money, vouchers) {
     return appDB.transaction(async () => {
-      const fileName =
-        '/vouchers/appraisal/vouchers/' +
-        dayjs().format('YYYY-MM-DDTHH:mm:ss') +
-        vouchers.originalname;
-      await unifs.writeFile(fileName, vouchers.buffer);
+      const areaVoucher = await AreaVoucherModel.findOne({
+        where: {area, year},
+        lock: true
+      });
+      const upsertObj = {
+        area: area,
+        year: year,
+        money: money,
+        vouchers: areaVoucher?.vouchers ?? []
+      };
 
-      return AreaVoucherModel.upsert({area, year, money, vouchers: [fileName]});
+      if (vouchers) {
+        const fileName =
+          '/vouchers/appraisal/vouchers/' +
+          dayjs().format('YYYY-MM-DDTHH:mm:ss') +
+          vouchers.originalname;
+        await unifs.writeFile(fileName, vouchers.buffer);
+        upsertObj.vouchers.push(fileName);
+      }
+
+      return AreaVoucherModel.upsert(upsertObj);
     });
   }
 
@@ -1012,6 +1026,30 @@ export default class SystemArea {
   )
   async getVouchers(area, year) {
     return AreaVoucherModel.findOne({where: {area, year}});
+  }
+
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.string().allow(null)
+  )
+  async removeVoucher(area, year, imageKey) {
+    return appDB.transaction(async () => {
+      const areaVoucher = await AreaVoucherModel.findOne({
+        where: {area, year}
+      });
+      if (!areaVoucher) throw new KatoCommonError('凭证还未上传');
+      //删除一个图
+      if (imageKey) {
+        areaVoucher.vouchers = areaVoucher.vouchers.filter(
+          it => it !== imageKey
+        );
+        await areaVoucher.save();
+        await unifs.deleteFile(imageKey);
+      }
+      //删除整条数据
+      if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
+    });
   }
 }
 
