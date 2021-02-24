@@ -747,20 +747,22 @@ export default {
     },
     handleGotoDetailse(record, name) {
       let routerName = '';
-      let code = record.newlydiagnosedcode;
+      let code = '';
       if (name === '第一次产前检查信息表') {
         //第一次产前检查信息表
-        code = record.pre_newlydiagnosedcode;
         routerName = 'record-first-prenatal-check';
+        code = record.newlydiagnosedcode;
       } else if (name === '第2~5次产前随访服务信息表') {
         //第2~5次产前随访服务信息表
         routerName = 'record-prenatal-follow-up';
+        code = record.prenatalcarecode;
       } else if (name === '产后访视记录表') {
         //产后访视记录表
         routerName = 'record-postpartum-visit';
       } else if (name === '产后42天健康检查记录表') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
+        code = record.newlydiagnosedcode;
       }
       if (routerName && code) {
         this.$router.push({
