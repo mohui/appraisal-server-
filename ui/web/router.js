@@ -121,6 +121,12 @@ const router = new Router({
           component: () => import('./views/patient/record-old-man-self-care')
         },
         {
+          path: 'record-first-prenatal-check',
+          name: 'record-first-prenatal-check',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-first-prenatal-check')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
