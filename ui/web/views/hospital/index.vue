@@ -79,7 +79,7 @@
     <el-dialog
       title="上传考核资料"
       :visible.sync="voucherUploadVisible"
-      width="30%"
+      width="50%"
     >
       <el-form>
         <el-form-item label="组织名称">
@@ -116,22 +116,29 @@
             </el-button>
           </el-upload>
         </el-form-item>
+        <el-form-item label="图片凭证">
+          <div
+            style="display: flex;flex-direction: column;height: 300px;overflow: scroll"
+          >
+            <div v-for="image of currentHospital.vouchers" :key="image.key">
+              <el-image
+                style="max-height: 300px;width: 100%;margin: 10px 0"
+                :src="image.url"
+                fit="cover"
+              >
+              </el-image>
+              <el-button
+                size="mini"
+                type="danger"
+                icon="el-icon-delete"
+                @click="removeVoucher(image)"
+                >删除</el-button
+              >
+            </div>
+          </div>
+        </el-form-item>
       </el-form>
-      <div v-for="image of currentHospital.vouchers" :key="image.key">
-        <el-image
-          style="max-height: 300px;width: 100%;margin: 10px"
-          :src="image.url"
-          fit="cover"
-        >
-        </el-image>
-        <el-button
-          size="mini"
-          type="danger"
-          icon="el-icon-delete"
-          @click="removeVoucher(image)"
-          >删除</el-button
-        >
-      </div>
+
       <div slot="footer" class="dialog-footer">
         <el-button plain @click="voucherUploadVisible = false"
           >取 消
