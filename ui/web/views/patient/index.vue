@@ -559,22 +559,32 @@
                     >
                       <div>{{ it.name }}</div>
                       <div
+                        style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
+                        @click="
+                          $router.push({
+                            name: 'record-first-prenatal-check',
+                            query: {
+                              id: record.pre_newlydiagnosedcode
+                            }
+                          })
+                        "
                       >
                         <div class="notes-block">
                           <span class="hospital"
-                            >体检时间：{{ record.updated_at }}</span
+                            >体检时间：{{
+                              record.updated_at.$format('YYYY-MM-DD')
+                            }}</span
                           >
                         </div>
-                        <p>
-                          身高：{{ record.stature }} 体重：{{
+                        <div>
+                          身高：{{ record.height }}cm 体重：{{
                             record.weight
-                          }}
-                          体温：{{ record.temperature }} 症状：{{
+                          }}kg 体温：{{ record.temperature }} 症状：{{
                             record.symptom
                           }}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
