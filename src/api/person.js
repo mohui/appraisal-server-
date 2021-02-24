@@ -1509,6 +1509,20 @@ export default class Person {
     return result[0];
   }
 
+  /**
+   * 产后42天健康检查记录表详情
+   * @param 主键id
+   */
+  async recordPostpartum42DaysCheck(code) {
+    // 产后42天健康检查记录表
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
+      code
+    );
+    return result[0];
+  }
+
   /***
    * 个人档案详情
    * @param id
