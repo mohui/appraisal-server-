@@ -262,7 +262,7 @@ export default {
     //文件上传失败
     voucherUploadVisibleError() {
       this.$message.error('文件上传失败');
-      this.dialogUploadAppraisalFileVisible = false;
+      this.voucherUploadVisible = false;
     },
     async getImageUrl(url) {
       try {
