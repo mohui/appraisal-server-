@@ -2,6 +2,7 @@ import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
   AreaModel,
+  AreaVoucherModel,
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
@@ -13,7 +14,7 @@ import {
 } from '../../database/model';
 import {Op} from 'sequelize';
 import {sql as sqlRender} from '../../database/template';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
 import {getAreaTree, getOriginalArray} from '../group';
@@ -165,20 +166,29 @@ export default class SystemArea {
         }
       }
     });
-    return areaList.map(it => {
-      const item = reportAreas.find(report => report.areaCode === it.code);
-
-      return {
-        code: it.code,
-        name: it.name,
-        budget: item ? Number(item.budget) : 0,
-        workPoint: item ? Number(item.workPoint) : 0,
-        totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
-        correctWorkPoint: item ? Number(item.correctWorkPoint) : 0,
-        score: item ? Number(item.score) : 0,
-        rate: item ? Number(item.rate) : 0
-      };
-    });
+    return await Promise.all(
+      areaList.map(async it => {
+        const item = reportAreas.find(report => report.areaCode === it.code);
+        const areaVouchers: {
+          money: 0;
+          vouchers: [];
+        } = await AreaVoucherModel.findOne({
+          where: {area: it.code, year: year}
+        });
+        return {
+          code: it.code,
+          name: it.name,
+          budget: item ? Number(item.budget) : 0,
+          workPoint: item ? Number(item.workPoint) : 0,
+          totalWorkPoint: item ? Number(item.totalWorkPoint) : 0,
+          correctWorkPoint: item ? Number(item.correctWorkPoint) : 0,
+          score: item ? Number(item.score) : 0,
+          rate: item ? Number(item.rate) : 0,
+          money: areaVouchers?.money ?? 0,
+          vouchers: areaVouchers?.vouchers ?? []
+        };
+      })
+    );
   }
 
   /**
@@ -968,6 +978,40 @@ export default class SystemArea {
     } catch (e) {
       throw new KatoCommonError(e.message);
     }
+  }
+
+  //机构付款凭证接口
+  @validate(
+    should.string(),
+    should.string().description('年份'),
+    should.number().description('金额'),
+    should.description('凭证')
+  )
+  async vouchers(area, year, money, vouchers) {
+    return appDB.transaction(async () => {
+      const fileName =
+        '/vouchers/appraisal/vouchers/' +
+        dayjs().format('YYYY-MM-DDTHH:mm:ss') +
+        vouchers.originalname;
+      await unifs.writeFile(fileName, vouchers.buffer);
+
+      return AreaVoucherModel.upsert({area, year, money, vouchers: [fileName]});
+    });
+  }
+
+  //凭证查询
+  @validate(
+    should
+      .string()
+      .required()
+      .allow(null),
+    should
+      .string()
+      .required()
+      .allow(null)
+  )
+  async getVouchers(area, year) {
+    return AreaVoucherModel.findOne({where: {area, year}});
   }
 }
 
