@@ -562,14 +562,7 @@
                         style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
-                        @click="
-                          $router.push({
-                            name: 'record-first-prenatal-check',
-                            query: {
-                              id: record.pre_newlydiagnosedcode
-                            }
-                          })
-                        "
+                        @click="handleGotoDetailse(record, it.name)"
                       >
                         <div class="notes-block">
                           <span class="hospital"
@@ -751,6 +744,32 @@ export default {
   methods: {
     handleBack() {
       this.$router.go(-1);
+    },
+    handleGotoDetailse(record, name) {
+      let routerName = '';
+      let code = record.newlydiagnosedcode;
+      if (name === '第一次产前检查信息表') {
+        //第一次产前检查信息表
+        code = record.pre_newlydiagnosedcode;
+        routerName = 'record-first-prenatal-check';
+      } else if (name === '第2~5次产前随访服务信息表') {
+        //第2~5次产前随访服务信息表
+        routerName = 'record-prenatal-follow-up';
+      } else if (name === '产后访视记录表') {
+        //产后访视记录表
+        routerName = 'record-postpartum-visit';
+      } else if (name === '产后42天健康检查记录表') {
+        //产后42天健康检查记录表
+        routerName = 'record-postpartum-42-days-check';
+      }
+      if (routerName && code) {
+        this.$router.push({
+          name: routerName,
+          query: {
+            id: code
+          }
+        });
+      }
     }
   }
 };
