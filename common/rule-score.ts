@@ -694,25 +694,9 @@ export const MarkTagUsages = {
     name: '发放健康教育印刷资料的种类',
     code: 'HE00'
   },
-  HE01: {
-    name: '发放健康教育印刷资料的数量',
-    code: 'HE01'
-  },
   HE02: {
     name: '播放健康教育音像资料的种类',
     code: 'HE02'
-  },
-  HE03: {
-    name: '播放健康教育音像资料的次数',
-    code: 'HE03'
-  },
-  HE04: {
-    name: '播放健康教育音像资料的播放时间',
-    code: 'HE04'
-  },
-  HE05: {
-    name: '健康教育宣传栏的设置地点',
-    code: 'HE05'
   },
   HE06: {
     name: '健康教育宣传栏的更新次数',
