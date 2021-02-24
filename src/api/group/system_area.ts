@@ -1045,6 +1045,7 @@ export default class SystemArea {
           it => it !== imageKey
         );
         await areaVoucher.save();
+        await unifs.deleteFile(imageKey);
       }
       //删除整条数据
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
