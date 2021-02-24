@@ -989,13 +989,27 @@ export default class SystemArea {
   )
   async vouchers(area, year, money, vouchers) {
     return appDB.transaction(async () => {
-      const fileName =
-        '/vouchers/appraisal/vouchers/' +
-        dayjs().format('YYYY-MM-DDTHH:mm:ss') +
-        vouchers.originalname;
-      await unifs.writeFile(fileName, vouchers.buffer);
+      const obj: {
+        area: string;
+        year: string;
+        money: number;
+        vouchers?: string[];
+      } = {
+        area,
+        year,
+        money
+      };
 
-      return AreaVoucherModel.upsert({area, year, money, vouchers: [fileName]});
+      if (vouchers) {
+        const fileName =
+          '/vouchers/appraisal/vouchers/' +
+          dayjs().format('YYYY-MM-DDTHH:mm:ss') +
+          vouchers.originalname;
+        await unifs.writeFile(fileName, vouchers.buffer);
+        obj['vouchers'] = [fileName];
+      }
+
+      return AreaVoucherModel.upsert(obj);
     });
   }
 
