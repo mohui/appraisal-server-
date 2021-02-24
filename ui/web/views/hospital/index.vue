@@ -66,9 +66,9 @@
           <template slot-scope="{row}">
             <el-button
               size="mini"
-              type="primary"
+              :type="row.vouchers.length > 0 ? 'success' : 'primary'"
               @click="openVoucherDialog(row)"
-              >上传凭证
+              >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
             </el-button>
           </template>
         </el-table-column>
@@ -236,9 +236,13 @@ export default {
     },
     async openVoucherDialog(row) {
       this.currentHospital = row;
-      this.currentHospital.vouchers = await Promise.all(
-        this.currentHospital.vouchers.map(async it => this.getImageUrl(it))
-      );
+      const result =
+        (await this.$api.SystemArea.getVouchers(row.code, this.year))
+          ?.vouchers || [];
+      if (result.length > 0)
+        this.currentHospital.vouchers = await Promise.all(
+          result.map(async it => this.getImageUrl(it))
+        );
       this.voucherUploadVisible = true;
     },
     async handleSaveUploadFile() {
@@ -254,7 +258,6 @@ export default {
       //手动将文件列表清空
       this.fileList = [];
       this.voucherUploadVisible = false;
-      this.$asyncComputed.hospitalListServerData.update();
     },
     //文件上传失败
     voucherUploadVisibleError() {
