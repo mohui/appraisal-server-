@@ -2,88 +2,12 @@ import {promises as fs} from 'fs';
 import path from 'upath';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 
 import {getAreaTree, getLeaves} from './group';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-
-const exampleData = {
-  file: '340203_202012.docx',
-  date_label: '2020第1季度',
-  start_date: '2020-01-01',
-  end_date: '2020-12-31',
-  area_name: '弋江区',
-  data: [
-    {
-      title: '弋江区2020第一季度建档率',
-      name: '建档率',
-      tables: [
-        {
-          is_rate: true,
-          title: '表一: 中心机构总体建档率',
-          rows: [
-            {
-              index: 1,
-              name: 'A服务中心',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            },
-            {
-              index: 2,
-              name: 'B服务中心',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            }
-          ]
-        },
-        {
-          is_num: true,
-          title: '表二: 中心/卫生院机构（不含下属机构）建档率',
-          rows: [
-            {
-              index: 1,
-              name: 'A服务中心',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            },
-            {
-              index: 2,
-              name: 'B服务中心',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            }
-          ]
-        },
-        {
-          is_rate: true,
-          title: '表三：卫生站/卫生室建档率',
-          rows: [
-            {
-              index: 1,
-              name: 'C卫生站',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            },
-            {
-              index: 2,
-              name: 'D卫生室',
-              value: 2993,
-              basic: 123123,
-              rate: '90.99%'
-            }
-          ]
-        }
-      ]
-    }
-  ]
-};
 
 async function getWordData(title, dataList) {
   return {
@@ -101,9 +25,16 @@ export default class JxReport {
    * 获取指标数据
    *
    * @param code
-   * @param year
+   * @param time
    */
-  async getExponent(code, year) {
+  async getExponent(code, time) {
+    const year = dayjs(time.toString()).year();
+    const month = dayjs(time.toString()).month() + 1;
+    let dateLabel = `${year}-${month}月`;
+    if (month === 3) dateLabel = `${year}第一季度`;
+    if (month === 6) dateLabel = `${year}上半年`;
+    if (month === 12) dateLabel = `${year}年度`;
+
     // 获取所有权限[1:省,2:市,3:区,4:中心,5:卫生室/站]
     const allTree = await getAreaTree();
     // 判断当前权限是否在权限树中,如果在,数据几级权限
@@ -116,8 +47,8 @@ export default class JxReport {
         .subtract(1, 'M')
         .startOf('M')
         .format('YYYYMM')}.docx`,
-      dateLabel: `${year}年度`,
-      startDate: dayjs()
+      dateLabel: `${dateLabel}`,
+      startDate: dayjs(time.toString())
         .startOf('y')
         .format('YYYY-MM-DD'),
       endDate: dayjs()
@@ -867,46 +798,38 @@ export default class JxReport {
         }
         i++;
       }
-
+      // 区分数据列表是率还是数
+      let type = {
+        is_num: true
+      };
       if (isRate) {
-        // 表一: 中心机构总体
-        const dataTableObj1 = {
-          is_rate: true,
-          title: `表一: 中心机构总体${MarkTagUsages[markItem].name}`,
-          rows: dataRow1
+        type = {
+          is_rate: true
         };
-        // 表二: 中心/卫生院机构（不含下属机构）
-        const dataTableObj2 = {
-          is_rate: true,
-          title: `表二: 中心/卫生院机构（不含下属机构）${MarkTagUsages[markItem].name}`,
-          rows: dataRow2
-        };
-        // 表三: 卫生站/卫生室
-        const dataTableObj3 = {
-          is_rate: true,
-          title: `表三: 卫生站/卫生室${MarkTagUsages[markItem].name}`,
-          rows: dataRow3
-        };
-        dataTable.push(dataTableObj1, dataTableObj2, dataTableObj3);
+      }
+      // 表一: 中心机构总体
+      const dataTableObj1 = {
+        ...type,
+        title: `表一: 中心机构总体${MarkTagUsages[markItem].name}`,
+        rows: dataRow1
+      };
+      // 表二: 中心/卫生院机构（不含下属机构）
+      const dataTableObj2 = {
+        ...type,
+        title: `表二: 中心/卫生院机构（不含下属机构）${MarkTagUsages[markItem].name}`,
+        rows: dataRow2
+      };
+      // 表三: 卫生站/卫生室
+      const dataTableObj3 = {
+        ...type,
+        title: `表三: 卫生站/卫生室${MarkTagUsages[markItem].name}`,
+        rows: dataRow3
+      };
+      // 如果是最后一级,仅仅是机构这一级权限
+      if (level === 5) {
+        dataTableObj1.title = `表一: 卫生站/卫生室${MarkTagUsages[markItem].name}`;
+        dataTable.push(dataTableObj1);
       } else {
-        // 表一: 中心机构总体
-        const dataTableObj1 = {
-          is_num: true,
-          title: `表一: 中心机构总体${MarkTagUsages[markItem].name}`,
-          rows: dataRow1
-        };
-        // 表二: 中心/卫生院机构（不含下属机构）
-        const dataTableObj2 = {
-          is_num: true,
-          title: `表二: 中心/卫生院机构（不含下属机构）${MarkTagUsages[markItem].name}`,
-          rows: dataRow2
-        };
-        // 表三: 卫生站/卫生室
-        const dataTableObj3 = {
-          is_num: true,
-          title: `表三: 卫生站/卫生室${MarkTagUsages[markItem].name}`,
-          rows: dataRow3
-        };
         dataTable.push(dataTableObj1, dataTableObj2, dataTableObj3);
       }
 
@@ -921,10 +844,18 @@ export default class JxReport {
     // 判断权限是几级权限
     return getWordData(title, dataList);
   }
-  async generate(params) {
-    // const a = await this.getExponent(code, year);
-    //TODO: 调试代码, 正式完成后删除
-    if (!params) params = exampleData;
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .required()
+      .description('年份加月份比如202003')
+  )
+  async generate(code, time) {
+    const params = await this.getExponent(code, time);
     //读取模板文件
     const content = await fs.readFile(
       path.join(__dirname, './template.docx'),
