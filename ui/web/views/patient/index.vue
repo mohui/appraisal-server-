@@ -559,6 +559,7 @@
                     >
                       <div>{{ it.name }}</div>
                       <div
+                        class="notes"
                         style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
@@ -566,18 +567,25 @@
                       >
                         <div class="notes-block">
                           <span class="hospital"
-                            >体检时间：{{
+                            >时间：{{
                               record.updated_at.$format('YYYY-MM-DD')
                             }}</span
                           >
                         </div>
-                        <div>
-                          身高：{{ record.height }}cm 体重：{{
-                            record.weight
-                          }}kg 体温：{{ record.temperature }} 症状：{{
-                            record.symptom
-                          }}
-                        </div>
+                        <p>
+                          <span v-if="it.name === '第一次产前检查信息表'">
+                            年龄：{{ record.age }}
+                          </span>
+                          体重：{{ record.weight }}kg
+                          <span
+                            v-if="
+                              it.name === '第2~5次产前随访服务信息表' ||
+                                it.name === '产后42天健康检查记录表'
+                            "
+                          >
+                            医生姓名：{{ record.doctor }}
+                          </span>
+                        </p>
                       </div>
                     </div>
                   </div>
