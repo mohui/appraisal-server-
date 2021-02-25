@@ -11,7 +11,7 @@
       }"
     >
       <div slot="header" class="clearfix">
-        <span>第2~5次产前随访服务信息表</span>
+        <span>产前随访服务信息表</span>
         <el-button
           style="float: right;margin: -4px 0 0 20px;"
           size="small"
@@ -22,15 +22,13 @@
       </div>
       <div style="flex-grow: 1;height: 0; overflow-y: auto;">
         <el-row type="flex" class="record-head" justify="space-between">
-          <el-col :span="6"> 姓名：<strong>暂无</strong> </el-col>
+          <el-col :span="6">
+            姓名：<strong>{{ detailDate.name }}</strong>
+          </el-col>
           <el-col :span="6">编号：{{ detailDate.prenatalcarecode }}</el-col>
         </el-row>
         <table class="record-prenatal-follow-up-table">
           <tbody>
-            <tr>
-              <td colspan="4">项目</td>
-              <td colspan="20">第{{ detailDate.prenatalcarecode }}次</td>
-            </tr>
             <tr>
               <td colspan="4">(随访/督促)日期</td>
               <td colspan="20">暂无数据</td>
