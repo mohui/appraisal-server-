@@ -1517,7 +1517,7 @@ export default class Person {
     // 产后42天健康检查记录表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
+      `select * from v_examine42thday_kn where examineno=?`,
       code
     );
     return result[0];
