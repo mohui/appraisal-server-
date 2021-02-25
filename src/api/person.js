@@ -1503,7 +1503,9 @@ export default class Person {
     // 第2~5次产前随访服务信息表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_prenatalcare_kn where prenatalcarecode=?`,
+      `select b.name, p.*
+         from v_prenatalcare_kn p inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
+         where prenatalcarecode = ?`,
       code
     );
     return result[0];
