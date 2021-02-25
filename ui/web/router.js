@@ -121,6 +121,31 @@ const router = new Router({
           component: () => import('./views/patient/record-old-man-self-care')
         },
         {
+          path: 'record-first-prenatal-check',
+          name: 'record-first-prenatal-check',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-first-prenatal-check')
+        },
+        {
+          path: 'record-prenatal-follow-up',
+          name: 'record-prenatal-follow-up',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-prenatal-follow-up')
+        },
+        {
+          path: 'record-postpartum-visit',
+          name: 'record-postpartum-visit',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-postpartum-visit')
+        },
+        {
+          path: 'record-postpartum-42-days-check',
+          name: 'record-postpartum-42-days-check',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () =>
+            import('./views/patient/record-postpartum-42-days-check')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
