@@ -762,7 +762,7 @@ export default {
       } else if (name === '产后42天健康检查记录表') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
-        code = record.newlydiagnosedcode;
+        code = record.examineno;
       }
       if (routerName && code) {
         this.$router.push({
