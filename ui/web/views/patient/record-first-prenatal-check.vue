@@ -57,11 +57,11 @@
             <tr>
               <td colspan="4">丈夫姓名</td>
               <td colspan="4">
-                <em>暂无数据</em>
+                <em>{{ firstPrenatalCheckDate.fathername }}</em>
               </td>
               <td colspan="4">丈夫年龄</td>
               <td colspan="4">
-                <em>暂无数据</em>
+                <em>{{ firstPrenatalCheckDate.fatherage }}</em>
               </td>
               <td colspan="4">丈夫电话</td>
               <td colspan="4">
