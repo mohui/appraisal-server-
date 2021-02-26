@@ -42,7 +42,10 @@
               </td>
               <td colspan="4">孕周</td>
               <td colspan="8">
-                <em> 暂无数据 </em>
+                <em>
+                  {{ firstPrenatalCheckDate.gestationalweeks }} 周
+                  {{ firstPrenatalCheckDate.gestationalageday }} 天
+                </em>
               </td>
             </tr>
             <tr>
@@ -140,9 +143,9 @@
               <td colspan="8">
                 <em>{{ firstPrenatalCheckDate.height }}</em> kg/m2
               </td>
-              <td colspan="4">体重</td>
+              <td colspan="4">血压</td>
               <td colspan="8">
-                <em>{{ firstPrenatalCheckDate.weight }}</em>
+                <em>{{ firstPrenatalCheckDate.systolicpressure }}</em> mmHg
               </td>
             </tr>
             <tr>
