@@ -1489,7 +1489,7 @@ export default class Person {
     // 第一次产前检查信息表
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
-      `select * from v_newlydiagnosed_kn where newlydiagnosedcode=?`,
+      `select b.fathername, b.fatherage, n.* from v_newlydiagnosed_kn n inner join v_pregnancybooks_kn b on n.pre_newlydiagnosedcode = b.newlydiagnosedcode where n.newlydiagnosedcode=?`,
       code
     );
     return newlyDiagnosed[0];

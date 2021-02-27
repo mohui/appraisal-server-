@@ -566,11 +566,32 @@
                         @click="handleGotoDetailse(record, it.name)"
                       >
                         <div class="notes-block">
-                          <span class="hospital"
-                            >时间：{{
-                              record.updated_at.$format('YYYY-MM-DD')
-                            }}</span
-                          >
+                          <span class="hospital">
+                            <span v-if="it.name === '第一次产前检查信息表'">
+                              填表日期：{{
+                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span
+                              v-else-if="
+                                it.name === '第2~5次产前随访服务信息表'
+                              "
+                            >
+                              随访日期：{{
+                                record.checkdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span
+                              v-else-if="
+                                it.name === '产后访视记录表' ||
+                                  it.name === '产后42天健康检查记录表'
+                              "
+                            >
+                              访视日期：{{
+                                record.visitdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                          </span>
                         </div>
                         <p>
                           <span v-if="it.name === '第一次产前检查信息表'">
