@@ -17,8 +17,8 @@ import {appDB} from '../app';
  * @param time
  */
 async function getExponent(code, time) {
-  const year = dayjs(time.toString()).year();
-  const month = dayjs(time.toString()).month() + 1;
+  const year = dayjs(time).year();
+  const month = dayjs(time).month() + 1;
   let dateLabel = `${year}-${month}月`;
   if (month === 3) dateLabel = `${year}第一季度`;
   if (month === 6) dateLabel = `${year}上半年`;
@@ -37,7 +37,7 @@ async function getExponent(code, time) {
       .startOf('M')
       .format('YYYYMM')}.docx`,
     dateLabel: `${dateLabel}`,
-    startDate: dayjs(time.toString())
+    startDate: dayjs(time)
       .startOf('y')
       .format('YYYY-MM-DD'),
     endDate: dayjs()
@@ -860,7 +860,7 @@ export default class JxReport {
    */
   @validate(
     should
-      .number()
+      .string()
       .required()
       .description('年份加月份比如202003'),
     should
