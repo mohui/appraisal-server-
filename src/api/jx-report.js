@@ -33,16 +33,12 @@ async function getExponent(code, time) {
   const level = findObj.level;
 
   const title = {
-    fileName: `${findObj.code}-${dayjs()
-      .subtract(1, 'M')
-      .startOf('M')
-      .format('YYYYMM')}.docx`,
+    fileName: `${findObj.code}-${time}.docx`,
     dateLabel: `${dateLabel}`,
     startDate: dayjs(time)
       .startOf('y')
       .format('YYYY-MM-DD'),
-    endDate: dayjs()
-      .subtract(1, 'M')
+    endDate: dayjs(time)
       .endOf('M')
       .format('YYYY-MM-DD'),
     areaName: `${findObj.name}`
