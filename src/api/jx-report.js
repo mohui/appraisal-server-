@@ -22,6 +22,7 @@ async function getExponent(code, time) {
   let dateLabel = `${year}-${month}月`;
   if (month === 3) dateLabel = `${year}第一季度`;
   if (month === 6) dateLabel = `${year}上半年`;
+  if (month === 9) dateLabel = `${year}第三季度`;
   if (month === 12) dateLabel = `${year}年度`;
 
   // 获取所有权限[1:省,2:市,3:区,4:中心,5:卫生室/站]
