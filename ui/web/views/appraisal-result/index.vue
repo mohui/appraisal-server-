@@ -65,6 +65,34 @@
             >考核共识下载</el-button
           >
         </span>
+        <span style="margin:0 10px">
+          <el-button
+            v-if="reportListData.length === 1"
+            plain
+            size="small"
+            type="primary"
+            @click="handleFileDownload(reportListData[0].url)"
+            >公卫报告下载</el-button
+          >
+          <el-dropdown
+            v-if="reportListData.length > 1"
+            split-button
+            size="small"
+            type="primary"
+            @command="handleFileDownload"
+          >
+            公卫报告下载
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item
+                v-for="it in reportListData"
+                :key="it.id"
+                :command="it.url"
+              >
+                {{ it.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </span>
         <el-button
           v-if="showBackButton()"
           size="small"
