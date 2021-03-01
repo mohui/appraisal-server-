@@ -567,24 +567,20 @@
                       >
                         <div class="notes-block">
                           <span class="hospital">
-                            <span v-if="it.name === '第一次产前检查信息表'">
+                            <span v-if="it.type === 'newlyDiagnosed'">
                               填表日期：{{
                                 record.newlydiagnoseddate.$format('YYYY-MM-DD')
                               }}
                             </span>
-                            <span
-                              v-else-if="
-                                it.name === '第2~5次产前随访服务信息表'
-                              "
-                            >
+                            <span v-else-if="it.type === 'prenatalCare'">
                               随访日期：{{
                                 record.checkdate.$format('YYYY-MM-DD')
                               }}
                             </span>
                             <span
                               v-else-if="
-                                it.name === '产后访视记录表' ||
-                                  it.name === '产后42天健康检查记录表'
+                                it.type === 'maternalVisits' ||
+                                  it.type === 'examine42thDay'
                               "
                             >
                               访视日期：{{
@@ -594,14 +590,14 @@
                           </span>
                         </div>
                         <p>
-                          <span v-if="it.name === '第一次产前检查信息表'">
+                          <span v-if="it.type === 'newlyDiagnosed'">
                             年龄：{{ record.age }}
                           </span>
                           体重：{{ record.weight }}kg
                           <span
                             v-if="
-                              it.name === '第2~5次产前随访服务信息表' ||
-                                it.name === '产后42天健康检查记录表'
+                              it.type === 'prenatalCare' ||
+                                it.type === 'examine42thDay'
                             "
                           >
                             医生姓名：{{ record.doctor }}
