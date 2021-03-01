@@ -489,7 +489,8 @@ export default {
           }, {}),
         include: this.queryForm.include,
         personOr: this.queryForm.personOr,
-        documentOr: this.queryForm.documentOr
+        documentOr: this.queryForm.documentOr,
+        year: this.queryForm.year
       });
       this.$message.success('后台任务已进行, 请关注右上角任务进度~');
     },

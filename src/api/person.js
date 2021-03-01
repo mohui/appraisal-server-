@@ -70,7 +70,7 @@ function listRenderForExcel(params) {
   return sqlRender(
     `
       from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum
+             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.year = {{? year}}
              inner join view_hospital vh on vp.adminorganization = vh.hospid
              left join mark_content mc on mc.id = vp.personnum
       where 1 = 1
@@ -1935,7 +1935,8 @@ export async function getPersonExcelBuffer(params) {
     tags,
     include,
     personOr = false,
-    documentOr = false
+    documentOr = false,
+    year
   } = params;
   const his = '340203';
   let {name} = params;
@@ -1992,7 +1993,8 @@ export async function getPersonExcelBuffer(params) {
     idCard,
     ...tags,
     personOr,
-    documentOr
+    documentOr,
+    year
   });
   let person = await originalDB.execute(
     `select vp.personnum   as id,
