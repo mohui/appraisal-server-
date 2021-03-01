@@ -95,6 +95,18 @@ module.exports = {
     //       key: '1234'
     //     }
     //   }
+    // },
+    // {
+    //   path: '/vouchers',
+    //   type: 'local',
+    //   options: {
+    //     base: '/vouchers',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/vouchers',
+    //       key: 'default'
+    //     }
+    //   }
     // }
   ]
 };
