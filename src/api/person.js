@@ -1437,44 +1437,48 @@ export default class Person {
     );
     const result = [];
     for (const pregnancyBook of pregnancyBooks) {
-      const maternalDate = {};
+      const maternalDate = [];
 
       // 通过母子健康手册表中的主键（newlydiagnosedcode）查询以下表
 
       // 第一次产前检查信息表
       // language=PostgreSQL
-      const newlyDiagnosed = await originalDB.execute(
+      const newlyDiagnosedRecords = await originalDB.execute(
         `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-
-      maternalDate.newlyDiagnosed = {};
-      maternalDate.newlyDiagnosed.name = '第一次产前检查信息表';
-      maternalDate.newlyDiagnosed.records = newlyDiagnosed;
+      const newlyDiagnosed = {};
+      newlyDiagnosed.name = '第一次产前检查信息表';
+      newlyDiagnosed.type = 'newlyDiagnosed';
+      newlyDiagnosed.records = newlyDiagnosedRecords;
+      maternalDate.push(newlyDiagnosed);
 
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
-      const prenatalCare = await originalDB.execute(
+      const prenatalCareRecords = await originalDB.execute(
         `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-      maternalDate.prenatalCare = {};
-      maternalDate.prenatalCare.name = '第2~5次产前随访服务信息表';
-      maternalDate.prenatalCare.records = prenatalCare;
-
+      const prenatalCare = {};
+      prenatalCare.name = '第2~5次产前随访服务信息表';
+      prenatalCare.type = 'prenatalCare';
+      prenatalCare.records = prenatalCareRecords;
+      maternalDate.push(prenatalCare);
       // 产后访视记录表
       // maternalVisits
       //TODO:待实现
 
       // 产后42天健康检查记录表
       // language=PostgreSQL
-      const examine42thDay = await originalDB.execute(
+      const examine42thDayRecords = await originalDB.execute(
         `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
         pregnancyBook.newlydiagnosedcode
       );
-      maternalDate.examine42thDay = {};
-      maternalDate.examine42thDay.name = '产后42天健康检查记录表';
-      maternalDate.examine42thDay.records = examine42thDay;
+      const examine42thDay = {};
+      examine42thDay.name = '产后42天健康检查记录表';
+      examine42thDay.type = 'examine42thDay';
+      examine42thDay.records = examine42thDayRecords;
+      maternalDate.push(examine42thDay);
 
       result.push(maternalDate);
     }
