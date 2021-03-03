@@ -321,13 +321,7 @@ export default {
     //arr1包含arr2判断
     isContain(arr1, arr2) {
       for (let i = arr2.length - 1; i >= 0; i--) {
-        if (
-          //super-admin除外，特殊处理
-          arr2[i].key !== this.permission.SUPER_ADMIN &&
-          !arr1.includes(arr2[i].key)
-        ) {
-          return false;
-        }
+        if (!arr1.includes(arr2[i].key)) return false;
       }
       return true;
     },
