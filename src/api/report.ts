@@ -1,21 +1,21 @@
 import {unifs} from '../app';
+import * as dayjs from 'dayjs';
 
 /**
  * 语义化时间
  *
- * @param time 时间字符串, '2020Q1', '2020H1', '2020Q3', '2020'
+ * @param time 时间字符串, '202001'
  */
-function displayTime(time) {
-  if (time.includes('Q')) {
-    const times = time.split('Q');
-    return `${times[0]}年第${times[1]}季度报告`;
-  }
-  if (time.includes('H')) {
-    const times = time.split('H');
-    return `${times[0]}年${times[1] === 1 ? '上' : '下'}半年报告`;
-  }
 
-  return `${time}年报告`;
+function displayTime(time) {
+  const year = dayjs(time).year();
+  const month = dayjs(time).month() + 1;
+  let dateLabel = `${year}-${month}月报告`;
+  if (month === 3) dateLabel = `${year}第一季度报告`;
+  if (month === 6) dateLabel = `${year}上半年报告`;
+  if (month === 9) dateLabel = `${year}第三季度报告`;
+  if (month === 12) dateLabel = `${year}年度报告`;
+  return dateLabel;
 }
 
 export default class Report {
@@ -30,7 +30,36 @@ export default class Report {
    * }
    */
   async list(id) {
-    return unifs.list('/report/appraisal/report');
+    const urlList = await unifs.list('/report/appraisal/report');
+
+    const urlList1 = await Promise.all(
+      urlList
+        .filter(it => it.isDirectory === false)
+        .map(async it => {
+          const areaTimeStr = it.name.split('/').pop();
+          const strLength = areaTimeStr.length;
+          const areaId = areaTimeStr.substr(0, strLength - 12);
+          const time = areaTimeStr
+            .split('.')[0]
+            .split('-')
+            .pop();
+          return {
+            id: it.name,
+            name: `${areaId}_${displayTime(time)}`,
+            url: await this.sign(it.name),
+            area: areaId
+          };
+        })
+    );
+    return urlList1
+      .filter(it => it.area === id)
+      .map(it => {
+        return {
+          id: it.id,
+          name: it.name,
+          url: it.url
+        };
+      });
   }
 
   /**
