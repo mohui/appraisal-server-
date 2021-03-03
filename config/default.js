@@ -95,6 +95,16 @@ module.exports = {
     //       key: 'default'
     //     }
     //   }
+    // },
+    // {
+    //   path: '/report', // 公卫报告地址
+    //   type: 'oss',
+    //   options: {
+    //     accessKey: '',
+    //     secretKey: '',
+    //     region: 'oss-cn-shanghai',
+    //     bucket: 'knrt-doctor-app'
+    //   }
     // }
   ]
 };
