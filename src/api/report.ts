@@ -1,6 +1,3 @@
-import {ossClient} from '../../util/oss';
-import * as config from 'config';
-import * as path from 'upath';
 import {unifs} from '../app';
 
 /**
@@ -33,20 +30,7 @@ export default class Report {
    * }
    */
   async list(id) {
-    return (
-      (
-        await ossClient.store.list({
-          prefix: config.get('report.prefix'),
-          delimiter: '/'
-        })
-      )?.objects ?? []
-    )
-      .filter(it => it.name.includes(`${id}_`)) // 文件名约定为 id_time.docx
-      .map(it => ({
-        id: it.name,
-        name: displayTime(path.parse(it.name).name.split('_')[1]),
-        url: it.url
-      }));
+    return unifs.list('/report/appraisal/report');
   }
 
   /**
