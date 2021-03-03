@@ -8,7 +8,8 @@ import {getAreaTree, getLeaves} from './group';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-import {appDB} from '../app';
+import {appDB, unifs} from '../app';
+import {reportDir} from './report';
 
 /**
  * 获取指标数据
@@ -840,8 +841,8 @@ async function render(data) {
   //渲染数据
   doc.render();
   //导出文件
-  await fs.writeFile(
-    path.join('./tmp', data.file),
+  await unifs.writeFile(
+    path.join(reportDir, data.file),
     doc.getZip().generate({
       type: 'nodebuffer'
     })

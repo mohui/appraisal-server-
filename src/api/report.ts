@@ -18,6 +18,11 @@ function displayTime(time) {
   return dateLabel;
 }
 
+/**
+ * 公卫报告存储路径
+ */
+export const reportDir = '/report/appraisal/report';
+
 export default class Report {
   /**
    * 获取报告列表
@@ -30,7 +35,7 @@ export default class Report {
    * }
    */
   async list(id) {
-    const urlList = await unifs.list('/report/appraisal/report');
+    const urlList = await unifs.list(reportDir);
 
     const urlList1 = await Promise.all(
       urlList
