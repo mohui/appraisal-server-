@@ -7,7 +7,7 @@ import * as dayjs from 'dayjs';
  * @param time 时间字符串, '202001'
  */
 
-function displayTime(time) {
+export async function displayTime(time) {
   const year = dayjs(time).year();
   const month = dayjs(time).month() + 1;
   let dateLabel = `${year}-${month}月报告`;
@@ -48,9 +48,10 @@ export default class Report {
             .split('.')[0]
             .split('-')
             .pop();
+          const timeTitle = await displayTime(time);
           return {
             id: it.name,
-            name: `${areaId}_${displayTime(time)}`,
+            name: `${areaId}_${timeTitle}`,
             url: await this.sign(it.name),
             area: areaId
           };

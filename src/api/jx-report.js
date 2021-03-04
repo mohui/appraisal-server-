@@ -8,8 +8,8 @@ import {getAreaTree, getLeaves} from './group';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-import {appDB, unifs} from '../app';
-import {reportDir} from './report';
+import {appDB} from '../app';
+import {displayTime} from './report';
 
 /**
  * 获取指标数据
@@ -19,12 +19,8 @@ import {reportDir} from './report';
  */
 async function getExponent(code, time) {
   const year = dayjs(time).year();
-  const month = dayjs(time).month() + 1;
-  let dateLabel = `${year}-${month}月`;
-  if (month === 3) dateLabel = `${year}第一季度`;
-  if (month === 6) dateLabel = `${year}上半年`;
-  if (month === 9) dateLabel = `${year}第三季度`;
-  if (month === 12) dateLabel = `${year}年度`;
+
+  const dateLabel = await displayTime(time);
 
   // 获取所有权限[1:省,2:市,3:区,4:中心,5:卫生室/站]
   const allTree = await getAreaTree();
@@ -841,8 +837,8 @@ async function render(data) {
   //渲染数据
   doc.render();
   //导出文件
-  await unifs.writeFile(
-    path.join(reportDir, data.file),
+  await fs.writeFile(
+    path.join('./tmp', data.file),
     doc.getZip().generate({
       type: 'nodebuffer'
     })
