@@ -3,7 +3,6 @@ import * as dayjs from 'dayjs';
 import * as path from 'path';
 import {sql as sqlRender} from '../database';
 import {KatoCommonError} from 'kato-server';
-import dayjs = require('dayjs');
 import {originalDB, appDB} from '../app';
 import {createTransport} from 'nodemailer';
 
