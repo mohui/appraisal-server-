@@ -5,6 +5,7 @@ import {sql as sqlRender} from '../database';
 import {KatoCommonError} from 'kato-server';
 import {originalDB, appDB} from '../app';
 import {createTransport} from 'nodemailer';
+import * as config from 'config';
 
 /**
  * 语义化时间
