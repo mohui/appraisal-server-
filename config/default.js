@@ -83,6 +83,33 @@ module.exports = {
     //     region: 'oss-cn-shanghai',
     //     bucket: 'knrt-doctor-app'
     //   }
+    // },
+    // {
+    //   path: '/vouchers',
+    //   type: 'local',
+    //   options: {
+    //     base: '/vouchers',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/vouchers',
+    //       key: 'default'
+    //     }
+    //   }
     // }
-  ]
+  ],
+  // etl检查任务的配置
+  checkETL: {
+    cron: '00 00 07 * * *',
+    email: {
+      // 发件人配置
+      sender: {
+        host: '',
+        port: '',
+        email: '',
+        password: ''
+      },
+      // 收件人配置
+      receivers: ['']
+    }
+  }
 };

@@ -1,5 +1,5 @@
 import {appDB, originalDB} from '../app';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
@@ -1406,6 +1406,127 @@ export default class Person {
       urineBlood:
         urineBloodCode.find(it => it.code === item.urineBlood)?.codename ?? ''
     }));
+  }
+
+  /**
+   *获取孕产妇健康检查表数据
+   * @param id 个人id
+   * newlyDiagnosed 第一次产前检查信息表
+   * prenatalCare 第2~5次产前随访服务信息表
+   * maternalVisits 产后访视记录表
+   * examine42thDay 产后42天健康检查记录表
+   */
+  async maternalHealthCheck(id) {
+    // 通过居民id查找到身份证号
+    // language=PostgreSQL
+    const idCardNo = (
+      await originalDB.execute(
+        `select idcardno from view_personinfo where personnum=?`,
+        id
+      )
+    )[0]?.idcardno;
+
+    if (!idCardNo) throw new KatoRuntimeError(`id为 ${id} 的居民不存在`);
+
+    // 母子健康手册表
+    // 通过身份证号（idCardNo）查询
+    // language=PostgreSQL
+    const pregnancyBooks = await originalDB.execute(
+      `select * from v_pregnancybooks_kn where idcardno=?`,
+      idCardNo
+    );
+    const result = [];
+    for (const pregnancyBook of pregnancyBooks) {
+      const maternalDate = [];
+
+      // 通过母子健康手册表中的主键（newlydiagnosedcode）查询以下表
+
+      // 第一次产前检查信息表
+      // language=PostgreSQL
+      const newlyDiagnosedRecords = await originalDB.execute(
+        `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      const newlyDiagnosed = {};
+      newlyDiagnosed.name = '第一次产前检查信息表';
+      newlyDiagnosed.type = 'newlyDiagnosed';
+      newlyDiagnosed.records = newlyDiagnosedRecords;
+      maternalDate.push(newlyDiagnosed);
+
+      // 第2~5次产前随访服务信息表
+      // language=PostgreSQL
+      const prenatalCareRecords = await originalDB.execute(
+        `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      const prenatalCare = {};
+      prenatalCare.name = '第2~5次产前随访服务信息表';
+      prenatalCare.type = 'prenatalCare';
+      prenatalCare.records = prenatalCareRecords;
+      maternalDate.push(prenatalCare);
+      // 产后访视记录表
+      // maternalVisits
+      //TODO:待实现
+
+      // 产后42天健康检查记录表
+      // language=PostgreSQL
+      const examine42thDayRecords = await originalDB.execute(
+        `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      const examine42thDay = {};
+      examine42thDay.name = '产后42天健康检查记录表';
+      examine42thDay.type = 'examine42thDay';
+      examine42thDay.records = examine42thDayRecords;
+      maternalDate.push(examine42thDay);
+
+      result.push(maternalDate);
+    }
+    return result;
+  }
+
+  /**
+   * 第 1 次产前检查服务记录表详情
+   * @param 主键id
+   */
+  async firstPrenatalCheck(code) {
+    // 第一次产前检查信息表
+    // language=PostgreSQL
+    const newlyDiagnosed = await originalDB.execute(
+      `select b.fathername, b.fatherage, n.* from v_newlydiagnosed_kn n inner join v_pregnancybooks_kn b on n.pre_newlydiagnosedcode = b.newlydiagnosedcode where n.newlydiagnosedcode=?`,
+      code
+    );
+    return newlyDiagnosed[0];
+  }
+
+  /**
+   * 第2~5次产前随访服务信息表详情
+   * @param 主键id
+   */
+  async recordPrenatalFollowUp(code) {
+    // 第2~5次产前随访服务信息表
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select b.name, p.*
+         from v_prenatalcare_kn p inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
+         where prenatalcarecode = ?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
+   * 产后42天健康检查记录表详情
+   * @param 主键id
+   */
+  async recordPostpartum42DaysCheck(code) {
+    // 产后42天健康检查记录表
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_examine42thday_kn where examineno=?`,
+      code
+    );
+    return result[0];
   }
 
   /***

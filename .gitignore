@@ -10,3 +10,6 @@ node_modules
 # config
 /config/*
 !/config/default.js
+
+# tmp
+tmp

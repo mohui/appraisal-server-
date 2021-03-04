@@ -62,12 +62,103 @@
         </el-table-column>
         <el-table-column align="center" label="金额" prop="budgetFormat">
         </el-table-column>
+        <el-table-column align="center" label="操作" prop="">
+          <template slot-scope="{row}">
+            <el-button
+              size="mini"
+              :type="row.vouchers.length > 0 ? 'success' : 'primary'"
+              @click="openVoucherDialog(row)"
+              >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
+
+    <!--上传凭证窗口-->
+    <el-dialog
+      title="上传考核资料"
+      :visible.sync="voucherUploadVisible"
+      width="50%"
+    >
+      <el-form>
+        <el-form-item label="组织名称">
+          {{ currentHospital.name }}
+        </el-form-item>
+        <el-form-item label="付款金额">
+          <el-input-number
+            v-model="currentHospital.money"
+            :min="0"
+            size="mini"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="上传文件">
+          <el-upload
+            ref="uploadForm"
+            name="vouchers"
+            accept=".jpg,.jpeg,.gif,.png,.doc"
+            :headers="headers"
+            multiple
+            :file-list="fileList"
+            :auto-upload="false"
+            :on-success="voucherUploadVisibleSuccess"
+            :on-error="voucherUploadVisibleError"
+            :on-change="onChange"
+            action="/api/SystemArea/vouchers.ac"
+            :data="{
+              area: JSON.stringify(currentHospital.code),
+              year: JSON.stringify(this.year),
+              money: currentHospital.money
+            }"
+          >
+            <el-button slot="trigger" plain size="small" type="primary"
+              >选取文件
+            </el-button>
+          </el-upload>
+        </el-form-item>
+        <div
+          v-show="currentHospital.vouchers.length > 0"
+          style="height: 300px; display: flex;"
+        >
+          <div
+            v-for="image of currentHospital.vouchers"
+            style="height: 200px;width: 200px;margin: 5px"
+            :key="image.key"
+          >
+            <el-image
+              style="height: 100%;width: 100%;cursor: pointer"
+              :src="image.url"
+              fit="fill"
+              @click="viewImage(image.url)"
+            />
+            <div style="text-align: center;">
+              <el-button
+                style="margin: 0"
+                type="text"
+                size="mini"
+                @click="removeVoucher(image)"
+                >删除</el-button
+              >
+            </div>
+          </div>
+        </div>
+      </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button plain @click="voucherUploadVisible = false"
+          >取 消
+        </el-button>
+        <el-button plain type="primary" @click="handleSaveUploadFile"
+          >确 定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import {getToken} from '../../utils/cache';
+
 export default {
   name: 'hospital',
   data() {
@@ -76,8 +167,18 @@ export default {
       yearList: [
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
-      ]
+      ],
+      fileList: [],
+      voucherUploadVisible: false,
+      currentHospital: {vouchers: []},
+      headers: {token: getToken()}
     };
+  },
+  watch: {
+    year() {
+      // 年度改变时先将数据清空再重新在异步计算属性中加载
+      this.hospitalListServerData = [];
+    }
   },
   computed: {
     hospitalListData() {
@@ -97,7 +198,7 @@ export default {
   asyncComputed: {
     hospitalListServerData: {
       async get() {
-        let code = this.$settings.user.region.code;
+        let code = this.$settings.user.code;
         return await Promise.all(
           (await this.$api.SystemArea.rank(code, this.year)).map(async item => {
             item.hasChildren =
@@ -153,6 +254,71 @@ export default {
     handleYearChange(value) {
       console.log(value);
       this.year = value;
+    },
+    async openVoucherDialog(row) {
+      this.currentHospital = row;
+      this.fileList = [];
+      const result =
+        (await this.$api.SystemArea.getVouchers(row.code, this.year))
+          ?.vouchers || [];
+      //获取图片url
+      if (result.length > 0)
+        this.currentHospital.vouchers = await Promise.all(
+          result.map(async it => ({key: it, url: await this.getImageUrl(it)}))
+        );
+      this.voucherUploadVisible = true;
+    },
+    async handleSaveUploadFile() {
+      if (this.$refs.uploadForm.fileList.length === 0) {
+        //不传图片只修改金额
+        await this.$api.SystemArea.vouchers(
+          this.currentHospital.code,
+          this.year,
+          this.currentHospital.money
+        );
+        this.$message.success('上传成功');
+      } else await this.$refs.uploadForm.submit();
+      this.voucherUploadVisible = false;
+    },
+    onChange(file, fileList) {
+      this.fileList = fileList;
+    },
+    viewImage(url) {
+      window.open(url);
+    },
+    async removeVoucher(image) {
+      this.currentHospital.vouchers = this.currentHospital.vouchers.filter(
+        it => it.key !== image.key
+      );
+      await this.$api.SystemArea.removeVoucher(
+        this.currentHospital.code,
+        this.year,
+        image.key
+      );
+      this.$message.success('删除成功');
+    },
+    //文件上传成功
+    voucherUploadVisibleSuccess(res) {
+      if (res._KatoErrorCode_) {
+        this.$message.error('文件上传失败');
+      } else {
+        this.$message.success('文件上传成功');
+      }
+      //手动将文件列表清空
+      this.fileList = [];
+      this.voucherUploadVisible = false;
+    },
+    //文件上传失败
+    voucherUploadVisibleError() {
+      this.$message.error('文件上传失败');
+      this.voucherUploadVisible = false;
+    },
+    async getImageUrl(url) {
+      try {
+        return await this.$api.Report.sign(url);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 };
