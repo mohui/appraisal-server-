@@ -535,6 +535,80 @@
                 </div>
               </div>
             </el-tab-pane>
+            <el-tab-pane name="maternal" :disabled="!maternalDate.length">
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.maternalServerDate.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                孕产妇健康管理记录
+              </span>
+              <div>
+                <div v-for="(item, index) of maternalDate" :key="index">
+                  <div style="font-size: 22px; margin:20px 0">
+                    第{{ index + 1 }}次生产记录
+                  </div>
+                  <div>
+                    <div
+                      style="font-size: 20px; margin:10px 0"
+                      v-for="(it, itIndex) in item"
+                      :key="itIndex"
+                    >
+                      <div>{{ it.name }}</div>
+                      <div
+                        class="notes"
+                        style="font-size: 18px; margin:10px 0"
+                        v-for="(record, recordIndex) of it.records"
+                        :key="recordIndex"
+                        @click="handleGotoDetailse(record, it.name)"
+                      >
+                        <div class="notes-block">
+                          <span class="hospital">
+                            <span v-if="it.type === 'newlyDiagnosed'">
+                              填表日期：{{
+                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span v-else-if="it.type === 'prenatalCare'">
+                              随访日期：{{
+                                record.checkdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span
+                              v-else-if="
+                                it.type === 'maternalVisits' ||
+                                  it.type === 'examine42thDay'
+                              "
+                            >
+                              访视日期：{{
+                                record.visitdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                          </span>
+                        </div>
+                        <p>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            年龄：{{ record.age }}
+                          </span>
+                          体重：{{ record.weight }}kg
+                          <span
+                            v-if="
+                              it.type === 'prenatalCare' ||
+                                it.type === 'examine42thDay'
+                            "
+                          >
+                            医生姓名：{{ record.doctor }}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -602,6 +676,9 @@ export default {
         it.checkDate = it.checkDate ? it.checkDate.$format('YYYY-MM-DD') : '';
         return it;
       });
+    },
+    maternalDate() {
+      return this.maternalServerDate;
     }
   },
   asyncComputed: {
@@ -679,11 +756,47 @@ export default {
       default() {
         return [];
       }
+    },
+    maternalServerDate: {
+      async get() {
+        return await this.$api.Person.maternalHealthCheck(this.id);
+      },
+      default() {
+        return [];
+      }
     }
   },
   methods: {
     handleBack() {
       this.$router.go(-1);
+    },
+    handleGotoDetailse(record, name) {
+      let routerName = '';
+      let code = '';
+      if (name === '第一次产前检查信息表') {
+        //第一次产前检查信息表
+        routerName = 'record-first-prenatal-check';
+        code = record.newlydiagnosedcode;
+      } else if (name === '第2~5次产前随访服务信息表') {
+        //第2~5次产前随访服务信息表
+        routerName = 'record-prenatal-follow-up';
+        code = record.prenatalcarecode;
+      } else if (name === '产后访视记录表') {
+        //产后访视记录表
+        routerName = 'record-postpartum-visit';
+      } else if (name === '产后42天健康检查记录表') {
+        //产后42天健康检查记录表
+        routerName = 'record-postpartum-42-days-check';
+        code = record.examineno;
+      }
+      if (routerName && code) {
+        this.$router.push({
+          name: routerName,
+          query: {
+            id: code
+          }
+        });
+      }
     }
   }
 };
@@ -691,6 +804,7 @@ export default {
 
 <style lang="scss">
 .patient-tab-list {
+  width: calc(100% - 70px);
   height: 100%;
   display: flex;
   flex-direction: column;
