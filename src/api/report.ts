@@ -1,5 +1,6 @@
 import {unifs} from '../app';
 import * as dayjs from 'dayjs';
+import * as path from 'path';
 
 /**
  * 语义化时间
@@ -41,19 +42,17 @@ export default class Report {
       urlList
         .filter(it => it.isDirectory === false)
         .map(async it => {
-          const areaTimeStr = it.name.split('/').pop();
+          const areaTimeStr = path.parse(it.name)?.name;
           const strLength = areaTimeStr.length;
-          const areaId = areaTimeStr.substr(0, strLength - 12);
-          const time = areaTimeStr
-            .split('.')[0]
-            .split('-')
-            .pop();
+          const areaId = areaTimeStr.substr(0, strLength - 7);
+          const time = areaTimeStr.split('-').pop();
           const timeTitle = await displayTime(time);
           return {
             id: it.name,
             name: `${timeTitle}`,
             url: await this.sign(it.name),
-            area: areaId
+            area: areaId,
+            time: time
           };
         })
     );
