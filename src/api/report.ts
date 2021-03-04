@@ -10,9 +10,9 @@ import * as dayjs from 'dayjs';
 export async function displayTime(time) {
   const year = dayjs(time).year();
   const month = dayjs(time).month() + 1;
-  let dateLabel = `${year}-${month}月报告`;
-  if (month === 3) dateLabel = `${year}第一季度报告`;
-  if (month === 6) dateLabel = `${year}上半年报告`;
+  let dateLabel = `${year}年${month}月报告`;
+  if (month === 3) dateLabel = `${year}年第一季度报告`;
+  if (month === 6) dateLabel = `${year}年上半年报告`;
   if (month === 9) dateLabel = `${year}第三季度报告`;
   if (month === 12) dateLabel = `${year}年度报告`;
   return dateLabel;
@@ -51,7 +51,7 @@ export default class Report {
           const timeTitle = await displayTime(time);
           return {
             id: it.name,
-            name: `${areaId}_${timeTitle}`,
+            name: `${timeTitle}`,
             url: await this.sign(it.name),
             area: areaId
           };
