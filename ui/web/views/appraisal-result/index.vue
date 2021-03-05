@@ -20,8 +20,8 @@
         <!--年度选择-->
         <span style="margin:0 10px">
           <el-select
-            size="small"
             v-model="params.year"
+            size="small"
             placeholder="请选择考核年度"
             @change="handleYearChange(params.year)"
           >
@@ -64,6 +64,34 @@
             "
             >考核共识下载</el-button
           >
+        </span>
+        <span style="margin:0 10px">
+          <el-button
+            v-if="reportListData.length === 1"
+            plain
+            size="small"
+            type="primary"
+            @click="handleFileDownload(reportListData[0].url)"
+            >公卫报告下载</el-button
+          >
+          <el-dropdown
+            v-if="reportListData.length > 1"
+            split-button
+            size="small"
+            type="primary"
+            @command="handleFileDownload"
+          >
+            公卫报告下载
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item
+                v-for="it in reportListData"
+                :key="it.id"
+                :command="it.url"
+              >
+                {{ it.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </span>
         <el-button
           v-if="showBackButton()"
@@ -463,8 +491,8 @@
               <el-table
                 :data="workpointRankData"
                 height="600"
-                @row-click="handleCellClick"
                 :cell-class-name="cellClassHover"
+                @row-click="handleCellClick"
               >
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
@@ -486,8 +514,8 @@
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-card
-              shadow="hover"
               v-loading="$asyncComputed.workPointsProjectServerData.updating"
+              shadow="hover"
             >
               <div class="second-title">工分项目</div>
               <el-table
