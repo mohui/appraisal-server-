@@ -95,7 +95,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(34);
+      await migrate.migrate(35);
     }
   }
 

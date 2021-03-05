@@ -15,7 +15,7 @@ export class AreaVoucher extends Model<AreaVoucher> {
   @PrimaryKey
   @AllowNull(false)
   @Column({field: 'year'})
-  year: string;
+  year: number;
 
   @PrimaryKey
   @AllowNull(false)

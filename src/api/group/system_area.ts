@@ -1005,7 +1005,7 @@ export default class SystemArea {
   //机构付款凭证接口
   @validate(
     should.string(),
-    should.string().description('年份'),
+    should.number().description('年份'),
     should.number().description('金额'),
     should.description('凭证')
   )
@@ -1037,17 +1037,19 @@ export default class SystemArea {
       .required()
       .allow(null),
     should
-      .string()
+      .number()
       .required()
       .allow(null)
   )
   async getVouchers(area, year) {
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
     return AreaVoucherModel.findOne({where: {area, year}});
   }
 
   @validate(
     should.string().required(),
-    should.string().required(),
+    should.number().required(),
     should.string().allow(null)
   )
   async removeVoucher(area, year, imageKey) {
