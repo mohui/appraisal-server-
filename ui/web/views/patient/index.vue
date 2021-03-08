@@ -591,13 +591,13 @@
                         </div>
                         <p>
                           <span v-if="it.type === 'newlyDiagnosed'">
-                            年龄：{{ record.age }}
+                            年龄：{{ record.age }} 体重：{{ record.weight }}kg
                           </span>
-                          体重：{{ record.weight }}kg
                           <span
                             v-if="
                               it.type === 'prenatalCare' ||
-                                it.type === 'examine42thDay'
+                                it.type === 'examine42thDay' ||
+                                it.type === 'maternalVisits'
                             "
                           >
                             医生姓名：{{ record.doctor }}
@@ -784,6 +784,7 @@ export default {
       } else if (name === '产后访视记录表') {
         //产后访视记录表
         routerName = 'record-postpartum-visit';
+        code = record.visitcode;
       } else if (name === '产后42天健康检查记录表') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';

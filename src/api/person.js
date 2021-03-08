@@ -1465,8 +1465,16 @@ export default class Person {
       prenatalCare.records = prenatalCareRecords;
       maternalDate.push(prenatalCare);
       // 产后访视记录表
-      // maternalVisits
-      //TODO:待实现
+      // language=PostgreSQL
+      const maternalVisitRecords = await originalDB.execute(
+        `select * from v_maternalvisits_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      const maternalVisits = {};
+      maternalVisits.name = '产后访视记录表';
+      maternalVisits.type = 'maternalVisits';
+      maternalVisits.records = maternalVisitRecords;
+      maternalDate.push(maternalVisits);
 
       // 产后42天健康检查记录表
       // language=PostgreSQL
@@ -1510,6 +1518,19 @@ export default class Person {
       `select b.name, p.*
          from v_prenatalcare_kn p inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
          where prenatalcarecode = ?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
+   * 产后访视记录表详情
+   * @param 主键id
+   */
+  async maternalVisits(code) {
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_maternalvisits_kn where visitcode=?`,
       code
     );
     return result[0];
