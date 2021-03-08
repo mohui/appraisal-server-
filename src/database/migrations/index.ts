@@ -34,6 +34,7 @@ import {BasicTagAddYearMigration} from './031_basic_tag';
 import {HE07Migration} from './032_HE07';
 import {HE09Migration} from './033_HE09';
 import {AreaVoucherMigration} from './034_area_voucher';
+import {CheckYearMigration} from './035_check_year';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -71,5 +72,6 @@ export const migrations: IMigration[] = [
   new BasicTagAddYearMigration(),
   new HE07Migration(),
   new HE09Migration(),
-  new AreaVoucherMigration()
+  new AreaVoucherMigration(),
+  new CheckYearMigration()
 ];

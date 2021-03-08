@@ -7,10 +7,12 @@ import {
   RuleTagModel,
   RuleAreaBudgetModel
 } from '../../database/model';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
+
 import {MarkTagUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
+import {getYear} from './system_area';
 
 export default class SystemRule {
   /**
@@ -19,12 +21,23 @@ export default class SystemRule {
    * @param code 机构id
    * @param year 年份
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .allow(null)
+      .description('年份')
+  )
   async checks(code, year) {
     // 校验地区是否存在
     const areas = await AreaModel.findOne({where: {code}});
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份,获取年份
+    year = getYear(year);
 
     // 通过地区编码和年份获取考核主信息
     const areaSystem = await CheckAreaModel.findOne({

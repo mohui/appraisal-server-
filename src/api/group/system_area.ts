@@ -50,6 +50,14 @@ async function yearGetCheckId(code, year) {
   return check?.checkId;
 }
 
+/**
+ * 获取年份
+ */
+export function getYear(year) {
+  if (!year) year = dayjs().year();
+  return year;
+}
+
 export default class SystemArea {
   /**
    * 质量系数,公分值
@@ -65,7 +73,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -79,7 +87,8 @@ export default class SystemArea {
     const tree = await getAreaTree(Context.current.user.code);
     const parentIndex = tree.findIndex(it => it.code === areas.parent);
 
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份,获取年份
+    year = getYear(year);
 
     // 通过地区编码和时间获取checkId
     const checkId = await yearGetCheckId(code, year);
@@ -122,7 +131,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -134,7 +143,8 @@ export default class SystemArea {
       },
       attributes: ['code', 'name']
     });
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year);
 
     // 根据地区和年份获取考核id
     const checkIdLists = await CheckAreaModel.findAll({
@@ -204,7 +214,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -213,7 +223,8 @@ export default class SystemArea {
     const areas = await AreaModel.findOne({where: {code}});
 
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year);
 
     // 通过地区编码和时间获取checkId
     const checkId = await yearGetCheckId(code, year);
@@ -226,10 +237,12 @@ export default class SystemArea {
         areaCode: code,
         checkId,
         date: {
-          [Op.gte]: dayjs(year)
+          [Op.gte]: dayjs()
+            .year(year)
             .startOf('y')
             .toDate(),
-          [Op.lt]: dayjs(year)
+          [Op.lt]: dayjs()
+            .year(year)
             .startOf('y')
             .add(1, 'y')
             .toDate()
@@ -251,7 +264,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -326,7 +339,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -343,8 +356,8 @@ export default class SystemArea {
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
     const hisHospIds = hisHospIdObjs.map(it => it.id);
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year);
     // 签约人数
     const signedSqlRenderResult = sqlRender(
       `
@@ -357,7 +370,7 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        YearDegree: dayjs(year).year()
+        YearDegree: year
       }
     );
     // 履约人数
@@ -372,10 +385,12 @@ export default class SystemArea {
           `,
       {
         hisHospIds,
-        startTime: dayjs(year)
+        startTime: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs(year)
+        endTime: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -393,11 +408,12 @@ export default class SystemArea {
               and vsr.YearDegree = {{? vsrYearDegree}}
           `,
       {
-        YearDegree: dayjs(year)
+        YearDegree: dayjs()
+          .year(year)
           .add(-1, 'y')
           .year(),
         hisHospIds,
-        vsrYearDegree: dayjs(year).year()
+        vsrYearDegree: year
       }
     );
     const sqlResults = await Promise.all(
@@ -431,7 +447,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -461,8 +477,8 @@ export default class SystemArea {
 
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份
+    year = getYear(year);
 
     const [sql, params] = sqlRender(
       `
@@ -478,10 +494,12 @@ export default class SystemArea {
       `,
       {
         hisHospIds,
-        start: dayjs(year)
+        start: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        end: dayjs(year)
+        end: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -504,7 +522,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -534,8 +552,8 @@ export default class SystemArea {
     const hisHospIds = hisHospIdObjs.map(it => it.id);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
 
     const [sql, params] = sqlRender(
       `
@@ -550,10 +568,12 @@ export default class SystemArea {
     `,
       {
         hisHospIds,
-        start: dayjs(year)
+        start: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        end: dayjs(year)
+        end: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate()
@@ -577,7 +597,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份'),
     should
@@ -613,8 +633,8 @@ export default class SystemArea {
     const hisHospIds = hisHospIdObjs.map(it => it.id);
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
 
     /**
      * 发放印刷资料 ActivityFormCode = '1' PrintDataName 名称 ActivityTime 活动时间
@@ -639,10 +659,12 @@ export default class SystemArea {
         order by vhe.ActivityTime desc
       `,
       {
-        startTime: dayjs(year)
+        startTime: dayjs()
+          .year(year)
           .startOf('y')
           .toDate(),
-        endTime: dayjs(year)
+        endTime: dayjs()
+          .year(year)
           .startOf('y')
           .add(1, 'y')
           .toDate(),
@@ -680,7 +702,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -714,8 +736,8 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
 
     const [sql, params] = sqlRender(
       `
@@ -802,7 +824,7 @@ export default class SystemArea {
       .required()
       .description('地区code或机构id'),
     should
-      .string()
+      .number()
       .allow(null)
       .description('年份')
   )
@@ -823,8 +845,8 @@ export default class SystemArea {
     // 根据地区id获取机构id列表
     if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
 
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
 
     const [sql, params] = sqlRender(
       `
@@ -853,8 +875,8 @@ export default class SystemArea {
    * @param year 考核体系id
    */
   async projectDetail(code, year) {
-    // 如果没传时间,默认当前年
-    if (!year) year = dayjs().format('YYYY');
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
 
     // 根据地区和时间查找考核Id
     const [sql, params] = sqlRender(
@@ -983,7 +1005,7 @@ export default class SystemArea {
   //机构付款凭证接口
   @validate(
     should.string(),
-    should.string().description('年份'),
+    should.number().description('年份'),
     should.number().description('金额'),
     should.description('凭证')
   )
@@ -1015,17 +1037,19 @@ export default class SystemArea {
       .required()
       .allow(null),
     should
-      .string()
+      .number()
       .required()
       .allow(null)
   )
   async getVouchers(area, year) {
+    // 如果没有传年份获取年份,默认当前年
+    year = getYear(year);
     return AreaVoucherModel.findOne({where: {area, year}});
   }
 
   @validate(
     should.string().required(),
-    should.string().required(),
+    should.number().required(),
     should.string().allow(null)
   )
   async removeVoucher(area, year, imageKey) {
