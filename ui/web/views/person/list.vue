@@ -328,11 +328,6 @@ export default {
         return getTagsList(it);
       });
     },
-    tableData2() {
-      return this.serverData2.rows.map(it => {
-        return getTagsList(it);
-      });
-    },
     //居民标签不规范的具体原因
     nonstandardCauses() {
       if (!this.nonstandardCausesSeverData) return '数据出错了';
@@ -420,31 +415,6 @@ export default {
           personOr: this.queryForm.personOr,
           documentOr: this.queryForm.documentOr,
           year: this.queryForm.year
-        });
-      },
-      default() {
-        return {
-          count: 0,
-          rows: []
-        };
-      }
-    },
-    serverData2: {
-      async get() {
-        return this.$api.Person.list2({
-          name: this.queryForm.name,
-          idCard: this.queryForm.idCard,
-          hospital: this.queryForm.hospital,
-          region: this.queryForm.region,
-          tags: this.queryForm.tags
-            .concat(this.queryForm.personTags)
-            .reduce((res, next) => {
-              res[`${next}`] = next.includes('C') || next.includes('E');
-              return res;
-            }, {}),
-          include: this.queryForm.include,
-          personOr: this.queryForm.personOr,
-          documentOr: this.queryForm.documentOr
         });
       },
       default() {
