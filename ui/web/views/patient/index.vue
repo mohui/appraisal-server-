@@ -784,6 +784,7 @@ export default {
       } else if (name === '产后访视记录表') {
         //产后访视记录表
         routerName = 'record-postpartum-visit';
+        code = record.visitcode;
       } else if (name === '产后42天健康检查记录表') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
