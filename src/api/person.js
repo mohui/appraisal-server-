@@ -1524,6 +1524,19 @@ export default class Person {
   }
 
   /**
+   * 产后访视记录表详情
+   * @param 主键id
+   */
+  async maternalVisits(code) {
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_maternalvisits_kn where visitcode=?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
    * 产后42天健康检查记录表详情
    * @param 主键id
    */
