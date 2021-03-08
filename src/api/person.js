@@ -1465,8 +1465,16 @@ export default class Person {
       prenatalCare.records = prenatalCareRecords;
       maternalDate.push(prenatalCare);
       // 产后访视记录表
-      // maternalVisits
-      //TODO:待实现
+      // language=PostgreSQL
+      const maternalVisitRecords = await originalDB.execute(
+        `select * from v_maternalvisits_kn where newlydiagnosedcode=?`,
+        pregnancyBook.newlydiagnosedcode
+      );
+      const maternalVisits = {};
+      maternalVisits.name = '产后访视记录表';
+      maternalVisits.type = 'maternalVisits';
+      maternalVisits.records = maternalVisitRecords;
+      maternalDate.push(maternalVisits);
 
       // 产后42天健康检查记录表
       // language=PostgreSQL
