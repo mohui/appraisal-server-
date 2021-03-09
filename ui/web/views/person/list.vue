@@ -155,6 +155,9 @@
                 >
                   重置条件
                 </el-button>
+                <el-button size="mini" @click="getTableData()">
+                  导出表格</el-button
+                >
               </el-form-item>
             </el-col>
           </el-row>
@@ -442,6 +445,25 @@ export default {
     }
   },
   methods: {
+    async getTableData() {
+      await this.$api.Person.personExcel({
+        name: this.queryForm.name,
+        idCard: this.queryForm.idCard,
+        hospital: this.queryForm.hospital,
+        region: this.queryForm.region,
+        tags: this.queryForm.tags
+          .concat(this.queryForm.personTags)
+          .reduce((res, next) => {
+            res[`${next}`] = next.includes('C') || next.includes('E');
+            return res;
+          }, {}),
+        include: this.queryForm.include,
+        personOr: this.queryForm.personOr,
+        documentOr: this.queryForm.documentOr,
+        year: this.queryForm.year
+      });
+      this.$message.success('后台任务已进行, 请关注右上角任务进度~');
+    },
     initParams(route) {
       this.isInit = true;
       if (route.query.name) this.queryForm.name = route.query.name;

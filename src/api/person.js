@@ -3,8 +3,11 @@ import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
-import {HospitalModel} from '../database/model';
+import {HospitalModel, RegionModel} from '../database/model';
 import {Op} from 'sequelize';
+import {getTagsList} from '../../common/person-tag';
+import Excel from 'exceljs';
+import {createBackJob} from '../utils/back-job';
 
 async function dictionaryQuery(categoryno) {
   return await originalDB.execute(
@@ -12,7 +15,7 @@ async function dictionaryQuery(categoryno) {
     categoryno
   );
 }
-
+//查询档案列表的sql
 function listRender(params) {
   return sqlRender(
     `
@@ -21,6 +24,56 @@ function listRender(params) {
              inner join view_hospital vh on vp.adminorganization = vh.hospid
       where 1 = 1
         and vp.WriteOff = false
+        {{#if name}} and vp.name like {{? name}} {{/if}}
+        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        and
+          (
+            1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
+            {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
+            {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
+            {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
+            {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
+            {{#compare H00}}{{#if documentOr}} or {{else}} and {{/if}} mp."H00"={{? H00}} {{/compare}}
+            {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
+            {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
+            {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
+            {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
+            {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
+            {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+          )
+          and
+          (
+            1 = {{#if personOr}} 0 {{else}} 1 {{/if}}
+            {{#compare C01}}{{#if personOr}} or {{else}} and {{/if}} mp."C01"={{? C01}} {{/compare}}
+            {{#compare C02}}{{#if personOr}} or {{else}} and {{/if}} mp."C02"={{? C02}} {{/compare}}
+            {{#compare C03}}{{#if personOr}} or {{else}} and {{/if}} mp."C03"={{? C03}} {{/compare}}
+            {{#compare C04}}{{#if personOr}} or {{else}} and {{/if}} mp."C04"={{? C04}} {{/compare}}
+            {{#compare C05}}{{#if personOr}} or {{else}} and {{/if}} mp."C05"={{? C05}} {{/compare}}
+            {{#compare C00}}{{#if personOr}} or {{else}} and {{/if}} mp."C00"={{? C00}} {{/compare}}
+            {{#compare C06}}{{#if personOr}} or {{else}} and {{/if}} mp."C06"={{? C06}} {{/compare}}
+            {{#compare C07}}{{#if personOr}} or {{else}} and {{/if}} mp."C07"={{? C07}} {{/compare}}
+            {{#compare C08}}{{#if personOr}} or {{else}} and {{/if}} mp."C08"={{? C08}} {{/compare}}
+            {{#compare C09}}{{#if personOr}} or {{else}} and {{/if}} mp."C09"={{? C09}} {{/compare}}
+            {{#compare C10}}{{#if personOr}} or {{else}} and {{/if}} mp."C10"={{? C10}} {{/compare}}
+            {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
+            {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
+            {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
+          )
+    `,
+    params
+  );
+}
+
+//查询档案列表,并列出问题档案原因sql
+function listRenderForExcel(params) {
+  return sqlRender(
+    `
+      from mark_person mp
+             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.year = {{? year}}
+             inner join view_hospital vh on vp.adminorganization = vh.hospid
+             left join mark_content mc on mc.id = vp.personnum
+      where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
@@ -179,6 +232,9 @@ export default class Person {
       `select vp.personnum   as id,
                 vp.name,
                 vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
                 mp."S03",
                 mp."S23",
                 mp."O00",
@@ -219,6 +275,32 @@ export default class Person {
       count: Number(count),
       rows: person
     };
+  }
+
+  /***
+   * 导出人员档案表格
+   * @param params
+   * @returns {Promise<void>}
+   */
+  async personExcel(params) {
+    try {
+      const {hospital, region} = params;
+      //需要查询的机构或者地区code
+      let code = '';
+      //code默认为hospital,否则为region
+      code = hospital ? hospital : region;
+      //两者都没有,则用用户默认code
+      if (!code) code = Context.current.user.code;
+      let fileName = '';
+      const hospitalModel = await HospitalModel.findOne({where: {id: code}});
+      if (hospitalModel) fileName = hospitalModel?.name + '人员档案表格';
+      if (!hospitalModel)
+        fileName =
+          (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
+      return createBackJob('personExcel', fileName, {params, fileName});
+    } catch (e) {
+      throw new KatoCommonError(e.message);
+    }
   }
 
   async detail(id) {
@@ -1980,4 +2062,186 @@ export default class Person {
     constitution.guide = '';
     return {name, questionnaire, constitution};
   }
+}
+
+/***
+ * 获取表格的buffer数据
+ * @param params
+ * @returns {Promise<{count: number, rows: []}|Buffer>}
+ */
+export async function getPersonExcelBuffer(params) {
+  const {
+    hospital,
+    region,
+    idCard,
+    tags,
+    include,
+    personOr = false,
+    documentOr = false,
+    year
+  } = params;
+  const his = '340203';
+  let {name} = params;
+  if (name) name = `%${name}%`;
+  let hospitals = [];
+  //没有选机构和地区,则默认查询当前用户所拥有的机构
+  if (!region && !hospital)
+    hospitals = Context.current.user.hospitals.map(it => it.id);
+  //仅有地区,则查询该地区下的所有机构
+  if (region && !hospital) {
+    hospitals = (
+      await HospitalModel.findAll({
+        where: {region: {[Op.like]: `${region}%`}}
+      })
+    ).map(it => it.id);
+  }
+  if (hospital) hospitals = [hospital];
+
+  //如果查询出来的机构列表为空,则数据都为空
+  if (hospitals.length === 0) return {count: 0, rows: []};
+  // language=PostgreSQL
+  hospitals = (
+    await Promise.all(
+      hospitals.map(it =>
+        appDB.execute(
+          `select hishospid as id from hospital_mapping where h_id = ?`,
+          it
+        )
+      )
+    )
+  )
+    .filter(it => it.length > 0)
+    .reduce((result, current) => [...result, ...current.map(it => it.id)], []);
+  if (include && hospital)
+    hospitals = (
+      await Promise.all(
+        hospitals.map(item =>
+          //查询机构的下属机构
+          originalDB.execute(
+            `select hospid as id from view_hospital where hos_hospid = ?`,
+            item
+          )
+        )
+      )
+    )
+      .filter(it => it.length > 0)
+      .reduce((result, current) => [...result, ...current.map(it => it.id)], [])
+      .concat(hospitals);
+
+  const sqlRenderResult = listRenderForExcel({
+    his,
+    name,
+    hospitals,
+    idCard,
+    ...tags,
+    personOr,
+    documentOr,
+    year
+  });
+  let person = await originalDB.execute(
+    `select vp.personnum   as id,
+                vp.name,
+                vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
+                mp."S03",
+                mp."S23",
+                mp."O00",
+                mp."O02",
+                mp."H00",
+                mp."H01",
+                mp."H02",
+                mp."D00",
+                mp."D01",
+                mp."D02",
+                mp."C01",
+                mp."C02",
+                mp."C03",
+                mp."C04",
+                mp."C05",
+                mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
+                mc.name as "markName",
+                mc.content as "markContent",
+                vh.hospname    as "hospitalName",
+                vp.operatetime as date
+         ${sqlRenderResult[0]}
+         order by vp.operatetime desc, vp.personnum desc
+         `,
+    ...sqlRenderResult[1]
+  );
+  person.forEach(p => {
+    for (let i in p) {
+      //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
+      if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
+    }
+  });
+  person = person
+    .map(it => getTagsList(it))
+    .reduce((pre, next) => {
+      const current = pre.find(p => p.id === next.id);
+      if (current) {
+        let tag = current.tags.find(t => t.code === next.markName);
+        if (tag) {
+          if (tag.content.indexOf(next.markContent) < 0)
+            tag.content.push(next.markContent);
+        } else
+          current.tags.push({
+            label: current.label,
+            code: current.markName,
+            content: [current.markContent]
+          });
+      } else {
+        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
+        pre.push({
+          ...next,
+          tags: tags
+        });
+      }
+      return pre;
+    }, [])
+    .map(it => ({
+      name: it.name,
+      idCard: it.idCard,
+      address: it.address,
+      gender: it.gender === '1' ? '男' : '女',
+      phone: it.phone,
+      personTags: it.personTags.map(tag => tag.label).join(','),
+      tags: it.tags
+        .map(item => item.label + ':[' + item.content + ']')
+        .join(',')
+    }));
+  //开始创建Excel表格
+  const workBook = new Excel.Workbook();
+  const workSheet = workBook.addWorksheet(`人员档案表格...`);
+  //添加标题
+  workSheet.addRow([
+    '序号',
+    '姓名',
+    '身份证号',
+    '住址',
+    '性别',
+    '电话',
+    '人群分类',
+    '档案问题'
+  ]);
+  const rows = person.map((it, index) => {
+    let current = [index + 1];
+    for (let k in it) {
+      current.push(it[k]);
+    }
+    return current;
+  });
+
+  workSheet.addRows(rows);
+  return workBook.xlsx.writeBuffer();
 }

@@ -106,6 +106,10 @@ export const PermissionDetail = [
   {
     key: 'tags-detail',
     name: '档案指标详情'
+  },
+  {
+    key: 'person-excel',
+    name: '档案详情导出'
   }
 ];
 
@@ -136,7 +140,8 @@ export const Permission = {
   ALL_CHECK: 'all-check',
   ETL_HOSPITAL: 'etl-hospital',
   SUPER_ADMIN: 'super-admin',
-  TAGS_DETAIL: 'tags-detail'
+  TAGS_DETAIL: 'tags-detail',
+  PERSON_EXCEL: 'person-excel'
 };
 export const PermissionTree = [
   {
@@ -276,6 +281,10 @@ export const PermissionTree = [
       {
         key: Permission.TAGS_DETAIL,
         label: '档案指标详情'
+      },
+      {
+        key: Permission.PERSON_EXCEL,
+        label: '档案表格导出'
       }
     ]
   },

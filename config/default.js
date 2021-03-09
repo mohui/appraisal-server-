@@ -85,6 +85,18 @@ module.exports = {
     //   }
     // },
     // {
+    //   path: '/personExcel',
+    //   type: 'local',
+    //   options: {
+    //     base: '/local',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/personExcel',
+    //       key: '1234'
+    //     }
+    //   }
+    // },
+    // {
     //   path: '/vouchers',
     //   type: 'local',
     //   options: {
