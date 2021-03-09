@@ -292,9 +292,12 @@ export default class Person {
       //两者都没有,则用用户默认code
       if (!code) code = Context.current.user.code;
       let fileName = '';
-      const hospitalModel = await HospitalModel.findOne({where: {id: code}});
-      if (hospitalModel) fileName = hospitalModel?.name + '人员档案表格';
-      if (!hospitalModel)
+      if (hospital)
+        fileName =
+          (await HospitalModel.findOne({where: {id: code}}))?.name +
+          '人员档案表格';
+
+      if (!hospital && code)
         fileName =
           (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
       return createBackJob('personExcel', fileName, {params, fileName});
