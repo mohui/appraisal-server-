@@ -140,7 +140,7 @@
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="8" :xl="4">
+            <el-col :span="5" :xs="24" :sm="24" :md="16" :lg="12" :xl="8">
               <el-form-item label="">
                 <el-button
                   type="primary"
