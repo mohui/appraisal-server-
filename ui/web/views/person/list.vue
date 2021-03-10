@@ -140,7 +140,7 @@
                 </div>
               </el-form-item>
             </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="8" :xl="4">
+            <el-col :span="5" :xs="24" :sm="24" :md="16" :lg="12" :xl="8">
               <el-form-item label="">
                 <el-button
                   type="primary"
@@ -155,7 +155,14 @@
                 >
                   重置条件
                 </el-button>
-                <el-button size="mini" @click="getTableData()">
+                <el-button
+                  v-permission="{
+                    permission: permission.PERSON_EXCEL,
+                    type: 'disabled'
+                  }"
+                  size="mini"
+                  @click="getTableData()"
+                >
                   导出表格</el-button
                 >
               </el-form-item>
