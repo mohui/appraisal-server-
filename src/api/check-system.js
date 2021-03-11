@@ -80,7 +80,7 @@ export default class CheckSystem {
               budget: cRule.budget,
               checkId: cRule.check_id,
               checkMethod: cRule.check_method,
-              checkStandard: cRule.evaluate_standard,
+              checkStandard: cRule.check_standard,
               create_by: cRule.create_by,
               created_at: cRule.created_at,
               evaluateStandard: cRule.evaluate_standard,
