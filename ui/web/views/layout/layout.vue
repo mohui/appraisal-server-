@@ -173,7 +173,7 @@ export default {
 .mobile {
   position: absolute;
   height: 100%;
-  z-index: 999;
+  z-index: 2002;
 }
 .hiddenMenu {
   display: none;
