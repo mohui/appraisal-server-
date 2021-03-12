@@ -158,12 +158,13 @@
 
 <script>
 import {getToken} from '../../utils/cache';
+import dayjs from 'dayjs';
 
 export default {
   name: 'hospital',
   data() {
     return {
-      year: 2020,
+      year: dayjs().year(),
       yearList: [
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
