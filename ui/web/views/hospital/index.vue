@@ -278,7 +278,10 @@ export default {
           this.currentHospital.money
         );
         this.$message.success('修改成功');
-      } else await this.$refs.uploadForm.submit();
+      } else
+        this.currentHospital.vouchers.push({
+          key: await this.$refs.uploadForm.submit()
+        });
       this.voucherUploadVisible = false;
     },
     onChange(file, fileList) {
