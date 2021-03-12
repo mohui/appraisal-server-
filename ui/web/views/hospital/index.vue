@@ -277,7 +277,7 @@ export default {
           this.year,
           this.currentHospital.money
         );
-        this.$message.success('上传成功');
+        this.$message.success('修改成功');
       } else await this.$refs.uploadForm.submit();
       this.voucherUploadVisible = false;
     },
