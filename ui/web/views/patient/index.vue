@@ -670,7 +670,7 @@
                           </div>
                           <div>
                             <p>
-                              新生儿姓名：{{ record.newbornname }} 身高：{{
+                              儿童姓名：{{ record.childname }} 身高：{{
                                 record.height
                               }}cm 体重：{{ record.weight }}kg
                             </p>
