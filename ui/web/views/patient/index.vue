@@ -609,6 +609,79 @@
                 </div>
               </div>
             </el-tab-pane>
+            <el-tab-pane
+              name="children"
+              :disabled="!childrenHealthCheckData.length"
+            >
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.childrenHealthCheckServerDate.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                儿童健康检查管理记录
+              </span>
+              <div>
+                <div
+                  v-for="(item, index) of childrenHealthCheckData"
+                  :key="index"
+                >
+                  <div style="font-size: 22px; margin:20px 0">
+                    {{ item.name }}
+                  </div>
+                  <div v-if="item.type === 'newbornVisit'">
+                    <div
+                      v-for="record of item.records"
+                      :key="record.visitno"
+                      class="notes"
+                      style="font-size: 18px; margin:10px 0"
+                    >
+                      <div class="notes-block">
+                        <div>访视医生：{{ record.doctor }}</div>
+                        <div class="visitTime">
+                          访视日期：{{ record.visitdate.$format('YYYY-MM-DD') }}
+                        </div>
+                        <div>
+                          <p>
+                            新生儿姓名：{{ record.newbornname }} 体温：{{
+                              record.temperaturedegrees.toFixed(1)
+                            }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else-if="item.type === 'childCheck'">
+                    <div v-for="(it, i) of item.records" :key="i">
+                      <div
+                        v-for="record of it"
+                        :key="record.medicalcode"
+                        class="notes"
+                        style="font-size: 18px; margin:10px 0"
+                      >
+                        <div class="notes-block">
+                          <div>检查医生：{{ record.checkdoctor }}</div>
+                          <div class="visitTime">
+                            检查日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </div>
+                          <div>
+                            <p>
+                              新生儿姓名：{{ record.newbornname }} 身高：{{
+                                record.height
+                              }}cm 体重：{{ record.weight }}kg
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -679,6 +752,10 @@ export default {
     },
     maternalDate() {
       return this.maternalServerDate;
+    },
+    // 儿童健康管理记录数据
+    childrenHealthCheckData() {
+      return this.childrenHealthCheckServerDate;
     }
   },
   asyncComputed: {
@@ -760,6 +837,14 @@ export default {
     maternalServerDate: {
       async get() {
         return await this.$api.Person.maternalHealthCheck(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    childrenHealthCheckServerDate: {
+      async get() {
+        return await this.$api.Person.childrenHealthCheck(this.id);
       },
       default() {
         return [];
