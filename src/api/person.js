@@ -1494,7 +1494,7 @@ export default class Person {
   }
 
   /**
-   * 获取新生儿访视记录及儿童检测记录列表
+   * 获取新生儿访视记录及儿童检查记录列表
    * @param id
    * @returns {Promise<[{name: string, type: string, records: []}, {name: string, type: string, records: []}]>}
    */
@@ -1529,6 +1529,7 @@ export default class Person {
     // 二维数组降一维数组
     newbornVisits = newbornVisits.flat();
 
+    // 0~6岁儿童体检表
     // 儿童保健手册 -> 儿童保健卡主键
     // 通过母亲身份证号(MotherIdCardNo)查询儿童保健手册表(V_ChildHealthBooks_KN)拿到儿童保健卡主键
     // language=PostgreSQL
@@ -1543,7 +1544,7 @@ export default class Person {
       // 儿童保健卡主键 -> 儿童体检表
       // language=PostgreSQL
       const childCheck = await originalDB.execute(
-        'select * from v_childcheck_kn where childhealthbooksno=?',
+        'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=?',
         childHealthBookNo
       );
       childChecks.push(childCheck);
