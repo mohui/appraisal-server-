@@ -158,12 +158,13 @@
 
 <script>
 import {getToken} from '../../utils/cache';
+import dayjs from 'dayjs';
 
 export default {
   name: 'hospital',
   data() {
     return {
-      year: 2020,
+      year: dayjs().year(),
       yearList: [
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
@@ -276,8 +277,11 @@ export default {
           this.year,
           this.currentHospital.money
         );
-        this.$message.success('上传成功');
-      } else await this.$refs.uploadForm.submit();
+        this.$message.success('修改成功');
+      } else
+        this.currentHospital.vouchers.push({
+          key: await this.$refs.uploadForm.submit()
+        });
       this.voucherUploadVisible = false;
     },
     onChange(file, fileList) {

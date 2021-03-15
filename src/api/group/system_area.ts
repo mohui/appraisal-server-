@@ -1026,6 +1026,7 @@ export default class SystemArea {
         await unifs.writeFile(fileName, vouchers.buffer);
         areaVoucher.vouchers.push(fileName);
         await AreaVoucherModel.upsert(areaVoucher.toJSON());
+        return fileName;
       }
     });
   }
