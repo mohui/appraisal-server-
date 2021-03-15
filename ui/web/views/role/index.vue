@@ -368,28 +368,27 @@ export default {
         this.checkStrictly = false;
       });
     },
-    handleDelete(id) {
-      this.$confirm('确定要删除该角色吗', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(async () => {
-          await this.$api.User.removeRole(id);
-          this.$message({
-            type: 'success',
-            message: 'Delete succed!'
-          });
-          this.$asyncComputed.serverData.update();
-        })
-        .catch(err => {
-          if (err.message) {
-            this.$message({
-              type: 'error',
-              message: err.message
-            });
-          }
+    async handleDelete(id) {
+      try {
+        await this.$confirm('确定要删除该角色吗', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
         });
+        await this.$api.User.removeRole(id);
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        });
+        this.$asyncComputed.serverData.update();
+      } catch (err) {
+        if (err.message) {
+          this.$message({
+            type: 'error',
+            message: err.message
+          });
+        }
+      }
     },
     async submitForm(formName) {
       try {
