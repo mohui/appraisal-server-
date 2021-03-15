@@ -563,7 +563,7 @@
                         style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
-                        @click="handleGotoDetailse(record, it.name)"
+                        @click="handleGotoDetailse(record, it.type)"
                       >
                         <div class="notes-block">
                           <span class="hospital">
@@ -855,22 +855,22 @@ export default {
     handleBack() {
       this.$router.go(-1);
     },
-    handleGotoDetailse(record, name) {
+    handleGotoDetailse(record, type) {
       let routerName = '';
       let code = '';
-      if (name === '第一次产前检查信息表') {
+      if (type === 'newlyDiagnosed') {
         //第一次产前检查信息表
         routerName = 'record-first-prenatal-check';
         code = record.newlydiagnosedcode;
-      } else if (name === '第2~5次产前随访服务信息表') {
+      } else if (type === 'prenatalCare') {
         //第2~5次产前随访服务信息表
         routerName = 'record-prenatal-follow-up';
         code = record.prenatalcarecode;
-      } else if (name === '产后访视记录表') {
+      } else if (type === 'maternalVisits') {
         //产后访视记录表
         routerName = 'record-postpartum-visit';
         code = record.visitcode;
-      } else if (name === '产后42天健康检查记录表') {
+      } else if (type === 'examine42thDay') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
         code = record.examineno;
