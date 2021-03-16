@@ -637,6 +637,7 @@
                       :key="record.visitno"
                       class="notes"
                       style="font-size: 18px; margin:10px 0"
+                      @click="handleGotoDetailse(record, item.type)"
                     >
                       <div class="notes-block">
                         <div>访视医生：{{ record.doctor }}</div>
@@ -874,6 +875,10 @@ export default {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
         code = record.examineno;
+      } else if (type === 'newbornVisit') {
+        // 新生儿家庭访视记录表
+        routerName = 'record-newborn-visit';
+        code = record.visitno;
       }
       if (routerName && code) {
         this.$router.push({

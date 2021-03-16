@@ -146,6 +146,12 @@ const router = new Router({
             import('./views/patient/record-postpartum-42-days-check')
         },
         {
+          path: 'record-newborn-visit',
+          name: 'record-newborn-visit',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-newborn-visit')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
