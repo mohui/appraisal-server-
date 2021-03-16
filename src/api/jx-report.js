@@ -847,6 +847,22 @@ async function render(data) {
 
 export default class JxReport {
   /**
+   * 自动生成公卫报告
+   */
+  async generateAll() {
+    // 自动获取上月的,格式为年月
+    const time = dayjs()
+      .subtract(1, 'month')
+      .format('YYYYMM');
+
+    // 生成所有地区的公卫报告
+    const allTree = await appDB.execute(`select code, name from area`);
+    // 生成所有的地区
+    for (const it of allTree) {
+      await this.generate(time, it.code);
+    }
+  }
+  /**
    * 生成公卫报告
    * @param time
    * @param code
@@ -866,7 +882,7 @@ export default class JxReport {
     // 如果传了code,就只生成这个地区的公卫报告
     if (code) {
       const data = await getExponent(code, time);
-      await render(data);
+      return await render(data);
     }
 
     // 如果code为空,生成所有地区的公卫报告
