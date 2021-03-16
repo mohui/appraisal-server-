@@ -161,6 +161,17 @@ export class Application {
         console.log(`数据同步检查任务失败: ${e}`);
       }
     });
+
+    // 数据同步和数据标记的邮件报警
+    cron.schedule(config.get('generate.cron'), async () => {
+      try {
+        const api = new (require('./api/jx-report').default)();
+        await api.generateAll();
+        console.log('生成公卫报告完成');
+      } catch (e) {
+        console.log(`生成公卫报告失败: ${e}`);
+      }
+    });
   }
 
   async initBackJob(app) {
