@@ -1561,6 +1561,20 @@ export default class Person {
   }
 
   /**
+   * 新生儿家庭访视记录表详情
+   * @param code
+   * @returns {Promise<any>}
+   */
+  async newbornVisitDetail(code) {
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_newbornvisit_kn where visitno=?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
    *获取孕产妇健康检查表数据
    * @param id 个人id
    * newlyDiagnosed 第一次产前检查信息表
