@@ -1582,7 +1582,7 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_childcheck_kn where medicalcode=?`,
+      `select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where medicalcode=?`,
       code
     );
     return result[0];
