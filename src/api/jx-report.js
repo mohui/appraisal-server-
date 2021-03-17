@@ -876,7 +876,7 @@ export default class JxReport {
     should
       .string()
       .allow(null)
-      .description('地区code或机构id')
+      .description('地区code或机构id,如果为null生成所有,否则按照地区生成')
   )
   async generate(time, code) {
     // 如果传了code,就只生成这个地区的公卫报告

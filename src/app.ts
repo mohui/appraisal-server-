@@ -162,7 +162,7 @@ export class Application {
       }
     });
 
-    // 数据同步和数据标记的邮件报警
+    // 自动生成公卫报告
     cron.schedule(config.get('generate.cron'), async () => {
       try {
         const api = new (require('./api/jx-report').default)();

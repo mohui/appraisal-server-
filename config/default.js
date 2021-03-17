@@ -134,8 +134,7 @@ module.exports = {
       receivers: ['']
     }
   },
-
-  // 定时任务
+  // 生成公卫报告定时任务
   generate: {
     cron: '00 00 09 1 * *'
   }
