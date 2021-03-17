@@ -864,8 +864,8 @@ export default class JxReport {
   }
   /**
    * 生成公卫报告
-   * @param time
-   * @param code
+   * @param time 年份加月份
+   * @param code 地区code或机构id
    * @returns {Promise<void>}
    */
   @validate(
@@ -875,22 +875,11 @@ export default class JxReport {
       .description('年份加月份比如202003'),
     should
       .string()
-      .allow(null)
-      .description('地区code或机构id,如果为null生成所有,否则按照地区生成')
+      .required()
+      .description('地区code或机构id')
   )
   async generate(time, code) {
-    // 如果传了code,就只生成这个地区的公卫报告
-    if (code) {
-      const data = await getExponent(code, time);
-      return await render(data);
-    }
-
-    // 如果code为空,生成所有地区的公卫报告
-    const allTree = await appDB.execute(`select code, name from area`);
-    // 生成所有的地区
-    for (const it of allTree) {
-      const data = await getExponent(it.code, time);
-      await render(data);
-    }
+    const data = await getExponent(code, time);
+    return await render(data);
   }
 }
