@@ -67,9 +67,15 @@
               </td>
             </tr>
             <tr>
-              <td colspan="3">前 囟</td>
+              <td colspan="3">皮 肤</td>
               <td colspan="20">
                 {{ detailDate.skin }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">前 囟</td>
+              <td colspan="20">
+                {{ detailDate.fontanelle }}
               </td>
             </tr>
             <tr>
