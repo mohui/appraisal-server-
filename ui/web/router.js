@@ -164,6 +164,12 @@ const router = new Router({
           component: () => import('./views/patient/record-toddler-health-check')
         },
         {
+          path: 'record-child-health-check',
+          name: 'record-child-health-check',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-child-health-check')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},

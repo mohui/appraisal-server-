@@ -884,13 +884,15 @@ export default {
       } else if (type === 'childCheck') {
         // 0-6岁儿童体检表
         code = record.medicalcode;
-
         if (Number(record.chronologicalage) < 12) {
           // 1～8月龄儿童健康检查记录表
           routerName = 'record-infant-health-check';
         } else if (Number(record.chronologicalage) < 36) {
           // 12～30月龄儿童健康检查记录表
           routerName = 'record-toddler-health-check';
+        } else {
+          // 3～6岁儿童健康检查记录表
+          routerName = 'record-child-health-check';
         }
       }
       if (routerName && code) {
