@@ -1544,7 +1544,7 @@ export default class Person {
       // 儿童保健卡主键 -> 儿童体检表
       // language=PostgreSQL
       const childCheck = await originalDB.execute(
-        'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=?',
+        'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by checkdate',
         childHealthBookNo
       );
       childChecks.push(childCheck);
