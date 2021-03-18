@@ -883,11 +883,14 @@ export default {
         code = record.visitno;
       } else if (type === 'childCheck') {
         // 0-6岁儿童体检表
+        code = record.medicalcode;
 
-        // 1～8月龄儿童健康检查记录表
         if (Number(record.chronologicalage) < 12) {
+          // 1～8月龄儿童健康检查记录表
           routerName = 'record-infant-health-check';
-          code = record.medicalcode;
+        } else if (Number(record.chronologicalage) < 36) {
+          // 12～30月龄儿童健康检查记录表
+          routerName = 'record-toddler-health-check';
         }
       }
       if (routerName && code) {

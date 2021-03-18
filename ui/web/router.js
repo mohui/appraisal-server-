@@ -158,6 +158,12 @@ const router = new Router({
           component: () => import('./views/patient/record-infant-health-check')
         },
         {
+          path: 'record-toddler-health-check',
+          name: 'record-toddler-health-check',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/record-toddler-health-check')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
