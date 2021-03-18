@@ -133,5 +133,9 @@ module.exports = {
       // 收件人配置
       receivers: ['']
     }
+  },
+  // 生成公卫报告定时任务
+  generate: {
+    cron: ''
   }
 };

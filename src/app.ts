@@ -161,6 +161,20 @@ export class Application {
         console.log(`数据同步检查任务失败: ${e}`);
       }
     });
+
+    // 只需要生成一份,正式版才有值
+    if (config.get('generate.cron')) {
+      // 自动生成公卫报告
+      cron.schedule(config.get('generate.cron'), async () => {
+        try {
+          const api = new (require('./api/jx-report').default)();
+          await api.generateAll();
+          console.log('生成公卫报告完成');
+        } catch (e) {
+          console.log(`生成公卫报告失败: ${e}`);
+        }
+      });
+    }
   }
 
   async initBackJob(app) {
