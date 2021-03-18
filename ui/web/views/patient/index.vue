@@ -672,7 +672,8 @@
                           </div>
                           <div>
                             <p>
-                              儿童姓名：{{ record.childname }} 身高：{{
+                              儿童姓名：{{ record.childname }} 月龄:
+                              {{ record.chronologicalage }} 身高：{{
                                 record.height
                               }}cm 体重：{{ record.weight }}kg
                             </p>
