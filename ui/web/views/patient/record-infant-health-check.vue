@@ -60,7 +60,7 @@
               </td>
             </tr>
             <tr>
-              <td rowspan="15" colspan="1">体格检查</td>
+              <td rowspan="16" colspan="1">体格检查</td>
               <td colspan="3">面 色</td>
               <td colspan="20">
                 {{ detailDate.face }}
