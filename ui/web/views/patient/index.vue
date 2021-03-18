@@ -661,6 +661,7 @@
                         :key="record.medicalcode"
                         class="notes"
                         style="font-size: 18px; margin:10px 0"
+                        @click="handleGotoDetailse(record, item.type)"
                       >
                         <div class="notes-block">
                           <div>检查医生：{{ record.checkdoctor }}</div>
@@ -879,6 +880,14 @@ export default {
         // 新生儿家庭访视记录表
         routerName = 'record-newborn-visit';
         code = record.visitno;
+      } else if (type === 'childCheck') {
+        // 0-6岁儿童体检表
+
+        // 1～8月龄儿童健康检查记录表
+        if (Number(record.chronologicalage) < 12) {
+          routerName = 'record-infant-health-check';
+          code = record.medicalcode;
+        }
       }
       if (routerName && code) {
         this.$router.push({
