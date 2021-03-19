@@ -32,7 +32,7 @@
             <tr>
               <td colspan="4">随访日期</td>
               <td colspan="20">
-                {{ detailDate.visitdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.visitdate }}
               </td>
             </tr>
             <tr>
@@ -139,7 +139,9 @@ export default {
   },
   computed: {
     detailDate() {
-      return this.detailServerDate;
+      const date = this.detailServerDate;
+      date.visitdate = date.visitdate?.$format('YYYY-MM-DD');
+      return date;
     }
   },
   asyncComputed: {

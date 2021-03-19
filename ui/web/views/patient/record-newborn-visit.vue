@@ -36,7 +36,7 @@
               </td>
               <td colspan="4">出生日期</td>
               <td colspan="8">
-                {{ detailDate.newbornbirthday.$format('YYYY-MM-DD') }}
+                {{ detailDate.newbornbirthday }}
               </td>
             </tr>
             <tr>
@@ -278,7 +278,7 @@
             <tr>
               <td colspan="4">本次访视日期</td>
               <td colspan="8">
-                {{ detailDate.visitdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.visitdate }}
               </td>
               <td colspan="4">下次随访地点</td>
               <td colspan="8">
@@ -471,7 +471,10 @@ export default {
   },
   computed: {
     detailDate() {
-      return this.detailServerDate;
+      const date = this.detailServerDate;
+      date.newbornbirthday = date.newbornbirthday?.$format('YYYY-MM-DD');
+      date.visitdate = date.visitdate?.$format('YYYY-MM-DD');
+      return date;
     }
   },
   asyncComputed: {

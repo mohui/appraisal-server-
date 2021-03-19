@@ -38,7 +38,7 @@
             <tr>
               <td colspan="4">随访日期</td>
               <td colspan="20">
-                {{ detailDate.checkdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.checkdate }}
               </td>
             </tr>
             <tr>
@@ -62,7 +62,7 @@
             </tr>
             <tr>
               <td colspan="3">皮肤</td>
-              <td colspan="20">--{{ detailDate.skin }}</td>
+              <td colspan="20">{{ detailDate.skin }}</td>
             </tr>
             <tr>
               <td colspan="3">前 囟</td>
@@ -78,7 +78,7 @@
             </tr>
             <tr>
               <td colspan="3">耳外观</td>
-              <td colspan="20">--{{ detailDate.ear }}</td>
+              <td colspan="20">{{ detailDate.ear }}</td>
             </tr>
             <tr>
               <td colspan="3">听 力</td>
@@ -167,7 +167,7 @@
             <tr>
               <td colspan="4">下次随访日期</td>
               <td colspan="20">
-                {{ detailDate.reservationsdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.reservationsdate }}
               </td>
             </tr>
             <tr>
@@ -255,7 +255,10 @@ export default {
   },
   computed: {
     detailDate() {
-      return this.detailServerDate;
+      const date = this.detailServerDate;
+      date.checkdate = date.checkdate?.$format('YYYY-MM-DD');
+      date.reservationsdate = date.reservationsdate?.$format('YYYY-MM-DD');
+      return date;
     }
   },
   created() {

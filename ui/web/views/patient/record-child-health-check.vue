@@ -38,7 +38,7 @@
             <tr>
               <td colspan="4">随访日期</td>
               <td colspan="20">
-                {{ detailDate.checkdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.checkdate }}
               </td>
             </tr>
             <tr>
@@ -141,7 +141,7 @@
             <tr>
               <td colspan="4">下次随访日期</td>
               <td colspan="20">
-                {{ detailDate.reservationsdate.$format('YYYY-MM-DD') }}
+                {{ detailDate.reservationsdate }}
               </td>
             </tr>
             <tr>
@@ -218,7 +218,10 @@ export default {
   },
   computed: {
     detailDate() {
-      return this.detailServerDate;
+      const date = this.detailServerDate;
+      date.checkdate = date.checkdate?.$format('YYYY-MM-DD');
+      date.reservationsdate = date.reservationsdate?.$format('YYYY-MM-DD');
+      return date;
     }
   },
   created() {
