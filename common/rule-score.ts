@@ -733,14 +733,6 @@ export const MarkTagUsages = {
     name: '健康教育咨询的参加人数',
     code: 'HE10'
   },
-  SC00: {
-    name: '卫生计生监督协管信息报告率',
-    code: 'SC00'
-  },
-  SC01: {
-    name: '协助开展的实地巡查次数',
-    code: 'SC01'
-  },
   HE11: {
     name: '健康教育宣传栏',
     code: 'HE11'
@@ -752,6 +744,14 @@ export const MarkTagUsages = {
   HE13: {
     name: '健康教育咨询活动',
     code: 'HE13'
+  },
+  SC00: {
+    name: '卫生计生监督协管信息报告率',
+    code: 'SC00'
+  },
+  SC01: {
+    name: '协助开展的实地巡查次数',
+    code: 'SC01'
   }
 };
 
