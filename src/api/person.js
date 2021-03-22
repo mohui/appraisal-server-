@@ -1589,6 +1589,21 @@ export default class Person {
   }
 
   /**
+   * 儿童生长发育监测数据(0-6岁)
+   * @param childHealthBookNo
+   * @returns {Promise<any[]>}
+   */
+  async developmentMonitoring(childHealthBookNo) {
+    // 儿童保健卡主键 -> 儿童体检表
+    // language=PostgreSQL
+    const childCheck = await originalDB.execute(
+      'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by chronologicalage',
+      childHealthBookNo
+    );
+    return childCheck;
+  }
+
+  /**
    *获取孕产妇健康检查表数据
    * @param id 个人id
    * newlyDiagnosed 第一次产前检查信息表
