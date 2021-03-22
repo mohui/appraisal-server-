@@ -545,17 +545,17 @@ export const MarkTags = [
           },
           {
             name: '健康教育宣传栏',
-            code: 'H11',
+            code: 'HE11',
             enabled: true
           },
           {
             name: '健康教育讲座',
-            code: 'H12',
+            code: 'HE12',
             enabled: true
           },
           {
             name: '健康教育咨询活动',
-            code: 'H13',
+            code: 'HE13',
             enabled: true
           }
         ]
@@ -741,17 +741,17 @@ export const MarkTagUsages = {
     name: '协助开展的实地巡查次数',
     code: 'SC01'
   },
-  H11: {
+  HE11: {
     name: '健康教育宣传栏',
-    code: 'H11'
+    code: 'HE11'
   },
-  H12: {
+  HE12: {
     name: '健康教育讲座',
-    code: 'H12'
+    code: 'HE12'
   },
-  H13: {
+  HE13: {
     name: '健康教育咨询活动',
-    code: 'H13'
+    code: 'HE13'
   }
 };
 
