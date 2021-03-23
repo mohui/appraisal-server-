@@ -87,7 +87,7 @@ export default {
       // 指定图表的配置项和数据
       let option = {
         xAxis: {
-          name: '月龄',
+          name: '月龄(月)',
           type: 'value',
           interval: 2,
           max: 36
@@ -121,7 +121,10 @@ export default {
             smooth: true,
             yAxisIndex: 1 // 通过这个判断左右
           }
-        ]
+        ],
+        legend: {
+          show: true
+        }
       };
 
       // 使用刚指定的配置项和数据显示图表。
