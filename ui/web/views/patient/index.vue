@@ -656,15 +656,33 @@
                   </div>
                   <div v-else-if="item.type === 'childCheck'">
                     <div v-for="(it, i) of item.records" :key="i">
+                      <div style="margin: 20px 0;">
+                        <span style="font-size: 18px">
+                          儿童姓名：{{ it[i].childname }}
+                        </span>
+                        <span
+                          style="cursor: pointer; margin-left: 20px; color: #409eff"
+                          @click="
+                            handleGotoDevelopmentMonitoring(
+                              it[i].childhealthbooksno
+                            )
+                          "
+                        >
+                          生长发育监测图
+                        </span>
+                      </div>
                       <div
                         v-for="record of it"
                         :key="record.medicalcode"
                         class="notes"
-                        style="font-size: 18px; margin:10px 0"
+                        style="font-size: 18px; margin:10px 20px"
                         @click="handleGotoDetailse(record, item.type)"
                       >
+                        <div></div>
                         <div class="notes-block">
-                          <div>检查医生：{{ record.checkdoctor }}</div>
+                          <div style="font-size: 16px">
+                            检查医生：{{ record.checkdoctor }}
+                          </div>
                           <div class="visitTime">
                             检查日期：{{
                               record.checkdate.$format('YYYY-MM-DD')
@@ -672,8 +690,7 @@
                           </div>
                           <div>
                             <p>
-                              儿童姓名：{{ record.childname }} 月龄:
-                              {{ record.chronologicalage }} 身高：{{
+                              月龄: {{ record.chronologicalage }} 身高：{{
                                 record.height
                               }}cm 体重：{{ record.weight }}kg
                             </p>
@@ -858,6 +875,18 @@ export default {
     handleBack() {
       this.$router.go(-1);
     },
+
+    // 跳转到生长发育监测表详情
+    handleGotoDevelopmentMonitoring(bookNo) {
+      this.$router.push({
+        name: 'development-monitoring-chart',
+        query: {
+          id: bookNo
+        }
+      });
+    },
+
+    // 跳转到相应的体检表详情
     handleGotoDetailse(record, type) {
       let routerName = '';
       let code = '';

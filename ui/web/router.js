@@ -170,6 +170,13 @@ const router = new Router({
           component: () => import('./views/patient/record-child-health-check')
         },
         {
+          path: 'development-monitoring-chart',
+          name: 'development-monitoring-chart',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () =>
+            import('./views/patient/development-monitoring-chart')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
