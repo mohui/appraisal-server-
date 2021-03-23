@@ -542,6 +542,21 @@ export const MarkTags = [
             name: '健康教育咨询的参加人数',
             code: 'HE10',
             enabled: true
+          },
+          {
+            name: '健康教育宣传栏是否含有中医药和无烟内容',
+            code: 'HE11',
+            enabled: true
+          },
+          {
+            name: '健康教育讲座是否含有中医药和无烟内容',
+            code: 'HE12',
+            enabled: true
+          },
+          {
+            name: '健康教育咨询活动是否含有中医药和无烟内容',
+            code: 'HE13',
+            enabled: true
           }
         ]
       }
@@ -717,6 +732,18 @@ export const MarkTagUsages = {
   HE10: {
     name: '健康教育咨询的参加人数',
     code: 'HE10'
+  },
+  HE11: {
+    name: '健康教育宣传栏是否含有中医药和无烟内容',
+    code: 'HE11'
+  },
+  HE12: {
+    name: '健康教育讲座是否含有中医药和无烟内容',
+    code: 'HE12'
+  },
+  HE13: {
+    name: '健康教育咨询活动是否含有中医药和无烟内容',
+    code: 'HE13'
   },
   SC00: {
     name: '卫生计生监督协管信息报告率',
