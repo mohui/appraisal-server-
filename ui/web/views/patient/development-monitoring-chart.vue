@@ -20,7 +20,10 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1; height: 0; overflow-y: auto;">
+      <div
+        style="flex-grow: 1; height: 0; overflow-y: auto;"
+        v-loading="isLoading"
+      >
         <el-row type="flex" justify="space-between" class="record-head">
           <el-col :span="6">
             姓名：<strong>{{ detailData.childName }}</strong>
@@ -42,7 +45,8 @@ export default {
       detailData: {
         childName: '',
         date: {weights: [], heights: []}
-      }
+      },
+      isLoading: false
     };
   },
   mounted() {
@@ -50,6 +54,7 @@ export default {
   },
   async created() {
     this.code = this.$route.query.id;
+    this.isLoading = true;
     // 获取数据
     const detailServerData = await this.$api.Person.developmentMonitoring(
       this.code
@@ -71,6 +76,7 @@ export default {
       childName: childName,
       date: {weights: weights, heights: heights}
     };
+    this.isLoading = false;
     // 重新渲染图表
     this.barChart();
   },
