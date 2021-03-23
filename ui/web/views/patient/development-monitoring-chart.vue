@@ -50,7 +50,7 @@ export default {
     };
   },
   mounted() {
-    this.barChart();
+    this.drawChart();
   },
   async created() {
     this.code = this.$route.query.id;
@@ -78,11 +78,10 @@ export default {
     };
     this.isLoading = false;
     // 重新渲染图表
-    this.barChart();
+    this.drawChart();
   },
   methods: {
-    barChart() {
-      console.log('barChart');
+    drawChart() {
       // 基于准备好的dom，初始化echarts实例
       let myChart = this.$echarts.init(this.$refs['main']);
       // 指定图表的配置项和数据
