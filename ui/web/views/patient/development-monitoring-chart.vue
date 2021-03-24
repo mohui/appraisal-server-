@@ -86,24 +86,49 @@ export default {
       let myChart = this.$echarts.init(this.$refs['main']);
       // 指定图表的配置项和数据
       let option = {
+        tooltip: {
+          trigger: 'none',
+          axisPointer: {
+            type: 'cross'
+          }
+        },
         xAxis: {
           name: '月龄(月)',
           type: 'value',
           interval: 2,
-          max: 36
+          max: 36,
+          axisPointer: {
+            label: {
+              formatter: function(params) {
+                return '月龄：' + params.value.toFixed(0) + '个月';
+              }
+            }
+          }
         },
         yAxis: [
           {
-            name: '身高(cm)',
+            name: '身长/身高(cm)',
             type: 'value',
             interval: 5,
-            position: 'left'
+            axisPointer: {
+              label: {
+                formatter: function(params) {
+                  return '身长/身高：' + params.value.toFixed(2) + 'cm';
+                }
+              }
+            }
           },
           {
             name: '体重(kg)',
             interval: 2,
             type: 'value',
-            position: 'rigth'
+            axisPointer: {
+              label: {
+                formatter: function(params) {
+                  return '体重：' + params.value.toFixed(2) + 'kg';
+                }
+              }
+            }
           }
         ],
         series: [
