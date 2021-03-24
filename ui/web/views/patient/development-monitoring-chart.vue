@@ -30,7 +30,7 @@
           </el-col>
           <el-col :span="6">编号：{{ code }}</el-col>
         </el-row>
-        <div ref="main" :style="{width: '100%', height: '500px'}"></div>
+        <div ref="main" :style="{width: '85%', height: '90%'}"></div>
       </div>
     </el-card>
   </div>
