@@ -1494,6 +1494,116 @@ export default class Person {
   }
 
   /**
+   * 获取新生儿访视记录及儿童检查记录列表
+   * @param id
+   * @returns {Promise<[{name: string, type: string, records: []}, {name: string, type: string, records: []}]>}
+   */
+  async childrenHealthCheck(id) {
+    // 通过居民id查找到身份证号,这里的id是其母亲的id，因为国卫的数据库中新生儿没有记录身份证号
+    // language=PostgreSQL
+    const idCardNo = (
+      await originalDB.execute(
+        `select idcardno from view_personinfo where personnum=?`,
+        id
+      )
+    )[0]?.idcardno;
+    if (!idCardNo) throw new KatoRuntimeError(`id为 ${id} 的居民不存在`);
+
+    // 通过身份证号查找产后访视记录表，拿到产后访视code（visitCode）
+    // language=PostgreSQL
+    const maternalVisits = await originalDB.execute(
+      `select visitcode from v_maternalvisits_kn where maternalidcardno=? order by visitdate`,
+      idCardNo
+    );
+
+    // 通过产后访视code关联查询新生儿家庭访视记录表(V_NewbornVisit_KN)
+    // language=PostgreSQL
+    let newbornVisits = [];
+    for (const i of maternalVisits) {
+      const newbornVisit = await originalDB.execute(
+        `select * from v_newbornvisit_kn where mothervisitno=?`,
+        i.visitcode
+      );
+      newbornVisits.push(newbornVisit);
+    }
+    // 二维数组降一维数组
+    newbornVisits = newbornVisits.flat();
+
+    // 0~6岁儿童体检表
+    // 儿童保健手册 -> 儿童保健卡主键
+    // 通过母亲身份证号(MotherIdCardNo)查询儿童保健手册表(V_ChildHealthBooks_KN)拿到儿童保健卡主键
+    // language=PostgreSQL
+    const childHealthBooksNo = (
+      await originalDB.execute(
+        'select childhealthbooksno from v_childhealthbooks_kn where motheridcardno=?',
+        idCardNo
+      )
+    ).map(it => it.childhealthbooksno);
+    const childChecks = [];
+    for (const childHealthBookNo of childHealthBooksNo) {
+      // 儿童保健卡主键 -> 儿童体检表
+      // language=PostgreSQL
+      const childCheck = await originalDB.execute(
+        'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by checkdate',
+        childHealthBookNo
+      );
+      childChecks.push(childCheck);
+    }
+    const result = [
+      {
+        name: '新生儿家庭访视记录表',
+        type: 'newbornVisit',
+        records: newbornVisits
+      },
+      {name: '0-6岁儿童体检表', type: 'childCheck', records: childChecks}
+    ];
+    return result;
+  }
+
+  /**
+   * 新生儿家庭访视记录表详情
+   * @param code
+   * @returns {Promise<any>}
+   */
+  async newbornVisitDetail(code) {
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select * from v_newbornvisit_kn where visitno=?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
+   * 儿童健康检查记录表详情
+   * @param code
+   * @returns {Promise<any>}
+   */
+  async childCheckDetail(code) {
+    // language=PostgreSQL
+    const result = await originalDB.execute(
+      `select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where medicalcode=?`,
+      code
+    );
+    return result[0];
+  }
+
+  /**
+   * 儿童生长发育监测数据(0-6岁)
+   * @param childHealthBookNo
+   * @returns {Promise<any[]>}
+   */
+  async developmentMonitoring(childHealthBookNo) {
+    // 儿童保健卡主键 -> 儿童体检表
+    // language=PostgreSQL
+    const childCheck = await originalDB.execute(
+      'select cc.medicalcode,cc.chronologicalage,cc.weight,cc.height, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by chronologicalage',
+      childHealthBookNo
+    );
+    return childCheck;
+  }
+
+  /**
    *获取孕产妇健康检查表数据
    * @param id 个人id
    * newlyDiagnosed 第一次产前检查信息表

@@ -34,11 +34,7 @@
             <tr>
               <td colspan="4">填表日期</td>
               <td colspan="8">
-                <em>{{
-                  firstPrenatalCheckDate.newlydiagnoseddate.$format(
-                    'YYYY-MM-DD'
-                  )
-                }}</em>
+                <em>{{ firstPrenatalCheckDate.newlydiagnoseddate }}</em>
               </td>
               <td colspan="4">孕周</td>
               <td colspan="8">
@@ -90,15 +86,13 @@
               <td colspan="4">末次月经</td>
               <td colspan="4">
                 <em>
-                  {{
-                    firstPrenatalCheckDate.lastmenstrual.$format('YYYY-MM-DD')
-                  }}
+                  {{ firstPrenatalCheckDate.lastmenstrual }}
                 </em>
               </td>
               <td colspan="4">预 产 期</td>
               <td colspan="12">
                 <em>
-                  {{ firstPrenatalCheckDate.birth.$format('YYYY-MM-DD') }}
+                  {{ firstPrenatalCheckDate.birth }}
                 </em>
               </td>
             </tr>
@@ -368,7 +362,11 @@ export default {
   },
   computed: {
     firstPrenatalCheckDate() {
-      return this.firstPrenatalCheckServerDate;
+      const date = this.firstPrenatalCheckServerDate;
+      date.newlydiagnoseddate = date.newlydiagnoseddate?.$format('YYYY-MM-DD');
+      date.birth = date.birth?.$format('YYYY-MM-DD');
+      date.lastmenstrual = date.lastmenstrual?.$format('YYYY-MM-DD');
+      return date;
     }
   },
   asyncComputed: {

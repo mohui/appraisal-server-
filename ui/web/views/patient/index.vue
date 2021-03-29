@@ -563,7 +563,7 @@
                         style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
-                        @click="handleGotoDetailse(record, it.name)"
+                        @click="handleGotoDetailse(record, it.type)"
                       >
                         <div class="notes-block">
                           <span class="hospital">
@@ -603,6 +603,99 @@
                             医生姓名：{{ record.doctor }}
                           </span>
                         </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane
+              name="children"
+              :disabled="!childrenHealthCheckData.length"
+            >
+              <span slot="label">
+                <i
+                  :class="
+                    $asyncComputed.childrenHealthCheckServerDate.updating
+                      ? 'el-icon-loading'
+                      : 'el-icon-s-order'
+                  "
+                ></i>
+                儿童健康检查管理记录
+              </span>
+              <div>
+                <div
+                  v-for="(item, index) of childrenHealthCheckData"
+                  :key="index"
+                >
+                  <div style="font-size: 22px; margin:20px 0">
+                    {{ item.name }}
+                  </div>
+                  <div v-if="item.type === 'newbornVisit'">
+                    <div
+                      v-for="record of item.records"
+                      :key="record.visitno"
+                      class="notes"
+                      style="font-size: 18px; margin:10px 0"
+                      @click="handleGotoDetailse(record, item.type)"
+                    >
+                      <div class="notes-block">
+                        <div>访视医生：{{ record.doctor }}</div>
+                        <div class="visitTime">
+                          访视日期：{{ record.visitdate.$format('YYYY-MM-DD') }}
+                        </div>
+                        <div>
+                          <p>
+                            新生儿姓名：{{ record.newbornname }} 体温：{{
+                              record.temperaturedegrees.toFixed(1)
+                            }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else-if="item.type === 'childCheck'">
+                    <div v-for="(it, i) of item.records" :key="i">
+                      <div style="margin: 20px 0;">
+                        <span style="font-size: 18px">
+                          儿童姓名：{{ it[i].childname }}
+                        </span>
+                        <span
+                          style="cursor: pointer; margin-left: 20px; color: #409eff"
+                          @click="
+                            handleGotoDevelopmentMonitoring(
+                              it[i].childhealthbooksno
+                            )
+                          "
+                        >
+                          生长发育监测图
+                        </span>
+                      </div>
+                      <div
+                        v-for="record of it"
+                        :key="record.medicalcode"
+                        class="notes"
+                        style="font-size: 18px; margin:10px 20px"
+                        @click="handleGotoDetailse(record, item.type)"
+                      >
+                        <div></div>
+                        <div class="notes-block">
+                          <div style="font-size: 16px">
+                            检查医生：{{ record.checkdoctor }}
+                          </div>
+                          <div class="visitTime">
+                            检查日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </div>
+                          <div>
+                            <p>
+                              月龄: {{ record.chronologicalage }} 身高：{{
+                                record.height
+                              }}cm 体重：{{ record.weight }}kg
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -679,6 +772,10 @@ export default {
     },
     maternalDate() {
       return this.maternalServerDate;
+    },
+    // 儿童健康管理记录数据
+    childrenHealthCheckData() {
+      return this.childrenHealthCheckServerDate;
     }
   },
   asyncComputed: {
@@ -764,31 +861,68 @@ export default {
       default() {
         return [];
       }
+    },
+    childrenHealthCheckServerDate: {
+      async get() {
+        return await this.$api.Person.childrenHealthCheck(this.id);
+      },
+      default() {
+        return [];
+      }
     }
   },
   methods: {
     handleBack() {
       this.$router.go(-1);
     },
-    handleGotoDetailse(record, name) {
+
+    // 跳转到生长发育监测表详情
+    handleGotoDevelopmentMonitoring(bookNo) {
+      this.$router.push({
+        name: 'development-monitoring-chart',
+        query: {
+          id: bookNo
+        }
+      });
+    },
+
+    // 跳转到相应的体检表详情
+    handleGotoDetailse(record, type) {
       let routerName = '';
       let code = '';
-      if (name === '第一次产前检查信息表') {
+      if (type === 'newlyDiagnosed') {
         //第一次产前检查信息表
         routerName = 'record-first-prenatal-check';
         code = record.newlydiagnosedcode;
-      } else if (name === '第2~5次产前随访服务信息表') {
+      } else if (type === 'prenatalCare') {
         //第2~5次产前随访服务信息表
         routerName = 'record-prenatal-follow-up';
         code = record.prenatalcarecode;
-      } else if (name === '产后访视记录表') {
+      } else if (type === 'maternalVisits') {
         //产后访视记录表
         routerName = 'record-postpartum-visit';
         code = record.visitcode;
-      } else if (name === '产后42天健康检查记录表') {
+      } else if (type === 'examine42thDay') {
         //产后42天健康检查记录表
         routerName = 'record-postpartum-42-days-check';
         code = record.examineno;
+      } else if (type === 'newbornVisit') {
+        // 新生儿家庭访视记录表
+        routerName = 'record-newborn-visit';
+        code = record.visitno;
+      } else if (type === 'childCheck') {
+        // 0-6岁儿童体检表
+        code = record.medicalcode;
+        if (Number(record.chronologicalage) < 12) {
+          // 1～8月龄儿童健康检查记录表
+          routerName = 'record-infant-health-check';
+        } else if (Number(record.chronologicalage) < 36) {
+          // 12～30月龄儿童健康检查记录表
+          routerName = 'record-toddler-health-check';
+        } else {
+          // 3～6岁儿童健康检查记录表
+          routerName = 'record-child-health-check';
+        }
       }
       if (routerName && code) {
         this.$router.push({
