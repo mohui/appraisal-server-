@@ -16,6 +16,7 @@ import {appDB} from '../../app';
 import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
+import * as uuid from 'uuid';
 
 export default class CheckAreaEdit {
   /**
@@ -385,6 +386,230 @@ export default class CheckAreaEdit {
             });
           })
         );
+      }
+    });
+  }
+
+  // 复制考核
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核系统id')
+  )
+  async copySystem(checkId, checkName, checkYear) {
+    /**
+     * 1, 先把要复制的考核体系查询出来
+     * 2, 查询考核细则
+     * 3, 添加考核体系, 考核细则
+     */
+    // 取出当前考核下的所有地区
+    const checkSystemModel = await appDB.execute(
+      ` select * from check_system where check_id = ?`,
+      checkId
+    );
+    if (checkSystemModel.length < 1)
+      throw new KatoCommonError('该考核体系不存在');
+
+    // 查询考核细则
+    const checkRuleModels = await appDB.execute(
+      `select * from check_rule where check_id = ?`,
+      checkId
+    );
+    if (checkRuleModels.length < 1)
+      throw new KatoCommonError('该考核体系没有考核项目');
+
+    // 筛选出所有的考核小项
+    const parentRule = checkRuleModels
+      .filter(it => !it['parent_rule_id'])
+      .map(it => {
+        return {
+          ...it,
+          children: [],
+          project: []
+        };
+      });
+    // 取出所有的考核小项id
+    const parentIds = parentRule.map(it => it.rule_id);
+    // 查询 考核小项和公分项对应
+    const ruleProjectModels = await appDB.execute(
+      `select * from rule_project where rule in (${parentIds.map(it => '?')})`,
+      ...parentIds
+    );
+    // 把公分项对应到考核小项中
+    for (const it of ruleProjectModels) {
+      const index = parentRule.find(item => it.rule === item.rule_id);
+      if (index) index['project'].push(it);
+    }
+
+    // 取出所有细则
+    const checkRules = checkRuleModels
+      .filter(it => it['parent_rule_id'])
+      .map(it => {
+        return {
+          ...it,
+          tag: []
+        };
+      });
+
+    // 取出所有细则id
+    const ruleIds = checkRules.map(it => it.rule_id);
+    // 查询 细则指标对应
+    const ruleTagModels = await appDB.execute(
+      `select * from rule_tag where rule in (${ruleIds.map(it => '?')})`,
+      ...ruleIds
+    );
+    // 把指标对应到细则中
+    for (const it of ruleTagModels) {
+      const index = checkRules.find(item => item.rule_id === it.rule);
+      if (index) index['tag'].push(it);
+    }
+
+    // 把考核细则放到考核小项下
+    for (const it of checkRules) {
+      const index = parentRule.find(item => it.parent_rule_id === item.rule_id);
+      if (index) index['children'].push(it);
+    }
+    // 事务执行添加语句
+    return appDB.transaction(async () => {
+      // 考核主键,后面添加的时候要用
+      const systemId = uuid.v4();
+      const checkSystemModelValues = [
+        systemId,
+        checkName,
+        Context.current.user.id,
+        Context.current.user.id,
+        checkYear,
+        true,
+        dayjs().toDate(),
+        dayjs().toDate(),
+        1
+      ];
+      // 添加考核表
+      const checkSystemModelAdd = await appDB.execute(
+        `insert into check_system(
+                  check_id,
+                  check_name,
+                  create_by,
+                  update_by,
+                  check_year,
+                  status,
+                  created_at,
+                  updated_at,
+                  check_type)
+              values(${checkSystemModelValues.map(it => '?')})`,
+        ...checkSystemModelValues
+      );
+      if (!checkSystemModelAdd) throw new KatoCommonError('添加失败');
+
+      // 添加考核内容表 先添加考核小项,再添加考核细则
+      for (const rule of parentRule) {
+        // 考核小项id,添加细则和添加考核小项和公分项对应需要用到
+        const ruleId = uuid.v4();
+        const checkRuleModelValues = [
+          ruleId,
+          systemId,
+          rule.rule_name,
+          dayjs().toDate(),
+          dayjs().toDate(),
+          rule.budget
+        ];
+        // 添加考核小项
+        const checkRuleModelAdd = await appDB.execute(
+          `insert into check_rule(
+                       rule_id,
+                       check_id,
+                       rule_name,
+                       created_at,
+                       updated_at,
+                       budget)
+              values(${checkRuleModelValues.map(it => '?')})`,
+          ...checkRuleModelValues
+        );
+        // 考核小项和公分项对应
+        for (const project of rule.project) {
+          const projectValues = [
+            ruleId,
+            project.projectId,
+            dayjs().toDate(),
+            dayjs().toDate()
+          ];
+          const ruleProjectModelAdd = await appDB.execute(
+            `insert into rule_project(
+                          rule,
+                          "projectId",
+                          created_at,
+                          updated_at)
+                      values(${projectValues.map(it => '?')})`,
+            ...projectValues
+          );
+        }
+        // 添加考核细则
+        for (const childrenRule of rule.children) {
+          // 细则id,添加细则指标对应需要用到
+          const childrenRuleId = uuid.v4();
+          const checkRuleChildrenModelValues = [
+            childrenRuleId,
+            systemId,
+            ruleId,
+            childrenRule.rule_name,
+            childrenRule.rule_score,
+            childrenRule.check_standard,
+            childrenRule.check_method,
+            childrenRule.evaluate_standard,
+            childrenRule.status,
+            dayjs().toDate(),
+            dayjs().toDate()
+          ];
+          // 考核细则添加执行
+          const checkRuleModelAdd = await appDB.execute(
+            `insert into check_rule(
+                       rule_id,
+                       check_id,
+                       parent_rule_id,
+                       rule_name,
+                       rule_score,
+                       check_standard,
+                       check_method,
+                       evaluate_standard,
+                       status,
+                       created_at,
+                       updated_at)
+              values(${checkRuleChildrenModelValues.map(it => '?')})`,
+            ...checkRuleChildrenModelValues
+          );
+          // 细则指标对应
+          for (const tag of childrenRule.tag) {
+            const ruleTagValues = [
+              uuid.v4(),
+              childrenRuleId,
+              tag.tag,
+              tag.algorithm,
+              tag.baseline,
+              tag.score,
+              dayjs().toDate(),
+              dayjs().toDate(),
+              tag.attach_start_date,
+              tag.attach_end_date
+            ];
+            const ruleTagModelAdd = await appDB.execute(
+              `insert into rule_tag(
+                            id,
+                            rule,
+                            tag,
+                            algorithm,
+                            baseline,
+                            score,
+                            created_at,
+                            updated_at,
+                            attach_start_date,
+                            attach_end_date)
+                       values(${ruleTagValues.map(it => '?')})
+              `,
+              ...ruleTagValues
+            );
+          }
+        }
       }
     });
   }
