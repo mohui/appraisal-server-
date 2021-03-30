@@ -403,75 +403,80 @@ export default class CheckAreaEdit {
      * 2, 查询考核细则
      * 3, 添加考核体系, 考核细则
      */
-    // 取出当前考核下的所有地区
-    const checkSystemModel = await appDB.execute(
-      ` select * from check_system where check_id = ?`,
-      checkId
-    );
-    if (checkSystemModel.length < 1)
-      throw new KatoCommonError('该考核体系不存在');
 
-    // 查询考核细则
-    const checkRuleModels = await appDB.execute(
-      `select * from check_rule where check_id = ?`,
-      checkId
-    );
-    if (checkRuleModels.length < 1)
-      throw new KatoCommonError('该考核体系没有考核项目');
-
-    // 筛选出所有的考核小项
-    const parentRule = checkRuleModels
-      .filter(it => !it['parent_rule_id'])
-      .map(it => {
-        return {
-          ...it,
-          children: [],
-          project: []
-        };
-      });
-    // 取出所有的考核小项id
-    const parentIds = parentRule.map(it => it.rule_id);
-    // 查询 考核小项和公分项对应
-    const ruleProjectModels = await appDB.execute(
-      `select * from rule_project where rule in (${parentIds.map(it => '?')})`,
-      ...parentIds
-    );
-    // 把公分项对应到考核小项中
-    for (const it of ruleProjectModels) {
-      const index = parentRule.find(item => it.rule === item.rule_id);
-      if (index) index['project'].push(it);
-    }
-
-    // 取出所有细则
-    const checkRules = checkRuleModels
-      .filter(it => it['parent_rule_id'])
-      .map(it => {
-        return {
-          ...it,
-          tag: []
-        };
-      });
-
-    // 取出所有细则id
-    const ruleIds = checkRules.map(it => it.rule_id);
-    // 查询 细则指标对应
-    const ruleTagModels = await appDB.execute(
-      `select * from rule_tag where rule in (${ruleIds.map(it => '?')})`,
-      ...ruleIds
-    );
-    // 把指标对应到细则中
-    for (const it of ruleTagModels) {
-      const index = checkRules.find(item => item.rule_id === it.rule);
-      if (index) index['tag'].push(it);
-    }
-
-    // 把考核细则放到考核小项下
-    for (const it of checkRules) {
-      const index = parentRule.find(item => it.parent_rule_id === item.rule_id);
-      if (index) index['children'].push(it);
-    }
     // 事务执行添加语句
     return appDB.transaction(async () => {
+      // 取出当前考核下的所有地区
+      const checkSystemModel = await appDB.execute(
+        ` select * from check_system where check_id = ?`,
+        checkId
+      );
+      if (checkSystemModel.length < 1)
+        throw new KatoCommonError('该考核体系不存在');
+
+      // 查询考核细则
+      const checkRuleModels = await appDB.execute(
+        `select * from check_rule where check_id = ?`,
+        checkId
+      );
+      if (checkRuleModels.length < 1)
+        throw new KatoCommonError('该考核体系没有考核项目');
+
+      // 筛选出所有的考核小项
+      const parentRule = checkRuleModels
+        .filter(it => !it['parent_rule_id'])
+        .map(it => {
+          return {
+            ...it,
+            children: [],
+            project: []
+          };
+        });
+      // 取出所有的考核小项id
+      const parentIds = parentRule.map(it => it.rule_id);
+      // 查询 考核小项和公分项对应
+      const ruleProjectModels = await appDB.execute(
+        `select * from rule_project where rule in (${parentIds.map(
+          () => '?'
+        )})`,
+        ...parentIds
+      );
+      // 把公分项对应到考核小项中
+      for (const it of ruleProjectModels) {
+        const index = parentRule.find(item => it.rule === item.rule_id);
+        if (index) index['project'].push(it);
+      }
+
+      // 取出所有细则
+      const checkRules = checkRuleModels
+        .filter(it => it['parent_rule_id'])
+        .map(it => {
+          return {
+            ...it,
+            tag: []
+          };
+        });
+
+      // 取出所有细则id
+      const ruleIds = checkRules.map(it => it.rule_id);
+      // 查询 细则指标对应
+      const ruleTagModels = await appDB.execute(
+        `select * from rule_tag where rule in (${ruleIds.map(it => '?')})`,
+        ...ruleIds
+      );
+      // 把指标对应到细则中
+      for (const it of ruleTagModels) {
+        const index = checkRules.find(item => item.rule_id === it.rule);
+        if (index) index['tag'].push(it);
+      }
+
+      // 把考核细则放到考核小项下
+      for (const it of checkRules) {
+        const index = parentRule.find(
+          item => it.parent_rule_id === item.rule_id
+        );
+        if (index) index['children'].push(it);
+      }
       // 考核主键,后面添加的时候要用
       const systemId = uuid.v4();
       const checkSystemModelValues = [
@@ -497,7 +502,7 @@ export default class CheckAreaEdit {
                   created_at,
                   updated_at,
                   check_type)
-              values(${checkSystemModelValues.map(it => '?')})`,
+              values(${checkSystemModelValues.map(() => '?')})`,
         ...checkSystemModelValues
       );
       if (!checkSystemModelAdd) throw new KatoCommonError('添加失败');
@@ -515,7 +520,7 @@ export default class CheckAreaEdit {
           rule.budget
         ];
         // 添加考核小项
-        const checkRuleModelAdd = await appDB.execute(
+        await appDB.execute(
           `insert into check_rule(
                        rule_id,
                        check_id,
@@ -523,7 +528,7 @@ export default class CheckAreaEdit {
                        created_at,
                        updated_at,
                        budget)
-              values(${checkRuleModelValues.map(it => '?')})`,
+              values(${checkRuleModelValues.map(() => '?')})`,
           ...checkRuleModelValues
         );
         // 考核小项和公分项对应
@@ -534,13 +539,13 @@ export default class CheckAreaEdit {
             dayjs().toDate(),
             dayjs().toDate()
           ];
-          const ruleProjectModelAdd = await appDB.execute(
+          await appDB.execute(
             `insert into rule_project(
                           rule,
                           "projectId",
                           created_at,
                           updated_at)
-                      values(${projectValues.map(it => '?')})`,
+                      values(${projectValues.map(() => '?')})`,
             ...projectValues
           );
         }
@@ -562,7 +567,7 @@ export default class CheckAreaEdit {
             dayjs().toDate()
           ];
           // 考核细则添加执行
-          const checkRuleModelAdd = await appDB.execute(
+          await appDB.execute(
             `insert into check_rule(
                        rule_id,
                        check_id,
@@ -575,7 +580,7 @@ export default class CheckAreaEdit {
                        status,
                        created_at,
                        updated_at)
-              values(${checkRuleChildrenModelValues.map(it => '?')})`,
+              values(${checkRuleChildrenModelValues.map(() => '?')})`,
             ...checkRuleChildrenModelValues
           );
           // 细则指标对应
@@ -592,7 +597,7 @@ export default class CheckAreaEdit {
               tag.attach_start_date,
               tag.attach_end_date
             ];
-            const ruleTagModelAdd = await appDB.execute(
+            await appDB.execute(
               `insert into rule_tag(
                             id,
                             rule,
@@ -604,7 +609,7 @@ export default class CheckAreaEdit {
                             updated_at,
                             attach_start_date,
                             attach_end_date)
-                       values(${ruleTagValues.map(it => '?')})
+                       values(${ruleTagValues.map(() => '?')})
               `,
               ...ruleTagValues
             );
