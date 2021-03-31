@@ -138,6 +138,20 @@
                 >
                 </el-button>
               </el-tooltip>
+              <el-tooltip content="快速复制" :enterable="false">
+                <el-button
+                  v-permission="{
+                    permission: permission.CHECK_CLONE,
+                    type: 'disabled'
+                  }"
+                  type="primary"
+                  icon="el-icon-check"
+                  circle
+                  size="mini"
+                  @click.stop="openCloneCheckDialog(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
               <el-tooltip content="全部开启打分" :enterable="false">
                 <el-button
                   v-show="scope.row.isOpen"
@@ -237,6 +251,12 @@
         <el-form-item label="状态：">
           <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
           <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
+        </el-form-item>
+        <el-form-item label="年度：">
+          <el-select v-model="checkForm.checkYear">
+            <el-option :value="2020">2020</el-option>
+            <el-option :value="2021">2021</el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -638,72 +658,18 @@ export default {
       if (this.submitting) return;
       this.submitting = true;
       try {
-        //获取被克隆的考核ID,及新的考核名称
-        const {checkId, cloneName} = this.checkForm;
+        //获取被克隆的考核ID,及新的考核名称, 考核状态,考核年份
+        const {checkId, cloneName, status, checkYear} = this.checkForm;
         if (!cloneName) {
           this.$message.info('考核名称不能为空');
           return;
         }
-        //创建新的考核记录
-        const result = await this.$api.CheckSystem.add({checkName: cloneName});
-        //获得新考核ID
-        const newCheckId = result.checkId;
-
-        //查询被克隆的细则列表
-        const listRule = await this.$api.CheckSystem.listRule({
-          checkId: checkId
-        });
-        //遍历细则，重新创建
-        const newListRule = listRule.rows.map(async it => {
-          //重新创建分类
-          const newGroup = await this.$api.CheckSystem.addRuleGroup({
-            checkId: newCheckId,
-            ruleName: it.ruleName
-          });
-
-          for (const item of it.group) {
-            //重新创建细则
-            const {
-              ruleName,
-              ruleScore,
-              checkStandard,
-              checkMethod,
-              evaluateStandard,
-              status,
-              ruleTags
-            } = item;
-            let newRule = await this.$api.CheckSystem.addRule({
-              checkId: newCheckId,
-              ruleName,
-              parentRuleId: newGroup.ruleId,
-              ruleScore,
-              checkStandard,
-              checkMethod,
-              status,
-              evaluateStandard
-            });
-            //设置指标
-            if (ruleTags?.length) {
-              await this.$api.RuleTag.upsert({
-                ruleId: newRule.ruleId,
-                tags: ruleTags.map(its => {
-                  delete its.id;
-                  delete its.name;
-                  return its;
-                })
-              });
-            }
-          }
-        });
-
-        Promise.all(newListRule)
-          .then(() => {
-            this.$message({
-              type: 'success',
-              message: '快速复制成功！'
-            });
-          })
-          .catch(err => this.$message.error(err.message));
+        await this.$api.CheckAreaEdit.copySystem(
+          checkId,
+          cloneName,
+          status,
+          checkYear
+        );
         this.$asyncComputed.listCheck.update();
       } catch (e) {
         this.$message.error(e.message);
