@@ -14,6 +14,18 @@
       <div slot="header" class="clearfix">
         <span>规则列表</span>
         <el-button
+          :disabled="copyFromButtonDisabled"
+          v-permission="{
+            permission: permission.CHECK_CLONE,
+            type: 'disabled'
+          }"
+          style="float: right;margin: -4px 0 0 20px;"
+          size="small"
+          type="primary"
+        >
+          复制上级考核
+        </el-button>
+        <el-button
           v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
           style="float: right;margin: -4px 0 0 20px;"
           size="small"
@@ -498,6 +510,10 @@ export default {
     //选中的节点key
     checkedKeys() {
       return this.checkedNodes.map(it => it.code);
+    },
+    //控制"复制上级考核"按钮的disabled属性
+    copyFromButtonDisabled() {
+      return !this.copiableSeverData;
     }
   },
   watch: {
@@ -543,6 +559,15 @@ export default {
       },
       shouldUpdate() {
         return this.checkForm.checkId !== '';
+      }
+    },
+    // 查询上级对自己的考核体系
+    copiableSeverData: {
+      async get() {
+        return await this.$api.CheckAreaEdit.parentCheck();
+      },
+      default() {
+        return false;
       }
     }
   },
@@ -878,6 +903,7 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
 .checked-organization-box {
   max-height: 150px;
   overflow-y: auto;
