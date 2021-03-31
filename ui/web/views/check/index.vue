@@ -443,6 +443,7 @@ export default {
         checkYear: this.$dayjs().year(),
         status: true
       },
+      // 快速复制的dialog赋值
       copyForm: {
         checkId: '',
         checkName: '',
@@ -523,6 +524,7 @@ export default {
     copyFromButtonDisabled() {
       return !this.copiableSeverData;
     },
+    // 给快速复制的dialog赋值
     copyFormData() {
       return this.copiableSeverData;
     }
@@ -914,7 +916,6 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
 }
-
 .checked-organization-box {
   max-height: 150px;
   overflow-y: auto;
