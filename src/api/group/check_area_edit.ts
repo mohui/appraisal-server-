@@ -395,9 +395,21 @@ export default class CheckAreaEdit {
     should
       .string()
       .required()
-      .description('考核系统id')
+      .description('待复制的考核系统id'),
+    should
+      .string()
+      .required()
+      .description('考核名称'),
+    should
+      .boolean()
+      .required()
+      .description('状态,是否停用'),
+    should
+      .number()
+      .required()
+      .description('考核年份')
   )
-  async copySystem(checkId, checkName, checkYear) {
+  async copySystem(checkId, checkName, status, checkYear) {
     /**
      * 1, 先把要复制的考核体系查询出来
      * 2, 查询考核细则
@@ -485,7 +497,7 @@ export default class CheckAreaEdit {
         Context.current.user.id,
         Context.current.user.id,
         checkYear,
-        true,
+        status,
         dayjs().toDate(),
         dayjs().toDate(),
         1
