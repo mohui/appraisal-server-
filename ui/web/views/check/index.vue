@@ -145,7 +145,7 @@
                     type: 'disabled'
                   }"
                   type="primary"
-                  icon="el-icon-check"
+                  icon="el-icon-document-copy"
                   circle
                   size="mini"
                   @click.stop="openCloneCheckDialog(scope.row)"
