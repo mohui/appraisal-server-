@@ -390,6 +390,22 @@ export default class CheckAreaEdit {
     });
   }
 
+  /**
+   * 查询上级对自己的考核体系
+   */
+  async parentCheck() {
+    const code = Context.current.user.areaCode;
+    const year = dayjs().year() - 1;
+    const checkArea = await appDB.execute(
+      ` select checkArea.check_system id from check_area checkArea
+            left join check_system checkSystem on checkArea.check_system = checkSystem.check_id
+            where checkArea.area = ? and checkSystem.check_year = ? `,
+      code,
+      year
+    );
+    return checkArea[0]?.id;
+  }
+
   // 复制考核
   @validate(
     should
