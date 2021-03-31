@@ -22,6 +22,7 @@
           style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
+          @click="openCloneCheckDialog(copyFormData)"
         >
           复制上级考核
         </el-button>
@@ -253,19 +254,19 @@
       :visible.sync="dialogFormCloneChecksVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
-      <el-form :model="checkForm" label-position="right" label-width="120px">
+      <el-form :model="copyForm" label-position="right" label-width="120px">
         <el-form-item label="复制考核名称：">
-          {{ checkForm.checkName }}
+          {{ copyForm.checkName }}
         </el-form-item>
         <el-form-item label="考核名称：">
-          <el-input v-model="checkForm.cloneName"></el-input>
+          <el-input v-model="copyForm.cloneName"></el-input>
         </el-form-item>
         <el-form-item label="状态：">
-          <el-radio v-model="checkForm.status" :label="true">启用</el-radio>
-          <el-radio v-model="checkForm.status" :label="false">禁用</el-radio>
+          <el-radio v-model="copyForm.status" :label="true">启用</el-radio>
+          <el-radio v-model="copyForm.status" :label="false">禁用</el-radio>
         </el-form-item>
         <el-form-item label="年度：">
-          <el-select v-model="checkForm.checkYear">
+          <el-select v-model="copyForm.checkYear">
             <el-option :value="2020">2020</el-option>
             <el-option :value="2021">2021</el-option>
           </el-select>
@@ -442,6 +443,13 @@ export default {
         checkYear: this.$dayjs().year(),
         status: true
       },
+      copyForm: {
+        checkId: '',
+        checkName: '',
+        cloneName: '',
+        checkYear: this.$dayjs().year(),
+        status: true
+      },
       searchForm: {
         pageSize: 20,
         pageNo: 1
@@ -514,6 +522,9 @@ export default {
     //控制"复制上级考核"按钮的disabled属性
     copyFromButtonDisabled() {
       return !this.copiableSeverData;
+    },
+    copyFormData() {
+      return this.copiableSeverData;
     }
   },
   watch: {
@@ -675,7 +686,7 @@ export default {
     },
     //打开克隆规则对话框
     openCloneCheckDialog(item) {
-      this.checkForm = Object.assign({}, item);
+      this.copyForm = Object.assign({}, item);
       this.dialogFormCloneChecksVisible = true;
     },
     //保存克隆规则
@@ -684,7 +695,7 @@ export default {
       this.submitting = true;
       try {
         //获取被克隆的考核ID,及新的考核名称, 考核状态,考核年份
-        const {checkId, cloneName, status, checkYear} = this.checkForm;
+        const {checkId, cloneName, status, checkYear} = this.copyForm;
         if (!cloneName) {
           this.$message.info('考核名称不能为空');
           return;
