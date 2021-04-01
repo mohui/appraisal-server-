@@ -170,13 +170,12 @@ export default class BasicTag {
     year = Number(year);
     const lastYear = year - 1;
 
-    //当前年份的基础数据大于0的总计
+    //当前年份的基础数据的总计
     const thisYearCount = await BasicTagDataModel.count({
       where: {
         year: year,
         hospitalId: {[Op.in]: hospitals.map(h => h.id)},
-        code: {[Op.in]: childrenTag.map(c => c.code)},
-        value: {[Op.gt]: 0}
+        code: {[Op.in]: childrenTag.map(c => c.code)}
       }
     });
     //上一年的基础数据大于0的总数
