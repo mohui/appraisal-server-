@@ -53,10 +53,16 @@ export default class BasicTag {
   )
   async upsertLastYear(tagCode, year) {
     await appDB.transaction(async () => {
+      //当前用户地区权限下所直属的机构
+      const hospitals = Context.current.user.hospitals;
       //获取大类指标下的所有的小类
       const childrenTag = BasicTags.find(bt => bt.code === tagCode).children;
       const thisYearBasicData = await BasicTagDataModel.findAll({
-        where: {year, code: {[Op.in]: childrenTag.map(c => c.code)}},
+        where: {
+          year,
+          hospitalId: {[Op.in]: hospitals.map(h => h.id)},
+          code: {[Op.in]: childrenTag.map(c => c.code)}
+        },
         lock: true
       });
       if (thisYearBasicData?.length > 0) {
@@ -67,6 +73,7 @@ export default class BasicTag {
           await BasicTagDataModel.findAll({
             where: {
               year: year - 1,
+              hospitalId: {[Op.in]: hospitals.map(h => h.id)},
               code: {[Op.in]: childrenTag.map(c => c.code)}
             }
           })
