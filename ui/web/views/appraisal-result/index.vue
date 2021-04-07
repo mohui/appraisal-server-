@@ -13,9 +13,6 @@
       >
         <span class="header-title">
           {{ totalData.name }}基本公共卫生服务两卡制绩效考核
-          <span v-if="totalData.budget" style="color: #606266;"
-            >({{ totalData.budget }}元)
-          </span>
         </span>
         <!--年度选择-->
         <span style="margin:0 10px">
