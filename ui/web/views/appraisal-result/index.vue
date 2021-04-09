@@ -597,7 +597,6 @@
               <div class="check-table-title">
                 <div>
                   {{ item.ruleName }}
-                  <span style="color: #606266">({{ item.budget }}元)</span>
                 </div>
               </div>
               <el-table
