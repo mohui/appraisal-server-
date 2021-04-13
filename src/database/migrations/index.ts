@@ -35,6 +35,7 @@ import {HE07Migration} from './032_HE07';
 import {HE09Migration} from './033_HE09';
 import {AreaVoucherMigration} from './034_area_voucher';
 import {CheckYearMigration} from './035_check_year';
+import {CleanTableMigration} from './036_table_clean';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -73,5 +74,6 @@ export const migrations: IMigration[] = [
   new HE07Migration(),
   new HE09Migration(),
   new AreaVoucherMigration(),
-  new CheckYearMigration()
+  new CheckYearMigration(),
+  new CleanTableMigration()
 ];
