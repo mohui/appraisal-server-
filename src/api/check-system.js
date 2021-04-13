@@ -289,7 +289,8 @@ export default class CheckSystem {
     if (group.parent) throw new KatoCommonError('该规则是一个细则');
     let options = {};
     if (params?.ruleName) options['ruleName'] = params.ruleName;
-    if (params?.budget) options['budget'] = params.budget;
+    if (params?.budget || params?.budget === 0)
+      options['budget'] = params.budget;
     if (projects) {
       //删除原有的project绑定关系
       await Promise.all(
