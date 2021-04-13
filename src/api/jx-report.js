@@ -797,7 +797,7 @@ async function getExponent(code, time) {
         value: dataRow1Value
       };
       // 这个可能存在没有的情况
-      if (dataRow1[0]?.basic && dataRow1[0]?.basic >= 0) {
+      if (dataRow1[0]?.basic || dataRow1[0]?.basic === 0) {
         const dataRow1Basic = dataRow1.reduce(
           (prev, curr) => Number(prev) + curr.basic,
           0
@@ -821,7 +821,7 @@ async function getExponent(code, time) {
         value: dataRow2Value
       };
       // 这个可能存在没有的情况
-      if (dataRow2[0]?.basic && dataRow2[0]?.basic >= 0) {
+      if (dataRow2[0]?.basic || dataRow2[0]?.basic === 0) {
         const dataRow2Basic = dataRow2.reduce(
           (prev, curr) => Number(prev) + curr.basic,
           0
@@ -845,7 +845,7 @@ async function getExponent(code, time) {
         value: dataRow3Value
       };
       // 这个可能存在没有的情况
-      if (dataRow3[0]?.basic && dataRow3[0]?.basic >= 0) {
+      if (dataRow3[0]?.basic || dataRow3[0]?.basic === 0) {
         const dataRow3Basic = dataRow3.reduce(
           (prev, curr) => Number(prev) + curr.basic,
           0
