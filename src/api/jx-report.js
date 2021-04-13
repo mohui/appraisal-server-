@@ -63,6 +63,9 @@ async function getExponent(code, time) {
       it !== 'Attach' &&
       it !== 'HE08' &&
       it !== 'HE10' &&
+      it !== 'HE11' &&
+      it !== 'HE12' &&
+      it !== 'HE13' &&
       it !== 'SC00' &&
       it !== 'SC01'
   );
