@@ -656,6 +656,9 @@ export const MarkTags = [
   }
 ];
 
+/**
+ * 如果有改动, 需要检查 1>自动打分,2>生成公卫报表 这两个接口
+ */
 export const MarkTagUsages = {
   S01: {
     code: 'S01',

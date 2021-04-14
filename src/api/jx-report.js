@@ -63,6 +63,9 @@ async function getExponent(code, time) {
       it !== 'Attach' &&
       it !== 'HE08' &&
       it !== 'HE10' &&
+      it !== 'HE11' &&
+      it !== 'HE12' &&
+      it !== 'HE13' &&
       it !== 'SC00' &&
       it !== 'SC01'
   );
@@ -780,6 +783,79 @@ async function getExponent(code, time) {
         is_rate: true
       };
     }
+    // 计算合计2021-04-13
+    // 如果数组为空,也没必要合计
+    if (dataRow1.length > 0) {
+      // 这个必有
+      const dataRow1Value = dataRow1.reduce(
+        (prev, curr) => Number(prev) + curr.value,
+        0
+      );
+      let dataRow1Obj = {
+        index: dataRow1.length + 1,
+        name: '合计',
+        value: dataRow1Value
+      };
+      // 这个可能存在没有的情况
+      if (dataRow1[0]?.basic || dataRow1[0]?.basic === 0) {
+        const dataRow1Basic = dataRow1.reduce(
+          (prev, curr) => Number(prev) + curr.basic,
+          0
+        );
+        dataRow1Obj['basic'] = dataRow1Basic;
+        dataRow1Obj['rate'] = `${percentString(dataRow1Value, dataRow1Basic)}`;
+      }
+      dataRow1.push(dataRow1Obj);
+    }
+
+    // 如果数组为空,也没必要合计
+    if (dataRow2.length > 0) {
+      // 这个必有
+      const dataRow2Value = dataRow2.reduce(
+        (prev, curr) => Number(prev) + curr.value,
+        0
+      );
+      let dataRow2Obj = {
+        index: dataRow2.length + 1,
+        name: '合计',
+        value: dataRow2Value
+      };
+      // 这个可能存在没有的情况
+      if (dataRow2[0]?.basic || dataRow2[0]?.basic === 0) {
+        const dataRow2Basic = dataRow2.reduce(
+          (prev, curr) => Number(prev) + curr.basic,
+          0
+        );
+        dataRow2Obj['basic'] = dataRow2Basic;
+        dataRow2Obj['rate'] = `${percentString(dataRow2Value, dataRow2Basic)}`;
+      }
+      dataRow2.push(dataRow2Obj);
+    }
+
+    // 如果数组为空,也没必要合计
+    if (dataRow3.length > 0) {
+      // 这个必有
+      const dataRow3Value = dataRow3.reduce(
+        (prev, curr) => Number(prev) + curr.value,
+        0
+      );
+      let dataRow3Obj = {
+        index: dataRow3.length + 1,
+        name: '合计',
+        value: dataRow3Value
+      };
+      // 这个可能存在没有的情况
+      if (dataRow3[0]?.basic || dataRow3[0]?.basic === 0) {
+        const dataRow3Basic = dataRow3.reduce(
+          (prev, curr) => Number(prev) + curr.basic,
+          0
+        );
+        dataRow3Obj['basic'] = dataRow3Basic;
+        dataRow3Obj['rate'] = `${percentString(dataRow3Value, dataRow3Basic)}`;
+      }
+      dataRow3.push(dataRow3Obj);
+    }
+
     // 表一: 中心机构总体
     const dataTableObj1 = {
       ...type,
