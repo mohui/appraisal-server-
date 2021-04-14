@@ -12,6 +12,7 @@ export class CleanTableMigration implements IMigration {
       drop table if exists rule_hospital_score;
       drop table if exists rule_hospital_budget;
       drop table if exists rule_hospital_attach;
+      drop table if exists rule_hospital;
       drop table if exists check_hospital;
     `);
   }
