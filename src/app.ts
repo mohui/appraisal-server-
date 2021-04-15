@@ -5,8 +5,14 @@ import * as http from 'http';
 import * as cookieParser from 'cookie-parser';
 import * as fallback from 'connect-history-api-fallback';
 import {KatoUI} from 'kato-ui';
-import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
+import {
+  AuthenticateMiddleware,
+  ExpressAdapter,
+  Kato,
+  RespondMiddleware
+} from 'kato-server';
 import {UserMiddleware} from './api/middleware/user';
+import {AuditLogMiddleware} from './api/middleware/audit-log';
 import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
 import * as models from './database/model';
@@ -136,6 +142,8 @@ export class Application {
     }
     //添加用户中间件,在验证中间件之前
     kato.use(UserMiddleware, AuthenticateMiddleware);
+    //添加审计日志中间件, 在Respond中间件之后
+    kato.useAfter(AuditLogMiddleware, RespondMiddleware);
     //挂载kato处理中间件
     this.express.use('/api', ExpressAdapter(kato));
   }
