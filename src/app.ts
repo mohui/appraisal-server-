@@ -6,7 +6,6 @@ import * as cookieParser from 'cookie-parser';
 import * as fallback from 'connect-history-api-fallback';
 import {KatoUI} from 'kato-ui';
 import {AuthenticateMiddleware, ExpressAdapter, Kato} from 'kato-server';
-
 import {UserMiddleware} from './api/middleware/user';
 import {Sequelize} from 'sequelize-typescript';
 import {createExtendedSequelize, Migrater, migrations} from './database';
@@ -16,8 +15,8 @@ import {init as initBackJob} from './utils/back-job/index';
 import {
   FileSystemError,
   LocalFileSystem,
-  OverlayFileSystem,
   OSSFileSystem,
+  OverlayFileSystem,
   UnionFileSystem
 } from './unifs';
 
