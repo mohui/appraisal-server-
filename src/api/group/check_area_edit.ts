@@ -659,34 +659,83 @@ export default class CheckAreaEdit {
    * @param code 考核地区
    * @param year 年份
    */
-  async upserMoney(code, year) {
-    /*
-    correctWorkPoint 校正后总工分值
-    rate 质量系数
-    budget 金额
-     */
-    // {
-    //   code: string;
-    //   budget: number;
-    //   correctWorkPoint: number;
-    //   rate: number;
-    // }[]
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .allow(null)
+      .description('年份')
+  )
+  async upsertMoney(code, year) {
     // 获取要插入的金额列表
     return appDB.transaction(async () => {
-      const getAreaMoneyInfo: unknown[] = await api.rank(code, year);
-      // 取出要插入的地区;
-      const areaIds = getAreaMoneyInfo.map(it => it.code);
+      // 先获取下级地区
+      const areaModels = await appDB.execute(
+        `SELECT "code", "name" FROM area WHERE parent = ?`,
+        code
+      );
+      // 取出地区所有的下级地区id
+      const areaList = areaModels.map(it => it.code);
+      // 根据地区和年份查询考核id
+      const checkAreaModels = await appDB.execute(
+        `
+        SELECT
+          CheckArea.check_system AS "checkId",
+          CheckArea.area AS "areaCode"
+        FROM check_area AS CheckArea
+        INNER JOIN check_system AS checkSystem ON CheckArea.check_system = checkSystem.check_id
+        WHERE checkSystem.check_year = ?
+         AND CheckArea.area IN (${areaList.map(() => '?')})`,
+        year,
+        ...areaList
+      );
+      // 取出所有的考核id
+      const checkIds = checkAreaModels.map(it => it.checkId);
+      // 根据考核id和考核地区查询校正后公分值, 质量系数, 金额
+      const reportAreaModels = await appDB.execute(
+        `
+        SELECT area AS code,
+          "correctWorkPoint",
+          rate,
+          budget
+        FROM report_area
+        WHERE area IN (${areaList.map(() => '?')})
+          AND "check" IN (${checkIds.map(() => '?')})
+      `,
+        ...areaList,
+        ...checkIds
+      );
+      // 补充没有查到的地区
+      const AreaMoneyInfo = areaModels.map(it => {
+        const index = reportAreaModels.find(item => it.code === item.code);
+        if (index) return index;
+        else
+          return {
+            code: it.code,
+            correctWorkPoint: 0,
+            rate: 0,
+            budget: 0
+          };
+      });
+      // const areaBudgetModels = await api.rank(code, year);
+
+      // -------- 以上都是查询要插入的数据, 下面是处理查询到的数据并插入到表中 --------
+
       // 查询要插入的地区是否已经在表中
-      const selectAreas = await appDB.execute(
+      const areaBudgetModels = await appDB.execute(
         `
         select * from area_budget
-        where year = ? and  area in (${areaIds.map(() => '?')}) `,
+        where year = ? and  area in (${areaList.map(() => '?')}) `,
         year,
-        ...areaIds
+        ...areaList
       );
       // 如果在,执行更新操作,如果不在,执行插入
-      if (selectAreas.length === 0) {
-        for (const it of getAreaMoneyInfo) {
+      if (areaBudgetModels.length === 0) {
+        // 查询结果为空,执行插入语句
+        for (const it of AreaMoneyInfo) {
           const insertArr = [
             it.code,
             year,
@@ -710,7 +759,44 @@ export default class CheckAreaEdit {
           );
         }
       } else {
-        for (const it of getAreaMoneyInfo) {
+        // 查询结果不为空, 分两种情况,查询结果是否和要查的数据一致,一致,执行更新,不一致,插入没有查询出的,更新查询出的数据
+        const insertAreaBudget = [];
+        const updateAreaBudget = AreaMoneyInfo.map(it => {
+          const index = areaBudgetModels.find(item => it.code === item.area);
+          if (index) {
+            return it;
+          } else {
+            insertAreaBudget.push(it);
+          }
+        }).filter(it => it);
+        // 如果存在area_budget表中没有的数据,要插入
+        if (insertAreaBudget.length > 0) {
+          for (const it of insertAreaBudget) {
+            const insertArr = [
+              it.code,
+              year,
+              it.correctWorkPoint,
+              it.rate,
+              it.budget,
+              dayjs().toDate(),
+              dayjs().toDate()
+            ];
+            await appDB.execute(
+              `insert into area_budget(
+            area,
+            year,
+            correct_work_point,
+            rate,
+            budget,
+            created_at,
+            updated_at)
+          values (${insertArr.map(() => '?')})`,
+              ...insertArr
+            );
+          }
+        }
+        // 需要更新的数据
+        for (const it of updateAreaBudget) {
           const updateArr = [
             it.correctWorkPoint,
             it.rate,
