@@ -1071,6 +1071,54 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
+
+  async areaBudgetList(code, year) {
+    // 先获取下级地区
+    const areaModels = await appDB.execute(
+      `SELECT "code", "name" FROM area WHERE parent = ?`,
+      code
+    );
+    // 取出地区所有的下级地区id
+    const areaList = areaModels.map(it => it.code);
+
+    // 查询要插入的地区是否已经在表中
+    const areaBudgetModels = await appDB.execute(
+      `
+        select
+          area,
+          year,
+          correct_work_point,
+          rate,
+          budget
+        from area_budget
+        where year = ? and  area in (${areaList.map(() => '?')}) `,
+      year,
+      ...areaList
+    );
+
+    return areaModels.map(it => {
+      const index = areaBudgetModels.find(item => it.code === item.area);
+      if (index) {
+        return {
+          area: index.area,
+          name: it.name,
+          year: index.year,
+          correctWorkPoint: index.correct_work_point,
+          rate: index.rate,
+          budget: index.budget
+        };
+      } else {
+        return {
+          area: it.code,
+          name: it.name,
+          year: '-',
+          correctWorkPoint: '-',
+          rate: '-',
+          budget: '-'
+        };
+      }
+    });
+  }
 }
 
 /**
