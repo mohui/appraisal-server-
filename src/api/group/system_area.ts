@@ -1100,7 +1100,7 @@ export default class SystemArea {
       const index = areaBudgetModels.find(item => it.code === item.area);
       if (index) {
         return {
-          area: index.area,
+          code: index.area,
           name: it.name,
           year: index.year,
           correctWorkPoint: index.correct_work_point,
@@ -1109,12 +1109,12 @@ export default class SystemArea {
         };
       } else {
         return {
-          area: it.code,
+          code: it.code,
           name: it.name,
-          year: '-',
-          correctWorkPoint: '-',
-          rate: '-',
-          budget: '-'
+          year: null,
+          correctWorkPoint: null,
+          rate: null,
+          budget: null
         };
       }
     });
