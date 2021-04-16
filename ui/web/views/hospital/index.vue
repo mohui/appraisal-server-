@@ -98,6 +98,47 @@
       </el-table>
       <div v-show="selFlag === 'upsertMoney'">
         {{ selFlag }}
+        <template>
+          <el-table
+            v-loading="$asyncComputed.areaBudgetService.updating"
+            size="mini"
+            border
+            :data="areaBudgetData"
+            height="100%"
+            style="flex-grow: 1;"
+            row-key="uuid"
+            lazy
+            :load="load"
+            :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+            :header-cell-style="{
+              background: '#F3F4F7',
+              color: '#555',
+              textAlign: 'center'
+            }"
+            :cell-class-name="cellClassHover"
+            @row-click="handleCellClick"
+          >
+            <el-table-column
+              align="center"
+              label="序号"
+              width="160px"
+              prop="uuid"
+            >
+            </el-table-column>
+            <el-table-column align="center" label="名称" prop="name">
+            </el-table-column>
+            <el-table-column
+              align="center"
+              label="校正后总工分值"
+              prop="correctWorkPointFormat"
+            >
+            </el-table-column>
+            <el-table-column align="center" label="质量系数" prop="rateFormat">
+            </el-table-column>
+            <el-table-column align="center" label="金额" prop="budgetFormat">
+            </el-table-column>
+          </el-table>
+        </template>
       </div>
     </el-card>
 
@@ -225,12 +266,14 @@ export default {
         });
     },
     areaBudgetData() {
-      const currentData = this.areaBudgetService;
-      return currentData.map((item, index) => {
+      const areaBudgetList = this.areaBudgetService;
+      return areaBudgetList.map((item, index) => {
         //添加格式化数据
-        item.correctWorkPointFormat = Math.round(item.correctWorkPoint);
-        item.rateFormat = (item.rate * 100).toFixed(2) + '%';
-        item.budgetFormat = item.budget.toFixed(2);
+        item.correctWorkPointFormat = item.correctWorkPoint
+          ? Math.round(item.correctWorkPoint)
+          : '-';
+        item.rateFormat = item.rate ? (item.rate * 100).toFixed(2) + '%' : '-';
+        item.budgetFormat = item.budget ? item.budget.toFixed(2) : '-';
         item.uuid = index + 1;
         return item;
       });
@@ -272,7 +315,10 @@ export default {
         );
       },
       default() {
-        return false;
+        return [];
+      },
+      shouldUpdate() {
+        return this.selFlag === 'upsertMoney';
       }
     }
   },
