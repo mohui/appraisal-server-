@@ -666,7 +666,7 @@ export default class CheckAreaEdit {
       .description('地区code或机构id'),
     should
       .number()
-      .allow(null)
+      .required()
       .description('年份')
   )
   async upsertMoney(code, year) {
@@ -692,11 +692,14 @@ export default class CheckAreaEdit {
         year,
         ...areaList
       );
-      // 取出所有的考核id
-      const checkIds = checkAreaModels.map(it => it.checkId);
-      // 根据考核id和考核地区查询校正后公分值, 质量系数, 金额
-      const reportAreaModels = await appDB.execute(
-        `
+
+      let reportAreaModels = [];
+      if (checkAreaModels.length > 0) {
+        // 取出所有的考核id
+        const checkIds = checkAreaModels.map(it => it.checkId);
+        // 根据考核id和考核地区查询校正后公分值, 质量系数, 金额
+        reportAreaModels = await appDB.execute(
+          `
         SELECT area AS code,
           "correctWorkPoint",
           rate,
@@ -705,9 +708,10 @@ export default class CheckAreaEdit {
         WHERE area IN (${areaList.map(() => '?')})
           AND "check" IN (${checkIds.map(() => '?')})
       `,
-        ...areaList,
-        ...checkIds
-      );
+          ...areaList,
+          ...checkIds
+        );
+      }
       // 补充没有查到的地区
       const AreaMoneyInfo = areaModels.map(it => {
         const index = reportAreaModels.find(item => it.code === item.code);
