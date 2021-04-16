@@ -17,6 +17,9 @@ import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';
+import SystemArea from './system_area';
+
+const api = new SystemArea();
 
 export default class CheckAreaEdit {
   /**
@@ -646,6 +649,87 @@ export default class CheckAreaEdit {
               ...ruleTagValues
             );
           }
+        }
+      }
+    });
+  }
+
+  /**
+   * 添加年度结算
+   * @param code 考核地区
+   * @param year 年份
+   */
+  async upserMoney(code, year) {
+    /*
+    correctWorkPoint 校正后总工分值
+    rate 质量系数
+    budget 金额
+     */
+    // {
+    //   code: string;
+    //   budget: number;
+    //   correctWorkPoint: number;
+    //   rate: number;
+    // }[]
+    // 获取要插入的金额列表
+    return appDB.transaction(async () => {
+      const getAreaMoneyInfo: unknown[] = await api.rank(code, year);
+      // 取出要插入的地区;
+      const areaIds = getAreaMoneyInfo.map(it => it.code);
+      // 查询要插入的地区是否已经在表中
+      const selectAreas = await appDB.execute(
+        `
+        select * from area_budget
+        where year = ? and  area in (${areaIds.map(() => '?')}) `,
+        year,
+        ...areaIds
+      );
+      // 如果在,执行更新操作,如果不在,执行插入
+      if (selectAreas.length === 0) {
+        for (const it of getAreaMoneyInfo) {
+          const insertArr = [
+            it.code,
+            year,
+            it.correctWorkPoint,
+            it.rate,
+            it.budget,
+            dayjs().toDate(),
+            dayjs().toDate()
+          ];
+          await appDB.execute(
+            `insert into area_budget(
+            area,
+            year,
+            correct_work_point,
+            rate,
+            budget,
+            created_at,
+            updated_at)
+          values (${insertArr.map(() => '?')})`,
+            ...insertArr
+          );
+        }
+      } else {
+        for (const it of getAreaMoneyInfo) {
+          const updateArr = [
+            it.correctWorkPoint,
+            it.rate,
+            it.budget,
+            dayjs().toDate(),
+            it.code,
+            year
+          ];
+          await appDB.execute(
+            `
+          update area_budget set
+            correct_work_point = ?,
+            rate = ?,
+            budget = ?,
+            updated_at = ?
+          where area = ? and year = ?
+        `,
+            ...updateArr
+          );
         }
       }
     });
