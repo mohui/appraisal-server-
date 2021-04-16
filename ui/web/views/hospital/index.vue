@@ -28,8 +28,26 @@
             </el-option>
           </el-select>
         </span>
+        <!--年度结算-->
+        <span style="margin-right: 20px">
+          <el-button
+            size="small"
+            type="primary"
+            @click="tagTypeChanged('moneyList')"
+          >
+            金额列表
+          </el-button>
+          <el-button
+            size="small"
+            type="primary"
+            @click="tagTypeChanged('upsetMoney')"
+          >
+            年度结算
+          </el-button>
+        </span>
       </div>
       <el-table
+        v-show="selFlag === 'moneyList'"
         v-loading="$asyncComputed.hospitalListServerData.updating"
         size="mini"
         border
@@ -73,6 +91,9 @@
           </template>
         </el-table-column>
       </el-table>
+      <div v-show="selFlag === 'upsetMoney'">
+        hello
+      </div>
     </el-card>
 
     <!--上传凭证窗口-->
@@ -169,6 +190,8 @@ export default {
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
       ],
+      selFlag: 'upsetMoney', // upsetMoney: 结算, moneyList: 金额列表
+
       fileList: [],
       voucherUploadVisible: false,
       currentHospital: {vouchers: []},
@@ -323,6 +346,9 @@ export default {
       } catch (e) {
         console.log(e);
       }
+    },
+    tagTypeChanged(tag) {
+      this.selFlag = tag;
     }
   }
 };
