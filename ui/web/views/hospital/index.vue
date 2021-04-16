@@ -40,8 +40,13 @@
           <el-button
             size="small"
             type="primary"
-            @click="tagTypeChanged('upsetMoney')"
+            @click="tagTypeChanged('upsertMoney')"
           >
+            年度结算
+          </el-button>
+        </span>
+        <span v-show="selFlag === 'upsertMoney'">
+          <el-button size="small" type="primary" @click="upsertAreaBudget()">
             年度结算
           </el-button>
         </span>
@@ -91,8 +96,47 @@
           </template>
         </el-table-column>
       </el-table>
-      <div v-show="selFlag === 'upsetMoney'">
-        hello
+      <div v-show="selFlag === 'upsertMoney'">
+        {{ selFlag }}
+        <el-table
+          v-loading="$asyncComputed.hospitalListServerData.updating"
+          size="mini"
+          border
+          :data="hospitalListData"
+          height="100%"
+          style="flex-grow: 1;"
+          row-key="uuid"
+          lazy
+          :load="load"
+          :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+          :header-cell-style="{
+            background: '#F3F4F7',
+            color: '#555',
+            textAlign: 'center'
+          }"
+          :cell-class-name="cellClassHover"
+          @row-click="handleCellClick"
+        >
+          <el-table-column
+            align="center"
+            label="序号"
+            width="160px"
+            prop="uuid"
+          >
+          </el-table-column>
+          <el-table-column align="center" label="名称" prop="name">
+          </el-table-column>
+          <el-table-column
+            align="center"
+            label="校正后总工分值"
+            prop="correctWorkPointFormat"
+          >
+          </el-table-column>
+          <el-table-column align="center" label="质量系数" prop="rateFormat">
+          </el-table-column>
+          <el-table-column align="center" label="金额" prop="budgetFormat">
+          </el-table-column>
+        </el-table>
       </div>
     </el-card>
 
@@ -190,7 +234,7 @@ export default {
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
       ],
-      selFlag: 'upsetMoney', // upsetMoney: 结算, moneyList: 金额列表
+      selFlag: 'moneyList', // upsertMoney: 结算, moneyList: 金额列表
 
       fileList: [],
       voucherUploadVisible: false,
@@ -234,6 +278,28 @@ export default {
       },
       default() {
         return [];
+      }
+    },
+    areaBudgetService: {
+      async get() {
+        let code = this.$settings.user.code;
+        return await Promise.all(
+          (await this.$api.SystemArea.areaBudgetList(code, this.year)).map(
+            async item => {
+              item.hasChildren =
+                (
+                  await this.$api.SystemArea.areaBudgetList(
+                    item.code,
+                    this.year
+                  )
+                ).length > 0;
+              return item;
+            }
+          )
+        );
+      },
+      default() {
+        return false;
       }
     }
   },
@@ -349,6 +415,16 @@ export default {
     },
     tagTypeChanged(tag) {
       this.selFlag = tag;
+    },
+    async upsertAreaBudget() {
+      if (this.selFlag === 'upsertMoney') {
+        try {
+          const code = this.$settings.user.code.toString();
+          await this.$api.CheckAreaEdit.upsertMoney(code, this.year);
+        } catch (e) {
+          this.$message.error(e.message);
+        }
+      }
     }
   }
 };
