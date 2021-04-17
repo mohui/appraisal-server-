@@ -48,7 +48,7 @@
             </el-button>
           </el-button-group>
         </span>
-        <span v-show="selFlag === 'upsertMoney'" style="float:right;">
+        <span v-show="selFlag === 'moneyList'" style="float:right;">
           <el-button
             v-loading="loadingAreaBudget"
             :disabled="loadingAreaBudget"
@@ -443,7 +443,7 @@ export default {
     },
     async upsertAreaBudget() {
       this.loadingAreaBudget = true;
-      if (this.selFlag === 'upsertMoney') {
+      if (this.selFlag === 'moneyList') {
         try {
           const code = this.$settings.user.code.toString();
           await this.$api.CheckAreaEdit.upsertMoney(code, this.year);
@@ -452,6 +452,7 @@ export default {
             message: '结算成功!'
           });
           this.loadingAreaBudget = false;
+          this.selFlag = 'upsertMoney';
           await this.$asyncComputed.areaBudgetService.update();
         } catch (e) {
           this.$message.error(e.message);
