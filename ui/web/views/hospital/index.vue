@@ -49,7 +49,13 @@
           </el-button-group>
         </span>
         <span v-show="selFlag === 'upsertMoney'" style="float:right;">
-          <el-button size="small" type="primary" @click="upsertAreaBudget()">
+          <el-button
+            v-loading="loadingAreaBudget"
+            :disabled="loadingAreaBudget"
+            size="small"
+            type="primary"
+            @click="upsertAreaBudget()"
+          >
             结算
           </el-button>
         </span>
@@ -198,8 +204,8 @@
                 type="text"
                 size="mini"
                 @click="removeVoucher(image)"
-                >删除</el-button
-              >
+                >删除
+              </el-button>
             </div>
           </div>
         </div>
@@ -235,7 +241,8 @@ export default {
       fileList: [],
       voucherUploadVisible: false,
       currentHospital: {vouchers: []},
-      headers: {token: getToken()}
+      headers: {token: getToken()},
+      loadingAreaBudget: false
     };
   },
   computed: {
@@ -435,10 +442,16 @@ export default {
       this.selFlag = tag;
     },
     async upsertAreaBudget() {
+      this.loadingAreaBudget = true;
       if (this.selFlag === 'upsertMoney') {
         try {
           const code = this.$settings.user.code.toString();
           await this.$api.CheckAreaEdit.upsertMoney(code, this.year);
+          this.$message({
+            type: 'success',
+            message: '结算成功!'
+          });
+          this.loadingAreaBudget = false;
         } catch (e) {
           this.$message.error(e.message);
         }
