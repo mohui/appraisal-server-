@@ -108,7 +108,7 @@
             style="flex-grow: 1;"
             row-key="uuid"
             lazy
-            :load="load"
+            :load="loadAreaBudget"
             :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
             :header-cell-style="{
               background: '#F3F4F7',
@@ -262,11 +262,16 @@ export default {
       const areaBudgetList = this.areaBudgetService;
       return areaBudgetList.map((item, index) => {
         //添加格式化数据
-        item.correctWorkPointFormat = item.correctWorkPoint
-          ? Math.round(item.correctWorkPoint)
-          : '-';
-        item.rateFormat = item.rate ? (item.rate * 100).toFixed(2) + '%' : '-';
-        item.budgetFormat = item.budget ? item.budget.toFixed(2) : '-';
+        item.correctWorkPointFormat =
+          item.correctWorkPoint || item.correctWorkPoint === 0
+            ? Math.round(item.correctWorkPoint)
+            : '-';
+        item.rateFormat =
+          item.rate || item.rate === 0
+            ? (item.rate * 100).toFixed(2) + '%'
+            : '-';
+        item.budgetFormat =
+          item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
         item.uuid = index + 1;
         return item;
       });
@@ -444,6 +449,31 @@ export default {
           this.$message.error(e.message);
         }
       }
+    },
+    async loadAreaBudget(tree, treeNode, resolve) {
+      let result = await Promise.all(
+        (await this.$api.SystemArea.areaBudgetList(tree.code, this.year)).map(
+          async (item, index) => {
+            item.correctWorkPointFormat =
+              item.correctWorkPoint || item.correctWorkPoint === 0
+                ? Math.round(item.correctWorkPoint)
+                : '-';
+            item.rateFormat =
+              item.rate || item.rate === 0
+                ? (item.rate * 100).toFixed(2) + '%'
+                : '-';
+            item.budgetFormat =
+              item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+            item.uuid = `${tree.uuid}-${index + 1}`;
+            item.hasChildren =
+              item.code !== tree.code &&
+              (await this.$api.SystemArea.areaBudgetList(item.code, this.year))
+                .length > 0;
+            return item;
+          }
+        )
+      );
+      resolve(result);
     }
   }
 };
