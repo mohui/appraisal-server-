@@ -54,7 +54,7 @@
             :disabled="loadingAreaBudget"
             size="small"
             type="primary"
-            @click="upsertAreaBudget()"
+            @click="openAreaBudgetVoucherDialog()"
           >
             结算
           </el-button>
@@ -220,6 +220,16 @@
         </el-button>
       </div>
     </el-dialog>
+    <!--结算窗口-->
+    <el-dialog title="结算操作" :visible.sync="areaBudgetVisible" width="30%">
+      <span>确定结算{{ year }}的金额分配吗?</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="areaBudgetVisible = false">取 消</el-button>
+        <el-button type="primary" @click="upsertAreaBudget">
+          确 定
+        </el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -240,6 +250,7 @@ export default {
 
       fileList: [],
       voucherUploadVisible: false,
+      areaBudgetVisible: false,
       currentHospital: {vouchers: []},
       headers: {token: getToken()},
       loadingAreaBudget: false
@@ -441,6 +452,9 @@ export default {
     tagTypeChanged(tag) {
       this.selFlag = tag;
     },
+    openAreaBudgetVoucherDialog() {
+      this.areaBudgetVisible = true;
+    },
     async upsertAreaBudget() {
       this.loadingAreaBudget = true;
       if (this.selFlag === 'moneyList') {
@@ -453,7 +467,7 @@ export default {
           });
           this.loadingAreaBudget = false;
           this.selFlag = 'upsertMoney';
-          await this.$asyncComputed.areaBudgetService.update();
+          this.areaBudgetVisible = false;
         } catch (e) {
           this.$message.error(e.message);
         }
