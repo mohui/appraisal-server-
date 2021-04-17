@@ -29,25 +29,28 @@
           </el-select>
         </span>
         <!--年度结算-->
-        <span style="margin-right: 20px">
-          <el-button
-            size="small"
-            type="primary"
-            @click="tagTypeChanged('moneyList')"
-          >
-            金额列表
-          </el-button>
-          <el-button
-            size="small"
-            type="primary"
-            @click="tagTypeChanged('upsertMoney')"
-          >
-            年度结算
-          </el-button>
+        <!--type="primary"-->
+        <span style="margin-right: 10px">
+          <el-button-group>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': selFlag === 'moneyList'}"
+              @click="tagTypeChanged('moneyList')"
+            >
+              实时金额
+            </el-button>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': selFlag === 'upsertMoney'}"
+              @click="tagTypeChanged('upsertMoney')"
+            >
+              年度结算
+            </el-button>
+          </el-button-group>
         </span>
-        <span v-show="selFlag === 'upsertMoney'">
+        <span v-show="selFlag === 'upsertMoney'" style="float:right;">
           <el-button size="small" type="primary" @click="upsertAreaBudget()">
-            年度结算
+            结算
           </el-button>
         </span>
       </div>
@@ -97,7 +100,6 @@
         </el-table-column>
       </el-table>
       <div v-show="selFlag === 'upsertMoney'">
-        {{ selFlag }}
         <template>
           <el-table
             v-loading="$asyncComputed.areaBudgetService.updating"
