@@ -139,6 +139,8 @@
         </el-table-column>
         <el-table-column align="center" label="金额" prop="budgetFormat">
         </el-table-column>
+        <el-table-column align="center" label="结算时间" prop="dateFormat">
+        </el-table-column>
       </el-table>
     </el-card>
 
@@ -284,6 +286,9 @@ export default {
             : '-';
         item.budgetFormat =
           item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+        item.dateFormat = item.date
+          ? item.date.$format('YYYY-MM-DD HH:mm:ss')
+          : '-';
         item.uuid = index + 1;
         return item;
       });
@@ -487,6 +492,9 @@ export default {
                 : '-';
             item.budgetFormat =
               item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+            item.dateFormat = item.date
+              ? item.date.$format('YYYY-MM-DD HH:mm:ss')
+              : '-';
             item.uuid = `${tree.uuid}-${index + 1}`;
             item.hasChildren =
               item.code !== tree.code &&
