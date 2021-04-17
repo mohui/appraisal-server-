@@ -1078,6 +1078,7 @@ export default class SystemArea {
       `SELECT "code", "name" FROM area WHERE parent = ?`,
       code
     );
+    if (areaModels.length === 0) return [];
     // 取出地区所有的下级地区id
     const areaList = areaModels.map(it => it.code);
 
