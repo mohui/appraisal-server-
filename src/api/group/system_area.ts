@@ -1090,7 +1090,8 @@ export default class SystemArea {
           year,
           correct_work_point,
           rate,
-          budget
+          budget,
+          updated_at
         from area_budget
         where year = ? and  area in (${areaList.map(() => '?')}) `,
       year,
@@ -1106,7 +1107,8 @@ export default class SystemArea {
           year: index.year,
           correctWorkPoint: index.correct_work_point,
           rate: index.rate,
-          budget: index.budget
+          budget: index.budget,
+          date: index.updated_at
         };
       } else {
         return {
@@ -1115,7 +1117,8 @@ export default class SystemArea {
           year: null,
           correctWorkPoint: null,
           rate: null,
-          budget: null
+          budget: null,
+          date: null
         };
       }
     });
