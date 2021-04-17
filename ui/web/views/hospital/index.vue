@@ -68,8 +68,8 @@
           color: '#555',
           textAlign: 'center'
         }"
-        @row-click="handleCellClick"
         :cell-class-name="cellClassHover"
+        @row-click="handleCellClick"
       >
         <el-table-column align="center" label="序号" width="160px" prop="uuid">
         </el-table-column>
@@ -189,8 +189,8 @@
         >
           <div
             v-for="image of currentHospital.vouchers"
-            style="height: 200px;width: 200px;margin: 5px"
             :key="image.key"
+            style="height: 200px;width: 200px;margin: 5px"
           >
             <el-image
               style="height: 100%;width: 100%;cursor: pointer"
@@ -228,7 +228,7 @@ import {getToken} from '../../utils/cache';
 import dayjs from 'dayjs';
 
 export default {
-  name: 'hospital',
+  name: 'Hospital',
   data() {
     return {
       year: dayjs().year(),
@@ -243,13 +243,6 @@ export default {
       currentHospital: {vouchers: []},
       headers: {token: getToken()}
     };
-  },
-  watch: {
-    year() {
-      // 年度改变时先将数据清空再重新在异步计算属性中加载
-      this.hospitalListServerData = [];
-      this.areaBudgetService = [];
-    }
   },
   computed: {
     hospitalListData() {
@@ -277,6 +270,13 @@ export default {
         item.uuid = index + 1;
         return item;
       });
+    }
+  },
+  watch: {
+    year() {
+      // 年度改变时先将数据清空再重新在异步计算属性中加载
+      this.hospitalListServerData = [];
+      this.areaBudgetService = [];
     }
   },
   asyncComputed: {
