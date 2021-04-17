@@ -99,49 +99,41 @@
           </template>
         </el-table-column>
       </el-table>
-      <div v-show="selFlag === 'upsertMoney'">
-        <template>
-          <el-table
-            v-loading="$asyncComputed.areaBudgetService.updating"
-            size="mini"
-            border
-            :data="areaBudgetData"
-            height="100%"
-            style="flex-grow: 1;"
-            row-key="uuid"
-            lazy
-            :load="loadAreaBudget"
-            :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-            :header-cell-style="{
-              background: '#F3F4F7',
-              color: '#555',
-              textAlign: 'center'
-            }"
-            :cell-class-name="cellClassHover"
-            @row-click="handleCellClick"
-          >
-            <el-table-column
-              align="center"
-              label="序号"
-              width="160px"
-              prop="uuid"
-            >
-            </el-table-column>
-            <el-table-column align="center" label="名称" prop="name">
-            </el-table-column>
-            <el-table-column
-              align="center"
-              label="校正后总工分值"
-              prop="correctWorkPointFormat"
-            >
-            </el-table-column>
-            <el-table-column align="center" label="质量系数" prop="rateFormat">
-            </el-table-column>
-            <el-table-column align="center" label="金额" prop="budgetFormat">
-            </el-table-column>
-          </el-table>
-        </template>
-      </div>
+      <el-table
+        v-show="selFlag === 'upsertMoney'"
+        v-loading="$asyncComputed.areaBudgetService.updating"
+        size="mini"
+        border
+        :data="areaBudgetData"
+        height="100%"
+        style="flex-grow: 1;"
+        row-key="uuid"
+        lazy
+        :load="loadAreaBudget"
+        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+        :header-cell-style="{
+          background: '#F3F4F7',
+          color: '#555',
+          textAlign: 'center'
+        }"
+        :cell-class-name="cellClassHover"
+        @row-click="handleCellClick"
+      >
+        <el-table-column align="center" label="序号" width="160px" prop="uuid">
+        </el-table-column>
+        <el-table-column align="center" label="名称" prop="name">
+        </el-table-column>
+        <el-table-column
+          align="center"
+          label="校正后总工分值"
+          prop="correctWorkPointFormat"
+        >
+        </el-table-column>
+        <el-table-column align="center" label="质量系数" prop="rateFormat">
+        </el-table-column>
+        <el-table-column align="center" label="金额" prop="budgetFormat">
+        </el-table-column>
+      </el-table>
     </el-card>
 
     <!--上传凭证窗口-->
