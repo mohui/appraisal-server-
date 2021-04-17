@@ -452,6 +452,7 @@ export default {
             message: '结算成功!'
           });
           this.loadingAreaBudget = false;
+          await this.$asyncComputed.areaBudgetService.update();
         } catch (e) {
           this.$message.error(e.message);
         }
