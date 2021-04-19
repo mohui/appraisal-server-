@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class AreaBudgetMigration implements IMigration {
   name = '年度结算';
-  version = 36;
+  version = 37;
 
   async up(client: ExtendedSequelize): Promise<void> {
     await client.execute(
