@@ -15,9 +15,9 @@
         <!--年度选择-->
         <span style="margin: 0 10px">
           <el-select
-            v-model="year"
+            v-model="params.year"
             placeholder="请选择考核年度"
-            @change="handleYearChange(year)"
+            @change="handleYearChange(params.year)"
           >
             <el-option
               v-for="item in yearList"
@@ -34,21 +34,21 @@
           <el-button-group>
             <el-button
               size="small"
-              :class="{'el-button--primary': selFlag === 'moneyList'}"
+              :class="{'el-button--primary': params.selFlag === 'moneyList'}"
               @click="tagTypeChanged('moneyList')"
             >
               实时金额
             </el-button>
             <el-button
               size="small"
-              :class="{'el-button--primary': selFlag === 'upsertMoney'}"
+              :class="{'el-button--primary': params.selFlag === 'upsertMoney'}"
               @click="tagTypeChanged('upsertMoney')"
             >
               年度结算
             </el-button>
           </el-button-group>
         </span>
-        <span v-show="selFlag === 'moneyList'" style="float:right;">
+        <span v-show="params.selFlag === 'moneyList'" style="float:right;">
           <el-button
             v-loading="loadingAreaBudget"
             :disabled="loadingAreaBudget"
@@ -61,7 +61,7 @@
         </span>
       </div>
       <el-table
-        v-show="selFlag === 'moneyList'"
+        v-show="params.selFlag === 'moneyList'"
         v-loading="$asyncComputed.hospitalListServerData.updating"
         size="mini"
         border
@@ -106,7 +106,7 @@
         </el-table-column>
       </el-table>
       <el-table
-        v-show="selFlag === 'upsertMoney'"
+        v-show="params.selFlag === 'upsertMoney'"
         v-loading="$asyncComputed.areaBudgetService.updating"
         size="mini"
         border
@@ -176,7 +176,7 @@
             action="/api/SystemArea/vouchers.ac"
             :data="{
               area: JSON.stringify(currentHospital.code),
-              year: JSON.stringify(this.year),
+              year: JSON.stringify(this.params.year),
               money: currentHospital.money
             }"
           >
@@ -224,7 +224,7 @@
     </el-dialog>
     <!--结算窗口-->
     <el-dialog title="结算操作" :visible.sync="areaBudgetVisible" width="30%">
-      <span>确定结算{{ year }}的金额分配吗?</span>
+      <span>确定结算{{ params.year }}的金额分配吗?</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="areaBudgetVisible = false">取 消</el-button>
         <el-button type="primary" @click="upsertAreaBudget">
@@ -243,12 +243,15 @@ export default {
   name: 'Hospital',
   data() {
     return {
-      year: dayjs().year(),
       yearList: [
         {value: 2020, label: '2020年度'},
         {value: 2021, label: '2021年度'}
       ],
-      selFlag: 'moneyList', // upsertMoney: 结算, moneyList: 金额列表
+      params: {
+        selFlag: 'moneyList', // upsertMoney: 结算, moneyList: 金额列表
+        code: this.$settings.user.code,
+        year: dayjs().year()
+      },
 
       fileList: [],
       voucherUploadVisible: false,
@@ -306,12 +309,14 @@ export default {
       async get() {
         let code = this.$settings.user.code;
         return await Promise.all(
-          (await this.$api.SystemArea.rank(code, this.year)).map(async item => {
-            item.hasChildren =
-              (await this.$api.SystemArea.rank(item.code, this.year)).length >
-              0;
-            return item;
-          })
+          (await this.$api.SystemArea.rank(code, this.params.year)).map(
+            async item => {
+              item.hasChildren =
+                (await this.$api.SystemArea.rank(item.code, this.params.year))
+                  .length > 0;
+              return item;
+            }
+          )
         );
       },
       default() {
@@ -322,32 +327,32 @@ export default {
       async get() {
         let code = this.$settings.user.code;
         return await Promise.all(
-          (await this.$api.SystemArea.areaBudgetList(code, this.year)).map(
-            async item => {
-              item.hasChildren =
-                (
-                  await this.$api.SystemArea.areaBudgetList(
-                    item.code,
-                    this.year
-                  )
-                ).length > 0;
-              return item;
-            }
-          )
+          (
+            await this.$api.SystemArea.areaBudgetList(code, this.params.year)
+          ).map(async item => {
+            item.hasChildren =
+              (
+                await this.$api.SystemArea.areaBudgetList(
+                  item.code,
+                  this.params.year
+                )
+              ).length > 0;
+            return item;
+          })
         );
       },
       default() {
         return [];
       },
       shouldUpdate() {
-        return this.selFlag === 'upsertMoney';
+        return this.params.selFlag === 'upsertMoney';
       }
     }
   },
   methods: {
     async load(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (await this.$api.SystemArea.rank(tree.code, this.year))
+        (await this.$api.SystemArea.rank(tree.code, this.params.year))
           //根据金额排序
           .sort((a, b) => b.budget - a.budget)
           .map(async (item, index) => {
@@ -357,8 +362,8 @@ export default {
             item.uuid = `${tree.uuid}-${index + 1}`;
             item.hasChildren =
               item.code !== tree.code &&
-              (await this.$api.SystemArea.rank(item.code, this.year)).length >
-                0;
+              (await this.$api.SystemArea.rank(item.code, this.params.year))
+                .length > 0;
             return item;
           })
       );
@@ -376,7 +381,7 @@ export default {
           query: {
             id: row.code,
             listFlag: 'quality',
-            year: this.year
+            year: this.params.year
           }
         });
       }
@@ -390,7 +395,7 @@ export default {
       this.currentHospital = row;
       this.fileList = [];
       const result =
-        (await this.$api.SystemArea.getVouchers(row.code, this.year))
+        (await this.$api.SystemArea.getVouchers(row.code, this.params.year))
           ?.vouchers || [];
       //获取图片url
       if (result.length > 0)
@@ -404,7 +409,7 @@ export default {
         //不传图片只修改金额
         await this.$api.SystemArea.vouchers(
           this.currentHospital.code,
-          this.year,
+          this.params.year,
           this.currentHospital.money
         );
         this.$message.success('修改成功');
@@ -426,7 +431,7 @@ export default {
       );
       await this.$api.SystemArea.removeVoucher(
         this.currentHospital.code,
-        this.year,
+        this.params.year,
         image.key
       );
       this.$message.success('删除成功');
@@ -455,23 +460,23 @@ export default {
       }
     },
     tagTypeChanged(tag) {
-      this.selFlag = tag;
+      this.params.selFlag = tag;
     },
     openAreaBudgetVoucherDialog() {
       this.areaBudgetVisible = true;
     },
     async upsertAreaBudget() {
       this.loadingAreaBudget = true;
-      if (this.selFlag === 'moneyList') {
+      if (this.params.selFlag === 'moneyList') {
         try {
           const code = this.$settings.user.code.toString();
-          await this.$api.CheckAreaEdit.upsertMoney(code, this.year);
+          await this.$api.CheckAreaEdit.upsertMoney(code, this.params.year);
           this.$message({
             type: 'success',
             message: '结算成功!'
           });
           this.loadingAreaBudget = false;
-          this.selFlag = 'upsertMoney';
+          this.params.selFlag = 'upsertMoney';
           this.areaBudgetVisible = false;
         } catch (e) {
           this.$message.error(e.message);
@@ -480,29 +485,33 @@ export default {
     },
     async loadAreaBudget(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (await this.$api.SystemArea.areaBudgetList(tree.code, this.year)).map(
-          async (item, index) => {
-            item.correctWorkPointFormat =
-              item.correctWorkPoint || item.correctWorkPoint === 0
-                ? Math.round(item.correctWorkPoint)
-                : '-';
-            item.rateFormat =
-              item.rate || item.rate === 0
-                ? (item.rate * 100).toFixed(2) + '%'
-                : '-';
-            item.budgetFormat =
-              item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
-            item.dateFormat = item.date
-              ? item.date.$format('YYYY-MM-DD HH:mm:ss')
+        (
+          await this.$api.SystemArea.areaBudgetList(tree.code, this.params.year)
+        ).map(async (item, index) => {
+          item.correctWorkPointFormat =
+            item.correctWorkPoint || item.correctWorkPoint === 0
+              ? Math.round(item.correctWorkPoint)
               : '-';
-            item.uuid = `${tree.uuid}-${index + 1}`;
-            item.hasChildren =
-              item.code !== tree.code &&
-              (await this.$api.SystemArea.areaBudgetList(item.code, this.year))
-                .length > 0;
-            return item;
-          }
-        )
+          item.rateFormat =
+            item.rate || item.rate === 0
+              ? (item.rate * 100).toFixed(2) + '%'
+              : '-';
+          item.budgetFormat =
+            item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+          item.dateFormat = item.date
+            ? item.date.$format('YYYY-MM-DD HH:mm:ss')
+            : '-';
+          item.uuid = `${tree.uuid}-${index + 1}`;
+          item.hasChildren =
+            item.code !== tree.code &&
+            (
+              await this.$api.SystemArea.areaBudgetList(
+                item.code,
+                this.params.year
+              )
+            ).length > 0;
+          return item;
+        })
       );
       resolve(result);
     }
