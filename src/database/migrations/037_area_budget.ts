@@ -10,15 +10,14 @@ export class AreaBudgetMigration implements IMigration {
       `
       CREATE TABLE IF NOT EXISTS "area_budget"
       (
-
-        "area"                 VARCHAR(50),
-        "year"                 int,
-        "correct_work_point"   float       default 0,
-        "rate"                 float         default 0,
-        "budget"               float         default 0,
-        "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
-        primary key (area, year)
+          "area"               VARCHAR(36),
+          "year"               int,
+          "correct_work_point" float                    default 0,
+          "rate"               float                    default 0,
+          "budget"             float                    default 0,
+          "created_at"         TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
+          "updated_at"         TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
+          primary key (area, year)
       );
       COMMENT ON COLUMN "area_budget"."area" IS '地区名称';
       COMMENT ON COLUMN "area_budget"."year" IS '考核年度';
