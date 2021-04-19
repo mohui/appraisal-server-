@@ -17,9 +17,6 @@ import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';
-import SystemArea from './system_area';
-
-const api = new SystemArea();
 
 export default class CheckAreaEdit {
   /**
@@ -724,7 +721,6 @@ export default class CheckAreaEdit {
             budget: 0
           };
       });
-      // const areaBudgetModels = await api.rank(code, year);
 
       // -------- 以上都是查询要插入的数据, 下面是处理查询到的数据并插入到表中 --------
 
