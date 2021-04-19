@@ -33,21 +33,21 @@
           <el-button-group>
             <el-button
               size="small"
-              :class="{'el-button--primary': params.selFlag === 'moneyList'}"
-              @click="tagTypeChanged('moneyList')"
+              :class="{'el-button--primary': params.flag === 'real'}"
+              @click="tagTypeChanged('real')"
             >
               实时金额
             </el-button>
             <el-button
               size="small"
-              :class="{'el-button--primary': params.selFlag === 'upsertMoney'}"
-              @click="tagTypeChanged('upsertMoney')"
+              :class="{'el-button--primary': params.flag === 'total'}"
+              @click="tagTypeChanged('total')"
             >
               年度结算
             </el-button>
           </el-button-group>
         </span>
-        <span v-show="params.selFlag === 'moneyList'" style="float:right;">
+        <span v-show="params.flag === 'real'" style="float:right;">
           <el-button
             v-loading="loadingAreaBudget"
             :disabled="loadingAreaBudget"
@@ -60,7 +60,7 @@
         </span>
       </div>
       <el-table
-        v-show="params.selFlag === 'moneyList'"
+        v-show="params.flag === 'real'"
         v-loading="$asyncComputed.hospitalListServerData.updating"
         size="mini"
         border
@@ -105,7 +105,7 @@
         </el-table-column>
       </el-table>
       <el-table
-        v-show="params.selFlag === 'upsertMoney'"
+        v-show="params.flag === 'total'"
         v-loading="$asyncComputed.areaBudgetService.updating"
         size="mini"
         border
@@ -247,7 +247,7 @@ export default {
         {value: 2021, label: '2021年度'}
       ],
       params: {
-        selFlag: 'moneyList', // upsertMoney: 结算, moneyList: 金额列表
+        flag: 'real', // total: 结算, real: 金额列表
         code: this.$settings.user.code,
         year: dayjs().year()
       },
@@ -347,7 +347,7 @@ export default {
         return [];
       },
       shouldUpdate() {
-        return this.params.selFlag === 'upsertMoney';
+        return this.params.flag === 'total';
       }
     }
   },
@@ -467,12 +467,12 @@ export default {
       }
     },
     initParams(route) {
-      this.params.selFlag = route.query.selFlag ?? 'moneyList';
+      this.params.flag = route.query.flag ?? 'real';
       this.params.year = Number(route.query.year ?? this.$dayjs().year());
       this.params.code = route.query.code ?? this.$settings.user.code;
     },
     tagTypeChanged(tag) {
-      this.params.selFlag = tag;
+      this.params.flag = tag;
       this.$router.replace({
         query: {
           ...this.params
@@ -484,7 +484,7 @@ export default {
     },
     async upsertAreaBudget() {
       this.loadingAreaBudget = true;
-      if (this.params.selFlag === 'moneyList') {
+      if (this.params.flag === 'real') {
         try {
           const code = this.$settings.user.code.toString();
           await this.$api.CheckAreaEdit.upsertMoney(code, this.params.year);
@@ -493,7 +493,7 @@ export default {
             message: '结算成功!'
           });
           this.loadingAreaBudget = false;
-          this.params.selFlag = 'upsertMoney';
+          this.params.flag = 'total';
           this.areaBudgetVisible = false;
         } catch (e) {
           this.$message.error(e.message);
