@@ -323,6 +323,9 @@ export default {
       },
       default() {
         return [];
+      },
+      shouldUpdate() {
+        return this.params.flag === 'real';
       }
     },
     areaBudgetService: {
