@@ -1071,7 +1071,16 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
-
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
   async areaBudgetList(code, year) {
     // 先获取下级地区
     const areaModels = await appDB.execute(
