@@ -303,6 +303,9 @@ export default {
       this.areaBudgetService = [];
     }
   },
+  created() {
+    this.initParams(this.$route);
+  },
   asyncComputed: {
     hospitalListServerData: {
       async get() {
@@ -388,7 +391,12 @@ export default {
     //年度选择
     handleYearChange(value) {
       console.log(value);
-      this.year = value;
+      this.params.year = value;
+      this.$router.replace({
+        query: {
+          ...this.params
+        }
+      });
     },
     async openVoucherDialog(row) {
       this.currentHospital = row;
@@ -458,8 +466,18 @@ export default {
         console.log(e);
       }
     },
+    initParams(route) {
+      this.params.selFlag = route.query.selFlag ?? 'moneyList';
+      this.params.year = Number(route.query.year ?? this.$dayjs().year());
+      this.params.code = route.query.code ?? this.$settings.user.code;
+    },
     tagTypeChanged(tag) {
       this.params.selFlag = tag;
+      this.$router.replace({
+        query: {
+          ...this.params
+        }
+      });
     },
     openAreaBudgetVoucherDialog() {
       this.areaBudgetVisible = true;
