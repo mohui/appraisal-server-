@@ -29,7 +29,6 @@
           </el-select>
         </span>
         <!--年度结算-->
-        <!--type="primary"-->
         <span style="margin-right: 10px">
           <el-button-group>
             <el-button
