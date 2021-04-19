@@ -11,14 +11,13 @@ export class AreaBudgetMigration implements IMigration {
       CREATE TABLE IF NOT EXISTS "area_budget"
       (
 
-        "area"          VARCHAR(50),
-        "year"          int4,
-        "correct_work_point"   float8         default 0,
-        "rate"               float8         default 0,
-        "budget"             float8         default 0,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
-        constraint area_budget_pkey
+        "area"                 VARCHAR(50),
+        "year"                 int,
+        "correct_work_point"   float       default 0,
+        "rate"                 float         default 0,
+        "budget"               float         default 0,
+        "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
+        "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
         primary key (area, year)
       );
       COMMENT ON COLUMN "area_budget"."area" IS '地区名称';
