@@ -15,10 +15,6 @@
         <span>规则列表</span>
         <el-button
           :disabled="copyFromButtonDisabled"
-          v-permission="{
-            permission: permission.CHECK_CLONE,
-            type: 'disabled'
-          }"
           style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
