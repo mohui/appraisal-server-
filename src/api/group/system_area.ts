@@ -1071,6 +1071,67 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
+  async areaBudgetList(code, year) {
+    // 先获取下级地区
+    const areaModels = await appDB.execute(
+      `SELECT "code", "name" FROM area WHERE parent = ?`,
+      code
+    );
+    if (areaModels.length === 0) return [];
+    // 取出地区所有的下级地区id
+    const areaList = areaModels.map(it => it.code);
+
+    // 查询要插入的地区是否已经在表中
+    const areaBudgetModels = await appDB.execute(
+      `
+        select
+          area,
+          year,
+          correct_work_point,
+          rate,
+          budget,
+          updated_at
+        from area_budget
+        where year = ? and  area in (${areaList.map(() => '?')}) `,
+      year,
+      ...areaList
+    );
+
+    return areaModels.map(it => {
+      const index = areaBudgetModels.find(item => it.code === item.area);
+      if (index) {
+        return {
+          code: index.area,
+          name: it.name,
+          year: index.year,
+          correctWorkPoint: index.correct_work_point,
+          rate: index.rate,
+          budget: index.budget,
+          date: index.updated_at
+        };
+      } else {
+        return {
+          code: it.code,
+          name: it.name,
+          year: null,
+          correctWorkPoint: null,
+          rate: null,
+          budget: null,
+          date: null
+        };
+      }
+    });
+  }
 }
 
 /**
