@@ -93,16 +93,6 @@
         </el-table-column>
         <el-table-column align="center" label="金额" prop="budgetFormat">
         </el-table-column>
-        <el-table-column align="center" label="操作" prop="">
-          <template slot-scope="{row}">
-            <el-button
-              size="mini"
-              :type="row.vouchers.length > 0 ? 'success' : 'primary'"
-              @click="openVoucherDialog(row)"
-              >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
-            </el-button>
-          </template>
-        </el-table-column>
       </el-table>
       <el-table
         v-show="params.flag === 'total'"
@@ -139,6 +129,16 @@
         <el-table-column align="center" label="金额" prop="budgetFormat">
         </el-table-column>
         <el-table-column align="center" label="结算时间" prop="dateFormat">
+        </el-table-column>
+        <el-table-column align="center" label="操作" prop="">
+          <template slot-scope="{row}">
+            <el-button
+              size="mini"
+              :type="row.vouchers.length > 0 ? 'success' : 'primary'"
+              @click="openVoucherDialog(row)"
+              >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
+            </el-button>
+          </template>
         </el-table-column>
       </el-table>
     </el-card>
@@ -223,7 +223,12 @@
     </el-dialog>
     <!--结算窗口-->
     <el-dialog title="结算操作" :visible.sync="areaBudgetVisible" width="30%">
-      <span>确定结算{{ params.year }}的金额分配吗?</span>
+      <span>
+        确定结算{{ params.year }}的金额分配吗?
+        <p style="color: red">
+          注意！重复结算可能覆盖本年度之前结算结果，请确认后操作。
+        </p>
+      </span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="areaBudgetVisible = false">取 消</el-button>
         <el-button type="primary" @click="upsertAreaBudget">
