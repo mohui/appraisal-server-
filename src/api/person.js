@@ -1549,15 +1549,20 @@ export default class Person {
       );
       childChecks.push(childCheck);
     }
-    const result = [
+    // 如果 新生儿家庭访视记录表 和 0-6岁儿童体检表 都为空, 返回空字符串
+    if (newbornVisits.length === 0 && childChecks.length === 0) return [];
+    return [
       {
         name: '新生儿家庭访视记录表',
         type: 'newbornVisit',
         records: newbornVisits
       },
-      {name: '0-6岁儿童体检表', type: 'childCheck', records: childChecks}
+      {
+        name: '0-6岁儿童体检表',
+        type: 'childCheck',
+        records: childChecks
+      }
     ];
-    return result;
   }
 
   /**
