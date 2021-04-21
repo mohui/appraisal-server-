@@ -1119,13 +1119,13 @@ export default class SystemArea {
         return {
           code: it.code,
           name: it.name,
-          year: item?.year ?? null,
-          correctWorkPoint: item?.correct_work_point ?? null,
-          rate: item?.rate ?? null,
-          budget: item?.budget ?? null,
-          date: item?.updated_at ?? null,
-          money: areaVouchers?.money ?? 0,
-          vouchers: areaVouchers?.vouchers ?? []
+          year: item?.year,
+          correctWorkPoint: item?.correct_work_point,
+          rate: item?.rate,
+          budget: item?.budget,
+          date: item?.updated_at,
+          money: areaVouchers?.money,
+          vouchers: areaVouchers?.vouchers
         };
       })
     );
