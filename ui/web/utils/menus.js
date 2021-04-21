@@ -76,5 +76,12 @@ module.exports = [
     label: '机构同步',
     icon: 'el-icon-refresh',
     router: '/etl'
+  },
+  {
+    index: 'audit-log',
+    permission: [Permission.ETL_HOSPITAL],
+    label: '审计日志',
+    icon: 'el-icon-refresh',
+    router: '/audit-log'
   }
 ];

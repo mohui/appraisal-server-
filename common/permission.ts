@@ -110,6 +110,10 @@ export const PermissionDetail = [
   {
     key: 'person-excel',
     name: '档案详情导出'
+  },
+  {
+    key: 'audit_log',
+    name: '审计日志'
   }
 ];
 
@@ -141,7 +145,8 @@ export const Permission = {
   ETL_HOSPITAL: 'etl-hospital',
   SUPER_ADMIN: 'super-admin',
   TAGS_DETAIL: 'tags-detail',
-  PERSON_EXCEL: 'person-excel'
+  PERSON_EXCEL: 'person-excel',
+  AUDIT_LOG: 'audit-log'
 };
 export const PermissionTree = [
   {
@@ -291,6 +296,10 @@ export const PermissionTree = [
   {
     key: Permission.ETL_HOSPITAL,
     label: '机构同步'
+  },
+  {
+    key: Permission.AUDIT_LOG,
+    label: '审计日志'
   }
 ];
 export function getPermission(key) {

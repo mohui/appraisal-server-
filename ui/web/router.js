@@ -195,6 +195,12 @@ const router = new Router({
             activeMenu: 'etl-hospital'
           },
           component: () => import('./views/etl/index')
+        },
+        {
+          path: 'audit-log',
+          name: 'audit-log',
+          // meta: {permission: [Permission.AUDIT_LOG]},
+          component: () => import('./views/audit/index')
         }
       ]
     },
