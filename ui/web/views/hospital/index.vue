@@ -126,7 +126,9 @@
         </el-table-column>
         <el-table-column align="center" label="质量系数" prop="rateFormat">
         </el-table-column>
-        <el-table-column align="center" label="金额" prop="budgetFormat">
+        <el-table-column align="center" label="考核金额" prop="budgetFormat">
+        </el-table-column>
+        <el-table-column align="center" label="结算金额" prop="moneyFormat">
         </el-table-column>
         <el-table-column align="center" label="结算时间" prop="dateFormat">
         </el-table-column>
@@ -296,6 +298,8 @@ export default {
         item.dateFormat = item.date
           ? item.date.$format('YYYY-MM-DD HH:mm:ss')
           : '-';
+        item.moneyFormat =
+          item.money || item.money === 0 ? item.money.toFixed(2) : '-';
         item.money = item?.money ?? 0;
         item.vouchers = item?.vouchers ?? [];
         item.uuid = index + 1;
@@ -528,6 +532,8 @@ export default {
           item.dateFormat = item.date
             ? item.date.$format('YYYY-MM-DD HH:mm:ss')
             : '-';
+          item.moneyFormat =
+            item.money || item.money === 0 ? item.money.toFixed(2) : '-';
           item.money = item?.money ?? 0;
           item.vouchers = item?.vouchers ?? [];
           item.uuid = `${tree.uuid}-${index + 1}`;
