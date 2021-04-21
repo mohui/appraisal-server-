@@ -17,6 +17,7 @@ import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';
+import {AuditLog} from '../middleware/audit-log';
 
 export default class CheckAreaEdit {
   /**
@@ -81,6 +82,10 @@ export default class CheckAreaEdit {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
+  @AuditLog({
+    module: '考核体系编辑模块(CheckAreaEdit)',
+    method: '考核机构绑定(editArea)'
+  })
   async editArea(checkId, areas) {
     // 查询考核体系
     const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
@@ -284,6 +289,10 @@ export default class CheckAreaEdit {
       .required()
       .description('规则id')
   )
+  @AuditLog({
+    module: '考核体系编辑模块(CheckAreaEdit)',
+    method: '删除考核规则(deleteRule)'
+  })
   async deleteRule(ruleId) {
     //查询并锁定
     const rule = await CheckRuleModel.findOne({

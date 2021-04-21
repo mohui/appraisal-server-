@@ -12,6 +12,7 @@ import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 import dayjs from 'dayjs';
+import {AuditLog} from './middleware/audit-log';
 
 export default class CheckSystem {
   /**
@@ -228,6 +229,10 @@ export default class CheckSystem {
         .description('评分标准')
     })
   )
+  @AuditLog({
+    module: '绩效考核配置管理(CheckSystem)',
+    method: '添加考核细则(addRule)'
+  })
   async addRule(params) {
     return appDB.transaction(async () => {
       return CheckRuleModel.create(params);
@@ -252,6 +257,10 @@ export default class CheckSystem {
         .description('工分项')
     })
   )
+  @AuditLog({
+    module: '绩效考核配置管理(CheckSystem)',
+    method: '添加考核项(addRuleGroup)'
+  })
   async addRuleGroup(params) {
     const {projects} = params;
     const rule = await CheckRuleModel.create(params);
