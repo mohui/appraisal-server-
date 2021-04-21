@@ -296,6 +296,8 @@ export default {
         item.dateFormat = item.date
           ? item.date.$format('YYYY-MM-DD HH:mm:ss')
           : '-';
+        item.money = item?.money ?? 0;
+        item.vouchers = item?.vouchers ?? [];
         item.uuid = index + 1;
         return item;
       });
@@ -526,6 +528,8 @@ export default {
           item.dateFormat = item.date
             ? item.date.$format('YYYY-MM-DD HH:mm:ss')
             : '-';
+          item.money = item?.money ?? 0;
+          item.vouchers = item?.vouchers ?? [];
           item.uuid = `${tree.uuid}-${index + 1}`;
           item.hasChildren =
             item.code !== tree.code &&
