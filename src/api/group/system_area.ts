@@ -1119,10 +1119,11 @@ export default class SystemArea {
         return {
           code: it.code,
           name: it.name,
-          year: item ? item.year : null,
-          correctWorkPoint: item ? item.correct_work_point : null,
-          rate: item ? item.rate : null,
-          budget: item ? item.budget : null,
+          year: item?.year ?? null,
+          correctWorkPoint: item?.correct_work_point ?? null,
+          rate: item?.rate ?? null,
+          budget: item?.budget ?? null,
+          date: item?.updated_at ?? null,
           money: areaVouchers?.money ?? 0,
           vouchers: areaVouchers?.vouchers ?? []
         };
