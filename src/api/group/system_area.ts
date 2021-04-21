@@ -1107,30 +1107,28 @@ export default class SystemArea {
       ...areaList
     );
 
-    return areaModels.map(it => {
-      const index = areaBudgetModels.find(item => it.code === item.area);
-      if (index) {
-        return {
-          code: index.area,
-          name: it.name,
-          year: index.year,
-          correctWorkPoint: index.correct_work_point,
-          rate: index.rate,
-          budget: index.budget,
-          date: index.updated_at
-        };
-      } else {
+    return await Promise.all(
+      areaModels.map(async it => {
+        const item = areaBudgetModels.find(it1 => it1.area === it.code);
+        const areaVouchers: {
+          money: 0;
+          vouchers: [];
+        } = await AreaVoucherModel.findOne({
+          where: {area: it.code, year: year}
+        });
         return {
           code: it.code,
           name: it.name,
-          year: null,
-          correctWorkPoint: null,
-          rate: null,
-          budget: null,
-          date: null
+          year: item?.year,
+          correctWorkPoint: item?.correct_work_point,
+          rate: item?.rate,
+          budget: item?.budget,
+          date: item?.updated_at,
+          money: areaVouchers?.money,
+          vouchers: areaVouchers?.vouchers
         };
-      }
-    });
+      })
+    );
   }
 }
 
