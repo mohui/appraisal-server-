@@ -49,7 +49,7 @@ export async function AuditLogMiddleware(
   // kato流程完成后
   await next();
   // 获取注解对象
-  const auditLogObject = ctx.method.method[auditLogSymbol];
+  const auditLogObject = ctx?.method?.method[auditLogSymbol];
   // 用户登录且有注解
   if (ctx.user && auditLogObject) {
     // 注解对象判断; 其实不用判断, 因为ts有类型检查
