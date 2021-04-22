@@ -35,6 +35,20 @@
             placeholder="操作人名称"
           ></el-input>
         </el-form-item>
+
+        <el-form-item label="操作模块">
+          <el-input
+            v-model="searchForm.module"
+            placeholder="操作模块"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="操作功能">
+          <el-input
+            v-model="searchForm.method"
+            placeholder="操作功能"
+          ></el-input>
+        </el-form-item>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -113,9 +127,10 @@ export default {
   data() {
     return {
       searchForm: {
-        account: '',
         date: '',
         name: '',
+        module: '',
+        method: '',
         pageSize: 10,
         pageNo: 1
       }
@@ -144,7 +159,7 @@ export default {
   asyncComputed: {
     auditLogService: {
       async get() {
-        const {date, name, pageSize, pageNo} = this.searchForm;
+        const {date, name, module, method, pageSize, pageNo} = this.searchForm;
 
         let startDate = null;
         let endDate = null;
@@ -158,6 +173,8 @@ export default {
           startDate,
           endDate,
           name,
+          module,
+          method,
           pageNo,
           pageSize
         );
