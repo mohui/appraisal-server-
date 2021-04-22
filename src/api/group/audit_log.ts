@@ -2,7 +2,8 @@ import {appDB} from '../../app';
 import {sql as sqlRender} from '../../database/template';
 
 export default class AuditLog {
-  async list(name, pageNo, pageSize) {
+  async list(start, end, name, pageNo, pageSize) {
+    if (name) name = `%${name}%`;
     const [sql, params] = sqlRender(
       `
         select *
@@ -11,9 +12,14 @@ export default class AuditLog {
         {{#if name}}
             AND "user_name" like {{? name}}
         {{/if}}
+        {{#if start}}
+          and time >= {{? start}} and time < {{? end}}
+        {{/if}}
       `,
       {
-        name: `%${name}%`
+        name,
+        start: start,
+        end: end
       }
     );
     console.log(sql);

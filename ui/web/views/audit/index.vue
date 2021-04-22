@@ -17,6 +17,18 @@
         size="mini"
         class="demo-form-inline"
       >
+        <el-form-item label="操作日期">
+          <el-date-picker
+            v-model="searchForm.date"
+            size="mini"
+            type="daterange"
+            style="margin-right: 20px"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          >
+          </el-date-picker>
+        </el-form-item>
         <el-form-item label="操作人名称">
           <el-input
             v-model="searchForm.name"
@@ -95,11 +107,14 @@
 </template>
 
 <script>
+import * as dayjs from 'dayjs';
+
 export default {
   data() {
     return {
       searchForm: {
         account: '',
+        date: '',
         name: '',
         pageSize: 10,
         pageNo: 1
@@ -115,7 +130,7 @@ export default {
           userName: it.user_name,
           module: it.module,
           method: it.method,
-          extra: it.extra
+          extra: it.extra ? JSON.stringify(it.extra) : ''
         };
       });
     },
@@ -129,8 +144,23 @@ export default {
   asyncComputed: {
     auditLogService: {
       async get() {
-        const {name, pageSize, pageNo} = this.searchForm;
-        return this.$api.AuditLog.list(name, pageNo, pageSize);
+        const {date, name, pageSize, pageNo} = this.searchForm;
+
+        let startDate = null;
+        let endDate = null;
+        if (date) {
+          startDate = date[0];
+          endDate = date[1];
+          endDate = dayjs(endDate).add(1, 'day');
+        }
+
+        return this.$api.AuditLog.list(
+          startDate,
+          endDate,
+          name,
+          pageNo,
+          pageSize
+        );
       },
       default() {
         return {
