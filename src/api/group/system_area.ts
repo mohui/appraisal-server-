@@ -1052,6 +1052,65 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
+  @validate(
+    should
+      .string()
+      .required()
+      .description('地区code或机构id'),
+    should
+      .number()
+      .required()
+      .description('年份')
+  )
+  async areaBudgetList(code, year) {
+    // 先获取下级地区
+    const areaModels = await appDB.execute(
+      `SELECT "code", "name" FROM area WHERE parent = ?`,
+      code
+    );
+    if (areaModels.length === 0) return [];
+    // 取出地区所有的下级地区id
+    const areaList = areaModels.map(it => it.code);
+
+    // 查询要插入的地区是否已经在表中
+    const areaBudgetModels = await appDB.execute(
+      `
+        select
+          area,
+          year,
+          correct_work_point,
+          rate,
+          budget,
+          updated_at
+        from area_budget
+        where year = ? and  area in (${areaList.map(() => '?')}) `,
+      year,
+      ...areaList
+    );
+
+    return await Promise.all(
+      areaModels.map(async it => {
+        const item = areaBudgetModels.find(it1 => it1.area === it.code);
+        const areaVouchers: {
+          money: 0;
+          vouchers: [];
+        } = await AreaVoucherModel.findOne({
+          where: {area: it.code, year: year}
+        });
+        return {
+          code: it.code,
+          name: it.name,
+          year: item?.year,
+          correctWorkPoint: item?.correct_work_point,
+          rate: item?.rate,
+          budget: item?.budget,
+          date: item?.updated_at,
+          money: areaVouchers?.money,
+          vouchers: areaVouchers?.vouchers
+        };
+      })
+    );
+  }
 }
 
 /**
