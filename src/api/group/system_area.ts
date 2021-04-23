@@ -6,8 +6,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  HospitalModel,
-  RegionModel,
   ReportAreaHistoryModel,
   ReportAreaModel,
   RuleProjectModel
