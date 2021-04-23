@@ -6,8 +6,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  HospitalModel,
-  RegionModel,
   ReportAreaHistoryModel,
   ReportAreaModel,
   RuleProjectModel
@@ -269,53 +267,36 @@ export default class SystemArea {
       .description('年份')
   )
   async faceCollect(code, year) {
+    const tree = await getAreaTree(code);
+
+    // 找到所有的叶子节点
+    const hospitalIds = tree
+      .filter(it => it.leaf === true)
+      .map(item => item.code);
+    // 根据机构id获取对应的原始数据id
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
+    const hisHospIds = hisHospIdObjs.map(it => it.id);
+
     let faceData = {face: 0, total: 0, rate: 0};
-    //如果是一个地区
-    const region = await RegionModel.findOne({where: {code}});
-    if (region) {
+
+    // 查询人脸采集
+    try {
       const sql = sqlRender(
-        `select
-            coalesce(sum("S00"),0)::integer as "total",
-            coalesce(sum("S30"),0)::integer as "face" from mark_organization
-            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}}) and year = {{? year}}`,
+        `
+            select
+              coalesce(sum("S00"),0)::integer as "total",
+              coalesce(sum("S30"),0)::integer as "face"
+            from mark_organization
+            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+              and year = {{? year}}`,
         {
-          hishospid: (
-            await appDB.execute(
-              `
-                    select hm.hishospid
-                    from hospital_mapping hm
-                    inner join hospital h on h.id=hm.h_id
-                    where h.region like ?`,
-              `${code}%`
-            )
-          ).map(i => i.hishospid),
+          hishospid: hisHospIds,
           year
         }
       );
       faceData = (await originalDB.execute(sql[0], ...sql[1]))[0];
-    } else {
-      try {
-        const hospital = await HospitalModel.findOne({where: {id: code}});
-        //如果是一家机构
-        if (hospital)
-          faceData = (
-            await originalDB.execute(
-              `select
-                coalesce(sum("S00"),0)::integer as "total",
-                coalesce(sum("S30"),0)::integer as "face" from mark_organization
-                where id=? and year = ?`,
-              (
-                await appDB.execute(
-                  `select hishospid from hospital_mapping where h_id=?`,
-                  code
-                )
-              )?.[0]?.hishospid,
-              year
-            )
-          )[0];
-      } catch (e) {
-        throw new KatoCommonError('所传参数code,不是地区code或机构id');
-      }
+    } catch (e) {
+      throw new KatoCommonError('所传参数code,不是地区code或机构id');
     }
     faceData.rate =
       new Decimal(faceData.face).div(faceData.total).toNumber() || 0;
