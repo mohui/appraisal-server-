@@ -14,7 +14,7 @@ export class AreaBudgetMigration implements IMigration {
           "year"               int,
           "correct_work_point" float                    default 0,
           "rate"               float                    default 0,
-          "budget"             float                    default 0,
+          "budget"             numeric(15, 4)           default 0,
           "created_at"         TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           "updated_at"         TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           primary key (area, year)
