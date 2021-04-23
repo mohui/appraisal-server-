@@ -294,12 +294,14 @@ export default {
             ? (item.rate * 100).toFixed(2) + '%'
             : '-';
         item.budgetFormat =
-          item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+          item.budget || item.budget === 0
+            ? Number(item.budget).toFixed(2)
+            : '-';
         item.dateFormat = item.date
           ? item.date.$format('YYYY-MM-DD HH:mm:ss')
           : '-';
         item.moneyFormat =
-          item.money || item.money === 0 ? item.money.toFixed(2) : '-';
+          item.money || item.money === 0 ? Number(item.money).toFixed(2) : '-';
         item.money = item?.money ?? 0;
         item.vouchers = item?.vouchers ?? [];
         item.uuid = index + 1;
@@ -528,12 +530,16 @@ export default {
               ? (item.rate * 100).toFixed(2) + '%'
               : '-';
           item.budgetFormat =
-            item.budget || item.budget === 0 ? item.budget.toFixed(2) : '-';
+            item.budget || item.budget === 0
+              ? Number(item.budget).toFixed(2)
+              : '-';
           item.dateFormat = item.date
             ? item.date.$format('YYYY-MM-DD HH:mm:ss')
             : '-';
           item.moneyFormat =
-            item.money || item.money === 0 ? item.money.toFixed(2) : '-';
+            item.money || item.money === 0
+              ? Number(item.money).toFixed(2)
+              : '-';
           item.money = item?.money ?? 0;
           item.vouchers = item?.vouchers ?? [];
           item.uuid = `${tree.uuid}-${index + 1}`;
