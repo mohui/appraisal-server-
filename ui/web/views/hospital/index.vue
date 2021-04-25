@@ -126,11 +126,11 @@
         </el-table-column>
         <el-table-column align="center" label="质量系数" prop="rateFormat">
         </el-table-column>
-        <el-table-column align="center" label="考核金额" prop="budgetFormat">
-        </el-table-column>
-        <el-table-column align="center" label="结算金额" prop="moneyFormat">
+        <el-table-column align="center" label="结算金额" prop="budgetFormat">
         </el-table-column>
         <el-table-column align="center" label="结算时间" prop="dateFormat">
+        </el-table-column>
+        <el-table-column align="center" label="付款金额" prop="moneyFormat">
         </el-table-column>
         <el-table-column align="center" label="操作" prop="">
           <template slot-scope="{row}">
@@ -283,30 +283,34 @@ export default {
     },
     areaBudgetData() {
       const areaBudgetList = this.areaBudgetService;
-      return areaBudgetList.map((item, index) => {
-        //添加格式化数据
-        item.correctWorkPointFormat =
-          item.correctWorkPoint || item.correctWorkPoint === 0
-            ? Math.round(item.correctWorkPoint)
+      return areaBudgetList
+        .sort((a, b) => b.budget - a.budget)
+        .map((item, index) => {
+          //添加格式化数据
+          item.correctWorkPointFormat =
+            item.correctWorkPoint || item.correctWorkPoint === 0
+              ? Math.round(item.correctWorkPoint)
+              : '-';
+          item.rateFormat =
+            item.rate || item.rate === 0
+              ? (item.rate * 100).toFixed(2) + '%'
+              : '-';
+          item.budgetFormat =
+            item.budget || item.budget === 0
+              ? Number(item.budget).toFixed(2)
+              : '-';
+          item.dateFormat = item.date
+            ? item.date.$format('YYYY-MM-DD HH:mm:ss')
             : '-';
-        item.rateFormat =
-          item.rate || item.rate === 0
-            ? (item.rate * 100).toFixed(2) + '%'
-            : '-';
-        item.budgetFormat =
-          item.budget || item.budget === 0
-            ? Number(item.budget).toFixed(2)
-            : '-';
-        item.dateFormat = item.date
-          ? item.date.$format('YYYY-MM-DD HH:mm:ss')
-          : '-';
-        item.moneyFormat =
-          item.money || item.money === 0 ? Number(item.money).toFixed(2) : '-';
-        item.money = item?.money ?? 0;
-        item.vouchers = item?.vouchers ?? [];
-        item.uuid = index + 1;
-        return item;
-      });
+          item.moneyFormat =
+            item.money || item.money === 0
+              ? Number(item.money).toFixed(2)
+              : '-';
+          item.money = item?.money ?? 0;
+          item.vouchers = item?.vouchers ?? [];
+          item.uuid = index + 1;
+          return item;
+        });
     }
   },
   watch: {
@@ -518,41 +522,42 @@ export default {
     },
     async loadAreaBudget(tree, treeNode, resolve) {
       let result = await Promise.all(
-        (
-          await this.$api.SystemArea.areaBudgetList(tree.code, this.params.year)
-        ).map(async (item, index) => {
-          item.correctWorkPointFormat =
-            item.correctWorkPoint || item.correctWorkPoint === 0
-              ? Math.round(item.correctWorkPoint)
+        (await this.$api.SystemArea.areaBudgetList(tree.code, this.params.year))
+          //根据金额排序
+          .sort((a, b) => b.budget - a.budget)
+          .map(async (item, index) => {
+            item.correctWorkPointFormat =
+              item.correctWorkPoint || item.correctWorkPoint === 0
+                ? Math.round(item.correctWorkPoint)
+                : '-';
+            item.rateFormat =
+              item.rate || item.rate === 0
+                ? (item.rate * 100).toFixed(2) + '%'
+                : '-';
+            item.budgetFormat =
+              item.budget || item.budget === 0
+                ? Number(item.budget).toFixed(2)
+                : '-';
+            item.dateFormat = item.date
+              ? item.date.$format('YYYY-MM-DD HH:mm:ss')
               : '-';
-          item.rateFormat =
-            item.rate || item.rate === 0
-              ? (item.rate * 100).toFixed(2) + '%'
-              : '-';
-          item.budgetFormat =
-            item.budget || item.budget === 0
-              ? Number(item.budget).toFixed(2)
-              : '-';
-          item.dateFormat = item.date
-            ? item.date.$format('YYYY-MM-DD HH:mm:ss')
-            : '-';
-          item.moneyFormat =
-            item.money || item.money === 0
-              ? Number(item.money).toFixed(2)
-              : '-';
-          item.money = item?.money ?? 0;
-          item.vouchers = item?.vouchers ?? [];
-          item.uuid = `${tree.uuid}-${index + 1}`;
-          item.hasChildren =
-            item.code !== tree.code &&
-            (
-              await this.$api.SystemArea.areaBudgetList(
-                item.code,
-                this.params.year
-              )
-            ).length > 0;
-          return item;
-        })
+            item.moneyFormat =
+              item.money || item.money === 0
+                ? Number(item.money).toFixed(2)
+                : '-';
+            item.money = item?.money ?? 0;
+            item.vouchers = item?.vouchers ?? [];
+            item.uuid = `${tree.uuid}-${index + 1}`;
+            item.hasChildren =
+              item.code !== tree.code &&
+              (
+                await this.$api.SystemArea.areaBudgetList(
+                  item.code,
+                  this.params.year
+                )
+              ).length > 0;
+            return item;
+          })
       );
       resolve(result);
     }
