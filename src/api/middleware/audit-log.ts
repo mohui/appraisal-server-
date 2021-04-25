@@ -12,7 +12,8 @@ const auditLogSymbol = Symbol('audit-log');
 type AuditLogModel = {
   module?: string; // 操作模块
   method?: string; // 操作方法
-  extra?: JSON; // 操作具体属性
+  //TODO: 这是可被json化的对象
+  extra?: any; // 操作具体属性
   user_id?: string; // 操作人id
   user_name?: string; // 操作人名称
 };
