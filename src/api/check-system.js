@@ -229,14 +229,39 @@ export default class CheckSystem {
         .description('评分标准')
     })
   )
-  @AuditLog({
-    module: '绩效考核配置管理(CheckSystem)',
-    method: '添加考核细则(addRule)'
+  @AuditLog(async () => {
+    const params = Context.current.parameters?.params;
+    const checkSystem = await appDB.execute(
+      `
+        select
+          check_id,
+          check_name,
+          check_year
+        from check_system
+        where check_id = ?
+      `,
+      params?.checkId
+    );
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    Context.current.auditLog.ip = Context.current.req.ip;
+    Context.current.auditLog.checkId = checkSystem[0]?.check_id;
+    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
+    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
+    return {
+      extra: Context.current.auditLog
+    };
   })
   async addRule(params) {
-    return appDB.transaction(async () => {
+    const result = await appDB.transaction(async () => {
       return CheckRuleModel.create(params);
     });
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.ruleId = result?.ruleId;
+    Context.current.auditLog.ruleName = result?.ruleName;
+    return result;
   }
 
   //添加规则组
@@ -257,9 +282,26 @@ export default class CheckSystem {
         .description('工分项')
     })
   )
-  @AuditLog({
-    module: '绩效考核配置管理(CheckSystem)',
-    method: '添加考核项(addRuleGroup)'
+  @AuditLog(async () => {
+    const checkSystem = await appDB.execute(
+      `
+        select
+          check_name,
+          check_year
+        from check_system
+        where check_id = ?
+      `,
+      Context.current.auditLog.checkId
+    );
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    Context.current.auditLog.ip = Context.current.req.ip;
+    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
+    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
+    return {
+      extra: Context.current.auditLog
+    };
   })
   async addRuleGroup(params) {
     const {projects} = params;
@@ -273,6 +315,11 @@ export default class CheckSystem {
         }))
       );
     }
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = rule?.checkId;
+    Context.current.auditLog.parentRuleId = rule?.ruleId;
+    Context.current.auditLog.parentRuleName = rule?.ruleName;
     return rule;
   }
 
