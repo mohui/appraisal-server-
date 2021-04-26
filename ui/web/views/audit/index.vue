@@ -171,7 +171,7 @@ export default {
           extraModule: it.extra?.module ?? '',
           checkName: it.extra?.checkName ?? '',
           checkYear: it.extra?.checkYear ?? '',
-          operation: it.extra?.operation ? `${curdName}${systemType}` : '',
+          operation: it.extra?.curd ? `${curdName}${systemType}` : '',
           extra: it.extra ? JSON.stringify(it.extra) : ''
         };
       });
