@@ -82,9 +82,10 @@ export default class CheckAreaEdit {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  @AuditLog({
-    module: '考核体系编辑模块(CheckAreaEdit)',
-    method: '考核机构绑定(editArea)'
+  @AuditLog(async () => {
+    return {
+      extra: Context.current?.auditLog
+    };
   })
   async editArea(checkId, areas) {
     // 查询考核体系
@@ -289,9 +290,26 @@ export default class CheckAreaEdit {
       .required()
       .description('规则id')
   )
-  @AuditLog({
-    module: '考核体系编辑模块(CheckAreaEdit)',
-    method: '删除考核规则(deleteRule)'
+  @AuditLog(async () => {
+    const checkSystem = await appDB.execute(
+      `
+        select
+          check_name,
+          check_year
+        from check_system
+        where check_id = ?
+      `,
+      Context.current?.auditLog?.checkId
+    );
+
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
+    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
+    Context.current.auditLog.operation = `delete`;
+    Context.current.auditLog.ip = Context.current.req.ip;
+    return {
+      extra: Context.current.auditLog
+    };
   })
   async deleteRule(ruleId) {
     //查询并锁定
@@ -352,6 +370,12 @@ export default class CheckAreaEdit {
           }
         }
       });
+      // 写入日志
+      Context.current.auditLog = {};
+      Context.current.auditLog.checkId = rule.checkId;
+      Context.current.auditLog.ruleId = ruleId;
+      Context.current.auditLog.ruleName = rule.ruleName;
+      Context.current.auditLog.parentRuleId = rule.parentRuleId;
     });
   }
 
