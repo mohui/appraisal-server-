@@ -107,12 +107,6 @@
           prop="operation"
           label="操作"
         ></el-table-column>
-
-        <el-table-column
-          align="center"
-          prop="extra"
-          label="操作附加属性"
-        ></el-table-column>
       </el-table>
       <!--分页-->
       <el-pagination
@@ -158,10 +152,18 @@ export default {
     auditLogData() {
       const listModels = this.auditLogService;
       return listModels.data.map(it => {
-        let operationName = '';
-        if (it.extra?.operation === 'delete') operationName = '删除';
-        else if (it.extra?.operation === 'insert') operationName = '新建';
-        else if (it.extra?.operation === 'update') operationName = '修改';
+        // 判断操作类型
+        let curdName = '';
+        if (it.extra?.curd === 'delete') curdName = '删除';
+        else if (it.extra?.curd === 'insert') curdName = '新建';
+        else if (it.extra?.curd === 'update') curdName = '修改';
+        // 考核细则优先级最高,其次是考核项,最后是考核名称
+        let systemType = it.extra?.ruleName
+          ? `考核细则${it.extra.ruleName}`
+          : it.extra?.parentRuleName
+          ? `考核项${it.extra?.parentRuleName ?? ''}`
+          : `考核名称${it.extra?.checkName ?? ''}`;
+
         return {
           time: it.time.$format('YYYY-MM-DD HH:mm:ss'),
           userName: it.user_name,
@@ -169,10 +171,8 @@ export default {
           extraModule: it.extra?.module ?? '',
           checkName: it.extra?.checkName ?? '',
           checkYear: it.extra?.checkYear ?? '',
-          operation: it.extra?.operation
-            ? operationName + it.extra?.ruleName
-            : '',
-          extra: it.extra?.toString() ?? ''
+          operation: it.extra?.operation ? `${curdName}${systemType}` : '',
+          extra: it.extra ? JSON.stringify(it.extra) : ''
         };
       });
     },
