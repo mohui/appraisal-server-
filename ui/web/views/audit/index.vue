@@ -74,20 +74,38 @@
 
         <el-table-column
           align="center"
+          prop="ip"
+          label="终端ip地址"
+        ></el-table-column>
+
+        <el-table-column
+          align="center"
           prop="userName"
-          label="操作人名称"
+          label="登录名"
         ></el-table-column>
 
         <el-table-column
           align="center"
-          prop="module"
-          label="操作模块"
+          prop="extraModule"
+          label="模块"
         ></el-table-column>
 
         <el-table-column
           align="center"
-          prop="method"
-          label="操作功能"
+          prop="checkName"
+          label="考核名称"
+        ></el-table-column>
+
+        <el-table-column
+          align="center"
+          prop="checkYear"
+          label="考核年度"
+        ></el-table-column>
+
+        <el-table-column
+          align="center"
+          prop="operation"
+          label="操作"
         ></el-table-column>
 
         <el-table-column
@@ -140,12 +158,21 @@ export default {
     auditLogData() {
       const listModels = this.auditLogService;
       return listModels.data.map(it => {
+        let operationName = '';
+        if (it.extra?.operation === 'delete') operationName = '删除';
+        else if (it.extra?.operation === 'insert') operationName = '新建';
+        else if (it.extra?.operation === 'update') operationName = '修改';
         return {
           time: it.time.$format('YYYY-MM-DD HH:mm:ss'),
           userName: it.user_name,
-          module: it.module,
-          method: it.method,
-          extra: it.extra ? JSON.stringify(it.extra) : ''
+          ip: it.extra?.ip ?? '',
+          extraModule: it.extra?.module ?? '',
+          checkName: it.extra?.checkName ?? '',
+          checkYear: it.extra?.checkYear ?? '',
+          operation: it.extra?.operation
+            ? operationName + it.extra?.ruleName
+            : '',
+          extra: it.extra?.toString() ?? ''
         };
       });
     },
