@@ -20,7 +20,7 @@ export class Context extends KatoContext {
     parentRuleId?: any;
     parentRuleName?: any;
     curd?: any;
-    type?: any;
+    type?: any; // check
     ip?: any;
   };
 
