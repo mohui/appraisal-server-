@@ -445,13 +445,25 @@ export default class CheckAreaEdit {
       .required()
       .description('考核年份')
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = `copy`;
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async copySystem(checkId, checkName, status, checkYear) {
     /**
      * 1, 先把要复制的考核体系查询出来
      * 2, 查询考核细则
      * 3, 添加考核体系, 考核细则
      */
-
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = checkId;
+    Context.current.auditLog.checkName = checkName;
+    Context.current.auditLog.checkYear = checkYear;
     // 事务执行添加语句
     return appDB.transaction(async () => {
       // 取出当前考核下的所有地区
