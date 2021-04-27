@@ -2,10 +2,10 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  RuleAreaBudgetModel,
-  ReportAreaModel,
   ReportAreaHistoryModel,
+  ReportAreaModel,
   RuleAreaAttachModel,
+  RuleAreaBudgetModel,
   RuleAreaScoreModel,
   RuleProjectModel,
   RuleTagModel
@@ -82,11 +82,6 @@ export default class CheckAreaEdit {
    * @param checkId 考核体系 为空时默认查找主考核体系
    * @return { id: id, name: '名称', score: '考核得分', rate: '质量系数'}
    */
-  @AuditLog(async () => {
-    return {
-      extra: Context.current?.auditLog
-    };
-  })
   async editArea(checkId, areas) {
     // 查询考核体系
     const checkSystem = await CheckSystemModel.findOne({where: {checkId}});
@@ -150,10 +145,8 @@ export default class CheckAreaEdit {
       it => !checkSystemArea.find(item => it === item.areaCode)
     );
 
-    //return insertAreas;
-
     // 找到了所有的待删除的和待添加的,放到事务中先删除再添加
-    const ret = await appDB.transaction(async () => {
+    return appDB.transaction(async () => {
       // 批量删除
       if (deleteAreas.length > 0) {
         // 删除解绑的地区
@@ -215,7 +208,6 @@ export default class CheckAreaEdit {
         }))
       );
     });
-    return ret;
   }
 
   /**
@@ -291,22 +283,9 @@ export default class CheckAreaEdit {
       .description('规则id')
   )
   @AuditLog(async () => {
-    const checkSystem = await appDB.execute(
-      `
-        select
-          check_name,
-          check_year
-        from check_system
-        where check_id = ?
-      `,
-      Context.current?.auditLog?.checkId
-    );
-
     Context.current.auditLog.module = '配置管理';
-    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
-    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
-    Context.current.auditLog.operation = `delete`;
-    Context.current.auditLog.ip = Context.current.req.ip;
+    Context.current.auditLog.curd = `delete`;
+    Context.current.auditLog.type = 'check';
     return {
       extra: Context.current.auditLog
     };
@@ -375,7 +354,6 @@ export default class CheckAreaEdit {
       Context.current.auditLog.checkId = rule.checkId;
       Context.current.auditLog.ruleId = ruleId;
       Context.current.auditLog.ruleName = rule.ruleName;
-      Context.current.auditLog.parentRuleId = rule.parentRuleId;
     });
   }
 
