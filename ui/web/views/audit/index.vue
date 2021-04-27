@@ -29,7 +29,7 @@
           >
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="操作人名称">
+        <el-form-item label="登陆名">
           <el-input
             v-model="searchForm.account"
             placeholder="登陆名"
