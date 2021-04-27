@@ -461,7 +461,6 @@ export default class CheckAreaEdit {
      */
     // 写入日志
     Context.current.auditLog = {};
-    Context.current.auditLog.checkId = checkId;
     Context.current.auditLog.checkName = checkName;
     Context.current.auditLog.checkYear = checkYear;
     // 事务执行添加语句
@@ -567,6 +566,7 @@ export default class CheckAreaEdit {
       );
       if (!checkSystemModelAdd) throw new KatoCommonError('添加失败');
 
+      Context.current.auditLog.checkId = systemId;
       // 添加考核内容表 先添加考核小项,再添加考核细则
       for (const rule of parentRule) {
         // 考核小项id,添加细则和添加考核小项和公分项对应需要用到
