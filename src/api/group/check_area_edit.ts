@@ -297,6 +297,10 @@ export default class CheckAreaEdit {
     });
     if (!rule) throw new KatoCommonError('该规则不存在');
 
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = rule.checkId;
+
     // 要删除的ruleId(包含小项和细则)
     let ruleIds = [];
     // 判断是否是考核小项,是需要删除其下的细则
@@ -305,6 +309,12 @@ export default class CheckAreaEdit {
         where: {parentRuleId: rule.ruleId}
       });
       ruleIds = childRules.map(it => it.ruleId);
+
+      Context.current.auditLog.parentRuleId = ruleId;
+      Context.current.auditLog.parentRuleName = rule.ruleName;
+    } else {
+      Context.current.auditLog.ruleId = ruleId;
+      Context.current.auditLog.ruleName = rule.ruleName;
     }
     ruleIds.push(ruleId);
 
@@ -349,11 +359,6 @@ export default class CheckAreaEdit {
           }
         }
       });
-      // 写入日志
-      Context.current.auditLog = {};
-      Context.current.auditLog.checkId = rule.checkId;
-      Context.current.auditLog.ruleId = ruleId;
-      Context.current.auditLog.ruleName = rule.ruleName;
     });
   }
 
