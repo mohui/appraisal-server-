@@ -157,6 +157,7 @@ export default {
         if (it.extra?.curd === 'delete') curdName = '删除';
         else if (it.extra?.curd === 'insert') curdName = '新建';
         else if (it.extra?.curd === 'update') curdName = '修改';
+        else if (it.extra?.curd === 'copy') curdName = '复制';
         // 考核细则优先级最高,其次是考核项,最后是考核名称
         let systemType = it.extra?.ruleName
           ? `考核细则${it.extra.ruleName}`
