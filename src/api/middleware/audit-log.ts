@@ -67,6 +67,25 @@ export async function AuditLogMiddleware(
       if (typeof auditLogObject === 'function') {
         auditLogModel = await auditLogObject();
       }
+      // 获取ip
+      auditLogModel.extra.ip = Context.current.req.ip;
+
+      if (!auditLogModel.extra?.checkName) {
+        const checkSystem = await appDB.execute(
+          `
+            select
+              check_name "name",
+              check_year "year"
+            from check_system
+            where check_id = ?
+          `,
+          auditLogModel.extra?.checkId
+        );
+        auditLogModel.extra.checkName =
+          checkSystem[0]?.name ?? '未找到考核名称';
+        auditLogModel.extra.checkYear =
+          checkSystem[0]?.year ?? '未找到考核年份';
+      }
       // 对象参数, 直接赋值
       if (typeof auditLogObject === 'object') {
         auditLogModel = auditLogObject;
