@@ -162,7 +162,7 @@ export default {
           ? `考核细则${it.extra.ruleName}`
           : it.extra?.parentRuleName
           ? `考核项${it.extra?.parentRuleName ?? ''}`
-          : `考核名称${it.extra?.checkName ?? ''}`;
+          : `考核规则${it.extra?.checkName ?? ''}`;
 
         return {
           time: it.time.$format('YYYY-MM-DD HH:mm:ss'),
