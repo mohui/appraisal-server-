@@ -307,6 +307,14 @@ export default class CheckSystem {
         .description('工分项')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async updateRuleGroup(params) {
     const {ruleId, projects} = params;
     const group = await CheckRuleModel.findOne({
@@ -336,6 +344,11 @@ export default class CheckSystem {
         }))
       );
     }
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = group?.checkId;
+    Context.current.auditLog.parentRuleId = ruleId;
+    Context.current.auditLog.parentRuleName = params?.ruleName;
     //修改规则组
     return CheckRuleModel.update(options, {
       where: {ruleId: params.ruleId}
@@ -423,17 +436,32 @@ export default class CheckSystem {
         .description('评分标准')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async updateRule(params) {
     const {
       ruleId,
       ruleName,
       parentRuleId = '',
+      checkId,
       evaluateStandard = '',
       ruleScore = '',
       checkStandard = '',
       checkMethod = '',
       status
     } = params;
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = checkId;
+    Context.current.auditLog.ruleId = ruleId;
+    Context.current.auditLog.ruleName = ruleName;
+
     return appDB.transaction(async () => {
       //查询规则,并锁定
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
