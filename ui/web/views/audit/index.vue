@@ -48,6 +48,21 @@
             placeholder="操作功能"
           ></el-input>
         </el-form-item>
+        <el-form-item label="考核名称选择">
+          <el-select v-model="searchForm.checkId" placeholder="考核名称选择">
+            <el-option
+              v-for="item in selectSystemService"
+              :key="item.checkId"
+              :label="item.checkName"
+              :value="item.checkId"
+            >
+              <span style="float: left">{{ item.checkName }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{
+                item.checkYear
+              }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
 
         <el-form-item>
           <el-button
@@ -140,6 +155,7 @@ export default {
     return {
       searchForm: {
         date: '',
+        checkId: '',
         name: '',
         module: '',
         method: '',
@@ -187,7 +203,15 @@ export default {
   asyncComputed: {
     auditLogService: {
       async get() {
-        const {date, name, module, method, pageSize, pageNo} = this.searchForm;
+        const {
+          date,
+          checkId,
+          name,
+          module,
+          method,
+          pageSize,
+          pageNo
+        } = this.searchForm;
 
         let startDate = null;
         let endDate = null;
@@ -200,6 +224,7 @@ export default {
         return this.$api.AuditLog.list(
           startDate,
           endDate,
+          checkId,
           name,
           module,
           method,
@@ -213,6 +238,14 @@ export default {
           rows: 0,
           pages: 0
         };
+      }
+    },
+    selectSystemService: {
+      async get() {
+        return this.$api.AuditLog.checkSystems();
+      },
+      default() {
+        return [];
       }
     }
   }
