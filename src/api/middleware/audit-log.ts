@@ -69,6 +69,7 @@ export async function AuditLogMiddleware(
       }
       // 获取ip
       auditLogModel.extra.ip = Context.current.req.ip;
+      auditLogModel.extra.account = ctx.user.account;
 
       if (!auditLogModel.extra?.checkName) {
         const checkSystem = await appDB.execute(

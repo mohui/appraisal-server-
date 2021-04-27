@@ -86,7 +86,7 @@
 
         <el-table-column
           align="center"
-          prop="userName"
+          prop="account"
           label="登录名"
         ></el-table-column>
 
@@ -177,6 +177,7 @@ export default {
           extraModule: it.extra?.module ?? '',
           checkName: it.extra?.checkName ?? '',
           checkYear: it.extra?.checkYear ?? '',
+          account: it.extra?.account ?? '',
           operation: it.extra?.curd ? `${curdName}${systemType}` : '',
           extra: it.extra ? JSON.stringify(it.extra) : ''
         };

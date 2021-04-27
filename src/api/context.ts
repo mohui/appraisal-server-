@@ -11,6 +11,7 @@ export class Context extends KatoContext {
   user: any;
   // audit_log表extra字段的json格式
   auditLog: {
+    account?: any;
     module?: any;
     checkId?: any;
     checkName?: any;
