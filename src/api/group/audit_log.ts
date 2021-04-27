@@ -19,7 +19,7 @@ export default class AuditLog {
             AND "user_name" like {{? name}}
         {{/if}}
         {{#if checkId}}
-            AND "extra ->> 'checkId'" = {{? checkId}}
+            AND extra ->> 'checkId' = {{? checkId}}
         {{/if}}
         {{#if module}}
             AND "module" like {{? module}}
@@ -33,6 +33,7 @@ export default class AuditLog {
         name,
         module,
         method,
+        checkId,
         start: start,
         end: end
       }
