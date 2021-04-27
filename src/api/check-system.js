@@ -230,25 +230,9 @@ export default class CheckSystem {
     })
   )
   @AuditLog(async () => {
-    const params = Context.current.parameters?.params;
-    const checkSystem = await appDB.execute(
-      `
-        select
-          check_id,
-          check_name,
-          check_year
-        from check_system
-        where check_id = ?
-      `,
-      params?.checkId
-    );
     Context.current.auditLog.module = '配置管理';
     Context.current.auditLog.curd = 'insert';
     Context.current.auditLog.type = 'check';
-    Context.current.auditLog.ip = Context.current.req.ip;
-    Context.current.auditLog.checkId = checkSystem[0]?.check_id;
-    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
-    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
     return {
       extra: Context.current.auditLog
     };
@@ -259,6 +243,7 @@ export default class CheckSystem {
     });
     // 写入日志
     Context.current.auditLog = {};
+    Context.current.auditLog.checkId = params?.checkId;
     Context.current.auditLog.ruleId = result?.ruleId;
     Context.current.auditLog.ruleName = result?.ruleName;
     return result;
@@ -283,22 +268,9 @@ export default class CheckSystem {
     })
   )
   @AuditLog(async () => {
-    const checkSystem = await appDB.execute(
-      `
-        select
-          check_name,
-          check_year
-        from check_system
-        where check_id = ?
-      `,
-      Context.current.auditLog.checkId
-    );
     Context.current.auditLog.module = '配置管理';
     Context.current.auditLog.curd = 'insert';
     Context.current.auditLog.type = 'check';
-    Context.current.auditLog.ip = Context.current.req.ip;
-    Context.current.auditLog.checkName = checkSystem[0]?.check_name;
-    Context.current.auditLog.checkYear = checkSystem[0]?.check_year;
     return {
       extra: Context.current.auditLog
     };
