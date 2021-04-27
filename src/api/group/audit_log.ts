@@ -24,6 +24,7 @@ export default class AuditLog {
         {{#if method}}
             AND "method" like {{? method}}
         {{/if}}
+        order by created_at desc
       `,
       {
         name,
