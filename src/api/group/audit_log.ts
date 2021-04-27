@@ -3,8 +3,8 @@ import {sql as sqlRender} from '../../database/template';
 import {Context} from '../context';
 
 export default class AuditLog {
-  async list(start, end, checkId, name, pageNo, pageSize) {
-    if (name) name = `%${name}%`;
+  async list(start, end, checkId, account, pageNo, pageSize) {
+    if (account) account = `%${account}%`;
     const [sql, params] = sqlRender(
       `
         select *
@@ -13,8 +13,8 @@ export default class AuditLog {
         {{#if start}}
           and time >= {{? start}} and time < {{? end}}
         {{/if}}
-        {{#if name}}
-            AND "user_name" like {{? name}}
+        {{#if account}}
+            AND extra ->> 'account' like {{? account}}
         {{/if}}
         {{#if checkId}}
             AND extra ->> 'checkId' = {{? checkId}}
@@ -22,7 +22,7 @@ export default class AuditLog {
         order by created_at desc
       `,
       {
-        name,
+        account,
         checkId,
         start: start,
         end: end

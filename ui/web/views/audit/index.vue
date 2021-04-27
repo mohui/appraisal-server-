@@ -31,8 +31,8 @@
         </el-form-item>
         <el-form-item label="操作人名称">
           <el-input
-            v-model="searchForm.name"
-            placeholder="操作人名称"
+            v-model="searchForm.account"
+            placeholder="登陆名"
           ></el-input>
         </el-form-item>
         <el-form-item label="考核名称选择">
@@ -147,7 +147,7 @@ export default {
       searchForm: {
         date: '',
         checkId: '',
-        name: '',
+        account: '',
         pageSize: 10,
         pageNo: 1
       }
@@ -193,7 +193,7 @@ export default {
   asyncComputed: {
     auditLogService: {
       async get() {
-        const {date, checkId, name, pageSize, pageNo} = this.searchForm;
+        const {date, checkId, account, pageSize, pageNo} = this.searchForm;
 
         let startDate = null;
         let endDate = null;
@@ -207,7 +207,7 @@ export default {
           startDate,
           endDate,
           checkId,
-          name,
+          account,
           pageNo,
           pageSize
         );
