@@ -124,13 +124,29 @@ export default class CheckSystem {
       checkYear: should.number().required()
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async add(params) {
-    return CheckSystemModel.create({
+    const addCheck = await CheckSystemModel.create({
       ...params,
       checkType: 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id
     });
+
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = addCheck?.checkId;
+    Context.current.auditLog.checkName = addCheck?.checkName;
+    Context.current.auditLog.checkYear = addCheck?.checkYear;
+
+    return addCheck;
   }
 
   //更新考核系统名称
@@ -151,13 +167,26 @@ export default class CheckSystem {
       checkYear: should.number().required()
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   updateName(params) {
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = params?.checkId;
+    Context.current.auditLog.checkName = params?.checkName;
     return appDB.transaction(async () => {
       const sys = await CheckSystemModel.findOne({
         where: {checkId: params.checkId},
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
+
+      Context.current.auditLog.checkYear = params?.checkYear;
       // 现有考核体系
       // language=PostgreSQL
       const checkAreaModels = await appDB.execute(
@@ -362,6 +391,14 @@ export default class CheckSystem {
       .required()
       .description('考核体系id')
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'delete';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   remove(id) {
     return appDB.transaction(async () => {
       //查询考核系统,并锁定
@@ -372,6 +409,12 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
+
+      // 写入日志
+      Context.current.auditLog = {};
+      Context.current.auditLog.checkId = sys?.checkId;
+      Context.current.auditLog.checkName = sys?.checkName;
+      Context.current.auditLog.checkYear = sys?.checkYear;
 
       if (await CheckAreaModel.findOne({where: {checkId: id}}))
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
