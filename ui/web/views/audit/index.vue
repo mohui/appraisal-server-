@@ -26,6 +26,7 @@
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            :picker-options="disabledDate"
           >
           </el-date-picker>
         </el-form-item>
@@ -151,6 +152,11 @@ export default {
         account: '',
         pageSize: 10,
         pageNo: 1
+      },
+      disabledDate: {
+        disabledDate(time) {
+          return time.getTime() > dayjs().toDate();
+        }
       }
     };
   },
