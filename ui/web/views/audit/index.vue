@@ -39,6 +39,7 @@
           <el-select
             v-model="searchForm.checkId"
             clearable
+            filterable
             placeholder="考核名称选择"
           >
             <el-option
