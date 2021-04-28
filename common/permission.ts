@@ -112,7 +112,7 @@ export const PermissionDetail = [
     name: '档案详情导出'
   },
   {
-    key: 'audit_log',
+    key: 'audit-log',
     name: '审计日志'
   }
 ];

@@ -79,7 +79,7 @@ module.exports = [
   },
   {
     index: 'audit-log',
-    permission: [Permission.ETL_HOSPITAL],
+    permission: [Permission.AUDIT_LOG],
     label: '审计日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
