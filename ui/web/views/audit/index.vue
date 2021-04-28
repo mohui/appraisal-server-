@@ -5,7 +5,7 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 60px)',
         display: 'flex',
         'flex-direction': 'column',
         padding: $settings.isMobile ? '10px 0' : '20px'
