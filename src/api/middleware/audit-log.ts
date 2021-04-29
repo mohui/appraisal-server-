@@ -68,7 +68,9 @@ export async function AuditLogMiddleware(
         auditLogModel = await auditLogObject();
       }
       // 获取ip
-      auditLogModel.extra.ip = Context.current.req.ip;
+      auditLogModel.extra.ip = ctx.req.headers['x-forwarded-for']?.split(
+        ','
+      )[0];
       auditLogModel.extra.account = ctx.user.account;
 
       if (!auditLogModel.extra?.checkName) {
