@@ -82,7 +82,7 @@
 
         <el-table-column
           align="center"
-          prop="ip"
+          prop="region"
           label="终端ip地址"
         ></el-table-column>
 
@@ -181,6 +181,7 @@ export default {
           time: it.time.$format('YYYY-MM-DD HH:mm:ss'),
           userName: it.user_name,
           ip: it.extra?.ip ?? '',
+          region: it.extra?.region ?? '未知',
           extraModule: it.extra?.module ?? '',
           checkName: it.extra?.checkName ?? '',
           checkYear: it.extra?.checkYear ?? '',
