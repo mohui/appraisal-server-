@@ -2,7 +2,7 @@ import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
 
 export class AuditMigration implements IMigration {
-  name = '审计日志功能';
+  name = '操作日志功能';
   version = 38;
 
   async up(client: ExtendedSequelize): Promise<void> {

@@ -80,7 +80,7 @@ module.exports = [
   {
     index: 'audit-log',
     permission: [Permission.AUDIT_LOG],
-    label: '审计日志',
+    label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
   }

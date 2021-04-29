@@ -7,7 +7,7 @@ import {appDB} from '../../app';
 const auditLogSymbol = Symbol('audit-log');
 
 /**
- * 审计日志注解的对象参数
+ * 操作日志注解的对象参数
  */
 type AuditLogModel = {
   module?: string; // 操作模块
@@ -19,12 +19,12 @@ type AuditLogModel = {
 };
 
 /**
- * 审计日志注解的函数参数
+ * 操作日志注解的函数参数
  */
 type AuditLogFunction = () => Promise<AuditLogModel>;
 
 /**
- * 审计日志注解
+ * 操作日志注解
  *
  * @param params 注解参数
  */
@@ -39,7 +39,7 @@ export function AuditLog(params: AuditLogFunction | AuditLogModel) {
 }
 
 /**
- * 审计日志中间件
+ * 操作日志中间件
  */
 export async function AuditLogMiddleware(
   ctx: Context,
@@ -61,7 +61,7 @@ export async function AuditLogMiddleware(
       throw new Error('AuditLog 参数错误');
     }
     try {
-      // 审计日志对象
+      // 操作日志对象
       let auditLogModel: AuditLogModel;
       // 函数参数, 则执行
       if (typeof auditLogObject === 'function') {
@@ -91,7 +91,7 @@ export async function AuditLogMiddleware(
       if (typeof auditLogObject === 'object') {
         auditLogModel = auditLogObject;
       }
-      // 插入审计日志
+      // 插入操作日志
       await appDB.execute(
         `insert into audit_log(time, user_id, user_name, module, method, extra) values (?, ?, ?, ?, ?, ?)`,
         now,

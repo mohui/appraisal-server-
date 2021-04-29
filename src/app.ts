@@ -142,7 +142,7 @@ export class Application {
     }
     //添加用户中间件,在验证中间件之前
     kato.use(UserMiddleware, AuthenticateMiddleware);
-    //添加审计日志中间件, 在Respond中间件之后
+    //添加操作日志中间件, 在Respond中间件之后
     kato.useAfter(AuditLogMiddleware, RespondMiddleware);
     //挂载kato处理中间件
     this.express.use('/api', ExpressAdapter(kato));
