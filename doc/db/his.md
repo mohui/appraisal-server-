@@ -1,10 +1,13 @@
 # 医疗数据对接文档
 
-#### 编码字典表
+#### 编码字典表 V_KN_Dic
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
-||||
+|CategoryCode|varchar|分类代码|
+|CategoryName|varchar|分类名称|
+|Code|varchar|字典编码|
+|CodeName|varchar|字典名称|
 
 #### 医院表
 
