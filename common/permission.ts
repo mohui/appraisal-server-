@@ -113,7 +113,7 @@ export const PermissionDetail = [
   },
   {
     key: 'audit-log',
-    name: '审计日志'
+    name: '操作日志'
   }
 ];
 
@@ -299,7 +299,7 @@ export const PermissionTree = [
   },
   {
     key: Permission.AUDIT_LOG,
-    label: '审计日志'
+    label: '操作日志'
   }
 ];
 export function getPermission(key) {
