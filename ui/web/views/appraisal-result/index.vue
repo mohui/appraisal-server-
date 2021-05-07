@@ -900,7 +900,7 @@
               icon="el-icon-delete"
               circle
               size="mini"
-              @click="delRuleAreaAttach(item.id, index)"
+              @click="delRuleAreaAttach(item.rule, item.id, index)"
             >
             </el-button>
           </div>
@@ -1515,9 +1515,9 @@ export default {
       }
     },
     // 删除图片
-    async delRuleAreaAttach(id, index) {
+    async delRuleAreaAttach(rule, id, index) {
       try {
-        await this.$api.Score.delAttachment(id);
+        await this.$api.Score.delAttachment(rule, id);
         this.appraisalFileListData.splice(index, 1);
         this.$message({
           type: 'success',
@@ -1525,7 +1525,7 @@ export default {
         });
       } catch (e) {
         this.$message({
-          type: 'danger',
+          type: 'error',
           message: e.message
         });
       }
