@@ -350,7 +350,7 @@
               <span slot="label">
                 <i
                   :class="
-                    $asyncComputed.hypertension.updating
+                    $asyncComputed.healthy.updating
                       ? 'el-icon-loading'
                       : 'el-icon-s-order'
                   "
@@ -426,7 +426,7 @@
               <span slot="label">
                 <i
                   :class="
-                    $asyncComputed.hypertension.updating
+                    $asyncComputed.diabetes.updating
                       ? 'el-icon-loading'
                       : 'el-icon-s-order'
                   "
@@ -470,7 +470,7 @@
               <span slot="label">
                 <i
                   :class="
-                    $asyncComputed.hypertension.updating
+                    $asyncComputed.oldManSelfCare.updating
                       ? 'el-icon-loading'
                       : 'el-icon-s-order'
                   "
