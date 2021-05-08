@@ -346,6 +346,20 @@
                 </table>
               </div>
             </el-tab-pane>
+            <el-tab-pane
+              v-for="(item, index) in titleList"
+              :key="index"
+              :name="item.code"
+              :disabled="!item.disabled"
+            >
+              <span slot="label">
+                <i
+                  :class="item.class ? 'el-icon-loading' : 'el-icon-s-order'"
+                />
+                {{ item.label }}
+              </span>
+            </el-tab-pane>
+
             <el-tab-pane name="physical" :disabled="!healthyList.length">
               <span slot="label">
                 <i
@@ -776,6 +790,51 @@ export default {
     // 儿童健康管理记录数据
     childrenHealthCheckData() {
       return this.childrenHealthCheckServerDate;
+    },
+    // 添加默认排序
+    titleList() {
+      return [
+        {
+          code: 'physical',
+          label: '体检记录',
+          disabled: this.healthyList.length > 0 ? 6 : 0,
+          class: this.$asyncComputed.healthy.updating
+        },
+        {
+          code: 'hypertension',
+          label: '高血压随访记录',
+          disabled: this.hypertensions.length > 0 ? 5 : 0,
+          class: this.$asyncComputed.hypertension.updating
+        },
+        {
+          code: 'diabetes',
+          label: '糖尿病随访记录',
+          disabled: this.diabetesList.length > 0 ? 4 : 0,
+          class: this.$asyncComputed.diabetes.updating
+        },
+        {
+          code: 'oldManSelfCare',
+          label: '老年人特殊健康管理服务记录',
+          disabled:
+            this.oldManSelfCareList.length > 0 &&
+            this.questionnaireList.length > 0
+              ? 3
+              : 0,
+          class: this.$asyncComputed.oldManSelfCare.updating
+        },
+        {
+          code: 'maternal',
+          label: '孕产妇健康管理记录',
+          disabled: this.maternalDate.length > 0 ? 2 : 0,
+          class: this.$asyncComputed.maternalServerDate.updating
+        },
+        {
+          code: 'children',
+          label: '儿童健康检查管理记录',
+          disabled: this.childrenHealthCheckData.length > 0 ? 1 : 0,
+          class: this.$asyncComputed.childrenHealthCheckServerDate.updating
+        }
+      ].sort((a, b) => b.disabled - a.disabled);
     }
   },
   asyncComputed: {
