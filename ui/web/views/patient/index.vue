@@ -358,20 +358,8 @@
                 />
                 {{ item.label }}
               </span>
-            </el-tab-pane>
 
-            <el-tab-pane name="physical" :disabled="!healthyList.length">
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.healthy.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                体检记录
-              </span>
-              <div>
+              <div v-show="item.code === 'physical'">
                 <div
                   class="notes"
                   v-for="(item, index) of healthyList"
@@ -396,19 +384,8 @@
                   </p>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane name="hypertension" :disabled="!hypertensions.length">
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.hypertension.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                高血压随访记录
-              </span>
-              <div>
+
+              <div v-show="item.code === 'hypertension'">
                 <div
                   class="notes"
                   v-for="(item, index) of hypertensions"
@@ -435,19 +412,8 @@
                   </p>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane name="diabetes" :disabled="!diabetesList.length">
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.diabetes.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                糖尿病随访记录
-              </span>
-              <div>
+
+              <div v-show="item.code === 'diabetes'">
                 <div
                   class="notes"
                   v-for="(item, index) of diabetesList"
@@ -474,24 +440,8 @@
                   </p>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane
-              name="oldManSelfCare"
-              :disabled="
-                !oldManSelfCareList.length && !questionnaireList.length
-              "
-            >
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.oldManSelfCare.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                老年人特殊健康管理服务记录
-              </span>
-              <div>
+
+              <div v-show="item.code === 'oldManSelfCare'">
                 <div
                   class="notes"
                   v-for="(item, index) of oldManSelfCareList"
@@ -548,19 +498,8 @@
                   </p>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane name="maternal" :disabled="!maternalDate.length">
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.maternalServerDate.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                孕产妇健康管理记录
-              </span>
-              <div>
+
+              <div v-show="item.code === 'maternal'">
                 <div v-for="(item, index) of maternalDate" :key="index">
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
@@ -622,22 +561,8 @@
                   </div>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane
-              name="children"
-              :disabled="!childrenHealthCheckData.length"
-            >
-              <span slot="label">
-                <i
-                  :class="
-                    $asyncComputed.childrenHealthCheckServerDate.updating
-                      ? 'el-icon-loading'
-                      : 'el-icon-s-order'
-                  "
-                ></i>
-                儿童健康检查管理记录
-              </span>
-              <div>
+
+              <div v-show="item.code === 'children'">
                 <div
                   v-for="(item, index) of childrenHealthCheckData"
                   :key="index"
