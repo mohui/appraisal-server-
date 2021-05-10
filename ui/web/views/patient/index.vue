@@ -354,7 +354,7 @@
             >
               <span slot="label">
                 <i
-                  :class="item.class ? 'el-icon-loading' : 'el-icon-s-order'"
+                  :class="item.updating ? 'el-icon-loading' : 'el-icon-s-order'"
                 />
                 {{ item.label }}
               </span>
@@ -723,19 +723,19 @@ export default {
           code: 'physical',
           label: '体检记录',
           disabled: this.healthyList.length > 0 ? 6 : 0,
-          class: this.$asyncComputed.healthy.updating
+          updating: this.$asyncComputed.healthy.updating
         },
         {
           code: 'hypertension',
           label: '高血压随访记录',
           disabled: this.hypertensions.length > 0 ? 5 : 0,
-          class: this.$asyncComputed.hypertension.updating
+          updating: this.$asyncComputed.hypertension.updating
         },
         {
           code: 'diabetes',
           label: '糖尿病随访记录',
           disabled: this.diabetesList.length > 0 ? 4 : 0,
-          class: this.$asyncComputed.diabetes.updating
+          updating: this.$asyncComputed.diabetes.updating
         },
         {
           code: 'oldManSelfCare',
@@ -745,19 +745,19 @@ export default {
             this.questionnaireList.length > 0
               ? 3
               : 0,
-          class: this.$asyncComputed.oldManSelfCare.updating
+          updating: this.$asyncComputed.oldManSelfCare.updating
         },
         {
           code: 'maternal',
           label: '孕产妇健康管理记录',
           disabled: this.maternalDate.length > 0 ? 2 : 0,
-          class: this.$asyncComputed.maternalServerDate.updating
+          updating: this.$asyncComputed.maternalServerDate.updating
         },
         {
           code: 'children',
           label: '儿童健康检查管理记录',
           disabled: this.childrenHealthCheckData.length > 0 ? 1 : 0,
-          class: this.$asyncComputed.childrenHealthCheckServerDate.updating
+          updating: this.$asyncComputed.childrenHealthCheckServerDate.updating
         }
       ].sort((a, b) => b.disabled - a.disabled);
     }
