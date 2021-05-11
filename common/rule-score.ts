@@ -221,7 +221,7 @@ export const BasicTags = [
   },
   {
     code: 'HealthEducation',
-    name: '健康教务管理服务',
+    name: '健康教育管理服务',
     children: [
       {
         code: 'HE07',
