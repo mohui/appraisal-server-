@@ -107,27 +107,6 @@
               v-loading="$asyncComputed.totalServerData.updating"
               shadow="hover"
             >
-              <div v-if="params.listFlag === 'score'" class="score-detail">
-                <div class="second-title" style="text-align:left">
-                  工分值
-                </div>
-                <p style="color: #6C7177; font-size:16px; margin:10px 0;">
-                  校正后
-                </p>
-                <h3 style="font-size: 30px; margin:0; display:inline-block">
-                  {{ totalData.correctWorkPoint | fixedDecimal }}
-                </h3>
-                <span>分</span>
-                <p style="font-size:13px;">{{ totalData.name }}</p>
-                <div style="padding-top: 40px">
-                  <div>
-                    <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
-                  </div>
-                  <div>
-                    <p>参与校正工分： {{ totalData.workPoint }}分</p>
-                  </div>
-                </div>
-              </div>
               <div v-if="params.listFlag === 'quality'" class=" score-detail">
                 <two-card-circle
                   :coefficient="totalData.fixedDecimalRate"
@@ -139,6 +118,34 @@
             </el-card>
           </el-col>
           <div v-if="params.listFlag === 'quality'">
+            <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+              <el-card
+                v-loading="$asyncComputed.totalServerData.updating"
+                shadow="hover"
+              >
+                <div class="score-detail">
+                  <div class="second-title" style="text-align:left">
+                    工分值
+                  </div>
+                  <p style="color: #6C7177; font-size:16px; margin:10px 0;">
+                    校正后
+                  </p>
+                  <h3 style="font-size: 30px; margin:0; display:inline-block">
+                    {{ totalData.correctWorkPoint | fixedDecimal }}
+                  </h3>
+                  <span>分</span>
+                  <p style="font-size:13px;">{{ totalData.name }}</p>
+                  <div style="padding-top: 40px">
+                    <div>
+                      <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
+                    </div>
+                    <div>
+                      <p>参与校正工分： {{ totalData.workPoint }}分</p>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
               <el-card
                 v-loading="$asyncComputed.faceCollectSeverData.updating"
@@ -154,8 +161,6 @@
                   ></twoCardPie>
                 </div>
               </el-card>
-            </el-col>
-            <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
             </el-col>
           </div>
           <div v-else>
