@@ -156,21 +156,6 @@
               </el-card>
             </el-col>
             <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
-              <el-card
-                v-loading="
-                  $asyncComputed.historicalTrendLineChartSeverData.updating
-                "
-                shadow="hover"
-              >
-                <div class="score-detail">
-                  <line-chart
-                    :x-axis-data="historicalTrendLineChartData.xAxisData"
-                    :y-axis-data="historicalTrendLineChartData.yAxisData"
-                    line-text="%"
-                    :list-flag="params.listFlag"
-                  ></line-chart>
-                </div>
-              </el-card>
             </el-col>
           </div>
           <div v-else>
@@ -921,7 +906,6 @@ import twoCardPie from './components/twocardPie';
 import doctorBar from './components/doctorBar';
 import twoCardTreeMap from './components/twocardTreemap';
 import twoCardCircle from './components/twocardCircle';
-import lineChart from './components/twocardLine';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
@@ -932,8 +916,7 @@ export default {
     twoCardPie,
     doctorBar,
     twoCardTreeMap,
-    twoCardCircle,
-    lineChart
+    twoCardCircle
   },
   beforeRouteUpdate(to, from, next) {
     this.initParams(to);
@@ -1088,18 +1071,6 @@ export default {
         }
       ];
       return arr;
-    },
-    //历史趋势数据，折线图展示
-    historicalTrendLineChartData() {
-      const data = this.historicalTrendLineChartSeverData;
-      let result = {};
-      result.xAxisData = data.map(it => {
-        return it.date;
-      });
-      result.yAxisData = data.map(it => {
-        return Number((it.rate * 100).toFixed(2));
-      });
-      return result;
     },
     //工分值校正明细
     projectDetailData() {
@@ -1575,18 +1546,6 @@ export default {
       },
       shouldUpdate() {
         return this.params.listFlag === 'quality';
-      }
-    },
-    //历史趋势数据
-    historicalTrendLineChartSeverData: {
-      async get() {
-        return await this.$api.SystemArea.history(
-          this.params.id,
-          this.params.year
-        );
-      },
-      default() {
-        return [];
       }
     },
     //获取服务器上该地区/机构的总计工分和质量系数
