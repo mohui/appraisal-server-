@@ -102,22 +102,22 @@
       <!--自身考核结果-->
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-card
-              v-loading="$asyncComputed.totalServerData.updating"
-              shadow="hover"
-            >
-              <div v-if="params.listFlag === 'quality'" class=" score-detail">
-                <two-card-circle
-                  :coefficient="totalData.fixedDecimalRate"
-                ></two-card-circle>
-                <span style="position: absolute; bottom: 20px; left: 31%;">
-                  (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
-                </span>
-              </div>
-            </el-card>
-          </el-col>
           <div v-if="params.listFlag === 'quality'">
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <el-card
+                v-loading="$asyncComputed.totalServerData.updating"
+                shadow="hover"
+              >
+                <div class=" score-detail">
+                  <two-card-circle
+                    :coefficient="totalData.fixedDecimalRate"
+                  ></two-card-circle>
+                  <span style="position: absolute; bottom: 20px; left: 31%;">
+                    (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
+                  </span>
+                </div>
+              </el-card>
+            </el-col>
             <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
@@ -164,38 +164,11 @@
             </el-col>
           </div>
           <div v-else>
-            <!--下级金额分配-->
-            <el-col :span="10" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-              <el-card
-                v-loading="$asyncComputed.rankServerData.updating"
-                shadow="hover"
-              >
-                <div class="score-detail">
-                  <two-card-tree-map
-                    :map-data="budgetData"
-                    :color="color"
-                    empty-text="尚未配置金额"
-                  ></two-card-tree-map>
-                </div>
-              </el-card>
-            </el-col>
-            <!--下级工分值图-->
-            <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-              <el-card
-                v-loading="$asyncComputed.rankServerData.updating"
-                shadow="hover"
-              >
-                <div class="score-detail">
-                  <two-card-tree-map :map-data="mapData"></two-card-tree-map>
-                </div>
-              </el-card>
-            </el-col>
             <!--工分值校正明细-->
             <el-col :span="24">
               <el-card
                 v-loading="$asyncComputed.projectDetailServerData.updating"
                 shadow="hover"
-                style="margin-top: 20px"
               >
                 <div class="score-detail">
                   <div class="second-title" style="text-align: left;">
@@ -909,7 +882,6 @@
 <script>
 import twoCardPie from './components/twocardPie';
 import doctorBar from './components/doctorBar';
-import twoCardTreeMap from './components/twocardTreemap';
 import twoCardCircle from './components/twocardCircle';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
@@ -920,7 +892,6 @@ export default {
   components: {
     twoCardPie,
     doctorBar,
-    twoCardTreeMap,
     twoCardCircle
   },
   beforeRouteUpdate(to, from, next) {
@@ -1088,43 +1059,6 @@ export default {
         workPointFormat: it.workPoint.toFixed(2),
         correctWorkPointFormat: it.correctWorkPoint.toFixed(2)
       }));
-    },
-    //金额：矩形树状图
-    budgetData() {
-      let arr = this.rankServerData
-        .filter(it => it.budget)
-        .map(it => ({
-          id: it.code,
-          name: `${it.name} 金额：${it.budget.toFixed(2)}元`,
-          value: it.budget,
-          onClick: () =>
-            this.$router.push({
-              name: 'appraisal-result',
-              query: {
-                ...this.params,
-                id: it.code
-              }
-            })
-        }));
-      return arr;
-    },
-    //工分：矩形树状图
-    mapData() {
-      let arr = this.rankServerData
-        .filter(it => it.correctWorkPoint)
-        .map(it => ({
-          name: `${it.name} 工分值：${Math.round(it.correctWorkPoint)}分`,
-          value: it.correctWorkPoint,
-          onClick: () =>
-            this.$router.push({
-              name: 'appraisal-result',
-              query: {
-                ...this.params,
-                id: it.code
-              }
-            })
-        }));
-      return arr;
     },
     //总计工分和质量系数数据
     totalData() {
