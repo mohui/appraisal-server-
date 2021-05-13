@@ -551,6 +551,35 @@ export default {
     }
   },
   methods: {
+    //系统自动打分开关事件
+    async handleSystemAllAutoScore() {
+      await this.$api.CheckAreaEdit.setCheckAuto(
+        this.appraisalIndicatorsData.checkId,
+        this.params.id,
+        this.appraisalIndicatorsData.auto
+      );
+      this.$asyncComputed.appraisalIndicatorsServerData.update();
+    },
+    //单项指标系统自动打分开关
+    async handleChangeSystemAutoScore(row) {
+      try {
+        await this.$api.CheckAreaEdit.setRuleAuto(
+          this.params.id,
+          row.ruleId,
+          row.auto
+        );
+        this.$message({
+          type: 'success',
+          message: '您的更改将在明日生效'
+        });
+      } catch (e) {
+        this.$message({
+          type: 'error',
+          message: e.message
+        });
+        row.auto = !row.auto;
+      }
+    },
     //点击打分按钮处理
     handleScore(row) {
       this.$set(row, 'isGradeScore', true);
@@ -610,53 +639,64 @@ export default {
       this.$set(row, 'score', row.originalScore);
       this.$set(row, 'isGradeScore', false);
     },
-    //系统自动打分开关事件
-    async handleSystemAllAutoScore() {
-      await this.$api.CheckAreaEdit.setCheckAuto(
-        this.appraisalIndicatorsData.checkId,
-        this.params.id,
-        this.appraisalIndicatorsData.auto
-      );
-      this.$asyncComputed.appraisalIndicatorsServerData.update();
+    //上传考核资料
+    handleUploadAppraisalFile(row) {
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.data = {
+        rule: JSON.stringify(this.curRule.ruleId),
+        area: JSON.stringify(this.params.id)
+      };
+      this.dialogUploadAppraisalFileVisible = true;
     },
-    //单项指标系统自动打分开关
-    async handleChangeSystemAutoScore(row) {
+    //保存上传资料到服务器
+    async handleSaveUploadFile() {
+      await this.$refs.uploadForm.submit();
+    },
+    //超出文件个数限制的处理
+    handleExceed() {
+      this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
+    },
+    //文件上传成功
+    handleUploadAppraisalFileSuccess(res) {
+      if (res._KatoErrorCode_) {
+        this.$message.error('文件上传失败');
+      } else {
+        this.$message.success('文件上传成功');
+      }
+      //手动将文件列表清空
+      this.fileList = [];
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    //文件上传失败
+    handleUploadAppraisalFileError() {
+      this.$message.error('文件上传失败');
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    // 删除图片
+    async delRuleAreaAttach(rule, id, index) {
       try {
-        await this.$api.CheckAreaEdit.setRuleAuto(
-          this.params.id,
-          row.ruleId,
-          row.auto
-        );
+        await this.$api.Score.delAttachment(rule, id);
+        this.appraisalFileListData.splice(index, 1);
         this.$message({
           type: 'success',
-          message: '您的更改将在明日生效'
+          message: '删除成功'
         });
       } catch (e) {
         this.$message({
           type: 'error',
           message: e.message
         });
-        row.auto = !row.auto;
       }
     },
-    //考核结果下载
-    async handleAppraisalResultsDownload() {
-      try {
-        await this.$api.SystemArea.downloadCheck(
-          this.params.id,
-          this.params.year
-        );
-        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
-      } catch (e) {
-        this.$message.error(e.message);
-      }
-    },
+    // 指标结果
     handleDialogAppraisalFileListVisible(row) {
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
       this.curRule.evaluateStandard = row.evaluateStandard;
       this.dialogAppraisalFileListVisible = true;
     },
+    // 自定义的合计计算方法
     handleSummaries(param) {
       const {columns, data} = param;
       const sums = [];
@@ -696,54 +736,16 @@ export default {
         updated_at: it.updated_at.$format()
       }));
     },
-    //上传考核资料
-    handleUploadAppraisalFile(row) {
-      this.curRule.ruleName = row.ruleName;
-      this.curRule.ruleId = row.ruleId;
-      this.curRule.data = {
-        rule: JSON.stringify(this.curRule.ruleId),
-        area: JSON.stringify(this.params.id)
-      };
-      this.dialogUploadAppraisalFileVisible = true;
-    },
-    //超出文件个数限制的处理
-    handleExceed() {
-      this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
-    },
-    //保存上传资料到服务器
-    async handleSaveUploadFile() {
-      await this.$refs.uploadForm.submit();
-    },
-    //文件上传成功
-    handleUploadAppraisalFileSuccess(res) {
-      if (res._KatoErrorCode_) {
-        this.$message.error('文件上传失败');
-      } else {
-        this.$message.success('文件上传成功');
-      }
-      //手动将文件列表清空
-      this.fileList = [];
-      this.dialogUploadAppraisalFileVisible = false;
-    },
-    //文件上传失败
-    handleUploadAppraisalFileError() {
-      this.$message.error('文件上传失败');
-      this.dialogUploadAppraisalFileVisible = false;
-    },
-    // 删除图片
-    async delRuleAreaAttach(rule, id, index) {
+    //考核结果下载
+    async handleAppraisalResultsDownload() {
       try {
-        await this.$api.Score.delAttachment(rule, id);
-        this.appraisalFileListData.splice(index, 1);
-        this.$message({
-          type: 'success',
-          message: '删除成功'
-        });
+        await this.$api.SystemArea.downloadCheck(
+          this.params.id,
+          this.params.year
+        );
+        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
       } catch (e) {
-        this.$message({
-          type: 'error',
-          message: e.message
-        });
+        this.$message.error(e.message);
       }
     }
   }
