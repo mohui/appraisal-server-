@@ -9,6 +9,21 @@ export class Context extends KatoContext {
   res: Response | any;
   //当前用户
   user: any;
+  // audit_log表extra字段的json格式
+  auditLog: {
+    account?: any;
+    module?: any;
+    checkId?: any;
+    checkName?: any;
+    checkYear?: any;
+    ruleId?: any;
+    ruleName?: any;
+    parentRuleId?: any;
+    parentRuleName?: any;
+    curd?: any;
+    type?: any; // check
+    ip?: any;
+  };
 
   static get current() {
     return KatoContext.current as Context;

@@ -2,10 +2,10 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  RuleAreaBudgetModel,
-  ReportAreaModel,
   ReportAreaHistoryModel,
+  ReportAreaModel,
   RuleAreaAttachModel,
+  RuleAreaBudgetModel,
   RuleAreaScoreModel,
   RuleProjectModel,
   RuleTagModel
@@ -17,6 +17,7 @@ import {getAreaTree} from '../group';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';
+import {AuditLog} from '../middleware/audit-log';
 
 export default class CheckAreaEdit {
   /**
@@ -144,10 +145,8 @@ export default class CheckAreaEdit {
       it => !checkSystemArea.find(item => it === item.areaCode)
     );
 
-    //return insertAreas;
-
     // 找到了所有的待删除的和待添加的,放到事务中先删除再添加
-    const ret = await appDB.transaction(async () => {
+    return appDB.transaction(async () => {
       // 批量删除
       if (deleteAreas.length > 0) {
         // 删除解绑的地区
@@ -209,7 +208,6 @@ export default class CheckAreaEdit {
         }))
       );
     });
-    return ret;
   }
 
   /**
@@ -284,12 +282,24 @@ export default class CheckAreaEdit {
       .required()
       .description('规则id')
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = `delete`;
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async deleteRule(ruleId) {
     //查询并锁定
     const rule = await CheckRuleModel.findOne({
       where: {ruleId}
     });
     if (!rule) throw new KatoCommonError('该规则不存在');
+
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = rule.checkId;
 
     // 要删除的ruleId(包含小项和细则)
     let ruleIds = [];
@@ -299,6 +309,12 @@ export default class CheckAreaEdit {
         where: {parentRuleId: rule.ruleId}
       });
       ruleIds = childRules.map(it => it.ruleId);
+
+      Context.current.auditLog.parentRuleId = ruleId;
+      Context.current.auditLog.parentRuleName = rule.ruleName;
+    } else {
+      Context.current.auditLog.ruleId = ruleId;
+      Context.current.auditLog.ruleName = rule.ruleName;
     }
     ruleIds.push(ruleId);
 
@@ -429,13 +445,24 @@ export default class CheckAreaEdit {
       .required()
       .description('考核年份')
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = `copy`;
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async copySystem(checkId, checkName, status, checkYear) {
     /**
      * 1, 先把要复制的考核体系查询出来
      * 2, 查询考核细则
      * 3, 添加考核体系, 考核细则
      */
-
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkName = checkName;
+    Context.current.auditLog.checkYear = checkYear;
     // 事务执行添加语句
     return appDB.transaction(async () => {
       // 取出当前考核下的所有地区
@@ -539,6 +566,7 @@ export default class CheckAreaEdit {
       );
       if (!checkSystemModelAdd) throw new KatoCommonError('添加失败');
 
+      Context.current.auditLog.checkId = systemId;
       // 添加考核内容表 先添加考核小项,再添加考核细则
       for (const rule of parentRule) {
         // 考核小项id,添加细则和添加考核小项和公分项对应需要用到

@@ -12,6 +12,7 @@ import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
 import dayjs from 'dayjs';
+import {AuditLog} from './middleware/audit-log';
 
 export default class CheckSystem {
   /**
@@ -123,13 +124,29 @@ export default class CheckSystem {
       checkYear: should.number().required()
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async add(params) {
-    return CheckSystemModel.create({
+    const addCheck = await CheckSystemModel.create({
       ...params,
       checkType: 1,
       create_by: Context.current.user.id,
       update_by: Context.current.user.id
     });
+
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = addCheck?.checkId;
+    Context.current.auditLog.checkName = addCheck?.checkName;
+    Context.current.auditLog.checkYear = addCheck?.checkYear;
+
+    return addCheck;
   }
 
   //更新考核系统名称
@@ -150,13 +167,26 @@ export default class CheckSystem {
       checkYear: should.number().required()
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   updateName(params) {
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = params?.checkId;
+    Context.current.auditLog.checkName = params?.checkName;
     return appDB.transaction(async () => {
       const sys = await CheckSystemModel.findOne({
         where: {checkId: params.checkId},
         lock: true
       });
       if (!sys) throw new KatoCommonError('该考核不存在');
+
+      Context.current.auditLog.checkYear = params?.checkYear;
       // 现有考核体系
       // language=PostgreSQL
       const checkAreaModels = await appDB.execute(
@@ -228,10 +258,24 @@ export default class CheckSystem {
         .description('评分标准')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async addRule(params) {
-    return appDB.transaction(async () => {
+    const result = await appDB.transaction(async () => {
       return CheckRuleModel.create(params);
     });
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = params?.checkId;
+    Context.current.auditLog.ruleId = result?.ruleId;
+    Context.current.auditLog.ruleName = result?.ruleName;
+    return result;
   }
 
   //添加规则组
@@ -252,6 +296,14 @@ export default class CheckSystem {
         .description('工分项')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'insert';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async addRuleGroup(params) {
     const {projects} = params;
     const rule = await CheckRuleModel.create(params);
@@ -264,6 +316,11 @@ export default class CheckSystem {
         }))
       );
     }
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = rule?.checkId;
+    Context.current.auditLog.parentRuleId = rule?.ruleId;
+    Context.current.auditLog.parentRuleName = rule?.ruleName;
     return rule;
   }
 
@@ -279,6 +336,14 @@ export default class CheckSystem {
         .description('工分项')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async updateRuleGroup(params) {
     const {ruleId, projects} = params;
     const group = await CheckRuleModel.findOne({
@@ -308,6 +373,11 @@ export default class CheckSystem {
         }))
       );
     }
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = group?.checkId;
+    Context.current.auditLog.parentRuleId = ruleId;
+    Context.current.auditLog.parentRuleName = params?.ruleName;
     //修改规则组
     return CheckRuleModel.update(options, {
       where: {ruleId: params.ruleId}
@@ -321,6 +391,14 @@ export default class CheckSystem {
       .required()
       .description('考核体系id')
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'delete';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   remove(id) {
     return appDB.transaction(async () => {
       //查询考核系统,并锁定
@@ -331,6 +409,12 @@ export default class CheckSystem {
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
+
+      // 写入日志
+      Context.current.auditLog = {};
+      Context.current.auditLog.checkId = sys?.checkId;
+      Context.current.auditLog.checkName = sys?.checkName;
+      Context.current.auditLog.checkYear = sys?.checkYear;
 
       if (await CheckAreaModel.findOne({where: {checkId: id}}))
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
@@ -395,17 +479,32 @@ export default class CheckSystem {
         .description('评分标准')
     })
   )
+  @AuditLog(async () => {
+    Context.current.auditLog.module = '配置管理';
+    Context.current.auditLog.curd = 'update';
+    Context.current.auditLog.type = 'check';
+    return {
+      extra: Context.current.auditLog
+    };
+  })
   async updateRule(params) {
     const {
       ruleId,
       ruleName,
       parentRuleId = '',
+      checkId,
       evaluateStandard = '',
       ruleScore = '',
       checkStandard = '',
       checkMethod = '',
       status
     } = params;
+    // 写入日志
+    Context.current.auditLog = {};
+    Context.current.auditLog.checkId = checkId;
+    Context.current.auditLog.ruleId = ruleId;
+    Context.current.auditLog.ruleName = ruleName;
+
     return appDB.transaction(async () => {
       //查询规则,并锁定
       let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});

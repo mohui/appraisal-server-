@@ -1414,16 +1414,31 @@ export default class Score {
   /**
    * 删除定性指标附件
    *
+   * @param rule 考核细则id
    * @param id 定性指标附件id
    */
-  async delAttachment(id) {
-    await appDB.joinTx(async () => {
+  async delAttachment(rule, id) {
+    // 获取当前时间;
+    const now = dayjs();
+    return await appDB.joinTx(async () => {
+      const attachDate = await appDB.execute(
+        `select attach_start_date, attach_end_date from rule_tag where rule = ?`,
+        rule
+      );
+      const attachStart = attachDate[0]?.attach_start_date;
+      const attachEnd = attachDate[0]?.attach_end_date;
+
+      if (now.diff(attachStart, 'day') < 0 || now.diff(attachEnd, 'day') > 0)
+        throw new KatoCommonError('请在有效上传时间内删除');
       const url = (
         await appDB.execute(`select url from rule_area_attach where id = ?`, id)
       )[0]?.url;
       if (url) await unifs.deleteFile(url);
 
-      await appDB.execute(`delete from rule_area_attach where id = ?`, id);
+      return await appDB.execute(
+        `delete from rule_area_attach where id = ?`,
+        id
+      );
     });
   }
 }

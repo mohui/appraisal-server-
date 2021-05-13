@@ -852,8 +852,20 @@
           评分标准：{{ curRule.evaluateStandard }}
         </p>
         <div v-if="appraisalFileListData.length > 0">
-          <div v-for="item of appraisalFileListData" :key="item.id">
+          <div
+            v-for="(item, index) in appraisalFileListData"
+            :key="item.id"
+            style="margin-top: 10px"
+          >
             <a :href="item.url" target="_blank">{{ item.name }}</a>
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              circle
+              size="mini"
+              @click="delRuleAreaAttach(item.rule, item.id, index)"
+            >
+            </el-button>
           </div>
         </div>
         <div v-else style="color: red">暂无文件</div>
@@ -1410,6 +1422,22 @@ export default {
     handleCellClick(row, column) {
       if (column.property === 'name') {
         this.handleClickSubordinateArea(row.code);
+      }
+    },
+    // 删除图片
+    async delRuleAreaAttach(rule, id, index) {
+      try {
+        await this.$api.Score.delAttachment(rule, id);
+        this.appraisalFileListData.splice(index, 1);
+        this.$message({
+          type: 'success',
+          message: '删除成功'
+        });
+      } catch (e) {
+        this.$message({
+          type: 'error',
+          message: e.message
+        });
       }
     }
   },
