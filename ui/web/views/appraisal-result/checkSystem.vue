@@ -367,6 +367,24 @@
         <div v-else style="color: red">暂无文件</div>
       </div>
     </el-dialog>
+    <el-dialog
+      title="填写打分备注"
+      :visible.sync="scoreRemarkVisible"
+      @closed="currentRow = {}"
+    >
+      <el-input v-model="scoreRemark" type="textarea" size="mini"></el-input>
+      <div style="text-align: right; margin: 30px">
+        <el-button size="mini" type="text" @click="scoreRemarkVisible = false"
+          >取消
+        </el-button>
+        <el-button
+          type="primary"
+          size="mini"
+          @click="handleSaveScore(currentRow)"
+          >确定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -388,6 +406,9 @@ export default {
         id: '340208',
         year: this.$dayjs().year() //考核年份，默认为当前年
       },
+      scoreRemarkVisible: false, //打分备注填写框框
+      scoreRemark: '', //备注信息
+      currentRow: {},
       dialogUploadAppraisalFileVisible: false, // 上传附件
       dialogAppraisalFileListVisible: false, // 考核资料
       curRule: {
@@ -530,6 +551,10 @@ export default {
     }
   },
   methods: {
+    //点击打分按钮处理
+    handleScore(row) {
+      this.$set(row, 'isGradeScore', true);
+    },
     //打开填写备注的弹出窗
     async openRemarkDialog(row) {
       if (row.score > row.ruleScore) {
@@ -543,9 +568,42 @@ export default {
       this.scoreRemark = '';
       this.currentRow = row;
     },
-    //点击打分按钮处理
-    handleScore(row) {
-      this.$set(row, 'isGradeScore', true);
+    //保存打分处理
+    async handleSaveScore(row) {
+      if (!this.scoreRemark) {
+        this.$message({
+          type: 'error',
+          message: '请填写打分备注'
+        });
+        return;
+      }
+      try {
+        this.scoreRemarkVisible = false;
+        row.isSaveScoreLoaing = true;
+        await this.$api.Score.manualScore(
+          row.ruleId,
+          this.totalData.id,
+          row.score,
+          this.scoreRemark
+        );
+        this.$message({
+          type: 'success',
+          message: '打分成功'
+        });
+        this.$set(row, 'isGradeScore', false);
+        //手动打分之后将自动打分关闭
+        row.auto = false;
+        this.handleChangeSystemAutoScore(row);
+      } catch (e) {
+        this.$message({
+          type: 'danger',
+          message: e.message
+        });
+      } finally {
+        //打分后重新刷新考核数据
+        this.$asyncComputed.appraisalIndicatorsServerData.update();
+        row.isSaveScoreLoaing = false;
+      }
     },
     //取消打分
     cancelScore(row) {
