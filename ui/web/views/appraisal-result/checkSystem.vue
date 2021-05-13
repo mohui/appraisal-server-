@@ -294,7 +294,47 @@
         </el-col>
       </el-row>
     </div>
-
+    <el-dialog
+      title="上传考核资料"
+      :visible.sync="dialogUploadAppraisalFileVisible"
+      width="30%"
+    >
+      <el-form :model="curRule">
+        <el-form-item label="考核内容">
+          {{ curRule.ruleName }}
+        </el-form-item>
+        <el-form-item label="上传文件">
+          <el-upload
+            ref="uploadForm"
+            name="attachments"
+            accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
+            :auto-upload="false"
+            :file-list="fileList"
+            :limit="1"
+            :on-exceed="handleExceed"
+            :on-success="handleUploadAppraisalFileSuccess"
+            :on-error="handleUploadAppraisalFileError"
+            action="/api/Score/upload.ac"
+            :data="curRule.data"
+          >
+            <el-button slot="trigger" plain size="small" type="primary"
+              >选取文件
+            </el-button>
+            <div slot="tip" class="el-upload__tip" style="font-size:12px;">
+              可以上传图片，word文件，xls文件，pdf文件，压缩包文件，单个文件不能超过5M。
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button plain @click="dialogUploadAppraisalFileVisible = false"
+          >取 消
+        </el-button>
+        <el-button plain type="primary" @click="handleSaveUploadFile"
+          >确 定
+        </el-button>
+      </div>
+    </el-dialog>
     <el-dialog
       title="考核资料"
       :visible.sync="dialogAppraisalFileListVisible"
@@ -348,13 +388,15 @@ export default {
         id: '340208',
         year: this.$dayjs().year() //考核年份，默认为当前年
       },
-      dialogAppraisalFileListVisible: false,
+      dialogUploadAppraisalFileVisible: false, // 上传附件
+      dialogAppraisalFileListVisible: false, // 考核资料
       curRule: {
         ruleName: '',
         ruleId: '',
         evaluateStandard: '',
         data: ''
-      }
+      },
+      fileList: [] //考核评价细则上传的文件列表
     };
   },
   computed: {
@@ -551,16 +593,6 @@ export default {
         this.$message.error(e.message);
       }
     },
-    //上传考核资料
-    handleUploadAppraisalFile(row) {
-      this.curRule.ruleName = row.ruleName;
-      this.curRule.ruleId = row.ruleId;
-      this.curRule.data = {
-        rule: JSON.stringify(this.curRule.ruleId),
-        area: JSON.stringify(this.params.id)
-      };
-      this.dialogUploadAppraisalFileVisible = true;
-    },
     handleDialogAppraisalFileListVisible(row) {
       this.curRule.ruleName = row.ruleName;
       this.curRule.ruleId = row.ruleId;
@@ -605,6 +637,40 @@ export default {
         created_at: it.created_at.$format(),
         updated_at: it.updated_at.$format()
       }));
+    },
+    //上传考核资料
+    handleUploadAppraisalFile(row) {
+      this.curRule.ruleName = row.ruleName;
+      this.curRule.ruleId = row.ruleId;
+      this.curRule.data = {
+        rule: JSON.stringify(this.curRule.ruleId),
+        area: JSON.stringify(this.params.id)
+      };
+      this.dialogUploadAppraisalFileVisible = true;
+    },
+    //超出文件个数限制的处理
+    handleExceed() {
+      this.$message.warning('每次只允许上传一个文件，若有多个文件，请分开上次');
+    },
+    //保存上传资料到服务器
+    async handleSaveUploadFile() {
+      await this.$refs.uploadForm.submit();
+    },
+    //文件上传成功
+    handleUploadAppraisalFileSuccess(res) {
+      if (res._KatoErrorCode_) {
+        this.$message.error('文件上传失败');
+      } else {
+        this.$message.success('文件上传成功');
+      }
+      //手动将文件列表清空
+      this.fileList = [];
+      this.dialogUploadAppraisalFileVisible = false;
+    },
+    //文件上传失败
+    handleUploadAppraisalFileError() {
+      this.$message.error('文件上传失败');
+      this.dialogUploadAppraisalFileVisible = false;
     },
     // 删除图片
     async delRuleAreaAttach(rule, id, index) {
