@@ -804,7 +804,8 @@ export default {
       this.$router.push({
         name: 'checkSystem',
         query: {
-          ...this.params
+          id: this.params.id,
+          year: this.params.year
         }
       });
     }

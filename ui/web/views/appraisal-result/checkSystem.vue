@@ -769,6 +769,7 @@ export default {
       this.$router.push({
         name: 'appraisal-result',
         query: {
+          listFlag: 'quality',
           ...this.params
         }
       });
