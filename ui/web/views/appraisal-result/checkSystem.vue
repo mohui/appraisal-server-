@@ -12,6 +12,13 @@
           >
             <div class="second-title">
               绩效考核评价细则
+              <el-button
+                size="small"
+                style="float:right; margin: 4px 0 10px 30px"
+                type="primary"
+                @click="handleBack"
+                >返回
+              </el-button>
             </div>
             <div
               style="color: #909399; font-size: 12px; text-align: center; line-height: 250px"
@@ -47,6 +54,13 @@
                   @change="handleSystemAllAutoScore"
                 >
                 </el-switch>
+                <el-button
+                  size="small"
+                  style="float:right; margin: 4px 0 10px 30px"
+                  type="primary"
+                  @click="handleBack"
+                  >返回
+                </el-button>
               </div>
             </div>
             <div
@@ -750,6 +764,14 @@ export default {
       } catch (e) {
         this.$message.error(e.message);
       }
+    },
+    handleBack() {
+      this.$router.push({
+        name: 'appraisal-result',
+        query: {
+          ...this.params
+        }
+      });
     }
   }
 };
