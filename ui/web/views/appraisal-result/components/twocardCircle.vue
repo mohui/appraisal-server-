@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="grid-content bg-fff">
-      <div id="charts" :style="{width: '100%', height: '300px'}"></div>
+      <div ref="q-charts" :style="{width: '100%', height: '300px'}"></div>
     </div>
   </div>
 </template>
@@ -114,11 +114,15 @@ export default {
       this.chart.series[0].data[0].name = this.pointDate
         ? this.pointDate + '\n' + this.text
         : '';
-      let chart = this.$echarts.init(document.getElementById('charts'));
+      let chart = this.$echarts.init(this.$refs['q-charts']);
       window.addEventListener('resize', function() {
         chart.resize(); //使图表适应
       });
       chart.setOption(this.chart);
+      chart.off('click');
+      chart.on('click', function() {
+        console.log('hello');
+      });
     }
   },
   watch: {
