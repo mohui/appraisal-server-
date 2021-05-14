@@ -111,6 +111,7 @@
                 <div class=" score-detail">
                   <two-card-circle
                     :coefficient="totalData.fixedDecimalRate"
+                    :on-click="handleCheckSystemClick"
                   ></two-card-circle>
                   <span style="position: absolute; bottom: 20px; left: 31%;">
                     (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
@@ -798,6 +799,14 @@ export default {
       if (column.property === 'name') {
         this.handleClickSubordinateArea(row.code);
       }
+    },
+    handleCheckSystemClick() {
+      this.$router.push({
+        name: 'checkSystem',
+        query: {
+          ...this.params
+        }
+      });
     }
   },
   asyncComputed: {

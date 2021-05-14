@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="grid-content bg-fff">
-      <div ref="q-charts" :style="{width: '100%', height: '300px'}"></div>
+      <div ref="charts" :style="{width: '100%', height: '300px'}"></div>
     </div>
   </div>
 </template>
@@ -12,6 +12,7 @@ export default {
   props: {
     coefficient: Number,
     pointDate: String,
+    onClick: Function,
     text: {
       type: String,
       default: ''
@@ -23,6 +24,7 @@ export default {
   },
   data() {
     return {
+      chartId: {},
       chart: {
         title: {
           show: true,
@@ -94,8 +96,18 @@ export default {
       }
     };
   },
+  watch: {
+    coefficient: function() {
+      this.circleChart();
+    }
+  },
   mounted() {
+    this.chartId = this.$echarts.init(this.$refs['charts']);
     this.circleChart();
+    window.addEventListener('resize', this.chartId.resize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.chartId.resize);
   },
   methods: {
     circleChart() {
@@ -114,20 +126,9 @@ export default {
       this.chart.series[0].data[0].name = this.pointDate
         ? this.pointDate + '\n' + this.text
         : '';
-      let chart = this.$echarts.init(this.$refs['q-charts']);
-      window.addEventListener('resize', function() {
-        chart.resize(); //使图表适应
-      });
-      chart.setOption(this.chart);
-      chart.off('click');
-      chart.on('click', function() {
-        console.log('hello');
-      });
-    }
-  },
-  watch: {
-    coefficient: function() {
-      this.circleChart();
+      this.chartId.setOption(this.chart);
+      this.chartId.getZr().off('click');
+      this.chartId.getZr().on('click', () => this.onClick?.());
     }
   }
 };
