@@ -402,8 +402,7 @@ export default {
   data() {
     return {
       params: {
-        // id: this.$settings.user.code,
-        id: '340208',
+        id: '',
         year: this.$dayjs().year() //考核年份，默认为当前年
       },
       scoreRemarkVisible: false, //打分备注填写框框
@@ -485,6 +484,10 @@ export default {
     appraisalFileListData() {
       return this.appraisalFileListServerData;
     }
+  },
+  created() {
+    this.params.id = this.$route.query.id;
+    this.params.year = Number(this.$route.query.year);
   },
   asyncComputed: {
     //获取服务器绩效考核指标的规则和评分数据
