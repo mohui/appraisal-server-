@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <div>
       <el-row
         v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
@@ -757,6 +757,29 @@ export default {
 
 <style scoped lang="scss">
 @import '../../styles/vars';
+
+.wrapper {
+  height: 100%;
+  position: relative;
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .empty-data {
+    font-size: 12px;
+    position: relative;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
 
 .appraisal-indicators-rule {
   padding-top: 20px;
