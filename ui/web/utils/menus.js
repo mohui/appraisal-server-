@@ -83,5 +83,27 @@ module.exports = [
     label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
+  },
+  {
+    index: 'project-configuration',
+    label: '医疗绩效配置',
+    icon: 'el-icon-s-management',
+    children: [
+      {
+        index: 'project-configuration-list',
+        router: '/project-configuration-list',
+        label: '配置列表'
+      },
+      {
+        index: 'project-configuration-work',
+        router: '/project-configuration-work',
+        label: '工分项管理'
+      },
+      {
+        index: 'project-configuration-member',
+        router: '/project-configuration-member',
+        label: '员工管理'
+      }
+    ]
   }
 ];

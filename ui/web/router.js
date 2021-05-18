@@ -201,6 +201,21 @@ const router = new Router({
           name: 'audit-log',
           meta: {permission: [Permission.AUDIT_LOG]},
           component: () => import('./views/audit/index')
+        },
+        {
+          path: 'project-configuration-list',
+          name: 'project-configuration-list',
+          component: () => import('./views/project-configuration/index')
+        },
+        {
+          path: 'project-configuration-work',
+          name: 'project-configuration-work',
+          component: () => import('./views/project-configuration/work')
+        },
+        {
+          path: 'project-configuration-member',
+          name: 'project-configuration-member',
+          component: () => import('./views/project-configuration/member')
         }
       ]
     },
