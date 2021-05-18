@@ -201,6 +201,18 @@ const router = new Router({
           name: 'audit-log',
           meta: {permission: [Permission.AUDIT_LOG]},
           component: () => import('./views/audit/index')
+        },
+        {
+          path: 'medical-performance',
+          name: 'medical-performance',
+          meta: {
+            permission: [
+              Permission.APPRAISAL_RESULT,
+              Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+              Permission.APPRAISAL_BASIC_DATA
+            ]
+          },
+          component: () => import('./views/medical-performance/index')
         }
       ]
     },
