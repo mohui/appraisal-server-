@@ -32,24 +32,6 @@
           </el-select>
         </span>
         <span style="margin:0 10px">
-          <el-button-group>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': params.listFlag === 'quality'}"
-              @click="latTypeChanged('quality')"
-            >
-              质量系数
-            </el-button>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': params.listFlag === 'score'}"
-              @click="latTypeChanged('score')"
-            >
-              工分值
-            </el-button>
-          </el-button-group>
-        </span>
-        <span style="margin:0 10px">
           <el-button
             plain
             size="small"
@@ -91,12 +73,20 @@
           </el-dropdown>
         </span>
         <el-button
-          v-if="showBackButton()"
+          v-if="showBackButton() && params.listFlag === 'quality'"
           size="small"
           style="float:right; margin: 4px 0 10px 30px"
           type="primary"
           @click="handleBack"
           >返回上级
+        </el-button>
+        <el-button
+          v-if="params.listFlag === 'score'"
+          size="small"
+          style="float:right; margin: 4px 0 10px 30px"
+          type="primary"
+          @click="latTypeChanged('quality')"
+          >关闭
         </el-button>
       </el-card>
       <!--自身考核结果-->
@@ -109,10 +99,18 @@
                 shadow="hover"
               >
                 <div class=" score-detail">
-                  <two-card-circle
-                    :coefficient="totalData.fixedDecimalRate"
-                    :on-click="handleCheckDetailClick"
-                  ></two-card-circle>
+                  <el-popover
+                    placement="top-start"
+                    width="200"
+                    trigger="hover"
+                    content="点击查看详情"
+                  >
+                    <two-card-circle
+                      slot="reference"
+                      :coefficient="totalData.fixedDecimalRate"
+                      :on-click="handleCheckDetailClick"
+                    ></two-card-circle>
+                  </el-popover>
                   <span style="position: absolute; bottom: 20px; left: 31%;">
                     (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
                   </span>
