@@ -427,7 +427,7 @@
                   <p>
                     {{ index + 1 }}、{{ item.name }}
                     <span style="float:right"
-                      >{{ Math.round(item.rate * 100) }}% 考核办法</span
+                      >{{ Math.round(item.rate * 100) }}%</span
                     >
                   </p>
                   <el-progress
