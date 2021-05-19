@@ -43,7 +43,10 @@
         </el-row>
       </div>
       <el-card shadow="hover">
-        项目得分表
+        <div
+          id="projectPerformanceBar"
+          :style="{width: '100%', height: '400px'}"
+        ></div>
       </el-card>
     </div>
   </div>
@@ -79,10 +82,16 @@ export default {
     sticky: VueSticky
   },
   mounted() {
-    this.drawLine();
+    this.drawChart();
   },
   methods: {
-    drawLine() {
+    // 绘制图表
+    drawChart() {
+      this.drawDoctorPerformanceBar();
+      this.drawProjectPerformanceBar();
+    },
+    // 医生绩效柱状图
+    drawDoctorPerformanceBar() {
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
         document.getElementById('doctorPerformanceBar')
@@ -91,7 +100,6 @@ export default {
       const colors = ['#409eff', '#ea9d42'];
       option = {
         color: colors,
-
         tooltip: {
           trigger: 'axis',
           axisPointer: {
@@ -162,6 +170,61 @@ export default {
       };
 
       // 绘制图表
+      myChart.setOption(option);
+    },
+    // 项目绩效柱状图
+    drawProjectPerformanceBar() {
+      const myChart = this.$echarts.init(
+        document.getElementById('projectPerformanceBar')
+      );
+      let option;
+      option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['项目实际得分', '项目应得分']
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          boundaryGap: [0, 0.01],
+          axisLine: {
+            show: true
+          }
+        },
+        yAxis: {
+          type: 'category',
+          data: ['项目1', '项目2', '项目3', '项目4', '项目5', '项目6']
+        },
+        series: [
+          {
+            name: '项目应得分',
+            type: 'bar',
+            data: [23539, 45256, 59034, 84970, 31744, 83230],
+            itemStyle: {
+              color: 'rgba(180, 180, 180, 0.3)'
+            }
+          },
+          {
+            name: '项目实际得分',
+            type: 'bar',
+            data: [19325, 45256, 31000, 51594, 14141, 61807],
+            itemStyle: {
+              color: '#409eff'
+            },
+            barGap: '-100%'
+          }
+        ]
+      };
       myChart.setOption(option);
     }
   }
