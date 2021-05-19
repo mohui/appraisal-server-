@@ -70,7 +70,10 @@ export default {
           {name: '医生4', score: 60, rate: 0.6},
           {name: '医生5', score: 90, rate: 0.6},
           {name: '医生6', score: 50, rate: 0.9},
-          {name: '医生7', score: 70, rate: 0.4}
+          {name: '医生7', score: 70, rate: 0.4},
+          {name: '医生8', score: 30, rate: 0.8},
+          {name: '医生9', score: 70, rate: 0.5},
+          {name: '医生10', score: 50, rate: 0.7}
         ],
         projectData: [
           {
@@ -107,6 +110,21 @@ export default {
             name: '项目7',
             afterCorrectionWorkPoint: 330,
             beforeCorrectionWorkPoint: 330
+          },
+          {
+            name: '项目8',
+            afterCorrectionWorkPoint: 330,
+            beforeCorrectionWorkPoint: 330
+          },
+          {
+            name: '项目9',
+            afterCorrectionWorkPoint: 245,
+            beforeCorrectionWorkPoint: 300
+          },
+          {
+            name: '项目10',
+            afterCorrectionWorkPoint: 344,
+            beforeCorrectionWorkPoint: 397
           }
         ]
       }
@@ -149,6 +167,14 @@ export default {
         legend: {
           data: ['人员得分', '质量系数']
         },
+        dataZoom: [
+          {
+            show: true
+          },
+          {
+            type: 'inside'
+          }
+        ],
         xAxis: [
           {
             type: 'category',
@@ -231,6 +257,16 @@ export default {
           bottom: '3%',
           containLabel: true
         },
+        dataZoom: [
+          {
+            show: true,
+            yAxisIndex: 0,
+            left: '0%'
+          },
+          {
+            type: 'inside'
+          }
+        ],
         xAxis: {
           type: 'value',
           boundaryGap: [0, 0.01],
