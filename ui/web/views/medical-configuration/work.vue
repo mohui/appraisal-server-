@@ -11,8 +11,16 @@
         padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
-      <div slot="header" class="clearfix">
+      <div slot="header" class="work-header">
         <span>工分项配置</span>
+        <div>
+          <el-button
+            size="mini"
+            type="text"
+            @click="$router.push('medical-configuration')"
+            >返回</el-button
+          >
+        </div>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -93,4 +101,9 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.work-header {
+  display: flex;
+  justify-content: space-between;
+}
+</style>

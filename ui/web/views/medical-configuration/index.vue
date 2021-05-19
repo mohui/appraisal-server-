@@ -19,13 +19,13 @@
             size="mini"
             type="text"
             @click="goto('medical-configuration-work')"
-            >工分考核</el-button
+            >工分项管理</el-button
           >
           <el-button
             size="mini"
             type="text"
             @click="goto('medical-configuration-member')"
-            >员工考核</el-button
+            >员工管理</el-button
           >
         </div>
       </div>
