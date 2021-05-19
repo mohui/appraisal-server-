@@ -203,19 +203,19 @@ const router = new Router({
           component: () => import('./views/audit/index')
         },
         {
-          path: 'project-configuration-list',
-          name: 'project-configuration-list',
-          component: () => import('./views/project-configuration/index')
+          path: 'medical-configuration-list',
+          name: 'medical-configuration-list',
+          component: () => import('./views/medical-configuration/index')
         },
         {
-          path: 'project-configuration-work',
-          name: 'project-configuration-work',
-          component: () => import('./views/project-configuration/work')
+          path: 'medical-configuration-work',
+          name: 'medical-configuration-work',
+          component: () => import('./views/medical-configuration/work')
         },
         {
-          path: 'project-configuration-member',
-          name: 'project-configuration-member',
-          component: () => import('./views/project-configuration/member')
+          path: 'medical-configuration-member',
+          name: 'medical-configuration-member',
+          component: () => import('./views/medical-configuration/member')
         }
       ]
     },

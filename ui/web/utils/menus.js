@@ -85,23 +85,23 @@ module.exports = [
     router: '/audit-log'
   },
   {
-    index: 'project-configuration',
+    index: 'medical-configuration',
     label: '医疗绩效配置',
-    icon: 'el-icon-s-management',
+    icon: 'el-icon-data-line',
     children: [
       {
-        index: 'project-configuration-list',
-        router: '/project-configuration-list',
+        index: 'medical-configuration-list',
+        router: '/medical-configuration-list',
         label: '配置列表'
       },
       {
-        index: 'project-configuration-work',
-        router: '/project-configuration-work',
+        index: 'medical-configuration-work',
+        router: '/medical-configuration-work',
         label: '工分项管理'
       },
       {
-        index: 'project-configuration-member',
-        router: '/project-configuration-member',
+        index: 'medical-configuration-member',
+        router: '/medical-configuration-member',
         label: '员工管理'
       }
     ]
