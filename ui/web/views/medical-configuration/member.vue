@@ -96,6 +96,18 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column prop="subMembers" label="权重系数">
+          <template slot-scope="{row}">
+            <div v-if="!row.isEdit">{{ row.rate }}%</div>
+            <div v-else>
+              <el-input-number
+                v-model="tempRow.rate"
+                size="mini"
+              ></el-input-number
+              >%
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="创建时间"></el-table-column>
         <el-table-column prop="" label="操作">
           <template slot-scope="{row}">
@@ -272,6 +284,7 @@ export default {
                   index: i + 1,
                   member: `员工B${i}`,
                   subMembers: [`员工A${i}:123qwec${i}`],
+                  rate: 70,
                   createdAt: '2021-05-18 11:23:21'
                 });
               }
