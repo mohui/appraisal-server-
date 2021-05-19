@@ -384,12 +384,13 @@ export default {
       try {
         const valid = await this.$refs['configForm'].validate();
         if (valid) {
-          this.$set(this.tableData, this.tableData.length, {
+          this.$set(this.serverData.rows, this.tableData.length, {
             index: this.tableData.length + 1,
             work: this.newConfig.work,
             scoreType: this.newConfig.scoreType,
             scoreMember: this.newConfig.member,
             score: this.newConfig.score,
+            row: false,
             createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
           });
           this.resetConfig();
@@ -413,8 +414,9 @@ export default {
     },
     async submitEdit(index, tempRow) {
       tempRow.isEdit = !tempRow.isEdit;
-      this.$set(this.tableData, index - 1, tempRow);
+      this.$set(this.serverData.rows, index - 1, tempRow);
       this.$message.success('修改成功');
+      this.tempRow = '';
     },
     async removeRow(row) {
       this.tableData.splice(
