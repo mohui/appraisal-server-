@@ -207,6 +207,14 @@
             >手动打分</el-radio
           >
         </el-form-item>
+        <el-form-item label="打分类型" prop="scoreStyle">
+          <el-radio v-model="newWork.scoreStyle" label="按服务单位打分"
+            >按服务单位打分</el-radio
+          >
+          <el-radio v-model="newWork.scoreStyle" label="按金额单位打分"
+            >按金额单位打分</el-radio
+          >
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig()">取 消</el-button>
@@ -223,7 +231,7 @@ import {Permission} from '../../../../common/permission.ts';
 import dayjs from 'dayjs';
 
 export default {
-  name: 'User',
+  name: 'Work',
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,
@@ -238,6 +246,7 @@ export default {
       newWork: {
         work: '',
         scoreType: '',
+        scoreStyle: '',
         projects: []
       },
       addWorkVisible: false,
@@ -246,6 +255,9 @@ export default {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
         projects: [
           {required: true, message: '选择关联项目', trigger: 'change'}
+        ],
+        scoreStyle: [
+          {required: true, message: '选择打分类型', trigger: 'change'}
         ],
         scoreType: [
           {required: true, message: '选择打分方式', trigger: 'change'}
@@ -319,6 +331,7 @@ export default {
             index: this.tableData.length + 1,
             work: this.newWork.work,
             scoreType: this.newWork.scoreType,
+            scoreStyle: this.newWork.scoreStyle,
             projects: this.newWork.projects,
             row: false,
             createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
