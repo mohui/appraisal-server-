@@ -446,7 +446,7 @@
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">下级工分排行</div>
+              <div class="second-title">下级校正前工分排行</div>
               <div v-for="(item, index) of rankTotalData" :key="item.code">
                 <div
                   class="pointer"
