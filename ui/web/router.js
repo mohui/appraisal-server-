@@ -213,6 +213,21 @@ const router = new Router({
             ]
           },
           component: () => import('./views/medical-performance/index')
+        },
+        {
+          path: 'personal-appraisal-results',
+          name: 'personal-appraisal-results',
+          meta: {
+            permission: [
+              Permission.APPRAISAL_RESULT,
+              Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+              Permission.APPRAISAL_BASIC_DATA
+            ]
+          },
+          component: () =>
+            import(
+              './views/medical-performance/personal-appraisal-results/index'
+            )
         }
       ]
     },
