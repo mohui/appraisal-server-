@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <div class="card">
+      <div class="card" v-sticky>
         <span>
           {{ dataSource.name }}
         </span>
@@ -37,12 +37,17 @@
 </template>
 
 <script>
+import VueSticky from 'vue-sticky';
+
 export default {
   name: 'index',
   data() {
     return {
       dataSource: {name: '张三', score: 200, rate: 80}
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   mounted() {
     this.drawChart();
