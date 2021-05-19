@@ -102,7 +102,7 @@
                   <el-tooltip
                     class="item"
                     effect="dark"
-                    content="点击查看详情"
+                    content="点击查看考核结果详情"
                     placement="top-start"
                   >
                     <two-card-circle
@@ -124,7 +124,7 @@
                 <el-tooltip
                   class="item"
                   effect="dark"
-                  content="点击查看详情"
+                  content="点击查看工分校正详情"
                   placement="top-start"
                 >
                   <div class="score-detail" @click="latTypeChanged('score')">
