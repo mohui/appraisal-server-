@@ -412,13 +412,14 @@
         <!--下级质量系数排行-->
         <el-row
           v-if="params.listFlag === 'quality' && this.rankData.length > 0"
+          :gutter="20"
         >
-          <el-col :span="24">
+          <el-col :span="12">
             <el-card
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">下级地区排行</div>
+              <div class="second-title">下级质量系数排行</div>
               <div v-for="(item, index) of rankData" :key="item.code">
                 <div
                   class="pointer"
@@ -434,6 +435,32 @@
                     :text-inside="true"
                     :stroke-width="18"
                     :percentage="Math.round(item.rate * 100)"
+                  >
+                  </el-progress>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="12">
+            <el-card
+              v-loading="$asyncComputed.rankServerData.updating"
+              shadow="hover"
+            >
+              <div class="second-title">下级工分排行</div>
+              <div v-for="(item, index) of rankTotalData" :key="item.code">
+                <div
+                  class="pointer"
+                  @click="handleClickSubordinateArea(item.code)"
+                >
+                  <p>
+                    {{ index + 1 }}、{{ item.name }}
+                    <span style="float:right">{{ item.totalWorkPoint }}</span>
+                  </p>
+                  <el-progress
+                    :text-inside="true"
+                    :stroke-width="18"
+                    :percentage="Math.round(item.totalWorkPointRate * 100)"
+                    :format="setProgress(item.totalWorkPoint)"
                   >
                   </el-progress>
                 </div>
@@ -717,6 +744,22 @@ export default {
       } else {
         return result.sort((a, b) => b.rate - a.rate);
       }
+    },
+    //下级地区排行数据
+    rankTotalData() {
+      // 首先获取数据
+      const ranks = this.rankServerData;
+      // 取出最大的校正前工分值
+      const maxTotalWorkPoint = ranks
+        .sort((a, b) => b.totalWorkPoint - a.totalWorkPoint)
+        .map(item => item.totalWorkPoint)[0];
+      // return maxTotalWorkPoint;
+      return ranks.map(item => {
+        return {
+          ...item,
+          totalWorkPointRate: item?.totalWorkPoint / maxTotalWorkPoint
+        };
+      });
     }
   },
   watch: {
@@ -812,6 +855,12 @@ export default {
           year: this.params.year
         }
       });
+    },
+    // 自定义进度条文字
+    setProgress(totalWorkPoint) {
+      return () => {
+        return totalWorkPoint;
+      };
     }
   },
   asyncComputed: {
