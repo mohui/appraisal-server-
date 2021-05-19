@@ -203,18 +203,26 @@ const router = new Router({
           component: () => import('./views/audit/index')
         },
         {
-          path: 'medical-configuration-list',
-          name: 'medical-configuration-list',
+          path: 'medical-configuration',
+          name: 'medical-configuration',
           component: () => import('./views/medical-configuration/index')
         },
         {
           path: 'medical-configuration-work',
           name: 'medical-configuration-work',
+          meta: {
+            permission: [Permission.MEDICAL_CONFIGURATION_WORK],
+            activeMenu: 'medical-configuration'
+          },
           component: () => import('./views/medical-configuration/work')
         },
         {
           path: 'medical-configuration-member',
           name: 'medical-configuration-member',
+          meta: {
+            permission: [Permission.MEDICAL_CONFIGURATION_MEMBER],
+            activeMenu: 'medical-configuration'
+          },
           component: () => import('./views/medical-configuration/member')
         }
       ]

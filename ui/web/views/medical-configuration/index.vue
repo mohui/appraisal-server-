@@ -14,9 +14,19 @@
       <div slot="header" class="header">
         <span>配置列表</span>
         <div>
-          <el-button size="mini" type="primary">新增考核项</el-button>
-          <el-button size="mini" type="text">工分考核</el-button>
-          <el-button size="mini" type="text">员工考核</el-button>
+          <el-button size="mini" type="primary">新增配置</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            @click="goto('medical-configuration-work')"
+            >工分考核</el-button
+          >
+          <el-button
+            size="mini"
+            type="text"
+            @click="goto('medical-configuration-member')"
+            >员工考核</el-button
+          >
         </div>
       </div>
       <kn-collapse
@@ -160,7 +170,11 @@ export default {
       default: {counts: 0, rows: []}
     }
   },
-  methods: {}
+  methods: {
+    goto(router) {
+      this.$router.push(`${router}`);
+    }
+  }
 };
 </script>
 

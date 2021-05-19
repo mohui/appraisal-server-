@@ -86,24 +86,9 @@ module.exports = [
   },
   {
     index: 'medical-configuration',
+    permission: [Permission.MEDICAL_CONFIGURATION_LIST],
+    router: '/medical-configuration',
     label: '医疗绩效配置',
-    icon: 'el-icon-data-line',
-    children: [
-      {
-        index: 'medical-configuration-list',
-        router: '/medical-configuration-list',
-        label: '配置列表'
-      },
-      {
-        index: 'medical-configuration-work',
-        router: '/medical-configuration-work',
-        label: '工分项管理'
-      },
-      {
-        index: 'medical-configuration-member',
-        router: '/medical-configuration-member',
-        label: '员工管理'
-      }
-    ]
+    icon: 'el-icon-data-line'
   }
 ];
