@@ -757,7 +757,9 @@ export default {
       return ranks.map(item => {
         return {
           ...item,
-          totalWorkPointRate: item?.totalWorkPoint / maxTotalWorkPoint
+          totalWorkPointRate: maxTotalWorkPoint
+            ? item?.totalWorkPoint / maxTotalWorkPoint
+            : 0
         };
       });
     }
