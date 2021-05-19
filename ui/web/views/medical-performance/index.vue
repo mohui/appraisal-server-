@@ -71,6 +71,43 @@ export default {
           {name: '医生5', score: 90, rate: 0.6},
           {name: '医生6', score: 50, rate: 0.9},
           {name: '医生7', score: 70, rate: 0.4}
+        ],
+        projectData: [
+          {
+            name: '项目1',
+            afterCorrectionWorkPoint: 245,
+            beforeCorrectionWorkPoint: 300
+          },
+          {
+            name: '项目2',
+            afterCorrectionWorkPoint: 344,
+            beforeCorrectionWorkPoint: 397
+          },
+          {
+            name: '项目3',
+            afterCorrectionWorkPoint: 200,
+            beforeCorrectionWorkPoint: 240
+          },
+          {
+            name: '项目4',
+            afterCorrectionWorkPoint: 234,
+            beforeCorrectionWorkPoint: 435
+          },
+          {
+            name: '项目5',
+            afterCorrectionWorkPoint: 353,
+            beforeCorrectionWorkPoint: 360
+          },
+          {
+            name: '项目6',
+            afterCorrectionWorkPoint: 459,
+            beforeCorrectionWorkPoint: 633
+          },
+          {
+            name: '项目7',
+            afterCorrectionWorkPoint: 330,
+            beforeCorrectionWorkPoint: 330
+          }
         ]
       }
     };
@@ -203,13 +240,15 @@ export default {
         },
         yAxis: {
           type: 'category',
-          data: ['项目1', '项目2', '项目3', '项目4', '项目5', '项目6']
+          data: this.dataSource.projectData.map(it => it.name)
         },
         series: [
           {
             name: '项目应得分',
             type: 'bar',
-            data: [23539, 45256, 59034, 84970, 31744, 83230],
+            data: this.dataSource.projectData.map(
+              it => it.beforeCorrectionWorkPoint
+            ),
             itemStyle: {
               color: 'rgba(180, 180, 180, 0.3)'
             }
@@ -217,7 +256,9 @@ export default {
           {
             name: '项目实际得分',
             type: 'bar',
-            data: [19325, 45256, 31000, 51594, 14141, 61807],
+            data: this.dataSource.projectData.map(
+              it => it.afterCorrectionWorkPoint
+            ),
             itemStyle: {
               color: '#409eff'
             },
