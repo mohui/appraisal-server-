@@ -273,7 +273,7 @@ import {Permission} from '../../../../common/permission.ts';
 import dayjs from 'dayjs';
 
 export default {
-  name: 'User',
+  name: 'Configuration',
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,

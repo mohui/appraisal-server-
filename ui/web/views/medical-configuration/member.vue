@@ -12,7 +12,7 @@
       }"
     >
       <div slot="header" class="member-header">
-        <span>工分项配置</span>
+        <span>员工管理</span>
         <div>
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
             >新增考核员工</el-button
@@ -271,7 +271,7 @@ export default {
                 data.push({
                   index: i + 1,
                   member: `员工B${i}`,
-                  subMembers: [`员工A${i}`],
+                  subMembers: [`员工A${i}:123qwec${i}`],
                   createdAt: '2021-05-18 11:23:21'
                 });
               }
@@ -296,7 +296,7 @@ export default {
         let i = 0;
         let data = [];
         for (; i < 10; i++) {
-          data.push({name: `员工A${i}`, value: `员工A${i}`});
+          data.push({name: `员工A${i}:123qwec${i},`, value: `员工A${i}`});
         }
         return data;
       },
