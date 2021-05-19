@@ -22,8 +22,8 @@
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
 | DeptID | bigint | 科室id |
-| DeptName | varchar(40) | 科室名称 |
 | HospitalID | bigint | 所属医院 |
+| DeptName | varchar(40) | 科室名称 |
 
 #### 人员表 V_KN_People
 
@@ -79,7 +79,7 @@
 | LeecSort | varchar(50) | 所属分类 |
 | LeecName | varchar(100) | 名称 |
 | LeecSpec | varchar(100) | 规格 |
-| LeecForm | varchar(20) | 剂型 |
+| LeecForm | varchar(20) | 剂型; 字典编码: 10301003 |
 
 #### 收费汇总表 V_KN_ChargeMaster
 
@@ -97,10 +97,12 @@
 | IDCardNo | varchar(50) | 身份证 |
 | Tel | varchar(20) | 联系电话 |
 | Address | varchar(200) | 联系地址 |
+| DeptID | bigint | 开单科室id |
 | DeptName | varchar(50) | 科室 |
+| DoctorID | bigint | 开单医生id |
 | DoctorName | varchar(20) | 医生 |
 | TotalCosts | decimal(12, 2) | 金额 |
-| ChargesType | varchar(8) | 收费类型. 0: 正常; 1: 退费 |
+| ChargesType | varchar(8) | 收费类型. 0: 正常; 2: 退费 |
 | OperatorNo | varchar(20) | 收费员 |
 | OperateTime | datetime | 收费时间 |
 | PayType | varchar(10) | 缴费方式. 1: 自费; 4: 医保 |
