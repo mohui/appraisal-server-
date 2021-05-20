@@ -30,7 +30,10 @@
         </el-row>
       </div>
       <div class="card" style="height: 300px ; margin-top: 20px">
-        d
+        <div
+          id="projectWorkPointBarRateLine"
+          :style="{width: '100%', height: '100%'}"
+        ></div>
       </div>
     </div>
   </div>
@@ -56,6 +59,7 @@ export default {
     // 绘制图表
     drawChart() {
       this.drawProjectWorkPointPie();
+      this.drawProjectWorkPointBarRateLine();
     },
     // 项目工分饼状图
     drawProjectWorkPointPie() {
@@ -106,6 +110,149 @@ export default {
       window.addEventListener('resize', function() {
         myChart.resize();
       });
+    },
+    // 项目工分柱状，质量系数折线图
+    drawProjectWorkPointBarRateLine() {
+      // 基于准备好的dom，初始化echarts实例
+      const myChart = this.$echarts.init(
+        document.getElementById('projectWorkPointBarRateLine')
+      );
+      let option;
+      option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            // 坐标轴指示器，坐标轴触发有效
+            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+          }
+        },
+        legend: {
+          data: ['手术', '针灸', '处方']
+        },
+        xAxis: {
+          type: 'category',
+          data: ['10-01', '10-02', '10-03', '10-04', '10-05', '10-06', '10-07']
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '质量系数',
+            axisLabel: {
+              formatter: '质量系数：{value}%'
+            }
+          },
+          {
+            type: 'value',
+            name: '工分',
+            axisLabel: {
+              formatter: '工分：{value}'
+            }
+          }
+        ],
+        series: [
+          {
+            name: '手术辅助',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '手术',
+            itemStyle: {
+              barBorderColor: 'rgba(0,0,0,0)',
+              color: 'rgba(0,0,0,0)'
+            },
+            emphasis: {
+              itemStyle: {
+                barBorderColor: 'rgba(0,0,0,0)',
+                color: 'rgba(0,0,0,0)'
+              }
+            },
+            data: [0, 900, 1000, 1300, 1500, 1700, 1800]
+          },
+          {
+            name: '手术',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '手术',
+            label: {
+              show: true,
+              position: 'top'
+            },
+            data: [900, 100, 300, 200, 200, 100, 500]
+          },
+          {
+            name: '针灸辅助',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '针灸',
+            itemStyle: {
+              barBorderColor: 'rgba(0,0,0,0)',
+              color: 'rgba(0,0,0,0)'
+            },
+            emphasis: {
+              itemStyle: {
+                barBorderColor: 'rgba(0,0,0,0)',
+                color: 'rgba(0,0,0,0)'
+              }
+            },
+            data: [0, 400, 500, 800, 1100, 1500, 1700]
+          },
+          {
+            name: '针灸',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '针灸',
+            label: {
+              show: true,
+              position: 'top'
+            },
+            data: [400, 100, 300, 300, 400, 200, 300]
+          },
+          {
+            name: '处方辅助',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '处方',
+            itemStyle: {
+              barBorderColor: 'rgba(0,0,0,0)',
+              color: 'rgba(0,0,0,0)'
+            },
+            emphasis: {
+              itemStyle: {
+                barBorderColor: 'rgba(0,0,0,0)',
+                color: 'rgba(0,0,0,0)'
+              }
+            },
+            data: [0, 200, 300, 600, 800, 1000, 1100]
+          },
+          {
+            name: '处方',
+            type: 'bar',
+            yAxisIndex: 1,
+            stack: '处方',
+            label: {
+              show: true,
+              position: 'top'
+            },
+            data: [200, 100, 300, 200, 200, 100, 200]
+          },
+
+          {
+            name: '手术',
+            data: [50, 70, 65, 78, 85, 47, 60],
+            type: 'line'
+          },
+          {
+            name: '针灸',
+            data: [56, 77, 55, 68, 85, 77, 50],
+            type: 'line'
+          },
+          {
+            name: '处方',
+            data: [66, 67, 75, 34, 57, 74, 85],
+            type: 'line'
+          }
+        ]
+      };
+      myChart.setOption(option);
     }
   }
 };
