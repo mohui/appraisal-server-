@@ -244,11 +244,7 @@ const router = new Router({
           path: 'personal-appraisal-results',
           name: 'personal-appraisal-results',
           meta: {
-            permission: [
-              Permission.APPRAISAL_RESULT,
-              Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
-              Permission.APPRAISAL_BASIC_DATA
-            ]
+            activeMenu: 'medical-performance'
           },
           component: () =>
             import(
