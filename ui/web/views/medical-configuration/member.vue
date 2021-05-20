@@ -55,45 +55,16 @@
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
         <el-table-column prop="index" label="序号"></el-table-column>
-        <el-table-column prop="member" label="考核员工">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.member }}</div>
-            <div v-else>
-              <el-select v-model="tempRow.member" collapse-tags size="mini">
-                <el-option
-                  v-for="m in memberList"
-                  :key="m.value"
-                  :label="m.name"
-                  :value="m.value"
-                ></el-option>
-              </el-select>
-            </div>
-          </template>
-        </el-table-column>
+        <el-table-column prop="member" label="考核员工"></el-table-column>
         <el-table-column prop="subMembers" label="关联员工">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.subMembers }}</div>
-            <div v-else>
-              <el-select
-                v-model="tempRow.subMembers"
-                size="mini"
-                multiple
-                collapse-tags
-              >
-                <el-option
-                  v-for="m in memberList"
-                  :key="m.value"
-                  :label="m.name"
-                  :value="m.value"
-                ></el-option>
-              </el-select>
-            </div>
+            <div>{{ row.subMembers }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间"></el-table-column>
         <el-table-column prop="" label="操作">
           <template slot-scope="{row}">
-            <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
+            <el-tooltip content="编辑" :enterable="false">
               <el-button
                 type="primary"
                 icon="el-icon-edit"
@@ -103,35 +74,7 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="提交修改"
-              :enterable="false"
-            >
-              <el-button
-                type="success"
-                icon="el-icon-check"
-                circle
-                size="mini"
-                @click="submitEdit(row.index, tempRow)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="取消修改"
-              :enterable="false"
-            >
-              <el-button
-                type="default"
-                icon="el-icon-close"
-                circle
-                size="mini"
-                @click="cancelEdit(row.index)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip v-show="!row.isEdit" content="删除" :enterable="false">
+            <el-tooltip content="删除" :enterable="false">
               <el-button
                 type="danger"
                 icon="el-icon-delete"
@@ -179,7 +122,11 @@
         label-width="120px"
       >
         <el-form-item label="考核员工" prop="member">
-          <el-select v-model="newMember.member" collapse-tags>
+          <el-select
+            v-model="newMember.member"
+            collapse-tags
+            :disabled="newMember.index > 0"
+          >
             <el-option
               v-for="m in memberList"
               :key="m.value"
@@ -290,7 +237,7 @@ export default {
   },
   computed: {
     tableData() {
-      return this.serverData.rows.map(d => ({...d, isEdit: false}));
+      return this.serverData.rows;
     },
     memberList() {
       return this.serverMemberData;
@@ -365,14 +312,21 @@ export default {
       try {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
-          this.$set(this.serverData.rows, this.tableData.length, {
-            index: this.tableData.length + 1,
-            member: this.newMember.member,
-            subMembers: this.newMember.subMembers.filter(it => it.name),
-            row: false,
-            createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
-          });
-          this.$message.success('添加成功');
+          if (!this.newMember.index) {
+            this.$set(this.serverData.rows, this.tableData.length, {
+              index: this.tableData.length + 1,
+              member: this.newMember.member,
+              subMembers: this.newMember.subMembers.filter(it => it.name),
+              createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
+            });
+            this.$message.success('添加成功');
+          } else {
+            this.$set(
+              this.serverData.rows,
+              this.newMember.index - 1,
+              this.tempRow
+            );
+          }
           this.resetConfig();
         }
       } catch (e) {
@@ -385,19 +339,9 @@ export default {
         this.$message.warning('已有其他数据正在编辑');
         return;
       }
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
       this.tempRow = Object.assign({}, this.tableData[index - 1]);
-      console.log(this.tempRow);
-    },
-    cancelEdit(index) {
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
-      this.tempRow = '';
-    },
-    async submitEdit(index, tempRow) {
-      tempRow.isEdit = !tempRow.isEdit;
-      this.$set(this.serverData.rows, index - 1, tempRow);
-      this.$message.success('修改成功');
-      this.tempRow = '';
+      this.addMemberVisible = true;
+      this.newMember = this.tempRow;
     },
     async removeRow(row) {
       this.tableData.splice(
@@ -409,6 +353,7 @@ export default {
     resetConfig() {
       this.$refs['memberForm'].resetFields();
       this.addMemberVisible = false;
+      this.tempRow = '';
     }
   }
 };
