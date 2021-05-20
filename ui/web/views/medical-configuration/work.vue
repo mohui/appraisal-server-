@@ -296,8 +296,8 @@ export default {
       },
       newWork: {
         work: '',
-        scoreType: '',
-        scoreStyle: '',
+        scoreType: '自动打分',
+        scoreStyle: '按服务单位打分',
         projects: []
       },
       addWorkVisible: false,
