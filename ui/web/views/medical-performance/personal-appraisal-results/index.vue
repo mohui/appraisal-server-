@@ -20,8 +20,30 @@
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-            <div class="card" style="height: 200px">
-              b
+            <div
+              class="card"
+              style="height: 200px; display: flex; flex-direction: column"
+            >
+              <div>个人信息</div>
+              <el-row :gutter="10" style="height: 100%">
+                <el-col
+                  v-for="(value, key) in personInfo"
+                  :key="key"
+                  :span="12"
+                  style="padding:  0 8%"
+                >
+                  <el-row style="margin: 5px; padding: 5px; font-size: 15px">
+                    <el-col :span="10" style="color: #323233"
+                      >{{ key }}：</el-col
+                    >
+                    <el-col
+                      :span="14"
+                      style="color: darkgray; text-align: right"
+                      >{{ value }}</el-col
+                    >
+                  </el-row>
+                </el-col>
+              </el-row>
             </div>
             <div class="card" style="height: 200px ; margin-top: 20px">
               c
@@ -46,7 +68,17 @@ export default {
   name: 'index',
   data() {
     return {
-      dataSource: {name: '张三', score: 200, rate: 80}
+      dataSource: {name: '张三', score: 200, rate: 80},
+      personInfo: {
+        name: '张三',
+        gender: '男',
+        birth: '1993-03-01',
+        idCard: '4305353199303016567',
+        empNo: '4235',
+        department: '门诊部',
+        tel: '4305353199303016567',
+        medicareNo: '340608083803'
+      }
     };
   },
   directives: {
