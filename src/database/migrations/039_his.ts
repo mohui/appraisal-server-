@@ -35,7 +35,7 @@ export class HisMigration implements IMigration {
       comment on column "his_user_work_source"."sources" is '关联用户id数组';
       comment on column "his_user_work_source".rate is '比例';
 
-      --工分项目
+      --工分项目表
       create table if not exists "his_work_item"
       (
         id           varchar(36),
@@ -45,12 +45,12 @@ export class HisMigration implements IMigration {
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
-      comment on table "his_work_item" is '工分项目';
+      comment on table "his_work_item" is '工分项目表';
       comment on column "his_work_item".name is '名称';
       comment on column "his_work_item".auto is '是否自动打分';
       comment on column "his_work_item".type is '得分方式; counts: 数量; money: 金额';
 
-      --工分项目与his收费项目关联
+      --工分项目与his收费项目关联表
       create table if not exists "his_work_item_mapping"
       (
         item         varchar(36),
@@ -60,7 +60,7 @@ export class HisMigration implements IMigration {
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (item, charge)
       );
-      comment on table "his_work_item_mapping" is '工分项目与his收费项目关联';
+      comment on table "his_work_item_mapping" is '工分项目与his收费项目关联表';
       comment on column "his_work_item_mapping".item is '工分项目id';
       comment on column "his_work_item_mapping".charge is '收费项目id';
       comment on column "his_work_item_mapping".type is '收费项目类型; 检查项目/药品';
