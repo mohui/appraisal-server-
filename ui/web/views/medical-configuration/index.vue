@@ -86,17 +86,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="scoreType" label="打分类型">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.scoreType }}</div>
-            <div v-else>
-              <el-select v-model="tempRow.scoreType" size="mini">
-                <el-option label="手动打分" value="手动打分"></el-option>
-                <el-option label="自动打分" value="自动打分"></el-option>
-              </el-select>
-            </div>
-          </template>
-        </el-table-column>
+        <el-table-column prop="scoreType" label="打分方式"></el-table-column>
         <el-table-column prop="scoreMember" label="考核员工">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.scoreMember }}</div>
@@ -224,14 +214,6 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="打分方式" prop="scoreType">
-          <el-radio v-model="newConfig.scoreType" label="自动打分"
-            >自动打分</el-radio
-          >
-          <el-radio v-model="newConfig.scoreType" label="手动打分"
-            >手动打分</el-radio
-          >
-        </el-form-item>
         <el-form-item label="考核员工" prop="member">
           <el-select v-model="newConfig.member" multiple>
             <el-option
@@ -283,9 +265,6 @@ export default {
       addConfigurationVisible: false,
       configRules: {
         work: [{required: true, message: '选择工分项', trigger: 'change'}],
-        scoreType: [
-          {required: true, message: '选择打分方式', trigger: 'change'}
-        ],
         member: [{required: true, message: '选择考核员工', trigger: 'change'}],
         score: [{required: true, message: '输入分值', trigger: 'change'}]
       },
@@ -365,9 +344,6 @@ export default {
     }
   },
   methods: {
-    goto(router) {
-      this.$router.push(`${router}`);
-    },
     async submit() {
       try {
         const valid = await this.$refs['configForm'].validate();
@@ -375,7 +351,7 @@ export default {
           this.$set(this.serverData.rows, this.tableData.length, {
             index: this.tableData.length + 1,
             work: this.newConfig.work,
-            scoreType: this.newConfig.scoreType,
+            scoreType: '自动打分',
             scoreMember: this.newConfig.member,
             score: this.newConfig.score,
             row: false,
@@ -401,6 +377,10 @@ export default {
       this.tempRow = '';
     },
     async submitEdit(index, tempRow) {
+      if (tempRow?.scoreMember.length < 1) {
+        this.$message.warning('考核员工不能为空');
+        return;
+      }
       tempRow.isEdit = !tempRow.isEdit;
       this.$set(this.serverData.rows, index - 1, tempRow);
       this.$message.success('修改成功');
