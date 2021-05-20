@@ -3,20 +3,21 @@
     <div>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
-        <span class="header-title">
-          中心绩效考核
-        </span>
-
-        <el-button
-          type="primary"
-          size="mini"
-          @click="
-            $router.push({
-              name: 'check-project'
-            })
-          "
-          >手动考核</el-button
-        >
+        <div class="header">
+          <div class="header-title">
+            中心绩效考核
+          </div>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="
+              $router.push({
+                name: 'check-project'
+              })
+            "
+            >手动考核</el-button
+          >
+        </div>
       </el-card>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
@@ -353,10 +354,14 @@ export default {
   }
 }
 
-.header-title {
-  font: bold 20px/2 Arial;
-  color: $color-primary;
-  margin-right: 10px;
+.header {
+  display: flex;
+  flex-direction: row;
+  .header-title {
+    font: bold 20px/2 Arial;
+    color: $color-primary;
+    margin-right: 10px;
+  }
 }
 
 .score-detail {
