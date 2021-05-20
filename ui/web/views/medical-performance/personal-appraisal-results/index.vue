@@ -15,14 +15,14 @@
             <div class="card">
               <div
                 id="projectWorkPointPie"
-                :style="{width: '100%', height: '460px'}"
+                :style="{width: '100%', height: '420px'}"
               ></div>
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
             <div
               class="card"
-              style="height: 200px; display: flex; flex-direction: column"
+              style="height: 180px; display: flex; flex-direction: column"
             >
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
@@ -358,29 +358,25 @@ export default {
   border-radius: 4px;
   border: 1px solid #ebeef5;
   background-color: #ffffff;
-  //overflow: hidden;
   color: #303133;
   transition: 0.3s;
   padding: 20px;
 }
 
 .score-rules {
-  height: 200px;
+  height: 180px;
   margin-top: 20px;
   .item {
-    height: 200px;
-    //background: orange;
+    height: 180px;
     display: flex;
     flex-direction: column;
     .content {
       flex-grow: 1;
-      //background: red;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .more {
-      //background: #409eff;
       height: 30px;
       padding: 10px 0;
     }
