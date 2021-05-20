@@ -97,6 +97,90 @@ export class HisMigration implements IMigration {
       comment on column "his_user_work_score".date is '日期';
       comment on column "his_user_work_score".score is '得分';
     `);
+    // language=PostgreSQL
+    await client.execute(`
+      --医疗考核方案表
+      create table if not exists "his_check_system"
+      (
+        id           varchar(36) primary key,
+        name         varchar(255),
+        users        varchar(36)[],
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table "his_check_system" is '医疗考核方案表';
+      comment on column "his_check_system".name is '名称';
+      comment on column "his_check_system".users is '考核员工';
+
+      --医疗考核规则表
+      create table if not exists "his_check_rule"
+      (
+        id           varchar(36) primary key,
+        "check"      varchar(36),
+        name         varchar(255),
+        tag          varchar(255),
+        algorithm    varchar(255),
+        baseline     double precision,
+        score        int,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table "his_check_rule" is '医疗考核规则表';
+      comment on column "his_check_rule".name is '名称';
+      comment on column "his_check_rule".tag is '指标';
+      comment on column "his_check_rule".algorithm is '计算方式';
+      comment on column "his_check_rule".baseline is '参考值';
+      comment on column "his_check_rule".score is '分值';
+
+      --考核结算表
+      create table if not exists his_check_settle
+      (
+        "check"      varchar(36),
+        month        varchar(6),
+        settle       boolean,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key ("check", month)
+      );
+      comment on table his_check_settle is '考核结算表';
+      comment on column his_check_settle."check" is '考核方案id';
+      comment on column his_check_settle.month is '考核时间; 格式为: YYYYMM';
+      comment on column his_check_settle.settle is '是否结算';
+
+      --考核得分表
+      create table if not exists his_rule_user_score
+      (
+        rule         varchar(36),
+        "user"       varchar(36),
+        date         date,
+        score        double precision,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key (rule, "user", date)
+      );
+      comment on table his_rule_user_score is '考核得分表';
+      comment on column his_rule_user_score.rule is '考核规则id';
+      comment on column his_rule_user_score."user" is '用户id';
+      comment on column his_rule_user_score.date is '日期';
+      comment on column his_rule_user_score.score is '得分';
+
+      --考核附加分表
+      create table if not exists his_user_extra_score
+      (
+        "user"       varchar(36),
+        month        varchar(6),
+        "check"      varchar(36),
+        score        int,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key ("user", month)
+      );
+      comment on table his_user_extra_score is '附加分表';
+      comment on column his_user_extra_score."check" is '考核方案';
+      comment on column his_user_extra_score."user" is '员工id';
+      comment on column his_user_extra_score.month is '考核时间; 格式为: YYYYMM';
+      comment on column his_user_extra_score.score is '得分';
+    `);
   }
 
   async down(client: ExtendedSequelize): Promise<void> {
