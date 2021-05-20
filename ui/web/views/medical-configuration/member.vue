@@ -125,7 +125,7 @@
           <el-select
             v-model="newMember.member"
             collapse-tags
-            :disabled="newMember.index > 0"
+            :disabled="!!newMember.index || newMember.index < 0"
           >
             <el-option
               v-for="m in memberList"
@@ -227,7 +227,6 @@ export default {
         subMembers: []
       },
       addMemberVisible: false,
-      tempRow: '',
       memberRules: {
         member: [{required: true, message: '选择员工', trigger: 'change'}],
         subMembers: [{validator: ValidSubMember, trigger: 'blur'}]
@@ -245,7 +244,7 @@ export default {
   },
   watch: {
     'newMember.member'() {
-      if (this.newMember.member) {
+      if (!this.newMember.index && this.newMember.member) {
         this.newMember.subMembers = [];
         this.newMember.subMembers.push({
           name: this.newMember.member,
@@ -321,11 +320,13 @@ export default {
             });
             this.$message.success('添加成功');
           } else {
-            this.$set(
-              this.serverData.rows,
-              this.newMember.index - 1,
-              this.tempRow
-            );
+            console.log(this.newMember);
+            this.$set(this.serverData.rows, this.newMember.index - 1, {
+              index: this.newMember.index,
+              member: this.newMember.member,
+              subMembers: this.newMember.subMembers.filter(it => it.name),
+              createdAt: this.newMember.createdAt
+            });
           }
           this.resetConfig();
         }
@@ -335,13 +336,8 @@ export default {
       }
     },
     editRow(index) {
-      if (this.tempRow) {
-        this.$message.warning('已有其他数据正在编辑');
-        return;
-      }
-      this.tempRow = Object.assign({}, this.tableData[index - 1]);
+      this.newMember = JSON.parse(JSON.stringify(this.tableData[index - 1]));
       this.addMemberVisible = true;
-      this.newMember = this.tempRow;
     },
     async removeRow(row) {
       this.tableData.splice(
@@ -353,7 +349,7 @@ export default {
     resetConfig() {
       this.$refs['memberForm'].resetFields();
       this.addMemberVisible = false;
-      this.tempRow = '';
+      this.newMember = {member: '', subMembers: []};
     }
   }
 };
