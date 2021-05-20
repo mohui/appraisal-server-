@@ -144,20 +144,20 @@ export class HisMigration implements IMigration {
       comment on column "his_check_rule".baseline is '参考值';
       comment on column "his_check_rule".score is '分值';
 
-      --考核结算表
-      create table if not exists his_check_settle
+      --机构结算表
+      create table if not exists his_hospital_settle
       (
-        "check"      varchar(36),
-        month        varchar(6),
+        hospital     varchar(36),
+        month        date,
         settle       boolean,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key ("check", month)
+        primary key (hospital, month)
       );
-      comment on table his_check_settle is '考核结算表';
-      comment on column his_check_settle."check" is '考核方案id';
-      comment on column his_check_settle.month is '考核时间; 格式为: YYYYMM';
-      comment on column his_check_settle.settle is '是否结算';
+      comment on table his_hospital_settle is '考核结算表';
+      comment on column his_hospital_settle.hospital is '所属医院id';
+      comment on column his_hospital_settle.month is '结算时间; 默认每月1号';
+      comment on column his_hospital_settle.settle is '是否结算';
 
       --考核得分表
       create table if not exists his_rule_staff_score
