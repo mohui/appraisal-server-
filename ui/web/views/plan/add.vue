@@ -17,6 +17,7 @@
           style="float: right; margin: -4px 0 0 20px;"
           size="small"
           type="primary"
+          plain
           @click="
             $router.push({
               name: 'plan'
@@ -59,7 +60,7 @@
               {{ targetScore }} </span
             >； 手动打分（分）：<span> {{ manualScore }} </span>
           </div>
-          <el-tabs v-model="activeName" type="card">
+          <el-tabs v-model="activeName" type="border-card">
             <el-tab-pane label="自动打分" name="first">
               <el-table
                 :data="form.target"
@@ -689,25 +690,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-::v-deep .el-tabs__header {
-  margin-bottom: 0;
-}
-::v-deep .el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
-  background-color: #409eff;
-  border-bottom-color: #409eff;
-  color: #fff;
-}
-
-::v-deep .el-tabs--card > .el-tabs__header {
-  border-bottom: 1px solid #409eff;
-}
-::v-deep .el-table thead th {
-  background-color: #f9f9f9;
-}
 ::v-deep .el-tab-pane {
-  border: 1px solid #409eff;
-  border-top: none;
-  padding: 10px;
   height: calc(100vh - 450px);
 }
 .total-info {
