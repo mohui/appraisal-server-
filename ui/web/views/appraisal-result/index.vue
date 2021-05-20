@@ -112,7 +112,7 @@
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
               >
-                <div class=" score-detail">
+                <div class="score-detail">
                   <el-tooltip
                     class="item"
                     effect="dark"
@@ -120,6 +120,7 @@
                     placement="top"
                   >
                     <two-card-circle
+                      class="cursor-pointer"
                       :coefficient="totalData.fixedDecimalRate"
                       :on-click="handleCheckDetailClick"
                     ></two-card-circle>
@@ -141,7 +142,11 @@
                   content="点击查看工分校正详情"
                   placement="top"
                 >
-                  <div class="score-detail" @click="latTypeChanged('score')">
+                  <div
+                    class="score-detail"
+                    style="cursor: pointer"
+                    @click="latTypeChanged('score')"
+                  >
                     <div class="second-title" style="text-align:left">
                       工分值
                     </div>
@@ -1175,6 +1180,12 @@ export default {
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
+}
+
+.cursor-pointer {
+  div canvas {
+    cursor: pointer !important;
+  }
 }
 </style>
 
