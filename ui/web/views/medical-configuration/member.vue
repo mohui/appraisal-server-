@@ -47,6 +47,7 @@
       <el-table
         v-loading="tableLoading"
         stripe
+        class="expanded-member-table"
         size="small"
         :data="tableData"
         height="100%"
@@ -54,23 +55,18 @@
         current-row-key="index"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column prop="index" label="序号"></el-table-column>
-        <el-table-column prop="member" label="考核员工"></el-table-column>
-        <el-table-column prop="subMembers" label="关联员工">
+        <el-table-column type="expand">
           <template slot-scope="{row}">
-            <el-table
-              :show-header="false"
-              size="mini"
-              border
-              :data="row.subMembers"
-            >
-              <el-table-column prop="name"></el-table-column>
-              <el-table-column prop="rate">
+            <el-table size="mini" border :data="row.subMembers">
+              <el-table-column label="员工" prop="name"></el-table-column>
+              <el-table-column label="权重系数" prop="rate">
                 <template slot-scope="{row}"> {{ row.rate }}% </template>
               </el-table-column>
             </el-table>
           </template>
         </el-table-column>
+        <el-table-column prop="index" label="序号"></el-table-column>
+        <el-table-column prop="member" label="考核员工"></el-table-column>
         <el-table-column prop="createdAt" label="创建时间"></el-table-column>
         <el-table-column prop="" label="操作">
           <template slot-scope="{row}">
@@ -364,9 +360,15 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .member-header {
   display: flex;
   justify-content: space-between;
+}
+
+/deep/.expanded-member-table {
+  .el-table__expanded-cell {
+    padding: 10px 20px;
+  }
 }
 </style>
