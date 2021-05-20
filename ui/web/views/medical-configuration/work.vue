@@ -17,12 +17,6 @@
           <el-button size="mini" type="primary" @click="addWorkVisible = true"
             >新增工分项</el-button
           >
-          <el-button
-            size="mini"
-            type="text"
-            @click="$router.push('medical-configuration')"
-            >返回</el-button
-          >
         </div>
       </div>
       <kn-collapse
@@ -67,13 +61,24 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="打分类型">
+        <el-table-column prop="scoreType" label="打分类型"></el-table-column>
+        <el-table-column prop="scoreStyle" label="打分方式">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.scoreType }}</div>
+            <div v-if="!row.isEdit">{{ row.scoreStyle }}</div>
             <div v-else>
-              <el-select v-model="tempRow.scoreType" size="mini">
-                <el-option label="手动打分" value="手动打分"></el-option>
-                <el-option label="自动打分" value="自动打分"></el-option>
+              <el-select
+                v-model="tempRow.scoreStyle"
+                style="width: 100%"
+                size="mini"
+              >
+                <el-option
+                  value="按服务单位打分"
+                  label="按服务单位打分"
+                ></el-option>
+                <el-option
+                  value="按金额单位打分"
+                  label="按金额单位打分"
+                ></el-option>
               </el-select>
             </div>
           </template>
@@ -189,7 +194,29 @@
         <el-form-item label="工分项" prop="work">
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
-        <el-form-item label="关联项目" prop="projects">
+        <el-form-item label="打分方式" prop="scoreType">
+          <el-button-group>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': newWork.scoreType === '手动打分'}"
+              @click="newWork.scoreType = '手动打分'"
+            >
+              手动打分
+            </el-button>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': newWork.scoreType === '自动打分'}"
+              @click="newWork.scoreType = '自动打分'"
+            >
+              自动打分
+            </el-button>
+          </el-button-group>
+        </el-form-item>
+        <el-form-item
+          v-show="newWork.scoreType === '自动打分'"
+          label="关联项目"
+          prop="projects"
+        >
           <el-select v-model="newWork.projects" multiple>
             <el-option
               v-for="p in projectList"
@@ -199,21 +226,31 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="打分方式" prop="scoreType">
-          <el-radio v-model="newWork.scoreType" label="自动打分"
-            >自动打分</el-radio
-          >
-          <el-radio v-model="newWork.scoreType" label="手动打分"
-            >手动打分</el-radio
-          >
-        </el-form-item>
-        <el-form-item label="打分类型" prop="scoreStyle">
-          <el-radio v-model="newWork.scoreStyle" label="按服务单位打分"
-            >按服务单位打分</el-radio
-          >
-          <el-radio v-model="newWork.scoreStyle" label="按金额单位打分"
-            >按金额单位打分</el-radio
-          >
+        <el-form-item
+          v-show="newWork.scoreType === '自动打分'"
+          label="打分方式"
+          prop="scoreStyle"
+        >
+          <el-button-group>
+            <el-button
+              size="small"
+              :class="{
+                'el-button--primary': newWork.scoreStyle === '按服务单位打分'
+              }"
+              @click="newWork.scoreStyle = '按服务单位打分'"
+            >
+              按服务单位打分
+            </el-button>
+            <el-button
+              size="small"
+              :class="{
+                'el-button--primary': newWork.scoreStyle === '按金额单位打分'
+              }"
+              @click="newWork.scoreStyle = '按金额单位打分'"
+            >
+              按金额单位打分
+            </el-button>
+          </el-button-group>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -233,6 +270,20 @@ import dayjs from 'dayjs';
 export default {
   name: 'Work',
   data() {
+    const validaProjects = (rule, value, callback) => {
+      if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
+        callback(new Error('选择关联项目!'));
+      }
+      callback();
+    };
+    const validaScoreStyle = (rule, value, callback) => {
+      console.log(this.newWork.scoreType);
+      console.log(value);
+      if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
+        callback(new Error('选择打分类型!'));
+      }
+      callback();
+    };
     return {
       isCollapsed: !!this.$settings.isMobile,
       permission: Permission,
@@ -253,15 +304,11 @@ export default {
       tempRow: '',
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        projects: [
-          {required: true, message: '选择关联项目', trigger: 'change'}
-        ],
-        scoreStyle: [
-          {required: true, message: '选择打分类型', trigger: 'change'}
-        ],
         scoreType: [
           {required: true, message: '选择打分方式', trigger: 'change'}
-        ]
+        ],
+        projects: [{validator: validaProjects, trigger: 'change'}],
+        scoreStyle: [{validator: validaScoreStyle, trigger: 'change'}]
       },
       tableLoading: false
     };
@@ -280,8 +327,8 @@ export default {
       async get() {
         let data = [];
         this.tableLoading = true;
-        const {scoreType, score, work} = this.searchForm;
-        console.log(scoreType, score, work);
+        const {scoreType} = this.searchForm;
+        console.log(scoreType);
         try {
           await new Promise(resolve =>
             setTimeout(() => {
@@ -290,6 +337,7 @@ export default {
                   index: i + 1,
                   work: `工分项${i}`,
                   scoreType: '自动打分',
+                  scoreStyle: '按服务单位打分',
                   projects: [`项目${i + 1}`],
                   createdAt: '2021-05-18 11:23:21'
                 });
