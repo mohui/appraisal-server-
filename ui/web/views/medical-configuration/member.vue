@@ -58,7 +58,17 @@
         <el-table-column prop="member" label="考核员工"></el-table-column>
         <el-table-column prop="subMembers" label="关联员工">
           <template slot-scope="{row}">
-            <div>{{ row.subMembers }}</div>
+            <el-table
+              :show-header="false"
+              size="mini"
+              border
+              :data="row.subMembers"
+            >
+              <el-table-column prop="name"></el-table-column>
+              <el-table-column prop="rate">
+                <template slot-scope="{row}"> {{ row.rate }}% </template>
+              </el-table-column>
+            </el-table>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间"></el-table-column>
@@ -320,7 +330,6 @@ export default {
             });
             this.$message.success('添加成功');
           } else {
-            console.log(this.newMember);
             this.$set(this.serverData.rows, this.newMember.index - 1, {
               index: this.newMember.index,
               member: this.newMember.member,
