@@ -23,7 +23,7 @@ export class HisMigration implements IMigration {
       comment on column staff.hospital is '所属医院';
       comment on column staff.staff is '绑定his员工id';
       comment on column staff.account is '登录名';
-      comment on column staff.account is '密码';
+      comment on column staff.password is '密码';
       comment on column staff.name is '名称';
 
       --员工医疗工分来源表
