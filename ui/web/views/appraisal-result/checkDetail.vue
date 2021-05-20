@@ -35,14 +35,6 @@
                     appraisalIndicatorsData.ruleScore
                   }}分</span
                 >
-                <el-button
-                  style="margin-left: 30px;"
-                  size="mini"
-                  plain
-                  type="primary"
-                  @click="handleAppraisalResultsDownload()"
-                  >考核结果下载
-                </el-button>
               </div>
               <div style="float: right">
                 <el-button
@@ -754,18 +746,6 @@ export default {
         created_at: it.created_at.$format(),
         updated_at: it.updated_at.$format()
       }));
-    },
-    //考核结果下载
-    async handleAppraisalResultsDownload() {
-      try {
-        await this.$api.SystemArea.downloadCheck(
-          this.params.id,
-          this.params.year
-        );
-        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
-      } catch (e) {
-        this.$message.error(e.message);
-      }
     },
     handleBack() {
       this.$router.push({
