@@ -6,6 +6,17 @@
         <span class="header-title">
           中心绩效考核
         </span>
+
+        <el-button
+          type="primary"
+          size="mini"
+          @click="
+            $router.push({
+              name: 'check-project'
+            })
+          "
+          >手动考核</el-button
+        >
       </el-card>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
@@ -55,6 +66,7 @@
 <script>
 import VueSticky from 'vue-sticky';
 import twoCardCircle from '../appraisal-result/components/twocardCircle';
+
 export default {
   name: 'index',
   data() {
