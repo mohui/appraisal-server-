@@ -3,10 +3,9 @@ import {ExtendedSequelize} from '../client';
 
 export class HisMigration implements IMigration {
   name = '医疗绩效表';
-  version: number;
+  version = 39;
 
   async up(client: ExtendedSequelize): Promise<void> {
-    // language=PostgreSQL
     await client.execute(`
       --员工表
       create table if not exists staff
