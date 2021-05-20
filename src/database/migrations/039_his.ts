@@ -64,6 +64,38 @@ export class HisMigration implements IMigration {
       comment on column "his_work_item_mapping".item is '工分项目id';
       comment on column "his_work_item_mapping".charge is '收费项目id';
       comment on column "his_work_item_mapping".type is '收费项目类型; 检查项目/药品';
+
+      --用户和工分项绑定表
+      create table "his_user_work_item_mapping"
+      (
+        "user"       varchar(36),
+        item         varchar(36),
+        score        int,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key ("user", item)
+      );
+      comment on table "his_user_work_item_mapping" is '用户和工分项绑定表';
+      comment on column "his_user_work_item_mapping"."user" is '用户id';
+      comment on column "his_user_work_item_mapping".item is '工分项目id';
+      comment on column "his_user_work_item_mapping".score is '分值';
+
+      --用户工分项目得分表
+      create table "his_user_work_score"
+      (
+        "user"       varchar(36),
+        item         varchar(36),
+        date         date,
+        score        int,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key ("user", item, date)
+      );
+      comment on table "his_user_work_score" is '用户工分项目得分表';
+      comment on column "his_user_work_score"."user" is '用户id';
+      comment on column "his_user_work_score".item is '工分项目id';
+      comment on column "his_user_work_score".date is '日期';
+      comment on column "his_user_work_score".score is '得分';
     `);
   }
 
