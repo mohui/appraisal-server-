@@ -52,7 +52,7 @@ export class HisMigration implements IMigration {
       );
       comment on table "his_work_item" is '工分项目表';
       comment on column "his_work_item".name is '名称';
-      comment on column "his_work_item".type is '得分方式; 数量/金额/手动打分';
+      comment on column "his_work_item".type is '得分方式; 数量/金额/null: 手动打分';
 
       --工分项目与his收费项目关联表
       create table if not exists "his_work_item_mapping"
