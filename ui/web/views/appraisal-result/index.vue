@@ -12,12 +12,12 @@
         class="header-box-card"
         shadow="never"
       >
-        <el-col :span="8" :xs="8" :sm="8" :md="8" :lg="8" :xl="8">
+        <el-col :span="8" :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
           <span class="header-title">
             {{ totalData.name }}
           </span>
         </el-col>
-        <el-col :span="16" :xs="16" :sm="16" :md="16" :lg="16" :xl="16">
+        <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
           <!--年度选择-->
           <span style="margin:0 10px">
             <el-select
