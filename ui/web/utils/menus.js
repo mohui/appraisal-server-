@@ -83,5 +83,17 @@ module.exports = [
     label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
+  },
+  {
+    index: 'plan',
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];

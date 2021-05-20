@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from './views/layout/layout';
-import {getToken, setToken, cleanCache} from './utils/cache';
+import {cleanCache, getToken, setToken} from './utils/cache';
 import {Permission} from '../../common/permission.ts';
 
 Vue.use(Router);
@@ -192,6 +192,24 @@ const router = new Router({
           path: '401',
           name: 'page401',
           component: () => import('./views/error/page401')
+        },
+        {
+          path: 'plan',
+          name: 'plan',
+          component: () => import('./views/plan/list')
+        },
+        {
+          path: 'plan-add',
+          name: 'plan-add',
+          meta: {
+            activeMenu: 'plan'
+          },
+          component: () => import('./views/plan/add')
+        },
+        {
+          path: 'work',
+          name: 'work',
+          component: () => import('./views/work/list')
         },
         {
           path: 'etl',
