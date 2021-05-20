@@ -176,22 +176,20 @@ export class HisMigration implements IMigration {
       comment on column his_rule_staff_score.date is '日期';
       comment on column his_rule_staff_score.score is '得分';
 
-      --考核附加分表
-      create table if not exists his_user_extra_score
+      --员工附加分表
+      create table if not exists his_staff_extra_score
       (
         staff        varchar(36),
-        month        varchar(6),
-        "check"      varchar(36),
+        month        date,
         score        int,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, month)
       );
-      comment on table his_user_extra_score is '附加分表';
-      comment on column his_user_extra_score.staff is '员工id';
-      comment on column his_user_extra_score.month is '考核时间; 格式为: YYYYMM';
-      comment on column his_user_extra_score."check" is '考核方案';
-      comment on column his_user_extra_score.score is '得分';
+      comment on table his_staff_extra_score is '附加分表';
+      comment on column his_staff_extra_score.staff is '员工id';
+      comment on column his_staff_extra_score.month is '打分时间; 默认每月1号';
+      comment on column his_staff_extra_score.score is '得分';
     `);
   }
 
