@@ -39,17 +39,17 @@
               <div style="float: right">
                 <el-button
                   size="small"
-                  style="float:right; margin: 4px 20px 10px 30px"
+                  style="float:right; margin: -5px 100px 20px 30px;"
                   type="primary"
                   @click="handleBack"
-                  >返回
+                  >关闭
                 </el-button>
               </div>
               <div v-if="totalData.parent" style="float: right">
                 <span style="font-size: 14px">系统自动打分：</span>
                 <el-switch
                   v-model="appraisalIndicatorsData.auto"
-                  style="padding-right: 20px;"
+                  style="padding-right: 40px;"
                   active-text="开启"
                   inactive-text="关闭"
                   @change="handleSystemAllAutoScore"
