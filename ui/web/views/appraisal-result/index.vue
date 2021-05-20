@@ -11,90 +11,94 @@
         class="header-box-card"
         shadow="never"
       >
-        <span class="header-title">
-          {{ totalData.name }}基本公共卫生服务两卡制绩效考核
-        </span>
-        <!--年度选择-->
-        <span style="margin:0 10px">
-          <el-select
-            v-model="params.year"
-            size="small"
-            placeholder="请选择考核年度"
-            @change="handleYearChange(params.year)"
-          >
-            <el-option
-              v-for="item in yearList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+        <div v-if="params.listFlag === 'quality'">
+          <span class="header-title">
+            {{ totalData.name }}
+          </span>
+          <!--年度选择-->
+          <span style="margin:0 10px">
+            <el-select
+              v-model="params.year"
+              size="small"
+              placeholder="请选择考核年度"
+              @change="handleYearChange(params.year)"
             >
-            </el-option>
-          </el-select>
-        </span>
-        <span style="margin:0 10px">
-          <el-button
-            plain
-            size="small"
-            type="primary"
-            @click="
-              handleFileDownload(
-                'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2021-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
-              )
-            "
-            >考核共识下载</el-button
-          >
-        </span>
-        <span style="margin:0 10px">
-          <el-button
-            style="margin-left: 30px;"
-            size="small"
-            type="primary"
-            @click="handleAppraisalResultsDownload()"
-            >考核结果下载
-          </el-button>
-          <el-button
-            v-if="reportListData.length === 1"
-            plain
-            size="small"
-            type="primary"
-            @click="handleFileDownload(reportListData[0].url)"
-            >公卫报告下载</el-button
-          >
-          <el-dropdown
-            v-if="reportListData.length > 1"
-            split-button
-            size="small"
-            type="primary"
-            @command="handleFileDownload"
-          >
-            公卫报告下载
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item
-                v-for="it in reportListData"
-                :key="it.id"
-                :command="it.url"
+              <el-option
+                v-for="item in yearList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
               >
-                {{ it.name }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </span>
-        <el-button
-          v-if="showBackButton() && params.listFlag === 'quality'"
-          size="small"
-          style="float:right; margin: 4px 0 10px 30px"
-          type="primary"
-          @click="handleBack"
-          >返回上级
-        </el-button>
-        <el-button
-          v-if="params.listFlag === 'score'"
-          size="small"
-          style="float:right; margin: 4px 0 10px 30px"
-          type="primary"
-          @click="latTypeChanged('quality')"
-          >关闭
-        </el-button>
+              </el-option>
+            </el-select>
+          </span>
+          <span style="margin:0 10px">
+            <el-button
+              plain
+              size="small"
+              type="primary"
+              @click="
+                handleFileDownload(
+                  'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2021-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
+                )
+              "
+              >考核共识下载</el-button
+            >
+          </span>
+          <span style="margin:0 10px">
+            <el-button
+              style="margin-left: 30px;"
+              size="small"
+              type="primary"
+              @click="handleAppraisalResultsDownload()"
+              >考核结果下载
+            </el-button>
+            <el-button
+              v-if="reportListData.length === 1"
+              plain
+              size="small"
+              type="primary"
+              @click="handleFileDownload(reportListData[0].url)"
+              >公卫报告下载</el-button
+            >
+            <el-dropdown
+              v-if="reportListData.length > 1"
+              split-button
+              size="small"
+              type="primary"
+              @command="handleFileDownload"
+            >
+              公卫报告下载
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item
+                  v-for="it in reportListData"
+                  :key="it.id"
+                  :command="it.url"
+                >
+                  {{ it.name }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </span>
+          <el-button
+            v-if="showBackButton()"
+            size="small"
+            style="float:right; margin: 4px 0 10px 30px"
+            type="primary"
+            @click="handleBack"
+            >返回上级
+          </el-button>
+        </div>
+        <div v-else>
+          <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
+          <el-button
+            size="small"
+            style="float:right; margin: 4px 0 10px 30px"
+            type="primary"
+            @click="latTypeChanged('quality')"
+            >关闭
+          </el-button>
+        </div>
       </el-card>
       <!--自身考核结果-->
       <div>
