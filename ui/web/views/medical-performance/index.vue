@@ -7,6 +7,15 @@
           <div class="header-title">
             中心绩效考核
           </div>
+          <div>
+            <el-date-picker
+              v-model="currentDate"
+              type="month"
+              placeholder="选择月"
+            >
+            </el-date-picker>
+          </div>
+
           <el-button
             type="primary"
             size="mini"
@@ -67,11 +76,13 @@
 <script>
 import VueSticky from 'vue-sticky';
 import twoCardCircle from '../appraisal-result/components/twocardCircle';
+import * as dayjs from 'dayjs';
 
 export default {
   name: 'index',
   data() {
     return {
+      currentDate: dayjs().toDate(),
       dataSource: {
         beforeCorrectionWorkPoint: 30000,
         afterCorrectionWorkPoint: 25000,
