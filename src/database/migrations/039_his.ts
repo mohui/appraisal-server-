@@ -12,21 +12,19 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
+        staff        varchar(64),
+        account      varchar(255) unique,
+        password     varchar(255),
         name         varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
-      --员工关联表
-      create table if not exists his_staff_mapping
-      (
-        staff        varchar(36) primary key,
-        his_staff    varchar(64),
-        "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
-      );
-      comment on table his_staff_mapping is '员工关联表';
-      comment on column his_staff_mapping.staff is '员工id';
-      comment on column his_staff_mapping.his_staff is 'his员工id';
+      comment on table staff is '员工表';
+      comment on column staff.hospital is '所属医院';
+      comment on column staff.staff is '绑定his员工id';
+      comment on column staff.account is '登录名';
+      comment on column staff.account is '密码';
+      comment on column staff.name is '名称';
 
       --员工医疗工分来源表
       create table if not exists his_staff_work_source
