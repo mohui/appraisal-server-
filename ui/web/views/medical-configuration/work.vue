@@ -86,7 +86,7 @@
         <el-table-column prop="project" label="关联项目">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.projects }}</div>
-            <div v-else>
+            <div v-if="row.isEdit && row.scoreType === '自动打分'">
               <el-select
                 v-model="tempRow.projects"
                 size="mini"
@@ -404,6 +404,15 @@ export default {
       this.tempRow = '';
     },
     async submitEdit(index, tempRow) {
+      if (!tempRow.work) {
+        this.$message.warning('工分项不能为空');
+        return;
+      }
+      if (tempRow.scoreType === '自动打分' && tempRow.projects?.length < 1) {
+        this.$message.warning('关联项目不能为空');
+        return;
+      }
+
       tempRow.isEdit = !tempRow.isEdit;
       this.$set(this.serverData.rows, index - 1, tempRow);
       this.$message.success('修改成功');
