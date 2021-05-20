@@ -35,32 +35,26 @@
                     appraisalIndicatorsData.ruleScore
                   }}分</span
                 >
+              </div>
+              <div style="float: right">
                 <el-button
-                  style="margin-left: 30px;"
-                  size="mini"
-                  plain
+                  size="small"
+                  style="float:right; margin: -5px 85px 20px 30px;"
                   type="primary"
-                  @click="handleAppraisalResultsDownload()"
-                  >考核结果下载
+                  @click="handleBack"
+                  >关闭
                 </el-button>
               </div>
               <div v-if="totalData.parent" style="float: right">
                 <span style="font-size: 14px">系统自动打分：</span>
                 <el-switch
                   v-model="appraisalIndicatorsData.auto"
-                  style="padding-right: 20px;"
+                  style="padding-right: 40px;"
                   active-text="开启"
                   inactive-text="关闭"
                   @change="handleSystemAllAutoScore"
                 >
                 </el-switch>
-                <el-button
-                  size="small"
-                  style="float:right; margin: 4px 0 10px 30px"
-                  type="primary"
-                  @click="handleBack"
-                  >返回
-                </el-button>
               </div>
             </div>
             <div
@@ -752,18 +746,6 @@ export default {
         created_at: it.created_at.$format(),
         updated_at: it.updated_at.$format()
       }));
-    },
-    //考核结果下载
-    async handleAppraisalResultsDownload() {
-      try {
-        await this.$api.SystemArea.downloadCheck(
-          this.params.id,
-          this.params.year
-        );
-        this.$message.success('后台任务已进行, 请关注右上角任务进度~');
-      } catch (e) {
-        this.$message.error(e.message);
-      }
     },
     handleBack() {
       this.$router.push({
