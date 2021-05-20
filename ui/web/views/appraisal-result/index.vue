@@ -3,6 +3,7 @@
     <div>
       <!--顶部表头-->
       <el-card
+        v-if="params.listFlag === 'quality'"
         v-sticky
         v-loading="
           $asyncComputed.reportListSeverData.updating ||
@@ -11,10 +12,12 @@
         class="header-box-card"
         shadow="never"
       >
-        <div v-if="params.listFlag === 'quality'">
+        <el-col :span="8" :xs="8" :sm="8" :md="8" :lg="8" :xl="8">
           <span class="header-title">
             {{ totalData.name }}
           </span>
+        </el-col>
+        <el-col :span="16" :xs="16" :sm="16" :md="16" :lg="16" :xl="16">
           <!--年度选择-->
           <span style="margin:0 10px">
             <el-select
@@ -82,24 +85,24 @@
           </span>
           <el-button
             v-if="showBackButton()"
-            size="small"
             style="float:right; margin: 4px 0 10px 30px"
+            size="small"
             type="primary"
             @click="handleBack"
             >返回上级
           </el-button>
-        </div>
-        <div v-else>
-          <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
-          <el-button
-            size="small"
-            style="float:right; margin: 4px 0 10px 30px"
-            type="primary"
-            @click="latTypeChanged('quality')"
-            >关闭
-          </el-button>
-        </div>
+        </el-col>
       </el-card>
+      <div v-if="params.listFlag === 'score'">
+        <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
+        <el-button
+          size="small"
+          style="float:right; margin: 5px 90px 20px 30px;"
+          type="primary"
+          @click="latTypeChanged('quality')"
+          >关闭
+        </el-button>
+      </div>
       <!--自身考核结果-->
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
