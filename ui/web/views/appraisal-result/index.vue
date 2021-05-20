@@ -46,6 +46,13 @@
         </span>
         <span style="margin:0 10px">
           <el-button
+            style="margin-left: 30px;"
+            size="small"
+            type="primary"
+            @click="handleAppraisalResultsDownload()"
+            >考核结果下载
+          </el-button>
+          <el-button
             v-if="reportListData.length === 1"
             plain
             size="small"
@@ -71,13 +78,6 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <el-button
-            style="margin-left: 30px;"
-            size="small"
-            type="primary"
-            @click="handleAppraisalResultsDownload()"
-            >考核结果下载
-          </el-button>
         </span>
         <el-button
           v-if="showBackButton() && params.listFlag === 'quality'"
