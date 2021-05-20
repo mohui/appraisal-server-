@@ -72,7 +72,7 @@ export default {
           {
             name: '项目工分值',
             type: 'pie',
-            radius: '50%',
+            radius: '40%',
             center: ['50%', '40%'],
             label: {
               formatter: '{b|}校正前工分：{c}\n{b|}工分项占比：{d}%',
@@ -101,6 +101,11 @@ export default {
       };
       // 绘制图表
       myChart.setOption(option);
+
+      // 窗口自适应，表图大小随浏览器窗口的缩放自适应
+      window.addEventListener('resize', function() {
+        myChart.resize();
+      });
     }
   }
 };
