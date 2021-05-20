@@ -117,7 +117,7 @@
                     class="item"
                     effect="dark"
                     content="点击查看考核结果详情"
-                    placement="top-start"
+                    placement="top"
                   >
                     <two-card-circle
                       :coefficient="totalData.fixedDecimalRate"
@@ -139,7 +139,7 @@
                   class="item"
                   effect="dark"
                   content="点击查看工分校正详情"
-                  placement="top-start"
+                  placement="top"
                 >
                   <div class="score-detail" @click="latTypeChanged('score')">
                     <div class="second-title" style="text-align:left">
