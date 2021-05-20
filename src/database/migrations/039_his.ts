@@ -85,7 +85,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_item_mapping.score is '分值';
 
       --员工工分项目得分表
-      create table "his_user_work_score"
+      create table his_staff_work_score
       (
         staff        varchar(36),
         item         varchar(36),
@@ -95,11 +95,11 @@ export class HisMigration implements IMigration {
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, item, date)
       );
-      comment on table "his_user_work_score" is '员工工分项目得分表';
-      comment on column "his_user_work_score".staff is '员工id';
-      comment on column "his_user_work_score".item is '工分项目id';
-      comment on column "his_user_work_score".date is '日期';
-      comment on column "his_user_work_score".score is '得分';
+      comment on table his_staff_work_score is '员工工分项目得分表';
+      comment on column his_staff_work_score.staff is '员工id';
+      comment on column his_staff_work_score.item is '工分项目id';
+      comment on column his_staff_work_score.date is '日期; 手动打分默认每月1号';
+      comment on column his_staff_work_score.score is '得分';
 
       --医疗考核方案表
       create table if not exists "his_check_system"
