@@ -73,8 +73,7 @@
           </el-dropdown>
           <el-button
             style="margin-left: 30px;"
-            size="mini"
-            plain
+            size="small"
             type="primary"
             @click="handleAppraisalResultsDownload()"
             >考核结果下载

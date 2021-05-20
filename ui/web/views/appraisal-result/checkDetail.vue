@@ -39,7 +39,7 @@
               <div style="float: right">
                 <el-button
                   size="small"
-                  style="float:right; margin: -5px 100px 20px 30px;"
+                  style="float:right; margin: -5px 85px 20px 30px;"
                   type="primary"
                   @click="handleBack"
                   >关闭
