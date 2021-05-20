@@ -20,18 +20,6 @@
             @click="addConfigurationVisible = true"
             >新增配置</el-button
           >
-          <el-button
-            size="mini"
-            type="text"
-            @click="goto('medical-configuration-work')"
-            >工分项管理</el-button
-          >
-          <el-button
-            size="mini"
-            type="text"
-            @click="goto('medical-configuration-member')"
-            >员工管理</el-button
-          >
         </div>
       </div>
       <kn-collapse
