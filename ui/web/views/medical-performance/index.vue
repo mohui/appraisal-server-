@@ -12,10 +12,10 @@
               v-model="currentDate"
               type="month"
               placeholder="选择月"
+              :picker-options="disabledDate"
             >
             </el-date-picker>
           </div>
-
           <el-button
             type="primary"
             size="mini"
@@ -83,6 +83,11 @@ export default {
   data() {
     return {
       currentDate: dayjs().toDate(),
+      disabledDate: {
+        disabledDate(time) {
+          return time.getTime() > dayjs().toDate();
+        }
+      },
       dataSource: {
         beforeCorrectionWorkPoint: 30000,
         afterCorrectionWorkPoint: 25000,
