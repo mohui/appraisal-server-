@@ -44,6 +44,15 @@
                   >考核结果下载
                 </el-button>
               </div>
+              <div style="float: right">
+                <el-button
+                  size="small"
+                  style="float:right; margin: 4px 20px 10px 30px"
+                  type="primary"
+                  @click="handleBack"
+                  >返回
+                </el-button>
+              </div>
               <div v-if="totalData.parent" style="float: right">
                 <span style="font-size: 14px">系统自动打分：</span>
                 <el-switch
@@ -54,13 +63,6 @@
                   @change="handleSystemAllAutoScore"
                 >
                 </el-switch>
-                <el-button
-                  size="small"
-                  style="float:right; margin: 4px 0 10px 30px"
-                  type="primary"
-                  @click="handleBack"
-                  >返回
-                </el-button>
               </div>
             </div>
             <div
