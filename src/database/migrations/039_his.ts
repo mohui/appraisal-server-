@@ -45,12 +45,14 @@ export class HisMigration implements IMigration {
       create table if not exists "his_work_item"
       (
         id           varchar(36),
+        hospital     varchar(36),
         name         varchar(255),
         type         varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_work_item" is '工分项目表';
+      comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
       comment on column "his_work_item".type is '得分方式; 数量/金额/null: 手动打分';
 
@@ -105,11 +107,13 @@ export class HisMigration implements IMigration {
       create table if not exists "his_check_system"
       (
         id           varchar(36) primary key,
+        hospital     varchar(36),
         name         varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_check_system" is '医疗考核方案表';
+      comment on column "his_check_system".hospital is '所属医院id';
       comment on column "his_check_system".name is '名称';
 
       --员工考核方案绑定表
