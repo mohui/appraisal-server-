@@ -248,6 +248,17 @@ export default {
 
       // 绘制图表
       myChart.setOption(option);
+
+      // 表格的点击事件添加路由跳转
+      myChart.on('click', params => {
+        console.log(params);
+        this.$router.push({
+          name: 'personal-appraisal-results',
+          query: {
+            name: params.name
+          }
+        });
+      });
     },
     // 项目绩效柱状图
     drawProjectPerformanceBar() {
