@@ -15,14 +15,14 @@
             <div class="card">
               <div
                 id="projectWorkPointPie"
-                :style="{width: '100%', height: '460px'}"
+                :style="{width: '100%', height: '420px'}"
               ></div>
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
             <div
               class="card"
-              style="height: 200px; display: flex; flex-direction: column"
+              style="height: 180px; display: flex; flex-direction: column"
             >
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
@@ -45,8 +45,51 @@
                 </el-col>
               </el-row>
             </div>
-            <div class="card" style="height: 200px ; margin-top: 20px">
-              c
+            <div class="card score-rules">
+              <div>得分细则</div>
+              <div style="text-align: center;">
+                <el-row>
+                  <el-col :span="8">
+                    <div class="item">
+                      <div>校正前工分</div>
+                      <div class="content">
+                        <el-row :gutter="20">
+                          <el-col :span="12" style="">
+                            <div style="margin: 15px 0;">自动考核工分项</div>
+                            <div>30</div>
+                          </el-col>
+                          <el-col :span="12" style="">
+                            <div style="margin: 15px 0">手动考核工分项</div>
+                            <div>20</div>
+                          </el-col>
+                        </el-row>
+                      </div>
+                      <div class="more">点击查看</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="16">
+                    <el-row>
+                      <el-col :span="8" class="item">
+                        <div>质量系数</div>
+                        <div class="content">80%</div>
+                        <div class="more">
+                          点击查看
+                        </div>
+                      </el-col>
+                      <el-col :span="8" class="item">
+                        <div>校正后工分</div>
+                        <div class="content">40</div>
+                        <div class="more">点击查看</div>
+                      </el-col>
+                      <el-col :span="8" class="item">
+                        <div>附加分</div>
+                        <div class="content">10</div>
+                        <div class="more">点击查看</div>
+                      </el-col>
+                    </el-row>
+                  </el-col>
+                </el-row>
+              </div>
             </div>
           </el-col>
         </el-row>
@@ -315,9 +358,28 @@ export default {
   border-radius: 4px;
   border: 1px solid #ebeef5;
   background-color: #ffffff;
-  //overflow: hidden;
   color: #303133;
   transition: 0.3s;
   padding: 20px;
+}
+
+.score-rules {
+  height: 180px;
+  margin-top: 20px;
+  .item {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    .content {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .more {
+      height: 30px;
+      padding: 10px 0;
+    }
+  }
 }
 </style>
