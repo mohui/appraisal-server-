@@ -17,12 +17,6 @@
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
             >新增考核员工</el-button
           >
-          <el-button
-            size="mini"
-            type="text"
-            @click="$router.push('medical-configuration')"
-            >返回</el-button
-          >
         </div>
       </div>
       <kn-collapse
@@ -93,18 +87,6 @@
                   :value="m.value"
                 ></el-option>
               </el-select>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="subMembers" label="权重系数">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.rate }}%</div>
-            <div v-else>
-              <el-input-number
-                v-model="tempRow.rate"
-                size="mini"
-              ></el-input-number
-              >%
             </div>
           </template>
         </el-table-column>
@@ -184,7 +166,7 @@
       </el-pagination>
     </el-card>
     <el-dialog
-      title="新建员工考核"
+      title="员工考核配置"
       :visible.sync="addMemberVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :before-close="resetConfig"
@@ -207,19 +189,59 @@
           </el-select>
         </el-form-item>
         <el-form-item label="关联员工" prop="subMembers">
-          <el-select v-model="newMember.subMembers" multiple>
-            <el-option
-              v-for="p in memberList"
-              :key="p.value"
-              :label="p.name"
-              :value="p.value"
-            ></el-option>
-          </el-select>
+          <el-table border size="mini" :data="newMember.subMembers">
+            <el-table-column label="员工" prop="name">
+              <template slot-scope="{$index, row}">
+                <div v-if="$index === 0">{{ row.name }}</div>
+                <div v-if="$index > 0">
+                  <el-select v-model="row.name" size="mini">
+                    <el-option
+                      v-for="m in memberList"
+                      :key="m.value"
+                      :label="m.name"
+                      :value="m.value"
+                      :disabled="
+                        m.name === newMember.member ||
+                          newMember.subMembers.some(it => it.name === m.name)
+                      "
+                    ></el-option>
+                  </el-select>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="权重系数" prop="rate">
+              <template slot-scope="{$index, row}">
+                <div v-if="$index === 0">{{ row.rate }}%</div>
+                <div v-if="$index > 0">
+                  <el-input-number
+                    v-model="row.rate"
+                    size="mini"
+                  ></el-input-number
+                  >%
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="{$index}">
+                <div v-if="$index > 0">
+                  <el-button
+                    type="text"
+                    @click="newMember.subMembers.splice($index, 1)"
+                    >删除</el-button
+                  >
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-form-item>
-        <el-form-item label="权重系数" prop="rate">
-          <el-input-number v-model="newMember.rate" :max="100">
-          </el-input-number>
-          %
+        <el-form-item>
+          <el-button
+            v-if="newMember.subMembers.length >= 1"
+            type="warning"
+            size="mini"
+            @click="newMember.subMembers.push({name: '', rate: 0})"
+            >新增关联员工</el-button
+          >
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -239,6 +261,12 @@ import dayjs from 'dayjs';
 export default {
   name: 'Member',
   data() {
+    const ValidSubMember = (rule, value, callback) => {
+      if (value.some(v => v.name === '' && v.rate < 1)) callback();
+      if (value.some(v => v.name === '' || v.rate < 1))
+        callback(new Error('关联员工信息未填写完整'));
+      callback();
+    };
     return {
       isCollapsed: !!this.$settings.isMobile,
       permission: Permission,
@@ -249,13 +277,13 @@ export default {
       },
       newMember: {
         member: '',
-        subMembers: [],
-        rate: 0
+        subMembers: []
       },
       addMemberVisible: false,
       tempRow: '',
       memberRules: {
-        member: [{required: true, message: '选择员工', trigger: 'change'}]
+        member: [{required: true, message: '选择员工', trigger: 'change'}],
+        subMembers: [{validator: ValidSubMember, trigger: 'blur'}]
       },
       tableLoading: false
     };
@@ -268,7 +296,21 @@ export default {
       return this.serverMemberData;
     }
   },
-  watch: {},
+  watch: {
+    'newMember.member'() {
+      if (this.newMember.member) {
+        this.newMember.subMembers = [];
+        this.newMember.subMembers.push({
+          name: this.newMember.member,
+          rate: 100
+        });
+        this.newMember.subMembers.push({
+          name: '',
+          rate: 0
+        });
+      }
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
@@ -283,8 +325,7 @@ export default {
                 data.push({
                   index: i + 1,
                   member: `员工B${i}`,
-                  subMembers: [`员工A${i}:123qwec${i}`],
-                  rate: 70,
+                  subMembers: [{name: `员工B${i}`, rate: 100}],
                   createdAt: '2021-05-18 11:23:21'
                 });
               }
@@ -309,7 +350,10 @@ export default {
         let i = 0;
         let data = [];
         for (; i < 10; i++) {
-          data.push({name: `员工A${i}:123qwec${i},`, value: `员工A${i}`});
+          data.push({
+            name: `员工A${i}`,
+            value: `员工A${i}`
+          });
         }
         return data;
       },
@@ -324,10 +368,11 @@ export default {
           this.$set(this.serverData.rows, this.tableData.length, {
             index: this.tableData.length + 1,
             member: this.newMember.member,
-            subMembers: this.newMember.subMembers,
+            subMembers: this.newMember.subMembers.filter(it => it.name),
             row: false,
             createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
           });
+          this.$message.success('添加成功');
           this.resetConfig();
         }
       } catch (e) {
