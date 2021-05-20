@@ -127,7 +127,13 @@ export default {
           }
         },
         legend: {
-          data: ['手术', '针灸', '处方']
+          data: ['手术', '针灸', '处方'],
+          // 设置图例选中状态表
+          selected: {
+            手术: false,
+            针灸: true,
+            处方: false
+          }
         },
         xAxis: {
           type: 'category',
