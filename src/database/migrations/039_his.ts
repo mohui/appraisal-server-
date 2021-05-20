@@ -133,19 +133,22 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         "check"      varchar(36),
+        auto         boolean,
         name         varchar(255),
-        tag          varchar(255),
-        algorithm    varchar(255),
-        baseline     double precision,
+        metric       varchar(255),
+        operator     varchar(255),
+        value        double precision,
         score        int,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_check_rule" is '医疗考核规则表';
+      comment on column his_check_rule."check" is '所属考核方案';
+      comment on column his_check_rule.auto is '是否自动考核';
       comment on column "his_check_rule".name is '名称';
-      comment on column "his_check_rule".tag is '指标';
-      comment on column "his_check_rule".algorithm is '计算方式';
-      comment on column "his_check_rule".baseline is '参考值';
+      comment on column "his_check_rule".metric is '指标';
+      comment on column "his_check_rule".operator is '计算方式';
+      comment on column "his_check_rule".value is '参考值';
       comment on column "his_check_rule".score is '分值';
 
       --考核得分表
