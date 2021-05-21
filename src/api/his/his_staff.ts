@@ -83,4 +83,46 @@ export default class HisStaff {
       dayjs().toDate()
     );
   }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('主键'),
+    should
+      .string()
+      .required()
+      .description('名称'),
+    should
+      .string()
+      .required()
+      .description('密码')
+  )
+  async update(id, name, password) {
+    return await appDB.execute(
+      `
+        update staff set
+          name = ?,
+          password = ?,
+          updated_at = ?
+        where id = ?`,
+      name,
+      password,
+      dayjs().toDate(),
+      id
+    );
+  }
+
+  /**
+   * 员工列表
+   */
+  async list() {
+    const hospital = await getHospital();
+    return await appDB.execute(
+      `
+        select id, hospital, staff, account, name, created_at, updated_at
+        from staff where hospital = ?`,
+      hospital
+    );
+  }
 }
