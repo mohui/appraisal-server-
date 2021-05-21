@@ -125,6 +125,10 @@ export const PermissionDetail = [
   },
   {
     key: 'medical-configuration-member',
+    name: '员工配置'
+  },
+  {
+    key: 'medical-configuration-member-his',
     name: '员工管理'
   }
 ];
@@ -161,7 +165,8 @@ export const Permission = {
   AUDIT_LOG: 'audit-log',
   MEDICAL_CONFIGURATION_LIST: 'medical-configuration-list',
   MEDICAL_CONFIGURATION_WORK: 'medical-configuration-work',
-  MEDICAL_CONFIGURATION_MEMBER: 'medical-configuration-member'
+  MEDICAL_CONFIGURATION_MEMBER: 'medical-configuration-member',
+  MEDICAL_CONFIGURATION_MEMBER_HIS: 'medical-configuration-member-his'
 };
 export const PermissionTree = [
   {
@@ -330,6 +335,10 @@ export const PermissionTree = [
       },
       {
         key: Permission.MEDICAL_CONFIGURATION_MEMBER,
+        label: '员工配置'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
         label: '员工管理'
       }
     ]

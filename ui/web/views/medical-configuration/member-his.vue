@@ -20,12 +20,6 @@
           @click="openAddUserDialog"
           >新建用户
         </el-button>
-        <el-button
-          size="small"
-          type="text"
-          @click="$router.push('/medical-configuration-member')"
-          >返回
-        </el-button>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"

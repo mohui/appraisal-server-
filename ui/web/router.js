@@ -296,10 +296,7 @@ const router = new Router({
         {
           path: 'medical-configuration-member-his',
           name: 'medical-configuration-member-his',
-          meta: {
-            activeMenu: 'medical-configuration-member',
-            permission: [Permission.MEDICAL_CONFIGURATION_MEMBER]
-          },
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS]},
           component: () => import('./views/medical-configuration/member-his')
         }
       ]
