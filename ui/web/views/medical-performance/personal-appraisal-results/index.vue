@@ -3,11 +3,18 @@
     <div>
       <!--顶部表头-->
       <div class="card" v-sticky>
-        <span>
-          {{ dataSource.name }}
-        </span>
-        <span> 校正后总得分（分）：{{ dataSource.score }} </span>
-        <span> 质量系数：{{ dataSource.rate }}% </span>
+        <div class="header">
+          <div class="content">
+            <div class="item">
+              {{ dataSource.name }}
+            </div>
+            <div class="item">校正后总得分（分）：{{ dataSource.score }}</div>
+            <div class="item">质量系数：{{ dataSource.rate }}%</div>
+          </div>
+          <div>
+            <el-button size="small" @click="$router.go(-1)">返回 </el-button>
+          </div>
+        </div>
       </div>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
@@ -365,6 +372,20 @@ export default {
   color: #303133;
   transition: 0.3s;
   padding: 20px;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .content {
+    display: flex;
+    flex-direction: row;
+    .item {
+      margin-right: 20px;
+    }
+  }
 }
 
 .score-rules {
