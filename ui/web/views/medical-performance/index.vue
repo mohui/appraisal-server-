@@ -19,6 +19,7 @@
           <el-button
             type="primary"
             size="mini"
+            style="margin-left: 20px"
             @click="
               $router.push({
                 name: 'check-project'
