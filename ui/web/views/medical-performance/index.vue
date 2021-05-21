@@ -184,7 +184,8 @@ export default {
         series: [
           {
             type: 'gauge',
-            center: ['50%', '60%'],
+            radius: '90%',
+            center: ['50%', '65%'],
             startAngle: 180,
             endAngle: 0,
             min: 0,
@@ -216,7 +217,7 @@ export default {
               show: false
             },
             axisLabel: {
-              distance: -50,
+              distance: 10,
               color: '#999',
               fontSize: 15
             },
