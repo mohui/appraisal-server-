@@ -92,7 +92,7 @@ export class HisMigration implements IMigration {
       comment on table "his_work_item_mapping" is '工分项目与his收费项目关联表';
       comment on column "his_work_item_mapping".item is '工分项目id';
       comment on column "his_work_item_mapping".source is '来源id';
-      comment on column "his_work_item_mapping".type is '类型; 检查项目/药品/基础数据';
+      comment on column "his_work_item_mapping".type is '类型; 检查项目/药品/手工数据';
 
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
