@@ -61,8 +61,73 @@
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
 | staff | varchar(36) | 员工id |
-| staff | varchar(36) | 工分项目id |
+| item | varchar(36) | 工分项目id |
 | date | date | 日期; 手动打分默认每月1号 |
 | score | int | 得分 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 医疗考核方案表(his_check_system)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| hospital | varchar(36) | 所属医院id |
+| name | varchar(255) | 名称 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 员工考核方案绑定表(his_staff_check_mapping)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| staff | varchar(36) | 员工id |
+| check | varchar(36) | 考核方案id |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 医疗考核规则表(his_check_rule)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| "check" | varchar(36) | 所属考核方案 |
+| auto | boolean | 是否自动考核 |
+| name | varchar(255) | 名称 |
+| metric | varchar(255) | 指标 |
+| operator | varchar(255) | 计算方式 |
+| value | double precision | 参考值 |
+| score | int | 分值 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 考核得分表(his_rule_staff_score)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| rule | varchar(36) | 考核规则id |
+| staff | varchar(36) | 员工id |
+| date | date | 日期 |
+| score | double | 得分 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 员工附加分表(his_staff_extra_score)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| staff | varchar(36) | 员工id |
+| month | date | 打分时间; 默认每月1号 |
+| score | int | 得分 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 机构(考核)结算表(his_hospital_settle)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| hospital | varchar(36) | 所属医院id |
+| month | date | 结算时间; 默认每月1号 |
+| settle | boolean | 是否结算 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
