@@ -77,7 +77,7 @@ export class HisMigration implements IMigration {
       comment on table "his_work_item" is '工分项目表';
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
-      comment on column "his_work_item".type is '得分方式; 计数/总计';
+      comment on column "his_work_item".type is '得分方式; 计数/总和';
 
       --工分项目来源关联表
       create table if not exists "his_work_item_mapping"
