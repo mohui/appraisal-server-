@@ -38,6 +38,12 @@ const router = new Router({
           component: () => import('./views/appraisal-result/index')
         },
         {
+          path: 'checkDetail',
+          name: 'checkDetail',
+          meta: {permission: [Permission.APPRAISAL_RESULT]},
+          component: () => import('./views/appraisal-result/checkDetail')
+        },
+        {
           path: 'check',
           name: 'check',
           meta: {permission: [Permission.APPRAISAL_CONFIGURATION_MANAGEMENT]},
@@ -186,6 +192,24 @@ const router = new Router({
           path: '401',
           name: 'page401',
           component: () => import('./views/error/page401')
+        },
+        {
+          path: 'plan',
+          name: 'plan',
+          component: () => import('./views/plan/list')
+        },
+        {
+          path: 'plan-add',
+          name: 'plan-add',
+          meta: {
+            activeMenu: 'plan'
+          },
+          component: () => import('./views/plan/add')
+        },
+        {
+          path: 'work',
+          name: 'work',
+          component: () => import('./views/work/list')
         },
         {
           path: 'etl',

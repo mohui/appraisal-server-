@@ -94,5 +94,17 @@ module.exports = [
     label: '医疗绩效',
     icon: 'el-icon-s-data',
     router: '/medical-performance'
+  },
+  {
+    index: 'plan',
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];
