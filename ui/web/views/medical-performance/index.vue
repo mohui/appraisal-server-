@@ -47,9 +47,10 @@
               </el-col>
               <el-col :span="12">
                 <div>
-                  <two-card-circle
-                    :coefficient="dataSource.rate"
-                  ></two-card-circle>
+                  <div
+                    id="rateGauge"
+                    :style="{width: '100%', height: '300px'}"
+                  ></div>
                 </div>
               </el-col>
             </el-card>
@@ -76,7 +77,6 @@
 
 <script>
 import VueSticky from 'vue-sticky';
-import twoCardCircle from '../appraisal-result/components/twocardCircle';
 import * as dayjs from 'dayjs';
 
 export default {
@@ -160,9 +160,6 @@ export default {
       }
     };
   },
-  components: {
-    twoCardCircle
-  },
   directives: {
     sticky: VueSticky
   },
@@ -172,8 +169,82 @@ export default {
   methods: {
     // 绘制图表
     drawChart() {
+      this.drawRateGauge();
       this.drawDoctorPerformanceBar();
       this.drawProjectPerformanceBar();
+    },
+    // 质量系数仪表盘图
+    drawRateGauge() {
+      // 基于准备好的dom，初始化echarts实例
+      const myChart = this.$echarts.init(document.getElementById('rateGauge'));
+      let option;
+      const color = '#409EFF';
+      const value = 55;
+      option = {
+        series: [
+          {
+            type: 'gauge',
+            center: ['50%', '60%'],
+            startAngle: 180,
+            endAngle: 0,
+            min: 0,
+            max: 100,
+            splitNumber: 2,
+            itemStyle: {
+              color: color
+            },
+            progress: {
+              show: true,
+              width: 30
+            },
+
+            axisTick: {show: false},
+
+            pointer: {
+              show: false
+            },
+            axisLine: {
+              lineStyle: {
+                width: 30,
+                color: [
+                  [value / 100, color],
+                  [1, '#f6f7fa']
+                ]
+              }
+            },
+            splitLine: {
+              show: false
+            },
+            axisLabel: {
+              distance: -50,
+              color: '#999',
+              fontSize: 15
+            },
+            anchor: {
+              show: false
+            },
+            title: {
+              show: false
+            },
+            detail: {
+              show: true,
+              valueAnimation: true,
+              offsetCenter: [0, '-15%'],
+              fontSize: 25,
+              fontWeight: 'bolder',
+              formatter: '{value}%',
+              color: 'auto'
+            },
+            data: [
+              {
+                value: value
+              }
+            ]
+          }
+        ]
+      };
+      // 绘制图表
+      myChart.setOption(option);
     },
     // 医生绩效柱状图
     drawDoctorPerformanceBar() {
