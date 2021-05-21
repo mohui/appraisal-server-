@@ -144,6 +144,8 @@ export default {
       );
       let option;
       option = {
+        //设置颜色
+        color: ['#409eff', '#ea9d42', '#9e68f5'],
         legend: {
           top: 'bottom'
         },
@@ -194,6 +196,8 @@ export default {
       );
       let option;
       option = {
+        //设置颜色
+        color: ['#409eff', '#ea9d42', '#9e68f5'],
         tooltip: {
           trigger: 'axis',
           axisPointer: {
