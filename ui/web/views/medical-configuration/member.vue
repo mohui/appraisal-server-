@@ -17,6 +17,12 @@
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
             >考核员工配置</el-button
           >
+          <el-button
+            size="mini"
+            type="text"
+            @click="$router.push('/medical-configuration-member-his')"
+            >配置his员工</el-button
+          >
         </div>
       </div>
       <kn-collapse

@@ -292,6 +292,15 @@ const router = new Router({
           name: 'medical-configuration-member',
           meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER]},
           component: () => import('./views/medical-configuration/member')
+        },
+        {
+          path: 'medical-configuration-member-his',
+          name: 'medical-configuration-member-his',
+          meta: {
+            activeMenu: 'medical-configuration-member',
+            permission: [Permission.MEDICAL_CONFIGURATION_MEMBER]
+          },
+          component: () => import('./views/medical-configuration/member-his')
         }
       ]
     },
