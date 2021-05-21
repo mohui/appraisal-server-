@@ -8,7 +8,7 @@
           style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
           @click="toggleMenu"
         ></i>
-        {{ $settings.user.region.name }}基层医疗机构绩效考核系统</span
+        {{ $settings.user.region.name }}基本公共卫生服务两卡制绩效考核系统</span
       >
       <div>
         <kn-back-job></kn-back-job>

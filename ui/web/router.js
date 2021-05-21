@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from './views/layout/layout';
-import {getToken, setToken, cleanCache} from './utils/cache';
+import {cleanCache, getToken, setToken} from './utils/cache';
 import {Permission} from '../../common/permission.ts';
 
 Vue.use(Router);
@@ -36,6 +36,12 @@ const router = new Router({
           name: 'appraisal-result',
           meta: {permission: [Permission.APPRAISAL_RESULT]},
           component: () => import('./views/appraisal-result/index')
+        },
+        {
+          path: 'checkDetail',
+          name: 'checkDetail',
+          meta: {permission: [Permission.APPRAISAL_RESULT]},
+          component: () => import('./views/appraisal-result/checkDetail')
         },
         {
           path: 'check',
@@ -188,6 +194,24 @@ const router = new Router({
           component: () => import('./views/error/page401')
         },
         {
+          path: 'plan',
+          name: 'plan',
+          component: () => import('./views/plan/list')
+        },
+        {
+          path: 'plan-add',
+          name: 'plan-add',
+          meta: {
+            activeMenu: 'plan'
+          },
+          component: () => import('./views/plan/add')
+        },
+        {
+          path: 'work',
+          name: 'work',
+          component: () => import('./views/work/list')
+        },
+        {
           path: 'etl',
           name: 'hospital-elt',
           meta: {
@@ -201,6 +225,55 @@ const router = new Router({
           name: 'audit-log',
           meta: {permission: [Permission.AUDIT_LOG]},
           component: () => import('./views/audit/index')
+        },
+        {
+          path: 'medical-performance',
+          name: 'medical-performance',
+          meta: {
+            permission: [
+              Permission.APPRAISAL_RESULT,
+              Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+              Permission.APPRAISAL_BASIC_DATA
+            ]
+          },
+          component: () => import('./views/medical-performance/index')
+        },
+        {
+          path: 'check-project',
+          name: 'check-project',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () => import('./views/medical-performance/project/index')
+        },
+        {
+          path: 'marking-doctor',
+          name: 'marking-doctor',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import('./views/medical-performance/project/marking-doctor')
+        },
+        {
+          path: 'marking-target',
+          name: 'marking-target',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import('./views/medical-performance/project/marking-target')
+        },
+        {
+          path: 'personal-appraisal-results',
+          name: 'personal-appraisal-results',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import(
+              './views/medical-performance/personal-appraisal-results/index'
+            )
         },
         {
           path: 'medical-configuration',

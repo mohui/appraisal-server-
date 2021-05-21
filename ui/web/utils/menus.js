@@ -85,6 +85,17 @@ module.exports = [
     router: '/audit-log'
   },
   {
+    index: 'medical-performance',
+    permission: [
+      Permission.APPRAISAL_RESULT,
+      Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+      Permission.APPRAISAL_BASIC_DATA
+    ],
+    label: '医疗绩效',
+    icon: 'el-icon-s-data',
+    router: '/medical-performance'
+  },
+  {
     index: 'medical-configuration',
     permission: [
       Permission.MEDICAL_CONFIGURATION_LIST,
@@ -113,5 +124,17 @@ module.exports = [
         label: '员工配置'
       }
     ]
+  },
+  {
+    index: 'plan',
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];
