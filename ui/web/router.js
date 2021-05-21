@@ -274,6 +274,24 @@ const router = new Router({
             import(
               './views/medical-performance/personal-appraisal-results/index'
             )
+        },
+        {
+          path: 'medical-configuration',
+          name: 'medical-configuration',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_LIST]},
+          component: () => import('./views/medical-configuration/index')
+        },
+        {
+          path: 'medical-configuration-work',
+          name: 'medical-configuration-work',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_WORK]},
+          component: () => import('./views/medical-configuration/work')
+        },
+        {
+          path: 'medical-configuration-member',
+          name: 'medical-configuration-member',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER]},
+          component: () => import('./views/medical-configuration/member')
         }
       ]
     },
