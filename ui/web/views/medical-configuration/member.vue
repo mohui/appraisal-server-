@@ -47,26 +47,28 @@
       <el-table
         v-loading="tableLoading"
         stripe
+        border
         class="expanded-member-table"
         size="small"
         :data="tableData"
         height="100%"
         style="flex-grow: 1;"
         current-row-key="index"
+        :span-method="spanMethod"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column type="expand">
-          <template slot-scope="{row}">
-            <el-table size="mini" border :data="row.subMembers">
-              <el-table-column label="员工" prop="name"></el-table-column>
-              <el-table-column label="权重系数" prop="rate">
-                <template slot-scope="{row}"> {{ row.rate }}% </template>
-              </el-table-column>
-            </el-table>
-          </template>
-        </el-table-column>
         <el-table-column prop="index" label="序号"></el-table-column>
         <el-table-column prop="member" label="考核员工"></el-table-column>
+        <el-table-column prop="subMembers" label="关联员工">
+          <template slot-scope="{row}">
+            <div>{{ row.subMember }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="subRate" label="权重系数">
+          <template slot-scope="{row}">
+            <div>{{ row.subRate }}%</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="创建时间"></el-table-column>
         <el-table-column prop="" label="操作">
           <template slot-scope="{row}">
@@ -76,7 +78,7 @@
                 icon="el-icon-edit"
                 circle
                 size="mini"
-                @click="editRow(row.index)"
+                @click="editRow(row)"
               >
               </el-button>
             </el-tooltip>
@@ -242,7 +244,39 @@ export default {
   },
   computed: {
     tableData() {
-      return this.serverData.rows;
+      let data = [];
+      this.serverData.rows.forEach(row => {
+        row.subMembers.forEach(sub => {
+          data.push({
+            index: row.index,
+            member: row.member,
+            subMember: sub.name,
+            subRate: sub.rate,
+            createdAt: row.createdAt
+          });
+        });
+      });
+      return data;
+    },
+    spanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.tableData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.tableData[i].index === this.tableData[i - 1].index) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     },
     memberList() {
       return this.serverMemberData;
@@ -277,7 +311,10 @@ export default {
                 data.push({
                   index: i + 1,
                   member: `员工B${i}`,
-                  subMembers: [{name: `员工B${i}`, rate: 100}],
+                  subMembers: [
+                    {name: `员工B${i}`, rate: 100},
+                    {name: `员工AA${i}`, rate: 90}
+                  ],
                   createdAt: '2021-05-18 11:23:21'
                 });
               }
@@ -340,16 +377,26 @@ export default {
         if (e) this.$message.error(e.message);
       }
     },
-    editRow(index) {
-      this.newMember = JSON.parse(JSON.stringify(this.tableData[index - 1]));
+    editRow(row) {
+      const index = this.serverData.rows.findIndex(
+        it => it.member === row.member
+      );
+      this.newMember = JSON.parse(JSON.stringify(this.serverData.rows[index]));
       this.addMemberVisible = true;
     },
     async removeRow(row) {
-      this.tableData.splice(
-        this.tableData.findIndex(d => d.index === row.index),
-        1
+      const index = this.serverData.rows.findIndex(
+        it => it.index === row.index
       );
+      this.serverData.rows.splice(index, 1);
       this.$message.success('删除成功');
+    },
+    spanMethod({column, rowIndex}) {
+      if (column.property !== 'subMembers' && column.property !== 'subRate') {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
     },
     resetConfig() {
       this.$refs['memberForm'].resetFields();
