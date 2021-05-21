@@ -34,7 +34,7 @@
         >
           <el-row>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="登录名：">
+              <el-form-item label="登录名:">
                 <el-input
                   v-model="searchForm.account"
                   size="mini"
@@ -43,7 +43,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="用户名：">
+              <el-form-item label="用户名:">
                 <el-input
                   v-model="searchForm.name"
                   size="mini"
@@ -68,6 +68,7 @@
         </el-form>
       </kn-collapse>
       <el-table
+        v-loading="tableLoading"
         stripe
         size="small"
         :data="userList"
@@ -87,13 +88,8 @@
           min-width="200"
         ></el-table-column>
         <el-table-column
-          prop="creatorName"
-          label="创建人"
-          min-width="100"
-        ></el-table-column>
-        <el-table-column
-          prop="editorName"
-          label="修改人"
+          prop="his"
+          label="His账号"
           min-width="100"
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
@@ -159,6 +155,16 @@
         <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
+        <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
+          <el-select v-model="userForm.his">
+            <el-option
+              v-for="h in hisList"
+              :key="h.name"
+              :label="h.name"
+              :value="h.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
@@ -204,6 +210,16 @@
         <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
+        <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
+          <el-select v-model="userForm.his">
+            <el-option
+              v-for="h in hisList"
+              :key="h.name"
+              :label="h.name"
+              :value="h.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
@@ -215,11 +231,11 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+import dayjs from 'dayjs';
 
 export default {
   name: 'User',
   data() {
-    const that = this;
     return {
       isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
@@ -247,25 +263,15 @@ export default {
       rulesEdit: {
         name: [{required: true, message: '请输入用户名', trigger: 'blur'}]
       },
-      regionList: {
-        lazy: true,
-        checkStrictly: true,
-        emitPath: false,
-        async lazyLoad(node, resolve) {
-          const {level, value = null} = node;
-          const region = (await that.region(value)).map(it => ({
-            value: it.code,
-            label: it.name,
-            leaf: level >= 4
-          }));
-          resolve(region);
-        }
-      }
+      tableLoading: false
     };
   },
   computed: {
     userList() {
       return this.listMember.rows;
+    },
+    hisList() {
+      return this.serverHisData;
     }
   },
   watch: {
@@ -285,8 +291,35 @@ export default {
   asyncComputed: {
     listMember: {
       async get() {
-        // const {account, name, pageSize, pageNo} = this.searchForm;
-        return {rows: [], count: 0};
+        let data = [];
+        this.tableLoading = true;
+        const {account, name, pageSize, pageNo} = this.searchForm;
+        console.log(account, name, pageSize, pageNo);
+        try {
+          await new Promise(resolve =>
+            setTimeout(() => {
+              for (let i = 0; i < 10; i++) {
+                data.push({
+                  index: i + 1,
+                  name: `员工B${i}`,
+                  account: `ABC${i}`,
+                  password: '123654',
+                  his: `员工A${i}`,
+                  createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
+                });
+              }
+              resolve();
+            }, 1000)
+          );
+          return {
+            count: 10,
+            rows: data
+          };
+        } catch (e) {
+          console.error(e.message);
+        } finally {
+          this.tableLoading = false;
+        }
       },
       default() {
         return {
@@ -294,12 +327,26 @@ export default {
           rows: []
         };
       }
+    },
+    serverHisData: {
+      async get() {
+        await new Promise(resolve => setTimeout(() => resolve(), 600));
+        let i = 0;
+        let data = [];
+        for (; i < 10; i++) {
+          data.push({
+            name: `员工A${i}`,
+            value: `员工A${i}`
+          });
+        }
+        return data;
+      },
+      default: []
     }
   },
   methods: {
     async resetPassword() {
       try {
-        await this.$api.User.resetPassword(this.userForm.id);
         this.$message({
           type: 'success',
           message: '重置成功!'
@@ -340,11 +387,12 @@ export default {
       this.$refs.userFormAdd.validate(async valid => {
         if (valid) {
           try {
+            this.$set(this.userList, this.userList.length, this.userForm);
             this.$message({
               type: 'success',
               message: '新建用户成功!'
             });
-            this.$asyncComputed.listMember.update();
+            // this.$asyncComputed.listMember.update();
           } catch (e) {
             this.$message.error(e.message);
           } finally {
@@ -382,30 +430,22 @@ export default {
       });
     },
     //删除用户
-    delUser({$index, row}) {
-      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(async () => {
-          try {
-            await this.$api.User.remove(row.id);
-            this.userList.splice($index, 1);
-            this.$message({
-              type: 'success',
-              message: '删除成功!'
-            });
-          } catch (e) {
-            this.$message.error(e.message);
-          }
-        })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
+    async delUser({$index}) {
+      try {
+        await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
         });
+        this.userList.splice($index, 1);
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        });
+      } catch (e) {
+        console.log(e);
+        // this.$message.error(e);
+      }
     }
   }
 };
