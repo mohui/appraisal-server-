@@ -31,7 +31,7 @@
       </el-card>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+          <el-col :span="10" :xs="24" :sm="10" :md="10" :lg="10" :xl="10">
             <el-card shadow="hover">
               <el-col :span="12">
                 <div class="score-detail">
@@ -55,7 +55,7 @@
               </el-col>
             </el-card>
           </el-col>
-          <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+          <el-col :span="14" :xs="24" :sm="14" :md="14" :lg="14" :xl="14">
             <el-card shadow="hover">
               <div
                 id="doctorPerformanceBar"
@@ -458,7 +458,8 @@ export default {
   text-align: center;
   .total-score-title {
     font-size: 22px;
-    margin: 10px;
+    margin: 20px 10px;
+    padding-top: 50px;
   }
   .total-score {
     font-size: 22px;
