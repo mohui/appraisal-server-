@@ -4,17 +4,21 @@ import * as dayjs from 'dayjs';
 import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 
+export async function getHospital() {
+  if (
+    Context.current.user.hospitals &&
+    Context.current.user.hospitals.length > 1
+  )
+    throw new KatoRuntimeError(`没有查询his员工权限`);
+
+  return Context.current.user.hospitals[0]['id'];
+}
 export default class HisStaff {
   /**
    * 查询his员工
    */
   async listHisStaffs() {
-    if (
-      Context.current.user.hospitals &&
-      Context.current.user.hospitals.length > 1
-    )
-      throw new KatoRuntimeError(`没有查询his员工权限`);
-    const hospital = Context.current.user.hospitals[0]['id'];
+    const hospital = await getHospital();
 
     return await originalDB.execute(
       `select id, name, hospital from his_staff where hospital = ?`,
@@ -25,17 +29,12 @@ export default class HisStaff {
   /**
    * 添加员工
    *
-   * @param hospital
    * @param staff
    * @param account
    * @param password
    * @param name
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('所属医院'),
     should
       .string()
       .allow(null, '')
@@ -53,7 +52,8 @@ export default class HisStaff {
       .required()
       .description('名称')
   )
-  async add(hospital, staff, account, password, name) {
+  async add(staff, account, password, name) {
+    const hospital = await getHospital();
     // 查询his员工是否已经被绑定
     const accountOne = await appDB.execute(
       `select * from staff where staff = ?`,
