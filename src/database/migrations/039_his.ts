@@ -80,14 +80,14 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        type         varchar(255),
+        method       varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_work_item" is '工分项目表';
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
-      comment on column "his_work_item".type is '得分方式; 计数/总和';
+      comment on column "his_work_item".method is '得分方式; 计数/总和';
 
       --工分项目来源关联表
       create table if not exists "his_work_item_mapping"
