@@ -15,7 +15,7 @@
         <span>员工管理</span>
         <div>
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
-            >新增考核员工</el-button
+            >考核员工配置</el-button
           >
         </div>
       </div>
@@ -59,9 +59,16 @@
       >
         <el-table-column prop="index" label="序号"></el-table-column>
         <el-table-column prop="member" label="考核员工"></el-table-column>
-        <el-table-column prop="subMembers" label="关联员工">
+        <el-table-column prop="subMembers" label="关联员工" width="200">
           <template slot-scope="{row}">
-            <div>{{ row.subMember }}</div>
+            <el-tooltip
+              effect="dark"
+              placement="bottom"
+              :content="row.subMember"
+            >
+              <div slot="content" v-html="toBreak(row.subMember)"></div>
+              <span class="cell-long-span">{{ row.subMember }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column prop="subRate" label="权重系数">
@@ -405,6 +412,14 @@ export default {
         return {rowspan: _row, colspan: _col};
       }
     },
+    toBreak(content) {
+      let contentStr = '';
+      for (let index in content) {
+        if (index !== '0' && index % 20 === 0) contentStr += '<br/>';
+        contentStr += content[index];
+      }
+      return contentStr;
+    },
     resetConfig() {
       this.$refs['memberForm'].resetFields();
       this.addMemberVisible = false;
@@ -424,5 +439,11 @@ export default {
   .el-table__expanded-cell {
     padding: 10px 20px;
   }
+}
+.cell-long-span {
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
