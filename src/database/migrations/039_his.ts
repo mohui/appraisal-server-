@@ -12,7 +12,7 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
-        staff        varchar(64),
+        staff        varchar(64) unique,
         account      varchar(255) unique,
         password     varchar(255),
         name         varchar(255),
