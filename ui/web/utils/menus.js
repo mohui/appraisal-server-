@@ -83,5 +83,28 @@ module.exports = [
     label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
+  },
+  {
+    index: 'medical-performance',
+    permission: [
+      Permission.APPRAISAL_RESULT,
+      Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
+      Permission.APPRAISAL_BASIC_DATA
+    ],
+    label: '医疗绩效',
+    icon: 'el-icon-s-data',
+    router: '/medical-performance'
+  },
+  {
+    index: 'plan',
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];
