@@ -41,28 +41,38 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_source."sources" is '关联员工id数组';
       comment on column his_staff_work_source.rate is '权重系数';
 
-      --医疗基础数据表
-      create table if not exists his_basic_data
+      --医疗手工数据表
+      create table if not exists his_manual_data
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
+        input        varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (hospital, name)
       );
+      comment on table his_manual_data is '医疗手工数据表';
+      comment on column his_manual_data.hospital is '所属医院id';
+      comment on column his_manual_data.name is '名称';
+      comment on column his_manual_data.input is '输入方式; 属性/日志';
 
-      --医疗基础数据得分流水表
-      create table if not exists his_staff_basic_data_detail
+      --医疗手工数据流水表
+      create table if not exists his_staff_manual_data_detail
       (
         staff        varchar(36),
         basic        varchar(36),
         date         timestamp with time zone,
-        score        double precision,
+        value        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, basic, date)
       );
+      comment on table his_staff_manual_data_detail is '医疗手工数据流水表';
+      comment on column his_staff_manual_data_detail.staff is '员工id';
+      comment on column his_staff_manual_data_detail.basic is '手工数据id';
+      comment on column his_staff_manual_data_detail.date is '得分时间';
+      comment on column his_staff_manual_data_detail.value is '值';
 
       --工分项目表
       create table if not exists "his_work_item"
