@@ -156,7 +156,7 @@
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select v-model="userForm.his">
+          <el-select v-model="userForm.his" clearable filterable>
             <el-option
               v-for="h in hisList"
               :key="h.name"
@@ -211,7 +211,7 @@
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select v-model="userForm.his">
+          <el-select v-model="userForm.his" clearable filterable>
             <el-option
               v-for="h in hisList"
               :key="h.name"
