@@ -27,10 +27,7 @@
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-            <div
-              class="card"
-              style="height: 180px; display: flex; flex-direction: column"
-            >
+            <div class="card person-info">
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
@@ -40,14 +37,14 @@
                   style="padding:  0 8%"
                 >
                   <el-row style="margin: 5px; padding: 5px; font-size: 15px">
-                    <el-col :span="10" style="color: #323233"
-                      >{{ key }}：</el-col
-                    >
-                    <el-col
-                      :span="14"
-                      style="color: darkgray; text-align: right"
-                      >{{ value }}</el-col
-                    >
+                    <el-col :span="10">
+                      <div class="name">{{ key }}：</div>
+                    </el-col>
+                    <el-col :span="14">
+                      <div class="value">
+                        {{ value }}
+                      </div>
+                    </el-col>
                   </el-row>
                 </el-col>
               </el-row>
@@ -385,6 +382,25 @@ export default {
     .item {
       margin-right: 20px;
     }
+  }
+}
+
+.person-info {
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  .name,
+  .value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .name {
+    color: #323233;
+  }
+  .value {
+    color: darkgray;
+    text-align: right;
   }
 }
 
