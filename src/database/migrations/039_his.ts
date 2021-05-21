@@ -76,7 +76,7 @@ export class HisMigration implements IMigration {
       (
         staff        varchar(36),
         item         varchar(36),
-        score        int,
+        score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, item)
@@ -92,7 +92,7 @@ export class HisMigration implements IMigration {
         staff        varchar(36),
         item         varchar(36),
         date         date,
-        score        int,
+        score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, item, date)
@@ -138,7 +138,7 @@ export class HisMigration implements IMigration {
         metric       varchar(255),
         operator     varchar(255),
         value        double precision,
-        score        int,
+        score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -173,7 +173,7 @@ export class HisMigration implements IMigration {
       (
         staff        varchar(36),
         month        date,
-        score        int,
+        score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (staff, month)
