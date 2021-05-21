@@ -37,7 +37,7 @@ export default class HisStaff {
   @validate(
     should
       .string()
-      .allow(null, '')
+      .allow(null)
       .description('绑定his员工id'),
     should
       .string()
