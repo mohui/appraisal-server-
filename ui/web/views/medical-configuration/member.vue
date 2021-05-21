@@ -147,9 +147,14 @@
           <el-table border size="mini" :data="newMember.subMembers">
             <el-table-column label="员工" prop="name">
               <template slot-scope="{$index, row}">
-                <div v-if="$index === 0">{{ row.name }}</div>
+                <div v-if="$index === 0">{{ row.name.join(',') }}</div>
                 <div v-if="$index > 0">
-                  <el-select v-model="row.name" size="mini">
+                  <el-select
+                    v-model="row.name"
+                    multiple
+                    collapse-tags
+                    size="mini"
+                  >
                     <el-option
                       v-for="m in memberList"
                       :key="m.value"
@@ -171,20 +176,18 @@
                   <el-input-number
                     v-model="row.rate"
                     size="mini"
-                  ></el-input-number
-                  >%
+                  ></el-input-number>
+                  &nbsp;&nbsp;%
                 </div>
               </template>
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="{$index}">
-                <div v-if="$index > 0">
-                  <el-button
-                    type="text"
-                    @click="newMember.subMembers.splice($index, 1)"
-                    >删除</el-button
-                  >
-                </div>
+                <el-button
+                  type="text"
+                  @click="newMember.subMembers.splice($index, 1)"
+                  >删除</el-button
+                >
               </template>
             </el-table-column>
           </el-table>
@@ -217,8 +220,8 @@ export default {
   name: 'Member',
   data() {
     const ValidSubMember = (rule, value, callback) => {
-      if (value.some(v => v.name === '' && v.rate < 1)) callback();
-      if (value.some(v => v.name === '' || v.rate < 1))
+      if (value.some(v => v.name.length < 1 && v.rate < 1)) callback();
+      if (value.some(v => v.name.length < 1 || v.rate < 1))
         callback(new Error('关联员工信息未填写完整'));
       callback();
     };
@@ -250,7 +253,7 @@ export default {
           data.push({
             index: row.index,
             member: row.member,
-            subMember: sub.name,
+            subMember: sub.name.join(','),
             subRate: sub.rate,
             createdAt: row.createdAt
           });
@@ -287,11 +290,11 @@ export default {
       if (!this.newMember.index && this.newMember.member) {
         this.newMember.subMembers = [];
         this.newMember.subMembers.push({
-          name: this.newMember.member,
+          name: [this.newMember.member],
           rate: 100
         });
         this.newMember.subMembers.push({
-          name: '',
+          name: [],
           rate: 0
         });
       }
@@ -312,8 +315,8 @@ export default {
                   index: i + 1,
                   member: `员工B${i}`,
                   subMembers: [
-                    {name: `员工B${i}`, rate: 100},
-                    {name: `员工AA${i}`, rate: 90}
+                    {name: [`员工B${i}`], rate: 100},
+                    {name: [`员工CC${i}`, `员工DD${i}`], rate: 90}
                   ],
                   createdAt: '2021-05-18 11:23:21'
                 });
@@ -355,10 +358,12 @@ export default {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           if (!this.newMember.index) {
-            this.$set(this.serverData.rows, this.tableData.length, {
-              index: this.tableData.length + 1,
+            this.$set(this.serverData.rows, this.serverData.rows.length, {
+              index: this.serverData.rows.length + 1,
               member: this.newMember.member,
-              subMembers: this.newMember.subMembers.filter(it => it.name),
+              subMembers: this.newMember.subMembers.filter(
+                it => it.name.length > 0
+              ),
               createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
             });
             this.$message.success('添加成功');
@@ -366,7 +371,9 @@ export default {
             this.$set(this.serverData.rows, this.newMember.index - 1, {
               index: this.newMember.index,
               member: this.newMember.member,
-              subMembers: this.newMember.subMembers.filter(it => it.name),
+              subMembers: this.newMember.subMembers.filter(
+                it => it.name.length > 0
+              ),
               createdAt: this.newMember.createdAt
             });
           }
