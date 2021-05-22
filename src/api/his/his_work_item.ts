@@ -1,10 +1,16 @@
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
-import {appDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 
+/**
+ * 接口
+ * 新建公分项
+ * 员工和工分项的绑定
+ * 公分项列表
+ */
 export default class HisWorkItem {
   /**
    * 新建公分项
@@ -120,5 +126,75 @@ export default class HisWorkItem {
         }
       }
     });
+  }
+
+  /**
+   * 工分项列表
+   */
+  async list() {
+    // 获取机构id
+    const hospital = await getHospital();
+    // 查询工分项目
+    const workItemList = await appDB.execute(
+      `select id, name, method from his_work_item where hospital = ?`,
+      hospital
+    );
+    if (workItemList.length === 0) return [];
+    // 数据来源
+    let itemMappings = [];
+
+    for (const it of workItemList) {
+      // 工分项id
+      const itemId = it?.id;
+      // 查找工分项目来源
+      const workItemMappingList = await appDB.execute(
+        `select item, source, type from his_work_item_mapping where item = ?`,
+        itemId
+      );
+      const checkIds = workItemMappingList
+        .filter(it => it.type === HisWorkSource.CHECK)
+        .map(it => it.source);
+
+      const drugsIds = workItemMappingList
+        .filter(it => it.type === HisWorkSource.DRUG)
+        .map(it => it.source);
+
+      const manualIds = workItemMappingList
+        .filter(it => it.type === HisWorkSource.MANUAL)
+        .map(it => it.source);
+      // 检查项目列表
+      let checks = [];
+      // 药品
+      let drugs = [];
+      // 手工数据
+      let manuals = [];
+      if (checkIds.length > 0) {
+        checks = await originalDB.execute(
+          `select id, name
+             from his_check where id in (${checkIds.map(() => '?')})`,
+          ...checkIds
+        );
+      }
+      // 药品
+      if (drugsIds.length > 0) {
+        drugs = await originalDB.execute(
+          `select id, name
+             from his_drug where id in (${drugsIds.map(() => '?')})`,
+          ...drugsIds
+        );
+      }
+      // 手工数据
+      if (manualIds.length > 0) {
+        manuals = await originalDB.execute(
+          `select id, name
+             from his_manual_data where id in (${manualIds.map(() => '?')})`,
+          ...manualIds
+        );
+      }
+      itemMappings = checks.concat(drugs, manuals);
+      it['mappings'] = itemMappings;
+    }
+
+    return workItemList;
   }
 }
