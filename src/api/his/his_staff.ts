@@ -123,24 +123,31 @@ export default class HisStaff {
   /**
    * 删除员工信息
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('主键')
+  )
   async delete(id) {
+    // 先查询是否绑定过
+    const itemMapping = await appDB.execute(
+      `select * from his_staff_work_item_mapping where staff = ?`,
+      id
+    );
+    if (itemMapping.length > 0) throw new KatoRuntimeError(`员工已绑定工分项`);
+
+    const staffWorkSource = await appDB.execute(
+      `select * from his_staff_work_source where staff = ? or ? = ANY(sources)`,
+      id,
+      id
+    );
+    if (staffWorkSource.length > 0) throw new KatoRuntimeError(`员工添加考核`);
+
     return await appDB.execute(
       `
         delete from staff where id = ?`,
       id
-    );
-  }
-
-  /**
-   * 员工列表
-   */
-  async list() {
-    const hospital = await getHospital();
-    return await appDB.execute(
-      `
-        select id, hospital, staff, account, name, created_at, updated_at
-        from staff where hospital = ?`,
-      hospital
     );
   }
 }
