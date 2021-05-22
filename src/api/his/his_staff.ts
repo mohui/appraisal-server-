@@ -245,4 +245,45 @@ export default class HisStaff {
       );
     });
   }
+
+  /**
+   * 查询员工绑定
+   */
+  async selHisStaffWorkSource() {
+    const hospital = await getHospital();
+    const list = await appDB.execute(
+      `
+        select
+          source.id
+          ,source.staff
+          ,source.sources
+          ,source.rate
+          ,staff.name "staffName"
+        from his_staff_work_source source
+        left join staff on source.staff = staff.id
+        where staff.hospital = ?
+        order by source.created_at desc`,
+      hospital
+    );
+
+    const staffList = await appDB.execute(
+      `select id, name from staff where hospital = ?`,
+      hospital
+    );
+    const staffListObj = {};
+
+    for (const it of staffList) {
+      staffListObj[it.id] = it.name;
+    }
+
+    return list.map(it => {
+      const sourcesName = it.sources.map(item => {
+        return staffListObj[item];
+      });
+      return {
+        ...it,
+        sourcesName: sourcesName
+      };
+    });
+  }
 }
