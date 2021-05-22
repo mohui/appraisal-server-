@@ -62,6 +62,35 @@ export default class HisManualData {
   }
 
   /**
+   * 查询手工数据日志值
+   */
+  @validate(should.string(), should.date(), should.date())
+  async listLogData(id, start, end) {
+    const hospitalId = await getHospital();
+    //language=PostgreSQL
+    return await appDB.execute(
+      `
+        select s.id,
+               s.name,
+               d.value,
+               d.date,
+               d.created_at,
+               d.updated_at
+        from his_staff_manual_data_detail d
+               inner join staff s on d.staff = s.id and s.hospital = ?
+        where d.basic = ?
+          and d.date >= ?
+          and d.date < ?
+        order by d.date desc
+      `,
+      hospitalId,
+      id,
+      start,
+      end
+    );
+  }
+
+  /**
    * 添加手工数据日志值
    *
    * @param staff 员工id
