@@ -433,6 +433,7 @@ export default {
 }
 .cell-long-span {
   width: 100%;
+  display: block;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
