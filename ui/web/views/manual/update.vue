@@ -130,7 +130,7 @@
               size="mini"
               @click="delManual(scope)"
             >
-              删除
+              清除
             </el-button>
           </template>
         </el-table-column>
@@ -230,7 +230,6 @@ export default {
       }
     },
     addManual(item) {
-      console.log(item);
       item.row.id = new Date().getTime();
       item.row.member = this.members.find(
         it => it.value === item.row.memberId
@@ -247,7 +246,7 @@ export default {
       item.row.EDIT = false;
     },
     delManual({$index}) {
-      this.$confirm('确定要删除此记录?', '提示', {
+      this.$confirm('确定要清除此记录?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -258,7 +257,7 @@ export default {
             this.list.splice($index, 1);
             this.$message({
               type: 'success',
-              message: '删除成功!'
+              message: '清除成功!'
             });
           } catch (e) {
             this.$message.error(e.message);
@@ -267,7 +266,7 @@ export default {
         .catch(() => {
           this.$message({
             type: 'info',
-            message: '已取消删除'
+            message: '已取消清除'
           });
         });
     }
