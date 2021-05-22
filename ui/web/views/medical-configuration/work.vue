@@ -25,22 +25,40 @@
         @toggle="is => (isCollapsed = is)"
       >
         <el-form
-          ref="ruleForm"
+          ref="workForm"
           :model="searchForm"
           label-width="100px"
           size="mini"
         >
           <el-row>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="打分类型:">
-                <el-select v-model="searchForm.scoreType" size="mini" clearable>
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+              <el-form-item label="工分项:" prop="work">
+                <el-select
+                  v-model="searchForm.work"
+                  style="width: 100%"
+                  size="mini"
+                  clearable
+                >
+                  <el-option label="工分项1" value="工分项1"></el-option>
+                  <el-option label="工分项2" value="工分项2"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+              <el-form-item label="打分类型:" prop="scoreType">
+                <el-select
+                  v-model="searchForm.scoreType"
+                  style="width: 100%"
+                  size="mini"
+                  clearable
+                >
                   <el-option label="手动打分" value="手动打分"></el-option>
                   <el-option label="自动打分" value="自动打分"></el-option>
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="打分方式">
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+              <el-form-item label="打分方式" prop="scoreStyle">
                 <el-select
                   v-model="searchForm.scoreStyle"
                   style="width: 100%"
@@ -57,10 +75,11 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <el-form-item prop="dateRange" size="mini" label="创建时间">
                 <el-date-picker
                   v-model="searchForm.dateRange"
+                  style="width:100%"
                   clearable
                   :default-time="['00:00:00', '23:59:59']"
                   type="daterange"
@@ -69,6 +88,19 @@
                   end-placeholder="结束日期"
                   size="mini"
                 ></el-date-picker>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="8" :xl="6">
+              <el-form-item label="">
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="$asyncComputed.serverData.update()"
+                  >查询</el-button
+                >
+                <el-button type="primary" size="mini" @click="resetConfig">
+                  重置
+                </el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -230,7 +262,6 @@
       :before-close="resetConfig"
     >
       <el-form
-        ref="workForm"
         :model="newWork"
         :rules="workRules"
         label-position="right"
