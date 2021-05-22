@@ -54,12 +54,16 @@ export default class HisStaff {
   )
   async add(staff, account, password, name) {
     const hospital = await getHospital();
-    // 查询his员工是否已经被绑定
-    const accountOne = await appDB.execute(
-      `select * from staff where staff = ?`,
-      staff
-    );
-    if (accountOne.length > 0) throw new KatoRuntimeError(`his员工已经存在`);
+    if (staff) {
+      // 查询his员工是否已经被绑定
+      const accountOne = await appDB.execute(
+        `select * from staff where staff = ?`,
+        staff
+      );
+      if (accountOne.length > 0) throw new KatoRuntimeError(`his员工已经存在`);
+    } else {
+      staff = null;
+    }
     return await appDB.execute(
       `insert into
             staff(
@@ -98,6 +102,9 @@ export default class HisStaff {
       .required()
       .description('密码')
   )
+  /**
+   * 修改员工信息
+   */
   async update(id, name, password) {
     return await appDB.execute(
       `
@@ -109,6 +116,17 @@ export default class HisStaff {
       name,
       password,
       dayjs().toDate(),
+      id
+    );
+  }
+
+  /**
+   * 删除员工信息
+   */
+  async delete(id) {
+    return await appDB.execute(
+      `
+        delete from staff where id = ?`,
       id
     );
   }
