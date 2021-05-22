@@ -9,7 +9,7 @@
 | staff | varchar(64) | 绑定his员工id |
 | account | varchar(255) | 登录名 |
 | password | varchar(255) | 密码 |
-| name | varchar(255) | 密码 |
+| name | varchar(255) | 名称 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -31,7 +31,7 @@
 | id | varchar(36) | 主键 |
 | hospital | varchar(36) | 所属医院id |
 | name | varchar(255) | 名称 |
-| type | varchar(255) | 得分方式; counts: 数量; money: 金额 / null / 手动打分 |
+| method | varchar(255) | 得分方式; 计数/总和 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
