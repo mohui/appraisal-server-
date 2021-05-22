@@ -1,8 +1,28 @@
+import * as dayjs from 'dayjs';
 import {should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB} from '../../app';
 import {getHospital} from './his_staff';
+
+/**
+ * 手工数据属性型返回值
+ */
+type ManualPropDataReturnValue = {
+  //手工数据id
+  id: string;
+  //员工
+  staff: {
+    id: string;
+    name: string;
+  };
+  //手工数据值
+  value: number;
+  //手工数据日志数量
+  size: number;
+  //赋值时间
+  date?: Date;
+};
 
 /**
  * 手工数据模块
@@ -89,6 +109,59 @@ export default class HisManualData {
       start,
       end
     );
+  }
+
+  /**
+   * 查询手工数据属性值
+   *
+   * @param id 手工数据id
+   * @param month 月份
+   */
+  @validate(should.string(), should.date())
+  async listData(id, month) {
+    const hospital = await getHospital();
+    //获取当前机构下的所有人员并转换成返回值数组
+    const rows: ManualPropDataReturnValue[] = (
+      await appDB.execute(
+        `select id, name from staff where hospital = ?`,
+        hospital
+      )
+    ).map<ManualPropDataReturnValue>(it => ({
+      id: id,
+      staff: {
+        id: it.id,
+        name: it.name
+      },
+      value: 0,
+      size: 0,
+      date: month
+    }));
+
+    const time = dayjs(month);
+    const start = time.startOf('M').toDate();
+    const end = time
+      .add(1, 'M')
+      .startOf('M')
+      .toDate();
+    //查询手工数据流水表
+    const list: {
+      id;
+      staff;
+      name;
+      value;
+      date;
+      created_at;
+      updated_at;
+    }[] = await this.listLogData(id, start, end);
+    //累计属性值
+    for (const row of list) {
+      const current = rows.find(it => it.staff.id === row.staff);
+      if (current) {
+        current.value += row.value;
+        current.size += 1;
+      }
+    }
+    return rows;
   }
 
   /**
