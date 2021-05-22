@@ -62,13 +62,15 @@
         <el-table-column prop="subMembers" label="关联员工" width="200">
           <template slot-scope="{row}">
             <el-tooltip
+              v-if="$widthCompute([row.subMember]) >= 200"
               effect="dark"
-              placement="bottom"
+              placement="top"
               :content="row.subMember"
             >
               <div slot="content" v-html="toBreak(row.subMember)"></div>
               <span class="cell-long-span">{{ row.subMember }}</span>
             </el-tooltip>
+            <div v-else>{{ row.subMember }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="subRate" label="权重系数">
@@ -323,7 +325,15 @@ export default {
                   member: `员工B${i}`,
                   subMembers: [
                     {name: [`员工B${i}`], rate: 100},
-                    {name: [`员工CC${i}`, `员工DD${i}`], rate: 90}
+                    {
+                      name: [
+                        `C员工CC${i}`,
+                        `D员工DD${i}`,
+                        `W员工W${i}`,
+                        `X员工X${i}`
+                      ],
+                      rate: 90
+                    }
                   ],
                   createdAt: '2021-05-18 11:23:21'
                 });
