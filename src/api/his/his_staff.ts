@@ -163,4 +163,46 @@ export default class HisStaff {
       hospital
     );
   }
+
+  /**
+   * 员工绑定
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .array()
+      .items({
+        source: should
+          .array()
+          .required()
+          .description('关联员工id'),
+        rate: should
+          .number()
+          .required()
+          .description('权重系数')
+      })
+      .required()
+      .description('关联员工[]')
+  )
+  async addHisStaffWorkSource(staff, sourceRate) {
+    return appDB.transaction(async () => {
+      // 添加员工关联
+      for (const it of sourceRate) {
+        await appDB.execute(
+          ` insert into
+              his_staff_work_source(id, staff, sources, rate, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+          uuid(),
+          staff,
+          `{${it.source.map(item => `"${item}"`).join()}}`,
+          it.rate,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
+      }
+    });
+  }
 }
