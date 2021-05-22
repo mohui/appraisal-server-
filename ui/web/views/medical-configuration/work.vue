@@ -32,12 +32,43 @@
         >
           <el-row>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="打分方式：">
+              <el-form-item label="打分类型:">
+                <el-select v-model="searchForm.scoreType" size="mini" clearable>
+                  <el-option label="手动打分" value="手动打分"></el-option>
+                  <el-option label="自动打分" value="自动打分"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+              <el-form-item label="打分方式">
                 <el-select
-                  v-model="searchForm.account"
+                  v-model="searchForm.scoreStyle"
+                  style="width: 100%"
                   size="mini"
+                >
+                  <el-option
+                    value="按服务单位打分"
+                    label="按服务单位打分"
+                  ></el-option>
+                  <el-option
+                    value="按金额单位打分"
+                    label="按金额单位打分"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+              <el-form-item prop="dateRange" size="mini" label="创建时间">
+                <el-date-picker
+                  v-model="searchForm.dateRange"
                   clearable
-                ></el-select>
+                  :default-time="['00:00:00', '23:59:59']"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  size="mini"
+                ></el-date-picker>
               </el-form-item>
             </el-col>
           </el-row>
@@ -302,7 +333,9 @@ export default {
       searchForm: {
         work: '',
         scoreType: '',
+        scoreStyle: '',
         projects: [],
+        dateRange: '',
         pageSize: 20,
         pageNo: 1
       },
@@ -339,8 +372,8 @@ export default {
       async get() {
         let data = [];
         this.tableLoading = true;
-        const {scoreType} = this.searchForm;
-        console.log(scoreType);
+        const {work, scoreType, scoreStyle, dateRange} = this.searchForm;
+        console.log(scoreType, work, scoreStyle, dateRange);
         try {
           await new Promise(resolve =>
             setTimeout(() => {
