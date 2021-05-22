@@ -7,7 +7,10 @@ import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 
 /**
  * 接口
+ *
  * 新建公分项
+ * 修改公分项
+ * 删除公分项
  * 员工和工分项的绑定
  * 公分项列表
  */
@@ -17,8 +20,7 @@ export default class HisWorkItem {
    *
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
-   * @param source 来源id[]
-   * @param type 类型; 检查项目/药品/手工数据
+   * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
    */
   @validate(
     should
@@ -31,14 +33,17 @@ export default class HisWorkItem {
       .description('得分方式; 计数/总和'),
     should
       .array()
+      .items({
+        source: should.array().required(),
+        type: should
+          .string()
+          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
+          .description('类型; 检查项目/药品/手工数据')
+      })
       .required()
-      .description('来源id[]'),
-    should
-      .string()
-      .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
-      .description('类型; 检查项目/药品/手工数据')
+      .description('来源id[]')
   )
-  async add(name, method, source, type) {
+  async add(name, method, mappings) {
     const hospital = await getHospital();
 
     return appDB.transaction(async () => {
@@ -57,17 +62,19 @@ export default class HisWorkItem {
       );
 
       // 添加工分项目与his收费项目关联表
-      for (const sourceId of source) {
-        await appDB.execute(
-          `insert into
+      for (const it of mappings) {
+        for (const sourceId of it.source) {
+          await appDB.execute(
+            `insert into
               his_work_item_mapping(item, source, type, created_at, updated_at)
               values(?, ?, ?, ?, ?)`,
-          hisWorkItemId,
-          sourceId,
-          type,
-          dayjs().toDate(),
-          dayjs().toDate()
-        );
+            hisWorkItemId,
+            sourceId,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
       }
     });
   }
@@ -125,6 +132,97 @@ export default class HisWorkItem {
           );
         }
       }
+    });
+  }
+
+  /**
+   * 修改工分项目
+   * @param id 工分项目id
+   * @param name 工分项目名称
+   * @param method 得分方式
+   * @param mappings
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('工分项目id'),
+    should
+      .string()
+      .required()
+      .description('工分项目名称'),
+    should
+      .string()
+      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
+      .description('得分方式; 计数/总和'),
+    should
+      .array()
+      .items({
+        source: should.array().required(),
+        type: should
+          .string()
+          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
+          .description('类型; 检查项目/药品/手工数据')
+      })
+      .required()
+      .description('来源id[]')
+  )
+  async update(id, name, method, mappings) {
+    return appDB.transaction(async () => {
+      // 添加工分项目
+      await appDB.execute(
+        ` update his_work_item
+              set name = ?,
+                method = ?,
+                updated_at = ?
+              where id = ?`,
+        name,
+        method,
+        dayjs().toDate(),
+        id
+      );
+      // 先删除
+      await appDB.execute(
+        `delete from his_work_item_mapping where item = ?`,
+        id
+      );
+      // 添加工分项目与his收费项目关联表
+      for (const it of mappings) {
+        for (const sourceId of it.source) {
+          // 再添加
+          await appDB.execute(
+            `insert into
+              his_work_item_mapping(item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+            id,
+            sourceId,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      }
+    });
+  }
+
+  /**
+   * 删除工分项目
+   * @param id
+   */
+  async delete(id) {
+    return appDB.transaction(async () => {
+      // 删除对应关系
+      await appDB.execute(
+        `delete from his_staff_work_item_mapping where item = ?`,
+        id
+      );
+      // 删除工分项目来源
+      await appDB.execute(
+        `delete from his_work_item_mapping where item = ?`,
+        id
+      );
+      // 删除工分项目
+      await appDB.execute(`delete from his_work_item where id = ?`, id);
     });
   }
 
