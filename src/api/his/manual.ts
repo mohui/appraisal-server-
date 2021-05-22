@@ -1,5 +1,5 @@
 import * as dayjs from 'dayjs';
-import {should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB} from '../../app';
@@ -100,6 +100,26 @@ export default class HisManualData {
       name,
       input
     );
+  }
+
+  /**
+   * 删除手工数据项目
+   *
+   * @param id id
+   */
+  @validate(should.string().required())
+  async del(id) {
+    const data = await this.get(id, Date.now());
+    if (!data) throw new KatoRuntimeError(`参数不合法`);
+    await appDB.transaction(async () => {
+      //删除流水表
+      await appDB.execute(
+        `delete from his_staff_manual_data_detail where basic = ?`,
+        id
+      );
+      //删除主表
+      await appDB.execute(`delete from his_manual_data where id = ?`, id);
+    });
   }
 
   /**
