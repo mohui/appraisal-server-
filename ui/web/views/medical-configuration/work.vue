@@ -83,9 +83,23 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="project" label="关联项目">
+        <el-table-column prop="project" label="关联项目" width="160">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.projects }}</div>
+            <div v-if="!row.isEdit">
+              <el-tooltip
+                v-if="$widthCompute([row.projects.join(',')]) >= 200"
+                effect="dark"
+                placement="top"
+                :content="row.projects.join(',')"
+              >
+                <div
+                  slot="content"
+                  v-html="toBreak(row.projects.join(','))"
+                ></div>
+                <span class="cell-long-span">{{ row.projects.join(',') }}</span>
+              </el-tooltip>
+              <div v-else>{{ row.projects.join(',') }}</div>
+            </div>
             <div v-if="row.isEdit && row.scoreType === '自动打分'">
               <el-select
                 v-model="tempRow.projects"
@@ -277,8 +291,6 @@ export default {
       callback();
     };
     const validaScoreStyle = (rule, value, callback) => {
-      console.log(this.newWork.scoreType);
-      console.log(value);
       if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
         callback(new Error('选择打分类型!'));
       }
@@ -428,6 +440,14 @@ export default {
     resetConfig() {
       this.$refs['workForm'].resetFields();
       this.addWorkVisible = false;
+    },
+    toBreak(content) {
+      let contentStr = '';
+      for (let index in content) {
+        if (index !== '0' && index % 20 === 0) contentStr += '<br/>';
+        contentStr += content[index];
+      }
+      return contentStr;
     }
   }
 };
@@ -437,5 +457,11 @@ export default {
 .work-header {
   display: flex;
   justify-content: space-between;
+}
+.cell-long-span {
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
