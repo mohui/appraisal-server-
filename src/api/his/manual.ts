@@ -17,8 +17,8 @@ type ManualPropDataReturnValue = {
     name: string;
   };
   //手工数据值
-  value: number;
-  //手工数据日志数量
+  value?: number;
+  //手工数据流水数量
   size: number;
   //赋值时间
   date?: Date;
@@ -99,7 +99,7 @@ export default class HisManualData {
   /**
    * 查询手工数据日志值
    */
-  @validate(should.string(), should.date())
+  @validate(should.string().required(), should.date().required())
   async listLogData(id, month) {
     const hospitalId = await getHospital();
     //月份转开始结束时间
@@ -133,7 +133,7 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param month 月份
    */
-  @validate(should.string(), should.date())
+  @validate(should.string().required(), should.date().required())
   async listData(id, month) {
     const hospital = await getHospital();
     //月份转开始结束时间
@@ -150,9 +150,9 @@ export default class HisManualData {
         id: it.id,
         name: it.name
       },
-      value: 0,
+      value: null,
       size: 0,
-      date: start
+      date: null
     }));
     //查询手工数据流水表
     const list: {
