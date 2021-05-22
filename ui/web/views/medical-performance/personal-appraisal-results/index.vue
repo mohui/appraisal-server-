@@ -192,7 +192,7 @@ export default {
         myChart.resize();
       });
     },
-    // 项目工分柱状，质量系数折线图
+    // 项目工分瀑布、质量系数折线混合图
     drawProjectWorkPointBarRateLine() {
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
@@ -210,12 +210,22 @@ export default {
           }
         },
         legend: {
-          data: ['手术', '针灸', '处方'],
+          data: [
+            '手术',
+            '针灸',
+            '处方',
+            '手术质量系数',
+            '针灸质量系数',
+            '处方质量系数'
+          ],
           // 设置图例选中状态表
           selected: {
-            手术: false,
-            针灸: true,
-            处方: false
+            手术: true,
+            针灸: false,
+            处方: false,
+            手术质量系数: true,
+            针灸质量系数: false,
+            处方质量系数: false
           }
         },
         xAxis: {
@@ -325,17 +335,17 @@ export default {
           },
 
           {
-            name: '手术',
+            name: '手术质量系数',
             data: [50, 70, 65, 78, 85, 47, 60],
             type: 'line'
           },
           {
-            name: '针灸',
+            name: '针灸质量系数',
             data: [56, 77, 55, 68, 85, 77, 50],
             type: 'line'
           },
           {
-            name: '处方',
+            name: '处方质量系数',
             data: [66, 67, 75, 34, 57, 74, 85],
             type: 'line'
           }
