@@ -86,11 +86,7 @@ module.exports = [
   },
   {
     index: 'medical-performance',
-    permission: [
-      Permission.APPRAISAL_RESULT,
-      Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
-      Permission.APPRAISAL_BASIC_DATA
-    ],
+    permission: [Permission.MEDICAL_PERFORMANCE],
     label: '医疗绩效',
     icon: 'el-icon-s-data',
     router: '/medical-performance'
@@ -133,18 +129,21 @@ module.exports = [
   },
   {
     index: 'manual',
+    permission: [Permission.MEDICAL_MANUAL],
     label: '手工数据维护',
     icon: 'el-icon-notebook-1',
     router: '/manual'
   },
   {
     index: 'plan',
+    permission: [Permission.MEDICAL_PLAN],
     label: '医疗考核方案',
     icon: 'el-icon-setting',
     router: '/plan'
   },
   {
     index: 'work',
+    permission: [Permission.MEDICAL_WORK],
     label: '医疗工作列表',
     icon: 'el-icon-notebook-2',
     router: '/work'
