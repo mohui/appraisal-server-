@@ -70,7 +70,8 @@ export default class HisManualData {
     //language=PostgreSQL
     return await appDB.execute(
       `
-        select s.id,
+        select d.basic as id,
+               d.staff,
                s.name,
                d.value,
                d.date,
