@@ -48,12 +48,12 @@ export default class HisManualData {
   @validate(
     should.string(),
     should.string(),
-    should.string().allow(Object.values(HisManualDataInput))
+    should.string().only(Object.values(HisManualDataInput))
   )
   async update(id, name, input) {
     const hospital = await getHospital();
     await appDB.execute(
-      `update his_manual_data set name = ? and input = ? where id = ? and hospital = ?`,
+      `update his_manual_data set name = ?, input = ? where id = ? and hospital = ?`,
       name,
       input,
       id,
