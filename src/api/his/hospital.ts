@@ -19,7 +19,12 @@ export default class HisHospital {
       .startOf('M')
       .toDate();
     await appDB.execute(
-      `update his_hospital_settle set settle = true where hospital = ? and month = ?`,
+      //language=PostgreSQL
+      `
+        insert into his_hospital_settle(hospital, month, settle)
+        values (?, ?, true)
+        on conflict (hospital, month) do update set settle = true, updated_at = now()
+      `,
       hospital,
       date
     );
