@@ -25,6 +25,21 @@ type ManualPropDataReturnValue = {
 };
 
 /**
+ * 月份转开始结束时间
+ *
+ * @param month 时间
+ */
+function monthToRange(month: Date): {start: Date; end: Date} {
+  const time = dayjs(month);
+  const start = time.startOf('M').toDate();
+  const end = time
+    .add(1, 'M')
+    .startOf('M')
+    .toDate();
+  return {start, end};
+}
+
+/**
  * 手工数据模块
  */
 export default class HisManualData {
@@ -84,10 +99,11 @@ export default class HisManualData {
   /**
    * 查询手工数据日志值
    */
-  @validate(should.string(), should.date(), should.date())
-  async listLogData(id, start, end) {
+  @validate(should.string(), should.date())
+  async listLogData(id, month) {
     const hospitalId = await getHospital();
-    //language=PostgreSQL
+    //月份转开始结束时间
+    const {start, end} = monthToRange(month);
     return await appDB.execute(
       `
         select d.basic as id,
@@ -120,6 +136,8 @@ export default class HisManualData {
   @validate(should.string(), should.date())
   async listData(id, month) {
     const hospital = await getHospital();
+    //月份转开始结束时间
+    const {start} = monthToRange(month);
     //获取当前机构下的所有人员并转换成返回值数组
     const rows: ManualPropDataReturnValue[] = (
       await appDB.execute(
@@ -134,15 +152,8 @@ export default class HisManualData {
       },
       value: 0,
       size: 0,
-      date: month
+      date: start
     }));
-
-    const time = dayjs(month);
-    const start = time.startOf('M').toDate();
-    const end = time
-      .add(1, 'M')
-      .startOf('M')
-      .toDate();
     //查询手工数据流水表
     const list: {
       id;
@@ -152,7 +163,7 @@ export default class HisManualData {
       date;
       created_at;
       updated_at;
-    }[] = await this.listLogData(id, start, end);
+    }[] = await this.listLogData(id, start);
     //累计属性值
     for (const row of list) {
       const current = rows.find(it => it.staff.id === row.staff);
