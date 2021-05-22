@@ -60,4 +60,48 @@ export default class HisManualData {
       hospital
     );
   }
+
+  /**
+   * 添加手工数据日志值
+   *
+   * @param staff 员工id
+   * @param id 手工数据id
+   * @param value 值
+   */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.number().required()
+  )
+  async addLogData(staff, id, value) {
+    await appDB.execute(
+      `insert into his_staff_manual_data_detail(staff, basic, date, value) values (?, ?, ?, ?)`,
+      staff,
+      id,
+      Date.now(),
+      value
+    );
+  }
+
+  /**
+   * 添加手工数据属性值
+   *
+   * @param staff 员工id
+   * @param id 手工数据id
+   * @param value 值
+   */
+  async addData(staff, id, value) {
+    //1. 查询所有数据
+    const total = (
+      await appDB.execute(
+        `select sum(value) as value from his_staff_manual_data_detail where staff = ? and basic = ?`,
+        staff,
+        id
+      )
+    )[0].value;
+    //2. diff
+    const diff = value - total;
+    //3. addLogData
+    await this.addLogData(staff, id, diff);
+  }
 }
