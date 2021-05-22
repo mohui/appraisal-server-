@@ -109,8 +109,26 @@ export default class HisManualData {
    */
   @validate(should.string().required())
   async del(id) {
+    const hospital = await getHospital();
     const data = await this.get(id, Date.now());
     if (!data) throw new KatoRuntimeError(`参数不合法`);
+    //查询结算历史
+    //language=PostgreSQL
+    const counts = (
+      await appDB.execute(
+        `
+          select count(1) as counts
+          from his_staff_manual_data_detail d
+                 inner join his_manual_data m on d.basic = m.id
+                 inner join his_hospital_settle s on m.hospital = s.hospital and s.settle = true
+          where d.basic = ?
+            and to_char(s.month, 'yyyyMM') = to_char(d.date, 'yyyyMM');
+        `,
+        hospital
+      )
+    )[0].counts;
+    if (Number(counts)) throw new KatoRuntimeError(`${data.name} 存在结算历史`);
+    //开启事务
     await appDB.transaction(async () => {
       //删除流水表
       await appDB.execute(
