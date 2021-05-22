@@ -130,6 +130,22 @@ export const PermissionDetail = [
   {
     key: 'medical-configuration-member-his',
     name: '员工管理'
+  },
+  {
+    key: 'medical-performance',
+    name: '医疗绩效'
+  },
+  {
+    key: 'medical-manual',
+    name: '手工数据维护'
+  },
+  {
+    key: 'medical-plan',
+    name: '医疗考核方案'
+  },
+  {
+    key: 'medical-work',
+    name: '医疗工作列表'
   }
 ];
 
@@ -166,7 +182,11 @@ export const Permission = {
   MEDICAL_CONFIGURATION_LIST: 'medical-configuration-list',
   MEDICAL_CONFIGURATION_WORK: 'medical-configuration-work',
   MEDICAL_CONFIGURATION_MEMBER: 'medical-configuration-member',
-  MEDICAL_CONFIGURATION_MEMBER_HIS: 'medical-configuration-member-his'
+  MEDICAL_CONFIGURATION_MEMBER_HIS: 'medical-configuration-member-his',
+  MEDICAL_PERFORMANCE: 'medical-performance',
+  MEDICAL_MANUAL: 'medical-manual',
+  MEDICAL_PLAN: 'medical-plan',
+  MEDICAL_WORK: 'medical-work'
 };
 export const PermissionTree = [
   {
@@ -322,6 +342,10 @@ export const PermissionTree = [
     label: '操作日志'
   },
   {
+    key: Permission.MEDICAL_PERFORMANCE,
+    label: '医疗绩效'
+  },
+  {
     key: 'medical-configuration',
     label: '医疗绩效配置',
     children: [
@@ -342,6 +366,18 @@ export const PermissionTree = [
         label: '员工管理'
       }
     ]
+  },
+  {
+    key: Permission.MEDICAL_MANUAL,
+    label: '手工数据维护'
+  },
+  {
+    key: Permission.MEDICAL_PLAN,
+    label: '医疗考核方案'
+  },
+  {
+    key: Permission.MEDICAL_WORK,
+    label: '医疗工作列表'
   }
 ];
 export function getPermission(key) {

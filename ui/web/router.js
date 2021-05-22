@@ -196,6 +196,9 @@ const router = new Router({
         {
           path: 'plan',
           name: 'plan',
+          meta: {
+            permission: [Permission.MEDICAL_PLAN]
+          },
           component: () => import('./views/plan/list')
         },
         {
@@ -209,11 +212,17 @@ const router = new Router({
         {
           path: 'work',
           name: 'work',
+          meta: {
+            permission: [Permission.MEDICAL_WORK]
+          },
           component: () => import('./views/work/list')
         },
         {
           path: 'manual',
           name: 'manual',
+          meta: {
+            permission: [Permission.MEDICAL_MANUAL]
+          },
           component: () => import('./views/manual/index')
         },
         {
@@ -243,11 +252,7 @@ const router = new Router({
           path: 'medical-performance',
           name: 'medical-performance',
           meta: {
-            permission: [
-              Permission.APPRAISAL_RESULT,
-              Permission.APPRAISAL_CONFIGURATION_MANAGEMENT,
-              Permission.APPRAISAL_BASIC_DATA
-            ]
+            permission: [Permission.MEDICAL_PERFORMANCE]
           },
           component: () => import('./views/medical-performance/index')
         },
