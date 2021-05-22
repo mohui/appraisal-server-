@@ -247,6 +247,7 @@ export default class HisManualData {
     should.date().required()
   )
   async addLogData(staff, id, value, date) {
+    await this.validDetail(id, date);
     await appDB.execute(
       `insert into his_staff_manual_data_detail(staff, basic, date, value) values (?, ?, ?, ?)`,
       staff,
@@ -270,6 +271,7 @@ export default class HisManualData {
     should.number().required()
   )
   async setData(staff, id, value, date) {
+    await this.validDetail(id, date);
     const {start, end} = monthToRange(date);
     //1. 查询所有数据
     const total = (
@@ -307,6 +309,7 @@ export default class HisManualData {
     should.date().required()
   )
   async delData(staff, id, month) {
+    await this.validDetail(id, month);
     const {start, end} = monthToRange(month);
     await appDB.execute(
       `
@@ -337,6 +340,7 @@ export default class HisManualData {
     should.date().required()
   )
   async delLogData(staff, id, date) {
+    await this.validDetail(id, date);
     await appDB.execute(
       `
         delete
@@ -349,5 +353,17 @@ export default class HisManualData {
       id,
       date
     );
+  }
+
+  /**
+   * 手工数据流水是否可操作
+   *
+   * @param id id
+   * @param month 月份
+   */
+  async validDetail(id, month) {
+    const data = await this.get(id, month);
+    if (!data) throw new KatoRuntimeError(`该数据项目不存在`);
+    if (data.settle) throw new KatoRuntimeError(`该数据项目当前月份已经结算`);
   }
 }
