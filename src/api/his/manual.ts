@@ -181,46 +181,59 @@ export default class HisManualData {
    * @param staff 员工id
    * @param id 手工数据id
    * @param value 值
+   * @param date 赋值时间
    */
   @validate(
     should.string().required(),
     should.string().required(),
-    should.number().required()
+    should.number().required(),
+    should.date().required()
   )
-  async addLogData(staff, id, value) {
+  async addLogData(staff, id, value, date) {
     await appDB.execute(
       `insert into his_staff_manual_data_detail(staff, basic, date, value) values (?, ?, ?, ?)`,
       staff,
       id,
-      Date.now(),
+      date,
       value
     );
   }
 
   /**
-   * 添加手工数据属性值
+   * 设置手工数据属性值
    *
    * @param staff 员工id
    * @param id 手工数据id
    * @param value 值
+   * @param date 赋值时间
    */
   @validate(
     should.string().required(),
     should.string().required(),
     should.number().required()
   )
-  async addData(staff, id, value) {
+  async setData(staff, id, value, date) {
+    const {start, end} = monthToRange(date);
     //1. 查询所有数据
     const total = (
       await appDB.execute(
-        `select sum(value) as value from his_staff_manual_data_detail where staff = ? and basic = ?`,
+        `
+          select sum(value) as value
+          from his_staff_manual_data_detail
+          where staff = ?
+            and basic = ?
+            and date >= ?
+            and date < ?
+        `,
         staff,
-        id
+        id,
+        start,
+        end
       )
     )[0].value;
     //2. diff
     const diff = value - total;
     //3. addLogData
-    await this.addLogData(staff, id, diff);
+    await this.addLogData(staff, id, diff, date);
   }
 }
