@@ -205,4 +205,14 @@ export default class HisStaff {
       }
     });
   }
+  /**
+   * 删除员工绑定
+   */
+  async delHisStaffWorkSource(id) {
+    return await appDB.execute(
+      `
+        delete from his_staff_work_source where id = ?`,
+      id
+    );
+  }
 }
