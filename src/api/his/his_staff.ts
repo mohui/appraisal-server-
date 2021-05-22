@@ -215,4 +215,34 @@ export default class HisStaff {
       id
     );
   }
+
+  /**
+   * 修改考核员工
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .array()
+      .required()
+      .description('关联员工[]')
+  )
+  async updateHisStaffWorkSource(id, sources, rate) {
+    return appDB.transaction(async () => {
+      await appDB.execute(
+        ` update his_staff_work_source
+                set
+                sources = ?,
+                rate = ?,
+                updated_at = ?
+              where id = ?`,
+        `{${sources.map(item => `"${item}"`).join()}}`,
+        rate,
+        dayjs().toDate(),
+        id
+      );
+    });
+  }
 }
