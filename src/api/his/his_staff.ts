@@ -150,4 +150,17 @@ export default class HisStaff {
       id
     );
   }
+
+  /**
+   * 员工列表
+   */
+  async list() {
+    const hospital = await getHospital();
+    return await appDB.execute(
+      `
+        select id, hospital, staff, account, name, created_at, updated_at
+        from staff where hospital = ?`,
+      hospital
+    );
+  }
 }
