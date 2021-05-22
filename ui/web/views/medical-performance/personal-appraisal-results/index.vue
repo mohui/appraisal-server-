@@ -210,22 +210,13 @@ export default {
           }
         },
         legend: {
-          data: [
-            '手术',
-            '针灸',
-            '处方',
-            '手术质量系数',
-            '针灸质量系数',
-            '处方质量系数'
-          ],
+          data: ['手术', '针灸', '处方', '质量系数'],
           // 设置图例选中状态表
           selected: {
             手术: true,
             针灸: false,
             处方: false,
-            手术质量系数: true,
-            针灸质量系数: false,
-            处方质量系数: false
+            质量系数: true
           }
         },
         xAxis: {
@@ -235,16 +226,17 @@ export default {
         yAxis: [
           {
             type: 'value',
-            name: '质量系数',
+            name: '工分',
             axisLabel: {
-              formatter: '质量系数：{value}%'
+              formatter: '工分：{value}'
             }
           },
           {
             type: 'value',
-            name: '工分',
+            name: '质量系数',
+            max: 100,
             axisLabel: {
-              formatter: '工分：{value}'
+              formatter: '质量系数：{value}%'
             }
           }
         ],
@@ -252,7 +244,6 @@ export default {
           {
             name: '手术辅助',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '手术',
             itemStyle: {
               barBorderColor: 'rgba(0,0,0,0)',
@@ -269,7 +260,6 @@ export default {
           {
             name: '手术',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '手术',
             label: {
               show: true,
@@ -280,7 +270,6 @@ export default {
           {
             name: '针灸辅助',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '针灸',
             itemStyle: {
               barBorderColor: 'rgba(0,0,0,0)',
@@ -297,7 +286,6 @@ export default {
           {
             name: '针灸',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '针灸',
             label: {
               show: true,
@@ -308,7 +296,6 @@ export default {
           {
             name: '处方辅助',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '处方',
             itemStyle: {
               barBorderColor: 'rgba(0,0,0,0)',
@@ -325,7 +312,6 @@ export default {
           {
             name: '处方',
             type: 'bar',
-            yAxisIndex: 1,
             stack: '处方',
             label: {
               show: true,
@@ -335,18 +321,9 @@ export default {
           },
 
           {
-            name: '手术质量系数',
+            name: '质量系数',
+            yAxisIndex: 1,
             data: [50, 70, 65, 78, 85, 47, 60],
-            type: 'line'
-          },
-          {
-            name: '针灸质量系数',
-            data: [56, 77, 55, 68, 85, 77, 50],
-            type: 'line'
-          },
-          {
-            name: '处方质量系数',
-            data: [66, 67, 75, 34, 57, 74, 85],
             type: 'line'
           }
         ]
