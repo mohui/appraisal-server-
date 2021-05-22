@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%;">
+  <div style="height: 100%;" v-loading="isLoading">
     <el-card
       class="box-card"
       style="height: 100%;"
@@ -164,6 +164,7 @@ export default {
   name: 'Update',
   data() {
     return {
+      isLoading: true,
       editable: false,
       query: {
         id: '',
@@ -215,12 +216,14 @@ export default {
     },
     //切换月份
     async monthChanged() {
+      this.isLoading = true;
       await this.getSettle();
       const {id, input, month} = this.query;
       this.list =
         input === '属性'
           ? await this.getListData(id, month)
           : await this.getListLogData(id, month);
+      this.isLoading = false;
     },
     //获取员工列表
     async getMembers() {
