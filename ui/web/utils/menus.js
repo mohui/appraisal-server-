@@ -132,6 +132,12 @@ module.exports = [
     ]
   },
   {
+    index: 'manual',
+    label: '手工数据维护',
+    icon: 'el-icon-notebook-1',
+    router: '/manual'
+  },
+  {
     index: 'plan',
     label: '医疗考核方案',
     icon: 'el-icon-setting',

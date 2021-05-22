@@ -3,11 +3,18 @@
     <div>
       <!--顶部表头-->
       <div class="card" v-sticky>
-        <span>
-          {{ dataSource.name }}
-        </span>
-        <span> 校正后总得分（分）：{{ dataSource.score }} </span>
-        <span> 质量系数：{{ dataSource.rate }}% </span>
+        <div class="header">
+          <div class="content">
+            <div class="item">
+              {{ dataSource.name }}
+            </div>
+            <div class="item">校正后总得分（分）：{{ dataSource.score }}</div>
+            <div class="item">质量系数：{{ dataSource.rate }}%</div>
+          </div>
+          <div>
+            <el-button size="small" @click="$router.go(-1)">返回 </el-button>
+          </div>
+        </div>
       </div>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
@@ -20,10 +27,7 @@
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-            <div
-              class="card"
-              style="height: 180px; display: flex; flex-direction: column"
-            >
+            <div class="card person-info">
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
@@ -33,14 +37,14 @@
                   style="padding:  0 8%"
                 >
                   <el-row style="margin: 5px; padding: 5px; font-size: 15px">
-                    <el-col :span="10" style="color: #323233"
-                      >{{ key }}：</el-col
-                    >
-                    <el-col
-                      :span="14"
-                      style="color: darkgray; text-align: right"
-                      >{{ value }}</el-col
-                    >
+                    <el-col :span="10">
+                      <div class="name">{{ key }}：</div>
+                    </el-col>
+                    <el-col :span="14">
+                      <div class="value">
+                        {{ value }}
+                      </div>
+                    </el-col>
                   </el-row>
                 </el-col>
               </el-row>
@@ -188,7 +192,7 @@ export default {
         myChart.resize();
       });
     },
-    // 项目工分柱状，质量系数折线图
+    // 项目工分瀑布、质量系数折线混合图
     drawProjectWorkPointBarRateLine() {
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
@@ -206,12 +210,22 @@ export default {
           }
         },
         legend: {
-          data: ['手术', '针灸', '处方'],
+          data: [
+            '手术',
+            '针灸',
+            '处方',
+            '手术质量系数',
+            '针灸质量系数',
+            '处方质量系数'
+          ],
           // 设置图例选中状态表
           selected: {
-            手术: false,
-            针灸: true,
-            处方: false
+            手术: true,
+            针灸: false,
+            处方: false,
+            手术质量系数: true,
+            针灸质量系数: false,
+            处方质量系数: false
           }
         },
         xAxis: {
@@ -321,17 +335,17 @@ export default {
           },
 
           {
-            name: '手术',
+            name: '手术质量系数',
             data: [50, 70, 65, 78, 85, 47, 60],
             type: 'line'
           },
           {
-            name: '针灸',
+            name: '针灸质量系数',
             data: [56, 77, 55, 68, 85, 77, 50],
             type: 'line'
           },
           {
-            name: '处方',
+            name: '处方质量系数',
             data: [66, 67, 75, 34, 57, 74, 85],
             type: 'line'
           }
@@ -365,6 +379,39 @@ export default {
   color: #303133;
   transition: 0.3s;
   padding: 20px;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .content {
+    display: flex;
+    flex-direction: row;
+    .item {
+      margin-right: 20px;
+    }
+  }
+}
+
+.person-info {
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  .name,
+  .value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .name {
+    color: #323233;
+  }
+  .value {
+    color: darkgray;
+    text-align: right;
+  }
 }
 
 .score-rules {

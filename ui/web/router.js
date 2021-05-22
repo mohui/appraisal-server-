@@ -212,6 +212,19 @@ const router = new Router({
           component: () => import('./views/work/list')
         },
         {
+          path: 'manual',
+          name: 'manual',
+          component: () => import('./views/manual/index')
+        },
+        {
+          path: 'manual-update',
+          name: 'manual-update',
+          meta: {
+            activeMenu: 'manual'
+          },
+          component: () => import('./views/manual/update')
+        },
+        {
           path: 'etl',
           name: 'hospital-elt',
           meta: {
