@@ -96,7 +96,6 @@
               v-if="scope.row.EDIT"
               v-model="scope.row.value"
               size="mini"
-              :min="1"
             ></el-input-number>
           </template>
         </el-table-column>
