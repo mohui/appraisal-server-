@@ -293,4 +293,61 @@ export default class HisManualData {
     //3. addLogData
     await this.addLogData(staff, id, diff, date);
   }
+
+  /**
+   * 按月删除手工数据流水
+   *
+   * @param staff 人员id
+   * @param id id
+   * @param month 月份
+   */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.date().required()
+  )
+  async delData(staff, id, month) {
+    const {start, end} = monthToRange(month);
+    await appDB.execute(
+      `
+        delete
+        from his_staff_manual_data_detail
+        where staff = ?
+          and basic = ?
+          and date >= ?
+          and date < ?
+      `,
+      staff,
+      id,
+      start,
+      end
+    );
+  }
+
+  /**
+   * 删除手工数据流水
+   *
+   * @param staff 人员id
+   * @param id id
+   * @param date 赋值时间
+   */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.date().required()
+  )
+  async delLogData(staff, id, date) {
+    await appDB.execute(
+      `
+        delete
+        from his_staff_manual_data_detail
+        where staff = ?
+          and basic = ?
+          and date = ?
+      `,
+      staff,
+      id,
+      date
+    );
+  }
 }
