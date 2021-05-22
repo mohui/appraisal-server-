@@ -229,7 +229,7 @@ export default {
     //获取属性数据列表
     async getListData(id, month) {
       const result = await this.$api.HisManualData.listData(id, month);
-      return result.map(it => ({...it, EDIT: false}));
+      return result.map(it => ({...it, initial: it, EDIT: false}));
     },
     //获取日志数据列表
     async getListLogData(id, month) {
@@ -237,6 +237,7 @@ export default {
       return result.map(it => ({
         ...it,
         EDIT: false,
+        initial: it,
         createdAt: it.created_at.$format()
       }));
     },
