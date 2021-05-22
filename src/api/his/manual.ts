@@ -44,6 +44,35 @@ function monthToRange(month: Date): {start: Date; end: Date} {
  */
 export default class HisManualData {
   /**
+   * 获取指定手工数据信息
+   *
+   * @param id id
+   * @param month 月份
+   */
+  @validate(should.string().required(), should.date().required())
+  async get(id, month) {
+    const hospital = await getHospital();
+    const result = (
+      await appDB.execute(`select * from his_manual_data where id = ?`, id)
+    )[0];
+    if (!result) return null;
+    //月份转开始结束时间
+    const {start} = monthToRange(month);
+    const settle =
+      (
+        await appDB.execute(
+          `select settle from his_hospital_settle where hospital = ? and month = ?`,
+          hospital,
+          start
+        )
+      )[0]?.settle ?? false;
+    return {
+      ...result,
+      settle
+    };
+  }
+
+  /**
    * 查询手工数据
    */
   list() {
