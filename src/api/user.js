@@ -463,7 +463,7 @@ export default class User {
         it =>
           Context.current.user.permissions.includes(Permission.SUPER_ADMIN) ||
           !it.permissions.some(
-            p => !Context.current.user.permissions.includes(p.key)
+            p => !Context.current.user.permissions.includes(p?.key)
           )
       );
     return {rows: result.rows, count: result.rows.length};
