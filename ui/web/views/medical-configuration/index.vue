@@ -64,6 +64,7 @@
       <el-table
         v-loading="tableLoading"
         stripe
+        border
         size="small"
         :data="tableData"
         height="100%"
@@ -87,10 +88,26 @@
           </template>
         </el-table-column>
         <el-table-column prop="scoreType" label="打分方式"></el-table-column>
-        <el-table-column prop="scoreMember" label="考核员工">
+        <el-table-column prop="scoreMember" label="考核员工" width="200">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.scoreMember }}</div>
-            <div v-else>
+            <div v-if="!row.isEdit">
+              <el-tooltip
+                v-if="$widthCompute([row.scoreMember.join(',')]) >= 200"
+                effect="dark"
+                placement="top"
+                :content="row.scoreMember.join(',')"
+              >
+                <div
+                  slot="content"
+                  v-html="toBreak(row.scoreMember.join(','))"
+                ></div>
+                <span class="cell-long-span">{{
+                  row.scoreMember.join(',')
+                }}</span>
+              </el-tooltip>
+              <div v-else>{{ row.scoreMember.join(',') }}</div>
+            </div>
+            <div v-else-if="row.isEdit">
               <el-select
                 v-model="tempRow.scoreMember"
                 size="mini"
@@ -396,6 +413,14 @@ export default {
     resetConfig() {
       this.$refs['configForm'].resetFields();
       this.addConfigurationVisible = false;
+    },
+    toBreak(content) {
+      let contentStr = '';
+      for (let index in content) {
+        if (index !== '0' && index % 20 === 0) contentStr += '<br/>';
+        contentStr += content[index];
+      }
+      return contentStr;
     }
   }
 };
@@ -405,5 +430,11 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
+}
+.cell-long-span {
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
