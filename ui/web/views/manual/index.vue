@@ -52,12 +52,11 @@
             ></el-input>
           </template>
         </el-table-column>
-        <el-table-column prop="members" label="考核员工"></el-table-column>
-        <el-table-column
-          prop="value"
-          label="数值"
-          align="center"
-        ></el-table-column>
+        <el-table-column prop="value" label="数据类型" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.type === 'attr' ? '属性型' : '日志型' }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="createdAt"
           label="时间"
@@ -160,8 +159,6 @@ export default {
           type: 'attr', //log
           id: '',
           name: '',
-          value: '',
-          members: [],
           createdAt: new Date().$format()
         }
       ]
@@ -183,23 +180,9 @@ export default {
             setTimeout(() => {
               for (let i = 0; i < 10; i++) {
                 data.push({
-                  type: 'attr', //log
+                  type: Math.random() * 10 > 5 ? 'attr' : 'log', //log
                   id: new Date().getTime(),
                   name: '手工工分项' + (i + 1),
-                  value: Math.floor(Math.random() * (i + 1) * 1000),
-                  members:
-                    [
-                      '赵',
-                      '钱',
-                      '孙',
-                      '李',
-                      '周',
-                      '吴',
-                      '郑',
-                      '王',
-                      '冯',
-                      '陈'
-                    ][Math.floor(Math.random() * 10)] + '医生',
                   createdAt: new Date().$format()
                 });
               }
@@ -237,8 +220,6 @@ export default {
               type: this.newManual.type, //log
               id: new Date().getTime(),
               name: this.newManual.name,
-              value: Math.floor(Math.random() * 1000),
-              members: '',
               createdAt: new Date().$format()
             });
             this.$message.success('添加成功');
@@ -250,8 +231,6 @@ export default {
               type: this.newManual.type, //log
               id: new Date().getTime(),
               name: this.newManual.name,
-              value: Math.floor(Math.random() * 1000),
-              members: this.serverData.rows[index].members,
               createdAt: new Date().$format()
             });
             this.$message.success('更新成功');
