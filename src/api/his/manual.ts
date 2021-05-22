@@ -104,8 +104,9 @@ export default class HisManualData {
     const hospitalId = await getHospital();
     //月份转开始结束时间
     const {start, end} = monthToRange(month);
-    return await appDB.execute(
-      `
+    return (
+      await appDB.execute(
+        `
         select d.basic as id,
                d.staff,
                s.name,
@@ -120,11 +121,18 @@ export default class HisManualData {
           and d.date < ?
         order by d.date desc
       `,
-      hospitalId,
-      id,
-      start,
-      end
-    );
+        hospitalId,
+        id,
+        start,
+        end
+      )
+    ).map(it => ({
+      ...it,
+      staff: {
+        id: it.staff,
+        name: it.name
+      }
+    }));
   }
 
   /**
@@ -166,7 +174,7 @@ export default class HisManualData {
     }[] = await this.listLogData(id, start);
     //累计属性值
     for (const row of list) {
-      const current = rows.find(it => it.staff.id === row.staff);
+      const current = rows.find(it => it.staff.id === row.staff.id);
       if (current) {
         current.value += row.value;
         current.size += 1;
