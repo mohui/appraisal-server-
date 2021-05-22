@@ -228,15 +228,16 @@ export default {
             type: 'value',
             name: '工分',
             axisLabel: {
-              formatter: '工分：{value}'
+              formatter: '{value}分'
             }
           },
           {
             type: 'value',
             name: '质量系数',
+            min: 0,
             max: 100,
             axisLabel: {
-              formatter: '质量系数：{value}%'
+              formatter: '{value}%'
             }
           }
         ],
