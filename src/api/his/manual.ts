@@ -90,6 +90,11 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param value 值
    */
+  @validate(
+    should.string().required(),
+    should.string().required(),
+    should.number().required()
+  )
   async addData(staff, id, value) {
     //1. 查询所有数据
     const total = (
