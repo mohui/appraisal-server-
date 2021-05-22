@@ -235,7 +235,7 @@ export default {
       this.addManualVisible = true;
     },
     delManual({$index, row}) {
-      this.$confirm('确定要删除此手工工公项名称?', '提示', {
+      this.$confirm('确定要删除此手工工分项?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
