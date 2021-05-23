@@ -193,7 +193,7 @@ export default {
               id: '',
               name: ''
             },
-            createdAt: new Date().$format()
+            createdAt: null
           });
       },
       deep: true
@@ -242,7 +242,7 @@ export default {
         ...it,
         EDIT: false,
         initial: it,
-        createdAt: it.created_at.$format()
+        createdAt: it.date?.$format()
       }));
     },
     //切换数据类型
