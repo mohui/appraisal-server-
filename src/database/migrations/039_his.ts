@@ -6,13 +6,14 @@ export class HisMigration implements IMigration {
   version = 39;
 
   async up(client: ExtendedSequelize): Promise<void> {
+    // language=PostgreSQL
     await client.execute(`
       --员工表
       create table if not exists staff
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
-        staff        varchar(64),
+        staff        varchar(64) unique,
         account      varchar(255) unique,
         password     varchar(255),
         name         varchar(255),
@@ -41,28 +42,38 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_source."sources" is '关联员工id数组';
       comment on column his_staff_work_source.rate is '权重系数';
 
-      --医疗基础数据表
-      create table if not exists his_basic_data
+      --医疗手工数据表
+      create table if not exists his_manual_data
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
+        input        varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (hospital, name)
       );
+      comment on table his_manual_data is '医疗手工数据表';
+      comment on column his_manual_data.hospital is '所属医院id';
+      comment on column his_manual_data.name is '名称';
+      comment on column his_manual_data.input is '输入方式; 属性/日志';
 
-      --医疗基础数据得分流水表
-      create table if not exists his_staff_basic_data_detail
+      --医疗手工数据流水表
+      create table if not exists his_staff_manual_data_detail
       (
+        id           varchar(36) primary key,
         staff        varchar(36),
-        basic        varchar(36),
+        item        varchar(36),
         date         timestamp with time zone,
-        score        double precision,
+        value        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (staff, basic, date)
+        "updated_at" timestamp with time zone not null default current_timestamp
       );
+      comment on table his_staff_manual_data_detail is '医疗手工数据流水表';
+      comment on column his_staff_manual_data_detail.staff is '员工id';
+      comment on column his_staff_manual_data_detail.item is '手工数据id';
+      comment on column his_staff_manual_data_detail.date is '赋值时间';
+      comment on column his_staff_manual_data_detail.value is '单位量';
 
       --工分项目表
       create table if not exists "his_work_item"
@@ -70,14 +81,14 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        type         varchar(255),
+        method       varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_work_item" is '工分项目表';
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
-      comment on column "his_work_item".type is '得分方式; 计数/总计';
+      comment on column "his_work_item".method is '得分方式; 计数/总和';
 
       --工分项目来源关联表
       create table if not exists "his_work_item_mapping"
@@ -92,7 +103,7 @@ export class HisMigration implements IMigration {
       comment on table "his_work_item_mapping" is '工分项目与his收费项目关联表';
       comment on column "his_work_item_mapping".item is '工分项目id';
       comment on column "his_work_item_mapping".source is '来源id';
-      comment on column "his_work_item_mapping".type is '类型; 检查项目/药品/基础数据';
+      comment on column "his_work_item_mapping".type is '类型; 检查项目/药品/手工数据';
 
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
