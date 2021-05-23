@@ -180,21 +180,21 @@ export default class HisManualData {
       await appDB.execute(
         // language=PostgreSQL
         `
-        select d.id,
-               d.item,
-               d.staff,
-               s.name,
-               d.value,
-               d.date,
-               d.created_at,
-               d.updated_at
-        from his_staff_manual_data_detail d
-               inner join staff s on d.staff = s.id and s.hospital = ?
-        where d.item = ?
-          and d.date >= ?
-          and d.date < ?
-        order by d.date desc
-      `,
+          select d.id,
+                 d.item,
+                 d.staff,
+                 s.name,
+                 d.value,
+                 d.date,
+                 d.created_at,
+                 d.updated_at
+          from his_staff_manual_data_detail d
+                 inner join staff s on d.staff = s.id and s.hospital = ?
+          where d.item = ?
+            and d.date >= ?
+            and d.date < ?
+          order by d.date desc
+        `,
         hospitalId,
         id,
         start,
