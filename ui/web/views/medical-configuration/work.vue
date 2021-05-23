@@ -62,20 +62,20 @@
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <el-form-item label="打分方式" prop="scoreStyle">
+              <el-form-item label="打分方式" prop="scoreMethod">
                 <el-select
-                  v-model="searchForm.scoreStyle"
+                  v-model="searchForm.scoreMethod"
                   style="width: 100%"
                   clearable
                   size="mini"
                 >
                   <el-option
-                    value="按服务单位打分"
-                    label="按服务单位打分"
+                    :value="HisWorkMethod.AMOUNT"
+                    :label="HisWorkMethod.AMOUNT"
                   ></el-option>
                   <el-option
-                    value="按金额单位打分"
-                    label="按金额单位打分"
+                    :value="HisWorkMethod.SUM"
+                    :label="HisWorkMethod.SUM"
                   ></el-option>
                 </el-select>
               </el-form-item>
@@ -134,22 +134,22 @@
           label="打分类型"
           align="center"
         ></el-table-column>
-        <el-table-column prop="scoreStyle" label="打分方式" align="center">
+        <el-table-column prop="scoreMethod" label="打分方式" align="center">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.scoreStyle }}</div>
+            <div v-if="!row.isEdit">{{ row.scoreMethod }}</div>
             <div v-else>
               <el-select
-                v-model="tempRow.scoreStyle"
+                v-model="tempRow.scoreMethod"
                 style="width: 100%"
                 size="mini"
               >
                 <el-option
-                  value="按服务单位打分"
-                  label="按服务单位打分"
+                  :value="HisWorkMethod.AMOUNT"
+                  :label="HisWorkMethod.AMOUNT"
                 ></el-option>
                 <el-option
-                  value="按金额单位打分"
-                  label="按金额单位打分"
+                  :value="HisWorkMethod.SUM"
+                  :label="HisWorkMethod.SUM"
                 ></el-option>
               </el-select>
             </div>
@@ -318,26 +318,27 @@
         <el-form-item
           v-show="newWork.scoreType === '自动打分'"
           label="打分方式"
-          prop="scoreStyle"
+          prop="scoreMethod"
         >
           <el-button-group>
             <el-button
               size="small"
               :class="{
-                'el-button--primary': newWork.scoreStyle === '按服务单位打分'
+                'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
               }"
-              @click="newWork.scoreStyle = '按服务单位打分'"
+              @click="newWork.scoreMethod = HisWorkMethod.SUM"
             >
-              按服务单位打分
+              {{ HisWorkMethod.SUM }}
             </el-button>
             <el-button
               size="small"
               :class="{
-                'el-button--primary': newWork.scoreStyle === '按金额单位打分'
+                'el-button--primary':
+                  newWork.scoreMethod === HisWorkMethod.AMOUNT
               }"
-              @click="newWork.scoreStyle = '按金额单位打分'"
+              @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
             >
-              按金额单位打分
+              {{ HisWorkMethod.AMOUNT }}
             </el-button>
           </el-button-group>
         </el-form-item>
@@ -354,6 +355,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+import {HisWorkMethod} from '../../../../common/his.ts';
 import dayjs from 'dayjs';
 
 export default {
@@ -365,7 +367,7 @@ export default {
       }
       callback();
     };
-    const validaScoreStyle = (rule, value, callback) => {
+    const validaScoreMethod = (rule, value, callback) => {
       if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
         callback(new Error('选择打分类型!'));
       }
@@ -377,7 +379,7 @@ export default {
       searchForm: {
         work: '',
         scoreType: '',
-        scoreStyle: '',
+        scoreMethod: '',
         projects: [],
         dateRange: '',
         pageSize: 20,
@@ -386,7 +388,7 @@ export default {
       newWork: {
         work: '',
         scoreType: '自动打分',
-        scoreStyle: '按服务单位打分',
+        scoreMethod: HisWorkMethod.SUM,
         projects: []
       },
       addWorkVisible: false,
@@ -397,9 +399,10 @@ export default {
           {required: true, message: '选择打分方式', trigger: 'change'}
         ],
         projects: [{validator: validaProjects, trigger: 'change'}],
-        scoreStyle: [{validator: validaScoreStyle, trigger: 'change'}]
+        scoreMethod: [{validator: validaScoreMethod, trigger: 'change'}]
       },
-      tableLoading: false
+      tableLoading: false,
+      HisWorkMethod: HisWorkMethod
     };
   },
   computed: {
@@ -407,7 +410,7 @@ export default {
       return this.serverData.map(d => ({
         id: d.id,
         work: d.name,
-        scoreStyle: d.method,
+        scoreMethod: d.method,
         scoreType: '', //TODO:打分类型
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings.map,
@@ -425,8 +428,8 @@ export default {
     serverData: {
       async get() {
         this.tableLoading = true;
-        const {work, scoreType, scoreStyle, dateRange} = this.searchForm;
-        console.log(scoreType, work, scoreStyle, dateRange);
+        const {work, scoreType, scoreMethod, dateRange} = this.searchForm;
+        console.log(scoreType, work, scoreMethod, dateRange);
         try {
           return this.$api.HisWorkItem.list();
         } catch (e) {
@@ -459,7 +462,7 @@ export default {
             index: this.tableData.length + 1,
             work: this.newWork.work,
             scoreType: this.newWork.scoreType,
-            scoreStyle: this.newWork.scoreStyle,
+            scoreMethod: this.newWork.scoreMethod,
             projects: this.newWork.projects,
             row: false,
             createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
