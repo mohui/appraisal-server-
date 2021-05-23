@@ -103,11 +103,11 @@
           min-width="100"
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
-          <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="editUser(scope)">
+          <template slot-scope="{row}">
+            <el-button type="primary" size="mini" @click="editUser(row)">
               修改
             </el-button>
-            <el-button type="danger" size="mini" @click="delUser(scope)">
+            <el-button type="danger" size="mini" @click="delUser(row)">
               删除
             </el-button>
           </template>
@@ -158,12 +158,17 @@
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select v-model="userForm.his" clearable filterable>
+          <el-select
+            v-model="userForm.his"
+            style="width:100%"
+            clearable
+            filterable
+          >
             <el-option
               v-for="h in hisList"
-              :key="h.name"
+              :key="h.id"
               :label="h.name"
-              :value="h.value"
+              :value="h.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -213,12 +218,17 @@
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select v-model="userForm.his" clearable filterable>
+          <el-select
+            v-model="userForm.his"
+            style="width: 100%"
+            clearable
+            filterable
+          >
             <el-option
               v-for="h in hisList"
-              :key="h.name"
+              :key="h.id"
               :label="h.name"
-              :value="h.value"
+              :value="h.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -313,16 +323,7 @@ export default {
     },
     serverHisData: {
       async get() {
-        await new Promise(resolve => setTimeout(() => resolve(), 600));
-        let i = 0;
-        let data = [];
-        for (; i < 10; i++) {
-          data.push({
-            name: `员工A${i}`,
-            value: `员工A${i}`
-          });
-        }
-        return data;
+        return await this.$api.HisStaff.listHisStaffs();
       },
       default: []
     }
@@ -350,10 +351,6 @@ export default {
         pageSize: 20,
         pageNo: 1
       };
-    },
-    //异步加载地区列表
-    async region(code) {
-      return await this.$api.Group.children(code);
     },
     //打开新建用户对话框
     openAddUserDialog() {
