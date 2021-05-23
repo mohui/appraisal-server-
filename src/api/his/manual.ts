@@ -22,6 +22,10 @@ type ManualPropDataReturnValue = {
   size: number;
   //赋值时间
   date?: Date;
+  //创建时间
+  created_at?: Date;
+  //更新时间
+  updated_at?: Date;
 };
 
 /**
@@ -193,7 +197,7 @@ export default class HisManualData {
           where d.item = ?
             and d.date >= ?
             and d.date < ?
-          order by d.date desc
+          order by d.date, created_at
         `,
         hospitalId,
         id,
@@ -223,7 +227,8 @@ export default class HisManualData {
     //获取当前机构下的所有人员并转换成返回值数组
     const rows: ManualPropDataReturnValue[] = (
       await appDB.execute(
-        `select id, name from staff where hospital = ?`,
+        // language=PostgreSQL
+        `select id, name from staff where hospital = ? order by created_at`,
         hospital
       )
     ).map<ManualPropDataReturnValue>(it => ({
@@ -234,7 +239,11 @@ export default class HisManualData {
       },
       value: null,
       size: 0,
-      date: null
+      date: null,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      created_at: null,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      updated_at: null
     }));
     //查询手工数据流水表
     const list: {
@@ -252,6 +261,25 @@ export default class HisManualData {
       if (current) {
         current.value += row.value;
         current.size += 1;
+        //指定月最后一次赋值时间
+        current.date = current.date ?? row.date;
+        if (row.date.getTime() > current.date.getTime()) {
+          current.date = row.date;
+        }
+        //指定月第一次创建时间
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        current.created_at = current.created_at ?? row.created_at;
+        if (row.created_at.getTime() < current.created_at.getTime()) {
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          current.created_at = row.created_at;
+        }
+        //指定月最后一次更新时间
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        current.updated_at = current.updated_at ?? row.updated_at;
+        if (row.updated_at.getTime() > current.updated_at.getTime()) {
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          current.updated_at = row.updated_at;
+        }
       }
     }
     return rows;
