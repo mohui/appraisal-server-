@@ -22,7 +22,6 @@ export default class HisCheck {
     const returnList = [];
     for (const it of systemList) {
       const findIndex = returnList.find(find => find?.id === it.id);
-      console.log(findIndex);
       if (findIndex) {
         findIndex.staffs.push({
           staff: it.staff
@@ -42,50 +41,50 @@ export default class HisCheck {
     return returnList;
   }
 
-  /**
-   * 新建考核方案
-   * 1个员工只能被一个考核方案考核
-   *
-   * @param name
-   * @param staffs
-   */
-  async add(name, staffs) {
-    const hospital = await getHospital();
-    return appDB.transaction(async () => {
-      const staffList = await appDB.execute(
-        `select * from his_staff_check_mapping
-              where staff in (${staffs.map(() => '?')})`,
-        ...staffs
-      );
-      if (staffList > 0)
-        throw new KatoRuntimeError(`有员工已被其他考核方案考核`);
-      // 添加考核方案名称
-      const checkId = uuid.v4();
-      await appDB.execute(
-        `insert into
-              his_check_system(id, hospital, name, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-        checkId,
-        hospital,
-        name,
-        dayjs().toDate(),
-        dayjs().toDate()
-      );
-      // 添加考核员工
-      await appDB.execute(
-        `
-        insert into
-        his_staff_check_mapping(staff, "check", created_at, updated_at)
-        values${staffs.map(() => '(?, ?, ?, ?)').join()}
-        `,
-        ...staffs
-          .map(it => [it, checkId, dayjs().toDate(), dayjs().toDate()])
-          .reduce((prev, current) => {
-            return [...prev, ...current];
-          }, [])
-      );
-    });
-  }
+  // /**
+  //  * 新建考核方案
+  //  * 1个员工只能被一个考核方案考核
+  //  *
+  //  * @param name
+  //  * @param staffs
+  //  */
+  // async add(name, staffs) {
+  //   const hospital = await getHospital();
+  //   return appDB.transaction(async () => {
+  //     const staffList = await appDB.execute(
+  //       `select * from his_staff_check_mapping
+  //             where staff in (${staffs.map(() => '?')})`,
+  //       ...staffs
+  //     );
+  //     if (staffList > 0)
+  //       throw new KatoRuntimeError(`有员工已被其他考核方案考核`);
+  //     // 添加考核方案名称
+  //     const checkId = uuid.v4();
+  //     await appDB.execute(
+  //       `insert into
+  //             his_check_system(id, hospital, name, created_at, updated_at)
+  //             values(?, ?, ?, ?, ?)`,
+  //       checkId,
+  //       hospital,
+  //       name,
+  //       dayjs().toDate(),
+  //       dayjs().toDate()
+  //     );
+  //     // 添加考核员工
+  //     await appDB.execute(
+  //       `
+  //       insert into
+  //       his_staff_check_mapping(staff, "check", created_at, updated_at)
+  //       values${staffs.map(() => '(?, ?, ?, ?)').join()}
+  //       `,
+  //       ...staffs
+  //         .map(it => [it, checkId, dayjs().toDate(), dayjs().toDate()])
+  //         .reduce((prev, current) => {
+  //           return [...prev, ...current];
+  //         }, [])
+  //     );
+  //   });
+  // }
 
   /**
    * 删除考核方案
