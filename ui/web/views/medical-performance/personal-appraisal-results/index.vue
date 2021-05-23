@@ -166,6 +166,7 @@ export default {
               borderColor: '#8C8D8E',
               borderWidth: 1,
               borderRadius: 4,
+              padding: [0, 5],
               rich: {
                 b: {
                   fontSize: 14,
