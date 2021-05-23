@@ -115,7 +115,7 @@
           <template slot-scope="scope">
             <div v-if="!editable">
               <el-button
-                v-if="!scope.row.id"
+                v-if="!scope.row.id && query.input === '日志'"
                 type="primary"
                 size="mini"
                 :disabled="!scope.row.staff.id"
@@ -124,7 +124,7 @@
                 添加
               </el-button>
               <el-button
-                v-if="scope.row.id && scope.row.EDIT"
+                v-if="(scope.row.id || scope.row.item) && scope.row.EDIT"
                 type="primary"
                 size="mini"
                 :disabled="!scope.row.staff.id"
@@ -133,7 +133,7 @@
                 保存
               </el-button>
               <el-button
-                v-if="scope.row.id && !scope.row.EDIT && query.input === '属性'"
+                v-if="!scope.row.EDIT && query.input === '属性'"
                 type="primary"
                 size="mini"
                 @click="editManual(scope)"
@@ -141,7 +141,7 @@
                 修改
               </el-button>
               <el-button
-                v-if="scope.row.id && !scope.row.EDIT"
+                v-if="!scope.row.EDIT"
                 type="danger"
                 size="mini"
                 @click="delManual(scope)"
@@ -187,6 +187,7 @@ export default {
           newValue.push({
             EDIT: true,
             id: '',
+            item: '',
             value: '',
             staff: {
               id: '',
@@ -314,15 +315,15 @@ export default {
             this.query.input === '属性'
               ? await this.$api.HisManualData.delData(
                   row.staff.id,
-                  row.id,
+                  row.item,
                   this.query.month
                 )
-              : await this.$api.HisManualData.delLogData(
-                  row.staff.id,
-                  row.id,
-                  row.created_at
-                );
-            this.list.splice($index, 1);
+              : await this.$api.HisManualData.delLogData(row.id);
+            if (this.query.input === '日志') {
+              this.list.splice($index, 1);
+            } else {
+              await this.monthChanged();
+            }
             this.$message({
               type: 'success',
               message: '清除成功!'
