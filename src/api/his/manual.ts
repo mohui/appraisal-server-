@@ -132,7 +132,12 @@ export default class HisManualData {
     await appDB.transaction(async () => {
       //删除流水表
       await appDB.execute(
-        `delete from his_staff_manual_data_detail where basic = ?`,
+        // language=PostgreSQL
+        `
+          delete
+          from his_staff_manual_data_detail
+          where item = ?
+        `,
         id
       );
       //删除主表
@@ -301,11 +306,12 @@ export default class HisManualData {
     //1. 查询所有数据
     const total = (
       await appDB.execute(
+        // language=PostgreSQL
         `
           select sum(value) as value
           from his_staff_manual_data_detail
           where staff = ?
-            and basic = ?
+            and item = ?
             and date >= ?
             and date < ?
         `,
@@ -337,11 +343,12 @@ export default class HisManualData {
     await this.validDetail(id, month);
     const {start, end} = monthToRange(month);
     await appDB.execute(
+      // language=PostgreSQL
       `
         delete
         from his_staff_manual_data_detail
         where staff = ?
-          and basic = ?
+          and item = ?
           and date >= ?
           and date < ?
       `,
