@@ -189,7 +189,25 @@ export default class HisStaff {
         name
       }
     );
-    return await appDB.execute(sql, ...params);
+    const staffList = await appDB.execute(sql, ...params);
+    const hisStaffs = await originalDB.execute(
+      `select id, name from his_staff where hospital = ?`,
+      hospital
+    );
+    return staffList.map(it => {
+      const index = hisStaffs.find(item => it.staff === item.id);
+      if (index) {
+        return {
+          ...it,
+          staffName: index.name
+        };
+      } else {
+        return {
+          ...it,
+          staffName: ''
+        };
+      }
+    });
   }
 
   /**
