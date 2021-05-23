@@ -301,11 +301,12 @@ export default class HisManualData {
     //1. 查询所有数据
     const total = (
       await appDB.execute(
+        // language=PostgreSQL
         `
           select sum(value) as value
           from his_staff_manual_data_detail
           where staff = ?
-            and basic = ?
+            and item = ?
             and date >= ?
             and date < ?
         `,
