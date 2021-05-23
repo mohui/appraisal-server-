@@ -175,7 +175,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addUser">
+        <el-button v-loading="addBtnLoading" type="primary" @click="addUser">
           确 定
         </el-button>
       </div>
@@ -210,9 +210,6 @@
               @click="isShowPwd()"
             ></i
           ></el-input>
-          <el-button type="warning" plain @click="resetPassword"
-            >重置密码</el-button
-          >
         </el-form-item>
         <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
@@ -274,7 +271,8 @@ export default {
       rulesEdit: {
         name: [{required: true, message: '请输入用户名', trigger: 'blur'}]
       },
-      tableLoading: false
+      tableLoading: false,
+      addBtnLoading: false
     };
   },
   computed: {
@@ -329,16 +327,6 @@ export default {
     }
   },
   methods: {
-    async resetPassword() {
-      try {
-        this.$message({
-          type: 'success',
-          message: '重置成功!'
-        });
-      } catch (e) {
-        this.$message.error(e.message);
-      }
-    },
     isShowPwd() {
       this.inputType = this.inputType === 'password' ? '' : 'password';
     },
@@ -367,16 +355,23 @@ export default {
       this.$refs.userFormAdd.validate(async valid => {
         if (valid) {
           try {
-            this.$set(this.userList, this.userList.length, this.userForm);
+            this.addBtnLoading = true;
+            await this.$api.HisStaff.add(
+              this.userForm.his,
+              this.userForm.account,
+              this.userForm.password,
+              this.userForm.name
+            );
             this.$message({
               type: 'success',
               message: '新建用户成功!'
             });
-            // this.$asyncComputed.listMember.update();
+            this.$asyncComputed.listMember.update();
+            this.dialogFormAddUsersVisible = false;
           } catch (e) {
             this.$message.error(e.message);
           } finally {
-            this.dialogFormAddUsersVisible = false;
+            this.addBtnLoading = false;
           }
         } else {
           return false;
@@ -384,8 +379,17 @@ export default {
       });
     },
     //设置用户编辑状态，并打开对话框
-    editUser(item) {
-      this.userForm = Object.assign({}, item.row);
+    editUser(row) {
+      this.userForm = Object.assign(
+        {},
+        {
+          id: row.id,
+          account: row.account,
+          password: row.password,
+          name: row.name,
+          his: row.staff
+        }
+      );
       this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
@@ -393,7 +397,11 @@ export default {
       this.$refs.userFormEdit.validate(async valid => {
         if (valid) {
           try {
-            // await this.$api.User.update({id, name});
+            await this.$api.HisStaff.update(
+              this.userForm.id,
+              this.userForm.name,
+              this.userForm.password
+            );
             this.$message({
               type: 'success',
               message: '保存成功!'
