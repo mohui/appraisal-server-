@@ -85,11 +85,21 @@
         <el-table-column
           prop="name"
           label="用户名"
-          min-width="200"
+          min-width="100"
         ></el-table-column>
         <el-table-column
-          prop="his"
-          label="His账号"
+          prop="staffName"
+          label="His用户"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          prop="created_at"
+          label="创建时间"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          prop="updated_at"
+          label="修改时间"
           min-width="100"
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
@@ -97,15 +107,7 @@
             <el-button type="primary" size="mini" @click="editUser(scope)">
               修改
             </el-button>
-            <el-button
-              v-permission="{
-                permission: permission.USER_REMOVE,
-                type: 'disabled'
-              }"
-              type="danger"
-              size="mini"
-              @click="delUser(scope)"
-            >
+            <el-button type="danger" size="mini" @click="delUser(scope)">
               删除
             </el-button>
           </template>
@@ -231,7 +233,6 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import dayjs from 'dayjs';
 
 export default {
   name: 'User',
@@ -268,7 +269,11 @@ export default {
   },
   computed: {
     userList() {
-      return this.listMember.rows;
+      return this.listMember.map(it => ({
+        ...it,
+        created_at: it.created_at?.$format() || '',
+        updated_at: it.updated_at?.$format() || ''
+      }));
     },
     hisList() {
       return this.serverHisData;
@@ -291,30 +296,11 @@ export default {
   asyncComputed: {
     listMember: {
       async get() {
-        let data = [];
         this.tableLoading = true;
         const {account, name, pageSize, pageNo} = this.searchForm;
         console.log(account, name, pageSize, pageNo);
         try {
-          await new Promise(resolve =>
-            setTimeout(() => {
-              for (let i = 0; i < 10; i++) {
-                data.push({
-                  index: i + 1,
-                  name: `员工B${i}`,
-                  account: `ABC${i}`,
-                  password: '123654',
-                  his: `员工A${i}`,
-                  createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
-                });
-              }
-              resolve();
-            }, 1000)
-          );
-          return {
-            count: 10,
-            rows: data
-          };
+          return await this.$api.HisStaff.list();
         } catch (e) {
           console.error(e.message);
         } finally {
@@ -322,10 +308,7 @@ export default {
         }
       },
       default() {
-        return {
-          count: 0,
-          rows: []
-        };
+        return [];
       }
     },
     serverHisData: {
