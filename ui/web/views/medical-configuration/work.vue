@@ -39,8 +39,12 @@
                   size="mini"
                   clearable
                 >
-                  <el-option label="工分项1" value="工分项1"></el-option>
-                  <el-option label="工分项2" value="工分项2"></el-option>
+                  <el-option
+                    v-for="d in tableData"
+                    :key="d.id"
+                    :label="d.work"
+                    :value="d.id"
+                  ></el-option>
                 </el-select>
               </el-form-item>
             </el-col>
@@ -62,6 +66,7 @@
                 <el-select
                   v-model="searchForm.scoreStyle"
                   style="width: 100%"
+                  clearable
                   size="mini"
                 >
                   <el-option
@@ -115,8 +120,8 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column prop="index" label="序号"></el-table-column>
-        <el-table-column prop="work" label="工分项">
+        <el-table-column type="index" label="序号"></el-table-column>
+        <el-table-column prop="work" align="center" label="工分项">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.work }}</div>
             <div v-else>
@@ -124,8 +129,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="scoreType" label="打分类型"></el-table-column>
-        <el-table-column prop="scoreStyle" label="打分方式">
+        <el-table-column
+          prop="scoreType"
+          label="打分类型"
+          align="center"
+        ></el-table-column>
+        <el-table-column prop="scoreStyle" label="打分方式" align="center">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.scoreStyle }}</div>
             <div v-else>
@@ -146,7 +155,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="project" label="关联项目" width="160">
+        <el-table-column
+          prop="project"
+          label="关联项目"
+          align="center"
+          width="200"
+        >
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">
               <el-tooltip
@@ -180,8 +194,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间"></el-table-column>
-        <el-table-column prop="" label="操作">
+        <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
             <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
               <el-button
@@ -391,7 +404,17 @@ export default {
   },
   computed: {
     tableData() {
-      return this.serverData.rows.map(d => ({...d, isEdit: false}));
+      return this.serverData.map(d => ({
+        id: d.id,
+        work: d.name,
+        scoreStyle: d.method,
+        scoreType: '', //TODO:打分类型
+        projects: d.mappings.map(it => it.name),
+        mappings: d.mappings.map,
+        created_at: d.created_at?.$format() || '',
+        updated_at: d.updated_at?.$format() || '',
+        isEdit: false
+      }));
     },
     projectList() {
       return this.serverProjectData;
@@ -401,37 +424,18 @@ export default {
   asyncComputed: {
     serverData: {
       async get() {
-        let data = [];
         this.tableLoading = true;
         const {work, scoreType, scoreStyle, dateRange} = this.searchForm;
         console.log(scoreType, work, scoreStyle, dateRange);
         try {
-          await new Promise(resolve =>
-            setTimeout(() => {
-              for (let i = 0; i < 10; i++) {
-                data.push({
-                  index: i + 1,
-                  work: `工分项${i}`,
-                  scoreType: '自动打分',
-                  scoreStyle: '按服务单位打分',
-                  projects: [`项目${i + 1}`],
-                  createdAt: '2021-05-18 11:23:21'
-                });
-              }
-              resolve();
-            }, 1000)
-          );
-          return {
-            counts: 10,
-            rows: data
-          };
+          return this.$api.HisWorkItem.list();
         } catch (e) {
           console.error(e.message);
         } finally {
           this.tableLoading = false;
         }
       },
-      default: {counts: 0, rows: []}
+      default: []
     },
     serverProjectData: {
       async get() {
