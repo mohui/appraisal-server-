@@ -158,7 +158,7 @@ export default class HisStaff {
     const hospital = await getHospital();
     return await appDB.execute(
       `
-        select id, hospital, staff, account, name, created_at, updated_at
+        select id, hospital, staff, account, password, name, created_at, updated_at
         from staff where hospital = ?`,
       hospital
     );
