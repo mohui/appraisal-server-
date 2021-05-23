@@ -1,9 +1,10 @@
-import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {monthToRange} from './manual';
 
 /**
  * 接口
@@ -294,5 +295,44 @@ export default class HisWorkItem {
     }
 
     return workItemList;
+  }
+
+  /**
+   * 同步员工工分项流水
+   *
+   * @param staff 员工id
+   * @param month 月份
+   */
+  async syncDetail(staff, month) {
+    const {start, end} = monthToRange(month);
+    //查询绑定的his账号id
+    // language=PostgreSQL
+    const hisStaffId = (
+      await appDB.execute(
+        `
+          select staff
+          from staff
+          where id = ?`,
+        staff
+      )
+    )[0].staff;
+    let hisDetail = [];
+    //
+    if (hisStaffId) {
+      // language=PostgreSQL
+      hisDetail = await originalDB.execute(
+        `
+          select item, charges_type as type, total_price as value, operate_time as date
+          from his_charge_detail
+          where operate_time > ?
+            and operate_time < ?
+            and doctor = ?
+        `,
+        start,
+        end,
+        hisStaffId
+      );
+    }
+    return {hisDetail};
   }
 }
