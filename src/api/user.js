@@ -456,7 +456,9 @@ export default class User {
     result.rows = result.rows
       .map(it => ({
         ...it.toJSON(),
-        permissions: it.permissions.map(key => getPermission(key))
+        permissions: it.permissions
+          .map(key => getPermission(key))
+          .filter(it => it)
       }))
       .filter(
         //过滤掉当前用户没有权限的角色
