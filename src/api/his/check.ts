@@ -3,7 +3,7 @@ import * as uuid from 'uuid';
 import {getHospital} from './his_staff';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {sql as sqlRender} from '../../database/template';
 
 export default class HisCheck {
   async list() {
@@ -256,6 +256,12 @@ export default class HisCheck {
   /**
    * 删除考核方案
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核方案id')
+  )
   async delete(id) {
     return appDB.transaction(async () => {
       // 删除医疗考核规则
@@ -268,5 +274,57 @@ export default class HisCheck {
       // 删除医疗考核方案
       await appDB.execute(`delete from his_check_system where id = ?`, id);
     });
+  }
+
+  /**
+   * 可绑定方案员工列表
+   * @param id
+   */
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('考核方案id')
+  )
+  async checkStaff(id) {
+    // 获取所属机构
+    const hospital = await getHospital();
+    // 查询所有员工
+    const staffs = await appDB.execute(
+      `select id, account, name from staff where hospital = ?`,
+      hospital
+    );
+    // 未绑定过考核的员工
+    const [sql, params] = sqlRender(
+      `
+        select distinct staff from his_staff_check_mapping
+        where 1 = 1
+        {{#if id}}
+            AND "check" != {{? id}}
+        {{/if}}
+      `,
+      {
+        id
+      }
+    );
+    const checkStaff = await appDB.execute(sql, ...params);
+
+    // 查询此考核方案员工
+    let selectedStaffs = [];
+    if (id) {
+      selectedStaffs = await appDB.execute(
+        `select distinct staff from his_staff_check_mapping where "check" = ?`,
+        id
+      );
+    }
+    return staffs.map(it => ({
+      ...it,
+      usable: checkStaff.find(item => it.id === item.staff)?.staff
+        ? false
+        : true,
+      selected: selectedStaffs.find(item => it.id === item.staff)?.staff
+        ? true
+        : false
+    }));
   }
 }
