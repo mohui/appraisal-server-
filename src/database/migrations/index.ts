@@ -38,6 +38,7 @@ import {CheckYearMigration} from './035_check_year';
 import {CleanTableMigration} from './036_table_clean';
 import {AreaBudgetMigration} from './037_area_budget';
 import {AuditMigration} from './038_audit';
+import {HisMigration} from './039_his';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -79,5 +80,6 @@ export const migrations: IMigration[] = [
   new CheckYearMigration(),
   new CleanTableMigration(),
   new AreaBudgetMigration(),
-  new AuditMigration()
+  new AuditMigration(),
+  new HisMigration()
 ];
