@@ -167,6 +167,7 @@ export default {
               borderWidth: 1,
               borderRadius: 4,
               padding: [0, 5],
+              alignTo: 'labelLine',
               rich: {
                 b: {
                   fontSize: 14,
