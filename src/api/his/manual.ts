@@ -10,7 +10,7 @@ import {getHospital} from './his_staff';
  */
 type ManualPropDataReturnValue = {
   //手工数据id
-  id: string;
+  item: string;
   //员工
   staff: {
     id: string;
@@ -119,9 +119,9 @@ export default class HisManualData {
         `
           select count(1) as counts
           from his_staff_manual_data_detail d
-                 inner join his_manual_data m on d.basic = m.id
+                 inner join his_manual_data m on d.item = m.id
                  inner join his_hospital_settle s on m.hospital = s.hospital and s.settle = true
-          where d.basic = ?
+          where d.item = ?
             and to_char(s.month, 'yyyyMM') = to_char(d.date, 'yyyyMM');
         `,
         hospital
@@ -173,8 +173,10 @@ export default class HisManualData {
     const {start, end} = monthToRange(month);
     return (
       await appDB.execute(
+        // language=PostgreSQL
         `
-        select d.basic as id,
+        select d.id,
+               d.item,
                d.staff,
                s.name,
                d.value,
@@ -183,7 +185,7 @@ export default class HisManualData {
                d.updated_at
         from his_staff_manual_data_detail d
                inner join staff s on d.staff = s.id and s.hospital = ?
-        where d.basic = ?
+        where d.item = ?
           and d.date >= ?
           and d.date < ?
         order by d.date desc
@@ -220,7 +222,7 @@ export default class HisManualData {
         hospital
       )
     ).map<ManualPropDataReturnValue>(it => ({
-      id: id,
+      item: id,
       staff: {
         id: it.id,
         name: it.name
@@ -231,7 +233,7 @@ export default class HisManualData {
     }));
     //查询手工数据流水表
     const list: {
-      id;
+      item;
       staff;
       name;
       value;
@@ -266,8 +268,13 @@ export default class HisManualData {
   )
   async addLogData(staff, id, value, date) {
     await this.validDetail(id, date);
+    // language=PostgreSQL
     await appDB.execute(
-      `insert into his_staff_manual_data_detail(staff, basic, date, value) values (?, ?, ?, ?)`,
+      `
+        insert into his_staff_manual_data_detail(id, staff, item, date, value)
+        values (?, ?, ?, ?, ?)
+      `,
+      uuid(),
       staff,
       id,
       date,
@@ -348,28 +355,31 @@ export default class HisManualData {
   /**
    * 删除手工数据流水
    *
-   * @param staff 人员id
    * @param id id
-   * @param date 赋值时间
    */
-  @validate(
-    should.string().required(),
-    should.string().required(),
-    should.date().required()
-  )
-  async delLogData(staff, id, date) {
-    await this.validDetail(id, date);
+  @validate(should.string().required())
+  async delLogData(id) {
+    const logModel: {id: string; staff: string; item: string; date: Date} = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select id, staff, item, date
+          from his_staff_manual_data_detail
+          where id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!logModel) throw new KatoRuntimeError(`数据不存在`);
+    await this.validDetail(logModel.item, logModel.date);
     await appDB.execute(
+      // language=PostgreSQL
       `
         delete
         from his_staff_manual_data_detail
-        where staff = ?
-          and basic = ?
-          and date = ?
+        where id = ?
       `,
-      staff,
-      id,
-      date
+      id
     );
   }
 
