@@ -272,9 +272,27 @@ export default class HisManualData {
     should.date().required()
   )
   async addLogData(staff, id, value, date) {
+    //校验是否可以操作
     await this.validDetail(id, date);
-    // language=PostgreSQL
+    //赋值时间的转换;
+    const now = new Date();
+    const dateObj = dayjs(date);
+    const diff = dayjs(date).diff(now, 'M');
+    if (diff > 0) {
+      //赋值时间是未来
+      date = dateObj.startOf('M').toDate();
+    } else if (diff < 0) {
+      //给过去赋值, 则是月末最后1s
+      date = dateObj
+        .startOf('M')
+        .add(1, 'M')
+        .subtract(1, 's')
+        .toDate();
+    } else {
+      date = now;
+    }
     await appDB.execute(
+      // language=PostgreSQL
       `
         insert into his_staff_manual_data_detail(id, staff, item, date, value)
         values (?, ?, ?, ?, ?)
