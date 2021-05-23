@@ -157,7 +157,8 @@ export default {
             beforeCorrectionWorkPoint: 397
           }
         ]
-      }
+      },
+      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
   directives: {
@@ -254,7 +255,7 @@ export default {
         document.getElementById('doctorPerformanceBar')
       );
       let option;
-      const colors = ['#409eff', '#ea9d42'];
+      const colors = this.chartColors;
       option = {
         color: colors,
         tooltip: {
@@ -414,7 +415,7 @@ export default {
               it => it.afterCorrectionWorkPoint
             ),
             itemStyle: {
-              color: '#409eff'
+              color: this.chartColors[0]
             },
             barGap: '-100%'
           }

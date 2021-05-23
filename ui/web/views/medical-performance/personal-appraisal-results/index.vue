@@ -125,7 +125,8 @@ export default {
         department: '门诊部',
         tel: '4305353199303016567',
         medicareNo: '340608083803'
-      }
+      },
+      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
   directives: {
@@ -149,7 +150,7 @@ export default {
       let option;
       option = {
         //设置颜色
-        color: ['#409eff', '#ea9d42', '#9e68f5'],
+        color: this.chartColors,
         legend: {
           top: 'bottom'
         },
@@ -201,7 +202,7 @@ export default {
       let option;
       option = {
         //设置颜色
-        color: ['#409eff', '#ea9d42', '#9e68f5'],
+        color: this.chartColors,
         tooltip: {
           trigger: 'axis',
           axisPointer: {
