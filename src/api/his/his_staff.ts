@@ -363,4 +363,49 @@ export default class HisStaff {
     //建议一波查出来, 再根据日期分组
     return [];
   }
+
+  /**
+   *
+   * @param staff
+   * @param id
+   */
+  async staffCheck(staff) {
+    const checks = await appDB.execute(
+      `select "check" "checkId",  staff from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (checks.length === 0) throw new KatoRuntimeError(`该员工没有考核方案`);
+    const checkId = checks[0]?.checkId;
+
+    const hisSystems = await appDB.execute(
+      `select id, name
+            from his_check_system
+            where id = ?`,
+      checkId
+    );
+    if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
+    const hisRules = await appDB.execute(
+      `select * from his_check_rule
+              where "check" = ?
+        `,
+      checkId
+    );
+    const automations = hisRules
+      .map(it => {
+        if (it.auto === true) return it;
+      })
+      .filter(it => it);
+    const manuals = hisRules
+      .map(it => {
+        if (it.auto === false) return it;
+      })
+      .filter(it => it);
+
+    return {
+      id: hisSystems[0]?.id,
+      name: hisSystems[0]?.name,
+      automations,
+      manuals
+    };
+  }
 }
