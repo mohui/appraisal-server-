@@ -63,7 +63,7 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         staff        varchar(36),
-        item        varchar(36),
+        item         varchar(36),
         date         timestamp with time zone,
         value        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
