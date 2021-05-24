@@ -25,6 +25,9 @@
             "
             >手动考核</el-button
           >
+          <el-button type="primary" size="mini" style="margin-left: 20px"
+            >结果冻结</el-button
+          >
         </div>
       </el-card>
       <div>
