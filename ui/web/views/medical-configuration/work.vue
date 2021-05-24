@@ -25,7 +25,7 @@
         @toggle="is => (isCollapsed = is)"
       >
         <el-form
-          ref="workForm"
+          ref="searchForm"
           :model="searchForm"
           label-width="100px"
           size="mini"
@@ -45,19 +45,6 @@
                     :label="d.work"
                     :value="d.id"
                   ></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <el-form-item label="打分类型:" prop="scoreType">
-                <el-select
-                  v-model="searchForm.scoreType"
-                  style="width: 100%"
-                  size="mini"
-                  clearable
-                >
-                  <el-option label="手动打分" value="手动打分"></el-option>
-                  <el-option label="自动打分" value="自动打分"></el-option>
                 </el-select>
               </el-form-item>
             </el-col>
@@ -103,7 +90,11 @@
                   @click="$asyncComputed.serverData.update()"
                   >查询</el-button
                 >
-                <el-button type="primary" size="mini" @click="resetConfig">
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="resetConfig('searchForm')"
+                >
                   重置
                 </el-button>
               </el-form-item>
@@ -129,11 +120,6 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="scoreType"
-          label="打分类型"
-          align="center"
-        ></el-table-column>
         <el-table-column prop="scoreMethod" label="打分方式" align="center">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.scoreMethod }}</div>
@@ -177,7 +163,7 @@
               </el-tooltip>
               <div v-else>{{ row.projects.join(',') }}</div>
             </div>
-            <div v-if="row.isEdit && row.scoreType === '自动打分'">
+            <div v-if="row.isEdit">
               <el-select
                 v-model="tempRow.projects"
                 size="mini"
@@ -272,9 +258,10 @@
       title="新建配置"
       :visible.sync="addWorkVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
-      :before-close="resetConfig"
+      :before-close="() => resetConfig('workForm')"
     >
       <el-form
+        ref="workForm"
         :model="newWork"
         :rules="workRules"
         label-position="right"
@@ -283,30 +270,29 @@
         <el-form-item label="工分项" prop="work">
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
-        <el-form-item label="打分方式" prop="scoreType">
-          <el-button-group>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': newWork.scoreType === '手动打分'}"
-              @click="newWork.scoreType = '手动打分'"
-            >
-              手动打分
-            </el-button>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': newWork.scoreType === '自动打分'}"
-              @click="newWork.scoreType = '自动打分'"
-            >
-              自动打分
-            </el-button>
-          </el-button-group>
+        <el-form-item label="工分项来源" prop="source">
+          <el-select v-model="newWork.source" style="width: 100%" clearable>
+            <el-option
+              :label="HisWorkSource.CHECK"
+              :value="HisWorkSource.CHECK"
+            ></el-option>
+            <el-option
+              :label="HisWorkSource.DRUG"
+              :value="HisWorkSource.DRUG"
+            ></el-option>
+            <el-option
+              :label="HisWorkSource.MANUAL"
+              :value="HisWorkSource.MANUAL"
+            ></el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item
-          v-show="newWork.scoreType === '自动打分'"
-          label="关联项目"
-          prop="projects"
-        >
-          <el-select v-model="newWork.projects" multiple>
+        <el-form-item label="关联项目" prop="projects">
+          <el-select
+            v-model="newWork.projects"
+            style="width: 100%"
+            clearable
+            multiple
+          >
             <el-option
               v-for="p in projectList"
               :key="p.value"
@@ -315,11 +301,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item
-          v-show="newWork.scoreType === '自动打分'"
-          label="打分方式"
-          prop="scoreMethod"
-        >
+        <el-form-item label="打分方式" prop="scoreMethod">
           <el-button-group>
             <el-button
               size="small"
@@ -344,7 +326,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="resetConfig()">取 消</el-button>
+        <el-button @click="resetConfig('workForm')">取 消</el-button>
         <el-button v-loading="addBtnLoading" type="primary" @click="submit()">
           确 定
         </el-button>
@@ -355,20 +337,14 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import {HisWorkMethod} from '../../../../common/his.ts';
+import {HisWorkMethod, HisWorkSource} from '../../../../common/his.ts';
 
 export default {
   name: 'Work',
   data() {
     const validaProjects = (rule, value, callback) => {
-      if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
+      if (value?.length < 1) {
         callback(new Error('选择关联项目!'));
-      }
-      callback();
-    };
-    const validaScoreMethod = (rule, value, callback) => {
-      if (this.newWork.scoreType === '自动打分' && value?.length < 1) {
-        callback(new Error('选择打分类型!'));
       }
       callback();
     };
@@ -377,7 +353,6 @@ export default {
       permission: Permission,
       searchForm: {
         work: '',
-        scoreType: '',
         scoreMethod: '',
         projects: [],
         dateRange: '',
@@ -386,7 +361,7 @@ export default {
       },
       newWork: {
         work: '',
-        scoreType: '自动打分',
+        source: '',
         scoreMethod: HisWorkMethod.SUM,
         projects: []
       },
@@ -394,15 +369,15 @@ export default {
       tempRow: '',
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        scoreType: [
+        scoreMethod: [
           {required: true, message: '选择打分方式', trigger: 'change'}
         ],
-        projects: [{validator: validaProjects, trigger: 'change'}],
-        scoreMethod: [{validator: validaScoreMethod, trigger: 'change'}]
+        projects: [{validator: validaProjects, trigger: 'change'}]
       },
       tableLoading: false,
       addBtnLoading: false,
-      HisWorkMethod: HisWorkMethod
+      HisWorkMethod: HisWorkMethod,
+      HisWorkSource: HisWorkSource
     };
   },
   computed: {
@@ -411,7 +386,6 @@ export default {
         id: d.id,
         work: d.name,
         scoreMethod: d.method,
-        scoreType: '', //TODO:打分类型
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings.map,
         created_at: d.created_at?.$format() || '',
@@ -428,8 +402,8 @@ export default {
     serverData: {
       async get() {
         this.tableLoading = true;
-        const {work, scoreType, scoreMethod, dateRange} = this.searchForm;
-        console.log(scoreType, work, scoreMethod, dateRange);
+        const {work, scoreMethod, dateRange} = this.searchForm;
+        console.log(work, scoreMethod, dateRange);
         try {
           return await this.$api.HisWorkItem.list();
         } catch (e) {
@@ -464,7 +438,7 @@ export default {
             this.newWork.scoreMethod,
             this.newWork.projects
           );
-          this.resetConfig();
+          this.resetConfig('workForm');
         }
       } catch (e) {
         console.error(e);
@@ -490,7 +464,7 @@ export default {
         this.$message.warning('工分项不能为空');
         return;
       }
-      if (tempRow.scoreType === '自动打分' && tempRow.projects?.length < 1) {
+      if (tempRow.projects?.length < 1) {
         this.$message.warning('关联项目不能为空');
         return;
       }
@@ -507,8 +481,8 @@ export default {
       );
       this.$message.success('删除成功');
     },
-    resetConfig() {
-      this.$refs['workForm'].resetFields();
+    resetConfig(ref) {
+      this.$refs[ref].resetFields();
       this.addWorkVisible = false;
     },
     toBreak(content) {
