@@ -1,6 +1,6 @@
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
-import * as uuid from 'uuid';
+import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
@@ -62,7 +62,7 @@ export default class HisWorkItem {
     const hospital = await getHospital();
 
     return appDB.transaction(async () => {
-      const hisWorkItemId = uuid.v4();
+      const hisWorkItemId = uuid();
       // 添加工分项目
       await appDB.execute(
         ` insert into
@@ -451,8 +451,39 @@ export default class HisWorkItem {
       );
     }
     //endregion
-
-    return workItems;
+    //region 同步流水
+    await appDB.joinTx(async () => {
+      //删除旧流水
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          delete
+          from his_staff_work_score_detail
+          where staff = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        start,
+        end
+      );
+      //添加新流水
+      for (const item of workItems) {
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+          insert into his_staff_work_score_detail(id, staff, item, date, score)
+          values (?, ?, ?, ?, ?)
+        `,
+          uuid(),
+          staff,
+          item.item,
+          item.date,
+          item.score
+        );
+      }
+    });
+    //endregion
   }
 
   /**
@@ -520,6 +551,7 @@ export default class HisWorkItem {
         {{#if keyWord}}
             AND name like {{? keyWord}}
         {{/if}}
+        limit 50
       `,
         {
           hospital,
