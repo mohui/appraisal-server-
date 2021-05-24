@@ -167,7 +167,13 @@ export default {
   },
   computed: {
     overviewData() {
-      return this.overviewServerData;
+      return {
+        ...this.overviewServerData,
+        rate: this.overviewServerData.correctScore
+          ? this.overviewServerData.correctScore /
+            this.overviewServerData.originalScore
+          : 0
+      };
     }
   },
   asyncComputed: {
@@ -193,7 +199,7 @@ export default {
       const myChart = this.$echarts.init(document.getElementById('rateGauge'));
       let option;
       const color = '#409EFF';
-      const value = 55;
+      const value = this.overviewData.rate;
       option = {
         series: [
           {
