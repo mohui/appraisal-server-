@@ -271,20 +271,42 @@
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
         <el-form-item label="工分项来源" prop="source">
-          <el-select v-model="newWork.source" style="width: 100%" clearable>
-            <el-option
-              :label="HisWorkSource.CHECK"
-              :value="HisWorkSource.CHECK"
-            ></el-option>
-            <el-option
-              :label="HisWorkSource.DRUG"
-              :value="HisWorkSource.DRUG"
-            ></el-option>
-            <el-option
-              :label="HisWorkSource.MANUAL"
-              :value="HisWorkSource.MANUAL"
-            ></el-option>
-          </el-select>
+          <el-button-group>
+            <el-button
+              size="small"
+              :class="{'el-button--primary': newWork.source === ''}"
+              @click="newWork.source = ''"
+            >
+              全部
+            </el-button>
+            <el-button
+              size="small"
+              :class="{
+                'el-button--primary': newWork.source === HisWorkSource.CHECK
+              }"
+              @click="newWork.source = HisWorkSource.CHECK"
+            >
+              {{ HisWorkSource.CHECK }}
+            </el-button>
+            <el-button
+              size="small"
+              :class="{
+                'el-button--primary': newWork.source === HisWorkSource.DRUG
+              }"
+              @click="newWork.source = HisWorkSource.DRUG"
+            >
+              {{ HisWorkSource.DRUG }}
+            </el-button>
+            <el-button
+              size="small"
+              :class="{
+                'el-button--primary': newWork.source === HisWorkSource.MANUAL
+              }"
+              @click="newWork.source = HisWorkSource.MANUAL"
+            >
+              {{ HisWorkSource.MANUAL }}
+            </el-button>
+          </el-button-group>
         </el-form-item>
         <el-form-item label="关联项目" prop="projects">
           <el-select
