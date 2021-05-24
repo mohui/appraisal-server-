@@ -5,6 +5,7 @@ import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import {monthToRange} from './manual';
+import {sql as sqlRender} from '../../database/template';
 
 /**
  * 接口
@@ -334,5 +335,79 @@ export default class HisWorkItem {
       );
     }
     return {hisDetail};
+  }
+
+  /**
+   *
+   * @param type
+   * @param keyWord 关键字搜索
+   */
+  @validate(
+    should
+      .string()
+      .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
+      .description('工分项目id'),
+    should
+      .string()
+      .allow(null)
+      .description('员工和分值')
+  )
+  async searchSource(type, keyWord) {
+    if (keyWord) keyWord = `%${keyWord}%`;
+    const hospital = await getHospital();
+    // 结果
+    let checkSources;
+    let sql, params;
+    if (type === HisWorkSource.CHECK) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_check
+        where 1 = 1
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+      `,
+        {
+          keyWord
+        }
+      );
+      checkSources = await originalDB.execute(sql, ...params);
+    }
+    if (type === HisWorkSource.DRUG) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_drug
+        where 1 = 1
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+      `,
+        {
+          keyWord
+        }
+      );
+      checkSources = await originalDB.execute(sql, ...params);
+    }
+
+    if (type === HisWorkSource.MANUAL) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_manual_data
+        where hospital = {{? hospital}}
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+      `,
+        {
+          hospital,
+          keyWord
+        }
+      );
+      checkSources = await appDB.execute(sql, ...params);
+    }
+    return checkSources;
   }
 }
