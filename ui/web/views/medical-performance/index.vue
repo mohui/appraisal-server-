@@ -25,8 +25,12 @@
             "
             >手动考核</el-button
           >
-          <el-button type="primary" size="mini" style="margin-left: 20px"
-            >结果冻结</el-button
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="handleSettle()"
+            >{{ this.overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
           >
         </div>
       </el-card>
@@ -206,6 +210,17 @@ export default {
     }
   },
   methods: {
+    async handleSettle() {
+      try {
+        await this.$api.HisHospital.settle(
+          this.currentDate,
+          !this.overviewData.settle
+        );
+        this.$asyncComputed.overviewServerData.update();
+      } catch (e) {
+        console.log(e.message);
+      }
+    },
     // 绘制图表
     drawChart() {
       this.drawRateGauge();
