@@ -531,10 +531,13 @@ export default class HisCheck {
       .description('自动考核细则')
   )
   async update(id, name, staffs, automations, manuals) {
+    // 细则必须有
+    if (!automations && !manuals)
+      throw new KatoRuntimeError(`自动打分和手动打分不能都为空`);
+
     return appDB.joinTx(async () => {
       // 修改方案名称
       await upsetSystem(id, name);
-      // throw new KatoRuntimeError(`回去`);
       // 修改考核员工
       await upsertStaff(id, staffs);
       // 修改考核细则
