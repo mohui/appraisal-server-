@@ -9,27 +9,37 @@ import {monthToRange} from './manual';
  */
 export default class HisHospital {
   /**
-   * 结算指定月份
+   * 修改指定月份的结算状态
    *
+   * 只能修改本月和上月的结算状态
+   * 再往前的月份, 自动结算
    * @param month 月份
+   * @param settle 是否结算
    */
-  @validate(should.date().required())
-  async settle(month) {
+  @validate(should.date().required(), should.boolean().required())
+  async settle(month, settle) {
     const hospital = await getHospital();
     const date = dayjs(month)
       .startOf('M')
       .toDate();
+    // 月份差值
+    const diff = dayjs().diff(month, 'M');
+    if (diff > 1) {
+      throw new KatoRuntimeError(`只能修改本月和上月的结算状态`);
+    }
     await appDB.execute(
       //language=PostgreSQL
       `
         insert into his_hospital_settle(hospital, month, settle)
-        values (?, ?, true)
+        values (?, ?, ?)
         on conflict (hospital, month)
-          do update set settle     = true,
+          do update set settle     = ?,
                         updated_at = now()
       `,
       hospital,
-      date
+      date,
+      settle,
+      settle
     );
   }
 
