@@ -33,7 +33,7 @@ type ManualPropDataReturnValue = {
  *
  * @param month 时间
  */
-function monthToRange(month: Date): {start: Date; end: Date} {
+export function monthToRange(month: Date): {start: Date; end: Date} {
   const time = dayjs(month);
   const start = time.startOf('M').toDate();
   const end = time

@@ -1,9 +1,24 @@
-import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {monthToRange} from './manual';
+import {sql as sqlRender} from '../../database/template';
+import Decimal from 'decimal.js';
+
+/**
+ * 工分流水
+ */
+type WorkItemDetail = {
+  //工分项id
+  item: any;
+  //工分项得分
+  score: number;
+  //赋值时间
+  date: Date;
+};
 
 /**
  * 接口
@@ -294,5 +309,225 @@ export default class HisWorkItem {
     }
 
     return workItemList;
+  }
+
+  /**
+   * 同步员工工分项流水
+   *
+   * @param staff 员工id
+   * @param month 月份
+   */
+  async syncDetail(staff, month) {
+    const {start, end} = monthToRange(month);
+    //查询该员工绑定的工分来源
+    // language=PostgreSQL
+    const workItemSources: {
+      //工分项id
+      id: string;
+      //得分方式
+      method: string;
+      //分值
+      score: number;
+      //工分项目原始id
+      source: string;
+      //原始工分项目类型
+      type: string;
+    }[] = await appDB.execute(
+      `
+        select w.id, w.method, sm.score, wm.source, wm.type
+        from his_work_item_mapping wm
+               inner join his_staff_work_item_mapping sm on sm.item = wm.item
+               inner join his_work_item w on wm.item = w.id
+        where sm.staff = ?
+      `,
+      staff
+    );
+
+    let workItems: WorkItemDetail[] = [];
+    //region 计算CHECK和DRUG工分来源
+    //查询绑定的his账号id
+    // language=PostgreSQL
+    const hisStaffId = (
+      await appDB.execute(
+        `
+          select staff
+          from staff
+          where id = ?`,
+        staff
+      )
+    )[0].staff;
+    if (hisStaffId) {
+      const params = workItemSources.filter(
+        it => it.type === HisWorkSource.CHECK || it.type == HisWorkSource.DRUG
+      );
+      for (const param of params) {
+        //查询his的收费项目
+        // language=PostgreSQL
+        const rows: {
+          type: string;
+          value: string;
+          date: Date;
+        }[] = await originalDB.execute(
+          `
+            select charges_type as type, total_price as value, operate_time as date
+            from his_charge_detail
+            where doctor = ?
+              and operate_time > ?
+              and operate_time < ?
+              and item_type = ?
+              and item = ?
+            order by operate_time
+          `,
+          hisStaffId,
+          start,
+          end,
+          param.type,
+          param.source
+        );
+        workItems = workItems.concat(
+          //his收费项目转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //计算单位量; 收费/退费区别
+            const value = new Decimal(it.value)
+              .mul(it.type === '4' ? -1 : 1)
+              .toNumber();
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      }
+    }
+    //endregion
+    //region 计算MANUAL工分来源
+    const params = workItemSources.filter(
+      it => it.type === HisWorkSource.MANUAL
+    );
+    for (const param of params) {
+      //查询手工数据流水表
+      // language=PostgreSQL
+      const rows: {date: Date; value: number}[] = await appDB.execute(
+        `
+          select date, value
+          from his_staff_manual_data_detail
+          where staff = ?
+            and item = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        param.source
+      );
+      workItems = workItems.concat(
+        //手工数据流水转换成工分流水
+        rows.map<WorkItemDetail>(it => {
+          let score = 0;
+          //计算单位量; 收费/退费区别
+          //SUM得分方式
+          if (param.method === HisWorkMethod.SUM) {
+            score = new Decimal(it.value).mul(param.score).toNumber();
+          }
+          //AMOUNT得分方式
+          if (param.method === HisWorkMethod.AMOUNT) {
+            score = param.score;
+          }
+          return {
+            item: param.id,
+            date: it.date,
+            score: score
+          };
+        })
+      );
+    }
+    //endregion
+
+    return workItems;
+  }
+
+  /**
+   *
+   * @param type
+   * @param keyWord 关键字搜索
+   */
+  @validate(
+    should
+      .string()
+      .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
+      .description('工分项目id'),
+    should
+      .string()
+      .allow(null)
+      .description('员工和分值')
+  )
+  async searchSource(type, keyWord) {
+    if (keyWord) keyWord = `%${keyWord}%`;
+    const hospital = await getHospital();
+    // 结果
+    let checkSources;
+    let sql, params;
+    if (type === HisWorkSource.CHECK) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_check
+        where 1 = 1
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+        limit 50
+      `,
+        {
+          keyWord
+        }
+      );
+      checkSources = await originalDB.execute(sql, ...params);
+    }
+    if (type === HisWorkSource.DRUG) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_drug
+        where 1 = 1
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+        limit 50
+      `,
+        {
+          keyWord
+        }
+      );
+      checkSources = await originalDB.execute(sql, ...params);
+    }
+
+    if (type === HisWorkSource.MANUAL) {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_manual_data
+        where hospital = {{? hospital}}
+        {{#if keyWord}}
+            AND name like {{? keyWord}}
+        {{/if}}
+      `,
+        {
+          hospital,
+          keyWord
+        }
+      );
+      checkSources = await appDB.execute(sql, ...params);
+    }
+    return checkSources;
   }
 }
