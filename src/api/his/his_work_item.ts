@@ -1,6 +1,6 @@
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
-import * as uuid from 'uuid';
+import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
@@ -62,7 +62,7 @@ export default class HisWorkItem {
     const hospital = await getHospital();
 
     return appDB.transaction(async () => {
-      const hisWorkItemId = uuid.v4();
+      const hisWorkItemId = uuid();
       // 添加工分项目
       await appDB.execute(
         ` insert into
