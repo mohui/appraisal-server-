@@ -23,7 +23,9 @@ export default class HisHospital {
       `
         insert into his_hospital_settle(hospital, month, settle)
         values (?, ?, true)
-        on conflict (hospital, month) do update set settle = true, updated_at = now()
+        on conflict (hospital, month)
+          do update set settle     = true,
+                        updated_at = now()
       `,
       hospital,
       date
