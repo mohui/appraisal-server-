@@ -410,6 +410,47 @@ export default class HisWorkItem {
       }
     }
     //endregion
+    //region 计算MANUAL工分来源
+    const params = workItemSources.filter(
+      it => it.type === HisWorkSource.MANUAL
+    );
+    for (const param of params) {
+      //查询手工数据流水表
+      // language=PostgreSQL
+      const rows: {date: Date; value: number}[] = await appDB.execute(
+        `
+          select date, value
+          from his_staff_manual_data_detail
+          where staff = ?
+            and item = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        param.source
+      );
+      workItems = workItems.concat(
+        //手工数据流水转换成工分流水
+        rows.map<WorkItemDetail>(it => {
+          let score = 0;
+          //计算单位量; 收费/退费区别
+          //SUM得分方式
+          if (param.method === HisWorkMethod.SUM) {
+            score = new Decimal(it.value).mul(param.score).toNumber();
+          }
+          //AMOUNT得分方式
+          if (param.method === HisWorkMethod.AMOUNT) {
+            score = param.score;
+          }
+          return {
+            item: param.id,
+            date: it.date,
+            score: score
+          };
+        })
+      );
+    }
+    //endregion
 
     return workItems;
   }
