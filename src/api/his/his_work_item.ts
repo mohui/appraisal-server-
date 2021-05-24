@@ -451,8 +451,39 @@ export default class HisWorkItem {
       );
     }
     //endregion
-
-    return workItems;
+    //region 同步流水
+    await appDB.joinTx(async () => {
+      //删除旧流水
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          delete
+          from his_staff_work_score_detail
+          where staff = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        start,
+        end
+      );
+      //添加新流水
+      for (const item of workItems) {
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+          insert into his_staff_work_score_detail(id, staff, item, date, score)
+          values (?, ?, ?, ?, ?)
+        `,
+          uuid(),
+          staff,
+          item.item,
+          item.date,
+          item.score
+        );
+      }
+    });
+    //endregion
   }
 
   /**
