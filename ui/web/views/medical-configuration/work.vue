@@ -67,7 +67,7 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+            <el-col :span="6" :xs="24" :sm="12" :md="12" :lg="8" :xl="6">
               <el-form-item prop="dateRange" size="mini" label="创建时间">
                 <el-date-picker
                   v-model="searchForm.dateRange"
@@ -145,12 +145,12 @@
           prop="project"
           label="关联项目"
           align="center"
-          width="200"
+          width="300"
         >
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">
               <el-tooltip
-                v-if="$widthCompute([row.projects.join(',')]) >= 200"
+                v-if="$widthCompute([row.projects.join(',')]) >= 300"
                 effect="dark"
                 placement="top"
                 :content="row.projects.join(',')"
@@ -171,10 +171,10 @@
                 collapse-tags
               >
                 <el-option
-                  v-for="work in projectList"
-                  :key="work.value"
-                  :label="work.name"
-                  :value="work.value"
+                  v-for="p in projectList"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
                 ></el-option>
               </el-select>
             </div>
@@ -188,7 +188,7 @@
                 icon="el-icon-edit"
                 circle
                 size="mini"
-                @click="editRow(row.index)"
+                @click="editRow(row)"
               >
               </el-button>
             </el-tooltip>
@@ -216,7 +216,7 @@
                 icon="el-icon-close"
                 circle
                 size="mini"
-                @click="cancelEdit(row.index)"
+                @click="cancelEdit(row)"
               >
               </el-button>
             </el-tooltip>
@@ -274,13 +274,6 @@
           <el-button-group>
             <el-button
               size="small"
-              :class="{'el-button--primary': newWork.source === ''}"
-              @click="newWork.source = ''"
-            >
-              全部
-            </el-button>
-            <el-button
-              size="small"
               :class="{
                 'el-button--primary': newWork.source === HisWorkSource.CHECK
               }"
@@ -311,15 +304,17 @@
         <el-form-item label="关联项目" prop="projects">
           <el-select
             v-model="newWork.projects"
+            :loading="$asyncComputed.serverProjectData.updating"
             style="width: 100%"
             clearable
+            filterable
             multiple
           >
             <el-option
               v-for="p in projectList"
-              :key="p.value"
+              :key="p.id"
               :label="p.name"
-              :value="p.value"
+              :value="p.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -383,7 +378,7 @@ export default {
       },
       newWork: {
         work: '',
-        source: '',
+        source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         projects: []
       },
@@ -416,7 +411,10 @@ export default {
       }));
     },
     projectList() {
-      return this.serverProjectData;
+      return this.serverProjectData.map(it => ({
+        ...it,
+        id: it.id + '-' + this.newWork.source
+      }));
     }
   },
   watch: {},
@@ -438,13 +436,8 @@ export default {
     },
     serverProjectData: {
       async get() {
-        await new Promise(resolve => setTimeout(() => resolve(), 600));
-        let i = 0;
-        let data = [];
-        for (; i < 10; i++) {
-          data.push({name: `项目${i}`, value: `项目${i}`});
-        }
-        return data;
+        const {source, keyword} = this.newWork;
+        return await this.$api.HisWorkItem.searchSource(source, keyword);
       },
       default: []
     }
@@ -454,12 +447,24 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
+          const mappings = this.newWork.projects
+            .map(it => {
+              const [source, type] = it.split('-');
+              return {source, type};
+            })
+            .reduce((res, next) => {
+              const current = res.find(i => i.type === next.type);
+              if (current) current.source.push(next.source);
+              else res.push({type: next.type, source: [next.source]});
+              return res;
+            }, []);
           this.addBtnLoading = true;
           await this.$api.HisWorkItem.add(
             this.newWork.work,
             this.newWork.scoreMethod,
-            this.newWork.projects
+            mappings
           );
+          this.$asyncComputed.serverData.update();
           this.resetConfig('workForm');
         }
       } catch (e) {
@@ -469,16 +474,16 @@ export default {
         this.addBtnLoading = false;
       }
     },
-    editRow(index) {
+    editRow(row) {
       if (this.tempRow) {
         this.$message.warning('已有其他数据正在编辑');
         return;
       }
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
-      this.tempRow = Object.assign({}, this.tableData[index - 1]);
+      row.isEdit = !row.isEdit;
+      this.tempRow = Object.assign({}, row);
     },
-    cancelEdit(index) {
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
+    cancelEdit(row) {
+      row.isEdit = !row.isEdit;
       this.tempRow = '';
     },
     async submitEdit(index, tempRow) {
