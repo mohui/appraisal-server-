@@ -332,4 +332,35 @@ export default class HisStaff {
       };
     });
   }
+
+  /**
+   * 获取指定日期的质量系数
+   *
+   * @param id 员工id
+   * @param day 日期
+   */
+  getRateByDay(id, day) {
+    return null;
+  }
+
+  /**
+   * 获取指定月份的质量系数
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  getRate(id, month) {
+    return null;
+  }
+
+  /**
+   * 获取指定月份的质量系数列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  getRateList(id, month) {
+    //建议一波查出来, 再根据日期分组
+    return [];
+  }
 }
