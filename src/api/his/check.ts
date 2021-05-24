@@ -620,4 +620,47 @@ export default class HisCheck {
         : false
     }));
   }
+
+  /**
+   * 考核详情
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核方案id')
+  )
+  async get(id) {
+    // 根据id获取考核名称
+    const hisSystems = await appDB.execute(
+      `select id, name
+            from his_check_system
+            where id = ?`,
+      id
+    );
+    if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
+    const hisRules = await appDB.execute(
+      `select * from his_check_rule
+              where "check" = ?
+        `,
+      id
+    );
+    const automations = hisRules
+      .map(it => {
+        if (it.auto === true) return it;
+      })
+      .filter(it => it);
+    const manuals = hisRules
+      .map(it => {
+        if (it.auto === false) return it;
+      })
+      .filter(it => it);
+
+    return {
+      id: hisSystems[0]?.id,
+      name: hisSystems[0]?.name,
+      automations,
+      manuals
+    };
+  }
 }
