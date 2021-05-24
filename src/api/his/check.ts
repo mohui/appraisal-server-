@@ -223,19 +223,43 @@ export default class HisCheck {
       hospital
     );
 
-    const systemList1 = systemList.map(it => {
-      const workItemObj = workItems.find(workIt => workIt.staff === it.staff);
-      return {
-        ...it,
-        workId: workItemObj?.id,
-        workName: workItemObj?.name
-      };
-    });
+    // const systemList1 = systemList.map(it => {
+    //   const workItemObj = workItems.find(workIt => workIt.staff === it.staff);
+    //   return {
+    //     ...it,
+    //     workId: workItemObj?.id,
+    //     workName: workItemObj?.name
+    //   };
+    // });
+
+    // 把员工的工分项目放到员工下
+    const staffWorks = [];
+    for (const workIt of workItems) {
+      const index = staffWorks.find(it => it.staff === workIt.staff);
+      if (index) {
+        index.item.push({
+          id: workIt.id,
+          name: workIt.name
+        });
+      } else {
+        staffWorks.push({
+          staff: workIt.staff,
+          item: [
+            {
+              id: workIt.id,
+              name: workIt.name
+            }
+          ]
+        });
+      }
+    }
 
     // 获取考核员工
     const returnList = [];
-    for (const it of systemList1) {
+    for (const it of systemList) {
       // 查找工分项目
+      const workItemObj = staffWorks.find(workIt => workIt.staff === it.staff);
+      // 查找细则得分
       const scoreObj = systemScores.find(item => item.checkId === it.id);
 
       // 查找考核得分
@@ -246,13 +270,18 @@ export default class HisCheck {
           account: it.account,
           name: it.staffName
         });
-        const index = findIndex.item.find(itemIt => itemIt.id === it.workId);
-        // 如果没有查找到工分项目,并且工分项目存在
-        if (!index && it?.workId) {
-          findIndex.item.push({
-            id: it.workId,
-            name: it.workName
-          });
+        // 如果员工有工分项目,需要判断这个员工的工分项目是否已经在列表中
+        if (workItemObj) {
+          for (const staffWorkItem of workItemObj.item) {
+            const workIndex = findIndex.item.find(
+              returnIt => returnIt.id === staffWorkItem.id
+            );
+            if (!workIndex)
+              findIndex.item.push({
+                id: staffWorkItem.id,
+                name: staffWorkItem.name
+              });
+          }
         }
       } else {
         returnList.push({
@@ -266,12 +295,7 @@ export default class HisCheck {
               name: it.staffName
             }
           ],
-          item: [
-            {
-              id: it.workId,
-              name: it.workName
-            }
-          ]
+          item: workItemObj?.item ?? []
         });
       }
     }
