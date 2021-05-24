@@ -123,13 +123,13 @@ export class HisMigration implements IMigration {
       --员工工分项目得分流水表
       create table his_staff_work_score_detail
       (
+        id           varchar(36) primary key,
         staff        varchar(36),
         item         varchar(36),
-        date         date,
+        date         timestamp with time zone,
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (staff, item, date)
+        "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table his_staff_work_score_detail is '员工工分项目得分流水表';
       comment on column his_staff_work_score_detail.staff is '员工id';
@@ -143,12 +143,14 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
+        detail       text,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_check_system" is '医疗考核方案表';
       comment on column "his_check_system".hospital is '所属医院id';
       comment on column "his_check_system".name is '名称';
+      comment on column "his_check_system".detail is '详情';
 
       --员工考核方案绑定表
       create table if not exists his_staff_check_mapping
