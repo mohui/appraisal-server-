@@ -174,6 +174,9 @@ export default {
             this.overviewServerData.originalScore
           : 0
       };
+    },
+    workScoreListData() {
+      return this.workScoreListSeverData;
     }
   },
   asyncComputed: {
@@ -184,6 +187,19 @@ export default {
       default() {
         return {};
       }
+    },
+    workScoreListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    }
+  },
+  watch: {
+    workScoreListData: function() {
+      this.drawProjectPerformanceBar();
     }
   },
   methods: {
@@ -414,15 +430,13 @@ export default {
         },
         yAxis: {
           type: 'category',
-          data: this.dataSource.projectData.map(it => it.name)
+          data: this.workScoreListData.map(it => it.name)
         },
         series: [
           {
             name: '项目应得分',
             type: 'bar',
-            data: this.dataSource.projectData.map(
-              it => it.beforeCorrectionWorkPoint
-            ),
+            data: this.workScoreListData.map(it => it.score),
             itemStyle: {
               color: 'rgba(180, 180, 180, 0.3)'
             }
@@ -430,8 +444,8 @@ export default {
           {
             name: '项目实际得分',
             type: 'bar',
-            data: this.dataSource.projectData.map(
-              it => it.afterCorrectionWorkPoint
+            data: this.workScoreListData.map(
+              it => it.score * this.overviewData.rate
             ),
             itemStyle: {
               color: this.chartColors[0]
