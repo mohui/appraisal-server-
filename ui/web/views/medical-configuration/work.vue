@@ -345,7 +345,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig()">取 消</el-button>
-        <el-button type="primary" @click="submit()">
+        <el-button v-loading="addBtnLoading" type="primary" @click="submit()">
           确 定
         </el-button>
       </div>
@@ -356,7 +356,6 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod} from '../../../../common/his.ts';
-import dayjs from 'dayjs';
 
 export default {
   name: 'Work',
@@ -402,6 +401,7 @@ export default {
         scoreMethod: [{validator: validaScoreMethod, trigger: 'change'}]
       },
       tableLoading: false,
+      addBtnLoading: false,
       HisWorkMethod: HisWorkMethod
     };
   },
@@ -431,7 +431,7 @@ export default {
         const {work, scoreType, scoreMethod, dateRange} = this.searchForm;
         console.log(scoreType, work, scoreMethod, dateRange);
         try {
-          return this.$api.HisWorkItem.list();
+          return await this.$api.HisWorkItem.list();
         } catch (e) {
           console.error(e.message);
         } finally {
@@ -458,20 +458,19 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
-          this.$set(this.serverData.rows, this.tableData.length, {
-            index: this.tableData.length + 1,
-            work: this.newWork.work,
-            scoreType: this.newWork.scoreType,
-            scoreMethod: this.newWork.scoreMethod,
-            projects: this.newWork.projects,
-            row: false,
-            createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
-          });
+          this.addBtnLoading = true;
+          await this.$api.HisWorkItem.add(
+            this.newWork.work,
+            this.newWork.scoreMethod,
+            this.newWork.projects
+          );
           this.resetConfig();
         }
       } catch (e) {
         console.error(e);
         if (e) this.$message.error(e.message);
+      } finally {
+        this.addBtnLoading = false;
       }
     },
     editRow(index) {
