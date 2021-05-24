@@ -304,10 +304,12 @@
         <el-form-item label="关联项目" prop="projects">
           <el-select
             v-model="newWork.projects"
-            :loading="$asyncComputed.serverProjectData.updating"
+            :loading="searchLoading"
             style="width: 100%"
             clearable
             filterable
+            remote
+            :remote-method="remoteSearch"
             multiple
           >
             <el-option
@@ -393,6 +395,7 @@ export default {
       },
       tableLoading: false,
       addBtnLoading: false,
+      searchLoading: false,
       HisWorkMethod: HisWorkMethod,
       HisWorkSource: HisWorkSource
     };
@@ -436,8 +439,15 @@ export default {
     },
     serverProjectData: {
       async get() {
-        const {source, keyword} = this.newWork;
-        return await this.$api.HisWorkItem.searchSource(source, keyword);
+        try {
+          this.searchLoading = true;
+          const {source} = this.newWork;
+          return await this.$api.HisWorkItem.searchSource(source);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          this.searchLoading = false;
+        }
       },
       default: []
     }
@@ -519,6 +529,21 @@ export default {
         contentStr += content[index];
       }
       return contentStr;
+    },
+    async remoteSearch(query) {
+      try {
+        this.searchLoading = true;
+        this.serverProjectData = await this.$api.HisWorkItem.searchSource(
+          this.newWork.source,
+          query || undefined
+        );
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.searchLoading = false;
+      }
+
+      // return
     }
   }
 };
