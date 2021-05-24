@@ -551,6 +551,7 @@ export default class HisWorkItem {
         {{#if keyWord}}
             AND name like {{? keyWord}}
         {{/if}}
+        limit 50
       `,
         {
           hospital,
