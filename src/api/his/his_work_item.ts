@@ -283,7 +283,7 @@ export default class HisWorkItem {
       let manuals = [];
       if (checkIds.length > 0) {
         checks = await originalDB.execute(
-          `select id, name
+          `select id, name, '${HisWorkSource.CHECK}' as source
              from his_check where id in (${checkIds.map(() => '?')})`,
           ...checkIds
         );
@@ -291,7 +291,7 @@ export default class HisWorkItem {
       // 药品
       if (drugsIds.length > 0) {
         drugs = await originalDB.execute(
-          `select id, name
+          `select id, name, '${HisWorkSource.DRUG}' as source
              from his_drug where id in (${drugsIds.map(() => '?')})`,
           ...drugsIds
         );
@@ -299,7 +299,7 @@ export default class HisWorkItem {
       // 手工数据
       if (manualIds.length > 0) {
         manuals = await originalDB.execute(
-          `select id, name
+          `select id, name, '${HisWorkSource.MANUAL}' as source
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
           ...manualIds
         );
