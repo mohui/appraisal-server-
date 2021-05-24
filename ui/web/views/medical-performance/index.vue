@@ -4,9 +4,7 @@
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
         <div class="header">
-          <div class="header-title">
-            中心绩效考核
-          </div>
+          <div class="header-title">{{ overviewData.name }}绩效考核</div>
           <div>
             <el-date-picker
               v-model="currentDate"
@@ -37,11 +35,11 @@
                 <div class="score-detail">
                   <div class="total-score-title">总分</div>
                   <div class="total-score">
-                    {{ dataSource.afterCorrectionWorkPoint }}
+                    {{ overviewData.correctScore }}
                   </div>
                   <div>校正后</div>
                   <div class="before-correction">
-                    校正前工分: {{ dataSource.beforeCorrectionWorkPoint }}
+                    校正前工分: {{ overviewData.originalScore }}
                   </div>
                 </div>
               </el-col>
@@ -166,6 +164,21 @@ export default {
   },
   mounted() {
     this.drawChart();
+  },
+  computed: {
+    overviewData() {
+      return this.overviewServerData;
+    }
+  },
+  asyncComputed: {
+    overviewServerData: {
+      async get() {
+        return await this.$api.HisHospital.overview(this.currentDate);
+      },
+      default() {
+        return {};
+      }
+    }
   },
   methods: {
     // 绘制图表
