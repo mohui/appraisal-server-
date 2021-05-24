@@ -108,4 +108,36 @@ export default class HisHospital {
       correctScore: null
     };
   }
+
+  /**
+   * 工分项目列表
+   *
+   * @param month 月份
+   * @return {
+   *   id: 工分项目id
+   *   name: 工分项目名称
+   *   score: 工分项目分数(校正前)
+   * }
+   */
+  @validate(should.date().required())
+  async findWorkScoreList(month) {
+    const hospital = await getHospital();
+    const {start, end} = monthToRange(month);
+    return await appDB.execute(
+      // language=PostgreSQL
+      `
+          select d.item as id, max(wi.name) as name, sum(d.score) as score
+          from his_staff_work_score_detail d
+                 inner join staff on d.staff = staff.id
+                 inner join his_work_item wi on d.item = wi.id
+          where staff.hospital = ?
+            and d.date >= ?
+            and d.date < ?
+          group by d.item
+        `,
+      hospital,
+      start,
+      end
+    );
+  }
 }
