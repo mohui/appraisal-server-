@@ -6,6 +6,19 @@ import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import {monthToRange} from './manual';
 import {sql as sqlRender} from '../../database/template';
+import Decimal from 'decimal.js';
+
+/**
+ * 工分流水
+ */
+type WorkItemDetail = {
+  //工分项id
+  item: any;
+  //工分项得分
+  score: number;
+  //赋值时间
+  date: Date;
+};
 
 /**
  * 接口
@@ -306,6 +319,32 @@ export default class HisWorkItem {
    */
   async syncDetail(staff, month) {
     const {start, end} = monthToRange(month);
+    //查询该员工绑定的工分来源
+    // language=PostgreSQL
+    const workItemSources: {
+      //工分项id
+      id: string;
+      //得分方式
+      method: string;
+      //分值
+      score: number;
+      //工分项目原始id
+      source: string;
+      //原始工分项目类型
+      type: string;
+    }[] = await appDB.execute(
+      `
+        select w.id, w.method, sm.score, wm.source, wm.type
+        from his_work_item_mapping wm
+               inner join his_staff_work_item_mapping sm on sm.item = wm.item
+               inner join his_work_item w on wm.item = w.id
+        where sm.staff = ?
+      `,
+      staff
+    );
+
+    let workItems: WorkItemDetail[] = [];
+    //region 计算CHECK和DRUG工分来源
     //查询绑定的his账号id
     // language=PostgreSQL
     const hisStaffId = (
@@ -317,24 +356,62 @@ export default class HisWorkItem {
         staff
       )
     )[0].staff;
-    let hisDetail = [];
-    //
     if (hisStaffId) {
-      // language=PostgreSQL
-      hisDetail = await originalDB.execute(
-        `
-          select item, charges_type as type, total_price as value, operate_time as date
-          from his_charge_detail
-          where operate_time > ?
-            and operate_time < ?
-            and doctor = ?
-        `,
-        start,
-        end,
-        hisStaffId
+      const params = workItemSources.filter(
+        it => it.type === HisWorkSource.CHECK || it.type == HisWorkSource.DRUG
       );
+      for (const param of params) {
+        //查询his的收费项目
+        // language=PostgreSQL
+        const rows: {
+          type: string;
+          value: string;
+          date: Date;
+        }[] = await originalDB.execute(
+          `
+            select charges_type as type, total_price as value, operate_time as date
+            from his_charge_detail
+            where doctor = ?
+              and operate_time > ?
+              and operate_time < ?
+              and item_type = ?
+              and item = ?
+            order by operate_time
+          `,
+          hisStaffId,
+          start,
+          end,
+          param.type,
+          param.source
+        );
+        workItems = workItems.concat(
+          //his收费项目转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //计算单位量; 收费/退费区别
+            const value = new Decimal(it.value)
+              .mul(it.type === '4' ? -1 : 1)
+              .toNumber();
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      }
     }
-    return {hisDetail};
+    //endregion
+
+    return workItems;
   }
 
   /**
