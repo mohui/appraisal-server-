@@ -57,7 +57,6 @@
         :span-method="spanMethod"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column prop="index" label="序号"></el-table-column>
         <el-table-column prop="member" label="考核员工"></el-table-column>
         <el-table-column prop="subMembers" label="关联员工" width="200">
           <template slot-scope="{row}">
@@ -78,7 +77,6 @@
             <div>{{ row.subRate }}%</div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间"></el-table-column>
         <el-table-column prop="" label="操作">
           <template slot-scope="{row}">
             <el-tooltip content="编辑" :enterable="false">
@@ -138,17 +136,13 @@
         label-position="right"
         label-width="120px"
       >
-        <el-form-item label="考核员工" prop="member">
-          <el-select
-            v-model="newMember.member"
-            collapse-tags
-            :disabled="!!newMember.index || newMember.index < 0"
-          >
+        <el-form-item label="考核员工" prop="staff">
+          <el-select v-model="newMember.staff" collapse-tags>
             <el-option
               v-for="m in memberList"
-              :key="m.value"
+              :key="m.id"
               :label="m.name"
-              :value="m.value"
+              :value="m.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -156,22 +150,24 @@
           <el-table border size="mini" :data="newMember.subMembers">
             <el-table-column label="员工" prop="name">
               <template slot-scope="{$index, row}">
-                <div v-if="$index === 0">{{ row.name.join(',') }}</div>
+                <div v-if="$index === 0">{{ row.member.join(',') }}</div>
                 <div v-if="$index > 0">
                   <el-select
-                    v-model="row.name"
+                    v-model="row.staffs"
                     multiple
                     collapse-tags
                     size="mini"
                   >
                     <el-option
                       v-for="m in memberList"
-                      :key="m.value"
+                      :key="m.id"
                       :label="m.name"
-                      :value="m.value"
+                      :value="m.id"
                       :disabled="
-                        m.name === newMember.member ||
-                          newMember.subMembers.some(it => it.name === m.name)
+                        m.id === newMember.staff ||
+                          newMember.subMembers.some(it =>
+                            it.staffs.find(s => s === m.id)
+                          )
                       "
                     ></el-option>
                   </el-select>
@@ -184,6 +180,7 @@
                 <div v-if="$index > 0">
                   <el-input-number
                     v-model="row.rate"
+                    :max="100"
                     size="mini"
                   ></el-input-number>
                   &nbsp;&nbsp;%
@@ -206,7 +203,9 @@
             v-if="newMember.subMembers.length >= 1"
             type="warning"
             size="mini"
-            @click="newMember.subMembers.push({name: '', rate: 0})"
+            @click="
+              newMember.subMembers.push({member: [], staffs: [], rate: 0})
+            "
             >新增关联员工</el-button
           >
         </el-form-item>
@@ -223,14 +222,13 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import dayjs from 'dayjs';
 
 export default {
   name: 'Member',
   data() {
     const ValidSubMember = (rule, value, callback) => {
-      if (value.some(v => v.name.length < 1 && v.rate < 1)) callback();
-      if (value.some(v => v.name.length < 1 || v.rate < 1))
+      if (value.some(v => v.staffs.length < 1 && v.rate < 1)) callback();
+      if (value.some(v => v.staffs.length < 1 || v.rate < 1))
         callback(new Error('关联员工信息未填写完整'));
       callback();
     };
@@ -243,7 +241,9 @@ export default {
         pageNo: 1
       },
       newMember: {
+        id: '',
         member: '',
+        staff: '',
         subMembers: []
       },
       addMemberVisible: false,
@@ -258,14 +258,12 @@ export default {
     tableData() {
       let data = [];
       this.serverData.rows.forEach(row => {
-        row.subMembers.forEach(sub => {
-          data.push({
-            index: row.index,
-            member: row.member,
-            subMember: sub.name.join(','),
-            subRate: sub.rate,
-            createdAt: row.createdAt
-          });
+        data.push({
+          id: row.id,
+          staff: row.staff,
+          member: row.staffName, //名字
+          subMember: row.sourcesName.join(','),
+          subRate: row.rate * 100
         });
       });
       return data;
@@ -279,7 +277,7 @@ export default {
           pos = 0;
         } else {
           // 判断当前元素与上一个元素是否相同
-          if (this.tableData[i].index === this.tableData[i - 1].index) {
+          if (this.tableData[i].staff === this.tableData[i - 1].staff) {
             arr[pos] += 1;
             arr.push(0);
           } else {
@@ -295,15 +293,20 @@ export default {
     }
   },
   watch: {
-    'newMember.member'() {
-      if (!this.newMember.index && this.newMember.member) {
+    'newMember.staff'() {
+      if (this.newMember.staff) {
         this.newMember.subMembers = [];
         this.newMember.subMembers.push({
-          name: [this.newMember.member],
+          //名字
+          member: [
+            this.memberList.find(it => it.id === this.newMember.staff).name
+          ],
+          staffs: [this.newMember.staff],
           rate: 100
         });
         this.newMember.subMembers.push({
-          name: [],
+          member: [],
+          staffs: [],
           rate: 0
         });
       }
@@ -314,35 +317,10 @@ export default {
       async get() {
         let data = [];
         this.tableLoading = true;
-        const {member} = this.searchForm;
-        console.log(member);
         try {
-          await new Promise(resolve =>
-            setTimeout(() => {
-              for (let i = 0; i < 10; i++) {
-                data.push({
-                  index: i + 1,
-                  member: `员工B${i}`,
-                  subMembers: [
-                    {name: [`员工B${i}`], rate: 100},
-                    {
-                      name: [
-                        `C员工CC${i}`,
-                        `D员工DD${i}`,
-                        `W员工W${i}`,
-                        `X员工X${i}`
-                      ],
-                      rate: 90
-                    }
-                  ],
-                  createdAt: '2021-05-18 11:23:21'
-                });
-              }
-              resolve();
-            }, 1000)
-          );
+          data = await this.$api.HisStaff.selHisStaffWorkSource();
           return {
-            counts: 10,
+            counts: data.length,
             rows: data
           };
         } catch (e) {
@@ -355,16 +333,7 @@ export default {
     },
     serverMemberData: {
       async get() {
-        await new Promise(resolve => setTimeout(() => resolve(), 600));
-        let i = 0;
-        let data = [];
-        for (; i < 10; i++) {
-          data.push({
-            name: `员工A${i}`,
-            value: `员工A${i}`
-          });
-        }
-        return data;
+        return await this.$api.HisStaff.list();
       },
       default: []
     }
@@ -374,26 +343,22 @@ export default {
       try {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
-          if (!this.newMember.index) {
-            this.$set(this.serverData.rows, this.serverData.rows.length, {
-              index: this.serverData.rows.length + 1,
-              member: this.newMember.member,
-              subMembers: this.newMember.subMembers.filter(
-                it => it.name.length > 0
-              ),
-              createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
-            });
+          if (!this.newMember.id) {
+            console.log('this.newMember', this.newMember);
+            console.log('subMembers', this.newMember.subMembers);
+            const sourceRate = this.newMember.subMembers.map(it => ({
+              source: it.staffs,
+              rate: it.rate / 100
+            }));
+            await this.$api.HisStaff.addHisStaffWorkSource(
+              this.newMember.staff,
+              sourceRate
+            );
             this.$message.success('添加成功');
           } else {
-            this.$set(this.serverData.rows, this.newMember.index - 1, {
-              index: this.newMember.index,
-              member: this.newMember.member,
-              subMembers: this.newMember.subMembers.filter(
-                it => it.name.length > 0
-              ),
-              createdAt: this.newMember.createdAt
-            });
+            this.$message.success('修改成功');
           }
+          this.$asyncComputed.serverData.update();
           this.resetConfig();
         }
       } catch (e) {
