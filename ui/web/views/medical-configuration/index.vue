@@ -305,7 +305,7 @@ export default {
       return this.serverData.rows.map(d => ({
         ...d,
         work: d.name,
-        scoreType: d?.method,
+        scoreType: d.item[0]?.method || '',
         scoreMember: d.staffs.map(m => m.name),
         isEdit: false
       }));
