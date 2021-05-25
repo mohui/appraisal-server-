@@ -71,8 +71,12 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column prop="index" label="序号"></el-table-column>
-        <el-table-column prop="work" label="工分项">
+        <el-table-column
+          align="center"
+          type="index"
+          label="序号"
+        ></el-table-column>
+        <el-table-column align="center" prop="work" label="工分项">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.work }}</div>
             <div v-else>
@@ -87,8 +91,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="scoreType" label="打分方式"></el-table-column>
-        <el-table-column prop="scoreMember" label="考核员工" width="200">
+        <el-table-column
+          align="center"
+          prop="scoreType"
+          label="打分方式"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="scoreMember"
+          label="考核员工"
+          width="200"
+        >
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">
               <el-tooltip
@@ -124,7 +137,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="配置得分">
+        <el-table-column align="center" prop="score" label="配置得分">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.score }}</div>
             <div v-else>
@@ -133,8 +146,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间"></el-table-column>
-        <el-table-column prop="" label="操作">
+        <el-table-column align="center" prop="" label="操作">
           <template slot-scope="{row}">
             <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
               <el-button
@@ -290,7 +302,13 @@ export default {
   },
   computed: {
     tableData() {
-      return this.serverData.rows.map(d => ({...d, isEdit: false}));
+      return this.serverData.rows.map(d => ({
+        ...d,
+        work: d.name,
+        scoreType: d?.method,
+        scoreMember: d.staffs.map(m => m.name),
+        isEdit: false
+      }));
     },
     workList() {
       return this.serverWorkData;
@@ -308,23 +326,9 @@ export default {
         const {scoreType, score, work} = this.searchForm;
         console.log(scoreType, score, work);
         try {
-          await new Promise(resolve =>
-            setTimeout(() => {
-              for (let i = 0; i < 10; i++) {
-                data.push({
-                  index: i + 1,
-                  work: '工分项1',
-                  scoreType: '自动打分',
-                  scoreMember: [`员工${i + 1}`],
-                  score: 30,
-                  createdAt: '2021-05-18 11:23:21'
-                });
-              }
-              resolve();
-            }, 1000)
-          );
+          data = await this.$api.HisCheck.list();
           return {
-            counts: 10,
+            counts: data.length,
             rows: data
           };
         } catch (e) {
