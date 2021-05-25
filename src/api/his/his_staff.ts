@@ -3,6 +3,7 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
+import {sql as sqlRender} from '../../database/template';
 
 export async function getHospital() {
   if (
@@ -154,14 +155,59 @@ export default class HisStaff {
   /**
    * 员工列表
    */
-  async list() {
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('账号'),
+    should
+      .string()
+      .allow(null)
+      .description('用户名')
+  )
+  async list(account, name) {
     const hospital = await getHospital();
-    return await appDB.execute(
+    // 用户名查询模糊查询
+    if (account) account = `%${account}%`;
+    if (name) name = `%${name}%`;
+
+    const [sql, params] = sqlRender(
       `
-        select id, hospital, staff, account, name, created_at, updated_at
-        from staff where hospital = ?`,
+        select id, hospital, staff, account, password, name, created_at, updated_at
+        from staff
+        where hospital = {{? hospital}}
+        {{#if account}}
+            AND account like {{? account}}
+        {{/if}}
+        {{#if name}}
+            AND name like {{? name}}
+        {{/if}}
+      `,
+      {
+        hospital,
+        account,
+        name
+      }
+    );
+    const staffList = await appDB.execute(sql, ...params);
+    const hisStaffs = await originalDB.execute(
+      `select id, name from his_staff where hospital = ?`,
       hospital
     );
+    return staffList.map(it => {
+      const index = hisStaffs.find(item => it.staff === item.id);
+      if (index) {
+        return {
+          ...it,
+          staffName: index.name
+        };
+      } else {
+        return {
+          ...it,
+          staffName: ''
+        };
+      }
+    });
   }
 
   /**
