@@ -14,6 +14,7 @@ export async function getHospital() {
 
   return Context.current.user.hospitals[0]['id'];
 }
+
 export default class HisStaff {
   /**
    * 查询his员工
@@ -251,6 +252,7 @@ export default class HisStaff {
       }
     });
   }
+
   /**
    * 删除员工绑定
    */
