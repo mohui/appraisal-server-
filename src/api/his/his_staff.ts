@@ -401,8 +401,32 @@ export default class HisStaff {
    */
   @validate(should.string().required(), should.date().required())
   async findWorkScoreList(id, month) {
+    const {start, end} = monthToRange(month);
+    //获取工分列表
+    // language=PostgreSQL
+    const items = await appDB.execute(
+      `
+        select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score
+        from his_staff_work_score_detail d
+               inner join (
+          select unnest(sources) as staff, rate
+          from his_staff_work_source
+          where staff = ?
+        ) as s on d.staff = s.staff
+               inner join his_work_item wi on d.item = wi.id
+        where d.date >= ?
+          and d.date < ?
+        group by item
+      `,
+      id,
+      start,
+      end
+    );
+    //获取质量系数
+    const rate = await this.getRate(id, month);
     return {
-      items: []
+      items,
+      rate
     };
   }
 
