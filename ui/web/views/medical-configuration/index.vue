@@ -154,7 +154,7 @@
                 icon="el-icon-edit"
                 circle
                 size="mini"
-                @click="editRow(row.index)"
+                @click="editRow(row)"
               >
               </el-button>
             </el-tooltip>
@@ -182,7 +182,7 @@
                 icon="el-icon-close"
                 circle
                 size="mini"
-                @click="cancelEdit(row.index)"
+                @click="cancelEdit(row)"
               >
               </el-button>
             </el-tooltip>
@@ -353,13 +353,7 @@ export default {
     },
     serverMemberData: {
       async get() {
-        await new Promise(resolve => setTimeout(() => resolve(), 600));
-        let i = 0;
-        let data = [];
-        for (; i < 10; i++) {
-          data.push({name: `员工${i}`, value: `员工${i}`});
-        }
-        return data;
+        return await this.$api.HisCheck.checkStaff();
       },
       default: []
     }
@@ -385,16 +379,16 @@ export default {
         if (e) this.$message.error(e.message);
       }
     },
-    editRow(index) {
+    editRow(row) {
       if (this.tempRow) {
         this.$message.warning('已有其他数据正在编辑');
         return;
       }
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
-      this.tempRow = Object.assign({}, this.tableData[index - 1]);
+      row.isEdit = !row.isEdit;
+      this.tempRow = Object.assign({}, row);
     },
-    cancelEdit(index) {
-      this.tableData[index - 1].isEdit = !this.tableData[index - 1].isEdit;
+    cancelEdit(row) {
+      row.isEdit = !row.isEdit;
       this.tempRow = '';
     },
     async submitEdit(index, tempRow) {
