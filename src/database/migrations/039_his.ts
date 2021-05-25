@@ -143,14 +143,12 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        detail       text,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_check_system" is '医疗考核方案表';
       comment on column "his_check_system".hospital is '所属医院id';
       comment on column "his_check_system".name is '名称';
-      comment on column "his_check_system".detail is '详情';
 
       --员工考核方案绑定表
       create table if not exists his_staff_check_mapping
@@ -171,6 +169,7 @@ export class HisMigration implements IMigration {
         "check"      varchar(36),
         auto         boolean,
         name         varchar(255),
+        detail       varchar(255),
         metric       varchar(255),
         operator     varchar(255),
         value        double precision,
@@ -182,6 +181,7 @@ export class HisMigration implements IMigration {
       comment on column his_check_rule."check" is '所属考核方案';
       comment on column his_check_rule.auto is '是否自动考核';
       comment on column "his_check_rule".name is '名称';
+      comment on column his_check_rule.detail is '考核要求';
       comment on column "his_check_rule".metric is '指标';
       comment on column "his_check_rule".operator is '计算方式';
       comment on column "his_check_rule".value is '参考值';
