@@ -566,6 +566,20 @@ export default class HisWorkItem {
   /**
    * 公分项和员工列表
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('工分项目id'),
+    should
+      .array()
+      .items({
+        staffs: should.array().required(),
+        score: should.number().required()
+      })
+      .required()
+      .description('员工和分值')
+  )
   async selStaffWorkItemMapping(method, name) {
     const hospital = await getHospital();
     if (name) name = `%${name}%`;
