@@ -110,6 +110,7 @@
 
 <script>
 import VueSticky from 'vue-sticky';
+import * as dayjs from 'dayjs';
 
 export default {
   name: 'index',
@@ -134,6 +135,30 @@ export default {
   },
   mounted() {
     this.drawChart();
+  },
+  watch: {
+    workScoreListData: function() {
+      this.drawProjectWorkPointPie();
+    }
+  },
+  computed: {
+    workScoreListData() {
+      return this.workScoreListServerData?.items?.map(it => ({
+        value: it.score,
+        name: it.name
+      }));
+    }
+  },
+  asyncComputed: {
+    workScoreListServerData: {
+      async get() {
+        return await this.$api.HisStaff.findWorkScoreList(
+          'af637f5c-2711-49ee-a025-42c10659371c',
+          dayjs().toDate()
+        );
+      },
+      default: {items: [], rate: 0}
+    }
   },
   methods: {
     // 绘制图表
@@ -179,11 +204,7 @@ export default {
             itemStyle: {
               borderRadius: 8
             },
-            data: [
-              {value: 40, name: '手术'},
-              {value: 38, name: '针灸'},
-              {value: 32, name: '处方'}
-            ]
+            data: this.workScoreListData
           }
         ]
       };
