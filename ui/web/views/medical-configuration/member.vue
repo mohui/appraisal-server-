@@ -344,8 +344,6 @@ export default {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           if (!this.newMember.id) {
-            console.log('this.newMember', this.newMember);
-            console.log('subMembers', this.newMember.subMembers);
             const sourceRate = this.newMember.subMembers.map(it => ({
               source: it.staffs,
               rate: it.rate / 100
@@ -374,11 +372,25 @@ export default {
       this.addMemberVisible = true;
     },
     async removeRow(row) {
-      const index = this.serverData.rows.findIndex(
-        it => it.index === row.index
-      );
-      this.serverData.rows.splice(index, 1);
-      this.$message.success('删除成功');
+      try {
+        await this.$confirm('确定删除该配置?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        //查询所以属于该考核员工的配置数据
+        const removeRows = this.tableData.filter(it => it.staff === row.staff);
+        //批量删除这些数据
+        await Promise.all(
+          removeRows.map(
+            async it => await this.$api.HisStaff.delHisStaffWorkSource(it.id)
+          )
+        );
+        this.$message.success('删除成功');
+        this.$asyncComputed.serverData.update();
+      } catch (e) {
+        console.log(e);
+      }
     },
     spanMethod({column, rowIndex}) {
       if (column.property !== 'subMembers' && column.property !== 'subRate') {
