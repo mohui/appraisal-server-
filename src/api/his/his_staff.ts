@@ -376,7 +376,11 @@ export default class HisStaff {
       score: number;
     }[] = await appDB.execute(
       `
-        select d.item as id, max(wi.name) as name, max(d.staff) as staff, date_trunc('day', d.date) as day, sum(d.score) as score
+        select d.item                    as id,
+               max(wi.name)              as name,
+               max(d.staff)              as staff,
+               date_trunc('day', d.date) as day,
+               sum(d.score)              as score
         from his_staff_work_score_detail d
                inner join his_work_item wi on d.item = wi.id
                inner join his_staff_work_item_mapping swm on swm.item = d.item
