@@ -384,6 +384,29 @@ export default class HisStaff {
   }
 
   /**
+   * 获取指定月份员工工分项目得分列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   * @return {
+   *   items: 工分项目列表 [
+   *     {
+   *       id: 工分项目id
+   *       name: 工分项目名称
+   *       score: 得分
+   *     }
+   *   ],
+   *   rate?: 质量系数
+   * }
+   */
+  @validate(should.string().required(), should.date().required())
+  async findWorkScoreList(id, month) {
+    return {
+      items: []
+    };
+  }
+
+  /**
    * 获取指定月份员工工分项目的每日得分列表
    *
    * @param id 员工id
