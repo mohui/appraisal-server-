@@ -350,7 +350,7 @@ export default class HisStaff {
    *       score: 得分
    *     }
    *   ],
-   *   rate: 质量系数
+   *   rate?: 质量系数
    * ]
    */
   @validate(should.string().required(), should.date().required())
