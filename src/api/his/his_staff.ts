@@ -434,7 +434,6 @@ export default class HisStaff {
       .description('分值')
   )
   async setScore(ruleId, staff, score) {
-    return dayjs().startOf('d');
     const rules = await appDB.execute(
       `select id, "check", score
             from his_check_rule where id = ?`,
