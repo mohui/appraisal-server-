@@ -30,6 +30,53 @@ export default class HisStaff {
   }
 
   /**
+   * 获取员工基本信息
+   *
+   * @param id 员工id
+   * @return {
+   *   id: 员工id
+   *   name: 员工姓名
+   *   sex?: 员工性别
+   *   phone?: 员工联系方式
+   *   birth? 员工出生日期
+   * }
+   */
+  async get(id) {
+    //查询员工
+    // language=PostgreSQL
+    const staffModel: {id: string; name: string; staff: string} = (
+      await appDB.execute(
+        `
+          select id, name, staff
+          from staff
+          where id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!staffModel) throw new KatoRuntimeError(`该员工不存在`);
+    //查询his信息
+    // language=PostgreSQL
+    const hisModel = (
+      await originalDB.execute(
+        `
+          select d.name as sex, phone, birth
+          from his_staff s
+                 left join his_dict d on s.sex = d.code and d.category_code = '10101001'
+          where id = ?
+        `,
+        staffModel.staff
+      )
+    )[0];
+    return {
+      ...staffModel,
+      sex: hisModel.sex,
+      phone: hisModel.phone,
+      birth: hisModel.birth
+    };
+  }
+
+  /**
    * 添加员工
    *
    * @param staff
