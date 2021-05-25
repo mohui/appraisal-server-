@@ -207,7 +207,7 @@ export default class HisCheck {
 
     // 根据员工id获取负责项目
     const workItems = await appDB.execute(
-      `select item.id, item.name, mapping.staff
+      `select item.id, item.name, item.method, mapping.staff
             from his_staff_work_item_mapping mapping
             left join his_work_item item on mapping.item = item.id
             where mapping.staff in (${staffs.map(() => '?')})`,
@@ -223,15 +223,6 @@ export default class HisCheck {
       hospital
     );
 
-    // const systemList1 = systemList.map(it => {
-    //   const workItemObj = workItems.find(workIt => workIt.staff === it.staff);
-    //   return {
-    //     ...it,
-    //     workId: workItemObj?.id,
-    //     workName: workItemObj?.name
-    //   };
-    // });
-
     // 把员工的工分项目放到员工下
     const staffWorks = [];
     for (const workIt of workItems) {
@@ -239,7 +230,8 @@ export default class HisCheck {
       if (index) {
         index.item.push({
           id: workIt.id,
-          name: workIt.name
+          name: workIt.name,
+          method: workIt.method
         });
       } else {
         staffWorks.push({
@@ -247,7 +239,8 @@ export default class HisCheck {
           item: [
             {
               id: workIt.id,
-              name: workIt.name
+              name: workIt.name,
+              method: workIt.method
             }
           ]
         });
@@ -279,7 +272,8 @@ export default class HisCheck {
             if (!workIndex)
               findIndex.item.push({
                 id: staffWorkItem.id,
-                name: staffWorkItem.name
+                name: staffWorkItem.name,
+                method: staffWorkItem.method
               });
           }
         }
