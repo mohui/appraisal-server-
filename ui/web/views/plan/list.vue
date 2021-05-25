@@ -44,27 +44,31 @@
         <el-table-column prop="name" label="方案名称" align="center">
         </el-table-column>
         <el-table-column
-          prop="idCard"
+          prop="staff"
           label="考核员工"
           align="center"
         ></el-table-column>
         <el-table-column
-          prop="hospitalName"
+          prop="items"
           label="负责项目"
           align="center"
         ></el-table-column
         ><el-table-column
-          prop="hospitalName"
+          prop="score"
           label="分值"
           min-width="40"
           align="center"
         ></el-table-column
-        ><el-table-column
-          prop="hospitalName"
-          label="操作"
-          min-width="60"
-          align="center"
-        ></el-table-column>
+        ><el-table-column label="操作" min-width="60" align="center">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click="editPlan(scope)">
+              修改
+            </el-button>
+            <el-button type="danger" size="mini" @click="delPlan(scope)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
   </div>
@@ -80,24 +84,59 @@ export default {
   },
   computed: {
     tableData() {
-      return [];
+      return this.serverData.map(it => ({
+        ...it,
+        staff: it.staffs.map(its => its.name).join(','),
+        items: it.item.map(its => its.name).join(',')
+      }));
     }
   },
   created() {},
   asyncComputed: {
     serverData: {
       async get() {
-        // return this.$api.Person.list();
+        return this.$api.HisCheck.list();
       },
       default() {
-        return {
-          count: 0,
-          rows: []
-        };
+        return [];
       }
     }
   },
-  methods: {}
+  methods: {
+    editPlan(item) {
+      this.$router.push({
+        name: 'plan-add',
+        query: {
+          id: item.row.id
+        }
+      });
+    },
+    async delPlan({row}) {
+      this.$confirm('确定要删除此指标?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          try {
+            await this.$api.HisCheck.delete(row.id);
+            this.$asyncComputed.serverData.update();
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+          } catch (e) {
+            this.$message.error(e.message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+    }
+  }
 };
 </script>
 
