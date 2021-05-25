@@ -53,7 +53,7 @@
         :data="tableData"
         height="100%"
         style="flex-grow: 1;"
-        current-row-key="index"
+        current-row-key="id"
         :span-method="spanMethod"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
@@ -137,7 +137,11 @@
         label-width="120px"
       >
         <el-form-item label="考核员工" prop="staff">
-          <el-select v-model="newMember.staff" collapse-tags>
+          <el-select
+            v-model="newMember.staff"
+            :disabled="newMember.id !== ''"
+            collapse-tags
+          >
             <el-option
               v-for="m in memberList"
               :key="m.id"
@@ -261,6 +265,8 @@ export default {
         data.push({
           id: row.id,
           staff: row.staff,
+          sources: row.sources,
+          sourcesName: row.sourcesName,
           member: row.staffName, //名字
           subMember: row.sourcesName.join(','),
           subRate: row.rate * 100
@@ -294,7 +300,7 @@ export default {
   },
   watch: {
     'newMember.staff'() {
-      if (this.newMember.staff) {
+      if (!this.newMember.id && this.newMember.staff) {
         this.newMember.subMembers = [];
         this.newMember.subMembers.push({
           //名字
@@ -353,7 +359,18 @@ export default {
               sourceRate
             );
             this.$message.success('添加成功');
-          } else {
+          }
+          if (this.newMember.id) {
+            await Promise.all(
+              this.newMember.subMembers.map(
+                async it =>
+                  await this.$api.HisStaff.updateHisStaffWorkSource(
+                    this.newMember.staff,
+                    it.staffs,
+                    it.rate / 100
+                  )
+              )
+            );
             this.$message.success('修改成功');
           }
           this.$asyncComputed.serverData.update();
@@ -365,10 +382,30 @@ export default {
       }
     },
     editRow(row) {
-      const index = this.serverData.rows.findIndex(
-        it => it.member === row.member
+      let currentSubMember = [];
+      //属于该员工的所有数据集合
+      const dataRows = this.tableData.filter(it => it.staff === row.staff);
+      dataRows.forEach(r => {
+        currentSubMember.push({
+          id: r.id,
+          staff: r.staff,
+          staffs: r.sources,
+          rate: r.subRate,
+          member: r.sourcesName
+        });
+      });
+      currentSubMember = currentSubMember.sort(a => {
+        //把本人的数据排到第一个;
+        return a.staffs.length === 1 && a.staffs[0] === a.staff ? -1 : 1;
+      });
+      this.newMember = JSON.parse(
+        JSON.stringify({
+          id: dataRows[0].id,
+          member: row.member,
+          staff: row.staff,
+          subMembers: currentSubMember
+        })
       );
-      this.newMember = JSON.parse(JSON.stringify(this.serverData.rows[index]));
       this.addMemberVisible = true;
     },
     async removeRow(row) {
