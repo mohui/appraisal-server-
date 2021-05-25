@@ -627,9 +627,10 @@ export default class HisStaff {
       .required()
       .description('指定的月份')
   )
-  getRate(id, month) {
-    const {start, end} = monthToRange(month);
-    return null;
+  async getRate(id, month) {
+    const list = await this.getRateList(id, month);
+    if (list.length === 0) return null;
+    return list.pop()?.rate;
   }
 
   /**
@@ -638,9 +639,64 @@ export default class HisStaff {
    * @param id 员工id
    * @param month 月份
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('指定的月份')
+  )
   async getRateList(id, month): Promise<{rate: number; day: Date}[]> {
-    //建议一波查出来, 再根据日期分组
-    return [];
+    const {start, end} = monthToRange(month);
+    // 先根据员工查询考核
+    const mapping = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping
+        where staff = ?`,
+      id
+    );
+    if (mapping.length === 0) return [];
+    // 取出考核id
+    const check = mapping[0]?.check;
+
+    // 根据考核id查询细则分数
+    const rules = await appDB.execute(
+      `select id, name, metric, score, auto
+          from his_check_rule
+          where "check" = ?`,
+      check
+    );
+    const ruleId = rules.map(it => it.id);
+
+    // 查询指定日期的得分
+    const staffScores = await appDB.execute(
+      `select date, sum(score) score
+            from his_rule_staff_score
+            where staff = ?
+              and date >= ? and date < ?
+              and rule in (${ruleId.map(() => '?')})
+            group by date`,
+      id,
+      start,
+      end,
+      ...ruleId
+    );
+
+    if (staffScores.length === 0) return [];
+    // 得出总分
+    const totalScore = rules.reduce(
+      (prev, curr) => Number(prev) + Number(curr.score),
+      0
+    );
+
+    return staffScores.map(it => {
+      return {
+        day: it.date,
+        rate: totalScore ? it.score / totalScore : 0
+      };
+    });
   }
 
   /**
