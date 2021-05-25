@@ -341,8 +341,59 @@ export default class HisStaff {
    * @param id 员工id
    * @param day 日期
    */
-  getRateByDay(id, day) {
-    return null;
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('关联员工[]')
+  )
+  async getRateByDay(id, day) {
+    // 先根据员工查询考核
+    const mapping = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping
+        where staff = ?`,
+      id
+    );
+    if (mapping.length === 0) return null;
+    // 取出考核id
+    const check = mapping[0]?.check;
+
+    // 根据考核id查询细则分数
+    const rules = await appDB.execute(
+      `select id, name, metric, score, auto
+          from his_check_rule
+          where "check" = ?`,
+      check
+    );
+    const ruleId = rules.map(it => it.id);
+
+    // 查询指定日期的得分
+    const staffScores = await appDB.execute(
+      `select rule, staff, date, score
+            from his_rule_staff_score
+            where staff = ? and date = ?
+              and rule in (${ruleId.map(() => '?')})`,
+      id,
+      day,
+      ...ruleId
+    );
+
+    if (staffScores.length === 0) return null;
+    // 得出总分
+    const totalScore = rules.reduce(
+      (prev, curr) => Number(prev) + Number(curr.score),
+      0
+    );
+    // 得出总得分
+    const staffScore = staffScores.reduce(
+      (prev, curr) => Number(prev) + Number(curr.score),
+      0
+    );
+    return totalScore ? staffScore / totalScore : 0;
   }
 
   /**
@@ -434,12 +485,17 @@ export default class HisStaff {
       .description('分值')
   )
   async setScore(ruleId, staff, score) {
+    // 查询考核细则
     const rules = await appDB.execute(
-      `select id, "check", score
+      `select id, auto, "check", score
             from his_check_rule where id = ?`,
       ruleId
     );
     if (rules.length === 0) throw new KatoRuntimeError(`无此考核细则`);
+    // 自动打分的不能手动打分
+    if (rules[0].auto === true)
+      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+
     const staffSystem = await appDB.execute(
       `select staff, "check" from his_staff_check_mapping where staff = ?`,
       staff
