@@ -569,15 +569,11 @@ export default class HisWorkItem {
   @validate(
     should
       .string()
-      .required()
+      .allow(null)
       .description('工分项目id'),
     should
       .array()
-      .items({
-        staffs: should.array().required(),
-        score: should.number().required()
-      })
-      .required()
+      .allow(null)
       .description('员工和分值')
   )
   async selStaffWorkItemMapping(method, name) {
@@ -592,8 +588,8 @@ export default class HisWorkItem {
           ,mapping.score
           ,staff.name "staffName"
           ,staff.account
-        from his_work_item item
-        left join his_staff_work_item_mapping mapping on item.id = mapping.item
+        from his_staff_work_item_mapping mapping
+        left join his_work_item item  on mapping.item = item.id
         left join staff on mapping.staff = staff.id
         where item.hospital = {{? hospital}}
         {{#if method}}
