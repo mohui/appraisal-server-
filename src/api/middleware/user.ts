@@ -58,7 +58,12 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         user.hospitals = (
           await HospitalModel.findAll({
             where: {
-              id: {[Op.in]: children.map(it => it.code)}
+              id: {
+                [Op.in]: children
+                  .map(it => it.code)
+                  //TODO: 苟且区分一下地区和机构
+                  .filter(it => it.length === 36)
+              }
             }
           })
         ).map(it => it.toJSON());
