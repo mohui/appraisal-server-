@@ -524,7 +524,7 @@ export default class HisStaff {
         `insert into
               his_rule_staff_score(rule, staff, date, score, created_at, updated_at)
               values(?, ?, ?, ?, ?, ?)`,
-        ...[ruleId, staff, new Date(), score, new Date(), new Date()]
+        ...[ruleId, staff, now, score, now, now]
       );
     }
     return await appDB.execute(
@@ -532,10 +532,10 @@ export default class HisStaff {
             set score = ?, updated_at = ?
             where rule = ? and staff = ? and date = ?`,
       score,
-      new Date(),
+      now,
       ruleId,
       staff,
-      new Date()
+      now
     );
   }
 }
