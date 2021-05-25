@@ -52,9 +52,9 @@
             ></el-input>
           </template>
         </el-table-column>
-        <el-table-column prop="value" label="数据类型" align="center">
+        <el-table-column prop="input" label="数据类型" align="center">
           <template slot-scope="scope">
-            {{ scope.row.type === 'attr' ? '属性型' : '日志型' }}
+            {{ scope.row.input }}
           </template>
         </el-table-column>
         <el-table-column
@@ -121,10 +121,10 @@
             placeholder="请输入手工工公项名称"
           ></el-input>
         </el-form-item>
-        <el-form-item label="数据类型" prop="type">
-          <el-radio-group v-model="newManual.type">
-            <el-radio label="attr">属性型</el-radio>
-            <el-radio label="log">日志型</el-radio>
+        <el-form-item label="数据类型" prop="input">
+          <el-radio-group v-model="newManual.input">
+            <el-radio label="属性">属性型</el-radio>
+            <el-radio label="日志">日志型</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -147,7 +147,7 @@ export default {
       newManual: {
         id: '',
         name: '',
-        type: 'attr' //log
+        input: '属性' //log
       },
       manualRules: {
         name: [
@@ -166,42 +166,24 @@ export default {
   },
   computed: {
     manual() {
-      return this.serverData.rows;
+      return this.serverData.map(it => ({
+        ...it,
+        createdAt: it.created_at.$format()
+      }));
     }
   },
   created() {},
   asyncComputed: {
     serverData: {
       async get() {
-        // return this.$api.Person.list();
-        let data = [];
         try {
-          await new Promise(resolve =>
-            setTimeout(() => {
-              for (let i = 0; i < 10; i++) {
-                data.push({
-                  type: Math.random() * 10 > 5 ? 'attr' : 'log', //log
-                  id: new Date().getTime(),
-                  name: '手工工分项' + (i + 1),
-                  createdAt: new Date().$format()
-                });
-              }
-              resolve();
-            }, 1000)
-          );
-          return {
-            counts: 10,
-            rows: data
-          };
+          return this.$api.HisManualData.list();
         } catch (e) {
           console.error(e.message);
         }
       },
       default() {
-        return {
-          count: 0,
-          rows: []
-        };
+        return [];
       }
     }
   },
@@ -209,30 +191,20 @@ export default {
     resetForm() {
       this.$refs['manualForm'].resetFields();
       this.addManualVisible = false;
-      this.newManual = {id: '', name: '', type: 'attr'};
+      this.newManual = {id: '', name: '', input: '属性'};
     },
     async submitForm() {
       try {
         const valid = await this.$refs['manualForm'].validate();
         if (valid) {
-          if (!this.newManual.id) {
-            this.$set(this.serverData.rows, this.manual.length, {
-              type: this.newManual.type, //log
-              id: new Date().getTime(),
-              name: this.newManual.name,
-              createdAt: new Date().$format()
-            });
+          const {id, name, input} = this.newManual;
+          if (!id) {
+            await this.$api.HisManualData.add(name, input);
+            this.$asyncComputed.serverData.update();
             this.$message.success('添加成功');
           } else {
-            const index = this.serverData.rows.findIndex(
-              it => it.id === this.newManual.id
-            );
-            this.$set(this.serverData.rows, index, {
-              type: this.newManual.type, //log
-              id: new Date().getTime(),
-              name: this.newManual.name,
-              createdAt: new Date().$format()
-            });
+            await this.$api.HisManualData.update(id, name, input);
+            this.$asyncComputed.serverData.update();
             this.$message.success('更新成功');
           }
           this.resetForm();
@@ -251,9 +223,7 @@ export default {
         return this.$router.push({
           name: 'manual-update',
           query: {
-            id: row.id,
-            name: row.name,
-            type: row.type
+            id: row.id
           }
         });
     },
@@ -264,15 +234,15 @@ export default {
       this.newManual = item.row;
       this.addManualVisible = true;
     },
-    delManual({$index}) {
-      this.$confirm('确定要删除此手工工公项名称?', '提示', {
+    delManual({$index, row}) {
+      this.$confirm('确定要删除此手工工分项?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(async () => {
           try {
-            // await this.$api.xxx.remove(row.id);
+            await this.$api.HisManualData.del(row.id);
             this.manual.splice($index, 1);
             this.$message({
               type: 'success',

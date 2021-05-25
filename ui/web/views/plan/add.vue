@@ -1,5 +1,9 @@
 <template>
-  <div style="height: 100%;">
+  <div
+    style="height: 100%;"
+    v-loading="isLoading"
+    :element-loading-text="loadingText"
+  >
     <el-card
       class="box-card"
       style="height: 100%;"
@@ -12,7 +16,7 @@
       }"
     >
       <div slot="header" class="clearfix">
-        <span>新建方案</span>
+        <span>{{ id ? '修改' : '新建' }}方案</span>
         <el-button
           style="float: right; margin: -4px 0 0 20px;"
           size="small"
@@ -45,11 +49,11 @@
             style="width: 30%"
           >
             <el-option
-              v-for="item in doctors"
+              v-for="item in members"
               :key="item.value"
               :label="item.label"
               :value="item.value"
-              :disabled="!1"
+              :disabled="item.disabled"
             >
             </el-option>
           </el-select>
@@ -143,7 +147,7 @@
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="score" label="得分">
+                <el-table-column prop="score" label="分数">
                   <template slot-scope="scope">
                     <div v-if="!scope.row.EDIT">{{ scope.row.score }}</div>
                     <el-input-number
@@ -290,7 +294,7 @@
         <el-form-item> </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit('form')">
-            立即创建
+            {{ id ? '保存' : '立即创建' }}
           </el-button>
           <el-button>取消</el-button>
         </el-form-item>
@@ -508,7 +512,10 @@ export default {
   name: 'PlanAdd',
   data() {
     return {
-      doctors: Doctor,
+      id: '',
+      isLoading: false,
+      loadingText: '拼命加载中',
+      members: Doctor,
       TagModeList: TagModeList,
       activeName: 'first',
       rules: {
@@ -569,7 +576,7 @@ export default {
   watch: {
     ['form.target']: {
       handler: function(newValue) {
-        if (newValue[newValue.length - 1].id !== '')
+        if (newValue[newValue.length - 1]?.id !== '')
           newValue.push({
             EDIT: true,
             id: '',
@@ -583,7 +590,7 @@ export default {
     },
     ['form.manual']: {
       handler: function(newValue) {
-        if (newValue[newValue.length - 1].id !== '')
+        if (newValue[newValue.length - 1]?.id !== '')
           newValue.push({
             EDIT: true,
             id: '',
@@ -595,7 +602,63 @@ export default {
       deep: true
     }
   },
+  created() {
+    const id = this.$route.query.id;
+    this.getMember(id || null);
+    if (id) {
+      this.id = id;
+      this.getDetail();
+    }
+  },
   methods: {
+    async getDetail() {
+      try {
+        this.isLoading = true;
+        const {name, manuals, automations} = await this.$api.HisCheck.get(
+          this.id
+        );
+        this.form.name = name;
+        this.form.target = automations.map(it => ({
+          EDIT: false,
+          id: it.id,
+          name: it.metric,
+          mode: it.operator,
+          value:
+            (this.targetName(it.metric).includes('率') ||
+              this.targetName(it.metric).includes('占比') ||
+              this.targetName(it.metric).includes('比例')) &&
+            (it.operator === 'egt' || it.operator === 'elt')
+              ? it.value * 100
+              : it.value,
+          score: it.score
+        }));
+        this.form.manual = manuals.map(it => ({
+          EDIT: false,
+          id: it.id,
+          name: it.name,
+          score: it.score,
+          requirement: it.detail
+        }));
+        this.isLoading = false;
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    },
+    async getMember(id) {
+      try {
+        const result = await this.$api.HisCheck.checkStaff(id);
+        this.members = result.map(it => ({
+          value: it.id,
+          label: it.name,
+          disabled: !it.usable
+        }));
+        if (id) {
+          this.form.doctor = result.filter(it => it.selected).map(it => it.id);
+        }
+      } catch (e) {
+        this.$message.error(e.message);
+      }
+    },
     addTarget(item) {
       item.row.id = new Date().getTime();
       item.row.EDIT = false;
@@ -624,7 +687,6 @@ export default {
       })
         .then(async () => {
           try {
-            // await this.$api.xxx.remove(row.id);
             this.form.target.splice($index, 1);
             this.$message({
               type: 'success',
@@ -649,7 +711,6 @@ export default {
       })
         .then(async () => {
           try {
-            // await this.$api.xxx.remove(row.id);
             this.form.manual.splice($index, 1);
             this.$message({
               type: 'success',
@@ -667,20 +728,97 @@ export default {
         });
     },
     onSubmit(formName) {
-      this.$refs[formName].validate(valid => {
+      this.$refs[formName].validate(async valid => {
         if (valid) {
-          this.$message.success('创建成功！');
+          const {name, doctor, target, manual} = this.form;
+          console.log(this.form);
+          const id = this.id;
+          try {
+            this.isLoading = true;
+            this.loadingText = '正在保存中';
+            if (id) {
+              await this.$api.HisCheck.update(
+                id,
+                name,
+                doctor,
+                target
+                  .filter(it => it.id)
+                  .map(it => ({
+                    auto: true,
+                    id: typeof it.id === 'number' ? null : it.id,
+                    name: this.targetName(it.name),
+                    metric: it.name[1],
+                    operator: it.mode,
+                    value:
+                      (this.targetName(it.name).includes('率') ||
+                        this.targetName(it.name).includes('占比') ||
+                        this.targetName(it.name).includes('比例')) &&
+                      (it.mode === 'egt' || it.mode === 'elt')
+                        ? +Number.parseFloat(it.value / 100).toFixed(2)
+                        : it.value,
+                    score: it.score
+                  })),
+                manual
+                  .filter(it => it.id)
+                  .map(it => ({
+                    auto: false,
+                    id: typeof it.id === 'number' ? null : it.id,
+                    name: it.name,
+                    detail: it.requirement,
+                    score: it.score
+                  }))
+              );
+              this.$message.success('修改成功！');
+            } else {
+              await this.$api.HisCheck.add(
+                name,
+                doctor,
+                target
+                  .filter(it => it.name)
+                  .map(it => ({
+                    auto: true,
+                    name: this.targetName(it.name),
+                    metric: it.name[1],
+                    operator: it.mode,
+                    value:
+                      (this.targetName(it.name).includes('率') ||
+                        this.targetName(it.name).includes('占比') ||
+                        this.targetName(it.name).includes('比例')) &&
+                      (it.mode === 'egt' || it.mode === 'elt')
+                        ? +Number.parseFloat(it.value / 100).toFixed(2)
+                        : it.value,
+                    score: it.score
+                  })),
+                manual
+                  .filter(it => it.name)
+                  .map(it => ({
+                    auto: false,
+                    name: it.name,
+                    detail: it.requirement,
+                    score: it.score
+                  }))
+              );
+              this.$message.success('添加成功！');
+            }
+            return this.$router.push({
+              name: 'plan'
+            });
+          } catch (e) {
+            this.$message.error(e.message);
+          } finally {
+            this.isLoading = false;
+          }
         } else {
-          console.log('error submit!!');
           return false;
         }
       });
     },
     targetName(row) {
+      const id = Array.isArray(row) ? row[1] : row;
       const obj = this.TagList.find(it =>
-        it.children.find(item => item.value === row[1])
-      ).children.find(it => it.value === row[1]);
-      return obj.label;
+        it.children.find(item => item.value === id)
+      )?.children.find(it => it.value === id);
+      return obj?.label || '';
     },
     targetMode(row) {
       return this.TagModeList.find(it => it.code === row).name;
