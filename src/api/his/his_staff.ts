@@ -567,48 +567,14 @@ export default class HisStaff {
       .description('指定的日期')
   )
   async getRateByDay(id, day) {
-    // 先根据员工查询考核
-    const mapping = await appDB.execute(
-      `select staff, "check" from his_staff_check_mapping
-        where staff = ?`,
-      id
-    );
-    if (mapping.length === 0) return null;
-    // 取出考核id
-    const check = mapping[0]?.check;
-
-    // 根据考核id查询细则分数
-    const rules = await appDB.execute(
-      `select id, name, metric, score, auto
-          from his_check_rule
-          where "check" = ?`,
-      check
-    );
-    const ruleId = rules.map(it => it.id);
-
-    // 查询指定日期的得分
-    const staffScores = await appDB.execute(
-      `select rule, staff, date, score
-            from his_rule_staff_score
-            where staff = ? and date = ?
-              and rule in (${ruleId.map(() => '?')})`,
-      id,
-      day,
-      ...ruleId
-    );
-
-    if (staffScores.length === 0) return null;
-    // 得出总分
-    const totalScore = rules.reduce(
-      (prev, curr) => Number(prev) + Number(curr.score),
-      0
-    );
-    // 得出总得分
-    const staffScore = staffScores.reduce(
-      (prev, curr) => Number(prev) + Number(curr.score),
-      0
-    );
-    return totalScore ? staffScore / totalScore : 0;
+    day = dayjs(day).startOf('d');
+    // 获取质量系数列表
+    const list = await this.getRateList(id, day);
+    if (list.length === 0) return null;
+    // 查找当天的质量系数
+    const item = list.find(it => dayjs(it.day).diff(day, 'day') === 0);
+    if (item) return item?.rate;
+    return null;
   }
 
   /**
