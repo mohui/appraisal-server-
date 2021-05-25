@@ -23,10 +23,21 @@ export default class HisStaff {
   async listHisStaffs() {
     const hospital = await getHospital();
 
-    return await originalDB.execute(
+    const hisStaffs = await originalDB.execute(
       `select id, name, hospital from his_staff where hospital = ?`,
       hospital
     );
+    const staffs = await appDB.execute(
+      `select staff from staff where hospital = ?`,
+      hospital
+    );
+    return hisStaffs.map(it => {
+      const index = staffs.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
   }
 
   /**
@@ -553,7 +564,7 @@ export default class HisStaff {
     should
       .date()
       .required()
-      .description('关联员工[]')
+      .description('指定的日期')
   )
   async getRateByDay(id, day) {
     // 先根据员工查询考核
@@ -606,7 +617,18 @@ export default class HisStaff {
    * @param id 员工id
    * @param month 月份
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('指定的月份')
+  )
   getRate(id, month) {
+    const {start, end} = monthToRange(month);
     return null;
   }
 
