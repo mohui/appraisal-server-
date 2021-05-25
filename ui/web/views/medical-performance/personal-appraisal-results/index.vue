@@ -206,6 +206,7 @@ export default {
         //设置颜色
         color: this.chartColors,
         tooltip: {
+          show: false,
           trigger: 'axis',
           axisPointer: {
             // 坐标轴指示器，坐标轴触发有效
