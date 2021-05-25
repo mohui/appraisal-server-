@@ -30,33 +30,8 @@
       >
         <el-table-column type="index" label="序号"></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.work }}</div>
-            <div v-else>
-              <el-input v-model="tempRow.work" size="mini"> </el-input>
-            </div>
-          </template>
         </el-table-column>
         <el-table-column prop="scoreMethod" label="打分方式" align="center">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.scoreMethod }}</div>
-            <div v-else>
-              <el-select
-                v-model="tempRow.scoreMethod"
-                style="width: 100%"
-                size="mini"
-              >
-                <el-option
-                  :value="HisWorkMethod.AMOUNT"
-                  :label="HisWorkMethod.AMOUNT"
-                ></el-option>
-                <el-option
-                  :value="HisWorkMethod.SUM"
-                  :label="HisWorkMethod.SUM"
-                ></el-option>
-              </el-select>
-            </div>
-          </template>
         </el-table-column>
         <el-table-column
           prop="project"
@@ -65,41 +40,24 @@
           width="300"
         >
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">
-              <el-tooltip
-                v-if="$widthCompute([row.projects.join(',')]) >= 300"
-                effect="dark"
-                placement="top"
-                :content="row.projects.join(',')"
-              >
-                <div
-                  slot="content"
-                  v-html="toBreak(row.projects.join(','))"
-                ></div>
-                <span class="cell-long-span">{{ row.projects.join(',') }}</span>
-              </el-tooltip>
-              <div v-else>{{ row.projects.join(',') }}</div>
-            </div>
-            <div v-if="row.isEdit">
-              <el-select
-                v-model="tempRow.projects"
-                size="mini"
-                multiple
-                collapse-tags
-              >
-                <el-option
-                  v-for="p in projectList"
-                  :key="p.id"
-                  :label="p.name"
-                  :value="p.id"
-                ></el-option>
-              </el-select>
-            </div>
+            <el-tooltip
+              v-if="$widthCompute([row.projects.join(',')]) >= 300"
+              effect="dark"
+              placement="top"
+              :content="row.projects.join(',')"
+            >
+              <div
+                slot="content"
+                v-html="toBreak(row.projects.join(','))"
+              ></div>
+              <span class="cell-long-span">{{ row.projects.join(',') }}</span>
+            </el-tooltip>
+            <div v-else>{{ row.projects.join(',') }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
-            <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
+            <el-tooltip content="编辑" :enterable="false">
               <el-button
                 type="primary"
                 icon="el-icon-edit"
@@ -109,35 +67,7 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="提交修改"
-              :enterable="false"
-            >
-              <el-button
-                type="success"
-                icon="el-icon-check"
-                circle
-                size="mini"
-                @click="submitEdit(row.index, tempRow)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="取消修改"
-              :enterable="false"
-            >
-              <el-button
-                type="default"
-                icon="el-icon-close"
-                circle
-                size="mini"
-                @click="cancelEdit(row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip v-show="!row.isEdit" content="删除" :enterable="false">
+            <el-tooltip content="删除" :enterable="false">
               <el-button
                 type="danger"
                 icon="el-icon-delete"
@@ -172,7 +102,7 @@
       </el-pagination>
     </el-card>
     <el-dialog
-      title="新建配置"
+      title="配置弹窗"
       :visible.sync="addWorkVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :before-close="() => resetConfig('workForm')"
@@ -190,31 +120,15 @@
         <el-form-item label="工分项来源" prop="source">
           <el-button-group>
             <el-button
-              size="small"
+              v-for="s of HisWorkSource"
+              :key="s.key"
+              size="mini"
               :class="{
-                'el-button--primary': newWork.source === HisWorkSource.CHECK
+                'el-button--primary': newWork.source === s.value
               }"
-              @click="newWork.source = HisWorkSource.CHECK"
+              @click="newWork.source = s.value"
             >
-              {{ HisWorkSource.CHECK }}
-            </el-button>
-            <el-button
-              size="small"
-              :class="{
-                'el-button--primary': newWork.source === HisWorkSource.DRUG
-              }"
-              @click="newWork.source = HisWorkSource.DRUG"
-            >
-              {{ HisWorkSource.DRUG }}
-            </el-button>
-            <el-button
-              size="small"
-              :class="{
-                'el-button--primary': newWork.source === HisWorkSource.MANUAL
-              }"
-              @click="newWork.source = HisWorkSource.MANUAL"
-            >
-              {{ HisWorkSource.MANUAL }}
+              {{ s.value }}
             </el-button>
           </el-button-group>
         </el-form-item>
@@ -260,6 +174,20 @@
             </el-button>
           </el-button-group>
         </el-form-item>
+        <el-form-item
+          v-show="newWork.oldProjects.length > 0"
+          label="已有工分项"
+          prop="oldProjects"
+        >
+          <el-tag
+            v-for="old in newWork.oldProjects"
+            :key="old.id"
+            closable
+            style="margin: 0 5px"
+            @close="closeTag(old)"
+            >{{ old.name }}</el-tag
+          >
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig('workForm')">取 消</el-button>
@@ -279,7 +207,7 @@ export default {
   name: 'Work',
   data() {
     const validaProjects = (rule, value, callback) => {
-      if (value?.length < 1) {
+      if (value?.length < 1 && this.newWork.oldProjects.length < 1) {
         callback(new Error('选择关联项目!'));
       }
       callback();
@@ -299,10 +227,10 @@ export default {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
-        projects: []
+        projects: [],
+        oldProjects: []
       },
       addWorkVisible: false,
-      tempRow: '',
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
         scoreMethod: [
@@ -314,7 +242,10 @@ export default {
       addBtnLoading: false,
       searchLoading: false,
       HisWorkMethod: HisWorkMethod,
-      HisWorkSource: HisWorkSource
+      HisWorkSource: Object.keys(HisWorkSource).map(it => ({
+        value: HisWorkSource[it],
+        key: it
+      }))
     };
   },
   computed: {
@@ -324,10 +255,7 @@ export default {
         work: d.name,
         scoreMethod: d.method,
         projects: d.mappings.map(it => it.name),
-        mappings: d.mappings.map,
-        created_at: d.created_at?.$format() || '',
-        updated_at: d.updated_at?.$format() || '',
-        isEdit: false
+        mappings: d.mappings
       }));
     },
     projectList() {
@@ -374,23 +302,39 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
-          const mappings = this.newWork.projects
+          let allProjects = Array.from(
+            new Set(
+              this.newWork.oldProjects
+                .map(o => o.id)
+                .concat(this.newWork.projects) //合并新老his工分项
+            )
+          );
+          const mappings = allProjects
             .map(it => {
+              //分别获取工分项id和所属来源
               const [source, type] = it.split('-');
               return {source, type};
             })
             .reduce((res, next) => {
+              //工分项按来源归类
               const current = res.find(i => i.type === next.type);
               if (current) current.source.push(next.source);
               else res.push({type: next.type, source: [next.source]});
               return res;
             }, []);
           this.addBtnLoading = true;
-          await this.$api.HisWorkItem.add(
+          const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
             mappings
-          );
+          ];
+          if (this.newWork.id) {
+            paramsArr.splice(0, 0, this.newWork.id);
+            await this.$api.HisWorkItem.update(...paramsArr);
+          } else {
+            await this.$api.HisWorkItem.add(...paramsArr);
+          }
+          this.$message.success('操作成功');
           this.$asyncComputed.serverData.update();
           this.resetConfig('workForm');
         }
@@ -402,31 +346,20 @@ export default {
       }
     },
     editRow(row) {
-      if (this.tempRow) {
-        this.$message.warning('已有其他数据正在编辑');
-        return;
-      }
-      row.isEdit = !row.isEdit;
-      this.tempRow = Object.assign({}, row);
-    },
-    cancelEdit(row) {
-      row.isEdit = !row.isEdit;
-      this.tempRow = '';
-    },
-    async submitEdit(index, tempRow) {
-      if (!tempRow.work) {
-        this.$message.warning('工分项不能为空');
-        return;
-      }
-      if (tempRow.projects?.length < 1) {
-        this.$message.warning('关联项目不能为空');
-        return;
-      }
-
-      tempRow.isEdit = !tempRow.isEdit;
-      this.$set(this.serverData.rows, index - 1, tempRow);
-      this.$message.success('修改成功');
-      this.tempRow = '';
+      this.newWork = JSON.parse(
+        JSON.stringify({
+          id: row.id,
+          work: row.work,
+          source: HisWorkSource.CHECK,
+          scoreMethod: row.scoreMethod,
+          oldProjects: row.mappings.map(m => ({
+            name: m.name,
+            id: m.id + '-' + m.source
+          })),
+          projects: []
+        })
+      );
+      this.addWorkVisible = true;
     },
     async removeRow(row) {
       try {
@@ -466,8 +399,12 @@ export default {
       } finally {
         this.searchLoading = false;
       }
-
-      // return
+    },
+    closeTag(tag) {
+      this.newWork.oldProjects.splice(
+        this.newWork.oldProjects.findIndex(o => o.id === tag.id),
+        1
+      );
     }
   }
 };
