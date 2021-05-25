@@ -14,6 +14,7 @@ export async function getHospital() {
 
   return Context.current.user.hospitals[0]['id'];
 }
+
 export default class HisStaff {
   /**
    * 查询his员工
@@ -251,6 +252,7 @@ export default class HisStaff {
       }
     });
   }
+
   /**
    * 删除员工绑定
    */
@@ -331,5 +333,209 @@ export default class HisStaff {
         sourcesName: sourcesName
       };
     });
+  }
+
+  /**
+   * 获取指定日期的质量系数
+   *
+   * @param id 员工id
+   * @param day 日期
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('关联员工[]')
+  )
+  async getRateByDay(id, day) {
+    // 先根据员工查询考核
+    const mapping = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping
+        where staff = ?`,
+      id
+    );
+    if (mapping.length === 0) return null;
+    // 取出考核id
+    const check = mapping[0]?.check;
+
+    // 根据考核id查询细则分数
+    const rules = await appDB.execute(
+      `select id, name, metric, score, auto
+          from his_check_rule
+          where "check" = ?`,
+      check
+    );
+    const ruleId = rules.map(it => it.id);
+
+    // 查询指定日期的得分
+    const staffScores = await appDB.execute(
+      `select rule, staff, date, score
+            from his_rule_staff_score
+            where staff = ? and date = ?
+              and rule in (${ruleId.map(() => '?')})`,
+      id,
+      day,
+      ...ruleId
+    );
+
+    if (staffScores.length === 0) return null;
+    // 得出总分
+    const totalScore = rules.reduce(
+      (prev, curr) => Number(prev) + Number(curr.score),
+      0
+    );
+    // 得出总得分
+    const staffScore = staffScores.reduce(
+      (prev, curr) => Number(prev) + Number(curr.score),
+      0
+    );
+    return totalScore ? staffScore / totalScore : 0;
+  }
+
+  /**
+   * 获取指定月份的质量系数(查询月份有记录最后一天的质量系数)
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  getRate(id, month) {
+    return null;
+  }
+
+  /**
+   * 获取指定月份的质量系数列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  getRateList(id, month) {
+    //建议一波查出来, 再根据日期分组
+    return [];
+  }
+
+  /**
+   *
+   * @param staff
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id')
+  )
+  async staffCheck(staff) {
+    const checks = await appDB.execute(
+      `select "check" "checkId",  staff from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (checks.length === 0) throw new KatoRuntimeError(`该员工没有考核方案`);
+    const checkId = checks[0]?.checkId;
+
+    const hisSystems = await appDB.execute(
+      `select id, name
+            from his_check_system
+            where id = ?`,
+      checkId
+    );
+    if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
+    const hisRules = await appDB.execute(
+      `select * from his_check_rule
+              where "check" = ?
+        `,
+      checkId
+    );
+    const automations = hisRules
+      .map(it => {
+        if (it.auto === true) return it;
+      })
+      .filter(it => it);
+    const manuals = hisRules
+      .map(it => {
+        if (it.auto === false) return it;
+      })
+      .filter(it => it);
+
+    return {
+      id: hisSystems[0]?.id,
+      name: hisSystems[0]?.name,
+      automations,
+      manuals
+    };
+  }
+
+  /**
+   * 手动打分
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('细则id'),
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .number()
+      .required()
+      .description('分值')
+  )
+  async setScore(ruleId, staff, score) {
+    // 查询考核细则
+    const rules = await appDB.execute(
+      `select id, auto, "check", score
+            from his_check_rule where id = ?`,
+      ruleId
+    );
+    if (rules.length === 0) throw new KatoRuntimeError(`无此考核细则`);
+    // 自动打分的不能手动打分
+    if (rules[0].auto === true)
+      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+
+    const staffSystem = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
+
+    if (rules[0].check !== staffSystem[0].check)
+      throw new KatoRuntimeError(`考核员工考核项目和细则考核项目不一致`);
+
+    if (rules[0].score < score)
+      throw new KatoRuntimeError(`分数不能高于细则的满分`);
+    const now = new Date();
+
+    // 查询今天是否有分值
+    const todayScore = await appDB.execute(
+      `select *
+            from his_rule_staff_score
+            where rule = ? and staff = ? and date = ?`,
+      ruleId,
+      staff,
+      now
+    );
+    // 如果查找到,执行修改,没有查到到:添加
+    if (todayScore.length === 0) {
+      await appDB.execute(
+        `insert into
+              his_rule_staff_score(rule, staff, date, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+        ...[ruleId, staff, now, score, now, now]
+      );
+    }
+    return await appDB.execute(
+      `update his_rule_staff_score
+            set score = ?, updated_at = ?
+            where rule = ? and staff = ? and date = ?`,
+      score,
+      now,
+      ruleId,
+      staff,
+      now
+    );
   }
 }
