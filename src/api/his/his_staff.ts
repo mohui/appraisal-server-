@@ -659,7 +659,7 @@ export default class HisStaff {
 
     return staffScores.map(it => {
       return {
-        day: it.date,
+        day: dayjs(it.date).toDate(),
         rate: totalScore ? it.score / totalScore : 0
       };
     });
