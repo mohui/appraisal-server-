@@ -346,7 +346,7 @@ export default class HisStaff {
   }
 
   /**
-   * 获取指定月份的质量系数
+   * 获取指定月份的质量系数(查询月份有记录最后一天的质量系数)
    *
    * @param id 员工id
    * @param month 月份
@@ -369,8 +369,13 @@ export default class HisStaff {
   /**
    *
    * @param staff
-   * @param id
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id')
+  )
   async staffCheck(staff) {
     const checks = await appDB.execute(
       `select "check" "checkId",  staff from his_staff_check_mapping where staff = ?`,
@@ -409,5 +414,73 @@ export default class HisStaff {
       automations,
       manuals
     };
+  }
+
+  /**
+   * 手动打分
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('细则id'),
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .number()
+      .required()
+      .description('分值')
+  )
+  async setScore(ruleId, staff, score) {
+    return dayjs().startOf('d');
+    const rules = await appDB.execute(
+      `select id, "check", score
+            from his_check_rule where id = ?`,
+      ruleId
+    );
+    if (rules.length === 0) throw new KatoRuntimeError(`无此考核细则`);
+    const staffSystem = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
+
+    if (rules[0].check !== staffSystem[0].check)
+      throw new KatoRuntimeError(`考核员工考核项目和细则考核项目不一致`);
+
+    if (rules[0].score < score)
+      throw new KatoRuntimeError(`分数不能高于细则的满分`);
+    const now = new Date();
+
+    // 查询今天是否有分值
+    const todayScore = await appDB.execute(
+      `select *
+            from his_rule_staff_score
+            where rule = ? and staff = ? and date = ?`,
+      ruleId,
+      staff,
+      now
+    );
+    // 如果查找到,执行修改,没有查到到:添加
+    if (todayScore.length === 0) {
+      await appDB.execute(
+        `insert into
+              his_rule_staff_score(rule, staff, date, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+        ...[ruleId, staff, new Date(), score, new Date(), new Date()]
+      );
+    }
+    return await appDB.execute(
+      `update his_rule_staff_score
+            set score = ?, updated_at = ?
+            where rule = ? and staff = ? and date = ?`,
+      score,
+      new Date(),
+      ruleId,
+      staff,
+      new Date()
+    );
   }
 }
