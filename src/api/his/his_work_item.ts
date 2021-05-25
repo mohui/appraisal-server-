@@ -639,4 +639,20 @@ export default class HisWorkItem {
     }
     return returnList;
   }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('工分项目id')
+  )
+  async delStaffWorkItemMapping(id) {
+    return appDB.transaction(async () => {
+      // 删除对应关系
+      await appDB.execute(
+        `delete from his_staff_work_item_mapping where item = ?`,
+        id
+      );
+    });
+  }
 }
