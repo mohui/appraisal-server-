@@ -360,9 +360,9 @@ export default {
             this.addBtnLoading = true;
             await this.$api.HisStaff.add(
               this.userForm.his,
-              this.userForm.account,
-              this.userForm.password,
-              this.userForm.name
+              this.userForm.account.trim(),
+              this.userForm.password.trim(),
+              this.userForm.name.trim()
             );
             this.$message({
               type: 'success',
@@ -401,8 +401,8 @@ export default {
           try {
             await this.$api.HisStaff.update(
               this.userForm.id,
-              this.userForm.name,
-              this.userForm.password
+              this.userForm.name.trim(),
+              this.userForm.password.trim()
             );
             this.$message({
               type: 'success',
