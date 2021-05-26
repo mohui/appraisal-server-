@@ -106,6 +106,8 @@
       :visible.sync="addWorkVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :before-close="() => resetConfig('workForm')"
+      :close-on-press-escape="false"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="workForm"
@@ -377,6 +379,13 @@ export default {
     },
     resetConfig(ref) {
       this.$refs[ref].resetFields();
+      this.newWork = {
+        work: '',
+        source: HisWorkSource.CHECK,
+        scoreMethod: HisWorkMethod.SUM,
+        projects: [],
+        oldProjects: []
+      };
       this.addWorkVisible = false;
     },
     toBreak(content) {
