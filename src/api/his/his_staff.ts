@@ -394,6 +394,55 @@ export default class HisStaff {
     });
   }
 
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id')
+  )
+  // 根据id获取员工绑定
+  async searchHisStaffWorkSource(staff) {
+    const hospital = await getHospital();
+    const list = await appDB.execute(
+      `
+        select
+          source.id
+          ,source.staff
+          ,source.sources
+          ,source.rate
+          ,staff.name "staffName"
+        from his_staff_work_source source
+        left join staff on source.staff = staff.id
+        where staff.hospital = ? and source.staff = ?
+        `,
+      hospital,
+      staff
+    );
+
+    const staffList = await appDB.execute(
+      `select id, name from staff where hospital = ?`,
+      hospital
+    );
+    const staffListObj = {};
+
+    for (const it of staffList) {
+      staffListObj[it.id] = it.name;
+    }
+
+    return list.map(it => {
+      const sourcesName = it.sources.map(item => {
+        return {
+          id: item,
+          name: staffListObj[item]
+        };
+      });
+      return {
+        ...it,
+        sources: sourcesName
+      };
+    });
+  }
+
   /**
    * 获取指定月份员工工分项目得分列表
    *
