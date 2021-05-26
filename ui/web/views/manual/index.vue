@@ -39,7 +39,7 @@
           align="center"
           label="序号"
         ></el-table-column>
-        <el-table-column prop="name" label="手工工公项名称">
+        <el-table-column prop="name" label="手工工分项名称">
           <template slot-scope="scope">
             <div v-if="!scope.row.EDIT">
               {{ scope.row.name }}
@@ -48,7 +48,7 @@
               v-if="scope.row.EDIT"
               v-model="scope.row.name"
               size="mini"
-              placeholder="请输入手工工公项名称"
+              placeholder="请输入手工工分项名称"
             ></el-input>
           </template>
         </el-table-column>
@@ -114,11 +114,11 @@
         label-position="right"
         label-width="140px"
       >
-        <el-form-item label="手工工公项名称" prop="name">
+        <el-form-item label="手工工分项名称" prop="name">
           <el-input
             v-model="newManual.name"
             size="mini"
-            placeholder="请输入手工工公项名称"
+            placeholder="请输入手工工分项名称"
           ></el-input>
         </el-form-item>
         <el-form-item label="数据类型" prop="input">
