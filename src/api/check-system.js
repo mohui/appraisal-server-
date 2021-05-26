@@ -94,8 +94,8 @@ export default class CheckSystem {
                 algorithm: it.algorithm,
                 baseline: it.baseline,
                 score: it.score,
-                attachStartDate: it.attach_start_data ?? null,
-                attachEndDate: it.attach_end_data ?? null,
+                attachStartDate: it.attach_start_date,
+                attachEndDate: it.attach_end_date,
                 tag: it.tag,
                 name: MarkTagUsages[it.tag].name
               })),
