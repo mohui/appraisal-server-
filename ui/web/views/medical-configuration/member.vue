@@ -128,6 +128,8 @@
       :visible.sync="addMemberVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :before-close="resetConfig"
+      :close-on-press-escape="false"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="memberForm"
@@ -169,9 +171,10 @@
                       :value="m.id"
                       :disabled="
                         m.id === newMember.staff ||
-                          newMember.subMembers.some(it =>
+                          (newMember.subMembers.some(it =>
                             it.staffs.find(s => s === m.id)
-                          )
+                          ) &&
+                            !memberList.some(ml => row.staffs.includes(ml.id)))
                       "
                     ></el-option>
                   </el-select>
