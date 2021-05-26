@@ -170,11 +170,14 @@ export default class HisWorkItem {
    */
   async delete(id) {
     return appDB.transaction(async () => {
-      // 删除对应关系
-      await appDB.execute(
-        `delete from his_staff_work_item_mapping where item = ?`,
+      // 查询有没有工分项和考核员工的对应关系
+      const staffWork = await appDB.execute(
+        `select * from his_staff_work_item_mapping where item = ?`,
         id
       );
+      if (staffWork.length > 0)
+        throw new KatoRuntimeError(`工分项目绑定了考核员工,不能删除`);
+
       // 删除工分项目来源
       await appDB.execute(
         `delete from his_work_item_mapping where item = ?`,
@@ -242,7 +245,7 @@ export default class HisWorkItem {
       }
       // 手工数据
       if (manualIds.length > 0) {
-        manuals = await originalDB.execute(
+        manuals = await appDB.execute(
           `select id, name, '${HisWorkSource.MANUAL}' as source
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
           ...manualIds
