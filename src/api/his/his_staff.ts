@@ -525,6 +525,18 @@ export default class HisStaff {
       `,
       id
     );
+    //绑定工分项目
+    // language=PostgreSQL
+    const workItems = await appDB.execute(
+      `
+        select w.id, w.name, m.score
+        from his_staff_work_item_mapping m
+               inner join his_work_item w on m.item = w.id
+        where staff = ?
+      `,
+      id
+    );
+
     const {start, end} = monthToRange(month);
     // 查询工分值
     // language=PostgreSQL
@@ -561,45 +573,19 @@ export default class HisStaff {
       items: {id: string; name: string; score: number}[];
       rate?: number;
     }[] = [];
-    //查询质量系数列表
-    const rateList = await this.getRateList(id, month);
     //当前月份的天数
     const days = dayjs(end).diff(start, 'd');
+    //占坑
     for (let i = 0; i < days; i++) {
-      const day = dayjs(start)
-        .add(i, 'd')
-        .toDate();
-      const items: {id: string; name: string; score: number}[] = scoreList
-        .filter(it => it.day.getTime() === day.getTime())
-        .reduce((resultScoreModel, currentScoreModel) => {
-          //查找员工权重系数
-          const sourceRate =
-            sources.find(it => it.staff === currentScoreModel.staff)?.rate ?? 0;
-          //计算真实得分
-          const score = currentScoreModel.score * sourceRate;
-          //查找质量系数
-          const rate = rateList.find(it => it.day.getTime() === day.getTime());
-          //找到工分对象
-          const itemModel = resultScoreModel.find(
-            it => it.id === currentScoreModel.id
-          );
-          if (!itemModel) {
-            resultScoreModel.push({
-              id: currentScoreModel.id,
-              name: currentScoreModel.name,
-              score: score,
-              rate
-            });
-          } else {
-            itemModel.score += score;
-          }
-          return resultScoreModel;
-        }, []);
       result.push({
         day: dayjs(start)
           .add(i, 'd')
           .toDate(),
-        items: items
+        items: workItems.map(it => ({
+          ...it,
+          score: 0
+        })),
+        rate: null
       });
     }
     return result;
