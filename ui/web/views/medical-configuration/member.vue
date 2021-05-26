@@ -157,8 +157,7 @@
           >
             <el-table-column label="员工" prop="name">
               <template slot-scope="{$index, row}">
-                <div v-if="$index === 0">{{ row.member.join(',') }}</div>
-                <div v-if="$index > 0">
+                <div>
                   <el-select
                     v-model="row.staffs"
                     multiple
@@ -184,11 +183,9 @@
             </el-table-column>
             <el-table-column label="权重系数" prop="rate">
               <template slot-scope="{$index, row}">
-                <div v-if="$index === 0">{{ row.rate }}%</div>
-                <div v-if="$index > 0">
+                <div>
                   <el-input-number
                     v-model="row.rate"
-                    :max="100"
                     size="mini"
                   ></el-input-number>
                   &nbsp;&nbsp;%
@@ -196,10 +193,8 @@
               </template>
             </el-table-column>
             <el-table-column label="操作">
-              <template slot-scope="{$index}">
-                <el-button
-                  type="text"
-                  @click="newMember.subMembers.splice($index, 1)"
+              <template slot-scope="{$index, row}">
+                <el-button type="text" @click="removeSubMember(row, $index)"
                   >删除</el-button
                 >
               </template>
@@ -422,10 +417,12 @@ export default {
         if (valid) {
           this.submitLoading = true;
           if (!this.newMember.id) {
-            const sourceRate = this.newMember.subMembers.map(it => ({
-              source: it.staffs,
-              rate: it.rate / 100
-            }));
+            const sourceRate = this.newMember.subMembers
+              .filter(it => it.rate > 0 && it.staffs.length > 0)
+              .map(it => ({
+                source: it.staffs,
+                rate: it.rate / 100
+              }));
             await this.$api.HisStaff.addHisStaffWorkSource(
               this.newMember.staff,
               sourceRate
@@ -498,16 +495,41 @@ export default {
     },
     async removeRow(row) {
       try {
-        await this.$confirm('确定删除该配置?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        });
+        await this.$confirm(
+          `确定删除 ${row.member} 和 "${row.subMember}"该配置?`,
+          '提示',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        );
         await this.$api.HisStaff.delHisStaffWorkSource(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
         console.log(e);
+      }
+    },
+    async removeSubMember(row, index) {
+      if (!row.id) this.newMember.subMembers.splice(index, 1);
+
+      if (row.id) {
+        try {
+          await this.$confirm(
+            `确定完全删除 ${this.newMember.member} 和 "${row.member}"的绑定?`,
+            '提示',
+            {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }
+          );
+          await this.$api.HisStaff.delHisStaffWorkSource(row.id);
+          this.newMember.subMembers.splice(index, 1);
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
     spanMethod({column, rowIndex}) {
