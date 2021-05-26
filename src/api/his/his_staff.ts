@@ -480,10 +480,12 @@ export default class HisStaff {
           where staff = ?
         ) as s on d.staff = s.staff
                inner join his_work_item wi on d.item = wi.id
+               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
         where d.date >= ?
           and d.date < ?
-        group by item
+        group by d.item
       `,
+      id,
       id,
       start,
       end
@@ -504,7 +506,7 @@ export default class HisStaff {
     return {
       items: workItems.map(it => ({
         ...it,
-        score: 0
+        score: items.find(item => item.id === it.id)?.score ?? 0
       })),
       rate
     };
