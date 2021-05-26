@@ -106,6 +106,8 @@
       :visible.sync="addWorkVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :before-close="() => resetConfig('workForm')"
+      :close-on-press-escape="false"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="workForm"
@@ -261,7 +263,7 @@ export default {
     projectList() {
       return this.serverProjectData.map(it => ({
         ...it,
-        id: it.id + '-' + this.newWork.source
+        id: it.id + '_' + this.newWork.source
       }));
     }
   },
@@ -312,7 +314,7 @@ export default {
           const mappings = allProjects
             .map(it => {
               //分别获取工分项id和所属来源
-              const [source, type] = it.split('-');
+              const [source, type] = it.split('_');
               return {source, type};
             })
             .reduce((res, next) => {
@@ -354,7 +356,7 @@ export default {
           scoreMethod: row.scoreMethod,
           oldProjects: row.mappings.map(m => ({
             name: m.name,
-            id: m.id + '-' + m.source
+            id: m.id + '_' + m.source
           })),
           projects: []
         })
@@ -377,6 +379,13 @@ export default {
     },
     resetConfig(ref) {
       this.$refs[ref].resetFields();
+      this.newWork = {
+        work: '',
+        source: HisWorkSource.CHECK,
+        scoreMethod: HisWorkMethod.SUM,
+        projects: [],
+        oldProjects: []
+      };
       this.addWorkVisible = false;
     },
     toBreak(content) {

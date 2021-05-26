@@ -155,16 +155,6 @@
                 >
                   重置条件
                 </el-button>
-                <el-button
-                  v-permission="{
-                    permission: permission.PERSON_EXCEL,
-                    type: 'disabled'
-                  }"
-                  size="mini"
-                  @click="getTableData()"
-                >
-                  导出表格</el-button
-                >
               </el-form-item>
             </el-col>
           </el-row>

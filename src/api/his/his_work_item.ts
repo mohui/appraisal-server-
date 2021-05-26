@@ -95,62 +95,6 @@ export default class HisWorkItem {
   }
 
   /**
-   * 员工和工分项绑定
-   * @param item
-   * @param staffs
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目id'),
-    should
-      .array()
-      .items({
-        staffs: should.array().required(),
-        score: should.number().required()
-      })
-      .required()
-      .description('员工和分值')
-  )
-  async addHisStaffWorkItemMapping(item, staffs) {
-    return appDB.transaction(async () => {
-      // 排查公分项是否存在
-      const itemList = await appDB.execute(
-        `select * from his_work_item where id = ?`,
-        item
-      );
-      if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
-      // 排查公分项是否存在
-      const staffItemList = await appDB.execute(
-        `select * from his_staff_work_item_mapping where item = ?`,
-        item
-      );
-      // 如果已经存在,先删除
-      if (staffItemList.length > 0)
-        await appDB.execute(
-          `delete from his_staff_work_item_mapping where item = ?`,
-          item
-        );
-      // 绑定员工和工分项
-      for (const it of staffs) {
-        for (const staffIt of it.staffs) {
-          await appDB.execute(
-            ` insert into
-              his_staff_work_item_mapping(item, staff, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-            item,
-            staffIt,
-            it.score,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
-        }
-      }
-    });
-  }
-
-  /**
    * 修改工分项目
    * @param id 工分项目id
    * @param name 工分项目名称
@@ -226,11 +170,14 @@ export default class HisWorkItem {
    */
   async delete(id) {
     return appDB.transaction(async () => {
-      // 删除对应关系
-      await appDB.execute(
-        `delete from his_staff_work_item_mapping where item = ?`,
+      // 查询有没有工分项和考核员工的对应关系
+      const staffWork = await appDB.execute(
+        `select * from his_staff_work_item_mapping where item = ?`,
         id
       );
+      if (staffWork.length > 0)
+        throw new KatoRuntimeError(`工分项目绑定了考核员工,不能删除`);
+
       // 删除工分项目来源
       await appDB.execute(
         `delete from his_work_item_mapping where item = ?`,
@@ -298,7 +245,7 @@ export default class HisWorkItem {
       }
       // 手工数据
       if (manualIds.length > 0) {
-        manuals = await originalDB.execute(
+        manuals = await appDB.execute(
           `select id, name, '${HisWorkSource.MANUAL}' as source
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
           ...manualIds
@@ -561,5 +508,154 @@ export default class HisWorkItem {
       checkSources = await appDB.execute(sql, ...params);
     }
     return checkSources;
+  }
+
+  /**
+   * 工分项和员工的绑定
+   * @param item
+   * @param staffs
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('工分项目id'),
+    should
+      .array()
+      .items({
+        staffs: should.array().required(),
+        score: should.number().required()
+      })
+      .required()
+      .description('员工和分值')
+  )
+  async upsertStaffWorkItemMapping(item, staffs) {
+    return appDB.transaction(async () => {
+      // 排查公分项是否存在
+      const itemList = await appDB.execute(
+        `select * from his_work_item where id = ?`,
+        item
+      );
+      if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
+      // 排查公分项是否存在
+      const staffItemList = await appDB.execute(
+        `select * from his_staff_work_item_mapping where item = ?`,
+        item
+      );
+      // 如果已经存在,先删除
+      if (staffItemList.length > 0)
+        await appDB.execute(
+          `delete from his_staff_work_item_mapping where item = ?`,
+          item
+        );
+      // 绑定员工和工分项
+      for (const it of staffs) {
+        for (const staffIt of it.staffs) {
+          await appDB.execute(
+            ` insert into
+              his_staff_work_item_mapping(item, staff, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+            item,
+            staffIt,
+            it.score,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      }
+    });
+  }
+
+  /**
+   * 公分项和员工列表
+   */
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('工分项目id'),
+    should
+      .string()
+      .allow(null)
+      .description('员工名称')
+  )
+  async selStaffWorkItemMapping(method, name) {
+    const hospital = await getHospital();
+    if (name) name = `%${name}%`;
+
+    const [sql, params] = sqlRender(
+      `
+        select item.id, item.name
+          ,item.method
+          ,mapping.staff
+          ,mapping.score
+          ,staff.name "staffName"
+          ,staff.account
+        from his_staff_work_item_mapping mapping
+        left join his_work_item item  on mapping.item = item.id
+        left join staff on mapping.staff = staff.id
+        where item.hospital = {{? hospital}}
+        {{#if method}}
+            AND item.method = {{? method}}
+        {{/if}}
+        {{#if name}}
+            AND item.name like {{? name}}
+        {{/if}}
+      `,
+      {
+        hospital,
+        method,
+        name
+      }
+    );
+    const itemList = await appDB.execute(sql, ...params);
+    if (itemList.length === 0) return [];
+
+    const returnList = [];
+    for (const it of itemList) {
+      const index = returnList.find(item => item.id === it.id);
+      if (index) {
+        if (it.staff) {
+          index.staffs.push({
+            id: it.staff,
+            name: it.staffName,
+            account: it.account
+          });
+        }
+      } else {
+        returnList.push({
+          id: it.id,
+          name: it.name,
+          method: it.method,
+          score: it.score,
+          staffs: it.staff
+            ? [
+                {
+                  id: it.staff,
+                  name: it.staffName,
+                  account: it.account
+                }
+              ]
+            : []
+        });
+      }
+    }
+    return returnList;
+  }
+
+  @validate(
+    should
+      .string()
+      .required()
+      .description('工分项目id')
+  )
+  async delStaffWorkItemMapping(id) {
+    return appDB.transaction(async () => {
+      // 删除对应关系
+      await appDB.execute(
+        `delete from his_staff_work_item_mapping where item = ?`,
+        id
+      );
+    });
   }
 }

@@ -169,6 +169,7 @@
               :key="h.id"
               :label="h.name"
               :value="h.id"
+              :disabled="!h.usable"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -226,6 +227,7 @@
               :key="h.id"
               :label="h.name"
               :value="h.id"
+              :disabled="!h.usable"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -305,10 +307,9 @@ export default {
     listMember: {
       async get() {
         this.tableLoading = true;
-        const {account, name, pageSize, pageNo} = this.searchForm;
-        console.log(account, name, pageSize, pageNo);
+        const {account, name} = this.searchForm;
         try {
-          return await this.$api.HisStaff.list();
+          return await this.$api.HisStaff.list(account || null, name || null);
         } catch (e) {
           console.error(e.message);
         } finally {
@@ -358,9 +359,9 @@ export default {
             this.addBtnLoading = true;
             await this.$api.HisStaff.add(
               this.userForm.his,
-              this.userForm.account,
-              this.userForm.password,
-              this.userForm.name
+              this.userForm.account.trim(),
+              this.userForm.password.trim(),
+              this.userForm.name.trim()
             );
             this.$message({
               type: 'success',
@@ -399,8 +400,8 @@ export default {
           try {
             await this.$api.HisStaff.update(
               this.userForm.id,
-              this.userForm.name,
-              this.userForm.password
+              this.userForm.name.trim(),
+              this.userForm.password.trim()
             );
             this.$message({
               type: 'success',
