@@ -34,20 +34,15 @@
           size="mini"
         >
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="打分方式:">
+            <el-form-item label="得分方式:">
               <el-select v-model="searchForm.scoreType" size="mini" clearable>
-                <el-option value="manual" label="手动打分"></el-option>
-                <el-option value="auto" label="自动打分"></el-option>
+                <el-option
+                  v-for="m in HisWorkMethod"
+                  :key="m.key"
+                  :value="m.value"
+                  :label="m.value"
+                ></el-option>
               </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="打分标准:">
-              <el-select
-                v-model="searchForm.score"
-                size="mini"
-                clearable
-              ></el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
@@ -59,10 +54,20 @@
               ></el-input>
             </el-form-item>
           </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-form-item label="">
+              <el-button
+                size="mini"
+                type="primary"
+                @click="$asyncComputed.serverData.update()"
+                >查 询
+              </el-button>
+            </el-form-item>
+          </el-col>
         </el-form>
       </kn-collapse>
       <el-table
-        v-loading="tableLoading"
+        v-loading="$asyncComputed.serverData.updating"
         stripe
         border
         size="small"
@@ -94,7 +99,7 @@
         <el-table-column
           align="center"
           prop="scoreType"
-          label="打分方式"
+          label="得分方式"
         ></el-table-column>
         <el-table-column
           align="center"
@@ -234,26 +239,26 @@
         label-width="120px"
       >
         <el-form-item label="工分项" prop="work">
-          <el-select v-model="newConfig.work">
+          <el-select v-model="newConfig.work" style="width: 100%">
             <el-option
               v-for="work in workList"
-              :key="work.value"
+              :key="work.id"
               :label="work.name"
-              :value="work.value"
+              :value="work.id"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="考核员工" prop="member">
-          <el-select v-model="newConfig.member" multiple>
+          <el-select v-model="newConfig.member" style="width: 100%" multiple>
             <el-option
               v-for="m in memberList"
-              :key="m.value"
+              :key="m.id"
               :label="m.name"
-              :value="m.value"
+              :value="m.id"
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分配分值" prop="score">
+        <el-form-item style="width: 100%" label="分配分值" prop="score">
           <el-input-number v-model="newConfig.score"> </el-input-number>
         </el-form-item>
       </el-form>
@@ -269,7 +274,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import dayjs from 'dayjs';
+import {HisWorkMethod} from '../../../../common/his.ts';
 
 export default {
   name: 'Configuration',
@@ -290,14 +295,17 @@ export default {
         member: [],
         score: 0
       },
-      tableLoading: false,
       addConfigurationVisible: false,
       configRules: {
         work: [{required: true, message: '选择工分项', trigger: 'change'}],
         member: [{required: true, message: '选择考核员工', trigger: 'change'}],
         score: [{required: true, message: '输入分值', trigger: 'change'}]
       },
-      tempRow: ''
+      tempRow: '',
+      HisWorkMethod: Object.keys(HisWorkMethod).map(it => ({
+        value: HisWorkMethod[it],
+        key: it
+      }))
     };
   },
   computed: {
@@ -305,7 +313,7 @@ export default {
       return this.serverData.rows.map(d => ({
         ...d,
         work: d.name,
-        scoreType: d.item[0]?.method || '',
+        scoreType: d.method || '',
         scoreMember: d.staffs.map(m => m.name),
         isEdit: false
       }));
@@ -322,38 +330,31 @@ export default {
     serverData: {
       async get() {
         let data = [];
-        this.tableLoading = true;
-        const {scoreType, score, work} = this.searchForm;
-        console.log(scoreType, score, work);
+        const {scoreType, work} = this.searchForm;
         try {
-          data = await this.$api.HisCheck.list();
+          data = await this.$api.HisWorkItem.selStaffWorkItemMapping(
+            scoreType || undefined,
+            work || undefined
+          );
           return {
             counts: data.length,
             rows: data
           };
         } catch (e) {
           console.error(e.message);
-        } finally {
-          this.tableLoading = false;
         }
       },
       default: {counts: 0, rows: []}
     },
     serverWorkData: {
       async get() {
-        await new Promise(resolve => setTimeout(() => resolve(), 600));
-        let i = 0;
-        let data = [];
-        for (; i < 10; i++) {
-          data.push({name: `工分项${i}`, value: `工分项${i}`});
-        }
-        return data;
+        return await this.$api.HisWorkItem.list();
       },
       default: []
     },
     serverMemberData: {
       async get() {
-        return await this.$api.HisCheck.checkStaff();
+        return await this.$api.HisStaff.list();
       },
       default: []
     }
@@ -363,15 +364,11 @@ export default {
       try {
         const valid = await this.$refs['configForm'].validate();
         if (valid) {
-          this.$set(this.serverData.rows, this.tableData.length, {
-            index: this.tableData.length + 1,
-            work: this.newConfig.work,
-            scoreType: '自动打分',
-            scoreMember: this.newConfig.member,
-            score: this.newConfig.score,
-            row: false,
-            createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
-          });
+          const item = this.newConfig.work;
+          const staffs = [
+            {staffs: this.newConfig.member, score: this.newConfig.score}
+          ];
+          this.$api.HisWorkItem.upsertStaffWorkItemMapping(item, staffs);
           this.resetConfig();
         }
       } catch (e) {
