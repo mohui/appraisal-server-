@@ -399,11 +399,18 @@ export default {
       this.tempRow = '';
     },
     async removeRow(row) {
-      this.tableData.splice(
-        this.tableData.findIndex(d => d.index === row.index),
-        1
-      );
-      this.$message.success('删除成功');
+      try {
+        await this.$confirm('确定删除该配置?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        await this.$api.HisWorkItem.delStaffWorkItemMapping(row.id);
+        this.$message.success('删除成功');
+        this.$asyncComputed.serverData.update();
+      } catch (e) {
+        console.log(e);
+      }
     },
     resetConfig() {
       this.$refs['configForm'].resetFields();
