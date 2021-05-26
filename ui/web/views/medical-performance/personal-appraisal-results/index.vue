@@ -144,7 +144,7 @@ export default {
     workScoreDailyListData() {
       let result = {};
       result.day = this.workScoreDailyListServerData?.map(it =>
-        it.day.$format('YYYY-MM-DD')
+        it.day.$format('MM-DD')
       );
       let items = [];
       items = this.workScoreDailyListServerData?.map(it => it.items);
@@ -161,7 +161,7 @@ export default {
               });
             } else {
               projects[index].auxiliaryDate.push(
-                projects[index].score.reduce(function(total, currentValue) {
+                projects[index].score.reduce((total, currentValue) => {
                   return total + currentValue;
                 }, 0)
               );
