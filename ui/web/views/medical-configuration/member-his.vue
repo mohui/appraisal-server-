@@ -169,6 +169,7 @@
               :key="h.id"
               :label="h.name"
               :value="h.id"
+              :disabled="!h.usable"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -226,6 +227,7 @@
               :key="h.id"
               :label="h.name"
               :value="h.id"
+              :disabled="!h.usable"
             ></el-option>
           </el-select>
         </el-form-item>
