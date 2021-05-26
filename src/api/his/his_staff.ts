@@ -4,6 +4,7 @@ import * as dayjs from 'dayjs';
 import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
+import {monthToRange} from './manual';
 
 export async function getHospital() {
   if (
@@ -22,10 +23,68 @@ export default class HisStaff {
   async listHisStaffs() {
     const hospital = await getHospital();
 
-    return await originalDB.execute(
+    const hisStaffs = await originalDB.execute(
       `select id, name, hospital from his_staff where hospital = ?`,
       hospital
     );
+    const staffs = await appDB.execute(
+      `select staff from staff where hospital = ?`,
+      hospital
+    );
+    return hisStaffs.map(it => {
+      const index = staffs.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
+  }
+
+  /**
+   * 获取员工基本信息
+   *
+   * @param id 员工id
+   * @return {
+   *   id: 员工id
+   *   name: 员工姓名
+   *   sex?: 员工性别
+   *   phone?: 员工联系方式
+   *   birth? 员工出生日期
+   * }
+   */
+  async get(id) {
+    //查询员工
+    // language=PostgreSQL
+    const staffModel: {id: string; name: string; staff: string} = (
+      await appDB.execute(
+        `
+          select id, name, staff
+          from staff
+          where id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!staffModel) throw new KatoRuntimeError(`该员工不存在`);
+    //查询his信息
+    // language=PostgreSQL
+    const hisModel = (
+      await originalDB.execute(
+        `
+          select d.name as sex, phone, birth
+          from his_staff s
+                 left join his_dict d on s.sex = d.code and d.category_code = '10101001'
+          where id = ?
+        `,
+        staffModel.staff
+      )
+    )[0];
+    return {
+      ...staffModel,
+      sex: hisModel.sex,
+      phone: hisModel.phone,
+      birth: hisModel.birth
+    };
   }
 
   /**
@@ -336,6 +395,162 @@ export default class HisStaff {
   }
 
   /**
+   * 获取指定月份员工工分项目得分列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   * @return {
+   *   items: 工分项目列表 [
+   *     {
+   *       id: 工分项目id
+   *       name: 工分项目名称
+   *       score: 得分
+   *     }
+   *   ],
+   *   rate?: 质量系数
+   * }
+   */
+  @validate(should.string().required(), should.date().required())
+  async findWorkScoreList(id, month) {
+    const {start, end} = monthToRange(month);
+    //获取工分列表
+    // language=PostgreSQL
+    const items = await appDB.execute(
+      `
+        select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score
+        from his_staff_work_score_detail d
+               inner join (
+          select unnest(sources) as staff, rate
+          from his_staff_work_source
+          where staff = ?
+        ) as s on d.staff = s.staff
+               inner join his_work_item wi on d.item = wi.id
+        where d.date >= ?
+          and d.date < ?
+        group by item
+      `,
+      id,
+      start,
+      end
+    );
+    //获取质量系数
+    const rate = await this.getRate(id, month);
+    return {
+      items,
+      rate
+    };
+  }
+
+  /**
+   * 获取指定月份员工工分项目的每日得分列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   * @return [
+   *   day: 日期,
+   *   items: 工分项目列表 [
+   *     {
+   *       id: 工分项目id
+   *       name: 工分项目名称
+   *       score: 得分
+   *     }
+   *   ],
+   *   rate?: 质量系数
+   * ]
+   */
+  @validate(should.string().required(), should.date().required())
+  async findWorkScoreDailyList(id, month) {
+    //工分员工来源
+    // language=PostgreSQL
+    const sources: {staff: string; rate: number}[] = await appDB.execute(
+      `
+        select unnest(sources) as staff, rate
+        from his_staff_work_source
+        where staff = ?
+      `,
+      id
+    );
+    const {start, end} = monthToRange(month);
+    // 查询工分值
+    // language=PostgreSQL
+    const scoreList: {
+      id: string;
+      name: string;
+      staff: string;
+      day: Date;
+      score: number;
+    }[] = await appDB.execute(
+      `
+        select d.item                    as id,
+               max(wi.name)              as name,
+               max(d.staff)              as staff,
+               date_trunc('day', d.date) as day,
+               sum(d.score)              as score
+        from his_staff_work_score_detail d
+               inner join his_work_item wi on d.item = wi.id
+               inner join his_staff_work_item_mapping swm on swm.item = d.item
+        where d.date >= ?
+          and d.date < ?
+          and d.staff in (${sources.map(() => '?')})
+          and swm.staff = ?
+        group by day, d.item, d.staff
+      `,
+      start,
+      end,
+      ...sources.map(it => it.staff),
+      id
+    );
+    //定义返回值
+    const result: {
+      day: Date;
+      items: {id: string; name: string; score: number}[];
+      rate?: number;
+    }[] = [];
+    //查询质量系数列表
+    const rateList = await this.getRateList(id, month);
+    //当前月份的天数
+    const days = dayjs(end).diff(start, 'd');
+    for (let i = 0; i < days; i++) {
+      const day = dayjs(start)
+        .add(i, 'd')
+        .toDate();
+      const items: {id: string; name: string; score: number}[] = scoreList
+        .filter(it => it.day.getTime() === day.getTime())
+        .reduce((resultScoreModel, currentScoreModel) => {
+          //查找员工权重系数
+          const sourceRate =
+            sources.find(it => it.staff === currentScoreModel.staff)?.rate ?? 0;
+          //计算真实得分
+          const score = currentScoreModel.score * sourceRate;
+          //查找质量系数
+          const rate = rateList.find(it => it.day.getTime() === day.getTime());
+          //找到工分对象
+          const itemModel = resultScoreModel.find(
+            it => it.id === currentScoreModel.id
+          );
+          if (!itemModel) {
+            resultScoreModel.push({
+              id: currentScoreModel.id,
+              name: currentScoreModel.name,
+              score: score,
+              rate
+            });
+          } else {
+            itemModel.score += score;
+          }
+          return resultScoreModel;
+        }, []);
+      result.push({
+        day: dayjs(start)
+          .add(i, 'd')
+          .toDate(),
+        items: items
+      });
+    }
+    return result;
+  }
+
+  /**
    * 获取指定日期的质量系数
    *
    * @param id 员工id
@@ -349,16 +564,66 @@ export default class HisStaff {
     should
       .date()
       .required()
-      .description('关联员工[]')
+      .description('指定的日期')
   )
   async getRateByDay(id, day) {
+    day = dayjs(day).startOf('d');
+    // 获取质量系数列表
+    const list = await this.getRateList(id, day);
+    if (list.length === 0) return null;
+    // 查找当天的质量系数
+    const item = list.find(it => dayjs(it.day).diff(day, 'day') === 0);
+    if (item) return item?.rate;
+    return null;
+  }
+
+  /**
+   * 获取指定月份的质量系数(查询月份有记录最后一天的质量系数)
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('指定的月份')
+  )
+  async getRate(id, month) {
+    const list = await this.getRateList(id, month);
+    if (list.length === 0) return null;
+    return list.pop()?.rate;
+  }
+
+  /**
+   * 获取指定月份的质量系数列表
+   *
+   * @param id 员工id
+   * @param month 月份
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('指定的月份')
+  )
+  async getRateList(id, month): Promise<{rate: number; day: Date}[]> {
+    const {start, end} = monthToRange(month);
     // 先根据员工查询考核
     const mapping = await appDB.execute(
       `select staff, "check" from his_staff_check_mapping
         where staff = ?`,
       id
     );
-    if (mapping.length === 0) return null;
+    if (mapping.length === 0) return [];
     // 取出考核id
     const check = mapping[0]?.check;
 
@@ -373,48 +638,31 @@ export default class HisStaff {
 
     // 查询指定日期的得分
     const staffScores = await appDB.execute(
-      `select rule, staff, date, score
+      `select date, sum(score) score
             from his_rule_staff_score
-            where staff = ? and date = ?
-              and rule in (${ruleId.map(() => '?')})`,
+            where staff = ?
+              and date >= ? and date < ?
+              and rule in (${ruleId.map(() => '?')})
+            group by date`,
       id,
-      day,
+      start,
+      end,
       ...ruleId
     );
 
-    if (staffScores.length === 0) return null;
+    if (staffScores.length === 0) return [];
     // 得出总分
     const totalScore = rules.reduce(
       (prev, curr) => Number(prev) + Number(curr.score),
       0
     );
-    // 得出总得分
-    const staffScore = staffScores.reduce(
-      (prev, curr) => Number(prev) + Number(curr.score),
-      0
-    );
-    return totalScore ? staffScore / totalScore : 0;
-  }
 
-  /**
-   * 获取指定月份的质量系数(查询月份有记录最后一天的质量系数)
-   *
-   * @param id 员工id
-   * @param month 月份
-   */
-  getRate(id, month) {
-    return null;
-  }
-
-  /**
-   * 获取指定月份的质量系数列表
-   *
-   * @param id 员工id
-   * @param month 月份
-   */
-  getRateList(id, month) {
-    //建议一波查出来, 再根据日期分组
-    return [];
+    return staffScores.map(it => {
+      return {
+        day: dayjs(it.date).toDate(),
+        rate: totalScore ? it.score / totalScore : 0
+      };
+    });
   }
 
   /**
