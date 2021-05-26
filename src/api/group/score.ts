@@ -488,8 +488,8 @@ export default class Score {
                        algorithm,
                        baseline,
                        score,
-                       attach_start_date as attachStartDate,
-                       attach_end_date   as attachEndDate
+                       attach_start_date as "attachStartDate",
+                       attach_end_date   as "attachEndDate"
                 from rule_tag
                 where rule = ?`,
               rule.id

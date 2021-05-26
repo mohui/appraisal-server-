@@ -161,21 +161,37 @@ export default class HisStaff {
     should
       .string()
       .required()
-      .description('密码')
+      .description('密码'),
+    should
+      .string()
+      .allow(null)
+      .description('his员工')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password) {
+  async update(id, name, password, staff) {
+    // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
+    if (staff) {
+      const selStaff = await appDB.execute(
+        `select * from staff where id != ? and staff = ?`,
+        id,
+        staff
+      );
+      if (selStaff.length > 0)
+        throw new KatoRuntimeError(`该his用户已绑定过员工`);
+    }
     return await appDB.execute(
       `
         update staff set
           name = ?,
           password = ?,
+          staff = ?,
           updated_at = ?
         where id = ?`,
       name,
       password,
+      staff,
       dayjs().toDate(),
       id
     );
