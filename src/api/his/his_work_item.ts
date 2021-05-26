@@ -572,9 +572,9 @@ export default class HisWorkItem {
       .allow(null)
       .description('工分项目id'),
     should
-      .array()
+      .string()
       .allow(null)
-      .description('员工和分值')
+      .description('员工名称')
   )
   async selStaffWorkItemMapping(method, name) {
     const hospital = await getHospital();
@@ -593,10 +593,10 @@ export default class HisWorkItem {
         left join staff on mapping.staff = staff.id
         where item.hospital = {{? hospital}}
         {{#if method}}
-            AND method = {{? method}}
+            AND item.method = {{? method}}
         {{/if}}
         {{#if name}}
-            AND name like {{? name}}
+            AND item.name like {{? name}}
         {{/if}}
       `,
       {
@@ -615,7 +615,7 @@ export default class HisWorkItem {
         if (it.staff) {
           index.staffs.push({
             id: it.staff,
-            name: it.name,
+            name: it.staffName,
             account: it.account
           });
         }
@@ -629,7 +629,7 @@ export default class HisWorkItem {
             ? [
                 {
                   id: it.staff,
-                  name: it.name,
+                  name: it.staffName,
                   account: it.account
                 }
               ]
