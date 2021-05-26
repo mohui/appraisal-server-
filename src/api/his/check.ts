@@ -342,7 +342,7 @@ export default class HisCheck {
           .required()
           .description('分值')
       })
-      .allow(null)
+      .required()
       .description('自动考核细则'),
     should
       .array()
@@ -364,11 +364,11 @@ export default class HisCheck {
           .required()
           .description('分值')
       })
-      .allow(null)
+      .required()
       .description('自动考核细则')
   )
   async add(name, staffs, automations, manuals) {
-    if (!automations && !manuals)
+    if (automations.length === 0 && manuals.length === 0)
       throw new KatoRuntimeError(`自动打分和手动打分不能都为空`);
     const hospital = await getHospital();
     return appDB.transaction(async () => {

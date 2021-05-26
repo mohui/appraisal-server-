@@ -394,6 +394,55 @@ export default class HisStaff {
     });
   }
 
+  @validate(
+    should
+      .string()
+      .required()
+      .description('考核员工id')
+  )
+  // 根据id获取员工绑定
+  async searchHisStaffWorkSource(staff) {
+    const hospital = await getHospital();
+    const list = await appDB.execute(
+      `
+        select
+          source.id
+          ,source.staff
+          ,source.sources
+          ,source.rate
+          ,staff.name "staffName"
+        from his_staff_work_source source
+        left join staff on source.staff = staff.id
+        where staff.hospital = ? and source.staff = ?
+        `,
+      hospital,
+      staff
+    );
+
+    const staffList = await appDB.execute(
+      `select id, name from staff where hospital = ?`,
+      hospital
+    );
+    const staffListObj = {};
+
+    for (const it of staffList) {
+      staffListObj[it.id] = it.name;
+    }
+
+    return list.map(it => {
+      const sourcesName = it.sources.map(item => {
+        return {
+          id: item,
+          name: staffListObj[item]
+        };
+      });
+      return {
+        ...it,
+        sources: sourcesName
+      };
+    });
+  }
+
   /**
    * 获取指定月份员工工分项目得分列表
    *
@@ -411,7 +460,13 @@ export default class HisStaff {
    * }
    */
   @validate(should.string().required(), should.date().required())
-  async findWorkScoreList(id, month) {
+  async findWorkScoreList(
+    id,
+    month
+  ): Promise<{
+    items: {id: string; name: string; score: number}[];
+    rate?: number;
+  }> {
     const {start, end} = monthToRange(month);
     //获取工分列表
     // language=PostgreSQL
@@ -433,10 +488,24 @@ export default class HisStaff {
       start,
       end
     );
+    //绑定工分项目
+    // language=PostgreSQL
+    const workItems = await appDB.execute(
+      `
+        select w.id, w.name, m.score
+        from his_staff_work_item_mapping m
+               inner join his_work_item w on m.item = w.id
+        where staff = ?
+      `,
+      id
+    );
     //获取质量系数
     const rate = await this.getRate(id, month);
     return {
-      items,
+      items: workItems.map(it => ({
+        ...it,
+        score: 0
+      })),
       rate
     };
   }
@@ -470,6 +539,18 @@ export default class HisStaff {
       `,
       id
     );
+    //绑定工分项目
+    // language=PostgreSQL
+    const workItems = await appDB.execute(
+      `
+        select w.id, w.name, m.score
+        from his_staff_work_item_mapping m
+               inner join his_work_item w on m.item = w.id
+        where staff = ?
+      `,
+      id
+    );
+
     const {start, end} = monthToRange(month);
     // 查询工分值
     // language=PostgreSQL
@@ -506,45 +587,19 @@ export default class HisStaff {
       items: {id: string; name: string; score: number}[];
       rate?: number;
     }[] = [];
-    //查询质量系数列表
-    const rateList = await this.getRateList(id, month);
     //当前月份的天数
     const days = dayjs(end).diff(start, 'd');
+    //占坑
     for (let i = 0; i < days; i++) {
-      const day = dayjs(start)
-        .add(i, 'd')
-        .toDate();
-      const items: {id: string; name: string; score: number}[] = scoreList
-        .filter(it => it.day.getTime() === day.getTime())
-        .reduce((resultScoreModel, currentScoreModel) => {
-          //查找员工权重系数
-          const sourceRate =
-            sources.find(it => it.staff === currentScoreModel.staff)?.rate ?? 0;
-          //计算真实得分
-          const score = currentScoreModel.score * sourceRate;
-          //查找质量系数
-          const rate = rateList.find(it => it.day.getTime() === day.getTime());
-          //找到工分对象
-          const itemModel = resultScoreModel.find(
-            it => it.id === currentScoreModel.id
-          );
-          if (!itemModel) {
-            resultScoreModel.push({
-              id: currentScoreModel.id,
-              name: currentScoreModel.name,
-              score: score,
-              rate
-            });
-          } else {
-            itemModel.score += score;
-          }
-          return resultScoreModel;
-        }, []);
       result.push({
         day: dayjs(start)
           .add(i, 'd')
           .toDate(),
-        items: items
+        items: workItems.map(it => ({
+          ...it,
+          score: 0
+        })),
+        rate: null
       });
     }
     return result;
