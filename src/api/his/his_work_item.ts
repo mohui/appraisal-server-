@@ -242,7 +242,7 @@ export default class HisWorkItem {
       }
       // 手工数据
       if (manualIds.length > 0) {
-        manuals = await originalDB.execute(
+        manuals = await appDB.execute(
           `select id, name, '${HisWorkSource.MANUAL}' as source
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
           ...manualIds
