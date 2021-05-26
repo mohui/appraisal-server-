@@ -31,7 +31,7 @@
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
-                  v-for="(value, key) in personInfo"
+                  v-for="(value, key) in personInfoData"
                   :key="key"
                   :span="12"
                   style="padding:  0 8%"
@@ -147,6 +147,9 @@ export default {
         value: it.score,
         name: it.name
       }));
+    },
+    personInfoData() {
+      return this.personInfoServerData;
     }
   },
   asyncComputed: {
@@ -158,6 +161,14 @@ export default {
         );
       },
       default: {items: [], rate: 0}
+    },
+    personInfoServerData: {
+      async get() {
+        return await this.$api.HisStaff.get(
+          'af637f5c-2711-49ee-a025-42c10659371c'
+        );
+      },
+      default: {}
     }
   },
   methods: {
