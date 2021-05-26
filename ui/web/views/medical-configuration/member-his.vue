@@ -307,10 +307,9 @@ export default {
     listMember: {
       async get() {
         this.tableLoading = true;
-        const {account, name, pageSize, pageNo} = this.searchForm;
-        console.log(account, name, pageSize, pageNo);
+        const {account, name} = this.searchForm;
         try {
-          return await this.$api.HisStaff.list();
+          return await this.$api.HisStaff.list(account || null, name || null);
         } catch (e) {
           console.error(e.message);
         } finally {
