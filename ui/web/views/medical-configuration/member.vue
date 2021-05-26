@@ -139,11 +139,7 @@
         label-width="120px"
       >
         <el-form-item label="考核员工" prop="staff">
-          <el-select
-            v-model="newMember.staff"
-            :disabled="newMember.id !== ''"
-            collapse-tags
-          >
+          <el-select v-model="newMember.staff" collapse-tags>
             <el-option
               v-for="m in memberList"
               :key="m.id"
@@ -153,7 +149,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="关联员工" prop="subMembers">
-          <el-table border size="mini" :data="newMember.subMembers">
+          <el-table
+            v-loading="newMemberLoading"
+            :data="newMember.subMembers"
+            border
+            size="mini"
+          >
             <el-table-column label="员工" prop="name">
               <template slot-scope="{$index, row}">
                 <div v-if="$index === 0">{{ row.member.join(',') }}</div>
@@ -255,25 +256,59 @@ export default {
       },
       addMemberVisible: false,
       memberRules: {
-        member: [{required: true, message: '选择员工', trigger: 'change'}],
+        staff: [{required: true, message: '选择员工', trigger: 'change'}],
         subMembers: [{validator: ValidSubMember, trigger: 'blur'}]
       },
       tableLoading: false,
-      submitLoading: false
+      submitLoading: false,
+      newMemberLoading: false
     };
   },
   computed: {
     tableData() {
       let data = [];
-      this.serverData.rows.forEach(row => {
-        data.push({
-          id: row.id,
-          staff: row.staff,
-          sources: row.sources,
-          sourcesName: row.sourcesName,
-          member: row.staffName, //名字
-          subMember: row.sourcesName.join(','),
-          subRate: row.rate * 100
+      //相同父员工的数据归类
+      const reduceData = this.serverData.rows.reduce((pre, next) => {
+        const cur = pre.find(p => p.staff === next.staff);
+        if (cur) {
+          cur.subs.push({
+            id: next.id,
+            staff: next.staff,
+            sources: next.sources,
+            sourcesName: next.sourcesName,
+            member: next.staffName, //名字
+            subMember: next.sourcesName.join(','),
+            subRate: next.rate
+          });
+        } else
+          pre.push({
+            staff: next.staff,
+            subs: [
+              {
+                id: next.id,
+                staff: next.staff,
+                sources: next.sources,
+                sourcesName: next.sourcesName,
+                member: next.staffName, //名字
+                subMember: next.sourcesName.join(','),
+                subRate: next.rate
+              }
+            ]
+          });
+        return pre;
+      }, []);
+      //再按每条绑定数据平铺
+      reduceData.forEach(reduce => {
+        reduce.subs.forEach(row => {
+          data.push({
+            id: row.id,
+            staff: row.staff,
+            sources: row.sources,
+            sourcesName: row.sourcesName,
+            member: row.member, //名字
+            subMember: row.sourcesName.join(','),
+            subRate: row.subRate * 100
+          });
         });
       });
       return data;
@@ -303,22 +338,54 @@ export default {
     }
   },
   watch: {
-    'newMember.staff'() {
-      if (!this.newMember.id && this.newMember.staff) {
-        this.newMember.subMembers = [];
-        this.newMember.subMembers.push({
-          //名字
-          member: [
-            this.memberList.find(it => it.id === this.newMember.staff).name
-          ],
-          staffs: [this.newMember.staff],
-          rate: 100
-        });
-        this.newMember.subMembers.push({
-          member: [],
-          staffs: [],
-          rate: 0
-        });
+    'newMember.staff': async function() {
+      if (this.newMember.staff) {
+        try {
+          this.newMemberLoading = true;
+          this.newMember.subMembers = [];
+          const oldSubMembers = await this.$api.HisStaff.searchHisStaffWorkSource(
+            this.newMember.staff
+          );
+          if (oldSubMembers.length > 0) {
+            //该员工原本有绑定过其他员工,则直接列表上修改原数据
+            this.newMember.id = oldSubMembers[0].id;
+            this.newMember.staff = oldSubMembers[0].staff;
+            this.newMember.subMembers = oldSubMembers
+              .map(it => ({
+                id: it.id,
+                member: it.sources.map(s => s.name),
+                staffs: it.sources.map(s => s.id),
+                rate: it.rate * 100
+              }))
+              .sort(a => {
+                //把本人的数据排到第一个;
+                return a.staffs.length === 1 &&
+                  a.staffs[0] === this.newMember.staff
+                  ? -1
+                  : 1;
+              });
+          } else {
+            this.newMember.id = '';
+            //该员工未绑定过,默认绑定自己
+            this.newMember.subMembers.push({
+              //名字
+              member: [
+                this.memberList.find(it => it.id === this.newMember.staff).name
+              ],
+              staffs: [this.newMember.staff],
+              rate: 100
+            });
+            this.newMember.subMembers.push({
+              member: [],
+              staffs: [],
+              rate: 0
+            });
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          this.newMemberLoading = false;
+        }
       }
     }
   },
@@ -351,7 +418,6 @@ export default {
   methods: {
     async submit() {
       try {
-        console.log(this.newMember.subMembers);
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           this.submitLoading = true;
@@ -368,14 +434,28 @@ export default {
           }
           if (this.newMember.id) {
             await Promise.all(
-              this.newMember.subMembers.map(
-                async it =>
-                  await this.$api.HisStaff.updateHisStaffWorkSource(
+              this.newMember.subMembers.map(async it => {
+                if (it.id) {
+                  //编辑原有数据
+                  return await this.$api.HisStaff.updateHisStaffWorkSource(
                     it.id,
                     it.staffs,
                     it.rate / 100
-                  )
-              )
+                  );
+                }
+                if (!it.id && it.staffs.length > 0 && it.rate > 0) {
+                  //在编辑操作中又添加新的绑定关系
+                  return await this.$api.HisStaff.addHisStaffWorkSource(
+                    this.newMember.staff,
+                    [
+                      {
+                        source: it.staffs,
+                        rate: it.rate / 100
+                      }
+                    ]
+                  );
+                }
+              })
             );
             this.$message.success('修改成功');
           }
