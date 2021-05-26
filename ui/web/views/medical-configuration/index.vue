@@ -48,7 +48,7 @@
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="工分项:">
               <el-input
-                v-model="searchForm.work"
+                v-model="searchForm.workId"
                 size="mini"
                 clearable
               ></el-input>
@@ -85,12 +85,12 @@
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.work }}</div>
             <div v-else>
-              <el-select v-model="tempRow.work" size="mini">
+              <el-select v-model="tempRow.workId" size="mini">
                 <el-option
                   v-for="work in workList"
-                  :key="work.value"
+                  :key="work.id"
                   :label="work.name"
-                  :value="work.value"
+                  :value="work.id"
                 ></el-option>
               </el-select>
             </div>
@@ -127,16 +127,16 @@
             </div>
             <div v-else-if="row.isEdit">
               <el-select
-                v-model="tempRow.scoreMember"
+                v-model="tempRow.memberIds"
                 size="mini"
                 multiple
                 collapse-tags
               >
                 <el-option
                   v-for="work in memberList"
-                  :key="work.value"
+                  :key="work.id"
                   :label="work.name"
-                  :value="work.value"
+                  :value="work.id"
                 ></el-option>
               </el-select>
             </div>
@@ -145,7 +145,7 @@
         <el-table-column align="center" prop="score" label="配置得分">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.score }}</div>
-            <div v-else>
+            <div v-else-if="tempRow.score >= 0">
               <el-input-number v-model="tempRow.score" size="mini">
               </el-input-number>
             </div>
@@ -173,7 +173,7 @@
                 icon="el-icon-check"
                 circle
                 size="mini"
-                @click="submitEdit(row.index, tempRow)"
+                @click="submitEdit()"
               >
               </el-button>
             </el-tooltip>
@@ -312,9 +312,11 @@ export default {
     tableData() {
       return this.serverData.rows.map(d => ({
         ...d,
+        workId: d.id,
         work: d.name,
         scoreType: d.method || '',
         scoreMember: d.staffs.map(m => m.name),
+        memberIds: d.staffs.map(m => m.id),
         isEdit: false
       }));
     },
@@ -368,7 +370,7 @@ export default {
           const staffs = [
             {staffs: this.newConfig.member, score: this.newConfig.score}
           ];
-          this.$api.HisWorkItem.upsertStaffWorkItemMapping(item, staffs);
+          await this.$api.HisWorkItem.upsertStaffWorkItemMapping(item, staffs);
           this.resetConfig();
         }
       } catch (e) {
@@ -382,20 +384,24 @@ export default {
         return;
       }
       row.isEdit = !row.isEdit;
-      this.tempRow = Object.assign({}, row);
+      this.tempRow = JSON.parse(JSON.stringify(row));
     },
     cancelEdit(row) {
       row.isEdit = !row.isEdit;
       this.tempRow = '';
     },
-    async submitEdit(index, tempRow) {
-      if (tempRow?.scoreMember.length < 1) {
+    async submitEdit() {
+      if (this.tempRow?.memberIds.length < 1) {
         this.$message.warning('考核员工不能为空');
         return;
       }
-      tempRow.isEdit = !tempRow.isEdit;
-      this.$set(this.serverData.rows, index - 1, tempRow);
+      this.tempRow.isEdit = !this.tempRow.isEdit;
+      await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
+        this.tempRow.workId,
+        [{staffs: this.tempRow.memberIds, score: this.tempRow.score}]
+      );
       this.$message.success('修改成功');
+      await this.$asyncComputed.serverData.update();
       this.tempRow = '';
     },
     async removeRow(row) {
