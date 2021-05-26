@@ -165,7 +165,7 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('密码')
+      .description('his员工')
   )
   /**
    * 修改员工信息
