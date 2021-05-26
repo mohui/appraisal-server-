@@ -488,10 +488,24 @@ export default class HisStaff {
       start,
       end
     );
+    //绑定工分项目
+    // language=PostgreSQL
+    const workItems = await appDB.execute(
+      `
+        select w.id, w.name, m.score
+        from his_staff_work_item_mapping m
+               inner join his_work_item w on m.item = w.id
+        where staff = ?
+      `,
+      id
+    );
     //获取质量系数
     const rate = await this.getRate(id, month);
     return {
-      items,
+      items: workItems.map(it => ({
+        ...it,
+        score: 0
+      })),
       rate
     };
   }
