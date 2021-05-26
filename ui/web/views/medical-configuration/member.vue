@@ -216,7 +216,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig()">取 消</el-button>
-        <el-button type="primary" @click="submit()">
+        <el-button v-loading="submitLoading" type="primary" @click="submit()">
           确 定
         </el-button>
       </div>
@@ -255,7 +255,8 @@ export default {
         member: [{required: true, message: '选择员工', trigger: 'change'}],
         subMembers: [{validator: ValidSubMember, trigger: 'blur'}]
       },
-      tableLoading: false
+      tableLoading: false,
+      submitLoading: false
     };
   },
   computed: {
@@ -349,6 +350,7 @@ export default {
       try {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
+          this.submitLoading = true;
           if (!this.newMember.id) {
             const sourceRate = this.newMember.subMembers.map(it => ({
               source: it.staffs,
@@ -365,7 +367,7 @@ export default {
               this.newMember.subMembers.map(
                 async it =>
                   await this.$api.HisStaff.updateHisStaffWorkSource(
-                    this.newMember.staff,
+                    it.id,
                     it.staffs,
                     it.rate / 100
                   )
@@ -379,6 +381,8 @@ export default {
       } catch (e) {
         console.error(e);
         if (e) this.$message.error(e.message);
+      } finally {
+        this.submitLoading = false;
       }
     },
     editRow(row) {
@@ -447,7 +451,7 @@ export default {
     resetConfig() {
       this.$refs['memberForm'].resetFields();
       this.addMemberVisible = false;
-      this.newMember = {member: '', subMembers: []};
+      this.newMember = {id: '', member: '', staff: '', subMembers: []};
     }
   }
 };
