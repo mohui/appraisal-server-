@@ -16,6 +16,7 @@
           </div>
         </div>
       </div>
+      {{ workScoreDailyListData }}
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
@@ -117,16 +118,6 @@ export default {
   data() {
     return {
       dataSource: {name: '张三', score: 200, rate: 80},
-      personInfo: {
-        name: '张三',
-        gender: '男',
-        birth: '1993-03-01',
-        idCard: '4305353199303016567',
-        empNo: '4235',
-        department: '门诊部',
-        tel: '4305353199303016567',
-        medicareNo: '340608083803'
-      },
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -139,6 +130,9 @@ export default {
   watch: {
     workScoreListData: function() {
       this.drawProjectWorkPointPie();
+    },
+    workScoreDailyListData: function() {
+      this.drawProjectWorkPointBarRateLine();
     }
   },
   computed: {
@@ -147,6 +141,15 @@ export default {
         value: it.score,
         name: it.name
       }));
+    },
+    workScoreDailyListData() {
+      let result = {};
+      result.day = this.workScoreDailyListServerData?.map(it =>
+        it.day.$format('YYYY-MM-DD')
+      );
+      const items = this.workScoreDailyListServerData?.map(it => it.items);
+      result.items = items;
+      return result;
     },
     personInfoData() {
       return this.personInfoServerData;
@@ -161,6 +164,15 @@ export default {
         );
       },
       default: {items: [], rate: 0}
+    },
+    workScoreDailyListServerData: {
+      async get() {
+        return await this.$api.HisStaff.findWorkScoreDailyList(
+          'af637f5c-2711-49ee-a025-42c10659371c',
+          dayjs().toDate()
+        );
+      },
+      default: []
     },
     personInfoServerData: {
       async get() {
@@ -233,6 +245,69 @@ export default {
       const myChart = this.$echarts.init(
         document.getElementById('projectWorkPointBarRateLine')
       );
+      let projects = [];
+      // console.log('workScoreDailyListData:', this.workScoreDailyListData);
+      for (const item of this.workScoreDailyListData.items) {
+        console.log(item);
+        for (const it of item) {
+          const index = projects.findIndex(p => p.name === it.name);
+          console.log(index);
+          if (index === -1) {
+            projects.push({
+              name: it.name,
+              score: [it.score],
+              auxiliaryDate: [0]
+            });
+          } else {
+            projects[index].auxiliaryDate.push(
+              projects[index].score.reduce(function(total, currentValue) {
+                return total + currentValue;
+              }, 0)
+            );
+            projects[index].score.push(it.score);
+          }
+        }
+      }
+      console.log('projects:', projects);
+      let series = [];
+      for (const it of projects) {
+        console.log('it-------:', it);
+
+        const s = {
+          name: it.name,
+          type: 'bar',
+          stack: it.name,
+          label: {
+            show: true,
+            position: 'top'
+          },
+          data: it.score
+        };
+        console.log('s-------:', s);
+
+        const s1 = {
+          name: it.name + '辅助',
+          type: 'bar',
+          stack: it.name,
+          itemStyle: {
+            barBorderColor: 'rgba(0,0,0,0)',
+            color: 'rgba(0,0,0,0)'
+          },
+          emphasis: {
+            itemStyle: {
+              barBorderColor: 'rgba(0,0,0,0)',
+              color: 'rgba(0,0,0,0)'
+            }
+          },
+          data: it.auxiliaryDate
+        };
+
+        console.log('s1-------:', s1);
+
+        series.push(s1, s);
+      }
+      console.log('series1-------:', series);
+
       let option;
       option = {
         //设置颜色
@@ -246,18 +321,18 @@ export default {
           }
         },
         legend: {
-          data: ['手术', '针灸', '处方', '质量系数'],
+          data: projects.map(it => it.name)
           // 设置图例选中状态表
-          selected: {
-            手术: true,
-            针灸: false,
-            处方: false,
-            质量系数: true
-          }
+          // selected: {
+          //   手术: true,
+          //   针灸: false,
+          //   处方: false,
+          //   质量系数: true
+          // }
         },
         xAxis: {
           type: 'category',
-          data: ['10-01', '10-02', '10-03', '10-04', '10-05', '10-06', '10-07']
+          data: this.workScoreDailyListData.day
         },
         yAxis: [
           {
@@ -277,93 +352,7 @@ export default {
             }
           }
         ],
-        series: [
-          {
-            name: '手术辅助',
-            type: 'bar',
-            stack: '手术',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 900, 1000, 1300, 1500, 1700, 1800]
-          },
-          {
-            name: '手术',
-            type: 'bar',
-            stack: '手术',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [900, 100, 300, 200, 200, 100, 500]
-          },
-          {
-            name: '针灸辅助',
-            type: 'bar',
-            stack: '针灸',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 400, 500, 800, 1100, 1500, 1700]
-          },
-          {
-            name: '针灸',
-            type: 'bar',
-            stack: '针灸',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [400, 100, 300, 300, 400, 200, 300]
-          },
-          {
-            name: '处方辅助',
-            type: 'bar',
-            stack: '处方',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 200, 300, 600, 800, 1000, 1100]
-          },
-          {
-            name: '处方',
-            type: 'bar',
-            stack: '处方',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [200, 100, 300, 200, 200, 100, 200]
-          },
-
-          {
-            name: '质量系数',
-            yAxisIndex: 1,
-            data: [50, 70, 65, 78, 85, 47, 60],
-            type: 'line'
-          }
-        ]
+        series: series
       };
       myChart.setOption(option);
     }
