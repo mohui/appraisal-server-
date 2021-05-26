@@ -1,8 +1,9 @@
-import {getHospital} from './his_staff';
+import HisStaff, {getHospital} from './his_staff';
 import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {monthToRange} from './manual';
+const staffApi = new HisStaff();
 
 /**
  * 机构模块
@@ -148,6 +149,47 @@ export default class HisHospital {
       hospital,
       start,
       end
+    );
+  }
+
+  /**
+   * 员工考核结果列表
+   *
+   * @param month 月份
+   * @return [
+   *   {
+   *     id: 员工id
+   *     name: 姓名
+   *     score: 校正前工分值
+   *     rate?: 质量系数
+   *   }
+   * ]
+   */
+  @validate(should.date().required())
+  async findStaffCheckList(month) {
+    const hospital = await getHospital();
+    // language=PostgreSQL
+    return Promise.all(
+      (
+        await appDB.execute(
+          `
+      select id, name
+      from staff
+      where hospital = ?
+    `,
+          hospital
+        )
+      ).map(async it => {
+        const result = await staffApi.findWorkScoreList(it.id, month);
+        return {
+          ...it,
+          rate: result.rate,
+          score: result.items.reduce(
+            (result, current) => (result += current.score),
+            0
+          )
+        };
+      })
     );
   }
 }

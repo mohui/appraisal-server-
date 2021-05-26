@@ -460,7 +460,13 @@ export default class HisStaff {
    * }
    */
   @validate(should.string().required(), should.date().required())
-  async findWorkScoreList(id, month) {
+  async findWorkScoreList(
+    id,
+    month
+  ): Promise<{
+    items: {id: string; name: string; score: number}[];
+    rate?: number;
+  }> {
     const {start, end} = monthToRange(month);
     //获取工分列表
     // language=PostgreSQL
