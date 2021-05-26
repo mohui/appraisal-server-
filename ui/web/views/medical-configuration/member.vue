@@ -77,7 +77,7 @@
             <div>{{ row.subRate }}%</div>
           </template>
         </el-table-column>
-        <el-table-column prop="" label="操作">
+        <el-table-column prop="opera" label="操作">
           <template slot-scope="{row}">
             <el-tooltip content="编辑" :enterable="false">
               <el-button
@@ -351,6 +351,7 @@ export default {
   methods: {
     async submit() {
       try {
+        console.log(this.newMember.subMembers);
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           this.submitLoading = true;
@@ -422,14 +423,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         });
-        //查询所以属于该考核员工的配置数据
-        const removeRows = this.tableData.filter(it => it.staff === row.staff);
-        //批量删除这些数据
-        await Promise.all(
-          removeRows.map(
-            async it => await this.$api.HisStaff.delHisStaffWorkSource(it.id)
-          )
-        );
+        await this.$api.HisStaff.delHisStaffWorkSource(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
@@ -437,7 +431,11 @@ export default {
       }
     },
     spanMethod({column, rowIndex}) {
-      if (column.property !== 'subMembers' && column.property !== 'subRate') {
+      if (
+        column.property !== 'subMembers' &&
+        column.property !== 'opera' &&
+        column.property !== 'subRate'
+      ) {
         const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
