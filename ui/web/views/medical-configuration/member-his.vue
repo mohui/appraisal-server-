@@ -401,7 +401,8 @@ export default {
             await this.$api.HisStaff.update(
               this.userForm.id,
               this.userForm.name.trim(),
-              this.userForm.password.trim()
+              this.userForm.password.trim(),
+              this.userForm.his
             );
             this.$message({
               type: 'success',
