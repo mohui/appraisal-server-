@@ -43,7 +43,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="用户名:">
+              <el-form-item label="姓名:">
                 <el-input
                   v-model="searchForm.name"
                   size="mini"
@@ -84,7 +84,7 @@
         <el-table-column prop="account" label="登录名"></el-table-column>
         <el-table-column
           prop="name"
-          label="用户名"
+          label="姓名"
           min-width="100"
         ></el-table-column>
         <el-table-column
@@ -154,7 +154,7 @@
         >
           <el-input v-model="userForm.password" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
+        <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
@@ -212,7 +212,7 @@
             ></i
           ></el-input>
         </el-form-item>
-        <el-form-item label="用户名" prop="name" :label-width="formLabelWidth">
+        <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
@@ -267,11 +267,11 @@ export default {
       },
       rulesAdd: {
         account: [{required: true, message: '请输入登录名', trigger: 'blur'}],
-        name: [{required: true, message: '请输入用户名', trigger: 'blur'}],
+        name: [{required: true, message: '请输入姓名', trigger: 'blur'}],
         password: [{required: true, message: '请输入密码', trigger: 'blur'}]
       },
       rulesEdit: {
-        name: [{required: true, message: '请输入用户名', trigger: 'blur'}]
+        name: [{required: true, message: '请输入姓名', trigger: 'blur'}]
       },
       tableLoading: false,
       addBtnLoading: false
