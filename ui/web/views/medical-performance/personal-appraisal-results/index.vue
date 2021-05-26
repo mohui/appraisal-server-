@@ -16,7 +16,6 @@
           </div>
         </div>
       </div>
-      {{ workScoreDailyListData }}
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
@@ -147,8 +146,31 @@ export default {
       result.day = this.workScoreDailyListServerData?.map(it =>
         it.day.$format('YYYY-MM-DD')
       );
-      const items = this.workScoreDailyListServerData?.map(it => it.items);
-      result.items = items;
+      let items = [];
+      items = this.workScoreDailyListServerData?.map(it => it.items);
+      let projects = [];
+      if (items?.length > 0) {
+        for (const item of items) {
+          for (const it of item) {
+            const index = projects.findIndex(p => p.name === it.name);
+            if (index === -1) {
+              projects.push({
+                name: it.name,
+                score: [it.score],
+                auxiliaryDate: [0]
+              });
+            } else {
+              projects[index].auxiliaryDate.push(
+                projects[index].score.reduce(function(total, currentValue) {
+                  return total + currentValue;
+                }, 0)
+              );
+              projects[index].score.push(it.score);
+            }
+          }
+        }
+      }
+      result.projects = projects;
       return result;
     },
     personInfoData() {
@@ -245,34 +267,8 @@ export default {
       const myChart = this.$echarts.init(
         document.getElementById('projectWorkPointBarRateLine')
       );
-      let projects = [];
-      // console.log('workScoreDailyListData:', this.workScoreDailyListData);
-      for (const item of this.workScoreDailyListData.items) {
-        console.log(item);
-        for (const it of item) {
-          const index = projects.findIndex(p => p.name === it.name);
-          console.log(index);
-          if (index === -1) {
-            projects.push({
-              name: it.name,
-              score: [it.score],
-              auxiliaryDate: [0]
-            });
-          } else {
-            projects[index].auxiliaryDate.push(
-              projects[index].score.reduce(function(total, currentValue) {
-                return total + currentValue;
-              }, 0)
-            );
-            projects[index].score.push(it.score);
-          }
-        }
-      }
-      console.log('projects:', projects);
       let series = [];
-      for (const it of projects) {
-        console.log('it-------:', it);
-
+      for (const it of this.workScoreDailyListData.projects) {
         const s = {
           name: it.name,
           type: 'bar',
@@ -283,9 +279,7 @@ export default {
           },
           data: it.score
         };
-        console.log('s-------:', s);
-
-        const s1 = {
+        const auxiliaryS = {
           name: it.name + '辅助',
           type: 'bar',
           stack: it.name,
@@ -301,13 +295,8 @@ export default {
           },
           data: it.auxiliaryDate
         };
-
-        console.log('s1-------:', s1);
-
-        series.push(s1, s);
+        series.push(auxiliaryS, s);
       }
-      console.log('series1-------:', series);
-
       let option;
       option = {
         //设置颜色
@@ -321,7 +310,7 @@ export default {
           }
         },
         legend: {
-          data: projects.map(it => it.name)
+          data: this.workScoreDailyListData?.projects.map(it => it.name)
           // 设置图例选中状态表
           // selected: {
           //   手术: true,
