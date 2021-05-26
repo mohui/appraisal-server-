@@ -480,10 +480,12 @@ export default class HisStaff {
           where staff = ?
         ) as s on d.staff = s.staff
                inner join his_work_item wi on d.item = wi.id
+               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
         where d.date >= ?
           and d.date < ?
-        group by item
+        group by d.item
       `,
+      id,
       id,
       start,
       end
@@ -504,7 +506,7 @@ export default class HisStaff {
     return {
       items: workItems.map(it => ({
         ...it,
-        score: 0
+        score: items.find(item => item.id === it.id)?.score ?? 0
       })),
       rate
     };
@@ -563,24 +565,26 @@ export default class HisStaff {
     }[] = await appDB.execute(
       `
         select d.item                    as id,
-               max(wi.name)              as name,
-               max(d.staff)              as staff,
                date_trunc('day', d.date) as day,
-               sum(d.score)              as score
+               sum(d.score * s.rate)     as score
         from his_staff_work_score_detail d
-               inner join his_work_item wi on d.item = wi.id
-               inner join his_staff_work_item_mapping swm on swm.item = d.item
+               inner join (
+          select unnest(sources) as staff, rate
+          from his_staff_work_source
+          where staff = ?
+        ) as s on d.staff = s.staff
+               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
         where d.date >= ?
           and d.date < ?
-          and d.staff in (${sources.map(() => '?')})
-          and swm.staff = ?
         group by day, d.item, d.staff
       `,
+      id,
+      id,
       start,
-      end,
-      ...sources.map(it => it.staff),
-      id
+      end
     );
+    //查询质量系数列表
+    const rateList = await this.getRateList(id, month);
     //定义返回值
     const result: {
       day: Date;
@@ -591,15 +595,21 @@ export default class HisStaff {
     const days = dayjs(end).diff(start, 'd');
     //占坑
     for (let i = 0; i < days; i++) {
+      const day = dayjs(start)
+        .add(i, 'd')
+        .toDate();
       result.push({
-        day: dayjs(start)
-          .add(i, 'd')
-          .toDate(),
+        day,
         items: workItems.map(it => ({
           ...it,
-          score: 0
+          score:
+            scoreList.find(
+              item => item.id === it.id && item.day.getTime() === day.getTime()
+            )?.score ?? 0
         })),
-        rate: null
+        rate: rateList.find(
+          rateItem => rateItem.day.getTime() === day.getTime()
+        )?.rate
       });
     }
     return result;
