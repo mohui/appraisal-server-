@@ -146,6 +146,9 @@ export default {
       result.day = this.workScoreDailyListServerData?.map(it =>
         it.day.$format('MM-DD')
       );
+      result.rates = this.workScoreDailyListServerData?.map(
+        it => it.rate * 100
+      );
       let items = [];
       items = this.workScoreDailyListServerData?.map(it => it.items);
       let projects = [];
@@ -268,6 +271,13 @@ export default {
         document.getElementById('projectWorkPointBarRateLine')
       );
       let series = [];
+      const rateS = {
+        name: '质量系数',
+        yAxisIndex: 1,
+        data: this.workScoreDailyListData.rates,
+        type: 'line'
+      };
+      series.push(rateS);
       for (const it of this.workScoreDailyListData.projects) {
         const s = {
           name: it.name,
@@ -297,6 +307,10 @@ export default {
         };
         series.push(auxiliaryS, s);
       }
+      const legendData = this.workScoreDailyListData?.projects.map(
+        it => it.name
+      );
+      legendData.push('质量系数');
       let option;
       option = {
         //设置颜色
@@ -310,14 +324,7 @@ export default {
           }
         },
         legend: {
-          data: this.workScoreDailyListData?.projects.map(it => it.name)
-          // 设置图例选中状态表
-          // selected: {
-          //   手术: true,
-          //   针灸: false,
-          //   处方: false,
-          //   质量系数: true
-          // }
+          data: legendData
         },
         xAxis: {
           type: 'category',
