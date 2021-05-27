@@ -88,7 +88,9 @@ export default {
   name: 'index',
   data() {
     return {
-      currentDate: dayjs().toDate(),
+      currentDate: dayjs()
+        .startOf('M')
+        .toDate(),
       disabledDate: {
         disabledDate(time) {
           return time.getTime() > dayjs().toDate();
@@ -411,10 +413,11 @@ export default {
       // 表格的点击事件添加路由跳转
       myChart.on('click', params => {
         console.log(params);
+        const id = this.staffCheckListData[params.dataIndex].id;
         this.$router.push({
           name: 'personal-appraisal-results',
           query: {
-            name: params.name
+            id: id
           }
         });
       });

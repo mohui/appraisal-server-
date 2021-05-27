@@ -116,6 +116,7 @@ export default {
   name: 'index',
   data() {
     return {
+      id: this.$route.query.id,
       dataSource: {name: '张三', score: 200, rate: 80},
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
@@ -184,7 +185,7 @@ export default {
     workScoreListServerData: {
       async get() {
         return await this.$api.HisStaff.findWorkScoreList(
-          'af637f5c-2711-49ee-a025-42c10659371c',
+          this.id,
           dayjs().toDate()
         );
       },
@@ -193,7 +194,7 @@ export default {
     workScoreDailyListServerData: {
       async get() {
         return await this.$api.HisStaff.findWorkScoreDailyList(
-          'af637f5c-2711-49ee-a025-42c10659371c',
+          this.id,
           dayjs().toDate()
         );
       },
@@ -201,9 +202,7 @@ export default {
     },
     personInfoServerData: {
       async get() {
-        return await this.$api.HisStaff.get(
-          'af637f5c-2711-49ee-a025-42c10659371c'
-        );
+        return await this.$api.HisStaff.get(this.id);
       },
       default: {}
     }
