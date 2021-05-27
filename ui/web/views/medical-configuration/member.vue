@@ -41,11 +41,21 @@
                 ></el-select>
               </el-form-item>
             </el-col>
+            <el-col :lg="6" :md="6" :sm="12" :span="6" :xl="6" :xs="24">
+              <el-form-item>
+                <el-button
+                  size="mini"
+                  type="primary"
+                  @click="$asyncComputed.serverData.update()"
+                  >查询</el-button
+                >
+              </el-form-item>
+            </el-col>
           </el-row>
         </el-form>
       </kn-collapse>
       <el-table
-        v-loading="tableLoading"
+        v-loading="$asyncComputed.serverData.updating"
         stripe
         border
         class="expanded-member-table"
@@ -254,7 +264,6 @@ export default {
         staff: [{required: true, message: '选择员工', trigger: 'change'}],
         subMembers: [{validator: ValidSubMember, trigger: 'blur'}]
       },
-      tableLoading: false,
       submitLoading: false,
       newMemberLoading: false
     };
@@ -388,7 +397,6 @@ export default {
     serverData: {
       async get() {
         let data = [];
-        this.tableLoading = true;
         try {
           data = await this.$api.HisStaff.selHisStaffWorkSource();
           return {
@@ -397,8 +405,6 @@ export default {
           };
         } catch (e) {
           console.error(e.message);
-        } finally {
-          this.tableLoading = false;
         }
       },
       default: {counts: 0, rows: []}
