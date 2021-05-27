@@ -343,10 +343,10 @@ export default {
   },
   watch: {
     'newMember.staff': async function() {
-      if (this.newMember.staff) {
+      this.newMember.subMembers = [];
+      if (this.newMember.id && this.newMember.staff) {
         try {
           this.newMemberLoading = true;
-          this.newMember.subMembers = [];
           const oldSubMembers = await this.$api.HisStaff.searchHisStaffWorkSource(
             this.newMember.staff
           );
@@ -368,28 +368,28 @@ export default {
                   ? -1
                   : 1;
               });
-          } else {
-            this.newMember.id = '';
-            //该员工未绑定过,默认绑定自己
-            this.newMember.subMembers.push({
-              //名字
-              member: [
-                this.memberList.find(it => it.id === this.newMember.staff).name
-              ],
-              staffs: [this.newMember.staff],
-              rate: 100
-            });
-            this.newMember.subMembers.push({
-              member: [],
-              staffs: [],
-              rate: 0
-            });
           }
         } catch (e) {
           console.error(e);
         } finally {
           this.newMemberLoading = false;
         }
+      } else {
+        this.newMember.id = '';
+        //该员工未绑定过,默认绑定自己
+        this.newMember.subMembers.push({
+          //名字
+          member: [
+            this.memberList.find(it => it.id === this.newMember.staff).name
+          ],
+          staffs: [this.newMember.staff],
+          rate: 100
+        });
+        this.newMember.subMembers.push({
+          member: [],
+          staffs: [],
+          rate: 0
+        });
       }
     }
   },
