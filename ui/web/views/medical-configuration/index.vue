@@ -48,7 +48,7 @@
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="工分项:">
               <el-input
-                v-model="searchForm.workId"
+                v-model="searchForm.work"
                 size="mini"
                 clearable
               ></el-input>
@@ -239,7 +239,12 @@
         label-width="120px"
       >
         <el-form-item label="工分项" prop="work">
-          <el-select v-model="newConfig.work" style="width: 100%">
+          <el-select
+            v-model="newConfig.work"
+            clearable
+            filterable
+            style="width: 100%"
+          >
             <el-option
               v-for="work in workList"
               :key="work.id"
@@ -249,7 +254,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="考核员工" prop="member">
-          <el-select v-model="newConfig.member" style="width: 100%" multiple>
+          <el-select
+            v-model="newConfig.member"
+            clearable
+            filterable
+            multiple
+            style="width: 100%"
+          >
             <el-option
               v-for="m in memberList"
               :key="m.id"
