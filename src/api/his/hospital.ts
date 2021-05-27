@@ -76,7 +76,7 @@ export default class HisHospital {
     const {start, end} = monthToRange(month);
     //查询是否结算
     // language=PostgreSQL
-    const settle =
+    let settle =
       (
         await appDB.execute(
           `
@@ -89,6 +89,11 @@ export default class HisHospital {
           start
         )
       )[0]?.settle ?? false;
+    //一个月前的结算状态, 默认已结算
+    if (dayjs().diff(month, 'M') > 1) {
+      settle = true;
+    }
+
     //查询校正前总工分
     // language=PostgreSQL
     const originalScore = Number(
