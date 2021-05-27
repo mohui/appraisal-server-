@@ -137,6 +137,23 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_score_detail.date is '得分时间';
       comment on column his_staff_work_score_detail.score is '得分';
 
+      --员工工分项目每日统计得分表
+      create table his_staff_daily_work_score
+      (
+        id           varchar(36) primary key,
+        staff        varchar(36),
+        item         varchar(36),
+        date         date,
+        score        double precision,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table his_staff_work_score is '员工工分项目每日统计得分表';
+      comment on column his_staff_work_score.staff is '员工id';
+      comment on column his_staff_work_score.item is '工分项目id';
+      comment on column his_staff_work_score.date is '得分时间';
+      comment on column his_staff_work_score.score is '得分';
+
       --医疗考核方案表
       create table if not exists "his_check_system"
       (
