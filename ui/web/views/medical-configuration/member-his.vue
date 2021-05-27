@@ -358,7 +358,7 @@ export default {
           try {
             this.addBtnLoading = true;
             await this.$api.HisStaff.add(
-              this.userForm.his,
+              this.userForm.his || null,
               this.userForm.account.trim(),
               this.userForm.password.trim(),
               this.userForm.name.trim()
@@ -402,7 +402,7 @@ export default {
               this.userForm.id,
               this.userForm.name.trim(),
               this.userForm.password.trim(),
-              this.userForm.his
+              this.userForm.his || null
             );
             this.$message({
               type: 'success',
