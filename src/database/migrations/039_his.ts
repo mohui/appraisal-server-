@@ -209,7 +209,7 @@ export class HisMigration implements IMigration {
       --考核得分表
       create table if not exists his_rule_staff_score
       (
-        rule_id      varchar(36),
+        rule      varchar(36),
         rule_name    varchar(255),
         staff        varchar(36),
         date         date,
@@ -217,10 +217,10 @@ export class HisMigration implements IMigration {
         total        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (rule_id, staff, date)
+        primary key (rule, staff, date)
       );
       comment on table his_rule_staff_score is '考核得分表';
-      comment on column his_rule_staff_score.rule_id is '考核规则id';
+      comment on column his_rule_staff_score.rule is '考核规则id';
       comment on column his_rule_staff_score.staff is '员工id';
       comment on column his_rule_staff_score.date is '日期';
       comment on column his_rule_staff_score.score is '得分';
