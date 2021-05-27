@@ -3,6 +3,8 @@ import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {monthToRange} from './manual';
+import {monthValid} from '../../../common/his';
+
 const staffApi = new HisStaff();
 
 /**
@@ -17,7 +19,7 @@ export default class HisHospital {
    * @param month 月份
    * @param settle 是否结算
    */
-  @validate(should.date().required(), should.boolean().required())
+  @validate(monthValid, should.boolean().required())
   async settle(month, settle) {
     const hospital = await getHospital();
     const date = dayjs(month)
@@ -57,7 +59,7 @@ export default class HisHospital {
    *   correctScore: 校正后工分
    * }
    */
-  @validate(should.date().required())
+  @validate(monthValid)
   async overview(month) {
     const hospital = await getHospital();
     //查询机构
@@ -135,7 +137,7 @@ export default class HisHospital {
    *   score: 工分项目分数(校正前)
    * }
    */
-  @validate(should.date().required())
+  @validate(monthValid)
   async findWorkScoreList(month) {
     const hospital = await getHospital();
     const {start, end} = monthToRange(month);
@@ -170,18 +172,18 @@ export default class HisHospital {
    *   }
    * ]
    */
-  @validate(should.date().required())
+  @validate(monthValid)
   async findStaffCheckList(month) {
     const hospital = await getHospital();
-    // language=PostgreSQL
     return Promise.all(
       (
         await appDB.execute(
+          // language=PostgreSQL
           `
-      select id, name
-      from staff
-      where hospital = ?
-    `,
+            select id, name
+            from staff
+            where hospital = ?
+          `,
           hospital
         )
       ).map(async it => {

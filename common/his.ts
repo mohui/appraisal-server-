@@ -1,3 +1,31 @@
+import * as dayjs from 'dayjs';
+import {should} from 'kato-server';
+
+/**
+ * 获取时间区间
+ *
+ * @return {
+ *   start: 默认开始时间
+ *   end: 当前时间点
+ * }
+ */
+export function getTimeRange(): {start: Date; end: Date} {
+  return {
+    //TODO: 暂时定在2021年1月
+    start: dayjs('2021-01-01').toDate(),
+    end: dayjs().toDate()
+  };
+}
+
+/**
+ * 月份参数校验
+ */
+export const monthValid = should
+  .date()
+  .min(getTimeRange().start)
+  .max(getTimeRange().end)
+  .required();
+
 /**
  * 手工数据输入方式
  */
