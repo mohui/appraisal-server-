@@ -715,6 +715,8 @@ export default class HisStaff {
           where "check" = ?`,
       check
     );
+    if (rules.length === 0) return [];
+
     const ruleId = rules.map(it => it.id);
 
     // 查询指定日期的得分
