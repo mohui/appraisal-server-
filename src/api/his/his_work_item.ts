@@ -512,8 +512,8 @@ export default class HisWorkItem {
 
   /**
    * 工分项和员工的绑定
-   * @param item
-   * @param staffs
+   * @param item 工分项id
+   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数)
    */
   @validate(
     should
@@ -521,15 +521,44 @@ export default class HisWorkItem {
       .required()
       .description('工分项目id'),
     should
-      .array()
-      .items({
-        staffs: should.array().required(),
-        score: should.number().required()
+      .object({
+        insert: should
+          .object({
+            staffs: should
+              .array()
+              .required()
+              .description('员工id'),
+            score: should
+              .number()
+              .required()
+              .allow(null)
+              .description('分值')
+          })
+          .required()
+          .description('要添加的绑定关系'),
+        update: should
+          .object({
+            ids: should
+              .array()
+              .required()
+              .description('员工和工分项绑定id'),
+            score: should
+              .number()
+              .required()
+              .allow(null)
+              .description('分值')
+          })
+          .required()
+          .description('要修改的绑定关系'),
+        delete: should
+          .array()
+          .required()
+          .description('员工和公分项绑定id')
       })
       .required()
-      .description('员工和分值')
+      .description('要增删改的公分项和员工的绑定')
   )
-  async upsertStaffWorkItemMapping(item, staffs) {
+  async upsertStaffWorkItemMapping(item, params) {
     return appDB.transaction(async () => {
       // 排查公分项是否存在
       const itemList = await appDB.execute(
@@ -537,31 +566,84 @@ export default class HisWorkItem {
         item
       );
       if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
+
       // 排查公分项是否存在
       const staffItemList = await appDB.execute(
-        `select * from his_staff_work_item_mapping where item = ?`,
+        `select id, staff, item, score from his_staff_work_item_mapping where item = ?`,
         item
       );
-      // 如果已经存在,先删除
-      if (staffItemList.length > 0)
+
+      // 第一步,判断如果有需要删除的数据先执行删除
+      if (params?.delete.length > 0) {
         await appDB.execute(
-          `delete from his_staff_work_item_mapping where item = ?`,
-          item
+          `delete from his_staff_work_item_mapping
+                 where id in (${params.delete.map(() => '?')})`,
+          ...params.delete
         );
-      // 绑定员工和工分项
-      for (const it of staffs) {
-        for (const staffIt of it.staffs) {
+      }
+
+      // 第二步, 如果有需要添加的数据,执行添加
+      if (params?.insert.staffs.length > 0) {
+        const staffIds = params.insert.staffs;
+        if (staffIds.length === 0)
+          throw new KatoRuntimeError(`考核员工不能为空`);
+
+        const checkStaff = await appDB.execute(
+          `select id, account, name from staff where id in (${staffIds.map(
+            () => '?'
+          )})`,
+          ...staffIds
+        );
+        if (checkStaff.length !== staffIds.length)
+          throw new KatoRuntimeError(`考核员工异常`);
+
+        // 校验员工是否已经绑定过公分项
+        staffItemList.forEach(it => {
+          const index = checkStaff.find(staff => it.staff === staff);
+          if (index)
+            throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
+        });
+        // 添加
+        for (const staffIt of staffIds) {
           await appDB.execute(
             ` insert into
-              his_staff_work_item_mapping(item, staff, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
+              his_staff_work_item_mapping(id, item, staff, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+            uuid(),
             item,
             staffIt,
-            it.score,
+            params.insert.score,
             dayjs().toDate(),
             dayjs().toDate()
           );
         }
+      }
+
+      // 第三步, 如果有需要更新的数据,执行更新
+      if (params?.update.ids.length > 0) {
+        // 先根据id查询到该工分项下的员工是否在其他分数中存在
+        const updList = await appDB.execute(
+          `select id, staff, item, score
+                from his_staff_work_item_mapping
+                where id in (${params?.update.ids.map(() => '?')})`,
+          ...params.update.ids
+        );
+        // 校验员工是否已经绑定过公分项
+        staffItemList.forEach(it => {
+          const index = updList.find(
+            item => it.staff === item.staff && it.score !== item.score
+          );
+          if (index)
+            throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
+        });
+        await appDB.execute(
+          `update his_staff_work_item_mapping set score = ?, updated_at = ?
+                where id in (${params?.update.ids.map(() => '?')})
+          `,
+          params.update.score,
+          dayjs().toDate(),
+          ...params.update.ids
+        );
       }
     });
   }
@@ -587,6 +669,7 @@ export default class HisWorkItem {
       `
         select item.id, item.name
           ,item.method
+          ,mapping.id "mappingId"
           ,mapping.staff
           ,mapping.score
           ,staff.name "staffName"
@@ -613,10 +696,13 @@ export default class HisWorkItem {
 
     const returnList = [];
     for (const it of itemList) {
-      const index = returnList.find(item => item.id === it.id);
+      const index = returnList.find(
+        item => item.id === it.id && item.score === it.score
+      );
       if (index) {
         if (it.staff) {
           index.staffs.push({
+            mapping: it.mappingId,
             id: it.staff,
             name: it.staffName,
             account: it.account
@@ -631,6 +717,7 @@ export default class HisWorkItem {
           staffs: it.staff
             ? [
                 {
+                  mapping: it.mappingId,
                   id: it.staff,
                   name: it.staffName,
                   account: it.account
