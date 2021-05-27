@@ -355,7 +355,7 @@ export default {
           source: HisWorkSource.CHECK,
           scoreMethod: row.scoreMethod,
           oldProjects: row.mappings.map(m => ({
-            name: m.name,
+            name: `${m.name}(${m.source})`,
             id: m.id + '_' + m.source
           })),
           projects: []
