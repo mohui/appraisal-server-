@@ -311,6 +311,17 @@ export default {
         it => it.name
       );
       legendData.push('质量系数');
+
+      const selected = {};
+      for (let i = 0; i < legendData.length; i++) {
+        if (i === 0) {
+          selected[`${legendData[0]}`] = true;
+        } else {
+          selected[`${legendData[i]}`] = false;
+        }
+      }
+      selected['质量系数'] = true;
+
       let option;
       option = {
         //设置颜色
@@ -324,7 +335,9 @@ export default {
           }
         },
         legend: {
-          data: legendData
+          data: legendData,
+          // 设置图例选中状态表
+          selected: selected
         },
         xAxis: {
           type: 'category',
