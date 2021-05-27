@@ -142,17 +142,19 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         staff        varchar(36),
-        item         varchar(36),
+        item_id      varchar(36),
+        item_name    varchar(255),
         date         date,
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
-      comment on table his_staff_work_score is '员工工分项目每日统计得分表';
-      comment on column his_staff_work_score.staff is '员工id';
-      comment on column his_staff_work_score.item is '工分项目id';
-      comment on column his_staff_work_score.date is '得分时间';
-      comment on column his_staff_work_score.score is '得分';
+      comment on table his_staff_daily_work_score is '员工工分项目每日统计得分表';
+      comment on column his_staff_daily_work_score.staff is '员工id';
+      comment on column his_staff_daily_work_score.item_id is '工分项目id';
+      comment on column his_staff_daily_work_score.item_name is '工分项目名称';
+      comment on column his_staff_daily_work_score.date is '得分时间';
+      comment on column his_staff_daily_work_score.score is '得分';
 
       --医疗考核方案表
       create table if not exists "his_check_system"
@@ -207,19 +209,22 @@ export class HisMigration implements IMigration {
       --考核得分表
       create table if not exists his_rule_staff_score
       (
-        rule         varchar(36),
+        rule_id      varchar(36),
+        rule_name    varchar(255),
         staff        varchar(36),
         date         date,
         score        double precision,
+        total        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (rule, staff, date)
+        primary key (rule_id, staff, date)
       );
       comment on table his_rule_staff_score is '考核得分表';
-      comment on column his_rule_staff_score.rule is '考核规则id';
+      comment on column his_rule_staff_score.rule_id is '考核规则id';
       comment on column his_rule_staff_score.staff is '员工id';
       comment on column his_rule_staff_score.date is '日期';
       comment on column his_rule_staff_score.score is '得分';
+      comment on column his_rule_staff_score.total is '分值';
 
       --员工附加分表
       create table if not exists his_staff_extra_score
