@@ -81,21 +81,11 @@
           type="index"
           label="序号"
         ></el-table-column>
-        <el-table-column align="center" prop="work" label="工分项">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.work }}</div>
-            <div v-else>
-              <el-select v-model="tempRow.workId" size="mini">
-                <el-option
-                  v-for="work in workList"
-                  :key="work.id"
-                  :label="work.name"
-                  :value="work.id"
-                ></el-option>
-              </el-select>
-            </div>
-          </template>
-        </el-table-column>
+        <el-table-column
+          align="center"
+          label="工分项"
+          prop="work"
+        ></el-table-column>
         <el-table-column
           align="center"
           prop="scoreType"
@@ -127,7 +117,7 @@
             </div>
             <div v-else-if="row.isEdit">
               <el-select
-                v-model="tempRow.memberIds"
+                v-model="row.memberIds"
                 size="mini"
                 multiple
                 collapse-tags
@@ -170,10 +160,10 @@
             >
               <el-button
                 type="success"
-                icon="el-icon-check"
+                :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
                 circle
                 size="mini"
-                @click="submitEdit()"
+                @click="submitEdit(row)"
               >
               </el-button>
             </el-tooltip>
@@ -275,7 +265,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig()">取 消</el-button>
-        <el-button type="primary" @click="submit()">
+        <el-button v-loading="submitLoading" type="primary" @click="submit()">
           确 定
         </el-button>
       </div>
@@ -316,7 +306,9 @@ export default {
       HisWorkMethod: Object.keys(HisWorkMethod).map(it => ({
         value: HisWorkMethod[it],
         key: it
-      }))
+      })),
+      submitLoading: false,
+      updateLoading: false
     };
   },
   computed: {
@@ -377,17 +369,26 @@ export default {
       try {
         const valid = await this.$refs['configForm'].validate();
         if (valid) {
-          const item = this.newConfig.work;
-          const staffs = [
-            {staffs: this.newConfig.member, score: this.newConfig.score}
-          ];
-          await this.$api.HisWorkItem.upsertStaffWorkItemMapping(item, staffs);
+          this.submitLoading = true;
+          await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
+            this.newConfig.work,
+            {
+              insert: {
+                staffs: this.newConfig.member,
+                score: this.newConfig.score
+              },
+              update: {ids: [], score: null},
+              delete: []
+            }
+          );
           this.resetConfig();
           this.$asyncComputed.serverData.update();
         }
       } catch (e) {
         console.error(e);
         if (e) this.$message.error(e.message);
+      } finally {
+        this.submitLoading = false;
       }
     },
     editRow(row) {
@@ -402,19 +403,41 @@ export default {
       row.isEdit = !row.isEdit;
       this.tempRow = '';
     },
-    async submitEdit() {
-      if (this.tempRow?.memberIds.length < 1) {
+    async submitEdit(row) {
+      if (row?.memberIds.length < 1) {
         this.$message.warning('考核员工不能为空');
         return;
       }
-      this.tempRow.isEdit = !this.tempRow.isEdit;
-      await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
-        this.tempRow.workId,
-        [{staffs: this.tempRow.memberIds, score: this.tempRow.score}]
+      //要新添的新员工
+      const insertArr = row.memberIds.filter(
+        m => !row.staffs.some(s => s.id === m)
       );
-      this.$message.success('修改成功');
-      await this.$asyncComputed.serverData.update();
-      this.tempRow = '';
+      //要删除的员工与工分的mapping
+      const deleteArr = row.staffs
+        .filter(s => !row.memberIds.some(m => s.id === m))
+        .map(s => s.mapping);
+      //要更新的员工与工分mapping
+      const upsert = row.memberIds
+        .filter(
+          it => !insertArr.some(u => u === it) && !deleteArr.some(d => d === it)
+        )
+        .map(it => row.staffs.find(s => s.id === it)?.mapping);
+      this.updateLoading = true;
+      try {
+        await this.$api.HisWorkItem.upsertStaffWorkItemMapping(row.workId, {
+          insert: {staffs: insertArr, score: row.score},
+          update: {ids: upsert, score: row.score},
+          delete: deleteArr
+        });
+        this.$message.success('修改成功');
+        row.isEdit = !row.isEdit;
+        await this.$asyncComputed.serverData.update();
+        this.tempRow = '';
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.updateLoading = false;
+      }
     },
     async removeRow(row) {
       try {
