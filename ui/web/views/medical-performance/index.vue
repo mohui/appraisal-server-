@@ -184,6 +184,9 @@ export default {
     },
     workScoreListData() {
       return this.workScoreListSeverData;
+    },
+    staffCheckListData() {
+      return this.staffCheckListSeverData;
     }
   },
   asyncComputed: {
@@ -202,11 +205,22 @@ export default {
       default() {
         return [];
       }
+    },
+    staffCheckListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
     }
   },
   watch: {
     workScoreListData: function() {
       this.drawProjectPerformanceBar();
+    },
+    staffCheckListData: function() {
+      this.drawDoctorPerformanceBar();
     }
   },
   methods: {
@@ -303,6 +317,7 @@ export default {
     },
     // 医生绩效柱状图
     drawDoctorPerformanceBar() {
+      const doctorData = this.staffCheckListData;
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
         document.getElementById('doctorPerformanceBar')
@@ -339,7 +354,7 @@ export default {
             axisTick: {
               alignWithLabel: true
             },
-            data: this.dataSource.doctorData.map(it => it.name)
+            data: doctorData.map(it => it.name)
           }
         ],
         yAxis: [
@@ -360,7 +375,7 @@ export default {
           },
           {
             type: 'value',
-            name: '质量系数',
+            name: '质量系数（%）',
             min: 0,
             max: 1,
             axisLine: {
@@ -379,13 +394,13 @@ export default {
             name: '人员得分',
             type: 'bar',
             yAxisIndex: 0,
-            data: this.dataSource.doctorData.map(it => it.score)
+            data: doctorData.map(it => it.score)
           },
           {
             name: '质量系数',
             type: 'bar',
             yAxisIndex: 1,
-            data: this.dataSource.doctorData.map(it => it.rate)
+            data: doctorData.map(it => it.rate * 100)
           }
         ]
       };
