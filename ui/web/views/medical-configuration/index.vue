@@ -383,6 +383,7 @@ export default {
           ];
           await this.$api.HisWorkItem.upsertStaffWorkItemMapping(item, staffs);
           this.resetConfig();
+          this.$asyncComputed.serverData.update();
         }
       } catch (e) {
         console.error(e);
