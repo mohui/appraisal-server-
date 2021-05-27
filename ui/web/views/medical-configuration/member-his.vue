@@ -367,7 +367,8 @@ export default {
               type: 'success',
               message: '新建用户成功!'
             });
-            this.$asyncComputed.listMember.update();
+            this.$asyncComputed.listMember.update(); //刷新系统员工列表
+            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
             this.dialogFormAddUsersVisible = false;
           } catch (e) {
             this.$message.error(e.message);
