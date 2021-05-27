@@ -419,9 +419,9 @@ export default class HisWorkItem {
         // language=PostgreSQL
         await appDB.execute(
           `
-          insert into his_staff_work_score_detail(id, staff, item, date, score)
-          values (?, ?, ?, ?, ?)
-        `,
+            insert into his_staff_work_score_detail(id, staff, item, date, score)
+            values (?, ?, ?, ?, ?)
+          `,
           uuid(),
           staff,
           item.item,
