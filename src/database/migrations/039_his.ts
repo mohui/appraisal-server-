@@ -121,7 +121,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_item_mapping.score is '分值';
 
       --员工工分项目得分流水表
-      create table his_staff_work_score_detail
+      create table if not exists his_staff_work_score_detail
       (
         id           varchar(36) primary key,
         staff        varchar(36),
@@ -138,7 +138,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_score_detail.score is '得分';
 
       --员工工分项目每日统计得分表
-      create table his_staff_daily_work_score
+      create table if not exists his_staff_daily_work_score
       (
         id           varchar(36) primary key,
         staff        varchar(36),
