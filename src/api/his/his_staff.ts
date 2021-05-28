@@ -287,6 +287,32 @@ export default class HisStaff {
   }
 
   /**
+   * 员工关联员工列表
+   */
+  async workSourceStaffList() {
+    const hospital = await getHospital();
+
+    const workSourceStaffs = await appDB.execute(
+      `select distinct staff from  his_staff_work_source`
+    );
+    // 获取可选择的员工列表
+    const staffList = await appDB.execute(
+      `select id, account, name
+            from staff
+            where hospital = ?`,
+      hospital
+    );
+
+    return staffList.map(it => {
+      const index = workSourceStaffs.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
+  }
+
+  /**
    * 员工绑定
    */
   @validate(
