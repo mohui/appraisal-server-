@@ -594,12 +594,13 @@ export default class HisWorkItem {
           )})`,
           ...staffIds
         );
+
         if (checkStaff.length !== staffIds.length)
           throw new KatoRuntimeError(`考核员工异常`);
 
         // 校验员工是否已经绑定过公分项
         staffItemList.forEach(it => {
-          const index = checkStaff.find(staff => it.staff === staff);
+          const index = checkStaff.find(staff => it.staff === staff.id);
           if (index)
             throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
         });
@@ -659,15 +660,20 @@ export default class HisWorkItem {
     should
       .string()
       .allow(null)
+      .description('公分项名称'),
+    should
+      .string()
+      .allow(null)
       .description('员工名称')
   )
-  async selStaffWorkItemMapping(method, name) {
+  async selStaffWorkItemMapping(method, name, staffName) {
     const hospital = await getHospital();
     if (name) name = `%${name}%`;
 
     const [sql, params] = sqlRender(
       `
-        select item.id, item.name
+        select item.id
+          ,item.name
           ,item.method
           ,mapping.id "mappingId"
           ,mapping.staff
@@ -743,6 +749,39 @@ export default class HisWorkItem {
         `delete from his_staff_work_item_mapping where item = ?`,
         id
       );
+    });
+  }
+
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('工分项目id')
+  )
+  async staffList(item) {
+    const hospital = await getHospital();
+
+    let workStaff = [];
+    if (item) {
+      workStaff = await appDB.execute(
+        `select staff from  his_staff_work_item_mapping where item = ?`,
+        item
+      );
+    }
+    // 获取可选择的员工列表
+    const staffList = await appDB.execute(
+      `select id, account, name
+            from staff
+            where hospital = ?`,
+      hospital
+    );
+
+    return staffList.map(it => {
+      const index = workStaff.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
     });
   }
 }
