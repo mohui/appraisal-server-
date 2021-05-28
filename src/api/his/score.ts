@@ -1,8 +1,23 @@
-import {appDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import {monthToRange} from './manual';
 import * as dayjs from 'dayjs';
+import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import Decimal from 'decimal.js';
+import {v4 as uuid} from 'uuid';
+
+/**
+ * 工分流水
+ */
+type WorkItemDetail = {
+  //工分项id
+  item: any;
+  //工分项得分
+  score: number;
+  //赋值时间
+  date: Date;
+};
 
 export default class HisScore {
   /**
@@ -230,4 +245,278 @@ export default class HisScore {
       }
     }
   }
+
+  //region 工分计算相关
+  /**
+   * 机构工分计算
+   *
+   * @param month 月份
+   * @param hospital 机构id
+   */
+  async workScoreHospital(month, hospital) {
+    //查询员工
+    // language=PostgreSQL
+    const staffs: {id: string; name: string}[] = await appDB.execute(
+      `
+        select id, name
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    //同步工分
+    for (const staff of staffs) {
+      console.log(`开始同步 ${staff.name} 工分流水`);
+      await this.syncDetail(staff.id, month);
+      console.log(`结束同步 ${staff.name} 工分流水`);
+    }
+    //计算工分
+    for (const staff of staffs) {
+      console.log(`开始计算 ${staff.name} 工分`);
+      await this.scoreStaff(staff.id, month);
+      console.log(`结束计算 ${staff.name} 工分`);
+    }
+  }
+
+  /**
+   * 同步员工工分项流水
+   *
+   * @param staff 员工id
+   * @param month 月份
+   */
+  async syncDetail(staff, month) {
+    const {start, end} = monthToRange(month);
+    //查询该员工绑定的工分来源
+    // language=PostgreSQL
+    const workItemSources: {
+      //工分项id
+      id: string;
+      //得分方式
+      method: string;
+      //分值
+      score: number;
+      //工分项目原始id
+      source: string;
+      //原始工分项目类型
+      type: string;
+    }[] = await appDB.execute(
+      `
+        select w.id, w.method, sm.score, wm.source, wm.type
+        from his_work_item_mapping wm
+               inner join his_staff_work_item_mapping sm on sm.item = wm.item
+               inner join his_work_item w on wm.item = w.id
+        where sm.staff = ?
+      `,
+      staff
+    );
+
+    let workItems: WorkItemDetail[] = [];
+    //region 计算CHECK和DRUG工分来源
+    //查询绑定的his账号id
+    // language=PostgreSQL
+    const hisStaffId = (
+      await appDB.execute(
+        `
+          select staff
+          from staff
+          where id = ?`,
+        staff
+      )
+    )[0].staff;
+    if (hisStaffId) {
+      const params = workItemSources.filter(
+        it => it.type === HisWorkSource.CHECK || it.type == HisWorkSource.DRUG
+      );
+      for (const param of params) {
+        //查询his的收费项目
+        // language=PostgreSQL
+        const rows: {
+          type: string;
+          value: string;
+          date: Date;
+        }[] = await originalDB.execute(
+          `
+            select charges_type as type, total_price as value, operate_time as date
+            from his_charge_detail
+            where doctor = ?
+              and operate_time > ?
+              and operate_time < ?
+              and item_type = ?
+              and item = ?
+            order by operate_time
+          `,
+          hisStaffId,
+          start,
+          end,
+          param.type,
+          param.source
+        );
+        workItems = workItems.concat(
+          //his收费项目转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //计算单位量; 收费/退费区别
+            const value = new Decimal(it.value)
+              .mul(it.type === '4' ? -1 : 1)
+              .toNumber();
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      }
+    }
+    //endregion
+    //region 计算MANUAL工分来源
+    const params = workItemSources.filter(
+      it => it.type === HisWorkSource.MANUAL
+    );
+    for (const param of params) {
+      //查询手工数据流水表
+      // language=PostgreSQL
+      const rows: {date: Date; value: number}[] = await appDB.execute(
+        `
+          select date, value
+          from his_staff_manual_data_detail
+          where staff = ?
+            and item = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        param.source
+      );
+      workItems = workItems.concat(
+        //手工数据流水转换成工分流水
+        rows.map<WorkItemDetail>(it => {
+          let score = 0;
+          //计算单位量; 收费/退费区别
+          //SUM得分方式
+          if (param.method === HisWorkMethod.SUM) {
+            score = new Decimal(it.value).mul(param.score).toNumber();
+          }
+          //AMOUNT得分方式
+          if (param.method === HisWorkMethod.AMOUNT) {
+            score = param.score;
+          }
+          return {
+            item: param.id,
+            date: it.date,
+            score: score
+          };
+        })
+      );
+    }
+    //endregion
+    //region 同步流水
+    await appDB.joinTx(async () => {
+      //删除旧流水
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          delete
+          from his_staff_work_score_detail
+          where staff = ?
+            and date >= ?
+            and date < ?
+        `,
+        staff,
+        start,
+        end
+      );
+      //添加新流水
+      for (const item of workItems) {
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+            insert into his_staff_work_score_detail(id, staff, item, date, score)
+            values (?, ?, ?, ?, ?)
+          `,
+          uuid(),
+          staff,
+          item.item,
+          item.date,
+          item.score
+        );
+      }
+    });
+    //endregion
+  }
+
+  /**
+   * 员工每日工分打分
+   *
+   * @param staff 员工id
+   * @param month 月份
+   */
+  async scoreStaff(staff, month) {
+    const {start, end} = monthToRange(month);
+    //查询工分来源
+    //language=PostgreSQL
+    const scoreList: {
+      day: Date;
+      score: number;
+    }[] = await appDB.execute(
+      `
+        select date_trunc('day', ssd.date) as day, sum(ssd.score * foo.rate) as score
+        from his_staff_work_score_detail ssd
+               inner join (
+          select swm.staff, swm.item, sws.rate
+          from his_staff_work_item_mapping swm
+                 inner join (
+            select unnest(sources) as staff, rate
+            from his_staff_work_source
+            where staff = ?
+          ) sws on sws.staff = swm.staff
+        ) foo on ssd.item = foo.item and ssd.staff = foo.staff
+        where date >= ?
+          and date < ?
+        group by day, foo.item
+      `,
+      staff,
+      start,
+      end
+    );
+    if (scoreList.length === 0) return;
+    //同步数据
+    await appDB.joinTx(async () => {
+      //删除原数据
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          delete
+          from his_staff_work_score_daily
+          where staff = ?
+            and day >= ?
+            and day < ?
+        `,
+        staff,
+        start,
+        end
+      );
+      //插入新数据
+      await appDB.execute(
+        `
+          insert into his_staff_work_score_daily(staff, day, score)
+          values ${scoreList.map(() => '(?, ?, ?)')}
+        `,
+        ...scoreList.reduce((result, it) => {
+          result.push(staff, it.day, it.score);
+          return result;
+        }, [])
+      );
+    });
+  }
+
+  //endregion
 }
