@@ -669,6 +669,7 @@ export default class HisWorkItem {
   async selStaffWorkItemMapping(method, name, staffName) {
     const hospital = await getHospital();
     if (name) name = `%${name}%`;
+    if (staffName) staffName = `%${staffName}%`;
 
     const [sql, params] = sqlRender(
       `
@@ -690,11 +691,15 @@ export default class HisWorkItem {
         {{#if name}}
             AND item.name like {{? name}}
         {{/if}}
+        {{#if staffName}}
+            AND staff.name like {{? staffName}}
+        {{/if}}
       `,
       {
         hospital,
         method,
-        name
+        name,
+        staffName
       }
     );
     const itemList = await appDB.execute(sql, ...params);
