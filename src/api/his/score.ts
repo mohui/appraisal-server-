@@ -1,4 +1,4 @@
-import {app, appDB} from '../../app';
+import {appDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import {monthToRange} from './manual';
@@ -13,6 +13,7 @@ export default class HisScore {
   async autoScoreAll(month) {
     return null;
   }
+
   /**
    * 机构自动打分
    * @param month 月份
