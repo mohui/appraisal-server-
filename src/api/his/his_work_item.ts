@@ -434,6 +434,72 @@ export default class HisWorkItem {
   }
 
   /**
+   * 员工每日工分打分
+   *
+   * @param staff 员工id
+   * @param month 月份
+   */
+
+  async score(staff, month) {
+    const {start, end} = monthToRange(month);
+    //查询工分来源
+    //language=PostgreSQL
+    const scoreList: {
+      day: Date;
+      score: number;
+    }[] = await appDB.execute(
+      `
+        select date_trunc('day', ssd.date) as day, sum(ssd.score * foo.rate) as score
+        from his_staff_work_score_detail ssd
+               inner join (
+          select swm.staff, swm.item, sws.rate
+          from his_staff_work_item_mapping swm
+                 inner join (
+            select unnest(sources) as staff, rate
+            from his_staff_work_source
+            where staff = ?
+          ) sws on sws.staff = swm.staff
+        ) foo on ssd.item = foo.item and ssd.staff = foo.staff
+        where date >= ?
+          and date < ?
+        group by day, foo.item
+      `,
+      staff,
+      start,
+      end
+    );
+    if (scoreList.length === 0) return;
+    //同步数据
+    await appDB.joinTx(async () => {
+      //删除原数据
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          delete
+          from his_staff_work_score_daily
+          where staff = ?
+            and day >= ?
+            and day < ?
+        `,
+        staff,
+        start,
+        end
+      );
+      //插入新数据
+      await appDB.execute(
+        `
+          insert into his_staff_work_score_daily(staff, day, score)
+          values ${scoreList.map(() => '(?, ?, ?)')}
+        `,
+        ...scoreList.reduce((result, it) => {
+          result.push(staff, it.day, it.score);
+          return result;
+        }, [])
+      );
+    });
+  }
+
+  /**
    *
    * @param type
    * @param keyWord 关键字搜索
