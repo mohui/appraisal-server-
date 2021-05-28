@@ -538,11 +538,11 @@ export default class HisStaff {
       // language=PostgreSQL
       const workItems = await appDB.execute(
         `
-        select w.id, w.name, m.score
-        from his_staff_work_item_mapping m
-               inner join his_work_item w on m.item = w.id
-        where staff = ?
-      `,
+          select w.id, w.name, m.score
+          from his_staff_work_item_mapping m
+                 inner join his_work_item w on m.item = w.id
+          where staff = ?
+        `,
         id
       );
       items = workItems.map(it => ({
