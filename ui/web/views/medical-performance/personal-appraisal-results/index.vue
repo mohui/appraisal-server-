@@ -67,8 +67,19 @@
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>附加分</div>
-                    <div class="content">10</div>
-                    <div class="more">点击查看</div>
+                    <div class="content">
+                      <div v-if="!isEditor">{{ additionalPoints }}</div>
+                      <el-input-number
+                        v-else
+                        v-model="additionalPoints"
+                        size="mini"
+                        @change="handleChangeAdditionalPoints"
+                        label="附加分"
+                      ></el-input-number>
+                    </div>
+                    <div class="more" @click="isEditor = !isEditor">
+                      {{ isEditor ? '完成' : '编辑' }}
+                    </div>
                   </el-col>
                 </el-row>
               </div>
@@ -96,6 +107,8 @@ export default {
     return {
       id: this.$route.query.id,
       dataSource: {name: '张三', score: 200, rate: 80},
+      isEditor: false,
+      additionalPoints: 0, //附加分
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -198,6 +211,9 @@ export default {
     }
   },
   methods: {
+    handleChangeAdditionalPoints(value) {
+      console.log('handleChangeAdditionalPoints:', value);
+    },
     // 绘制图表
     drawChart() {
       this.drawProjectWorkPointPie();
