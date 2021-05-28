@@ -63,7 +63,7 @@ export class HisMigration implements IMigration {
       (
         id           varchar(36) primary key,
         staff        varchar(36),
-        item        varchar(36),
+        item         varchar(36),
         date         timestamp with time zone,
         value        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
@@ -108,12 +108,13 @@ export class HisMigration implements IMigration {
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
       (
+        id           varchar(36) primary key,
         staff        varchar(36),
         item         varchar(36),
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (staff, item)
+        unique (staff, item)
       );
       comment on table his_staff_work_item_mapping is '员工和工分项绑定表';
       comment on column his_staff_work_item_mapping.staff is '员工id';
@@ -121,21 +122,36 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_item_mapping.score is '分值';
 
       --员工工分项目得分流水表
-      create table his_staff_work_score_detail
+      create table if not exists his_staff_work_score_detail
       (
+        id           varchar(36) primary key,
         staff        varchar(36),
         item         varchar(36),
-        date         date,
+        date         timestamp with time zone,
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (staff, item, date)
+        "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table his_staff_work_score_detail is '员工工分项目得分流水表';
       comment on column his_staff_work_score_detail.staff is '员工id';
       comment on column his_staff_work_score_detail.item is '工分项目id';
       comment on column his_staff_work_score_detail.date is '得分时间';
       comment on column his_staff_work_score_detail.score is '得分';
+
+      --员工每日工分得分表
+      create table if not exists his_staff_work_score_daily
+      (
+        staff        varchar(36),
+        day          date,
+        score        double precision,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key (staff, day)
+      );
+      comment on table his_staff_work_score_daily is '员工每日工分得分表';
+      comment on column his_staff_work_score_daily.staff is '员工id';
+      comment on column his_staff_work_score_daily.day is '得分时间';
+      comment on column his_staff_work_score_daily.score is '得分';
 
       --医疗考核方案表
       create table if not exists "his_check_system"
@@ -169,6 +185,7 @@ export class HisMigration implements IMigration {
         "check"      varchar(36),
         auto         boolean,
         name         varchar(255),
+        detail       varchar(255),
         metric       varchar(255),
         operator     varchar(255),
         value        double precision,
@@ -180,6 +197,7 @@ export class HisMigration implements IMigration {
       comment on column his_check_rule."check" is '所属考核方案';
       comment on column his_check_rule.auto is '是否自动考核';
       comment on column "his_check_rule".name is '名称';
+      comment on column his_check_rule.detail is '考核要求';
       comment on column "his_check_rule".metric is '指标';
       comment on column "his_check_rule".operator is '计算方式';
       comment on column "his_check_rule".value is '参考值';
@@ -189,9 +207,11 @@ export class HisMigration implements IMigration {
       create table if not exists his_rule_staff_score
       (
         rule         varchar(36),
+        rule_name    varchar(255),
         staff        varchar(36),
         date         date,
         score        double precision,
+        total        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         primary key (rule, staff, date)
@@ -201,6 +221,7 @@ export class HisMigration implements IMigration {
       comment on column his_rule_staff_score.staff is '员工id';
       comment on column his_rule_staff_score.date is '日期';
       comment on column his_rule_staff_score.score is '得分';
+      comment on column his_rule_staff_score.total is '分值';
 
       --员工附加分表
       create table if not exists his_staff_extra_score
