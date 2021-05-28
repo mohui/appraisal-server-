@@ -50,3 +50,11 @@ export enum HisWorkSource {
   DRUG = '药品',
   MANUAL = '手工数据'
 }
+
+/**
+ * 工分组成类型
+ */
+export enum HisWorkScoreType {
+  WORK_ITEM = '工分项目',
+  STAFF = '员工'
+}
