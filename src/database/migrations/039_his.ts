@@ -108,12 +108,13 @@ export class HisMigration implements IMigration {
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
       (
+        id           varchar(36) primary key,
         staff        varchar(36),
         item         varchar(36),
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (staff, item)
+        unique (staff, item)
       );
       comment on table his_staff_work_item_mapping is '员工和工分项绑定表';
       comment on column his_staff_work_item_mapping.staff is '员工id';
@@ -141,7 +142,7 @@ export class HisMigration implements IMigration {
       create table if not exists his_staff_work_score_daily
       (
         staff        varchar(36),
-        day         date,
+        day          date,
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
@@ -205,7 +206,7 @@ export class HisMigration implements IMigration {
       --考核得分表
       create table if not exists his_rule_staff_score
       (
-        rule      varchar(36),
+        rule         varchar(36),
         rule_name    varchar(255),
         staff        varchar(36),
         date         date,
