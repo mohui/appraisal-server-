@@ -1,14 +1,18 @@
 <template>
   <div>
     <div class="grid-content bg-fff">
-      <div ref="charts" :style="{width: '100%', height: '300px'}"></div>
+      <div
+        ref="charts"
+        :class="{'cursor-pointer': onClick}"
+        :style="{width: '100%', height: '300px'}"
+      ></div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'twocardCircle',
+  name: 'TwoCardCircle',
   props: {
     coefficient: Number,
     pointDate: String,
@@ -134,4 +138,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+::v-deep .cursor-pointer canvas {
+  cursor: pointer;
+}
+</style>

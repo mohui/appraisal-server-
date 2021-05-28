@@ -114,13 +114,11 @@
               >
                 <div class="score-detail">
                   <el-tooltip
-                    class="item"
                     effect="dark"
                     content="点击查看考核结果详情"
                     placement="top"
                   >
                     <two-card-circle
-                      class="cursor-pointer"
                       :coefficient="totalData.fixedDecimalRate"
                       :on-click="handleCheckDetailClick"
                     ></two-card-circle>
@@ -1180,12 +1178,6 @@ export default {
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
-}
-
-.cursor-pointer {
-  div canvas {
-    cursor: pointer !important;
-  }
 }
 </style>
 
