@@ -287,6 +287,32 @@ export default class HisStaff {
   }
 
   /**
+   * 员工关联员工列表
+   */
+  async workSourceStaffList() {
+    const hospital = await getHospital();
+
+    const workSourceStaffs = await appDB.execute(
+      `select distinct staff from  his_staff_work_source`
+    );
+    // 获取可选择的员工列表
+    const staffList = await appDB.execute(
+      `select id, account, name
+            from staff
+            where hospital = ?`,
+      hospital
+    );
+
+    return staffList.map(it => {
+      const index = workSourceStaffs.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
+  }
+
+  /**
    * 员工绑定
    */
   @validate(
@@ -486,7 +512,7 @@ export default class HisStaff {
     const {start, end} = monthToRange(month);
     //获取工分列表
     // language=PostgreSQL
-    const items = await appDB.execute(
+    let items = await appDB.execute(
       `
         select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score
         from his_staff_work_score_detail d
@@ -506,24 +532,29 @@ export default class HisStaff {
       start,
       end
     );
-    //绑定工分项目
-    // language=PostgreSQL
-    const workItems = await appDB.execute(
-      `
+    //如果是当前月, 则填补满工分项
+    if (dayjs().diff(start, 'M')) {
+      //查询绑定工分项目
+      // language=PostgreSQL
+      const workItems = await appDB.execute(
+        `
         select w.id, w.name, m.score
         from his_staff_work_item_mapping m
                inner join his_work_item w on m.item = w.id
         where staff = ?
       `,
-      id
-    );
+        id
+      );
+      items = workItems.map(it => ({
+        ...it,
+        score: items.find(item => item.id === it.id)?.score ?? 0
+      }));
+    }
+
     //获取质量系数
     const rate = await this.getRate(id, month);
     return {
-      items: workItems.map(it => ({
-        ...it,
-        score: items.find(item => item.id === it.id)?.score ?? 0
-      })),
+      items,
       rate
     };
   }
