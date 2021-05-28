@@ -435,6 +435,7 @@ export default {
         this.tempRow = '';
       } catch (e) {
         console.log(e);
+        this.$message.error(e);
       } finally {
         this.updateLoading = false;
       }
