@@ -6,10 +6,10 @@
         <div class="header">
           <div class="content">
             <div class="item">
-              {{ dataSource.name }}
+              {{ personInfoData.name }}
             </div>
-            <div class="item">校正后总得分（分）：{{ dataSource.score }}</div>
-            <div class="item">质量系数：{{ dataSource.rate }}%</div>
+            <div class="item">校正后总得分（分）：{{ workScore.total }}</div>
+            <div class="item">质量系数：{{ workScore.rateFormat }}</div>
           </div>
           <div>
             <el-button size="small" @click="$router.go(-1)">返回 </el-button>
@@ -60,7 +60,7 @@
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
-                    <div class="content">80%</div>
+                    <div class="content">{{ workScore.rateFormat }}</div>
                     <div class="more">
                       点击查看
                     </div>
@@ -114,6 +114,18 @@ export default {
     }
   },
   computed: {
+    workScore() {
+      return {
+        total: this.workScoreListData
+          .map(it => it.value)
+          .reduce((prev, curr) => prev + curr, 0),
+        rate: this.workScoreListServerData.rate,
+        rateFormat:
+          this.workScoreListServerData.rate === null
+            ? '暂未考核'
+            : `${this.workScoreListServerData.rate * 100}%`
+      };
+    },
     workScoreListData() {
       return this.workScoreListServerData?.items?.map(it => ({
         value: it.score,
