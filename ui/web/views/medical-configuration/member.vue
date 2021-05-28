@@ -157,6 +157,7 @@
             <el-option
               v-for="m in memberList"
               :key="m.id"
+              :disabled="!m.usable"
               :label="m.name"
               :value="m.id"
             ></el-option>
@@ -415,7 +416,7 @@ export default {
     },
     serverMemberData: {
       async get() {
-        return await this.$api.HisStaff.list();
+        return await this.$api.HisStaff.workSourceStaffList();
       },
       default: []
     }
@@ -467,6 +468,8 @@ export default {
             this.$message.success('修改成功');
           }
           this.$asyncComputed.serverData.update();
+          //刷新最新的员工列表
+          this.$asyncComputed.serverMemberData.update();
           this.resetConfig();
         }
       } catch (e) {
@@ -517,6 +520,7 @@ export default {
         await this.$api.HisStaff.delHisStaffWorkSource(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
+        this.$asyncComputed.serverMemberData.update();
       } catch (e) {
         console.log(e);
       }
