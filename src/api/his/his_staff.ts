@@ -5,6 +5,7 @@ import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {monthToRange} from './manual';
+import {HisWorkScoreType} from '../../../common/his';
 
 export async function getHospital() {
   if (
@@ -486,16 +487,17 @@ export default class HisStaff {
   }
 
   /**
-   * 获取指定月份员工工分项目得分列表
+   * 获取指定月份员工工分列表
    *
    * @param id 员工id
    * @param month 月份
    * @return {
    *   items: 工分项目列表 [
    *     {
-   *       id: 工分项目id
-   *       name: 工分项目名称
-   *       score: 得分
+   *       id: id
+   *       name: 名称
+   *       score?: 得分
+   *       type: 工分项目/员工
    *     }
    *   ],
    *   rate?: 质量系数
@@ -510,30 +512,54 @@ export default class HisStaff {
     rate?: number;
   }> {
     const {start, end} = monthToRange(month);
-    //获取工分列表
+    //查询工分来源非本人的工分值
+    const staffList: {staff: number; score: number}[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select s.staff as id, max(sf.name) as name, sum(d.score * s.rate) as score, ? as type
+        from (
+               select unnest(sources) as staff, rate
+               from his_staff_work_source s
+               where s.staff = ?
+             ) s
+               left join his_staff_work_score_daily d on s.staff = d.staff and d.day >= ? and d.day < ?
+               inner join staff sf on s.staff = sf.id
+        where s.staff != ?
+        group by s.staff
+      `,
+      HisWorkScoreType.STAFF,
+      id,
+      start,
+      end,
+      id
+    );
+    //查询本人的工分项目工分值列表
     // language=PostgreSQL
     let items = await appDB.execute(
       `
-        select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score
+        select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score, ? as type
         from his_staff_work_score_detail d
                inner join (
           select unnest(sources) as staff, rate
-          from his_staff_work_source
-          where staff = ?
+          from his_staff_work_source s
+          where s.staff = ?
+            and ? = any (s.sources)
         ) as s on d.staff = s.staff
                inner join his_work_item wi on d.item = wi.id
-               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
         where d.date >= ?
           and d.date < ?
+          and d.staff = ?
         group by d.item
       `,
+      HisWorkScoreType.WORK_ITEM,
       id,
       id,
       start,
-      end
+      end,
+      id
     );
     //如果是当前月, 则填补满工分项
-    if (dayjs().diff(start, 'M')) {
+    if (dayjs().diff(start, 'M') === 0) {
       //查询绑定工分项目
       // language=PostgreSQL
       const workItems = await appDB.execute(
@@ -547,14 +573,15 @@ export default class HisStaff {
       );
       items = workItems.map(it => ({
         ...it,
-        score: items.find(item => item.id === it.id)?.score ?? 0
+        score: items.find(item => item.id === it.id)?.score ?? 0,
+        type: HisWorkScoreType.WORK_ITEM
       }));
     }
 
     //获取质量系数
     const rate = await this.getRate(id, month);
     return {
-      items,
+      items: items.concat(staffList),
       rate
     };
   }
