@@ -149,7 +149,11 @@
         label-width="120px"
       >
         <el-form-item label="考核员工" prop="staff">
-          <el-select v-model="newMember.staff" collapse-tags>
+          <el-select
+            v-model="newMember.staff"
+            :disabled="newMember.staff !== '' && newMember.id !== ''"
+            collapse-tags
+          >
             <el-option
               v-for="m in memberList"
               :key="m.id"
@@ -374,7 +378,7 @@ export default {
         } finally {
           this.newMemberLoading = false;
         }
-      } else {
+      } else if (this.newMember.staff) {
         this.newMember.id = '';
         //该员工未绑定过,默认绑定自己
         this.newMember.subMembers.push({
