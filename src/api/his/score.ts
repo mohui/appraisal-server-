@@ -7,6 +7,10 @@ import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 
+function log(...args) {
+  console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
+}
+
 /**
  * 工分流水
  */
@@ -254,6 +258,7 @@ export default class HisScore {
    * @param hospital 机构id
    */
   async workScoreHospital(month, hospital) {
+    log(`开始计算 ${hospital} 工分`);
     //查询员工
     // language=PostgreSQL
     const staffs: {id: string; name: string}[] = await appDB.execute(
@@ -266,16 +271,17 @@ export default class HisScore {
     );
     //同步工分
     for (const staff of staffs) {
-      console.log(`开始同步 ${staff.name} 工分流水`);
+      log(`开始同步 ${staff.name} 工分流水`);
       await this.syncDetail(staff.id, month);
-      console.log(`结束同步 ${staff.name} 工分流水`);
+      log(`结束同步 ${staff.name} 工分流水`);
     }
     //计算工分
     for (const staff of staffs) {
-      console.log(`开始计算 ${staff.name} 工分`);
+      log(`开始计算 ${staff.name} 工分`);
       await this.scoreStaff(staff.id, month);
-      console.log(`结束计算 ${staff.name} 工分`);
+      log(`结束计算 ${staff.name} 工分`);
     }
+    log(`结束计算 ${hospital} 工分`);
   }
 
   /**
