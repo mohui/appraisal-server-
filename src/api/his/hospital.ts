@@ -5,7 +5,30 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {monthToRange} from './manual';
 import {monthValid} from '../../../common/his';
 
-const staffApi = new HisStaff();
+/**
+ * 获取结算状态
+ *
+ * @param id 医院id
+ * @param month 月份
+ */
+export async function getSettle(id, month): Promise<boolean> {
+  // language=PostgreSQL
+  let settle =
+    (
+      await appDB.execute(
+        `
+          select settle
+          from his_hospital_settle
+          where hospital = ?
+            and month = ?
+        `,
+        id,
+        month
+      )
+    )[0]?.settle ?? false;
+  if (dayjs().diff(month, 'M') > 1) settle = true;
+  return settle;
+}
 
 /**
  * 机构模块
@@ -22,12 +45,9 @@ export default class HisHospital {
   @validate(monthValid, should.boolean().required())
   async settle(month, settle) {
     const hospital = await getHospital();
-    const date = dayjs(month)
-      .startOf('M')
-      .toDate();
+    const {start} = monthToRange(month);
     // 月份差值
-    const diff = dayjs().diff(month, 'M');
-    if (diff > 1) {
+    if (dayjs().diff(month, 'M') > 1) {
       throw new KatoRuntimeError(`只能修改本月和上月的结算状态`);
     }
     await appDB.execute(
@@ -40,7 +60,7 @@ export default class HisHospital {
                         updated_at = now()
       `,
       hospital,
-      date,
+      start,
       settle,
       settle
     );
@@ -174,6 +194,8 @@ export default class HisHospital {
    */
   @validate(monthValid)
   async findStaffCheckList(month) {
+    //TODO: 苟且一波
+    const staffApi = new HisStaff();
     const hospital = await getHospital();
     return Promise.all(
       (

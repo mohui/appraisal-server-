@@ -7,6 +7,7 @@ import {HisWorkMethod, HisWorkSource, monthValid} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {getHospital} from './his_staff';
+import {getSettle} from './hospital';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -537,22 +538,7 @@ export default class HisScore {
   async setExtraScore(id, month, score) {
     const hospital = await getHospital();
     const {start} = monthToRange(month);
-    // language=PostgreSQL
-    let settle =
-      (
-        await appDB.execute(
-          `
-            select settle
-            from his_hospital_settle
-            where hospital = ?
-              and month = ?
-          `,
-          hospital,
-          start
-        )
-      )[0]?.settle ?? false;
-    console.log(settle, start, dayjs().diff(start));
-    if (dayjs().diff(start) > 1) settle = true;
+    const settle = await getSettle(hospital, start);
     if (settle) {
       throw new KatoRuntimeError(`机构已经结算, 不能修改附加分`);
     }
@@ -562,7 +548,9 @@ export default class HisScore {
       `
         insert into his_staff_extra_score(staff, month, score)
         values (?, ?, ?)
-        on conflict (staff, month) do update set score = ? and updated_at = now()
+        on conflict (staff, month)
+          do update set score      = ?,
+                        updated_at = now()
       `,
       id,
       start,
