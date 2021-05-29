@@ -5,7 +5,8 @@ import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {monthToRange} from './manual';
-import {HisWorkScoreType} from '../../../common/his';
+import {HisWorkScoreType, monthValid} from '../../../common/his';
+import {getSettle} from './hospital';
 
 export async function getHospital() {
   if (
@@ -45,15 +46,19 @@ export default class HisStaff {
    * 获取员工基本信息
    *
    * @param id 员工id
+   * @param month 月份
    * @return {
    *   id: 员工id
    *   name: 员工姓名
    *   sex?: 员工性别
    *   phone?: 员工联系方式
-   *   birth? 员工出生日期
+   *   birth?: 员工出生日期
+   *   extra?: 附加分
+   *   settle: 结算状态
    * }
    */
-  async get(id) {
+  @validate(should.string().required(), monthValid)
+  async get(id, month) {
     //查询员工
     // language=PostgreSQL
     const staffModel: {id: string; name: string; staff: string} = (
@@ -80,11 +85,31 @@ export default class HisStaff {
         staffModel.staff
       )
     )[0];
+    //查询附加分
+    const {start} = monthToRange(month);
+    // language=PostgreSQL
+    const score = (
+      await appDB.execute(
+        `
+          select score
+          from his_staff_extra_score
+          where staff = ?
+            and month = ?
+        `,
+        id,
+        start
+      )
+    )[0]?.score;
+    //查询结算状态
+    const hospital = await getHospital();
+    const settle = await getSettle(hospital, start);
     return {
       ...staffModel,
       sex: hisModel.sex,
       phone: hisModel.phone,
-      birth: hisModel.birth
+      birth: hisModel.birth,
+      extra: score,
+      settle
     };
   }
 
