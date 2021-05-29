@@ -154,11 +154,32 @@
           label="分值"
           width="200"
         ></el-table-column>
-        <el-table-column
-          property="score"
-          label="得分"
-          width="200"
-        ></el-table-column>
+        <el-table-column property="score" label="得分" width="200">
+          <template slot-scope="scope">
+            <div v-if="scope.row.isRating">
+              <el-input-number
+                v-model="scope.row.score"
+                size="mini"
+                label="打分"
+              ></el-input-number>
+            </div>
+            <div v-else>
+              {{ scope.row.score }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button
+              v-if="!scope.row.auto"
+              size="small"
+              type="primary"
+              @click="saveEditorCheckScore(scope.row)"
+            >
+              {{ scope.row.isRating ? '完成' : '打分' }}
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-dialog>
   </div>
@@ -254,11 +275,15 @@ export default {
       return this.personInfoServerData;
     },
     staffCheckData() {
+      const list = this.staffCheckServerData.automations
+        .concat(this.staffCheckServerData.manuals)
+        .map(it => ({
+          ...it,
+          isRating: false
+        }));
       return {
         ...this.staffCheckServerData,
-        list: this.staffCheckServerData.automations.concat(
-          this.staffCheckServerData.manuals
-        )
+        list: list
       };
     }
   },
@@ -306,6 +331,18 @@ export default {
         );
       }
       this.isEditor = !this.isEditor;
+    },
+    // 手动工分项打分
+    async saveEditorCheckScore(row) {
+      if (row.isRating) {
+        await this.$api.HisScore.setCheckScore(
+          row.id,
+          this.id,
+          this.curDate,
+          row.score
+        );
+      }
+      row.isRating = !row.isRating;
     },
     // 绘制图表
     drawChart() {
