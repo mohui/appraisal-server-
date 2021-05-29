@@ -259,9 +259,7 @@ export default class HisScore {
 
   /**
    * 考核手动打分
-   * 打分分为当前月打分,和当前月之前的月打分
-   * 当前月打分需要判断该用户考核,细则等是否存在
-   * 之前月打分只需要判断score是否存在,存在: 打分, 不存在: 直接返回
+   * 只要未结算,不管是新增,删除细则,都要按照细则表里的细则校验
    *
    * @param ruleId 细则id
    * @param staff 员工id
@@ -288,24 +286,8 @@ export default class HisScore {
   )
   async setCheckScore(ruleId, staff, month, score) {
     const date = getEndTimes(month);
-    if (date.isNow) {
-      return await this.setCheckCurrentScore(
-        ruleId,
-        staff,
-        date.scoreDate,
-        score
-      );
-    }
-  }
+    const scoreDate = date.scoreDate;
 
-  /**
-   * 当前时间的手动打分
-   * @param ruleId
-   * @param staff
-   * @param month
-   * @param score
-   */
-  async setCheckCurrentScore(ruleId, staff, month, score) {
     // 查询考核细则
     const rules = await appDB.execute(
       `select id, name, auto, "check", score
@@ -329,7 +311,6 @@ export default class HisScore {
 
     if (rules[0].score < score)
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
-    const now = new Date();
 
     // 查询今天是否有分值
     const todayScore = await appDB.execute(
@@ -338,7 +319,7 @@ export default class HisScore {
             where rule = ? and staff = ? and date = ?`,
       ruleId,
       staff,
-      now
+      scoreDate
     );
     // 如果查找到,执行修改,没有查到到:添加
     if (todayScore.length === 0) {
@@ -346,7 +327,16 @@ export default class HisScore {
         `insert into
               his_rule_staff_score(rule, rule_name, staff, date, score, total, created_at, updated_at)
               values(?, ?, ?, ?, ?, ?, ?, ?)`,
-        ...[ruleId, rules[0]?.name, staff, now, score, rules[0].score, now, now]
+        ...[
+          ruleId,
+          rules[0]?.name,
+          staff,
+          scoreDate,
+          score,
+          rules[0].score,
+          scoreDate,
+          scoreDate
+        ]
       );
     } else {
       return await appDB.execute(
@@ -354,10 +344,10 @@ export default class HisScore {
             set score = ?, updated_at = ?
             where rule = ? and staff = ? and date = ?`,
         score,
-        now,
+        scoreDate,
         ruleId,
         staff,
-        now
+        scoreDate
       );
     }
   }
