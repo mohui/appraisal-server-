@@ -25,6 +25,32 @@ type WorkItemDetail = {
   date: Date;
 };
 
+// 根据传的时间,获取是否是当前月,如果是当前月,返回当天,如果不是当前月,返回所在月的最后一天
+function getEndTimes(month) {
+  // 根据时间获取月份的开始时间和结束时间
+  const {start, end} = monthToRange(month);
+  // 判断当前时间是否在时间范围内
+  const now = dayjs()
+    .startOf('d')
+    .toDate();
+
+  // 如果开始时间减去当前时间大于0, 说明传的时间是这个月之后的日期,不合法
+  if (dayjs(start).diff(now, 'd') > 0)
+    throw new KatoRuntimeError(`时间不合法,大于当前月`);
+  // 如果结束时间减去当前时间小于1,说明是之前月
+  const timeDiff = dayjs(end).diff(now, 'd');
+
+  return {
+    scoreDate:
+      timeDiff < 1
+        ? dayjs(end)
+            .subtract(1, 'd')
+            .toDate()
+        : now,
+    isNow: timeDiff >= 1
+  };
+}
+
 export default class HisScore {
   /**
    * 自动打分
@@ -50,7 +76,7 @@ export default class HisScore {
    * @param staff 员工id
    */
   @validate(should.date().required(), should.string().required())
-  async autoScoreStaff(month, staff, times) {
+  async autoScoreStaff(month, staff) {
     // 先根据员工查询考核
     const mapping = await appDB.execute(
       `select staff, "check" from his_staff_check_mapping
@@ -80,28 +106,7 @@ export default class HisScore {
     if (autoRules.length === 0)
       throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
-    // 根据时间获取月份的开始时间和结束时间
-    const {start, end} = monthToRange(month);
-    // 判断当前时间是否在时间范围内
-    const now = dayjs()
-      .startOf('d')
-      .toDate();
-    // const now = dayjs(times)
-    //   .startOf('d')
-    //   .toDate();
-
-    // 如果开始时间减去当前时间大于0, 说明传的时间是这个月之后的日期,不合法
-    if (dayjs(start).diff(now, 'd') > 0)
-      throw new KatoRuntimeError(`时间不合法,大于当前月`);
-    // 如果结束时间减去当前时间小于1,说明是之前月
-    const timeDiff = dayjs(end).diff(now, 'd');
-
-    const scoreDate =
-      timeDiff < 1
-        ? dayjs(end)
-            .subtract(1, 'd')
-            .toDate()
-        : now;
+    const scoreDate = getEndTimes(month)?.scoreDate;
 
     // 查询考核得分
     const staffScore = await appDB.execute(
@@ -249,6 +254,101 @@ export default class HisScore {
           it.date
         );
       }
+    }
+  }
+
+  /**
+   * 考核手动打分
+   * 只要未结算,不管是新增,删除细则,都要按照细则表里的细则校验
+   *
+   * @param ruleId 细则id
+   * @param staff 员工id
+   * @param month 时间
+   * @param score 分值
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('细则id'),
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('时间'),
+    should
+      .number()
+      .required()
+      .description('分值')
+  )
+  async setCheckScore(ruleId, staff, month, score) {
+    const date = getEndTimes(month);
+    const scoreDate = date.scoreDate;
+
+    // 查询考核细则
+    const rules = await appDB.execute(
+      `select id, name, auto, "check", score
+            from his_check_rule where id = ?`,
+      ruleId
+    );
+    if (rules.length === 0) throw new KatoRuntimeError(`无此考核细则`);
+    // 自动打分的不能手动打分
+    if (rules[0].auto === true)
+      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+
+    // 根据员工id查询出改员工是否有考核
+    const staffSystem = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
+
+    if (rules[0].check !== staffSystem[0].check)
+      throw new KatoRuntimeError(`考核员工考核项目和细则考核项目不一致`);
+
+    if (rules[0].score < score)
+      throw new KatoRuntimeError(`分数不能高于细则的满分`);
+
+    // 查询今天是否有分值
+    const todayScore = await appDB.execute(
+      `select *
+            from his_rule_staff_score
+            where rule = ? and staff = ? and date = ?`,
+      ruleId,
+      staff,
+      scoreDate
+    );
+    // 如果查找到,执行修改,没有查到到:添加
+    if (todayScore.length === 0) {
+      return await appDB.execute(
+        `insert into
+              his_rule_staff_score(rule, rule_name, staff, date, score, total, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+        ...[
+          ruleId,
+          rules[0]?.name,
+          staff,
+          scoreDate,
+          score,
+          rules[0].score,
+          scoreDate,
+          scoreDate
+        ]
+      );
+    } else {
+      return await appDB.execute(
+        `update his_rule_staff_score
+            set score = ?, updated_at = ?
+            where rule = ? and staff = ? and date = ?`,
+        score,
+        scoreDate,
+        ruleId,
+        staff,
+        scoreDate
+      );
     }
   }
 
