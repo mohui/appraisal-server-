@@ -505,6 +505,9 @@ export default class HisCheck {
 
   /**
    * 删除考核方案
+   *
+   * 如果方案绑定着员工,需要解绑员工,才能删除方案
+   * 如果方案绑定着细则,需要删除细则,才能删除方案
    */
   @validate(
     should
@@ -514,13 +517,21 @@ export default class HisCheck {
   )
   async delete(id) {
     return appDB.transaction(async () => {
-      // 删除医疗考核规则
-      await appDB.execute(`delete from his_check_rule where "check" = ?`, id);
-      // 删除员工考核方案绑定
-      await appDB.execute(
-        `delete from his_staff_check_mapping where "check" = ?`,
+      // 检查考核方案是否绑定了员工
+      const staffs = await appDB.execute(
+        `select * from his_staff_check_mapping where "check" = ?`,
         id
       );
+      if (staffs.length > 0)
+        throw new KatoRuntimeError(`考核方案存在考核规则, 不能删`);
+      // 删除医疗考核规则
+      const rule = await appDB.execute(
+        `select * from his_check_rule where "check" = ?`,
+        id
+      );
+      if (rule.length > 0)
+        throw new KatoRuntimeError(`考核方案存在考核规则, 不能删`);
+
       // 删除医疗考核方案
       await appDB.execute(`delete from his_check_system where id = ?`, id);
     });
