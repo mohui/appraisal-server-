@@ -348,7 +348,8 @@ export default {
         this.$router.push({
           name: 'personal-appraisal-results',
           query: {
-            id: id
+            id: id,
+            date: JSON.stringify(this.currentDate)
           }
         });
       });

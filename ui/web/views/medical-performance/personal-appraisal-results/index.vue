@@ -12,7 +12,7 @@
             <div class="item">质量系数：{{ workScore.rateFormat }}</div>
           </div>
           <div>
-            <el-button size="small" @click="$router.go(-1)">返回 </el-button>
+            <el-button size="small" @click="$router.go(-1)">返回</el-button>
           </div>
         </div>
       </div>
@@ -131,14 +131,13 @@
 
 <script>
 import VueSticky from 'vue-sticky';
-import * as dayjs from 'dayjs';
 
 export default {
   name: 'index',
   data() {
     return {
       id: this.$route.query.id,
-      dataSource: {name: '张三', score: 200, rate: 80},
+      curDate: new Date(JSON.parse(this.$route.query.date)),
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       additionalPoints: 0, //附加分
@@ -225,7 +224,7 @@ export default {
       async get() {
         return await this.$api.HisStaff.findWorkScoreList(
           this.id,
-          dayjs().toDate()
+          this.curDate
         );
       },
       default: {items: [], rate: 0}
@@ -234,14 +233,14 @@ export default {
       async get() {
         return await this.$api.HisStaff.findWorkScoreDailyList(
           this.id,
-          dayjs().toDate()
+          this.curDate
         );
       },
       default: []
     },
     personInfoServerData: {
       async get() {
-        return await this.$api.HisStaff.get(this.id);
+        return await this.$api.HisStaff.get(this.id, this.curDate);
       },
       default: {}
     }
@@ -425,6 +424,7 @@ export default {
     overflow-y: auto;
   }
 }
+
 .card {
   border-radius: 4px;
   border: 1px solid #ebeef5;
@@ -439,9 +439,11 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+
   .content {
     display: flex;
     flex-direction: row;
+
     .item {
       margin-right: 20px;
     }
@@ -452,15 +454,18 @@ export default {
   height: 180px;
   display: flex;
   flex-direction: column;
+
   .name,
   .value {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .name {
     color: #323233;
   }
+
   .value {
     color: darkgray;
     text-align: right;
@@ -470,16 +475,19 @@ export default {
 .score-rules {
   height: 180px;
   margin-top: 20px;
+
   .item {
     height: 160px;
     display: flex;
     flex-direction: column;
+
     .content {
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .more {
       padding: 10px 0;
     }
