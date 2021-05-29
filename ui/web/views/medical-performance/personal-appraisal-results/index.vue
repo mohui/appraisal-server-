@@ -111,7 +111,12 @@
       title="校正前工分明细"
       :visible.sync="dialogWorkScoreTableVisible"
     >
-      <el-table :data="workScoreListData" max-height="50vh">
+      <el-table
+        :data="workScoreListData"
+        max-height="50vh"
+        :header-cell-style="{textAlign: 'center'}"
+        :cell-style="{textAlign: 'center'}"
+      >
         <el-table-column
           property="type"
           label="类型"
@@ -133,7 +138,12 @@
       :title="staffCheckData.name"
       :visible.sync="dialogRateTableVisible"
     >
-      <el-table :data="staffCheckData.list" max-height="50vh">
+      <el-table
+        :data="staffCheckData.list"
+        max-height="50vh"
+        :header-cell-style="{textAlign: 'center'}"
+        :cell-style="{textAlign: 'center'}"
+      >
         <el-table-column
           property="name"
           label="名称"
