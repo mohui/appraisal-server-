@@ -47,12 +47,9 @@ export default class HisHospital {
   @validate(monthValid, should.boolean().required())
   async settle(month, settle) {
     const hospital = await getHospital();
-    const date = dayjs(month)
-      .startOf('M')
-      .toDate();
+    const {start} = monthToRange(month);
     // 月份差值
-    const diff = dayjs().diff(month, 'M');
-    if (diff > 1) {
+    if (dayjs().diff(month, 'M') > 1) {
       throw new KatoRuntimeError(`只能修改本月和上月的结算状态`);
     }
     await appDB.execute(
@@ -65,7 +62,7 @@ export default class HisHospital {
                         updated_at = now()
       `,
       hospital,
-      date,
+      start,
       settle,
       settle
     );
