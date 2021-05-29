@@ -74,19 +74,18 @@
                   <el-col :span="8" class="item">
                     <div>附加分</div>
                     <div class="content">
-                      <div v-if="!isEditor">{{ additionalPoints }}</div>
+                      <div v-if="!isEditor">{{ personInfoData.extra }}</div>
                       <el-input-number
                         v-else
-                        v-model="additionalPoints"
+                        v-model="personInfoData.extra"
                         size="mini"
-                        @change="handleChangeAdditionalPoints"
                         label="附加分"
                       ></el-input-number>
                     </div>
                     <el-button
                       class="more"
                       type="text"
-                      @click="isEditor = !isEditor"
+                      @click="saveEditorAdditionalPoints"
                     >
                       {{ isEditor ? '完成' : '编辑' }}
                     </el-button>
@@ -140,7 +139,6 @@ export default {
       curDate: new Date(JSON.parse(this.$route.query.date)),
       isEditor: false,
       dialogWorkScoreTableVisible: false,
-      additionalPoints: 0, //附加分
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -246,8 +244,15 @@ export default {
     }
   },
   methods: {
-    handleChangeAdditionalPoints(value) {
-      console.log('handleChangeAdditionalPoints:', value);
+    async saveEditorAdditionalPoints() {
+      if (this.isEditor) {
+        await this.$api.HisScore.setExtraScore(
+          this.id,
+          this.curDate,
+          this.personInfoData.extra
+        );
+      }
+      this.isEditor = !this.isEditor;
     },
     // 绘制图表
     drawChart() {
