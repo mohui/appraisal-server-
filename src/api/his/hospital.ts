@@ -5,8 +5,6 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {monthToRange} from './manual';
 import {monthValid} from '../../../common/his';
 
-const staffApi = new HisStaff();
-
 /**
  * 获取结算状态
  *
@@ -196,6 +194,8 @@ export default class HisHospital {
    */
   @validate(monthValid)
   async findStaffCheckList(month) {
+    //TODO: 苟且一波
+    const staffApi = new HisStaff();
     const hospital = await getHospital();
     return Promise.all(
       (
