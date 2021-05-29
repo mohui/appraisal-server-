@@ -837,16 +837,14 @@ export default class HisStaff {
         `,
       checkId
     );
-    const automations = hisRules
-      .map(it => {
-        if (it.auto === true) return it;
-      })
-      .filter(it => it);
-    const manuals = hisRules
-      .map(it => {
-        if (it.auto === false) return it;
-      })
-      .filter(it => it);
+    const newHisRules = hisRules.map(it => {
+      return {
+        ...it,
+        staffScore: null
+      };
+    });
+    const automations = newHisRules.filter(it => it.auto);
+    const manuals = newHisRules.filter(it => !it.auto);
 
     return {
       id: hisSystems[0]?.id,

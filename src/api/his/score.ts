@@ -3,9 +3,10 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import {monthToRange} from './manual';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {HisWorkMethod, HisWorkSource, monthValid} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
+import {getHospital} from './his_staff';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -522,6 +523,52 @@ export default class HisScore {
         }, [])
       );
     });
+  }
+
+  //region 附加分相关
+  /**
+   * 设置员工附加分
+   *
+   * @param id 员工id
+   * @param month 月份
+   * @param score 附加分数
+   */
+  @validate(should.string().required(), monthValid, should.number().required())
+  async setExtraScore(id, month, score) {
+    const hospital = await getHospital();
+    const {start} = monthToRange(month);
+    // language=PostgreSQL
+    let settle =
+      (
+        await appDB.execute(
+          `
+            select settle
+            from his_hospital_settle
+            where hospital = ?
+              and month = ?
+          `,
+          hospital,
+          start
+        )
+      )[0]?.settle ?? false;
+    console.log(settle, start, dayjs().diff(start));
+    if (dayjs().diff(start) > 1) settle = true;
+    if (settle) {
+      throw new KatoRuntimeError(`机构已经结算, 不能修改附加分`);
+    }
+    //更新附加分
+    // language=PostgreSQL
+    await appDB.execute(
+      `
+        insert into his_staff_extra_score(staff, month, score)
+        values (?, ?, ?)
+        on conflict (staff, month) do update set score = ? and updated_at = now()
+      `,
+      id,
+      start,
+      score,
+      score
+    );
   }
 
   //endregion
