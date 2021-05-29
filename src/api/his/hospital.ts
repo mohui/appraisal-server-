@@ -28,7 +28,7 @@ export async function getSettle(id, month): Promise<boolean> {
         month
       )
     )[0]?.settle ?? false;
-  if (dayjs().diff(month) > 1) settle = true;
+  if (dayjs().diff(month, 'M') > 1) settle = true;
   return settle;
 }
 
