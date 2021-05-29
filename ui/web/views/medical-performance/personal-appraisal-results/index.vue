@@ -119,7 +119,7 @@ export default {
     this.drawChart();
   },
   watch: {
-    workScoreListData: function() {
+    workScorePieData: function() {
       this.drawProjectWorkPointPie();
     },
     workScoreDailyListData: function() {
@@ -130,7 +130,7 @@ export default {
     workScore() {
       return {
         total: this.workScoreListData
-          .map(it => it.value)
+          .map(it => it.score)
           .reduce((prev, curr) => prev + curr, 0),
         rate: this.workScoreListServerData.rate,
         rateFormat:
@@ -140,7 +140,10 @@ export default {
       };
     },
     workScoreListData() {
-      return this.workScoreListServerData?.items?.map(it => ({
+      return this.workScoreListServerData?.items?.map(it => it);
+    },
+    workScorePieData() {
+      return this.workScoreListData?.map(it => ({
         value: it.score,
         name: it.name
       }));
@@ -257,7 +260,7 @@ export default {
             itemStyle: {
               borderRadius: 8
             },
-            data: this.workScoreListData
+            data: this.workScorePieData
           }
         ]
       };
