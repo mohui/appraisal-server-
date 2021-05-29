@@ -747,7 +747,7 @@ export default {
                     auto: true,
                     id: typeof it.id === 'number' ? null : it.id,
                     name: this.targetName(it.name),
-                    metric: it.name[1],
+                    metric: Array.isArray(it.name) ? it.name[1] : it.name,
                     operator: it.mode,
                     value:
                       (this.targetName(it.name).includes('率') ||
