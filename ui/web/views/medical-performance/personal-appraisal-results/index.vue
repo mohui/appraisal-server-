@@ -67,7 +67,11 @@
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
                     <div class="content">{{ workScore.rateFormat }}</div>
-                    <el-button class="more" type="text">
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="dialogRateTableVisible = true"
+                    >
                       点击查看
                     </el-button>
                   </el-col>
@@ -125,6 +129,28 @@
         ></el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog
+      :title="staffCheckData.name"
+      :visible.sync="dialogRateTableVisible"
+    >
+      <el-table :data="staffCheckData.automations" max-height="50vh">
+        <el-table-column
+          property="name"
+          label="名称"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="staffScore"
+          label="分值"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="score"
+          label="得分"
+          width="200"
+        ></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -139,6 +165,7 @@ export default {
       curDate: new Date(JSON.parse(this.$route.query.date)),
       isEditor: false,
       dialogWorkScoreTableVisible: false,
+      dialogRateTableVisible: false,
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -215,6 +242,9 @@ export default {
     },
     personInfoData() {
       return this.personInfoServerData;
+    },
+    staffCheckData() {
+      return this.staffCheckServerData;
     }
   },
   asyncComputed: {
@@ -239,6 +269,14 @@ export default {
     personInfoServerData: {
       async get() {
         return await this.$api.HisStaff.get(this.id, this.curDate);
+      },
+      default: {}
+    },
+    staffCheckServerData: {
+      async get() {
+        return await this.$api.HisStaff.staffCheck(
+          '28f90f5e-809d-4dad-8e55-98f0db59c273'
+        );
       },
       default: {}
     }
