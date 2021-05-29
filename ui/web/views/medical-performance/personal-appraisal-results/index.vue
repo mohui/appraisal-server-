@@ -56,7 +56,12 @@
                   <el-col :span="8" class="item">
                     <div>校正前工分</div>
                     <div class="content">40</div>
-                    <div class="more">点击查看</div>
+                    <div
+                      class="more"
+                      @click="dialogWorkScoreTableVisible = true"
+                    >
+                      点击查看
+                    </div>
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
@@ -94,6 +99,28 @@
         ></div>
       </div>
     </div>
+    <el-dialog
+      title="校正前工分明细"
+      :visible.sync="dialogWorkScoreTableVisible"
+    >
+      <el-table :data="workScoreListData" max-height="50vh">
+        <el-table-column
+          property="type"
+          label="类型"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="name"
+          label="名称"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="score"
+          label="得分"
+          width="150"
+        ></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -108,6 +135,7 @@ export default {
       id: this.$route.query.id,
       dataSource: {name: '张三', score: 200, rate: 80},
       isEditor: false,
+      dialogWorkScoreTableVisible: false,
       additionalPoints: 0, //附加分
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
