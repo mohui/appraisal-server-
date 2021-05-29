@@ -322,6 +322,7 @@ export default {
     }
   },
   methods: {
+    // 附加分打分
     async saveEditorAdditionalPoints() {
       if (this.isEditor) {
         await this.$api.HisScore.setExtraScore(
