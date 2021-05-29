@@ -133,7 +133,7 @@
       :title="staffCheckData.name"
       :visible.sync="dialogRateTableVisible"
     >
-      <el-table :data="staffCheckData.automations" max-height="50vh">
+      <el-table :data="staffCheckData.list" max-height="50vh">
         <el-table-column
           property="name"
           label="名称"
@@ -244,7 +244,12 @@ export default {
       return this.personInfoServerData;
     },
     staffCheckData() {
-      return this.staffCheckServerData;
+      return {
+        ...this.staffCheckServerData,
+        list: this.staffCheckServerData.automations.concat(
+          this.staffCheckServerData.manuals
+        )
+      };
     }
   },
   asyncComputed: {
