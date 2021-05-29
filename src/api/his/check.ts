@@ -100,25 +100,35 @@ async function upsertRule(id, automations, manuals) {
         `,
       id
     );
-    // 要添加的细则
-    const addAutomations = automations
-      .map(it => {
-        if (!it.id) {
-          return {
-            ...it
-          };
-        }
-      })
-      .filter(it => it);
-    const addManuals = manuals
-      .map(it => {
-        if (!it.id) {
-          return {
-            ...it
-          };
-        }
-      })
-      .filter(it => it);
+    // 要添加的自动打分细则
+    const addAutomations = [];
+    // 要修改的自动打分细则
+    const updAutomations = [];
+    automations.forEach(it => {
+      // 如果id存在, 是修改, 否则是添加
+      if (it.id) {
+        // 要修改的细则
+        updAutomations.push(it);
+      } else {
+        // 要添加的细则
+        addAutomations.push(it);
+      }
+    });
+    // 要添加的自动打分细则
+    const addManuals = [];
+    // 要修改的自动打分细则
+    const updManuals = [];
+
+    // 处理手动打分细则
+    manuals.forEach(it => {
+      // 如果id,存在是修改,否则是添加
+      if (it.id) {
+        // 需要修改的细则
+        updManuals.push(it);
+      } else {
+        addManuals.push(it);
+      }
+    });
     // 把手工和自动的放到一个数组中
     const upsertRules = automations.concat(manuals);
     // 得出要删除的细则
@@ -130,6 +140,7 @@ async function upsertRule(id, automations, manuals) {
         }
       })
       .filter(it => it);
+
     // 如果有要删除的细则
     if (delRules.length > 0) {
       await appDB.execute(
@@ -160,6 +171,29 @@ async function upsertRule(id, automations, manuals) {
         );
       }
     }
+    if (updAutomations.length > 0) {
+      for (const ruleIt of updAutomations) {
+        // 自动打分
+        await appDB.execute(
+          `update his_check_rule set
+                name = ?,
+                metric = ?,
+                operator = ?,
+                value = ?,
+                score = ?,
+                updated_at = ?
+              where id = ?`,
+          ruleIt.name,
+          ruleIt.metric,
+          ruleIt.operator,
+          ruleIt.value,
+          ruleIt.score,
+          dayjs().toDate(),
+          ruleIt.id
+        );
+      }
+    }
+
     // 如果有要添加的手动打分细则
     if (addManuals.length > 0) {
       for (const ruleIt of addManuals) {
@@ -176,6 +210,27 @@ async function upsertRule(id, automations, manuals) {
           ruleIt.score,
           dayjs().toDate(),
           dayjs().toDate()
+        );
+      }
+    }
+    // 如果有要修改的自动打分细则
+    if (updManuals.length > 0) {
+      for (const ruleIt of updManuals) {
+        // 自动打分
+        await appDB.execute(
+          `update his_check_rule set
+                name = ?,
+                detail = ?,
+                value = ?,
+                score = ?,
+                updated_at = ?
+              where id = ?`,
+          ruleIt.name,
+          ruleIt.detail,
+          ruleIt.value,
+          ruleIt.score,
+          dayjs().toDate(),
+          ruleIt.id
         );
       }
     }
