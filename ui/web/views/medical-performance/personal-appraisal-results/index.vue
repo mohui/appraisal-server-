@@ -56,19 +56,20 @@
                   <el-col :span="8" class="item">
                     <div>校正前工分</div>
                     <div class="content">40</div>
-                    <div
+                    <el-button
                       class="more"
+                      type="text"
                       @click="dialogWorkScoreTableVisible = true"
                     >
                       点击查看
-                    </div>
+                    </el-button>
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
                     <div class="content">{{ workScore.rateFormat }}</div>
-                    <div class="more">
+                    <el-button class="more" type="text">
                       点击查看
-                    </div>
+                    </el-button>
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>附加分</div>
@@ -82,9 +83,13 @@
                         label="附加分"
                       ></el-input-number>
                     </div>
-                    <div class="more" @click="isEditor = !isEditor">
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="isEditor = !isEditor"
+                    >
                       {{ isEditor ? '完成' : '编辑' }}
-                    </div>
+                    </el-button>
                   </el-col>
                 </el-row>
               </div>
@@ -466,7 +471,7 @@ export default {
   height: 180px;
   margin-top: 20px;
   .item {
-    height: 180px;
+    height: 160px;
     display: flex;
     flex-direction: column;
     .content {
@@ -476,7 +481,6 @@ export default {
       justify-content: center;
     }
     .more {
-      height: 30px;
       padding: 10px 0;
     }
   }
