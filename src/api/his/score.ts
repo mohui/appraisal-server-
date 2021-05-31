@@ -784,7 +784,8 @@ export default class HisScore {
           values (?, ?, ?)
           on conflict (id, day)
             do update set result     = ?,
-                          updated_at = now()`,
+                          updated_at = now()
+        `,
         resultModel.id,
         resultModel.day,
         resultValue,
