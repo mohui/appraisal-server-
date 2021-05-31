@@ -29,7 +29,7 @@ type WorkItemDetail = {
 /**
  * 员工考核结果
  */
-type StaffScoreModel = {
+export type StaffScoreModel = {
   //工分
   work: {
     //本人工分项目的工分列表

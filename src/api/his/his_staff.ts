@@ -7,7 +7,7 @@ import {sql as sqlRender} from '../../database/template';
 import {monthToRange} from './manual';
 import {HisWorkScoreType, monthValid} from '../../../common/his';
 import {getSettle} from './hospital';
-import {getEndTimes} from './score';
+import {getEndTimes, StaffScoreModel} from './score';
 
 export async function getHospital() {
   if (
@@ -538,77 +538,35 @@ export default class HisStaff {
     rate?: number;
   }> {
     const {start, end} = monthToRange(month);
-    //查询工分来源非本人的工分值
-    const staffList: {staff: number; score: number}[] = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select s.staff as id, max(sf.name) as name, sum(d.score * s.rate) as score, ? as type
-        from (
-               select unnest(sources) as staff, rate
-               from his_staff_work_source s
-               where s.staff = ?
-             ) s
-               left join his_staff_work_score_daily d on s.staff = d.staff and d.day >= ? and d.day < ?
-               inner join staff sf on s.staff = sf.id
-        where s.staff != ?
-        group by s.staff
-      `,
-      HisWorkScoreType.STAFF,
-      id,
-      start,
-      end,
-      id
-    );
-    //查询本人的工分项目工分值列表
-    // language=PostgreSQL
-    let items = await appDB.execute(
-      `
-        select d.item as id, max(wi.name) as name, sum(s.rate * d.score) as score, ? as type
-        from his_staff_work_score_detail d
-               inner join (
-          select unnest(sources) as staff, rate
-          from his_staff_work_source s
-          where s.staff = ?
-            and ? = any (s.sources)
-        ) as s on d.staff = s.staff
-               inner join his_work_item wi on d.item = wi.id
-        where d.date >= ?
-          and d.date < ?
-          and d.staff = ?
-        group by d.item
-      `,
-      HisWorkScoreType.WORK_ITEM,
-      id,
-      id,
-      start,
-      end,
-      id
-    );
-    //如果是当前月, 则填补满工分项
-    if (dayjs().diff(start, 'M') === 0) {
-      //查询绑定工分项目
-      // language=PostgreSQL
-      const workItems = await appDB.execute(
+    //language=PostgreSQL
+    const result: StaffScoreModel = (
+      await appDB.execute(
         `
-          select w.id, w.name, m.score
-          from his_staff_work_item_mapping m
-                 inner join his_work_item w on m.item = w.id
-          where staff = ?
+          select result
+          from his_staff_result
+          where id = ?
+            and day >= ?
+            and day < ?
+          order by day desc
+          limit 1
         `,
-        id
-      );
-      items = workItems.map(it => ({
-        ...it,
-        score: items.find(item => item.id === it.id)?.score ?? 0,
-        type: HisWorkScoreType.WORK_ITEM
-      }));
-    }
-
-    //获取质量系数
-    const rate = await this.getRate(id, month);
+        id,
+        start,
+        end
+      )
+    )[0]?.result;
     return {
-      items: items.concat(staffList),
-      rate
+      items: [
+        ...(result?.work?.self ?? []).map(it => ({
+          ...it,
+          type: HisWorkScoreType.WORK_ITEM
+        })),
+        ...(result?.work?.staffs ?? []).map(it => ({
+          ...it,
+          type: HisWorkScoreType.STAFF
+        }))
+      ],
+      rate: result?.check?.rate
     };
   }
 
