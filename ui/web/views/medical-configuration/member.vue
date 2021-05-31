@@ -153,6 +153,7 @@
             v-model="newMember.staff"
             :disabled="newMember.staff !== '' && newMember.id !== ''"
             collapse-tags
+            filterable
           >
             <el-option
               v-for="m in memberList"
@@ -177,6 +178,7 @@
                     v-model="row.staffs"
                     multiple
                     collapse-tags
+                    filterable
                     size="mini"
                   >
                     <el-option

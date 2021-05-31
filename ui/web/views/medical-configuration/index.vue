@@ -120,6 +120,7 @@
                 v-model="row.memberIds"
                 size="mini"
                 multiple
+                filterable
                 collapse-tags
               >
                 <el-option
