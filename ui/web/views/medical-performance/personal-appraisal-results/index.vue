@@ -152,9 +152,9 @@
         <el-table-column
           property="score"
           label="分值"
-          width="200"
+          width="150"
         ></el-table-column>
-        <el-table-column property="staffScore" label="得分" width="200">
+        <el-table-column property="staffScore" label="得分" width="150">
           <template slot-scope="scope">
             <div v-if="scope.row.isRating">
               <el-input-number
