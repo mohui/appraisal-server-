@@ -64,7 +64,7 @@ type StaffScoreModel = {
 };
 
 // 根据传的时间,获取是否是当前月,如果是当前月,返回当天,如果不是当前月,返回所在月的最后一天
-function getEndTimes(month) {
+export function getEndTimes(month) {
   // 根据时间获取月份的开始时间和结束时间
   const {start, end} = monthToRange(month);
   // 判断当前时间是否在时间范围内
