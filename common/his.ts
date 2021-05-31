@@ -13,7 +13,9 @@ export function getTimeRange(): {start: Date; end: Date} {
   return {
     //TODO: 暂时定在2021年1月
     start: dayjs('2021-01-01').toDate(),
-    end: dayjs().toDate()
+    end: dayjs()
+      .endOf('d')
+      .toDate()
   };
 }
 

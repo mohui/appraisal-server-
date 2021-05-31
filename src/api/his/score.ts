@@ -25,6 +25,51 @@ type WorkItemDetail = {
   date: Date;
 };
 
+/**
+ * 员工考核结果
+ */
+type StaffScoreModel = {
+  //日期
+  day: Date;
+  //考核结果
+  result: {
+    //工分
+    work: {
+      //本人工分项目的工分列表
+      self: {id: string; name: string; score: number}[];
+      //本人工分来源的员工列表
+      staffs: {
+        id: string;
+        name: string;
+        score: number;
+      }[];
+      //工分
+      score: number;
+    };
+    //考核方案
+    check?: {
+      id: string;
+      name: string;
+      //考核规则得分
+      scores: {
+        id: string;
+        auto: boolean;
+        name: string;
+        detail: string;
+        metric: string;
+        operator: string;
+        value: string;
+        score: number;
+        total: number;
+      }[];
+      //质量系数
+      rate: number;
+    };
+    //附加分
+    extra?: number;
+  };
+}[];
+
 // 根据传的时间,获取是否是当前月,如果是当前月,返回当天,如果不是当前月,返回所在月的最后一天
 function getEndTimes(month) {
   // 根据时间获取月份的开始时间和结束时间
