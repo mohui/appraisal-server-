@@ -681,7 +681,7 @@ export default class HisScore {
    * @param day 月份
    */
   async scoreStaff(staff, day) {
-    return await appDB.joinTx(async () => {
+    await appDB.joinTx(async () => {
       const date = dateToDay(day);
       const {start, end} = dayToRange(date);
       //查询工分来源
@@ -698,7 +698,7 @@ export default class HisScore {
         `
           select foo.*, wi.name as item_name, wi.method, s.name as staff_name
           from (
-                 select ss.staff, sim.item, sum(sd.score * ss.rate) as score, max(sim.score) as value
+                 select ss.staff, sim.item, sum(sd.score) as score
                  from (
                         select unnest(sources) as staff, rate
                         from his_staff_work_source
@@ -716,41 +716,16 @@ export default class HisScore {
         start,
         end
       );
-      //根据工分项目得分方式, 换算真正的工分
-      const scores = scoreDetails.map<{
-        staff: string;
-        item: string;
-        score?: number;
-        item_name: string;
-        staff_name: string;
-      }>(it => {
-        let score = null;
-        if (it.score && it.method === HisWorkMethod.AMOUNT) {
-          score = it.value;
-        }
-        if (it.score && it.method === HisWorkMethod.SUM) {
-          score = it.score * it.value;
-        }
-        return {
-          staff: it.staff,
-          item: it.item,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          item_name: it.item_name,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          staff_name: it.staff_name,
-          score
-        };
-      });
       //本人的工分项目得分列表
-      const self = scores
+      const self = scoreDetails
         .filter(it => it.staff === staff)
         .map(it => ({
           id: it.item,
           name: it.item_name,
           score: it.score
         }));
-
-      const staffs = scores.reduce((result, current) => {
+      //本人的工分来源列表
+      const staffs = scoreDetails.reduce((result, current) => {
         const obj = result.find(it => it.id === current.staff);
         if (obj) {
           obj.score += current.score;
@@ -763,7 +738,6 @@ export default class HisScore {
         }
         return result;
       }, []);
-
       //查询得分结果
       //language=PostgreSQL
       let resultModel: {
@@ -802,16 +776,19 @@ export default class HisScore {
         (result, current) => (result += current.score),
         0
       );
-      //language=PostgreSQL
-      return await appDB.execute(
+      const resultValue = JSON.stringify(resultModel.result);
+      await appDB.execute(
+        //language=PostgreSQL
         `
-        insert into his_staff_result(id, day, result)
-        values (?, ?, ?)
-        on conflict (id, day) do update set result = ?, updated_at = now()`,
+          insert into his_staff_result(id, day, result)
+          values (?, ?, ?)
+          on conflict (id, day)
+            do update set result     = ?,
+                          updated_at = now()`,
         resultModel.id,
         resultModel.day,
-        JSON.stringify(resultModel.result),
-        JSON.stringify(resultModel.result)
+        resultValue,
+        resultValue
       );
     });
   }
