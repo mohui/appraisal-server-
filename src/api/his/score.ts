@@ -90,6 +90,39 @@ export function getEndTimes(month) {
   };
 }
 
+/**
+ * 将日期参数转换成合法日期
+ *
+ * 如果是历史日期, 则返回该月最后一天, 否则原样返回
+ * @param date 日期
+ */
+export function dateToDay(date: Date): Date {
+  if (dayjs().diff(date, 'M') > 0) {
+    return dayjs(date)
+      .endOf('M')
+      .toDate();
+  } else {
+    return date;
+  }
+}
+
+/**
+ * 获取这一天的开始和结束时间区间
+ *
+ * @param day 日期
+ */
+export function dayToRange(day: Date): {start: Date; end: Date} {
+  return {
+    start: dayjs(day)
+      .startOf('d')
+      .toDate(),
+    end: dayjs(day)
+      .add(1, 'd')
+      .startOf('d')
+      .toDate()
+  };
+}
+
 export default class HisScore {
   /**
    * 自动打分
