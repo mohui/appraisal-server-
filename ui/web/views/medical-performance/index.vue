@@ -284,6 +284,7 @@ export default {
         xAxis: [
           {
             type: 'category',
+            triggerEvent: true,
             axisTick: {
               alignWithLabel: true
             },
@@ -343,15 +344,25 @@ export default {
 
       // 表格的点击事件添加路由跳转
       myChart.on('click', params => {
-        console.log(params);
-        const id = this.staffCheckListData[params.dataIndex].id;
-        this.$router.push({
-          name: 'personal-appraisal-results',
-          query: {
-            id: id,
-            date: JSON.stringify(this.currentDate)
-          }
-        });
+        let id = '';
+        if (params.componentType === 'series') {
+          id = this.staffCheckListData[params.dataIndex].id;
+        } else if (params.componentType === 'xAxis') {
+          const anId = params.event.target.anid;
+          let strArr = anId.split('_');
+          const index = strArr[strArr.length - 1];
+          id = this.staffCheckListData[index].id;
+          console.log('id:', id);
+        }
+        if (id) {
+          this.$router.push({
+            name: 'personal-appraisal-results',
+            query: {
+              id: id,
+              date: JSON.stringify(this.currentDate)
+            }
+          });
+        }
       });
     },
     // 项目绩效柱状图
