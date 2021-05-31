@@ -311,7 +311,7 @@ export default {
             type: 'value',
             name: '质量系数（%）',
             min: 0,
-            max: 1,
+            max: 100,
             axisLine: {
               show: true,
               lineStyle: {
@@ -334,7 +334,7 @@ export default {
             name: '质量系数',
             type: 'bar',
             yAxisIndex: 1,
-            data: doctorData.map(it => it.rate * 100)
+            data: doctorData.map(it => (it.rate * 100).toFixed(2))
           }
         ]
       };
