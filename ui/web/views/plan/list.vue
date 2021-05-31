@@ -112,7 +112,10 @@ export default {
       });
     },
     async delPlan({row}) {
-      this.$confirm('确定要删除此指标?', '提示', {
+      if (row.staffs.length) {
+        return this.$message.warning('此考核方案绑定了考核的员工，不可删除。');
+      }
+      this.$confirm('确定要删除此考核方案?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
