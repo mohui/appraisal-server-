@@ -7,6 +7,7 @@ import {sql as sqlRender} from '../../database/template';
 import {monthToRange} from './manual';
 import {HisWorkScoreType, monthValid} from '../../../common/his';
 import {getSettle} from './hospital';
+import {getEndTimes} from './score';
 
 export async function getHospital() {
   if (
@@ -832,16 +833,22 @@ export default class HisStaff {
   }
 
   /**
-   *
-   * @param staff
+   * 员工考核详情
+   * @param staff 考核员工
+   * @param month 时间
    */
   @validate(
     should
       .string()
       .required()
-      .description('考核员工id')
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('时间')
   )
-  async staffCheck(staff) {
+  async staffCheck(staff, month) {
+    // 查询员工和方案绑定
     const checks = await appDB.execute(
       `select "check" "checkId",  staff from his_staff_check_mapping where staff = ?`,
       staff
@@ -849,6 +856,7 @@ export default class HisStaff {
     if (checks.length === 0) throw new KatoRuntimeError(`该员工没有考核方案`);
     const checkId = checks[0]?.checkId;
 
+    // 查询方案是否存在
     const hisSystems = await appDB.execute(
       `select id, name
             from his_check_system
@@ -856,16 +864,37 @@ export default class HisStaff {
       checkId
     );
     if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
+
+    // 根据方案查询细则
     const hisRules = await appDB.execute(
       `select * from his_check_rule
               where "check" = ?
         `,
       checkId
     );
+    if (hisRules.length === 0) throw new KatoRuntimeError(`方案细则不存在`);
+    const ruleIds = hisRules.map(it => it.id);
+
+    // 根据时间,员工,细则查询得分
+    const scoreDate = getEndTimes(month)?.scoreDate;
+    const ruleScores = await appDB.execute(
+      `select rule, score score
+            from his_rule_staff_score
+            where staff = ?
+             and date = ?
+             and rule in (${ruleIds.map(() => '?')})
+        `,
+      staff,
+      scoreDate,
+      ...ruleIds
+    );
+
+    // 把分值放到细则中
     const newHisRules = hisRules.map(it => {
+      const scoreIndex = ruleScores.find(item => it.id === item.rule);
       return {
         ...it,
-        staffScore: null
+        staffScore: scoreIndex ? scoreIndex.score : null
       };
     });
     const automations = newHisRules.filter(it => it.auto);
