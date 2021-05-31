@@ -482,32 +482,7 @@ const TagModeList = [
     name: '“≤”时得满分，超过按比例得分'
   }
 ];
-const Doctor = [
-  {
-    value: 'zane',
-    label: '张医生'
-  },
-  {
-    value: 'wang',
-    label: '王大夫'
-  },
-  {
-    value: 'zebu',
-    label: '周主任'
-  },
-  {
-    value: 'li',
-    label: '李院长'
-  },
-  {
-    value: 'zak',
-    label: '赵护士长'
-  },
-  {
-    value: 'lii',
-    label: '李主任'
-  }
-];
+
 export default {
   name: 'PlanAdd',
   data() {
@@ -515,7 +490,7 @@ export default {
       id: '',
       isLoading: false,
       loadingText: '拼命加载中',
-      members: Doctor,
+      members: [],
       TagModeList: TagModeList,
       activeName: 'first',
       rules: {
