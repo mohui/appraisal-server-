@@ -486,6 +486,7 @@ const TagModeList = [
 export default {
   name: 'PlanAdd',
   data() {
+    const isEdit = !this.$route.query.id;
     return {
       id: '',
       isLoading: false,
@@ -495,7 +496,9 @@ export default {
       activeName: 'first',
       rules: {
         name: [{required: true, message: '请输入方案名称', trigger: 'blur'}],
-        doctor: [{required: true, message: '请选择考核员工', trigger: 'change'}]
+        doctor: [
+          {required: isEdit, message: '请选择考核员工', trigger: 'change'}
+        ]
       },
       form: {
         name: '',
