@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from './views/layout/layout';
-import {getToken, setToken, cleanCache} from './utils/cache';
+import {cleanCache, getToken, setToken} from './utils/cache';
 import {Permission} from '../../common/permission.ts';
 
 Vue.use(Router);
@@ -194,6 +194,46 @@ const router = new Router({
           component: () => import('./views/error/page401')
         },
         {
+          path: 'plan',
+          name: 'plan',
+          meta: {
+            permission: [Permission.MEDICAL_PLAN]
+          },
+          component: () => import('./views/plan/list')
+        },
+        {
+          path: 'plan-add',
+          name: 'plan-add',
+          meta: {
+            activeMenu: 'plan'
+          },
+          component: () => import('./views/plan/add')
+        },
+        {
+          path: 'work',
+          name: 'work',
+          meta: {
+            permission: [Permission.MEDICAL_WORK]
+          },
+          component: () => import('./views/work/list')
+        },
+        {
+          path: 'manual',
+          name: 'manual',
+          meta: {
+            permission: [Permission.MEDICAL_MANUAL]
+          },
+          component: () => import('./views/manual/index')
+        },
+        {
+          path: 'manual-update',
+          name: 'manual-update',
+          meta: {
+            activeMenu: 'manual'
+          },
+          component: () => import('./views/manual/update')
+        },
+        {
           path: 'etl',
           name: 'hospital-elt',
           meta: {
@@ -207,6 +247,75 @@ const router = new Router({
           name: 'audit-log',
           meta: {permission: [Permission.AUDIT_LOG]},
           component: () => import('./views/audit/index')
+        },
+        {
+          path: 'medical-performance',
+          name: 'medical-performance',
+          meta: {
+            permission: [Permission.MEDICAL_PERFORMANCE]
+          },
+          component: () => import('./views/medical-performance/index')
+        },
+        {
+          path: 'check-project',
+          name: 'check-project',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () => import('./views/medical-performance/project/index')
+        },
+        {
+          path: 'marking-doctor',
+          name: 'marking-doctor',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import('./views/medical-performance/project/marking-doctor')
+        },
+        {
+          path: 'marking-target',
+          name: 'marking-target',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import('./views/medical-performance/project/marking-target')
+        },
+        {
+          path: 'personal-appraisal-results',
+          name: 'personal-appraisal-results',
+          meta: {
+            activeMenu: 'medical-performance'
+          },
+          component: () =>
+            import(
+              './views/medical-performance/personal-appraisal-results/index'
+            )
+        },
+        {
+          path: 'medical-configuration',
+          name: 'medical-configuration',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_LIST]},
+          component: () => import('./views/medical-configuration/index')
+        },
+        {
+          path: 'medical-configuration-work',
+          name: 'medical-configuration-work',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_WORK]},
+          component: () => import('./views/medical-configuration/work')
+        },
+        {
+          path: 'medical-configuration-member',
+          name: 'medical-configuration-member',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER]},
+          component: () => import('./views/medical-configuration/member')
+        },
+        {
+          path: 'medical-configuration-member-his',
+          name: 'medical-configuration-member-his',
+          meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS]},
+          component: () => import('./views/medical-configuration/member-his')
         }
       ]
     },

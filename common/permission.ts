@@ -114,6 +114,38 @@ export const PermissionDetail = [
   {
     key: 'audit-log',
     name: '操作日志'
+  },
+  {
+    key: 'medical-configuration-list',
+    name: '医疗绩效配置列表'
+  },
+  {
+    key: 'medical-configuration-work',
+    name: '工分项管理'
+  },
+  {
+    key: 'medical-configuration-member',
+    name: '员工配置'
+  },
+  {
+    key: 'medical-configuration-member-his',
+    name: '员工管理'
+  },
+  {
+    key: 'medical-performance',
+    name: '医疗绩效'
+  },
+  {
+    key: 'medical-manual',
+    name: '手工数据维护'
+  },
+  {
+    key: 'medical-plan',
+    name: '医疗考核方案'
+  },
+  {
+    key: 'medical-work',
+    name: '医疗工作列表'
   }
 ];
 
@@ -146,7 +178,15 @@ export const Permission = {
   SUPER_ADMIN: 'super-admin',
   TAGS_DETAIL: 'tags-detail',
   PERSON_EXCEL: 'person-excel',
-  AUDIT_LOG: 'audit-log'
+  AUDIT_LOG: 'audit-log',
+  MEDICAL_CONFIGURATION_LIST: 'medical-configuration-list',
+  MEDICAL_CONFIGURATION_WORK: 'medical-configuration-work',
+  MEDICAL_CONFIGURATION_MEMBER: 'medical-configuration-member',
+  MEDICAL_CONFIGURATION_MEMBER_HIS: 'medical-configuration-member-his',
+  MEDICAL_PERFORMANCE: 'medical-performance',
+  MEDICAL_MANUAL: 'medical-manual',
+  MEDICAL_PLAN: 'medical-plan',
+  MEDICAL_WORK: 'medical-work'
 };
 export const PermissionTree = [
   {
@@ -300,6 +340,44 @@ export const PermissionTree = [
   {
     key: Permission.AUDIT_LOG,
     label: '操作日志'
+  },
+  {
+    key: Permission.MEDICAL_PERFORMANCE,
+    label: '医疗绩效'
+  },
+  {
+    key: 'medical-configuration',
+    label: '医疗绩效配置',
+    children: [
+      {
+        key: Permission.MEDICAL_CONFIGURATION_LIST,
+        label: '配置列表'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_WORK,
+        label: '工分项管理'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_MEMBER,
+        label: '员工配置'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
+        label: '员工管理'
+      }
+    ]
+  },
+  {
+    key: Permission.MEDICAL_MANUAL,
+    label: '手工数据维护'
+  },
+  {
+    key: Permission.MEDICAL_PLAN,
+    label: '医疗考核方案'
+  },
+  {
+    key: Permission.MEDICAL_WORK,
+    label: '医疗工作列表'
   }
 ];
 export function getPermission(key) {

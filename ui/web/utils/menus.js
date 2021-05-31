@@ -83,5 +83,69 @@ module.exports = [
     label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
+  },
+  {
+    index: 'medical-performance',
+    permission: [Permission.MEDICAL_PERFORMANCE],
+    label: '医疗绩效',
+    icon: 'el-icon-s-data',
+    router: '/medical-performance'
+  },
+  {
+    index: 'medical-configuration',
+    permission: [
+      Permission.MEDICAL_CONFIGURATION_LIST,
+      Permission.MEDICAL_CONFIGURATION_WORK,
+      Permission.MEDICAL_CONFIGURATION_MEMBER
+    ],
+    label: '医疗绩效配置',
+    icon: 'el-icon-data-line',
+    children: [
+      {
+        index: 'medical-configuration',
+        permission: [Permission.MEDICAL_CONFIGURATION_LIST],
+        router: '/medical-configuration',
+        label: '配置列表'
+      },
+      {
+        index: 'medical-configuration-work',
+        permission: [Permission.MEDICAL_CONFIGURATION_WORK],
+        router: '/medical-configuration-work',
+        label: '工分项配置'
+      },
+      {
+        index: 'medical-configuration-member',
+        permission: [Permission.MEDICAL_CONFIGURATION_MEMBER],
+        router: '/medical-configuration-member',
+        label: '员工配置'
+      },
+      {
+        index: 'medical-configuration-member-his',
+        permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS],
+        router: '/medical-configuration-member-his',
+        label: '员工管理'
+      }
+    ]
+  },
+  {
+    index: 'manual',
+    permission: [Permission.MEDICAL_MANUAL],
+    label: '手工数据维护',
+    icon: 'el-icon-notebook-1',
+    router: '/manual'
+  },
+  {
+    index: 'plan',
+    permission: [Permission.MEDICAL_PLAN],
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    permission: [Permission.MEDICAL_WORK],
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];
