@@ -316,7 +316,7 @@ export default {
       async get() {
         return await this.$api.HisStaff.staffCheck(this.id);
       },
-      default: {}
+      default: {manuals: [], automations: []}
     }
   },
   methods: {
