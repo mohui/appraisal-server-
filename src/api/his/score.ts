@@ -323,6 +323,9 @@ export default class HisScore {
       .description('分值')
   )
   async setCheckScore(ruleId, staff, month, score) {
+    const hospital = await getHospital();
+    const settle = await getSettle(hospital, month);
+    if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
     const date = getEndTimes(month);
     const scoreDate = date.scoreDate;
 
