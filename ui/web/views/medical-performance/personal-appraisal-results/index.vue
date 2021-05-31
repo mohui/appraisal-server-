@@ -314,9 +314,7 @@ export default {
     },
     staffCheckServerData: {
       async get() {
-        return await this.$api.HisStaff.staffCheck(
-          '28f90f5e-809d-4dad-8e55-98f0db59c273'
-        );
+        return await this.$api.HisStaff.staffCheck(this.id);
       },
       default: {}
     }
