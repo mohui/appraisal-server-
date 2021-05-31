@@ -3,7 +3,16 @@ import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {monthToRange} from './manual';
-import {monthValid} from '../../../common/his';
+import {getTimeRange} from '../../../common/his';
+
+/**
+ * 月份参数校验
+ */
+export const monthValid = should
+  .date()
+  .min(getTimeRange().start)
+  .max(getTimeRange().end)
+  .required();
 
 /**
  * 获取结算状态

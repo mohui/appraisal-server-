@@ -3,11 +3,11 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import {monthToRange} from './manual';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource, monthValid} from '../../../common/his';
+import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {getHospital} from './his_staff';
-import {getSettle} from './hospital';
+import {getSettle, monthValid} from './hospital';
 import {sql as sqlRender} from '../../database/template';
 
 function log(...args) {

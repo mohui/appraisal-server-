@@ -1,5 +1,4 @@
 import * as dayjs from 'dayjs';
-import {should} from 'kato-server';
 
 /**
  * 获取时间区间
@@ -18,15 +17,6 @@ export function getTimeRange(): {start: Date; end: Date} {
       .toDate()
   };
 }
-
-/**
- * 月份参数校验
- */
-export const monthValid = should
-  .date()
-  .min(getTimeRange().start)
-  .max(getTimeRange().end)
-  .required();
 
 /**
  * 手工数据输入方式
