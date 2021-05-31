@@ -4,9 +4,7 @@
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
         <div class="header">
-          <div class="header-title">
-            中心绩效考核
-          </div>
+          <div class="header-title">{{ overviewData.name }}绩效考核</div>
           <div>
             <el-date-picker
               v-model="currentDate"
@@ -27,6 +25,13 @@
             "
             >手动考核</el-button
           >
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="handleSettle()"
+            >{{ this.overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
+          >
         </div>
       </el-card>
       <div>
@@ -37,11 +42,11 @@
                 <div class="score-detail">
                   <div class="total-score-title">总分</div>
                   <div class="total-score">
-                    {{ dataSource.afterCorrectionWorkPoint }}
+                    {{ overviewData.correctScore }}
                   </div>
                   <div>校正后</div>
                   <div class="before-correction">
-                    校正前工分: {{ dataSource.beforeCorrectionWorkPoint }}
+                    校正前工分: {{ overviewData.originalScore }}
                   </div>
                 </div>
               </el-col>
@@ -83,81 +88,15 @@ export default {
   name: 'index',
   data() {
     return {
-      currentDate: dayjs().toDate(),
+      currentDate: dayjs()
+        .startOf('M')
+        .toDate(),
       disabledDate: {
         disabledDate(time) {
           return time.getTime() > dayjs().toDate();
         }
       },
-      dataSource: {
-        beforeCorrectionWorkPoint: 30000,
-        afterCorrectionWorkPoint: 25000,
-        rate: 56,
-        doctorData: [
-          {name: '医生1', score: 30, rate: 0.8},
-          {name: '医生2', score: 70, rate: 0.5},
-          {name: '医生3', score: 50, rate: 0.7},
-          {name: '医生4', score: 60, rate: 0.6},
-          {name: '医生5', score: 90, rate: 0.6},
-          {name: '医生6', score: 50, rate: 0.9},
-          {name: '医生7', score: 70, rate: 0.4},
-          {name: '医生8', score: 30, rate: 0.8},
-          {name: '医生9', score: 70, rate: 0.5},
-          {name: '医生10', score: 50, rate: 0.7}
-        ],
-        projectData: [
-          {
-            name: '项目1',
-            afterCorrectionWorkPoint: 245,
-            beforeCorrectionWorkPoint: 300
-          },
-          {
-            name: '项目2',
-            afterCorrectionWorkPoint: 344,
-            beforeCorrectionWorkPoint: 397
-          },
-          {
-            name: '项目3',
-            afterCorrectionWorkPoint: 200,
-            beforeCorrectionWorkPoint: 240
-          },
-          {
-            name: '项目4',
-            afterCorrectionWorkPoint: 234,
-            beforeCorrectionWorkPoint: 435
-          },
-          {
-            name: '项目5',
-            afterCorrectionWorkPoint: 353,
-            beforeCorrectionWorkPoint: 360
-          },
-          {
-            name: '项目6',
-            afterCorrectionWorkPoint: 459,
-            beforeCorrectionWorkPoint: 633
-          },
-          {
-            name: '项目7',
-            afterCorrectionWorkPoint: 330,
-            beforeCorrectionWorkPoint: 330
-          },
-          {
-            name: '项目8',
-            afterCorrectionWorkPoint: 330,
-            beforeCorrectionWorkPoint: 330
-          },
-          {
-            name: '项目9',
-            afterCorrectionWorkPoint: 245,
-            beforeCorrectionWorkPoint: 300
-          },
-          {
-            name: '项目10',
-            afterCorrectionWorkPoint: 344,
-            beforeCorrectionWorkPoint: 397
-          }
-        ]
-      }
+      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
   directives: {
@@ -166,7 +105,69 @@ export default {
   mounted() {
     this.drawChart();
   },
+  computed: {
+    overviewData() {
+      return {
+        ...this.overviewServerData,
+        rate: this.overviewServerData.correctScore
+          ? this.overviewServerData.correctScore /
+            this.overviewServerData.originalScore
+          : 0
+      };
+    },
+    workScoreListData() {
+      return this.workScoreListSeverData;
+    },
+    staffCheckListData() {
+      return this.staffCheckListSeverData;
+    }
+  },
+  asyncComputed: {
+    overviewServerData: {
+      async get() {
+        return await this.$api.HisHospital.overview(this.currentDate);
+      },
+      default() {
+        return {};
+      }
+    },
+    workScoreListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    },
+    staffCheckListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    }
+  },
+  watch: {
+    workScoreListData: function() {
+      this.drawProjectPerformanceBar();
+    },
+    staffCheckListData: function() {
+      this.drawDoctorPerformanceBar();
+    }
+  },
   methods: {
+    async handleSettle() {
+      try {
+        await this.$api.HisHospital.settle(
+          this.currentDate,
+          !this.overviewData.settle
+        );
+        this.$asyncComputed.overviewServerData.update();
+      } catch (e) {
+        console.log(e.message);
+      }
+    },
     // 绘制图表
     drawChart() {
       this.drawRateGauge();
@@ -179,7 +180,7 @@ export default {
       const myChart = this.$echarts.init(document.getElementById('rateGauge'));
       let option;
       const color = '#409EFF';
-      const value = 55;
+      const value = this.overviewData.rate;
       option = {
         series: [
           {
@@ -249,12 +250,13 @@ export default {
     },
     // 医生绩效柱状图
     drawDoctorPerformanceBar() {
+      const doctorData = this.staffCheckListData;
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
         document.getElementById('doctorPerformanceBar')
       );
       let option;
-      const colors = ['#409eff', '#ea9d42'];
+      const colors = this.chartColors;
       option = {
         color: colors,
         tooltip: {
@@ -282,10 +284,11 @@ export default {
         xAxis: [
           {
             type: 'category',
+            triggerEvent: true,
             axisTick: {
               alignWithLabel: true
             },
-            data: this.dataSource.doctorData.map(it => it.name)
+            data: doctorData.map(it => it.name)
           }
         ],
         yAxis: [
@@ -306,9 +309,9 @@ export default {
           },
           {
             type: 'value',
-            name: '质量系数',
+            name: '质量系数（%）',
             min: 0,
-            max: 1,
+            max: 100,
             axisLine: {
               show: true,
               lineStyle: {
@@ -325,13 +328,13 @@ export default {
             name: '人员得分',
             type: 'bar',
             yAxisIndex: 0,
-            data: this.dataSource.doctorData.map(it => it.score)
+            data: doctorData.map(it => it.score)
           },
           {
             name: '质量系数',
             type: 'bar',
             yAxisIndex: 1,
-            data: this.dataSource.doctorData.map(it => it.rate)
+            data: doctorData.map(it => (it.rate * 100).toFixed(2))
           }
         ]
       };
@@ -341,13 +344,25 @@ export default {
 
       // 表格的点击事件添加路由跳转
       myChart.on('click', params => {
-        console.log(params);
-        this.$router.push({
-          name: 'personal-appraisal-results',
-          query: {
-            name: params.name
-          }
-        });
+        let id = '';
+        if (params.componentType === 'series') {
+          id = this.staffCheckListData[params.dataIndex].id;
+        } else if (params.componentType === 'xAxis') {
+          const anId = params.event.target.anid;
+          let strArr = anId.split('_');
+          const index = strArr[strArr.length - 1];
+          id = this.staffCheckListData[index].id;
+          console.log('id:', id);
+        }
+        if (id) {
+          this.$router.push({
+            name: 'personal-appraisal-results',
+            query: {
+              id: id,
+              date: JSON.stringify(this.currentDate)
+            }
+          });
+        }
       });
     },
     // 项目绩效柱状图
@@ -394,15 +409,13 @@ export default {
         },
         yAxis: {
           type: 'category',
-          data: this.dataSource.projectData.map(it => it.name)
+          data: this.workScoreListData.map(it => it.name)
         },
         series: [
           {
             name: '项目应得分',
             type: 'bar',
-            data: this.dataSource.projectData.map(
-              it => it.beforeCorrectionWorkPoint
-            ),
+            data: this.workScoreListData.map(it => it.score),
             itemStyle: {
               color: 'rgba(180, 180, 180, 0.3)'
             }
@@ -410,11 +423,11 @@ export default {
           {
             name: '项目实际得分',
             type: 'bar',
-            data: this.dataSource.projectData.map(
-              it => it.afterCorrectionWorkPoint
+            data: this.workScoreListData.map(
+              it => it.score * this.overviewData.rate
             ),
             itemStyle: {
-              color: '#409eff'
+              color: this.chartColors[0]
             },
             barGap: '-100%'
           }

@@ -6,13 +6,13 @@
         <div class="header">
           <div class="content">
             <div class="item">
-              {{ dataSource.name }}
+              {{ personInfoData.name }}
             </div>
-            <div class="item">校正后总得分（分）：{{ dataSource.score }}</div>
-            <div class="item">质量系数：{{ dataSource.rate }}%</div>
+            <div class="item">校正后总得分（分）：{{ workScore.total }}</div>
+            <div class="item">质量系数：{{ workScore.rateFormat }}%</div>
           </div>
           <div>
-            <el-button size="small" @click="$router.go(-1)">返回 </el-button>
+            <el-button size="small" @click="$router.go(-1)">返回</el-button>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
-                  v-for="(value, key) in personInfo"
+                  v-for="(value, key) in personInfoData"
                   :key="key"
                   :span="12"
                   style="padding:  0 8%"
@@ -53,44 +53,46 @@
               <div>得分细则</div>
               <div style="text-align: center;">
                 <el-row>
-                  <el-col :span="8">
-                    <div class="item">
-                      <div>校正前工分</div>
-                      <div class="content">
-                        <el-row :gutter="20">
-                          <el-col :span="12" style="">
-                            <div style="margin: 15px 0;">自动考核工分项</div>
-                            <div>30</div>
-                          </el-col>
-                          <el-col :span="12" style="">
-                            <div style="margin: 15px 0">手动考核工分项</div>
-                            <div>20</div>
-                          </el-col>
-                        </el-row>
-                      </div>
-                      <div class="more">点击查看</div>
-                    </div>
+                  <el-col :span="8" class="item">
+                    <div>校正前工分</div>
+                    <div class="content">40</div>
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="dialogWorkScoreTableVisible = true"
+                    >
+                      点击查看
+                    </el-button>
                   </el-col>
-                  <el-col :span="16">
-                    <el-row>
-                      <el-col :span="8" class="item">
-                        <div>质量系数</div>
-                        <div class="content">80%</div>
-                        <div class="more">
-                          点击查看
-                        </div>
-                      </el-col>
-                      <el-col :span="8" class="item">
-                        <div>校正后工分</div>
-                        <div class="content">40</div>
-                        <div class="more">点击查看</div>
-                      </el-col>
-                      <el-col :span="8" class="item">
-                        <div>附加分</div>
-                        <div class="content">10</div>
-                        <div class="more">点击查看</div>
-                      </el-col>
-                    </el-row>
+                  <el-col :span="8" class="item">
+                    <div>质量系数</div>
+                    <div class="content">{{ workScore.rateFormat }}%</div>
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="dialogRateTableVisible = true"
+                    >
+                      点击查看
+                    </el-button>
+                  </el-col>
+                  <el-col :span="8" class="item">
+                    <div>附加分</div>
+                    <div class="content">
+                      <div v-if="!isEditor">{{ personInfoData.extra }}</div>
+                      <el-input-number
+                        v-else
+                        v-model="personInfoData.extra"
+                        size="mini"
+                        label="附加分"
+                      ></el-input-number>
+                    </div>
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="saveEditorAdditionalPoints"
+                    >
+                      {{ isEditor ? '完成' : '编辑' }}
+                    </el-button>
                   </el-col>
                 </el-row>
               </div>
@@ -105,6 +107,81 @@
         ></div>
       </div>
     </div>
+    <el-dialog
+      title="校正前工分明细"
+      :visible.sync="dialogWorkScoreTableVisible"
+    >
+      <el-table
+        :data="workScoreListData"
+        max-height="50vh"
+        :header-cell-style="{textAlign: 'center'}"
+        :cell-style="{textAlign: 'center'}"
+      >
+        <el-table-column
+          property="type"
+          label="类型"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="name"
+          label="名称"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="score"
+          label="得分"
+          width="150"
+        ></el-table-column>
+      </el-table>
+    </el-dialog>
+    <el-dialog
+      :title="staffCheckData.name"
+      :visible.sync="dialogRateTableVisible"
+    >
+      <el-table
+        :data="staffCheckData.list"
+        max-height="50vh"
+        :header-cell-style="{textAlign: 'center'}"
+        :cell-style="{textAlign: 'center'}"
+      >
+        <el-table-column
+          property="name"
+          label="名称"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          property="score"
+          label="分值"
+          width="150"
+        ></el-table-column>
+        <el-table-column property="staffScore" label="得分" width="150">
+          <template slot-scope="scope">
+            <div v-if="scope.row.isRating">
+              <el-input-number
+                v-model="scope.row.staffScore"
+                size="mini"
+                label="打分"
+              ></el-input-number>
+            </div>
+            <div v-else>
+              {{ scope.row.staffScore }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button
+              v-if="!scope.row.auto"
+              size="small"
+              type="primary"
+              @click="saveEditorCheckScore(scope.row)"
+            >
+              {{ scope.row.isRating ? '完成' : '打分' }}
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -115,17 +192,12 @@ export default {
   name: 'index',
   data() {
     return {
-      dataSource: {name: '张三', score: 200, rate: 80},
-      personInfo: {
-        name: '张三',
-        gender: '男',
-        birth: '1993-03-01',
-        idCard: '4305353199303016567',
-        empNo: '4235',
-        department: '门诊部',
-        tel: '4305353199303016567',
-        medicareNo: '340608083803'
-      }
+      id: this.$route.query.id,
+      curDate: new Date(JSON.parse(this.$route.query.date)),
+      isEditor: false,
+      dialogWorkScoreTableVisible: false,
+      dialogRateTableVisible: false,
+      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
   directives: {
@@ -134,7 +206,156 @@ export default {
   mounted() {
     this.drawChart();
   },
+  watch: {
+    workScorePieData: function() {
+      this.drawProjectWorkPointPie();
+    },
+    workScoreDailyListData: function() {
+      this.drawProjectWorkPointBarRateLine();
+    }
+  },
+  computed: {
+    workScore() {
+      return {
+        total: this.workScoreListData
+          .map(it => it.score)
+          .reduce((prev, curr) => prev + curr, 0),
+        rate: this.workScoreListServerData.rate,
+        rateFormat:
+          this.workScoreListServerData.rate === null
+            ? '暂未考核'
+            : (this.workScoreListServerData.rate * 100).toFixed(2)
+      };
+    },
+    workScoreListData() {
+      return this.workScoreListServerData?.items?.map(it => it);
+    },
+    workScorePieData() {
+      return this.workScoreListData?.map(it => ({
+        value: it.score,
+        name: it.name
+      }));
+    },
+    workScoreDailyListData() {
+      let result = {};
+      result.day = this.workScoreDailyListServerData?.map(it =>
+        it.day.$format('MM-DD')
+      );
+      result.rates = this.workScoreDailyListServerData?.map(
+        it => it.rate * 100
+      );
+      let items = [];
+      items = this.workScoreDailyListServerData?.map(it => it.items);
+      let projects = [];
+      if (items?.length > 0) {
+        for (const item of items) {
+          for (const it of item) {
+            const index = projects.findIndex(p => p.name === it.name);
+            if (index === -1) {
+              projects.push({
+                name: it.name,
+                score: [it.score],
+                auxiliaryDate: [0]
+              });
+            } else {
+              projects[index].auxiliaryDate.push(
+                projects[index].score.reduce((total, currentValue) => {
+                  return total + currentValue;
+                }, 0)
+              );
+              projects[index].score.push(it.score);
+            }
+          }
+        }
+      }
+      result.projects = projects;
+      return result;
+    },
+    personInfoData() {
+      return this.personInfoServerData;
+    },
+    staffCheckData() {
+      const list = this.staffCheckServerData.automations
+        .concat(this.staffCheckServerData.manuals)
+        .map(it => ({
+          ...it,
+          isRating: false
+        }));
+      return {
+        ...this.staffCheckServerData,
+        list: list
+      };
+    }
+  },
+  asyncComputed: {
+    workScoreListServerData: {
+      async get() {
+        return await this.$api.HisStaff.findWorkScoreList(
+          this.id,
+          this.curDate
+        );
+      },
+      default: {items: [], rate: 0}
+    },
+    workScoreDailyListServerData: {
+      async get() {
+        return await this.$api.HisStaff.findWorkScoreDailyList(
+          this.id,
+          this.curDate
+        );
+      },
+      default: []
+    },
+    personInfoServerData: {
+      async get() {
+        return await this.$api.HisStaff.get(this.id, this.curDate);
+      },
+      default: {}
+    },
+    staffCheckServerData: {
+      async get() {
+        return await this.$api.HisStaff.staffCheck(this.id, this.curDate);
+      },
+      default: {manuals: [], automations: []}
+    }
+  },
   methods: {
+    // 附加分打分
+    async saveEditorAdditionalPoints() {
+      if (this.isEditor) {
+        try {
+          await this.$api.HisScore.setExtraScore(
+            this.id,
+            this.curDate,
+            this.personInfoData.extra
+          );
+          this.isEditor = !this.isEditor;
+        } catch (e) {
+          this.$message.error(e.message);
+        }
+      } else {
+        this.isEditor = !this.isEditor;
+      }
+    },
+    // 手动工分项打分
+    async saveEditorCheckScore(row) {
+      if (row.isRating) {
+        try {
+          await this.$api.HisScore.setCheckScore(
+            row.id,
+            this.id,
+            this.curDate,
+            row.staffScore
+          );
+          row.isRating = !row.isRating;
+        } catch (e) {
+          console.log(e.message);
+          this.$message.error(e.message);
+        }
+      } else {
+        row.isRating = !row.isRating;
+      }
+    },
     // 绘制图表
     drawChart() {
       this.drawProjectWorkPointPie();
@@ -149,7 +370,7 @@ export default {
       let option;
       option = {
         //设置颜色
-        color: ['#409eff', '#ea9d42', '#9e68f5'],
+        color: this.chartColors,
         legend: {
           top: 'bottom'
         },
@@ -165,6 +386,8 @@ export default {
               borderColor: '#8C8D8E',
               borderWidth: 1,
               borderRadius: 4,
+              padding: [0, 5],
+              alignTo: 'labelLine',
               rich: {
                 b: {
                   fontSize: 14,
@@ -176,11 +399,7 @@ export default {
             itemStyle: {
               borderRadius: 8
             },
-            data: [
-              {value: 40, name: '手术'},
-              {value: 38, name: '针灸'},
-              {value: 32, name: '处方'}
-            ]
+            data: this.workScorePieData
           }
         ]
       };
@@ -198,11 +417,64 @@ export default {
       const myChart = this.$echarts.init(
         document.getElementById('projectWorkPointBarRateLine')
       );
+      let series = [];
+      const rateS = {
+        name: '质量系数',
+        yAxisIndex: 1,
+        data: this.workScoreDailyListData.rates,
+        type: 'line'
+      };
+      series.push(rateS);
+      for (const it of this.workScoreDailyListData.projects) {
+        const s = {
+          name: it.name,
+          type: 'bar',
+          stack: it.name,
+          label: {
+            show: true,
+            position: 'top'
+          },
+          data: it.score
+        };
+        const auxiliaryS = {
+          name: it.name + '辅助',
+          type: 'bar',
+          stack: it.name,
+          itemStyle: {
+            barBorderColor: 'rgba(0,0,0,0)',
+            color: 'rgba(0,0,0,0)'
+          },
+          emphasis: {
+            itemStyle: {
+              barBorderColor: 'rgba(0,0,0,0)',
+              color: 'rgba(0,0,0,0)'
+            }
+          },
+          data: it.auxiliaryDate
+        };
+        series.push(auxiliaryS, s);
+      }
+      const legendData = this.workScoreDailyListData?.projects.map(
+        it => it.name
+      );
+      legendData.push('质量系数');
+
+      const selected = {};
+      for (let i = 0; i < legendData.length; i++) {
+        if (i === 0) {
+          selected[`${legendData[0]}`] = true;
+        } else {
+          selected[`${legendData[i]}`] = false;
+        }
+      }
+      selected['质量系数'] = true;
+
       let option;
       option = {
         //设置颜色
-        color: ['#409eff', '#ea9d42', '#9e68f5'],
+        color: this.chartColors,
         tooltip: {
+          show: false,
           trigger: 'axis',
           axisPointer: {
             // 坐标轴指示器，坐标轴触发有效
@@ -210,146 +482,33 @@ export default {
           }
         },
         legend: {
-          data: [
-            '手术',
-            '针灸',
-            '处方',
-            '手术质量系数',
-            '针灸质量系数',
-            '处方质量系数'
-          ],
+          data: legendData,
           // 设置图例选中状态表
-          selected: {
-            手术: true,
-            针灸: false,
-            处方: false,
-            手术质量系数: true,
-            针灸质量系数: false,
-            处方质量系数: false
-          }
+          selected: selected
         },
         xAxis: {
           type: 'category',
-          data: ['10-01', '10-02', '10-03', '10-04', '10-05', '10-06', '10-07']
+          data: this.workScoreDailyListData.day
         },
         yAxis: [
           {
             type: 'value',
-            name: '质量系数',
+            name: '工分',
             axisLabel: {
-              formatter: '质量系数：{value}%'
+              formatter: '{value}分'
             }
           },
           {
             type: 'value',
-            name: '工分',
+            name: '质量系数',
+            min: 0,
+            max: 100,
             axisLabel: {
-              formatter: '工分：{value}'
+              formatter: '{value}%'
             }
           }
         ],
-        series: [
-          {
-            name: '手术辅助',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '手术',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 900, 1000, 1300, 1500, 1700, 1800]
-          },
-          {
-            name: '手术',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '手术',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [900, 100, 300, 200, 200, 100, 500]
-          },
-          {
-            name: '针灸辅助',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '针灸',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 400, 500, 800, 1100, 1500, 1700]
-          },
-          {
-            name: '针灸',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '针灸',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [400, 100, 300, 300, 400, 200, 300]
-          },
-          {
-            name: '处方辅助',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '处方',
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            },
-            emphasis: {
-              itemStyle: {
-                barBorderColor: 'rgba(0,0,0,0)',
-                color: 'rgba(0,0,0,0)'
-              }
-            },
-            data: [0, 200, 300, 600, 800, 1000, 1100]
-          },
-          {
-            name: '处方',
-            type: 'bar',
-            yAxisIndex: 1,
-            stack: '处方',
-            label: {
-              show: true,
-              position: 'top'
-            },
-            data: [200, 100, 300, 200, 200, 100, 200]
-          },
-
-          {
-            name: '手术质量系数',
-            data: [50, 70, 65, 78, 85, 47, 60],
-            type: 'line'
-          },
-          {
-            name: '针灸质量系数',
-            data: [56, 77, 55, 68, 85, 77, 50],
-            type: 'line'
-          },
-          {
-            name: '处方质量系数',
-            data: [66, 67, 75, 34, 57, 74, 85],
-            type: 'line'
-          }
-        ]
+        series: series
       };
       myChart.setOption(option);
     }
@@ -372,6 +531,7 @@ export default {
     overflow-y: auto;
   }
 }
+
 .card {
   border-radius: 4px;
   border: 1px solid #ebeef5;
@@ -386,9 +546,11 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+
   .content {
     display: flex;
     flex-direction: row;
+
     .item {
       margin-right: 20px;
     }
@@ -399,15 +561,18 @@ export default {
   height: 180px;
   display: flex;
   flex-direction: column;
+
   .name,
   .value {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .name {
     color: #323233;
   }
+
   .value {
     color: darkgray;
     text-align: right;
@@ -417,18 +582,20 @@ export default {
 .score-rules {
   height: 180px;
   margin-top: 20px;
+
   .item {
-    height: 180px;
+    height: 160px;
     display: flex;
     flex-direction: column;
+
     .content {
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .more {
-      height: 30px;
       padding: 10px 0;
     }
   }
