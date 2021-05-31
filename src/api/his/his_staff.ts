@@ -5,8 +5,8 @@ import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {monthToRange} from './manual';
-import {HisWorkScoreType, monthValid} from '../../../common/his';
-import {getSettle} from './hospital';
+import {HisWorkScoreType} from '../../../common/his';
+import {getSettle, monthValid} from './hospital';
 import {getEndTimes} from './score';
 
 export async function getHospital() {
