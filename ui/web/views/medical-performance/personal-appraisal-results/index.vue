@@ -150,21 +150,21 @@
           width="200"
         ></el-table-column>
         <el-table-column
-          property="staffScore"
+          property="score"
           label="分值"
           width="200"
         ></el-table-column>
-        <el-table-column property="score" label="得分" width="200">
+        <el-table-column property="staffScore" label="得分" width="200">
           <template slot-scope="scope">
             <div v-if="scope.row.isRating">
               <el-input-number
-                v-model="scope.row.score"
+                v-model="scope.row.staffScore"
                 size="mini"
                 label="打分"
               ></el-input-number>
             </div>
             <div v-else>
-              {{ scope.row.score }}
+              {{ scope.row.staffScore }}
             </div>
           </template>
         </el-table-column>
@@ -338,7 +338,7 @@ export default {
           row.id,
           this.id,
           this.curDate,
-          row.score
+          row.staffScore
         );
       }
       row.isRating = !row.isRating;
