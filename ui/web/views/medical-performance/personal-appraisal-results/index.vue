@@ -314,7 +314,7 @@ export default {
     },
     staffCheckServerData: {
       async get() {
-        return await this.$api.HisStaff.staffCheck(this.id);
+        return await this.$api.HisStaff.staffCheck(this.id, this.curDate);
       },
       default: {manuals: [], automations: []}
     }
