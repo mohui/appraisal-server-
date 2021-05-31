@@ -41,7 +41,7 @@ type StaffScoreModel = {
       score: number;
     }[];
     //工分
-    score: number;
+    score?: number;
   };
   //考核方案
   check?: {
@@ -60,7 +60,7 @@ type StaffScoreModel = {
       total: number;
     }[];
     //质量系数
-    rate: number;
+    rate?: number;
   };
 };
 
