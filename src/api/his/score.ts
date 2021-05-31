@@ -29,7 +29,7 @@ type WorkItemDetail = {
 /**
  * 员工考核结果
  */
-type StaffScoreModel = {
+export type StaffScoreModel = {
   //工分
   work: {
     //本人工分项目的工分列表
@@ -41,7 +41,7 @@ type StaffScoreModel = {
       score: number;
     }[];
     //工分
-    score: number;
+    score?: number;
   };
   //考核方案
   check?: {
@@ -60,7 +60,7 @@ type StaffScoreModel = {
       total: number;
     }[];
     //质量系数
-    rate: number;
+    rate?: number;
   };
 };
 
@@ -87,6 +87,39 @@ export function getEndTimes(month) {
             .toDate()
         : now,
     isNow: timeDiff >= 1
+  };
+}
+
+/**
+ * 将日期参数转换成合法日期
+ *
+ * 如果是历史日期, 则返回该月最后一天, 否则原样返回
+ * @param date 日期
+ */
+export function dateToDay(date: Date): Date {
+  if (dayjs().diff(date, 'M') > 0) {
+    return dayjs(date)
+      .endOf('M')
+      .toDate();
+  } else {
+    return date;
+  }
+}
+
+/**
+ * 获取这一天的开始和结束时间区间
+ *
+ * @param day 日期
+ */
+export function dayToRange(day: Date): {start: Date; end: Date} {
+  return {
+    start: dayjs(day)
+      .startOf('d')
+      .toDate(),
+    end: dayjs(day)
+      .add(1, 'd')
+      .startOf('d')
+      .toDate()
   };
 }
 
@@ -645,63 +678,118 @@ export default class HisScore {
    * 员工每日工分打分
    *
    * @param staff 员工id
-   * @param month 月份
+   * @param day 月份
    */
-  async scoreStaff(staff, month) {
-    const {start, end} = monthToRange(month);
-    //查询工分来源
-    //language=PostgreSQL
-    const scoreList: {
-      day: Date;
-      score: number;
-    }[] = await appDB.execute(
-      `
-        select date_trunc('day', ssd.date) as day, sum(ssd.score * foo.rate) as score
-        from his_staff_work_score_detail ssd
-               inner join (
-          select swm.staff, swm.item, sws.rate
-          from his_staff_work_item_mapping swm
-                 inner join (
-            select unnest(sources) as staff, rate
-            from his_staff_work_source
-            where staff = ?
-          ) sws on sws.staff = swm.staff
-        ) foo on ssd.item = foo.item and ssd.staff = foo.staff
-        where date >= ?
-          and date < ?
-        group by day, foo.item
-      `,
-      staff,
-      start,
-      end
-    );
-    if (scoreList.length === 0) return;
-    //同步数据
+  async scoreStaff(staff, day) {
     await appDB.joinTx(async () => {
-      //删除原数据
-      // language=PostgreSQL
-      await appDB.execute(
+      const date = dateToDay(day);
+      const {start, end} = dayToRange(date);
+      //查询工分来源
+      //language=PostgreSQL
+      const scoreDetails: {
+        staff: string;
+        item: string;
+        score: number;
+        value: number;
+        method: string;
+        item_name: string;
+        staff_name: string;
+      }[] = await appDB.execute(
         `
-          delete
-          from his_staff_work_score_daily
-          where staff = ?
-            and day >= ?
-            and day < ?
+          select foo.*, wi.name as item_name, wi.method, s.name as staff_name
+          from (
+                 select ss.staff, sim.item, sum(sd.score) as score
+                 from (
+                        select unnest(sources) as staff, rate
+                        from his_staff_work_source
+                        where staff = ?
+                      ) ss
+                        inner join his_staff_work_item_mapping sim on ss.staff = sim.staff
+                        left join his_staff_work_score_detail sd
+                                  on ss.staff = sd.staff and sim.item = sd.item and sd.date >= ? and sd.date < ?
+                 group by ss.staff, sim.item
+               ) foo
+                 inner join his_work_item wi on foo.item = wi.id
+                 inner join staff s on foo.staff = s.id
         `,
         staff,
         start,
         end
       );
-      //插入新数据
+      //本人的工分项目得分列表
+      const self = scoreDetails
+        .filter(it => it.staff === staff)
+        .map(it => ({
+          id: it.item,
+          name: it.item_name,
+          score: it.score
+        }));
+      //本人的工分来源列表
+      const staffs = scoreDetails.reduce((result, current) => {
+        const obj = result.find(it => it.id === current.staff);
+        if (obj) {
+          obj.score += current.score;
+        } else {
+          result.push({
+            id: current.staff,
+            name: current.staff_name,
+            score: current.score
+          });
+        }
+        return result;
+      }, []);
+      //查询得分结果
+      //language=PostgreSQL
+      let resultModel: {
+        id: string;
+        day: Date;
+        result: StaffScoreModel;
+      } = (
+        await appDB.execute(
+          `
+            select id, day, result
+            from his_staff_result
+            where id = ?
+              and day = ? for update
+          `,
+          staff,
+          day
+        )
+      )[0];
+      if (!resultModel) {
+        resultModel = {
+          id: staff,
+          day: day,
+          result: {
+            work: {
+              self: [],
+              staffs: [],
+              score: null
+            },
+            check: null
+          }
+        };
+      }
+      resultModel.result.work.self = self;
+      resultModel.result.work.staffs = staffs;
+      resultModel.result.work.score = self.reduce(
+        (result, current) => (result += current.score),
+        0
+      );
+      const resultValue = JSON.stringify(resultModel.result);
       await appDB.execute(
+        //language=PostgreSQL
         `
-          insert into his_staff_work_score_daily(staff, day, score)
-          values ${scoreList.map(() => '(?, ?, ?)')}
+          insert into his_staff_result(id, day, result)
+          values (?, ?, ?)
+          on conflict (id, day)
+            do update set result     = ?,
+                          updated_at = now()
         `,
-        ...scoreList.reduce((result, it) => {
-          result.push(staff, it.day, it.score);
-          return result;
-        }, [])
+        resultModel.id,
+        resultModel.day,
+        resultValue,
+        resultValue
       );
     });
   }
