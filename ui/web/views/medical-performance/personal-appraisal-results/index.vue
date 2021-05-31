@@ -334,14 +334,21 @@ export default {
     // 手动工分项打分
     async saveEditorCheckScore(row) {
       if (row.isRating) {
-        await this.$api.HisScore.setCheckScore(
-          row.id,
-          this.id,
-          this.curDate,
-          row.staffScore
-        );
+        try {
+          await this.$api.HisScore.setCheckScore(
+            row.id,
+            this.id,
+            this.curDate,
+            row.staffScore
+          );
+          row.isRating = !row.isRating;
+        } catch (e) {
+          console.log(e.message);
+          this.$message.error(e.message);
+        }
+      } else {
+        row.isRating = !row.isRating;
       }
-      row.isRating = !row.isRating;
     },
     // 绘制图表
     drawChart() {
