@@ -8,6 +8,7 @@ import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {getHospital} from './his_staff';
 import {getSettle} from './hospital';
+import {sql as sqlRender} from '../../database/template';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -135,64 +136,87 @@ export default class HisScore {
       check
     );
     if (rules.length === 0) throw new KatoRuntimeError(`考核${check}无细则`);
-    // 取出所有的自动打分的细则id
-    const autoRules = rules
-      .map(it => {
-        if (it.auto === true) return it;
-      })
-      .filter(it => it);
+    // 取出所有的自动打分的细则
+    const autoRules = rules.filter(it => it.auto);
+    // 取出手动打分的
+    const manualRuleIds = rules.filter(it => !it.auto).map(it => it.id);
+
     if (autoRules.length === 0)
       throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
     const scoreDate = getEndTimes(month)?.scoreDate;
 
-    // 查询考核得分
-    const staffScore = await appDB.execute(
+    // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
+    const [sql, params] = sqlRender(
       `
-      select rule, staff, date, score
-      from his_rule_staff_score
-      where staff = ?
-        and date = ?
-        and rule in (${autoRules.map(() => '?')})
+        select rule, staff, date, score
+          from his_rule_staff_score
+          where staff = {{? staff}}  and date = {{? scoreDate}}
+        {{#if manualRuleIds}}
+            AND rule not in ({{#each manualRuleIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+        {{/if}}
       `,
-      staff,
-      scoreDate,
-      ...autoRules.map(it => it.id)
+      {
+        staff,
+        scoreDate,
+        manualRuleIds
+      }
     );
+
+    // 查询考核得分
+    const staffScore = await appDB.execute(sql, ...params);
     // 需要自动打分的细则
     let addAutoScoreRules = [];
     // 需要更新分数的细则, 重新打分的时候有数据
     const updAutoScoreRules = [];
-    // TODO:需要删除的细则 如果细则被删除了, 之前打过分的得分记录全部删除
-    const delAutoScoreRules = [];
-    // 如果没有查到数据,说明没有被打过分;
+    // 需要删除的细则 如果细则被删除了, 之前打过分的得分记录全部删除
+    let delAutoScoreRules = [];
+
+    // 如果没有查到数据,当天没有被打过分;
     if (staffScore.length === 0) {
       addAutoScoreRules = autoRules.map(it => {
         return {
           rule: it.id,
+          ruleName: it.name,
           staff,
           date: scoreDate,
-          score: 0
+          score: 0, // 这个是得分
+          total: it.score // 这个是总分
         };
       });
     } else {
-      // TODO:有数据的情况,
-      // 如果分数表查询出数据,是重新打分,分为三种情况, 1: 是否有要删除的数据, 2: 是否有要新增的数据, 3: 需要更新的数据
+      // TODO: 如果查到数据,是重新打分,分为三种情况, 1: 是否有要删除的数据, 2: 是否有要新增的数据, 3: 需要更新的数据
       for (const ruleIt of autoRules) {
+        // 查找得分表是否有这一条细则,有: 是需要更新的, 没有: 是需要新增的
         const scoreIndex = staffScore.find(it => it.rule === ruleIt.id);
         // 查找到, 是需要更新的数据
         if (scoreIndex) {
-          updAutoScoreRules.push(scoreIndex);
+          // 找到: 2 是需要更新的
+          updAutoScoreRules.push({
+            rule: scoreIndex.rule,
+            ruleName: ruleIt.name,
+            staff: scoreIndex.staff,
+            date: scoreIndex.date,
+            score: scoreIndex.score,
+            total: ruleIt.score // 这个是总分
+          });
         } else {
-          // 没找到, 是需要新增员工细则分数
+          // 没找到: 3 是需要新增的员工细则分数
           addAutoScoreRules.push({
             rule: ruleIt.id,
+            ruleName: ruleIt.name,
             staff,
             date: scoreDate,
-            score: 0
+            score: 0,
+            total: ruleIt.score // 这个是总分
           });
         }
       }
+      // 查找是否有需要删除的数据
+      delAutoScoreRules = staffScore.filter(it => {
+        const index = autoRules.find(ruleIt => ruleIt.id === it.rule);
+        if (!index) return it;
+      });
     }
 
     for (const ruleIt of autoRules) {
@@ -239,7 +263,7 @@ export default class HisScore {
       }
 
       // 指标分数 之 新增
-      if (addScoreIndex) addScoreIndex.score = 23;
+      if (addScoreIndex) addScoreIndex.score = 15;
       // 指标分数 之 更新
       if (updScoreIndex) updScoreIndex.score = 23;
     }
@@ -249,9 +273,10 @@ export default class HisScore {
       console.log('delete');
       for (const it of delAutoScoreRules) {
         await appDB.execute(
-          `delete from his_rule_staff_score where rule = ? and staff = ?`,
+          `delete from his_rule_staff_score where rule = ? and staff = ? and date = ?`,
           it.rule,
-          it.staff
+          it.staff,
+          it.date
         );
       }
     }
@@ -262,12 +287,22 @@ export default class HisScore {
         const insertNow = new Date();
         // 执行添加语句
         await appDB.execute(
-          `insert into his_rule_staff_score(rule, staff, date, score, created_at, updated_at)
-        values(?, ?, ?, ?, ?, ?)`,
+          `insert into his_rule_staff_score(
+                  rule,
+                  rule_name,
+                  staff,
+                  date,
+                  score,
+                  total,
+                  created_at,
+                  updated_at)
+                values(?, ?, ?, ?, ?, ?, ?, ?)`,
           it.rule,
+          it.ruleName,
           it.staff,
           it.date,
           it.score,
+          it.total,
           insertNow,
           insertNow
         );
@@ -282,10 +317,14 @@ export default class HisScore {
         await appDB.execute(
           `update his_rule_staff_score set
                   score = ?,
+                  rule_name = ?,
+                  total = ?,
                   updated_at = ?
                where rule = ? and staff = ? and date = ?
           `,
           it.score,
+          it.ruleName,
+          it.total,
           insertNow,
           it.rule,
           it.staff,
