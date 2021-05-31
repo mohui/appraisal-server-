@@ -323,13 +323,19 @@ export default {
     // 附加分打分
     async saveEditorAdditionalPoints() {
       if (this.isEditor) {
-        await this.$api.HisScore.setExtraScore(
-          this.id,
-          this.curDate,
-          this.personInfoData.extra
-        );
+        try {
+          await this.$api.HisScore.setExtraScore(
+            this.id,
+            this.curDate,
+            this.personInfoData.extra
+          );
+          this.isEditor = !this.isEditor;
+        } catch (e) {
+          this.$message.error(e.message);
+        }
+      } else {
+        this.isEditor = !this.isEditor;
       }
-      this.isEditor = !this.isEditor;
     },
     // 手动工分项打分
     async saveEditorCheckScore(row) {
