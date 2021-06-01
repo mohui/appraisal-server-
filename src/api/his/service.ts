@@ -1,6 +1,7 @@
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should} from 'kato-server';
 import {getTimeRange} from '../../../common/his';
+import {appDB} from '../../app';
 
 /**
  * 月份转开始结束时间
@@ -84,3 +85,28 @@ export const dateValid = should
   .min(getTimeRange().start)
   .max(getTimeRange().end)
   .required();
+
+/**
+ * 获取结算状态
+ *
+ * @param id 医院id
+ * @param month 月份
+ */
+export async function getSettle(id, month): Promise<boolean> {
+  // language=PostgreSQL
+  let settle =
+    (
+      await appDB.execute(
+        `
+          select settle
+          from his_hospital_settle
+          where hospital = ?
+            and month = ?
+        `,
+        id,
+        month
+      )
+    )[0]?.settle ?? false;
+  if (dayjs().diff(month, 'M') > 1) settle = true;
+  return settle;
+}

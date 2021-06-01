@@ -5,31 +5,6 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {dateValid, monthToRange} from './service';
 
 /**
- * 获取结算状态
- *
- * @param id 医院id
- * @param month 月份
- */
-export async function getSettle(id, month): Promise<boolean> {
-  // language=PostgreSQL
-  let settle =
-    (
-      await appDB.execute(
-        `
-          select settle
-          from his_hospital_settle
-          where hospital = ?
-            and month = ?
-        `,
-        id,
-        month
-      )
-    )[0]?.settle ?? false;
-  if (dayjs().diff(month, 'M') > 1) settle = true;
-  return settle;
-}
-
-/**
  * 机构模块
  */
 export default class HisHospital {

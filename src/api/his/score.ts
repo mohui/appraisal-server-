@@ -6,9 +6,15 @@ import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {getHospital} from './his_staff';
-import {getSettle, monthValid} from './hospital';
 import {sql as sqlRender} from '../../database/template';
-import {dateToDay, dayToRange, getEndTimes, monthToRange} from './service';
+import {
+  dateToDay,
+  dateValid,
+  dayToRange,
+  getEndTimes,
+  getSettle,
+  monthToRange
+} from './service';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -743,7 +749,7 @@ export default class HisScore {
    * @param month 月份
    * @param score 附加分数
    */
-  @validate(should.string().required(), monthValid, should.number().required())
+  @validate(should.string().required(), dateValid, should.number().required())
   async setExtraScore(id, month, score) {
     const hospital = await getHospital();
     const {start} = monthToRange(month);

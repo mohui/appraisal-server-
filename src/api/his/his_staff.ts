@@ -5,9 +5,8 @@ import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
-import {getSettle, monthValid} from './hospital';
 import {StaffScoreModel} from './score';
-import {getEndTimes, monthToRange} from './service';
+import {dateValid, getEndTimes, getSettle, monthToRange} from './service';
 
 export async function getHospital() {
   if (
@@ -58,7 +57,7 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), monthValid)
+  @validate(should.string().required(), dateValid)
   async get(id, month) {
     //查询员工
     // language=PostgreSQL
