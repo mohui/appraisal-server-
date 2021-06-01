@@ -1,11 +1,9 @@
 import {appDB} from '../../app';
 import * as uuid from 'uuid';
-import {getHospital} from './his_staff';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {getSettle} from './hospital';
-import {getEndTimes} from './score';
+import {getEndTime, getHospital, getSettle} from './service';
 
 /**
  * 修改考核名称
@@ -645,7 +643,7 @@ export default class HisCheck {
     const lastMonth = dayjs()
       .subtract(1, 'month')
       .toDate();
-    const lastMonthEnd = getEndTimes(lastMonth)?.scoreDate;
+    const lastMonthEnd = getEndTime(lastMonth);
 
     // 上个月是否结算
     const lastSettle = await getSettle(hospital, lastMonth);
@@ -716,12 +714,8 @@ export default class HisCheck {
     }
     return staffs.map(it => ({
       ...it,
-      usable: checkStaff.find(item => it.id === item.staff)?.staff
-        ? false
-        : true,
-      selected: selectedStaffs.find(item => it.id === item.staff)?.staff
-        ? true
-        : false
+      usable: !checkStaff.find(item => it.id === item.staff)?.staff,
+      selected: !!selectedStaffs.find(item => it.id === item.staff)?.staff
     }));
   }
 

@@ -1,77 +1,33 @@
-import HisStaff, {getHospital} from './his_staff';
+import HisStaff from './staff';
 import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, should, validate} from 'kato-server';
-import {monthToRange} from './manual';
-import {getTimeRange} from '../../../common/his';
-
-/**
- * 月份参数校验
- */
-export const monthValid = should
-  .date()
-  .min(getTimeRange().start)
-  .max(getTimeRange().end)
-  .required();
-
-/**
- * 获取结算状态
- *
- * @param id 医院id
- * @param month 月份
- */
-export async function getSettle(id, month): Promise<boolean> {
-  // language=PostgreSQL
-  let settle =
-    (
-      await appDB.execute(
-        `
-          select settle
-          from his_hospital_settle
-          where hospital = ?
-            and month = ?
-        `,
-        id,
-        month
-      )
-    )[0]?.settle ?? false;
-  if (dayjs().diff(month, 'M') > 1) settle = true;
-  return settle;
-}
+import {KatoRuntimeError, validate} from 'kato-server';
+import {dateValid, getHospital, monthToRange} from './service';
 
 /**
  * 机构模块
  */
 export default class HisHospital {
   /**
-   * 修改指定月份的结算状态
+   * 结算指定月份
    *
-   * 只能修改本月和上月的结算状态
-   * 再往前的月份, 自动结算
    * @param month 月份
-   * @param settle 是否结算
    */
-  @validate(monthValid, should.boolean().required())
-  async settle(month, settle) {
+  @validate(dateValid)
+  async settle(month) {
     const hospital = await getHospital();
     const {start} = monthToRange(month);
-    // 月份差值
-    if (dayjs().diff(month, 'M') > 1) {
-      throw new KatoRuntimeError(`只能修改本月和上月的结算状态`);
-    }
     await appDB.execute(
       //language=PostgreSQL
       `
         insert into his_hospital_settle(hospital, month, settle)
-        values (?, ?, ?)
+        values (?, ?, true)
         on conflict (hospital, month)
-          do update set settle     = ?,
+          do update set settle     = true,
                         updated_at = now()
       `,
       hospital,
-      start,
-      settle,
-      settle
+      start
     );
   }
 
@@ -88,7 +44,7 @@ export default class HisHospital {
    *   correctScore: 校正后工分
    * }
    */
-  @validate(monthValid)
+  @validate(dateValid)
   async overview(month) {
     const hospital = await getHospital();
     //查询机构
@@ -166,7 +122,7 @@ export default class HisHospital {
    *   score: 工分项目分数(校正前)
    * }
    */
-  @validate(monthValid)
+  @validate(dateValid)
   async findWorkScoreList(month) {
     const hospital = await getHospital();
     const {start, end} = monthToRange(month);
@@ -201,7 +157,7 @@ export default class HisHospital {
    *   }
    * ]
    */
-  @validate(monthValid)
+  @validate(dateValid)
   async findStaffCheckList(month) {
     //TODO: 苟且一波
     const staffApi = new HisStaff();

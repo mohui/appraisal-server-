@@ -1,14 +1,20 @@
 import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
-import {monthToRange} from './manual';
 import * as dayjs from 'dayjs';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
-import {getHospital} from './his_staff';
-import {getSettle, monthValid} from './hospital';
 import {sql as sqlRender} from '../../database/template';
+import {
+  dateValid,
+  dayToRange,
+  getEndTime,
+  getHospital,
+  getSettle,
+  monthToRange,
+  StaffWorkModel
+} from './service';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -29,7 +35,7 @@ type WorkItemDetail = {
 /**
  * 员工考核结果
  */
-type StaffScoreModel = {
+export type StaffScoreModel = {
   //工分
   work: {
     //本人工分项目的工分列表
@@ -41,7 +47,7 @@ type StaffScoreModel = {
       score: number;
     }[];
     //工分
-    score: number;
+    score?: number;
   };
   //考核方案
   check?: {
@@ -60,35 +66,9 @@ type StaffScoreModel = {
       total: number;
     }[];
     //质量系数
-    rate: number;
+    rate?: number;
   };
 };
-
-// 根据传的时间,获取是否是当前月,如果是当前月,返回当天,如果不是当前月,返回所在月的最后一天
-export function getEndTimes(month) {
-  // 根据时间获取月份的开始时间和结束时间
-  const {start, end} = monthToRange(month);
-  // 判断当前时间是否在时间范围内
-  const now = dayjs()
-    .startOf('d')
-    .toDate();
-
-  // 如果开始时间减去当前时间大于0, 说明传的时间是这个月之后的日期,不合法
-  if (dayjs(start).diff(now, 'd') > 0)
-    throw new KatoRuntimeError(`时间不合法,大于当前月`);
-  // 如果结束时间减去当前时间小于1,说明是之前月
-  const timeDiff = dayjs(end).diff(now, 'd');
-
-  return {
-    scoreDate:
-      timeDiff < 1
-        ? dayjs(end)
-            .subtract(1, 'd')
-            .toDate()
-        : now,
-    isNow: timeDiff >= 1
-  };
-}
 
 export default class HisScore {
   /**
@@ -144,7 +124,7 @@ export default class HisScore {
     if (autoRules.length === 0)
       throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
-    const scoreDate = getEndTimes(month)?.scoreDate;
+    const scoreDate = getEndTime(month);
 
     // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
     const [sql, params] = sqlRender(
@@ -365,8 +345,7 @@ export default class HisScore {
     const hospital = await getHospital();
     const settle = await getSettle(hospital, month);
     if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
-    const date = getEndTimes(month);
-    const scoreDate = date.scoreDate;
+    const scoreDate = getEndTime(month);
 
     // 查询考核细则
     const rules = await appDB.execute(
@@ -644,69 +623,111 @@ export default class HisScore {
   /**
    * 员工每日工分打分
    *
-   * @param staff 员工id
-   * @param month 月份
+   * @param id 员工id
+   * @param day 日期
    */
-  async scoreStaff(staff, month) {
-    const {start, end} = monthToRange(month);
-    //查询工分来源
-    //language=PostgreSQL
-    const scoreList: {
-      day: Date;
-      score: number;
-    }[] = await appDB.execute(
-      `
-        select date_trunc('day', ssd.date) as day, sum(ssd.score * foo.rate) as score
-        from his_staff_work_score_detail ssd
-               inner join (
-          select swm.staff, swm.item, sws.rate
-          from his_staff_work_item_mapping swm
-                 inner join (
-            select unnest(sources) as staff, rate
-            from his_staff_work_source
-            where staff = ?
-          ) sws on sws.staff = swm.staff
-        ) foo on ssd.item = foo.item and ssd.staff = foo.staff
-        where date >= ?
-          and date < ?
-        group by day, foo.item
-      `,
-      staff,
-      start,
-      end
-    );
-    if (scoreList.length === 0) return;
-    //同步数据
+  async scoreStaff(id, day) {
     await appDB.joinTx(async () => {
-      //删除原数据
-      // language=PostgreSQL
-      await appDB.execute(
+      const {start, end} = dayToRange(day);
+      //查询工分来源
+      //language=PostgreSQL
+      const scoreDetails: {
+        staff: string;
+        item: string;
+        score: number;
+        value: number;
+        method: string;
+        item_name: string;
+        staff_name: string;
+      }[] = await appDB.execute(
         `
-          delete
-          from his_staff_work_score_daily
-          where staff = ?
-            and day >= ?
-            and day < ?
+          select foo.*, wi.name as item_name, wi.method, s.name as staff_name
+          from (
+                 select ss.staff, sim.item, sum(sd.score) as score
+                 from (
+                        select unnest(sources) as staff, rate
+                        from his_staff_work_source
+                        where staff = ?
+                      ) ss
+                        inner join his_staff_work_item_mapping sim on ss.staff = sim.staff
+                        left join his_staff_work_score_detail sd
+                                  on ss.staff = sd.staff and sim.item = sd.item and sd.date >= ? and sd.date < ?
+                 group by ss.staff, sim.item
+               ) foo
+                 inner join his_work_item wi on foo.item = wi.id
+                 inner join staff s on foo.staff = s.id
         `,
-        staff,
+        id,
         start,
         end
       );
-      //插入新数据
+      //本人的工分项目得分列表
+      const self = scoreDetails
+        .filter(it => it.staff === id)
+        .map(it => ({
+          id: it.item,
+          name: it.item_name,
+          score: it.score
+        }));
+      //本人的工分来源列表
+      const staffs = scoreDetails.reduce((result, current) => {
+        const obj = result.find(it => it.id === current.staff);
+        if (obj) {
+          obj.score += current.score;
+        } else {
+          result.push({
+            id: current.staff,
+            name: current.staff_name,
+            score: current.score
+          });
+        }
+        return result;
+      }, []);
+      //查询得分结果
+      //language=PostgreSQL
+      let resultModel: StaffWorkModel = (
+        await appDB.execute(
+          `
+            select work
+            from his_staff_result
+            where id = ?
+              and day = ? for update
+          `,
+          id,
+          day
+        )
+      )[0]?.work;
+      if (!resultModel) {
+        resultModel = {
+          self: [],
+          staffs: [],
+          score: null
+        };
+      }
+      resultModel.self = self;
+      resultModel.staffs = staffs;
+      resultModel.score = self.reduce(
+        (result, current) => (result += current.score),
+        0
+      );
+      const resultValue = JSON.stringify(resultModel);
       await appDB.execute(
+        //language=PostgreSQL
         `
-          insert into his_staff_work_score_daily(staff, day, score)
-          values ${scoreList.map(() => '(?, ?, ?)')}
+          insert into his_staff_result(id, day, work)
+          values (?, ?, ?)
+          on conflict (id, day)
+            do update set work       = ?,
+                          updated_at = now()
         `,
-        ...scoreList.reduce((result, it) => {
-          result.push(staff, it.day, it.score);
-          return result;
-        }, [])
+        id,
+        day,
+        resultValue,
+        resultValue
       );
     });
   }
 
-  //region 附加分相关
   /**
    * 设置员工附加分
    *
@@ -714,7 +735,7 @@ export default class HisScore {
    * @param month 月份
    * @param score 附加分数
    */
-  @validate(should.string().required(), monthValid, should.number().required())
+  @validate(should.string().required(), dateValid, should.number().required())
   async setExtraScore(id, month, score) {
     const hospital = await getHospital();
     const {start} = monthToRange(month);

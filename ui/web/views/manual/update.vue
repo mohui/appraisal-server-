@@ -16,14 +16,14 @@
         <el-button-group style="padding-left: 20px; display: none;">
           <el-button
             size="small"
-            :class="{'el-button--primary': query.input === '属性'}"
+            :class="{'el-button--primary': query.input === MD.PROP}"
             @click="typeChanged"
           >
             属性型
           </el-button>
           <el-button
             size="small"
-            :class="{'el-button--primary': query.input === '日志'}"
+            :class="{'el-button--primary': query.input === MD.LOG}"
             @click="typeChanged"
           >
             日志型
@@ -67,11 +67,11 @@
         ></el-table-column>
         <el-table-column prop="members" label="考核员工">
           <template slot-scope="scope">
-            <div v-if="!scope.row.EDIT">
+            <div v-if="!scope.row.EDIT || query.input === MD.PROP">
               {{ scope.row.staff.name }}
             </div>
             <el-select
-              v-if="scope.row.EDIT"
+              v-if="scope.row.EDIT && query.input === MD.LOG"
               v-model="scope.row.staff.id"
               filterable
               size="mini"
@@ -100,13 +100,13 @@
           </template>
         </el-table-column>
         <el-table-column
-          v-if="query.input === '属性'"
+          v-if="query.input === MD.PROP"
           prop="size"
           label="次数"
           align="center"
         ></el-table-column>
         <el-table-column
-          v-if="query.input === '日志'"
+          v-if="query.input === MD.LOG"
           prop="createdAt"
           label="时间"
           align="center"
@@ -115,7 +115,7 @@
           <template slot-scope="scope">
             <div v-if="!editable">
               <el-button
-                v-if="!scope.row.id && query.input === '日志'"
+                v-if="!scope.row.id && query.input === MD.LOG"
                 type="primary"
                 size="mini"
                 :disabled="!scope.row.staff.id"
@@ -133,7 +133,7 @@
                 保存
               </el-button>
               <el-button
-                v-if="!scope.row.EDIT && query.input === '属性'"
+                v-if="!scope.row.EDIT && query.input === MD.PROP"
                 type="primary"
                 size="mini"
                 @click="editManual(scope)"
@@ -160,10 +160,13 @@
 </template>
 
 <script>
+import {HisManualDataInput as MD} from '../../../../common/his.ts';
+
 export default {
   name: 'Update',
   data() {
     return {
+      MD: MD,
       isLoading: true,
       editable: false,
       query: {
@@ -182,7 +185,7 @@ export default {
         if (
           newValue[newValue.length - 1]?.id !== '' &&
           !this.editable &&
-          this.query.input === '日志'
+          this.query.input === MD.LOG
         )
           newValue.push({
             EDIT: true,
@@ -221,7 +224,7 @@ export default {
       await this.getSettle();
       const {id, input, month} = this.query;
       this.list =
-        input === '属性'
+        input === MD.PROP
           ? await this.getListData(id, month)
           : await this.getListLogData(id, month);
       this.isLoading = false;
@@ -247,10 +250,10 @@ export default {
     },
     //切换数据类型
     typeChanged() {
-      this.query.input = this.query.input === '日志' ? '属性' : '日志';
+      this.query.input = this.query.input === MD.LOG ? MD.PROP : MD.LOG;
       let list = this.list;
 
-      if (this.query.input === '日志' && list[list.length - 1].id !== '') {
+      if (this.query.input === MD.LOG && list[list.length - 1].id !== '') {
         this.list.forEach(it => (it.EDIT = false));
         this.list.push({
           EDIT: true,
@@ -263,7 +266,7 @@ export default {
           createdAt: new Date().$format()
         });
       }
-      if (this.query.input === '属性' && list[list.length - 1].id === '') {
+      if (this.query.input === MD.PROP && list[list.length - 1].id === '') {
         this.list.pop();
       }
     },
@@ -278,6 +281,7 @@ export default {
           this.query.month
         );
         await this.monthChanged();
+        this.$message.success('添加成功！');
       } catch (e) {
         this.$message.error(e.message);
       }
@@ -312,14 +316,14 @@ export default {
       })
         .then(async () => {
           try {
-            this.query.input === '属性'
+            this.query.input === MD.PROP
               ? await this.$api.HisManualData.delData(
                   row.staff.id,
                   row.item,
                   this.query.month
                 )
               : await this.$api.HisManualData.delLogData(row.id);
-            if (this.query.input === '日志') {
+            if (this.query.input === MD.LOG) {
               this.list.splice($index, 1);
             } else {
               await this.monthChanged();

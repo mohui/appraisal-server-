@@ -3,7 +3,7 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB} from '../../app';
-import {getHospital} from './his_staff';
+import {getHospital, monthToRange} from './service';
 
 /**
  * 手工数据属性型返回值
@@ -27,21 +27,6 @@ type ManualPropDataReturnValue = {
   //更新时间
   updated_at?: Date;
 };
-
-/**
- * 月份转开始结束时间
- *
- * @param month 时间
- */
-export function monthToRange(month: Date): {start: Date; end: Date} {
-  const time = dayjs(month);
-  const start = time.startOf('M').toDate();
-  const end = time
-    .add(1, 'M')
-    .startOf('M')
-    .toDate();
-  return {start, end};
-}
 
 /**
  * 手工数据模块
