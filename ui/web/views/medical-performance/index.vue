@@ -175,9 +175,11 @@ export default {
           this.currentDate,
           !this.overviewData.settle
         );
+        this.$message.success('修改成功');
         this.$asyncComputed.overviewServerData.update();
       } catch (e) {
         console.log(e.message);
+        this.$message.error(e.message);
       }
     },
     // 绘制图表
