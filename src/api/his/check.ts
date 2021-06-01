@@ -714,12 +714,8 @@ export default class HisCheck {
     }
     return staffs.map(it => ({
       ...it,
-      usable: checkStaff.find(item => it.id === item.staff)?.staff
-        ? false
-        : true,
-      selected: selectedStaffs.find(item => it.id === item.staff)?.staff
-        ? true
-        : false
+      usable: !checkStaff.find(item => it.id === item.staff)?.staff,
+      selected: !!selectedStaffs.find(item => it.id === item.staff)?.staff
     }));
   }
 

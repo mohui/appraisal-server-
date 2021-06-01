@@ -123,8 +123,8 @@
         </el-form-item>
         <el-form-item label="数据类型" prop="input">
           <el-radio-group v-model="newManual.input">
-            <el-radio label="属性">属性型</el-radio>
-            <el-radio label="日志">日志型</el-radio>
+            <el-radio :label="MD.PROP">{{ MD.PROP }}型</el-radio>
+            <el-radio :label="MD.LOG">{{ MD.LOG }}型</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -139,29 +139,23 @@
 </template>
 
 <script>
+import {HisManualDataInput as MD} from '../../../../common/his.ts';
 export default {
   name: 'Manual',
   data() {
     return {
+      MD: MD,
       addManualVisible: false,
       newManual: {
         id: '',
         name: '',
-        input: '属性' //log
+        input: MD.PROP
       },
       manualRules: {
         name: [
           {required: true, message: '请输入手工工分项名称', trigger: 'change'}
         ]
-      },
-      manual0: [
-        {
-          type: 'attr', //log
-          id: '',
-          name: '',
-          createdAt: new Date().$format()
-        }
-      ]
+      }
     };
   },
   computed: {
@@ -191,7 +185,7 @@ export default {
     resetForm() {
       this.$refs['manualForm'].resetFields();
       this.addManualVisible = false;
-      this.newManual = {id: '', name: '', input: '属性'};
+      this.newManual = {id: '', name: '', input: MD.PROP};
     },
     async submitForm() {
       try {

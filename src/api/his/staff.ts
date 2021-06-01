@@ -531,25 +531,25 @@ export default class HisStaff {
     items: {id: string; name: string; score: number}[];
     rate?: number;
   }> {
-    const {start, end} = monthToRange(month);
-    //language=PostgreSQL
+    //获取合法时间
+    const day = getEndTime(month);
+    //查询得分表
     const result: StaffScoreModel = (
       await appDB.execute(
+        //language=PostgreSQL
         `
           select result
           from his_staff_result
           where id = ?
-            and day >= ?
-            and day < ?
-          order by day desc
+            and day = ?
           limit 1
         `,
         id,
-        start,
-        end
+        day
       )
     )[0]?.result;
-    return {
+    //构造返回值
+    const returnValue = {
       items: [
         ...(result?.work?.self ?? []).map(it => ({
           ...it,
@@ -560,8 +560,36 @@ export default class HisStaff {
           type: HisWorkScoreType.STAFF
         }))
       ],
-      rate: result?.check?.rate
+      rate: result?.check?.rate ?? null
     };
+    //得分表里没数据, 可能是未打分, 补充当前配置
+    if (returnValue.items.length === 0) {
+      //工分配置
+      const self = await appDB.execute(
+        //language=PostgreSQL
+        `
+          select m.item as id, wi.name, null as score, '${HisWorkScoreType.WORK_ITEM}' as type
+          from his_staff_work_item_mapping m
+                 inner join his_work_item wi on m.item = wi.id
+          where m.staff = ?
+        `,
+        id
+      );
+      //工分来源
+      const staffs = await appDB.execute(
+        //language=PostgreSQL
+        `
+          select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
+          from his_staff_work_source m
+                 inner join staff s on m.staff = s.id
+          where m.staff = ?
+        `,
+        id
+      );
+      returnValue.items = [...staffs, ...self];
+    }
+
+    return returnValue;
   }
 
   /**
@@ -659,9 +687,9 @@ export default class HisStaff {
               item => item.id === it.id && item.day.getTime() === day.getTime()
             )?.score ?? 0
         })),
-        rate: rateList.find(
-          rateItem => rateItem.day.getTime() === day.getTime()
-        )?.rate
+        rate:
+          rateList.find(rateItem => rateItem.day.getTime() === day.getTime())
+            ?.rate ?? null
       });
     }
     return result;
