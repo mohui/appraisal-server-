@@ -31,9 +31,10 @@
           <el-button
             type="primary"
             size="mini"
+            :disabled="overviewData.settle"
             style="margin-left: 20px"
             @click="handleSettle()"
-            >{{ this.overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
+            >{{ overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
           >
         </div>
       </el-card>
@@ -170,17 +171,30 @@ export default {
   },
   methods: {
     async handleSettle() {
-      try {
-        await this.$api.HisHospital.settle(
-          this.currentDate,
-          !this.overviewData.settle
-        );
-        this.$message.success('修改成功');
-        this.$asyncComputed.overviewServerData.update();
-      } catch (e) {
-        console.log(e.message);
-        this.$message.error(e.message);
-      }
+      this.$confirm('此操作无法恢复, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          try {
+            await this.$api.HisHospital.settle(
+              this.currentDate,
+              !this.overviewData.settle
+            );
+            this.$message.success('修改成功');
+            this.$asyncComputed.overviewServerData.update();
+          } catch (e) {
+            console.log(e.message);
+            this.$message.error(e.message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
     },
     // 绘制图表
     drawChart() {
