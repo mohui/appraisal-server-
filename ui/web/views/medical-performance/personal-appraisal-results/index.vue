@@ -3,7 +3,13 @@
     <div>
       <!--顶部表头-->
       <div class="card" v-sticky>
-        <div class="header">
+        <div
+          class="header"
+          v-loading="
+            $asyncComputed.personInfoServerData.updating ||
+              $asyncComputed.workScoreListServerData.updating
+          "
+        >
           <div class="content">
             <div class="item">
               {{ personInfoData.name }}
@@ -19,7 +25,10 @@
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-            <div class="card">
+            <div
+              class="card"
+              v-loading="$asyncComputed.workScoreListServerData.updating"
+            >
               <div
                 id="projectWorkPointPie"
                 :style="{width: '100%', height: '420px'}"
@@ -27,7 +36,10 @@
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-            <div class="card person-info">
+            <div
+              class="card person-info"
+              v-loading="$asyncComputed.personInfoServerData.updating"
+            >
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
@@ -49,7 +61,13 @@
                 </el-col>
               </el-row>
             </div>
-            <div class="card score-rules">
+            <div
+              class="card score-rules"
+              v-loading="
+                $asyncComputed.personInfoServerData.updating ||
+                  $asyncComputed.workScoreListServerData.updating
+              "
+            >
               <div>得分细则</div>
               <div style="text-align: center;">
                 <el-row>
@@ -100,7 +118,11 @@
           </el-col>
         </el-row>
       </div>
-      <div class="card" style="height: 300px ; margin-top: 20px">
+      <div
+        class="card"
+        style="height: 300px ; margin-top: 20px"
+        v-loading="$asyncComputed.workScoreDailyListServerData.updating"
+      >
         <div
           id="projectWorkPointBarRateLine"
           :style="{width: '100%', height: '100%'}"
@@ -226,6 +248,9 @@ export default {
     }
   },
   computed: {
+    workScoreListData() {
+      return this.workScoreListServerData?.items?.map(it => it);
+    },
     workScore() {
       return {
         total: this.workScoreListData
@@ -237,9 +262,6 @@ export default {
             ? '暂未考核'
             : (this.workScoreListServerData.rate * 100).toFixed(2)
       };
-    },
-    workScoreListData() {
-      return this.workScoreListServerData?.items?.map(it => it);
     },
     workScorePieData() {
       return this.workScoreListData?.map(it => ({
