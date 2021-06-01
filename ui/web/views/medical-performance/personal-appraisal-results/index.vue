@@ -56,7 +56,7 @@
                     </el-col>
                     <el-col :span="14">
                       <div class="value">
-                        {{ personInfoData[key] }}
+                        {{ personInfoData[key] | dateFormat }}
                       </div>
                     </el-col>
                   </el-row>
@@ -307,10 +307,7 @@ export default {
       return result;
     },
     personInfoData() {
-      return {
-        ...this.personInfoServerData,
-        birth: this.personInfoServerData.birth?.$format('YYYY-MM-DD')
-      };
+      return this.personInfoServerData;
     },
     staffCheckData() {
       const list = this.staffCheckServerData.automations
