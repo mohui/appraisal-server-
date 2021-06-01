@@ -4,10 +4,10 @@ import * as dayjs from 'dayjs';
 import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {monthToRange} from './manual';
 import {HisWorkScoreType} from '../../../common/his';
 import {getSettle, monthValid} from './hospital';
-import {getEndTimes, StaffScoreModel} from './score';
+import {StaffScoreModel} from './score';
+import {getEndTimes, monthToRange} from './service';
 
 export async function getHospital() {
   if (

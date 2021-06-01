@@ -5,7 +5,7 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {getSettle} from './hospital';
-import {getEndTimes} from './score';
+import {getEndTimes} from './service';
 
 /**
  * 修改考核名称

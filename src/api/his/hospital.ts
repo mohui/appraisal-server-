@@ -2,8 +2,8 @@ import HisStaff, {getHospital} from './his_staff';
 import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {monthToRange} from './manual';
 import {getTimeRange} from '../../../common/his';
+import {monthToRange} from './service';
 
 /**
  * 月份参数校验
