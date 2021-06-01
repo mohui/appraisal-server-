@@ -1,5 +1,6 @@
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError} from 'kato-server';
+import {KatoRuntimeError, should} from 'kato-server';
+import {getTimeRange} from '../../../common/his';
 
 /**
  * 月份转开始结束时间
@@ -74,3 +75,12 @@ export function dayToRange(day: Date): {start: Date; end: Date} {
       .toDate()
   };
 }
+
+/**
+ * 日期参数校验
+ */
+export const dateValid = should
+  .date()
+  .min(getTimeRange().start)
+  .max(getTimeRange().end)
+  .required();
