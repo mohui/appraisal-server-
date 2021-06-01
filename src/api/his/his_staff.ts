@@ -6,7 +6,7 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
 import {StaffScoreModel} from './score';
-import {dateValid, getEndTimes, getSettle, monthToRange} from './service';
+import {dateValid, getEndTime, getSettle, monthToRange} from './service';
 
 export async function getHospital() {
   if (
@@ -833,7 +833,7 @@ export default class HisStaff {
     const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
-    const scoreDate = getEndTimes(month);
+    const scoreDate = getEndTime(month);
     const ruleScores = await appDB.execute(
       `select rule, score score
             from his_rule_staff_score
