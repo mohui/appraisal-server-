@@ -1,22 +1,17 @@
 import {appDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
-import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
 import {StaffScoreModel} from './score';
-import {dateValid, getEndTime, getSettle, monthToRange} from './service';
-
-export async function getHospital() {
-  if (
-    Context.current.user.hospitals &&
-    Context.current.user.hospitals.length > 1
-  )
-    throw new KatoRuntimeError(`没有查询his员工权限`);
-
-  return Context.current.user.hospitals[0]['id'];
-}
+import {
+  dateValid,
+  getEndTime,
+  getHospital,
+  getSettle,
+  monthToRange
+} from './service';
 
 export default class HisStaff {
   /**

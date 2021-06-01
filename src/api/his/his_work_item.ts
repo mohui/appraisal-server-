@@ -2,9 +2,9 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
-import {getHospital} from './his_staff';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
+import {getHospital} from './service';
 
 /**
  * 接口

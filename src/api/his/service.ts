@@ -2,6 +2,7 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should} from 'kato-server';
 import {getTimeRange} from '../../../common/his';
 import {appDB} from '../../app';
+import {Context} from '../context';
 
 /**
  * 月份转开始结束时间
@@ -95,4 +96,18 @@ export async function getSettle(id, month): Promise<boolean> {
     )[0]?.settle ?? false;
   if (dayjs().diff(month, 'M') > 1) settle = true;
   return settle;
+}
+
+/**
+ * 获取登录用户的机构数据
+ * TODO: 苟且方案, 需要和数据权限一同调整
+ */
+export async function getHospital(): Promise<string> {
+  if (
+    Context.current.user.hospitals &&
+    Context.current.user.hospitals.length > 1
+  )
+    throw new KatoRuntimeError(`没有查询his员工权限`);
+
+  return Context.current.user.hospitals[0]['id'];
 }

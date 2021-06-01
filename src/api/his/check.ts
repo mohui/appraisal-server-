@@ -1,10 +1,9 @@
 import {appDB} from '../../app';
 import * as uuid from 'uuid';
-import {getHospital} from './his_staff';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {getEndTime, getSettle} from './service';
+import {getEndTime, getHospital, getSettle} from './service';
 
 /**
  * 修改考核名称
