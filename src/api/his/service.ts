@@ -4,6 +4,7 @@ import {getTimeRange} from '../../../common/his';
 import {appDB} from '../../app';
 import {Context} from '../context';
 
+//region 时间相关
 /**
  * 月份转开始结束时间
  *
@@ -72,6 +73,7 @@ export const dateValid = should
   .min(getTimeRange().start)
   .less(getTimeRange().end)
   .required();
+//endregion
 
 /**
  * 获取结算状态
@@ -99,6 +101,21 @@ export async function getSettle(id, month): Promise<boolean> {
 }
 
 /**
+ * 获取登录用户的机构数据
+ * TODO: 苟且方案, 需要和数据权限一同调整
+ */
+export async function getHospital(): Promise<string> {
+  if (
+    Context.current.user.hospitals &&
+    Context.current.user.hospitals.length > 1
+  )
+    throw new KatoRuntimeError(`没有查询his员工权限`);
+
+  return Context.current.user.hospitals[0]['id'];
+}
+
+//region 类型定义
+/**
  * 员工方案考核结果
  */
 export type StaffAssessModel = {
@@ -119,17 +136,4 @@ export type StaffAssessModel = {
   //质量系数
   rate?: number;
 };
-
-/**
- * 获取登录用户的机构数据
- * TODO: 苟且方案, 需要和数据权限一同调整
- */
-export async function getHospital(): Promise<string> {
-  if (
-    Context.current.user.hospitals &&
-    Context.current.user.hospitals.length > 1
-  )
-    throw new KatoRuntimeError(`没有查询his员工权限`);
-
-  return Context.current.user.hospitals[0]['id'];
-}
+//endregion
