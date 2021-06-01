@@ -14,7 +14,9 @@
             <div class="item">
               {{ personInfoData.name }}
             </div>
-            <div class="item">校正后总得分（分）：{{ workScore.total }}</div>
+            <div class="item">
+              校正后总得分（分）：{{ workScore.total * workScore.rate }}
+            </div>
             <div class="item">质量系数：{{ workScore.rateFormat }}%</div>
           </div>
           <div>
@@ -73,7 +75,7 @@
                 <el-row>
                   <el-col :span="8" class="item">
                     <div>校正前工分</div>
-                    <div class="content">40</div>
+                    <div class="content">{{ workScore.total }}</div>
                     <el-button
                       class="more"
                       type="text"
