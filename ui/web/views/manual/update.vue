@@ -67,11 +67,11 @@
         ></el-table-column>
         <el-table-column prop="members" label="考核员工">
           <template slot-scope="scope">
-            <div v-if="!scope.row.EDIT">
+            <div v-if="!scope.row.EDIT || query.input === '属性'">
               {{ scope.row.staff.name }}
             </div>
             <el-select
-              v-if="scope.row.EDIT"
+              v-if="scope.row.EDIT && query.input === '日志'"
               v-model="scope.row.staff.id"
               filterable
               size="mini"
@@ -278,6 +278,7 @@ export default {
           this.query.month
         );
         await this.monthChanged();
+        this.$message.success('添加成功！');
       } catch (e) {
         this.$message.error(e.message);
       }

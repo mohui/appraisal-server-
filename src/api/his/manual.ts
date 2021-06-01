@@ -3,8 +3,7 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB} from '../../app';
-import {getHospital} from './his_staff';
-import {monthToRange} from './service';
+import {getHospital, monthToRange} from './service';
 
 /**
  * 手工数据属性型返回值

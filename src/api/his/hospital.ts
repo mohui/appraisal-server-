@@ -1,8 +1,8 @@
-import HisStaff, {getHospital} from './his_staff';
+import HisStaff from './staff';
 import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {dateValid, monthToRange} from './service';
+import {dateValid, getHospital, monthToRange} from './service';
 
 /**
  * 机构模块

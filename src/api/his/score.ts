@@ -5,12 +5,12 @@ import * as dayjs from 'dayjs';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
-import {getHospital} from './his_staff';
 import {sql as sqlRender} from '../../database/template';
 import {
   dateValid,
   dayToRange,
   getEndTime,
+  getHospital,
   getSettle,
   monthToRange
 } from './service';

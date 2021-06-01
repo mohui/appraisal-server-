@@ -257,32 +257,6 @@ const router = new Router({
           component: () => import('./views/medical-performance/index')
         },
         {
-          path: 'check-project',
-          name: 'check-project',
-          meta: {
-            activeMenu: 'medical-performance'
-          },
-          component: () => import('./views/medical-performance/project/index')
-        },
-        {
-          path: 'marking-doctor',
-          name: 'marking-doctor',
-          meta: {
-            activeMenu: 'medical-performance'
-          },
-          component: () =>
-            import('./views/medical-performance/project/marking-doctor')
-        },
-        {
-          path: 'marking-target',
-          name: 'marking-target',
-          meta: {
-            activeMenu: 'medical-performance'
-          },
-          component: () =>
-            import('./views/medical-performance/project/marking-target')
-        },
-        {
           path: 'personal-appraisal-results',
           name: 'personal-appraisal-results',
           meta: {
