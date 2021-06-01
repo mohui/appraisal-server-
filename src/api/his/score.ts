@@ -739,7 +739,6 @@ export default class HisScore {
     });
   }
 
-  //region 附加分相关
   /**
    * 设置员工附加分
    *
@@ -772,6 +771,5 @@ export default class HisScore {
     );
   }
 
-  //endregion
   //endregion
 }
