@@ -99,6 +99,28 @@ export async function getSettle(id, month): Promise<boolean> {
 }
 
 /**
+ * 员工方案考核结果
+ */
+export type StaffAssessModel = {
+  id: string;
+  name: string;
+  //考核规则得分
+  scores: {
+    id: string;
+    auto: boolean;
+    name: string;
+    detail: string;
+    metric: string;
+    operator: string;
+    value: string;
+    score: number;
+    total: number;
+  }[];
+  //质量系数
+  rate?: number;
+};
+
+/**
  * 获取登录用户的机构数据
  * TODO: 苟且方案, 需要和数据权限一同调整
  */
