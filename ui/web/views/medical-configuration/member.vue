@@ -467,6 +467,16 @@ export default {
                 }
               })
             );
+            await Promise.all(
+              //需要删除的绑定关系
+              this.newMember.oldMembers
+                .filter(
+                  it => !this.newMember.subMembers.some(s => s.id === it.id)
+                )
+                .map(async del =>
+                  this.$api.HisStaff.delHisStaffWorkSource(del.id)
+                )
+            );
             this.$message.success('修改成功');
           }
           this.$asyncComputed.serverData.update();
@@ -503,6 +513,7 @@ export default {
           id: dataRows[0].id,
           member: row.member,
           staff: row.staff,
+          oldMembers: currentSubMember,
           subMembers: currentSubMember
         })
       );
@@ -528,25 +539,7 @@ export default {
       }
     },
     async removeSubMember(row, index) {
-      if (!row.id) this.newMember.subMembers.splice(index, 1);
-
-      if (row.id) {
-        try {
-          await this.$confirm(
-            `确定完全删除 ${this.newMember.member} 和 "${row.member}"的绑定?`,
-            '提示',
-            {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
-          );
-          await this.$api.HisStaff.delHisStaffWorkSource(row.id);
-          this.newMember.subMembers.splice(index, 1);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      this.newMember.subMembers.splice(index, 1);
     },
     spanMethod({column, rowIndex}) {
       if (
