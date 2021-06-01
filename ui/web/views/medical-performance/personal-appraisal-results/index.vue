@@ -160,6 +160,7 @@
               <el-input-number
                 v-model="scope.row.staffScore"
                 size="mini"
+                :max="scope.row.score"
                 label="打分"
               ></el-input-number>
             </div>
