@@ -73,6 +73,7 @@ export const dateValid = should
   .min(getTimeRange().start)
   .less(getTimeRange().end)
   .required();
+
 //endregion
 
 /**
@@ -135,5 +136,21 @@ export type StaffAssessModel = {
   }[];
   //质量系数
   rate?: number;
+};
+
+/**
+ * 员工工分结果Model
+ */
+export type StaffWorkModel = {
+  //本人工分项目的工分列表
+  self: {id: string; name: string; score: number}[];
+  //本人工分来源的员工列表
+  staffs: {
+    id: string;
+    name: string;
+    score: number;
+  }[];
+  //工分
+  score?: number;
 };
 //endregion

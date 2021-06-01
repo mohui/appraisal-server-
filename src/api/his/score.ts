@@ -12,7 +12,8 @@ import {
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange
+  monthToRange,
+  StaffWorkModel
 } from './service';
 
 function log(...args) {
@@ -622,13 +623,12 @@ export default class HisScore {
   /**
    * 员工每日工分打分
    *
-   * @param staff 员工id
-   * @param day 月份
+   * @param id 员工id
+   * @param day 日期
    */
-  async scoreStaff(staff, day) {
+  async scoreStaff(id, day) {
     await appDB.joinTx(async () => {
-      const date = getEndTime(day);
-      const {start, end} = dayToRange(date);
+      const {start, end} = dayToRange(day);
       //查询工分来源
       //language=PostgreSQL
       const scoreDetails: {
@@ -657,13 +657,13 @@ export default class HisScore {
                  inner join his_work_item wi on foo.item = wi.id
                  inner join staff s on foo.staff = s.id
         `,
-        staff,
+        id,
         start,
         end
       );
       //本人的工分项目得分列表
       const self = scoreDetails
-        .filter(it => it.staff === staff)
+        .filter(it => it.staff === id)
         .map(it => ({
           id: it.item,
           name: it.item_name,
@@ -685,54 +685,43 @@ export default class HisScore {
       }, []);
       //查询得分结果
       //language=PostgreSQL
-      let resultModel: {
-        id: string;
-        day: Date;
-        result: StaffScoreModel;
-      } = (
+      let resultModel: StaffWorkModel = (
         await appDB.execute(
           `
-            select id, day, result
+            select work
             from his_staff_result
             where id = ?
               and day = ? for update
           `,
-          staff,
+          id,
           day
         )
-      )[0];
+      )[0]?.work;
       if (!resultModel) {
         resultModel = {
-          id: staff,
-          day: day,
-          result: {
-            work: {
-              self: [],
-              staffs: [],
-              score: null
-            },
-            check: null
-          }
+          self: [],
+          staffs: [],
+          score: null
         };
       }
-      resultModel.result.work.self = self;
-      resultModel.result.work.staffs = staffs;
-      resultModel.result.work.score = self.reduce(
+      resultModel.self = self;
+      resultModel.staffs = staffs;
+      resultModel.score = self.reduce(
         (result, current) => (result += current.score),
         0
       );
-      const resultValue = JSON.stringify(resultModel.result);
+      const resultValue = JSON.stringify(resultModel);
       await appDB.execute(
         //language=PostgreSQL
         `
-          insert into his_staff_result(id, day, result)
+          insert into his_staff_result(id, day, work)
           values (?, ?, ?)
           on conflict (id, day)
-            do update set result     = ?,
+            do update set work       = ?,
                           updated_at = now()
         `,
-        resultModel.id,
-        resultModel.day,
+        id,
+        day,
         resultValue,
         resultValue
       );
