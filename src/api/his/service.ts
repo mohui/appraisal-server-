@@ -21,7 +21,7 @@ export function monthToRange(month: Date): {start: Date; end: Date} {
 /**
  * 将日期参数转换成合法日期
  *
- * 如果是历史日期, 则返回该月最后一天, 否则返回本月的最后一天
+ * 如果是历史日期, 则返回该月最后一天, 否则返回本月的当前时间
  * @month date 日期
  */
 export function getEndTime(month: Date): Date {
