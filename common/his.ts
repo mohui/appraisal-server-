@@ -50,3 +50,65 @@ export enum HisWorkScoreType {
   WORK_ITEM = '工分项目',
   STAFF = '员工'
 }
+
+//region 指标相关
+/**
+ * 指标
+ */
+const MarkTag = [];
+const MarkTagUsages = {
+  HIS00: {
+    code: 'HIS00',
+    name: '诊疗人次'
+  }
+};
+
+/**
+ * 指标计算方式
+ */
+export const TagAlgorithm = [
+  {
+    code: 'empty',
+    name: '无自动打分关系（仅输出结果）'
+  },
+  {
+    code: 'Y01',
+    name: '结果为”是“时，得满分'
+  },
+  {
+    code: 'N01',
+    name: '结果为“否”时，得满分'
+  },
+  {
+    code: 'egt',
+    name: '“≥”时得满分，不足按比例得分'
+  },
+  {
+    code: 'elt',
+    name: '“≤”时得满分，超过按比例得分'
+  }
+];
+export const TagAlgorithmUsages = {
+  empty: {
+    code: 'empty',
+    name: '无自动打分关系（仅输出结果）'
+  },
+  Y01: {
+    code: 'Y01',
+    name: '结果为”是“时，得满分'
+  },
+  N01: {
+    code: 'N01',
+    name: '结果为“否”时，得满分'
+  },
+  egt: {
+    code: 'egt',
+    name: '“≥”时得满分，不足按比例得分'
+  },
+  elt: {
+    code: 'elt',
+    name: '“≤”时得满分，超过按比例得分'
+  }
+};
+
+//endregion
