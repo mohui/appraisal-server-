@@ -17,7 +17,10 @@
             <div class="item">
               校正后总得分（分）：{{ workScore.total * workScore.rate }}
             </div>
-            <div class="item">质量系数：{{ workScore.rateFormat }}%</div>
+            <div class="item">
+              质量系数：{{ workScore.rateFormat
+              }}{{ workScore.rate ? '%' : null }}
+            </div>
           </div>
           <div>
             <el-button size="small" @click="$router.go(-1)">返回</el-button>
@@ -94,7 +97,10 @@
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
-                    <div class="content">{{ workScore.rateFormat }}%</div>
+                    <div class="content">
+                      {{ workScore.rateFormat
+                      }}{{ workScore.rate ? '%' : null }}
+                    </div>
                     <el-button
                       class="more"
                       type="text"
