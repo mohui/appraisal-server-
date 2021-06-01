@@ -13,6 +13,7 @@
               v-model="currentDate"
               type="month"
               placeholder="选择月"
+              @change="handleChangeDate"
               :picker-options="disabledDate"
             >
             </el-date-picker>
@@ -107,6 +108,9 @@ export default {
   mounted() {
     this.drawChart();
   },
+  created() {
+    this.initParams(this.$route);
+  },
   computed: {
     overviewData() {
       return {
@@ -159,6 +163,17 @@ export default {
     }
   },
   methods: {
+    initParams(route) {
+      if (route.query.date)
+        this.currentDate = new Date(JSON.parse(route.query.date));
+    },
+    handleChangeDate() {
+      this.$router.replace({
+        query: {
+          date: JSON.stringify(this.currentDate)
+        }
+      });
+    },
     async handleSettle() {
       this.$confirm('此操作无法恢复, 是否继续?', '提示', {
         confirmButtonText: '确定',
