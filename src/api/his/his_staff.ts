@@ -833,7 +833,7 @@ export default class HisStaff {
     const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
-    const scoreDate = getEndTimes(month)?.scoreDate;
+    const scoreDate = getEndTimes(month);
     const ruleScores = await appDB.execute(
       `select rule, score score
             from his_rule_staff_score

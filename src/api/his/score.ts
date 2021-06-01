@@ -124,7 +124,7 @@ export default class HisScore {
     if (autoRules.length === 0)
       throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
-    const scoreDate = getEndTimes(month)?.scoreDate;
+    const scoreDate = getEndTimes(month);
 
     // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
     const [sql, params] = sqlRender(
@@ -345,8 +345,7 @@ export default class HisScore {
     const hospital = await getHospital();
     const settle = await getSettle(hospital, month);
     if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
-    const date = getEndTimes(month);
-    const scoreDate = date.scoreDate;
+    const scoreDate = getEndTimes(month);
 
     // 查询考核细则
     const rules = await appDB.execute(

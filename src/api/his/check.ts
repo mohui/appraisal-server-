@@ -644,7 +644,7 @@ export default class HisCheck {
     const lastMonth = dayjs()
       .subtract(1, 'month')
       .toDate();
-    const lastMonthEnd = getEndTimes(lastMonth)?.scoreDate;
+    const lastMonthEnd = getEndTimes(lastMonth);
 
     // 上个月是否结算
     const lastSettle = await getSettle(hospital, lastMonth);
