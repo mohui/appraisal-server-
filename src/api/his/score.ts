@@ -773,4 +773,5 @@ export default class HisScore {
   }
 
   //endregion
+  //endregion
 }
