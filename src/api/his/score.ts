@@ -8,7 +8,6 @@ import {v4 as uuid} from 'uuid';
 import {getHospital} from './his_staff';
 import {sql as sqlRender} from '../../database/template';
 import {
-  dateToDay,
   dateValid,
   dayToRange,
   getEndTimes,
@@ -628,7 +627,7 @@ export default class HisScore {
    */
   async scoreStaff(staff, day) {
     await appDB.joinTx(async () => {
-      const date = dateToDay(day);
+      const date = getEndTimes(day);
       const {start, end} = dayToRange(date);
       //查询工分来源
       //language=PostgreSQL
