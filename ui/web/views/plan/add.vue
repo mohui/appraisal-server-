@@ -488,7 +488,7 @@ export default {
             this.form.target.splice($index, 1);
             this.$message({
               type: 'success',
-              message: '删除成功!'
+              message: '删除成功！操作完毕后，请保存。'
             });
           } catch (e) {
             this.$message.error(e.message);
@@ -512,7 +512,7 @@ export default {
             this.form.manual.splice($index, 1);
             this.$message({
               type: 'success',
-              message: '删除成功!'
+              message: '删除成功！操作完毕后，请保存。'
             });
           } catch (e) {
             this.$message.error(e.message);
