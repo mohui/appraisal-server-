@@ -70,7 +70,7 @@ export function dayToRange(day: Date): {start: Date; end: Date} {
 export const dateValid = should
   .date()
   .min(getTimeRange().start)
-  .max(getTimeRange().end)
+  .less(getTimeRange().end)
   .required();
 
 /**

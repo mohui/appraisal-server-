@@ -1,11 +1,11 @@
 import * as dayjs from 'dayjs';
 
 /**
- * 获取时间区间
+ * 获取时间区间(前闭后开)
  *
  * @return {
  *   start: 默认开始时间
- *   end: 当前时间点
+ *   end: 下个月
  * }
  */
 export function getTimeRange(): {start: Date; end: Date} {
@@ -13,7 +13,8 @@ export function getTimeRange(): {start: Date; end: Date} {
     //TODO: 暂时定在2021年1月
     start: dayjs('2021-01-01').toDate(),
     end: dayjs()
-      .endOf('d')
+      .startOf('M')
+      .add(1, 'M')
       .toDate()
   };
 }
