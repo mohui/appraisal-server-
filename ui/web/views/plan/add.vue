@@ -247,11 +247,7 @@
                       v-if="!scope.row.id"
                       type="primary"
                       size="mini"
-                      :disabled="
-                        !scope.row.name ||
-                          !scope.row.requirement ||
-                          !scope.row.score
-                      "
+                      :disabled="!scope.row.name || !scope.row.requirement"
                       @click="addManual(scope)"
                     >
                       添加
