@@ -687,9 +687,9 @@ export default class HisStaff {
               item => item.id === it.id && item.day.getTime() === day.getTime()
             )?.score ?? 0
         })),
-        rate: rateList.find(
-          rateItem => rateItem.day.getTime() === day.getTime()
-        )?.rate
+        rate:
+          rateList.find(rateItem => rateItem.day.getTime() === day.getTime())
+            ?.rate ?? null
       });
     }
     return result;
