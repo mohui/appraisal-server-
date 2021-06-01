@@ -31,18 +31,18 @@
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
-                  v-for="(value, key) in personInfoData"
+                  v-for="(value, key) in personInfo"
                   :key="key"
                   :span="12"
                   style="padding:  0 8%"
                 >
                   <el-row style="margin: 5px; padding: 5px; font-size: 15px">
                     <el-col :span="10">
-                      <div class="name">{{ key }}：</div>
+                      <div class="name">{{ value }}：</div>
                     </el-col>
                     <el-col :span="14">
                       <div class="value">
-                        {{ value }}
+                        {{ personInfoData[key] }}
                       </div>
                     </el-col>
                   </el-row>
@@ -197,6 +197,16 @@ export default {
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       dialogRateTableVisible: false,
+      personInfo: {
+        name: '姓名',
+        staff: '员工号',
+        sex: '性别',
+        department: '所在科室',
+        birth: '出生日期',
+        phone: '联系电话',
+        idCard: '身份证号',
+        medicareNo: '医保编号'
+      },
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -272,7 +282,10 @@ export default {
       return result;
     },
     personInfoData() {
-      return this.personInfoServerData;
+      return {
+        ...this.personInfoServerData,
+        birth: this.personInfoServerData.birth?.$format('YYYY-MM-DD')
+      };
     },
     staffCheckData() {
       const list = this.staffCheckServerData.automations
