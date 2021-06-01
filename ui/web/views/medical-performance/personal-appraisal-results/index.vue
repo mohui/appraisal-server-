@@ -31,10 +31,18 @@
               class="card"
               v-loading="$asyncComputed.workScoreListServerData.updating"
             >
-              <div
-                id="projectWorkPointPie"
-                :style="{width: '100%', height: '420px'}"
-              ></div>
+              <div :style="{width: '100%', height: '420px'}">
+                <div
+                  v-if="workScorePieData.length > 0"
+                  id="projectWorkPointPie"
+                ></div>
+                <div
+                  v-else
+                  style="height: 100%; display: flex; justify-content: center; align-items: center; color: darkgray"
+                >
+                  <div>暂未配置</div>
+                </div>
+              </div>
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
