@@ -4,8 +4,7 @@ import {getHospital} from './his_staff';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {getSettle} from './hospital';
-import {getEndTimes} from './score';
+import {getEndTime, getSettle} from './service';
 
 /**
  * 修改考核名称
@@ -645,7 +644,7 @@ export default class HisCheck {
     const lastMonth = dayjs()
       .subtract(1, 'month')
       .toDate();
-    const lastMonthEnd = getEndTimes(lastMonth)?.scoreDate;
+    const lastMonthEnd = getEndTime(lastMonth);
 
     // 上个月是否结算
     const lastSettle = await getSettle(hospital, lastMonth);

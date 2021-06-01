@@ -4,10 +4,9 @@ import * as dayjs from 'dayjs';
 import {Context} from '../context';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {monthToRange} from './manual';
 import {HisWorkScoreType} from '../../../common/his';
-import {getSettle, monthValid} from './hospital';
-import {getEndTimes, StaffScoreModel} from './score';
+import {StaffScoreModel} from './score';
+import {dateValid, getEndTime, getSettle, monthToRange} from './service';
 
 export async function getHospital() {
   if (
@@ -58,7 +57,7 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), monthValid)
+  @validate(should.string().required(), dateValid)
   async get(id, month) {
     //查询员工
     // language=PostgreSQL
@@ -834,7 +833,7 @@ export default class HisStaff {
     const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
-    const scoreDate = getEndTimes(month)?.scoreDate;
+    const scoreDate = getEndTime(month);
     const ruleScores = await appDB.execute(
       `select rule, score score
             from his_rule_staff_score
