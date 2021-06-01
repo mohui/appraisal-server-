@@ -296,7 +296,6 @@
           <el-button type="primary" @click="onSubmit('form')">
             {{ id ? '保存' : '立即创建' }}
           </el-button>
-          <el-button>取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -304,184 +303,7 @@
 </template>
 
 <script>
-const TagList = [
-  {
-    value: 'A',
-    label: '服务效率',
-    children: [
-      {
-        value: 'a1',
-        label: '医师日均担负诊疗人次'
-      },
-      {
-        value: 'a2',
-        label: '医师日均担负住院床日'
-      },
-      {
-        value: 'a3',
-        label: '病床使用率'
-      },
-      {
-        value: 'a4',
-        label: '平均住院日'
-      }
-    ]
-  },
-  {
-    value: 'B',
-    label: '医疗质量与安全',
-    children: [
-      {
-        value: 'b1',
-        label: '基本药物使用情况'
-      },
-      {
-        value: 'b2',
-        label: '抗菌药物处方比例'
-      },
-      {
-        value: 'b3',
-        label: '静脉注射剂使用比例'
-      },
-      {
-        value: 'b4',
-        label: '院内感染管理'
-      },
-      {
-        value: 'b5',
-        label: '医疗纠纷处理'
-      }
-    ]
-  },
-  {
-    value: 'C',
-    label: '经济管理',
-    children: [
-      {
-        value: 'c1',
-        label: '门诊次均费用'
-      },
-      {
-        value: 'c2',
-        label: '住院次均费用'
-      },
-      {
-        value: 'c3',
-        label: '医疗收入变化情况'
-      },
-      {
-        value: 'c4',
-        label: '医疗服务收入占比'
-      },
-      {
-        value: 'c5',
-        label: '收支结余'
-      },
-      {
-        value: 'c6',
-        label: '人员支出占业务支出比例'
-      },
-      {
-        value: 'c7',
-        label: '财务制度'
-      }
-    ]
-  },
-  {
-    value: 'D',
-    label: '信息管理',
-    children: [
-      {
-        value: 'd1',
-        label: '信息管理系统应用'
-      }
-    ]
-  },
-  {
-    value: 'E',
-    label: '协同服务',
-    children: [
-      {
-        value: 'e1',
-        label: '双向转诊'
-      },
-      {
-        value: 'e2',
-        label: '一体化管理'
-      }
-    ]
-  },
-  {
-    value: 'F',
-    label: '人力配置',
-    children: [
-      {
-        value: 'f1',
-        label: '每万人口全科医生数'
-      },
-      {
-        value: 'f2',
-        label: '医护比'
-      }
-    ]
-  },
-  {
-    value: 'G',
-    label: '人员结构',
-    children: [
-      {
-        value: 'g1',
-        label: '卫生技术人员学历结构'
-      },
-      {
-        value: 'g2',
-        label: '卫生技术人员职称结构'
-      },
-      {
-        value: 'g3',
-        label: '中医类别医师占比'
-      }
-    ]
-  },
-  {
-    value: 'H',
-    label: '患者满意度',
-    children: [
-      {
-        value: 'h1',
-        label: '患者满意度'
-      }
-    ]
-  },
-  {
-    value: 'I',
-    label: '医务人员满意度',
-    children: [
-      {
-        value: 'i1',
-        label: '医务人员满意度'
-      }
-    ]
-  }
-];
-const TagModeList = [
-  {
-    code: 'Y01',
-    name: '结果为”是“时，得满分'
-  },
-  {
-    code: 'N01',
-    name: '结果为“否”时，得满分'
-  },
-  {
-    code: 'egt',
-    name: '“≥”时得满分，不足按比例得分'
-  },
-  {
-    code: 'elt',
-    name: '“≤”时得满分，超过按比例得分'
-  }
-];
+import {MarkTag, TagAlgorithm} from '../../../../common/his.ts';
 
 export default {
   name: 'PlanAdd',
@@ -492,7 +314,7 @@ export default {
       isLoading: false,
       loadingText: '拼命加载中',
       members: [],
-      TagModeList: TagModeList,
+      TagModeList: TagAlgorithm,
       activeName: 'first',
       rules: {
         name: [{required: true, message: '请输入方案名称', trigger: 'blur'}],
@@ -527,11 +349,13 @@ export default {
   },
   computed: {
     TagList() {
-      return TagList.map(it => ({
+      return MarkTag.map(it => ({
         ...it,
         children: it.children.map(item => ({
           ...item,
-          disabled: this.form.target.some(its => its.name.includes(item.value))
+          disabled:
+            !item.enabled ||
+            this.form.target.some(its => its.name.includes(item.value))
         }))
       }));
     },
