@@ -3,7 +3,10 @@
     <div>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
-        <div class="header">
+        <div
+          class="header"
+          v-loading="$asyncComputed.overviewServerData.updating"
+        >
           <div class="header-title">{{ overviewData.name }}绩效考核</div>
           <div>
             <el-date-picker
@@ -37,7 +40,10 @@
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="10" :xs="24" :sm="10" :md="10" :lg="10" :xl="10">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.overviewServerData.updating"
+            >
               <el-col :span="12">
                 <div class="score-detail">
                   <div class="total-score-title">总分</div>
@@ -61,7 +67,10 @@
             </el-card>
           </el-col>
           <el-col :span="14" :xs="24" :sm="14" :md="14" :lg="14" :xl="14">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.staffCheckListSeverData.updating"
+            >
               <div
                 id="doctorPerformanceBar"
                 :style="{width: '100%', height: '300px'}"
@@ -70,7 +79,10 @@
           </el-col>
         </el-row>
       </div>
-      <el-card shadow="hover">
+      <el-card
+        shadow="hover"
+        v-loading="$asyncComputed.workScoreListSeverData.updating"
+      >
         <div
           id="projectPerformanceBar"
           :style="{width: '100%', height: '400px'}"
