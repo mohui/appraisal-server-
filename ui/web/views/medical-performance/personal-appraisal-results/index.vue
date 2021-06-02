@@ -3,13 +3,24 @@
     <div>
       <!--顶部表头-->
       <div class="card" v-sticky>
-        <div class="header">
+        <div
+          class="header"
+          v-loading="
+            $asyncComputed.personInfoServerData.updating ||
+              $asyncComputed.workScoreListServerData.updating
+          "
+        >
           <div class="content">
             <div class="item">
               {{ personInfoData.name }}
             </div>
-            <div class="item">校正后总得分（分）：{{ workScore.total }}</div>
-            <div class="item">质量系数：{{ workScore.rateFormat }}%</div>
+            <div class="item">
+              校正后总得分（分）：{{ workScore.total * workScore.rate }}
+            </div>
+            <div class="item">
+              质量系数：{{ workScore.rateFormat
+              }}{{ workScore.rate ? '%' : null }}
+            </div>
           </div>
           <div>
             <el-button size="small" @click="$router.go(-1)">返回</el-button>
@@ -19,43 +30,63 @@
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-            <div class="card">
-              <div
-                id="projectWorkPointPie"
-                :style="{width: '100%', height: '420px'}"
-              ></div>
+            <div
+              class="card"
+              v-loading="$asyncComputed.workScoreListServerData.updating"
+            >
+              <div :style="{width: '100%', height: '420px'}">
+                <div
+                  v-show="workScorePieData.length > 0"
+                  id="projectWorkPointPie"
+                ></div>
+                <div
+                  v-show="workScorePieData.length < 1"
+                  style="height: 100%; display: flex; justify-content: center; align-items: center; color: darkgray"
+                >
+                  <div>暂未配置</div>
+                </div>
+              </div>
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-            <div class="card person-info">
+            <div
+              class="card person-info"
+              v-loading="$asyncComputed.personInfoServerData.updating"
+            >
               <div>个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
-                  v-for="(value, key) in personInfoData"
+                  v-for="(value, key) in personInfo"
                   :key="key"
                   :span="12"
                   style="padding:  0 8%"
                 >
                   <el-row style="margin: 5px; padding: 5px; font-size: 15px">
                     <el-col :span="10">
-                      <div class="name">{{ key }}：</div>
+                      <div class="name">{{ value }}：</div>
                     </el-col>
                     <el-col :span="14">
                       <div class="value">
-                        {{ value }}
+                        {{ personInfoData[key] | dateFormat }}
                       </div>
                     </el-col>
                   </el-row>
                 </el-col>
               </el-row>
             </div>
-            <div class="card score-rules">
+            <div
+              class="card score-rules"
+              v-loading="
+                $asyncComputed.personInfoServerData.updating ||
+                  $asyncComputed.workScoreListServerData.updating
+              "
+            >
               <div>得分细则</div>
               <div style="text-align: center;">
                 <el-row>
                   <el-col :span="8" class="item">
                     <div>校正前工分</div>
-                    <div class="content">40</div>
+                    <div class="content">{{ workScore.total }}</div>
                     <el-button
                       class="more"
                       type="text"
@@ -66,7 +97,10 @@
                   </el-col>
                   <el-col :span="8" class="item">
                     <div>质量系数</div>
-                    <div class="content">{{ workScore.rateFormat }}%</div>
+                    <div class="content">
+                      {{ workScore.rateFormat
+                      }}{{ workScore.rate ? '%' : null }}
+                    </div>
                     <el-button
                       class="more"
                       type="text"
@@ -100,7 +134,11 @@
           </el-col>
         </el-row>
       </div>
-      <div class="card" style="height: 300px ; margin-top: 20px">
+      <div
+        class="card"
+        style="height: 300px ; margin-top: 20px"
+        v-loading="$asyncComputed.workScoreDailyListServerData.updating"
+      >
         <div
           id="projectWorkPointBarRateLine"
           :style="{width: '100%', height: '100%'}"
@@ -160,6 +198,7 @@
               <el-input-number
                 v-model="scope.row.staffScore"
                 size="mini"
+                :max="scope.row.score"
                 label="打分"
               ></el-input-number>
             </div>
@@ -197,6 +236,16 @@ export default {
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       dialogRateTableVisible: false,
+      personInfo: {
+        name: '姓名',
+        staff: '员工号',
+        sex: '性别',
+        department: '所在科室',
+        birth: '出生日期',
+        phone: '联系电话',
+        idCard: '身份证号',
+        medicareNo: '医保编号'
+      },
       chartColors: ['#409eff', '#ea9d42', '#9e68f5']
     };
   },
@@ -215,6 +264,9 @@ export default {
     }
   },
   computed: {
+    workScoreListData() {
+      return this.workScoreListServerData?.items?.map(it => it);
+    },
     workScore() {
       return {
         total: this.workScoreListData
@@ -226,9 +278,6 @@ export default {
             ? '暂未考核'
             : (this.workScoreListServerData.rate * 100).toFixed(2)
       };
-    },
-    workScoreListData() {
-      return this.workScoreListServerData?.items?.map(it => it);
     },
     workScorePieData() {
       return this.workScoreListData?.map(it => ({
@@ -330,6 +379,8 @@ export default {
             this.personInfoData.extra
           );
           this.isEditor = !this.isEditor;
+          this.$message.success('打分成功');
+          this.$asyncComputed.personInfoServerData.update();
         } catch (e) {
           this.$message.error(e.message);
         }
@@ -348,6 +399,10 @@ export default {
             row.staffScore
           );
           row.isRating = !row.isRating;
+          this.$message.success('打分成功');
+          this.$asyncComputed.staffCheckServerData.update();
+          this.$asyncComputed.workScoreDailyListServerData.update();
+          this.$asyncComputed.workScoreListServerData.update();
         } catch (e) {
           console.log(e.message);
           this.$message.error(e.message);

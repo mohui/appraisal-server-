@@ -3,13 +3,18 @@
     <div>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
-        <div class="header">
+        <div
+          class="header"
+          v-loading="$asyncComputed.overviewServerData.updating"
+        >
           <div class="header-title">{{ overviewData.name }}绩效考核</div>
           <div>
             <el-date-picker
               v-model="currentDate"
+              size="mini"
               type="month"
               placeholder="选择月"
+              @change="handleChangeDate"
               :picker-options="disabledDate"
             >
             </el-date-picker>
@@ -17,16 +22,20 @@
           <el-button
             type="primary"
             size="mini"
+            :disabled="overviewData.settle"
             style="margin-left: 20px"
             @click="handleSettle()"
-            >{{ this.overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
+            >{{ overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
           >
         </div>
       </el-card>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
           <el-col :span="10" :xs="24" :sm="10" :md="10" :lg="10" :xl="10">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.overviewServerData.updating"
+            >
               <el-col :span="12">
                 <div class="score-detail">
                   <div class="total-score-title">总分</div>
@@ -50,7 +59,10 @@
             </el-card>
           </el-col>
           <el-col :span="14" :xs="24" :sm="14" :md="14" :lg="14" :xl="14">
-            <el-card shadow="hover">
+            <el-card
+              shadow="hover"
+              v-loading="$asyncComputed.staffCheckListSeverData.updating"
+            >
               <div
                 id="doctorPerformanceBar"
                 :style="{width: '100%', height: '300px'}"
@@ -59,7 +71,10 @@
           </el-col>
         </el-row>
       </div>
-      <el-card shadow="hover">
+      <el-card
+        shadow="hover"
+        v-loading="$asyncComputed.workScoreListSeverData.updating"
+      >
         <div
           id="projectPerformanceBar"
           :style="{width: '100%', height: '400px'}"
@@ -93,6 +108,9 @@ export default {
   },
   mounted() {
     this.drawChart();
+  },
+  created() {
+    this.initParams(this.$route);
   },
   computed: {
     overviewData() {
@@ -146,16 +164,42 @@ export default {
     }
   },
   methods: {
+    initParams(route) {
+      if (route.query.date)
+        this.currentDate = new Date(JSON.parse(route.query.date));
+    },
+    handleChangeDate() {
+      this.$router.replace({
+        query: {
+          date: JSON.stringify(this.currentDate)
+        }
+      });
+    },
     async handleSettle() {
-      try {
-        await this.$api.HisHospital.settle(
-          this.currentDate,
-          !this.overviewData.settle
-        );
-        this.$asyncComputed.overviewServerData.update();
-      } catch (e) {
-        console.log(e.message);
-      }
+      this.$confirm('此操作无法恢复, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          try {
+            await this.$api.HisHospital.settle(
+              this.currentDate,
+              !this.overviewData.settle
+            );
+            this.$message.success('修改成功');
+            this.$asyncComputed.overviewServerData.update();
+          } catch (e) {
+            console.log(e.message);
+            this.$message.error(e.message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
     },
     // 绘制图表
     drawChart() {
@@ -448,6 +492,7 @@ export default {
 .header {
   display: flex;
   flex-direction: row;
+  align-items: center;
   .header-title {
     font: bold 20px/2 Arial;
     color: $color-primary;
