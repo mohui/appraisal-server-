@@ -186,6 +186,7 @@
               <el-button
                 type="danger"
                 :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
+                :disabled="row.removeLoading"
                 circle
                 size="mini"
                 @click="removeRow(row)"
