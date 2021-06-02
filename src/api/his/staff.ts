@@ -617,7 +617,21 @@ export default class HisStaff {
    * ]
    */
   @validate(should.string().required(), should.date().required())
-  async findWorkScoreDailyList(id, month) {
+  async findWorkScoreDailyList(
+    id,
+    month
+  ): Promise<
+    {
+      day: Date;
+      items: {
+        id: string;
+        name: string;
+        score: number;
+        type: string;
+      }[];
+      rate?: number;
+    }[]
+  > {
     const {start} = monthToRange(month);
     const end = getEndTime(month);
     const rows: {
@@ -640,7 +654,7 @@ export default class HisStaff {
     );
     return rows.map(it => ({
       day: dayjs(it.day).toDate(),
-      item: [
+      items: [
         ...it.work.self.map(item => ({
           ...item,
           type: HisWorkScoreType.WORK_ITEM
