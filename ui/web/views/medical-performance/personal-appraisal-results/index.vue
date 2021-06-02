@@ -34,18 +34,10 @@
               class="card"
               v-loading="$asyncComputed.workScoreListServerData.updating"
             >
-              <div :style="{width: '100%', height: '420px'}">
-                <div
-                  v-show="workScorePieData.length > 0"
-                  id="projectWorkPointPie"
-                ></div>
-                <div
-                  v-show="workScorePieData.length < 1"
-                  style="height: 100%; display: flex; justify-content: center; align-items: center; color: darkgray"
-                >
-                  <div>暂未配置</div>
-                </div>
-              </div>
+              <div
+                id="projectWorkPointPie"
+                :style="{width: '100%', height: '420px'}"
+              ></div>
             </div>
           </el-col>
           <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
@@ -418,6 +410,7 @@ export default {
     },
     // 项目工分饼状图
     drawProjectWorkPointPie() {
+      console.log('this.workScorePieData:', this.workScorePieData);
       // 基于准备好的dom，初始化echarts实例
       const myChart = this.$echarts.init(
         document.getElementById('projectWorkPointPie')
