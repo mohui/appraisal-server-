@@ -276,6 +276,7 @@ export default class HisCheck {
         left join his_staff_check_mapping mapping on system.id = mapping."check"
         left join staff on mapping.staff = staff.id
         where system.hospital = ?
+        order by system.created_at desc
       `,
       hospital
     );
