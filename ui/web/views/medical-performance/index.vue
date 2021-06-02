@@ -11,6 +11,7 @@
           <div>
             <el-date-picker
               v-model="currentDate"
+              size="mini"
               type="month"
               placeholder="选择月"
               @change="handleChangeDate"
@@ -491,6 +492,7 @@ export default {
 .header {
   display: flex;
   flex-direction: row;
+  align-items: center;
   .header-title {
     font: bold 20px/2 Arial;
     color: $color-primary;
