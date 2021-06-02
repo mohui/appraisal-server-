@@ -618,88 +618,40 @@ export default class HisStaff {
    */
   @validate(should.string().required(), should.date().required())
   async findWorkScoreDailyList(id, month) {
-    //工分员工来源
-    // language=PostgreSQL
-    const sources: {staff: string; rate: number}[] = await appDB.execute(
-      `
-        select unnest(sources) as staff, rate
-        from his_staff_work_source
-        where staff = ?
-      `,
-      id
-    );
-    //绑定工分项目
-    // language=PostgreSQL
-    const workItems = await appDB.execute(
-      `
-        select w.id, w.name, m.score
-        from his_staff_work_item_mapping m
-               inner join his_work_item w on m.item = w.id
-        where staff = ?
-      `,
-      id
-    );
-
-    const {start, end} = monthToRange(month);
-    // 查询工分值
-    // language=PostgreSQL
-    const scoreList: {
-      id: string;
-      name: string;
-      staff: string;
+    const {start} = monthToRange(month);
+    const end = getEndTime(month);
+    const rows: {
       day: Date;
-      score: number;
+      work: StaffWorkModel;
+      assess: StaffAssessModel;
     }[] = await appDB.execute(
+      // language=PostgreSQL
       `
-        select d.item                    as id,
-               date_trunc('day', d.date) as day,
-               sum(d.score * s.rate)     as score
-        from his_staff_work_score_detail d
-               inner join (
-          select unnest(sources) as staff, rate
-          from his_staff_work_source
-          where staff = ?
-        ) as s on d.staff = s.staff
-               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
-        where d.date >= ?
-          and d.date < ?
-        group by day, d.item, d.staff
+        select work, assess, day
+        from his_staff_result
+        where id = ?
+          and day >= ?
+          and day <= ?
+        order by day
       `,
-      id,
       id,
       start,
       end
     );
-    //查询质量系数列表
-    const rateList = await this.getRateList(id, month);
-    //定义返回值
-    const result: {
-      day: Date;
-      items: {id: string; name: string; score: number}[];
-      rate?: number;
-    }[] = [];
-    //当前月份的天数
-    const days = dayjs(end).diff(start, 'd');
-    //占坑
-    for (let i = 0; i < days; i++) {
-      const day = dayjs(start)
-        .add(i, 'd')
-        .toDate();
-      result.push({
-        day,
-        items: workItems.map(it => ({
-          ...it,
-          score:
-            scoreList.find(
-              item => item.id === it.id && item.day.getTime() === day.getTime()
-            )?.score ?? 0
+    return rows.map(it => ({
+      day: dayjs(it.day).toDate(),
+      item: [
+        ...it.work.self.map(item => ({
+          ...item,
+          type: HisWorkScoreType.WORK_ITEM
         })),
-        rate:
-          rateList.find(rateItem => rateItem.day.getTime() === day.getTime())
-            ?.rate ?? null
-      });
-    }
-    return result;
+        ...it.work.staffs.map(item => ({
+          ...item,
+          type: HisWorkScoreType.STAFF
+        }))
+      ],
+      rate: it?.assess?.rate ?? null
+    }));
   }
   // endregion
 
