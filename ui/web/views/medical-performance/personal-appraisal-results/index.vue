@@ -379,6 +379,7 @@ export default {
             this.personInfoData.extra
           );
           this.isEditor = !this.isEditor;
+          this.$message.success('打分成功');
         } catch (e) {
           this.$message.error(e.message);
         }
@@ -397,6 +398,7 @@ export default {
             row.staffScore
           );
           row.isRating = !row.isRating;
+          this.$message.success('打分成功');
         } catch (e) {
           console.log(e.message);
           this.$message.error(e.message);
