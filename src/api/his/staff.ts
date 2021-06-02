@@ -586,10 +586,10 @@ export default class HisStaff {
         await appDB.execute(
           //language=PostgreSQL
           `
-          select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
-          from (select distinct(unnest(sources)) as staff from his_staff_work_source where staff = ?) m
-                 inner join staff s on m.staff = s.id
-        `,
+            select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
+            from (select distinct(unnest(sources)) as staff from his_staff_work_source where staff = ?) m
+                   inner join staff s on m.staff = s.id
+          `,
           id
         )
       ).filter(it => it.id !== id);
