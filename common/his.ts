@@ -254,10 +254,6 @@ const MarkTagUsages = {
  */
 export const TagAlgorithm = [
   {
-    code: 'empty',
-    name: '无自动打分关系（仅输出结果）'
-  },
-  {
     code: 'Y01',
     name: '结果为”是“时，得满分'
   },
@@ -268,17 +264,9 @@ export const TagAlgorithm = [
   {
     code: 'egt',
     name: '“≥”时得满分，不足按比例得分'
-  },
-  {
-    code: 'elt',
-    name: '“≤”时得满分，超过按比例得分'
   }
 ];
 export const TagAlgorithmUsages = {
-  empty: {
-    code: 'empty',
-    name: '无自动打分关系（仅输出结果）'
-  },
   Y01: {
     code: 'Y01',
     name: '结果为”是“时，得满分'
@@ -290,10 +278,6 @@ export const TagAlgorithmUsages = {
   egt: {
     code: 'egt',
     name: '“≥”时得满分，不足按比例得分'
-  },
-  elt: {
-    code: 'elt',
-    name: '“≤”时得满分，超过按比例得分'
   }
 };
 
