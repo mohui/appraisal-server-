@@ -537,66 +537,44 @@ export default class HisStaff {
     items: {id: string; name: string; score: number; type: string}[];
     rate?: number;
   }> {
-    //获取合法时间
-    const day = getEndTime(month);
-    //查询得分表
-    const result: {work: StaffWorkModel; assess: StaffAssessModel} = (
-      await appDB.execute(
-        //language=PostgreSQL
-        `
-          select work, assess
-          from his_staff_result
-          where id = ?
-            and day = ?
-          limit 1
-        `,
-        id,
-        day
-      )
-    )[0];
-    //构造返回值
-    const returnValue = {
-      items: [
-        ...(result?.work?.self ?? []).map(it => ({
-          ...it,
-          type: HisWorkScoreType.WORK_ITEM
-        })),
-        ...(result?.work?.staffs ?? []).map(it => ({
-          ...it,
-          type: HisWorkScoreType.STAFF
-        }))
-      ],
-      rate: result?.assess?.rate ?? null
-    };
-    //得分表里没数据, 可能是未打分, 补充当前配置
-    if (returnValue.items.length === 0) {
-      //工分配置
-      const self = await appDB.execute(
-        //language=PostgreSQL
-        `
-          select m.item as id, wi.name, null as score, '${HisWorkScoreType.WORK_ITEM}' as type
-          from his_staff_work_item_mapping m
-                 inner join his_work_item wi on m.item = wi.id
-          where m.staff = ?
-        `,
-        id
-      );
-      //工分来源
-      const staffs = (
-        await appDB.execute(
-          //language=PostgreSQL
-          `
-            select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
-            from (select distinct(unnest(sources)) as staff from his_staff_work_source where staff = ?) m
-                   inner join staff s on m.staff = s.id
-          `,
-          id
-        )
-      ).filter(it => it.id !== id);
-      returnValue.items = [...staffs, ...self];
-    }
+    const rows: {
+      day: Date;
+      items: {
+        id: string;
+        name: string;
+        score: number;
+        type: string;
+      }[];
+      rate?: number;
+    }[] = await this.findWorkScoreDailyList(id, month);
 
-    return returnValue;
+    return rows.reduce(
+      (result, current) => {
+        result.day = current.day;
+        result.rate = current.rate;
+
+        //累加items
+        for (const item of result.items) {
+          const currentItem = current.items.find(it => it.id === item.id);
+          if (currentItem) {
+            item.score += currentItem.score;
+          }
+        }
+        for (const item of current.items) {
+          const currentItem = result.items.find(it => it.id === item.id);
+          if (!currentItem) {
+            result.items.push(item);
+          }
+        }
+
+        return result;
+      },
+      {
+        day: month,
+        rate: null,
+        items: []
+      }
+    );
   }
 
   /**
