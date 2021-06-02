@@ -2,7 +2,7 @@ import {appDB, originalDB} from '../../app';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {HisWorkMethod, HisWorkSource, MarkTagUsages} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {
@@ -12,8 +12,8 @@ import {
   getHospital,
   getSettle,
   monthToRange,
-  StaffWorkModel,
-  StaffAssessModel
+  StaffAssessModel,
+  StaffWorkModel
 } from './service';
 
 function log(...args) {
@@ -77,7 +77,6 @@ async function staffAssess(
     });
     // 把细则表中新增的细则放到打分表的细则中
     if (addRuleScores.length > 0) {
-      console.log('来到了添加面板');
       for (const ruleIt of addRuleScores) {
         assess.scores.push({
           id: ruleIt.id,
@@ -94,7 +93,6 @@ async function staffAssess(
     }
     // 把打分细则表中已经删除的细则删除
     if (delRuleScore.length > 0) {
-      console.log('来到了删除面板');
       for (const ruleIt of delRuleScore) {
         const index = assess.scores.findIndex(
           scoreIt => scoreIt.id === ruleIt.id
@@ -148,11 +146,29 @@ async function autoStaffAssess(ruleModels, assess: StaffAssessModel) {
         metric: ruleIt.metric,
         operator: ruleIt.operator,
         value: ruleIt.value,
-        score: ruleIt.id,
+        score: null,
         total: ruleIt.score
       };
     });
   } else {
+    // 如果有数据,先把手动打分的数据全部筛选出来
+    assess.scores = assess?.scores.filter(scoreIt => scoreIt.auto === false);
+
+    for (const ruleIt of ruleModels) {
+      if (ruleIt.auto === true)
+        assess.scores.push({
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: null,
+          total: ruleIt.score
+        });
+    }
+
     // 如果有数据, 就是打过分,需要排查细则有没有添加和删除的
     const delRuleScore = assess?.scores.filter(scoreIt => {
       // 在得分细则表里遍历, 如果这个得分细则的id在细则表中没有找到,说明这个细则已经删除了,需要在得分细则表里删除掉
@@ -167,7 +183,6 @@ async function autoStaffAssess(ruleModels, assess: StaffAssessModel) {
     });
     // 把细则表中新增的细则放到打分表的细则中
     if (addRuleScores.length > 0) {
-      console.log('来到了添加面板');
       for (const ruleIt of addRuleScores) {
         assess.scores.push({
           id: ruleIt.id,
@@ -184,7 +199,6 @@ async function autoStaffAssess(ruleModels, assess: StaffAssessModel) {
     }
     // 把打分细则表中已经删除的细则删除
     if (delRuleScore.length > 0) {
-      console.log('来到了删除面板');
       for (const ruleIt of delRuleScore) {
         const index = assess.scores.findIndex(
           scoreIt => scoreIt.id === ruleIt.id
@@ -237,6 +251,23 @@ export type StaffScoreModel = {
   };
 };
 
+async function getMark(hospital, year) {
+  const list = await originalDB.execute(
+    `select id, "HIS00"
+         from mark_his_hospital
+         where id = ? and year = ?
+    `,
+    hospital,
+    year
+  );
+  return (
+    list[0] ?? {
+      id: null,
+      HIS00: 0
+    }
+  );
+}
+
 export default class HisScore {
   //region 未开发代码
   /**
@@ -258,7 +289,7 @@ export default class HisScore {
     try {
       await appDB.joinTx(async () => {
         for (const staffId of hospital) {
-          await this.autoScoreStaff(month, staffId?.id);
+          await this.autoScoreStaff(month, staffId?.id, id);
         }
       });
     } catch (e) {
@@ -271,9 +302,15 @@ export default class HisScore {
    * 员工自动打分
    * @param month 月份
    * @param staff 员工id
+   * @param hospital 机构id
    */
-  @validate(should.date().required(), should.string().required())
-  async autoScoreStaff(month, staff) {
+  @validate(
+    should.date().required(),
+    should.string().required(),
+    should.string().required()
+  )
+  async autoScoreStaff(month, staff, hospital) {
+    const mark = await getMark(hospital, dayjs(month).year());
     return await appDB.joinTx(async () => {
       // 先根据员工查询考核
       const mapping = await appDB.execute(
@@ -383,41 +420,57 @@ export default class HisScore {
         );
 
         // 根据指标获取指标数据
-        // if (ruleIt.metric === '指定的指标') {
-        if (ruleIt.metric) {
+        if (ruleIt.metric === MarkTagUsages.HIS00.code) {
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
             // 指标分数
-            if (scoreIndex) scoreIndex.score = ruleIt.score;
+            scoreIndex.score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !mark?.HIS00) {
             // 指标分数
-            if (scoreIndex) scoreIndex.score = ruleIt.score;
+            scoreIndex.score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = mark.HIS00 / ruleIt.value;
             // 指标分数
-            if (scoreIndex) scoreIndex.score = ruleIt.score;
-          }
-          // “≤”时得满分，超过按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.elt.code) {
-            // 指标分数
-            if (scoreIndex) scoreIndex.score = ruleIt.score;
+            scoreIndex.score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
         }
-
-        // TODO: 先给指标一个写死的分
-        scoreIndex.score = 20;
       }
+
+      // 获取总分(分母)
+      const scoreDenominator = staffScores?.assess?.scores.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.total),
+        0
+      );
+
+      // 获取得分(分子)
+      const scoreNumerator = staffScores?.assess?.scores.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.score),
+        0
+      );
+      staffScores.assess.rate =
+        Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
 
       const nowDate = new Date();
       // 是添加
       if (upsert === 'add') {
-        console.log('添加数据');
-        return '来喽老弟';
+        // 执行添加语句
+        return await appDB.execute(
+          `insert into
+              his_staff_result(id, day, assess, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          ...[
+            staffScores.id,
+            staffScores.day,
+            JSON.stringify(staffScores.assess),
+            nowDate,
+            nowDate
+          ]
+        );
       } else {
-        console.log('修改语句');
         // 执行修改语句
         return await appDB.execute(
           `
