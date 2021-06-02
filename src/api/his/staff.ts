@@ -4,16 +4,18 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
-import {StaffScoreModel} from './score';
 import {
   dateValid,
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange
+  monthToRange,
+  StaffAssessModel,
+  StaffWorkModel
 } from './service';
 
 export default class HisStaff {
+  // region 员工的增删改查
   /**
    * 查询his员工
    */
@@ -332,7 +334,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工绑定的增删改查
   /**
    * 员工绑定
    */
@@ -505,7 +509,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工工分
   /**
    * 获取指定月份员工工分列表
    *
@@ -528,17 +534,17 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
-    items: {id: string; name: string; score: number}[];
+    items: {id: string; name: string; score: number; type: string}[];
     rate?: number;
   }> {
     //获取合法时间
     const day = getEndTime(month);
     //查询得分表
-    const result: StaffScoreModel = (
+    const result: {work: StaffWorkModel; assess: StaffAssessModel} = (
       await appDB.execute(
         //language=PostgreSQL
         `
-          select result
+          select work, assess
           from his_staff_result
           where id = ?
             and day = ?
@@ -547,7 +553,7 @@ export default class HisStaff {
         id,
         day
       )
-    )[0]?.result;
+    )[0];
     //构造返回值
     const returnValue = {
       items: [
@@ -560,7 +566,7 @@ export default class HisStaff {
           type: HisWorkScoreType.STAFF
         }))
       ],
-      rate: result?.check?.rate ?? null
+      rate: result?.assess?.rate ?? null
     };
     //得分表里没数据, 可能是未打分, 补充当前配置
     if (returnValue.items.length === 0) {
@@ -576,16 +582,17 @@ export default class HisStaff {
         id
       );
       //工分来源
-      const staffs = await appDB.execute(
-        //language=PostgreSQL
-        `
+      const staffs = (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
           select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
-          from his_staff_work_source m
+          from (select distinct(unnest(sources)) as staff from his_staff_work_source where staff = ?) m
                  inner join staff s on m.staff = s.id
-          where m.staff = ?
         `,
-        id
-      );
+          id
+        )
+      ).filter(it => it.id !== id);
       returnValue.items = [...staffs, ...self];
     }
 
@@ -694,7 +701,9 @@ export default class HisStaff {
     }
     return result;
   }
+  // endregion
 
+  // region 员工质量系数
   /**
    * 获取指定日期的质量系数
    *
@@ -811,6 +820,7 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
   /**
    * 员工考核详情
@@ -853,25 +863,24 @@ export default class HisStaff {
       checkId
     );
     if (hisRules.length === 0) throw new KatoRuntimeError(`方案细则不存在`);
-    const ruleIds = hisRules.map(it => it.id);
+    // const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
     const scoreDate = getEndTime(month);
-    const ruleScores = await appDB.execute(
-      `select rule, score score
-            from his_rule_staff_score
-            where staff = ?
-             and date = ?
-             and rule in (${ruleIds.map(() => '?')})
+    const staffResults = await appDB.execute(
+      `select id, day, assess
+            from his_staff_result
+            where id = ?
+             and day = ?
         `,
       staff,
-      scoreDate,
-      ...ruleIds
+      scoreDate
     );
+    const ruleScores = staffResults[0]?.assess?.scores ?? [];
 
     // 把分值放到细则中
     const newHisRules = hisRules.map(it => {
-      const scoreIndex = ruleScores.find(item => it.id === item.rule);
+      const scoreIndex = ruleScores.find(item => it.id === item.id);
       return {
         ...it,
         staffScore: scoreIndex ? scoreIndex.score : null

@@ -1,7 +1,7 @@
 import HisStaff from './staff';
 import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, validate} from 'kato-server';
 import {dateValid, getHospital, monthToRange} from './service';
 
 /**
@@ -9,34 +9,25 @@ import {dateValid, getHospital, monthToRange} from './service';
  */
 export default class HisHospital {
   /**
-   * 修改指定月份的结算状态
+   * 结算指定月份
    *
-   * 只能修改本月和上月的结算状态
-   * 再往前的月份, 自动结算
    * @param month 月份
-   * @param settle 是否结算
    */
-  @validate(dateValid, should.boolean().required())
-  async settle(month, settle) {
+  @validate(dateValid)
+  async settle(month) {
     const hospital = await getHospital();
     const {start} = monthToRange(month);
-    // 月份差值
-    if (dayjs().diff(month, 'M') > 1) {
-      throw new KatoRuntimeError(`只能修改本月和上月的结算状态`);
-    }
     await appDB.execute(
       //language=PostgreSQL
       `
         insert into his_hospital_settle(hospital, month, settle)
-        values (?, ?, ?)
+        values (?, ?, true)
         on conflict (hospital, month)
-          do update set settle     = ?,
+          do update set settle     = true,
                         updated_at = now()
       `,
       hospital,
-      start,
-      settle,
-      settle
+      start
     );
   }
 
