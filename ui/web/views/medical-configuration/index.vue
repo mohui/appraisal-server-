@@ -185,7 +185,7 @@
             <el-tooltip v-show="!row.isEdit" content="删除" :enterable="false">
               <el-button
                 type="danger"
-                icon="el-icon-delete"
+                :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
                 circle
                 size="mini"
                 @click="removeRow(row)"
@@ -309,7 +309,8 @@ export default {
         key: it
       })),
       submitLoading: false,
-      updateLoading: false
+      updateLoading: false,
+      removeLoading: false
     };
   },
   computed: {
@@ -321,7 +322,8 @@ export default {
         scoreType: d.method || '',
         scoreMember: d.staffs.map(m => m.name),
         memberIds: d.staffs.map(m => m.id),
-        isEdit: false
+        isEdit: false,
+        removeLoading: false
       }));
     },
     workList() {
@@ -451,11 +453,17 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         });
-        await this.$api.HisWorkItem.delStaffWorkItemMapping(row.id);
+        row.removeLoading = true;
+        await this.$api.HisWorkItem.delStaffWorkItemMapping(
+          row.id,
+          row.memberIds
+        );
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
         console.log(e);
+      } finally {
+        row.removeLoading = false;
       }
     },
     resetConfig() {
