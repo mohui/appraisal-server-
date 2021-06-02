@@ -36,11 +36,11 @@
             >
               <div :style="{width: '100%', height: '420px'}">
                 <div
-                  v-if="workScorePieData.length > 0"
+                  v-show="workScorePieData.length > 0"
                   id="projectWorkPointPie"
                 ></div>
                 <div
-                  v-else
+                  v-show="workScorePieData.length < 1"
                   style="height: 100%; display: flex; justify-content: center; align-items: center; color: darkgray"
                 >
                   <div>暂未配置</div>
