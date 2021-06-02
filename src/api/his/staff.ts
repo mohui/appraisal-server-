@@ -4,13 +4,14 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
-import {StaffScoreModel} from './score';
 import {
   dateValid,
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange
+  monthToRange,
+  StaffAssessModel,
+  StaffWorkModel
 } from './service';
 
 export default class HisStaff {
@@ -528,17 +529,17 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
-    items: {id: string; name: string; score: number}[];
+    items: {id: string; name: string; score: number; type: string}[];
     rate?: number;
   }> {
     //获取合法时间
     const day = getEndTime(month);
     //查询得分表
-    const result: StaffScoreModel = (
+    const result: {work: StaffWorkModel; assess: StaffAssessModel} = (
       await appDB.execute(
         //language=PostgreSQL
         `
-          select result
+          select work, assess
           from his_staff_result
           where id = ?
             and day = ?
@@ -547,7 +548,7 @@ export default class HisStaff {
         id,
         day
       )
-    )[0]?.result;
+    )[0];
     //构造返回值
     const returnValue = {
       items: [
@@ -560,7 +561,7 @@ export default class HisStaff {
           type: HisWorkScoreType.STAFF
         }))
       ],
-      rate: result?.check?.rate ?? null
+      rate: result?.assess?.rate ?? null
     };
     //得分表里没数据, 可能是未打分, 补充当前配置
     if (returnValue.items.length === 0) {
@@ -576,16 +577,17 @@ export default class HisStaff {
         id
       );
       //工分来源
-      const staffs = await appDB.execute(
-        //language=PostgreSQL
-        `
+      const staffs = (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
           select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
-          from his_staff_work_source m
+          from (select distinct(unnest(sources)) as staff from his_staff_work_source where staff = ?) m
                  inner join staff s on m.staff = s.id
-          where m.staff = ?
         `,
-        id
-      );
+          id
+        )
+      ).filter(it => it.id !== id);
       returnValue.items = [...staffs, ...self];
     }
 
