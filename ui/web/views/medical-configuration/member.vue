@@ -102,7 +102,8 @@
             <el-tooltip content="删除" :enterable="false">
               <el-button
                 type="danger"
-                icon="el-icon-delete"
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
                 circle
                 size="mini"
                 @click="removeRow(row)"
@@ -318,7 +319,8 @@ export default {
             sourcesName: row.sourcesName,
             member: row.member, //名字
             subMember: row.sourcesName.join(','),
-            subRate: row.subRate * 100
+            subRate: row.subRate * 100,
+            removeLoading: false
           });
         });
       });
@@ -467,6 +469,16 @@ export default {
                 }
               })
             );
+            await Promise.all(
+              //需要删除的绑定关系
+              this.newMember.oldMembers
+                .filter(
+                  it => !this.newMember.subMembers.some(s => s.id === it.id)
+                )
+                .map(async del =>
+                  this.$api.HisStaff.delHisStaffWorkSource(del.id)
+                )
+            );
             this.$message.success('修改成功');
           }
           this.$asyncComputed.serverData.update();
@@ -503,6 +515,7 @@ export default {
           id: dataRows[0].id,
           member: row.member,
           staff: row.staff,
+          oldMembers: currentSubMember,
           subMembers: currentSubMember
         })
       );
@@ -519,34 +532,19 @@ export default {
             type: 'warning'
           }
         );
+        row.removeLoading = true;
         await this.$api.HisStaff.delHisStaffWorkSource(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
         this.$asyncComputed.serverMemberData.update();
       } catch (e) {
-        console.log(e);
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      } finally {
+        row.removeLoading = false;
       }
     },
     async removeSubMember(row, index) {
-      if (!row.id) this.newMember.subMembers.splice(index, 1);
-
-      if (row.id) {
-        try {
-          await this.$confirm(
-            `确定完全删除 ${this.newMember.member} 和 "${row.member}"的绑定?`,
-            '提示',
-            {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
-          );
-          await this.$api.HisStaff.delHisStaffWorkSource(row.id);
-          this.newMember.subMembers.splice(index, 1);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      this.newMember.subMembers.splice(index, 1);
     },
     spanMethod({column, rowIndex}) {
       if (

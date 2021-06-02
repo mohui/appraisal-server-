@@ -95,8 +95,9 @@
             <el-tooltip content="删除" :enterable="false">
               <el-button
                 type="danger"
-                icon="el-icon-delete"
+                :disabled="row.removeLoading"
                 circle
+                :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
                 size="mini"
                 @click="removeRow(row)"
               >
@@ -282,7 +283,8 @@ export default {
         work: d.name,
         scoreMethod: d.method,
         projects: d.mappings.map(it => it.name),
-        mappings: d.mappings
+        mappings: d.mappings,
+        removeLoading: false
       }));
     },
     projectList() {
@@ -395,11 +397,14 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         });
+        row.removeLoading = true;
         await this.$api.HisWorkItem.delete(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
-        console.log(e);
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      } finally {
+        row.removeLoading = false;
       }
     },
     resetConfig(ref) {
