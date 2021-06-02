@@ -105,7 +105,7 @@ export default class HisStaff {
       sex: hisModel.sex,
       phone: hisModel.phone,
       birth: hisModel.birth,
-      extra: score,
+      extra: score ?? null,
       settle
     };
   }
