@@ -15,6 +15,7 @@ import {
 } from './service';
 
 export default class HisStaff {
+  // region 员工的增删改查
   /**
    * 查询his员工
    */
@@ -333,7 +334,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工绑定的增删改查
   /**
    * 员工绑定
    */
@@ -506,7 +509,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工工分
   /**
    * 获取指定月份员工工分列表
    *
@@ -696,7 +701,9 @@ export default class HisStaff {
     }
     return result;
   }
+  // endregion
 
+  // region 员工质量系数
   /**
    * 获取指定日期的质量系数
    *
@@ -813,6 +820,7 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
   /**
    * 员工考核详情
@@ -855,25 +863,24 @@ export default class HisStaff {
       checkId
     );
     if (hisRules.length === 0) throw new KatoRuntimeError(`方案细则不存在`);
-    const ruleIds = hisRules.map(it => it.id);
+    // const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
     const scoreDate = getEndTime(month);
-    const ruleScores = await appDB.execute(
-      `select rule, score score
-            from his_rule_staff_score
-            where staff = ?
-             and date = ?
-             and rule in (${ruleIds.map(() => '?')})
+    const staffResults = await appDB.execute(
+      `select id, day, assess
+            from his_staff_result
+            where id = ?
+             and day = ?
         `,
       staff,
-      scoreDate,
-      ...ruleIds
+      scoreDate
     );
+    const ruleScores = staffResults[0]?.assess?.scores ?? [];
 
     // 把分值放到细则中
     const newHisRules = hisRules.map(it => {
-      const scoreIndex = ruleScores.find(item => it.id === item.rule);
+      const scoreIndex = ruleScores.find(item => it.id === item.id);
       return {
         ...it,
         staffScore: scoreIndex ? scoreIndex.score : null
