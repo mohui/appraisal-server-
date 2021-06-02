@@ -144,13 +144,11 @@ export type StaffAssessModel = {
 export type StaffWorkModel = {
   //本人工分项目的工分列表
   self: {id: string; name: string; score: number}[];
-  //本人工分来源的员工列表
+  //本人工分来源的员工列表(不包括自己)
   staffs: {
     id: string;
     name: string;
     score: number;
   }[];
-  //工分
-  score?: number;
 };
 //endregion

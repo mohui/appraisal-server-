@@ -303,6 +303,7 @@ export default class HisScore {
       }
     }
   }
+
   //endregion
 
   /**
@@ -671,6 +672,7 @@ export default class HisScore {
       );
     }
   }
+
   // endregion
 
   //region 工分计算相关
@@ -698,10 +700,21 @@ export default class HisScore {
       await this.syncDetail(staff.id, month);
       log(`结束同步 ${staff.name} 工分流水`);
     }
+    //整理days
+    const {start} = monthToRange(month);
+    const end = getEndTime(month);
+    const days = [];
+    for (let i = 0; i <= dayjs(end).diff(start, 'd'); i++) {
+      days.push(
+        dayjs(start)
+          .add(i, 'd')
+          .toDate()
+      );
+    }
     //计算工分
     for (const staff of staffs) {
       log(`开始计算 ${staff.name} 工分`);
-      await this.scoreStaff(staff.id, month);
+      await Promise.all(days.map(day => this.scoreStaff(staff.id, day)));
       log(`结束计算 ${staff.name} 工分`);
     }
     log(`结束计算 ${hospital} 工分`);
@@ -935,6 +948,8 @@ export default class HisScore {
         }));
       //本人的工分来源列表
       const staffs = scoreDetails.reduce((result, current) => {
+        //过滤掉本人
+        if (current.staff === id) return result;
         const obj = result.find(it => it.id === current.staff);
         if (obj) {
           obj.score += current.score;
@@ -964,16 +979,11 @@ export default class HisScore {
       if (!resultModel) {
         resultModel = {
           self: [],
-          staffs: [],
-          score: null
+          staffs: []
         };
       }
       resultModel.self = self;
       resultModel.staffs = staffs;
-      resultModel.score = self.reduce(
-        (result, current) => (result += current.score),
-        0
-      );
       const resultValue = JSON.stringify(resultModel);
       await appDB.execute(
         //language=PostgreSQL
