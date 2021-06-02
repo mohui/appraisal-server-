@@ -117,7 +117,7 @@
             </div>
             <div v-else-if="row.isEdit">
               <el-select
-                v-model="row.memberIds"
+                v-model="tempRow.memberIds"
                 size="mini"
                 multiple
                 filterable
@@ -136,7 +136,7 @@
         <el-table-column align="center" prop="score" label="配置得分">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.score }}</div>
-            <div v-else-if="tempRow.score >= 0">
+            <div v-else-if="row.isEdit">
               <el-input-number v-model="tempRow.score" size="mini">
               </el-input-number>
             </div>
@@ -405,31 +405,34 @@ export default {
       this.tempRow = '';
     },
     async submitEdit(row) {
-      if (row?.memberIds.length < 1) {
+      if (this.tempRow?.memberIds.length < 1) {
         this.$message.warning('考核员工不能为空');
         return;
       }
       //要新添的新员工
-      const insertArr = row.memberIds.filter(
+      const insertArr = this.tempRow.memberIds.filter(
         m => !row.staffs.some(s => s.id === m)
       );
       //要删除的员工与工分的mapping
-      const deleteArr = row.staffs
-        .filter(s => !row.memberIds.some(m => s.id === m))
+      const deleteArr = this.tempRow.staffs
+        .filter(s => !this.tempRow.memberIds.some(m => s.id === m))
         .map(s => s.mapping);
       //要更新的员工与工分mapping
-      const upsert = row.memberIds
+      const upsert = this.tempRow.memberIds
         .filter(
           it => !insertArr.some(u => u === it) && !deleteArr.some(d => d === it)
         )
-        .map(it => row.staffs.find(s => s.id === it)?.mapping);
+        .map(it => this.tempRow.staffs.find(s => s.id === it)?.mapping);
       this.updateLoading = true;
       try {
-        await this.$api.HisWorkItem.upsertStaffWorkItemMapping(row.workId, {
-          insert: {staffs: insertArr, score: row.score},
-          update: {ids: upsert, score: row.score},
-          delete: deleteArr
-        });
+        await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
+          this.tempRow.workId,
+          {
+            insert: {staffs: insertArr, score: this.tempRow.score},
+            update: {ids: upsert, score: this.tempRow.score},
+            delete: deleteArr
+          }
+        );
         this.$message.success('修改成功');
         row.isEdit = !row.isEdit;
         await this.$asyncComputed.serverData.update();
