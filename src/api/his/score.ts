@@ -760,7 +760,9 @@ export default class HisScore {
             and date < ?
         `,
         staff,
-        param.source
+        param.source,
+        start,
+        end
       );
       workItems = workItems.concat(
         //手工数据流水转换成工分流水
