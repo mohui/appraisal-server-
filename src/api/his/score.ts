@@ -348,8 +348,6 @@ export default class HisScore {
       if (autoRules.length === 0)
         throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
-      const scoreDate = getEndTime(month);
-
       // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
       // const todayScore
       let staffScores: {
@@ -380,7 +378,7 @@ export default class HisScore {
         staffScores = {
           // 员工id
           id: staff,
-          day: scoreDate,
+          day: month,
           assess: {
             id: checkSystemModels[0].id,
             name: checkSystemModels[0].name,
@@ -402,7 +400,7 @@ export default class HisScore {
         staffScores = {
           // 员工id
           id: staff,
-          day: scoreDate,
+          day: month,
           assess: {
             id: checkSystemModels[0].id,
             name: checkSystemModels[0].name,
@@ -480,8 +478,8 @@ export default class HisScore {
             where id = ? and day = ?`,
           JSON.stringify(staffScores.assess),
           nowDate,
-          staff,
-          scoreDate
+          staffScores.id,
+          staffScores.day
         );
       }
     });
