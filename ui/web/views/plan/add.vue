@@ -76,11 +76,11 @@
                 <el-table-column prop="name" label="指标">
                   <template slot-scope="scope">
                     <div v-if="!scope.row.EDIT">
-                      {{ targetName(scope.row.name) }}
+                      {{ scope.row.name }}
                     </div>
                     <el-cascader
                       v-if="scope.row.EDIT"
-                      v-model="scope.row.name"
+                      v-model="scope.row.metric"
                       :options="TagList"
                       :show-all-levels="false"
                     ></el-cascader>
@@ -113,9 +113,9 @@
                       <span
                         v-if="
                           scope.row.name &&
-                            (targetName(scope.row.name).includes('率') ||
-                              targetName(scope.row.name).includes('占比') ||
-                              targetName(scope.row.name).includes('比例')) &&
+                            (targetName(scope.row.metric).includes('率') ||
+                              targetName(scope.row.metric).includes('占比') ||
+                              targetName(scope.row.metric).includes('比例')) &&
                             (scope.row.mode === 'egt' ||
                               scope.row.mode === 'elt')
                         "
@@ -136,9 +136,9 @@
                       v-if="
                         scope.row.EDIT &&
                           scope.row.name &&
-                          (targetName(scope.row.name).includes('率') ||
-                            targetName(scope.row.name).includes('占比') ||
-                            targetName(scope.row.name).includes('比例')) &&
+                          (targetName(scope.row.metric).includes('率') ||
+                            targetName(scope.row.metric).includes('占比') ||
+                            targetName(scope.row.metric).includes('比例')) &&
                           (scope.row.mode === 'egt' || scope.row.mode === 'elt')
                       "
                       style="margin: 0 -15px 0 5px;"
@@ -299,7 +299,7 @@
 </template>
 
 <script>
-import {MarkTag, TagAlgorithm} from '../../../../common/his.ts';
+import {MarkTag, TagAlgorithm, MarkTagUsages} from '../../../../common/his.ts';
 
 export default {
   name: 'PlanAdd',
@@ -326,6 +326,7 @@ export default {
             EDIT: true,
             id: '',
             name: '',
+            metric: '',
             mode: '',
             value: '',
             score: ''
@@ -349,9 +350,12 @@ export default {
         ...it,
         children: it.children.map(item => ({
           ...item,
-          disabled:
-            !item.enabled ||
-            this.form.target.some(its => its.name.includes(item.value))
+          children: item.children.map(items => ({
+            ...items,
+            disabled:
+              !items.enabled ||
+              this.form.target.some(its => its.metric.includes(items.value))
+          }))
         }))
       }));
     },
@@ -379,6 +383,7 @@ export default {
             EDIT: true,
             id: '',
             name: '',
+            metric: '',
             mode: '',
             value: '',
             score: ''
@@ -419,7 +424,8 @@ export default {
         this.form.target = automations.map(it => ({
           EDIT: false,
           id: it.id,
-          name: it.metric,
+          name: it.name,
+          metric: it.metric,
           mode: it.operator,
           value:
             (this.targetName(it.metric).includes('率') ||
@@ -529,7 +535,6 @@ export default {
       this.$refs[formName].validate(async valid => {
         if (valid) {
           const {name, doctor, target, manual} = this.form;
-          console.log(this.form);
           const id = this.id;
           try {
             this.isLoading = true;
@@ -544,13 +549,15 @@ export default {
                   .map(it => ({
                     auto: true,
                     id: typeof it.id === 'number' ? null : it.id,
-                    name: this.targetName(it.name),
-                    metric: Array.isArray(it.name) ? it.name[1] : it.name,
+                    name: this.targetName(it.metric),
+                    metric: Array.isArray(it.metric)
+                      ? it.metric[it.metric.length - 1]
+                      : it.metric,
                     operator: it.mode,
                     value:
-                      (this.targetName(it.name).includes('率') ||
-                        this.targetName(it.name).includes('占比') ||
-                        this.targetName(it.name).includes('比例')) &&
+                      (this.targetName(it.metric).includes('率') ||
+                        this.targetName(it.metric).includes('占比') ||
+                        this.targetName(it.metric).includes('比例')) &&
                       (it.mode === 'egt' || it.mode === 'elt')
                         ? +Number.parseFloat(it.value / 100).toFixed(2)
                         : it.value,
@@ -575,13 +582,13 @@ export default {
                   .filter(it => it.name)
                   .map(it => ({
                     auto: true,
-                    name: this.targetName(it.name),
-                    metric: it.name[1],
+                    name: this.targetName(it.metric),
+                    metric: it.metric[it.metric.length - 1],
                     operator: it.mode,
                     value:
-                      (this.targetName(it.name).includes('率') ||
-                        this.targetName(it.name).includes('占比') ||
-                        this.targetName(it.name).includes('比例')) &&
+                      (this.targetName(it.metric).includes('率') ||
+                        this.targetName(it.metric).includes('占比') ||
+                        this.targetName(it.metric).includes('比例')) &&
                       (it.mode === 'egt' || it.mode === 'elt')
                         ? +Number.parseFloat(it.value / 100).toFixed(2)
                         : it.value,
@@ -612,11 +619,8 @@ export default {
       });
     },
     targetName(row) {
-      const id = Array.isArray(row) ? row[1] : row;
-      const obj = this.TagList.find(it =>
-        it.children.find(item => item.value === id)
-      )?.children.find(it => it.value === id);
-      return obj?.label || '';
+      const id = Array.isArray(row) ? row[row.length - 1] : row;
+      return MarkTagUsages[id]?.name || '';
     },
     targetMode(row) {
       return this.TagModeList.find(it => it.code === row).name;
