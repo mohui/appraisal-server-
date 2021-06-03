@@ -131,8 +131,9 @@ async function staffAssess(
 /**
  * 自动打分细则
  *
- * @param ruleModels
- * @param assess
+ * @param ruleModels 所有的细则
+ * @param type 自动手动
+ * @param assess, 打分表里的细则
  */
 async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
   // 如果没有数据,说明是没有打过分,需要把细则都放到里面,然后打分
@@ -192,15 +193,33 @@ async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
         }
       }
     }
+    // 手动的情况,如果有数据, 只需要把可能存在的需要添加的细则加上, 不需要坐其他操作(不改变原分)
+    if (type === 'manual') {
+      // 先把自动的筛选出来
+      assess.scores = ruleModels.map(ruleIt => {
+        const index = assess.scores.find(scoreIt => ruleIt.id === scoreIt.id);
+        return {
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: index ? index.score : null,
+          total: ruleIt.score
+        };
+      });
+    }
   }
 
   // 排查一波数字字段是否是纯数字和null
   assess.scores = assess.scores.map(it => {
     return {
       ...it,
-      value: isNaN(Number(it.value)) ? null : Number(it.value),
-      total: isNaN(Number(it.total)) ? null : Number(it.total),
-      score: isNaN(Number(it.score)) ? null : Number(it.score)
+      value: isNaN(Number(it.value)) ? null : it.value,
+      total: isNaN(Number(it.total)) ? null : it.total,
+      score: isNaN(Number(it.score)) ? null : it.score
     };
   });
   return {
