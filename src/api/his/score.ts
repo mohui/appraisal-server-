@@ -15,6 +15,7 @@ import {
   StaffAssessModel,
   StaffWorkModel
 } from './service';
+import {createBackJob} from '../../utils/back-job';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -231,6 +232,24 @@ async function getMark(hospital, year) {
 }
 
 export default class HisScore {
+  /**
+   * 重新计算
+   *
+   * 工分和考核分, 全部重新计算
+   * @param month 月份
+   */
+  async score(month) {
+    const hospital = await getHospital();
+    const day = getEndTime(month);
+    const {start} = monthToRange(month);
+    const settle = await getSettle(hospital, start);
+    if (settle) throw new KatoRuntimeError('该月已结算, 不能打分');
+    await createBackJob('HisSCore', '', {
+      days: [day],
+      hospital
+    });
+  }
+
   //region 未开发代码
   /**
    * 自动打分
