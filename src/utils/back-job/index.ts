@@ -6,7 +6,12 @@ import {KatoCommonError} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {unifs} from '../../app';
 
-const jobType: Array<string> = ['reportCheck', 'scoreCheck', 'personExcel'];
+const jobType: Array<string> = [
+  'reportCheck',
+  'scoreCheck',
+  'personExcel',
+  'HisSCore'
+];
 
 type Job = {
   id: string;
