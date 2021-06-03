@@ -443,7 +443,6 @@ export default {
                 }
               }
             },
-            roseType: 'area',
             itemStyle: {
               borderRadius: 8
             },
