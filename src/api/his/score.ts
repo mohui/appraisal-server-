@@ -158,40 +158,24 @@ async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
   } else {
     // 如果有数据, 分为自动和手动两种情况
     if (type === 'automations') {
-      // 如果有数据,先把手动打分的数据全部筛选出来,并且
-      assess.scores = assess?.scores.filter(scoreIt => scoreIt.auto === false);
-
-      // 排查细则有没有添加和删除的
-      assess.scores = assess?.scores?.filter(scoreIt => {
-        // 在得分细则表里遍历, 根据细则id在细则表里查询是否存在, 如果没找到,删除, 所以只要找到的, 并且是手动的
-        const index = ruleModels.find(
-          ruleIt => scoreIt.auto === false && ruleIt.id === scoreIt.id
+      // 自动的
+      assess.scores = ruleModels.map(ruleIt => {
+        //把手动的分放到数组中
+        const index = assess.scores.find(
+          scoreIt => ruleIt.id === scoreIt.id && scoreIt.auto === false
         );
-        if (index) return scoreIt;
+        return {
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: index ? index.score : null,
+          total: ruleIt.score
+        };
       });
-
-      // 需要添加的数据
-      const addRuleScores = ruleModels.filter(ruleIt => {
-        // 在细则表里遍历查找, 如果这个细则的id在得分细则表中没有找到,说明这个细则需要添加
-        const index = assess?.scores.find(scoreIt => scoreIt.id === ruleIt.id);
-        if (!index) return ruleIt;
-      });
-      // 把细则表中新增的细则放到打分表的细则中
-      if (addRuleScores.length > 0) {
-        for (const ruleIt of addRuleScores) {
-          assess.scores.push({
-            id: ruleIt.id,
-            auto: ruleIt.auto,
-            name: ruleIt.name,
-            detail: ruleIt.detail,
-            metric: ruleIt.metric,
-            operator: ruleIt.operator,
-            value: ruleIt.value,
-            score: null,
-            total: ruleIt.score
-          });
-        }
-      }
     }
     // 手动的情况,如果有数据, 只需要把可能存在的需要添加的细则加上, 不需要坐其他操作(不改变原分)
     if (type === 'manual') {
