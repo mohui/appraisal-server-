@@ -238,7 +238,20 @@ export default {
         idCard: '身份证号',
         medicareNo: '医保编号'
       },
-      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
+      chartColors: [
+        '#409eff',
+        '#ea9d42',
+        '#9e68f5',
+        '#5470c6',
+        '#91cc75',
+        '#fac858',
+        '#ee6666',
+        '#73c0de',
+        '#3ba272',
+        '#fc8452',
+        '#9a60b4',
+        '#ea7ccc'
+      ]
     };
   },
   directives: {
