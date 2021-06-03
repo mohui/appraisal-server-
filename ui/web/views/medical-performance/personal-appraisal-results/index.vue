@@ -115,6 +115,7 @@
                     <el-button
                       class="more"
                       type="text"
+                      :disabled="personInfoData.settle"
                       @click="saveEditorAdditionalPoints"
                     >
                       {{ isEditor ? '完成' : '编辑' }}
@@ -191,7 +192,7 @@
                 v-model="scope.row.staffScore"
                 size="mini"
                 :max="scope.row.score"
-                label="打分"
+                label="得分"
               ></el-input-number>
             </div>
             <div v-else>
@@ -205,6 +206,7 @@
               v-if="!scope.row.auto"
               size="small"
               type="primary"
+              :disabled="personInfoData.settle"
               @click="saveEditorCheckScore(scope.row)"
             >
               {{ scope.row.isRating ? '完成' : '打分' }}
