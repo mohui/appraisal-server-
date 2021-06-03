@@ -477,6 +477,7 @@ export default {
         const s = {
           name: it.name,
           type: 'bar',
+          barGap: '-100%',
           stack: it.name,
           label: {
             show: true,
