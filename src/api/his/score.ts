@@ -496,164 +496,6 @@ export default class HisScore {
   }
 
   /**
-   * 考核手动打分
-   * 只要未结算,不管是新增,删除细则,都要按照细则表里的细则校验
-   *
-   * @param ruleId 细则id
-   * @param staff 员工id
-   * @param month 时间
-   * @param score 分值
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('细则id'),
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .date()
-      .required()
-      .description('时间'),
-    should
-      .number()
-      .required()
-      .description('分值')
-  )
-  async setCheckScore(ruleId, staff, month, score) {
-    // 获取机构id
-    const hospital = await getHospital();
-    // 是否结算
-    const settle = await getSettle(hospital, month);
-    if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
-
-    // 时间转换为本月的当前时间或者之前学的最后一天
-    const scoreDate = getEndTime(month);
-
-    // 根据员工id查询出改员工是否有考核
-    const staffSystem = await appDB.execute(
-      `select staff, "check" from his_staff_check_mapping where staff = ?`,
-      staff
-    );
-    if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
-
-    // 查询方案
-    const checkSystemModels = await appDB.execute(
-      `select  id, name, hospital from his_check_system where id = ?`,
-      staffSystem[0].check
-    );
-
-    if (checkSystemModels.length === 0)
-      throw new KatoRuntimeError(`考核方案不存在`);
-
-    // 查询考核细则
-    const ruleModels = await appDB.execute(
-      `select id, name, detail, auto, "check",
-            metric, operator, value, score
-           from his_check_rule
-           where "check" = ?`,
-      staffSystem[0].check
-    );
-
-    if (ruleModels.length === 0) throw new KatoRuntimeError(`考核方案没有细则`);
-
-    const ruleOneModels = ruleModels.find(it => it.id === ruleId);
-
-    if (!ruleOneModels) throw new KatoRuntimeError(`无此考核细则`);
-
-    // 自动打分的不能手动打分
-    if (ruleOneModels.auto === true)
-      throw new KatoRuntimeError(`此考核细则不能手动打分`);
-
-    if (ruleOneModels.score < score)
-      throw new KatoRuntimeError(`分数不能高于细则的满分`);
-
-    // 查询今天是否有分值
-    let todayScore: {
-      id: string;
-      day: Date;
-      assess: StaffAssessModel;
-    } = (
-      await appDB.execute(
-        `select id, day, assess
-           from his_staff_result
-           where id = ? and day = ?`,
-        staff,
-        scoreDate
-      )
-    )[0];
-    const nowDate = new Date();
-
-    // 如果没有查询到, 说明还没有打过分,需要添加
-    if (!todayScore) {
-      const assessModelObj = await staffAssess(
-        ruleModels,
-        ruleId,
-        score,
-        todayScore.assess
-      );
-      todayScore = {
-        // 员工id
-        id: staff,
-        day: scoreDate,
-        assess: {
-          id: checkSystemModels[0].id,
-          name: checkSystemModels[0].name,
-          scores: assessModelObj?.ruleScores,
-          //质量系数
-          rate: assessModelObj?.rate
-        }
-      };
-      // 执行添加语句
-      return await appDB.execute(
-        `insert into
-              his_staff_result(id, day, assess, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-        ...[
-          todayScore.id,
-          todayScore.day,
-          JSON.stringify(todayScore.assess),
-          nowDate,
-          nowDate
-        ]
-      );
-    } else {
-      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
-      const assessModelObj = await staffAssess(
-        ruleModels,
-        ruleId,
-        score,
-        todayScore.assess
-      );
-
-      // 如果考核方案没有数据
-      todayScore.assess = {
-        id: checkSystemModels[0].id,
-        name: checkSystemModels[0].name,
-        scores: assessModelObj?.ruleScores,
-        //质量系数
-        rate: assessModelObj?.rate
-      };
-
-      // 执行修改语句
-      return await appDB.execute(
-        `
-            update his_staff_result
-              set assess = ?,
-                updated_at = ?
-            where id = ? and day = ?`,
-        JSON.stringify(todayScore.assess),
-        nowDate,
-        staff,
-        scoreDate
-      );
-    }
-  }
-  // endregion
-
-  /**
    * 自动手工打分 打前一天的手工分
    * @param month
    * @param staff
@@ -839,6 +681,164 @@ export default class HisScore {
       );
     }
   }
+
+  /**
+   * 考核手动打分
+   * 只要未结算,不管是新增,删除细则,都要按照细则表里的细则校验
+   *
+   * @param ruleId 细则id
+   * @param staff 员工id
+   * @param month 时间
+   * @param score 分值
+   */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('细则id'),
+    should
+      .string()
+      .required()
+      .description('考核员工id'),
+    should
+      .date()
+      .required()
+      .description('时间'),
+    should
+      .number()
+      .required()
+      .description('分值')
+  )
+  async setCheckScore(ruleId, staff, month, score) {
+    // 获取机构id
+    const hospital = await getHospital();
+    // 是否结算
+    const settle = await getSettle(hospital, month);
+    if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
+
+    // 时间转换为本月的当前时间或者之前学的最后一天
+    const scoreDate = getEndTime(month);
+
+    // 根据员工id查询出改员工是否有考核
+    const staffSystem = await appDB.execute(
+      `select staff, "check" from his_staff_check_mapping where staff = ?`,
+      staff
+    );
+    if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
+
+    // 查询方案
+    const checkSystemModels = await appDB.execute(
+      `select  id, name, hospital from his_check_system where id = ?`,
+      staffSystem[0].check
+    );
+
+    if (checkSystemModels.length === 0)
+      throw new KatoRuntimeError(`考核方案不存在`);
+
+    // 查询考核细则
+    const ruleModels = await appDB.execute(
+      `select id, name, detail, auto, "check",
+            metric, operator, value, score
+           from his_check_rule
+           where "check" = ?`,
+      staffSystem[0].check
+    );
+
+    if (ruleModels.length === 0) throw new KatoRuntimeError(`考核方案没有细则`);
+
+    const ruleOneModels = ruleModels.find(it => it.id === ruleId);
+
+    if (!ruleOneModels) throw new KatoRuntimeError(`无此考核细则`);
+
+    // 自动打分的不能手动打分
+    if (ruleOneModels.auto === true)
+      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+
+    if (ruleOneModels.score < score)
+      throw new KatoRuntimeError(`分数不能高于细则的满分`);
+
+    // 查询今天是否有分值
+    let todayScore: {
+      id: string;
+      day: Date;
+      assess: StaffAssessModel;
+    } = (
+      await appDB.execute(
+        `select id, day, assess
+           from his_staff_result
+           where id = ? and day = ?`,
+        staff,
+        scoreDate
+      )
+    )[0];
+    const nowDate = new Date();
+
+    // 如果没有查询到, 说明还没有打过分,需要添加
+    if (!todayScore) {
+      const assessModelObj = await staffAssess(
+        ruleModels,
+        ruleId,
+        score,
+        todayScore.assess
+      );
+      todayScore = {
+        // 员工id
+        id: staff,
+        day: scoreDate,
+        assess: {
+          id: checkSystemModels[0].id,
+          name: checkSystemModels[0].name,
+          scores: assessModelObj?.ruleScores,
+          //质量系数
+          rate: assessModelObj?.rate
+        }
+      };
+      // 执行添加语句
+      return await appDB.execute(
+        `insert into
+              his_staff_result(id, day, assess, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+        ...[
+          todayScore.id,
+          todayScore.day,
+          JSON.stringify(todayScore.assess),
+          nowDate,
+          nowDate
+        ]
+      );
+    } else {
+      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
+      const assessModelObj = await staffAssess(
+        ruleModels,
+        ruleId,
+        score,
+        todayScore.assess
+      );
+
+      // 如果考核方案没有数据
+      todayScore.assess = {
+        id: checkSystemModels[0].id,
+        name: checkSystemModels[0].name,
+        scores: assessModelObj?.ruleScores,
+        //质量系数
+        rate: assessModelObj?.rate
+      };
+
+      // 执行修改语句
+      return await appDB.execute(
+        `
+            update his_staff_result
+              set assess = ?,
+                updated_at = ?
+            where id = ? and day = ?`,
+        JSON.stringify(todayScore.assess),
+        nowDate,
+        staff,
+        scoreDate
+      );
+    }
+  }
+  // endregion
 
   //region 工分计算相关
   /**
