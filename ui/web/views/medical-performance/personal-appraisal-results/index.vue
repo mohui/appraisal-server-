@@ -15,7 +15,7 @@
               {{ personInfoData.name }}
             </div>
             <div class="item">
-              校正后总得分（分）：{{ workScore.total * workScore.rate }}
+              校正后总得分（分）：{{ workScore.afterCorrectionScore }}
             </div>
             <div class="item">
               质量系数：{{ workScore.rateFormat
@@ -115,6 +115,7 @@
                     <el-button
                       class="more"
                       type="text"
+                      :disabled="personInfoData.settle"
                       @click="saveEditorAdditionalPoints"
                     >
                       {{ isEditor ? '完成' : '编辑' }}
@@ -191,7 +192,7 @@
                 v-model="scope.row.staffScore"
                 size="mini"
                 :max="scope.row.score"
-                label="打分"
+                label="得分"
               ></el-input-number>
             </div>
             <div v-else>
@@ -205,6 +206,7 @@
               v-if="!scope.row.auto"
               size="small"
               type="primary"
+              :disabled="personInfoData.settle"
               @click="saveEditorCheckScore(scope.row)"
             >
               {{ scope.row.isRating ? '完成' : '打分' }}
@@ -238,7 +240,20 @@ export default {
         idCard: '身份证号',
         medicareNo: '医保编号'
       },
-      chartColors: ['#409eff', '#ea9d42', '#9e68f5']
+      chartColors: [
+        '#409eff',
+        '#ea9d42',
+        '#9e68f5',
+        '#5470c6',
+        '#91cc75',
+        '#fac858',
+        '#ee6666',
+        '#73c0de',
+        '#3ba272',
+        '#fc8452',
+        '#9a60b4',
+        '#ea7ccc'
+      ]
     };
   },
   directives: {
@@ -260,11 +275,15 @@ export default {
       return this.workScoreListServerData?.items?.map(it => it);
     },
     workScore() {
+      const total = this.workScoreListData
+        .map(it => it.score)
+        .reduce((prev, curr) => prev + curr, 0);
       return {
-        total: this.workScoreListData
-          .map(it => it.score)
-          .reduce((prev, curr) => prev + curr, 0),
+        total: total,
         rate: this.workScoreListServerData.rate,
+        afterCorrectionScore: (
+          total * this.workScoreListServerData.rate
+        ).toFixed(2),
         rateFormat:
           this.workScoreListServerData.rate === null
             ? '暂未考核'
@@ -443,7 +462,6 @@ export default {
                 }
               }
             },
-            roseType: 'area',
             itemStyle: {
               borderRadius: 8
             },
@@ -477,6 +495,7 @@ export default {
         const s = {
           name: it.name,
           type: 'bar',
+          barGap: '-100%',
           stack: it.name,
           label: {
             show: true,
@@ -536,7 +555,10 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: this.workScoreDailyListData.day
+          data: this.workScoreDailyListData.day,
+          axisTick: {
+            alignWithLabel: true
+          }
         },
         yAxis: [
           {
@@ -559,6 +581,18 @@ export default {
         series: series
       };
       myChart.setOption(option);
+
+      myChart.on('legendselectchanged', params => {
+        if (params.name === '质量系数') return;
+        const selected = params.selected;
+        for (const item in selected) {
+          if (item !== params.name && item !== '质量系数') {
+            selected[item] = false;
+          }
+        }
+        option.legend.selected = selected;
+        myChart.setOption(option);
+      });
     }
   }
 };
