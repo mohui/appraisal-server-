@@ -560,6 +560,18 @@ export default {
         series: series
       };
       myChart.setOption(option);
+
+      myChart.on('legendselectchanged', params => {
+        if (params.name === '质量系数') return;
+        const selected = params.selected;
+        for (const item in selected) {
+          if (item !== params.name && item !== '质量系数') {
+            selected[item] = false;
+          }
+        }
+        option.legend.selected = selected;
+        myChart.setOption(option);
+      });
     }
   }
 };
