@@ -130,7 +130,7 @@ export type StaffAssessModel = {
     detail: string;
     metric: string;
     operator: string;
-    value: string;
+    value: number;
     score: number;
     total: number;
   }[];
