@@ -213,44 +213,6 @@ async function autoStaffAssess(ruleModels, assess: StaffAssessModel) {
   };
 }
 
-/**
- * 员工考核结果
- */
-export type StaffScoreModel = {
-  //工分
-  work: {
-    //本人工分项目的工分列表
-    self: {id: string; name: string; score: number}[];
-    //本人工分来源的员工列表
-    staffs: {
-      id: string;
-      name: string;
-      score: number;
-    }[];
-    //工分
-    score?: number;
-  };
-  //考核方案
-  check?: {
-    id: string;
-    name: string;
-    //考核规则得分
-    scores: {
-      id: string;
-      auto: boolean;
-      name: string;
-      detail: string;
-      metric: string;
-      operator: string;
-      value: string;
-      score: number;
-      total: number;
-    }[];
-    //质量系数
-    rate?: number;
-  };
-};
-
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
