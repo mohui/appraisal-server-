@@ -15,7 +15,7 @@
               {{ personInfoData.name }}
             </div>
             <div class="item">
-              校正后总得分（分）：{{ workScore.total * workScore.rate }}
+              校正后总得分（分）：{{ workScore.afterCorrectionScore }}
             </div>
             <div class="item">
               质量系数：{{ workScore.rateFormat
@@ -260,11 +260,15 @@ export default {
       return this.workScoreListServerData?.items?.map(it => it);
     },
     workScore() {
+      const total = this.workScoreListData
+        .map(it => it.score)
+        .reduce((prev, curr) => prev + curr, 0);
       return {
-        total: this.workScoreListData
-          .map(it => it.score)
-          .reduce((prev, curr) => prev + curr, 0),
+        total: total,
         rate: this.workScoreListServerData.rate,
+        afterCorrectionScore: (
+          total * this.workScoreListServerData.rate
+        ).toFixed(2),
         rateFormat:
           this.workScoreListServerData.rate === null
             ? '暂未考核'
