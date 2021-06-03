@@ -442,7 +442,10 @@ export default {
         },
         yAxis: {
           type: 'category',
-          data: this.workScoreListData.map(it => it.name)
+          data: this.workScoreListData.map(it => it.name),
+          axisTick: {
+            alignWithLabel: true
+          }
         },
         series: [
           {

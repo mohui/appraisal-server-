@@ -540,7 +540,10 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: this.workScoreDailyListData.day
+          data: this.workScoreDailyListData.day,
+          axisTick: {
+            alignWithLabel: true
+          }
         },
         yAxis: [
           {
