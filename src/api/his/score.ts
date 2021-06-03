@@ -1,5 +1,5 @@
 import {appDB, originalDB} from '../../app';
-import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {HisWorkMethod, HisWorkSource, MarkTagUsages} from '../../../common/his';
@@ -285,15 +285,22 @@ export default class HisScore {
    * @param id 机构id
    */
   async autoScoreHospital(month, id) {
-    const hospital = [];
-    try {
-      await appDB.joinTx(async () => {
-        for (const staffId of hospital) {
-          await this.autoScoreStaff(month, staffId?.id, id);
-        }
-      });
-    } catch (e) {
-      throw new KatoCommonError(e);
+    const hospital = await appDB.execute(
+      `
+          select id, name, hospital
+          from staff
+          where hospital = ?
+        `,
+      id
+    );
+    for (const staffIt of hospital) {
+      try {
+        log(`开始计算 ${staffIt.name} 打分`);
+        await this.autoScoreStaff(month, staffIt?.id, id);
+        log(`结束计算 ${staffIt.name} 打分`);
+      } catch (e) {
+        log(e);
+      }
     }
   }
   //endregion
@@ -318,8 +325,10 @@ export default class HisScore {
         where staff = ?`,
         staff
       );
-      if (mapping.length === 0)
-        throw new KatoRuntimeError(`员工${staff}无考核`);
+      if (mapping.length === 0) {
+        log(`员工${staff}无考核`);
+        return;
+      }
 
       // 查询方案
       const checkSystemModels = await appDB.execute(
@@ -339,17 +348,20 @@ export default class HisScore {
           where "check" = ?`,
         check
       );
-      if (ruleModels.length === 0)
-        throw new KatoRuntimeError(`考核${check}无细则`);
+      if (ruleModels.length === 0) {
+        log(`考核${check}无细则`);
+        return;
+      }
 
       // 取出所有的自动打分的细则
       const autoRules = ruleModels.filter(it => it.auto);
 
-      if (autoRules.length === 0)
-        throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
+      if (autoRules.length === 0) {
+        log(`考核${check}无自动打分的细则`);
+        return;
+      }
 
       // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
-      // const todayScore
       let staffScores: {
         id: string;
         day: Date;
