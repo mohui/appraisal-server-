@@ -4,16 +4,18 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {HisWorkScoreType} from '../../../common/his';
-import {StaffScoreModel} from './score';
 import {
   dateValid,
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange
+  monthToRange,
+  StaffAssessModel,
+  StaffWorkModel
 } from './service';
 
 export default class HisStaff {
+  // region 员工的增删改查
   /**
    * 查询his员工
    */
@@ -103,7 +105,7 @@ export default class HisStaff {
       sex: hisModel.sex,
       phone: hisModel.phone,
       birth: hisModel.birth,
-      extra: score,
+      extra: score ?? null,
       settle
     };
   }
@@ -332,7 +334,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工绑定的增删改查
   /**
    * 员工绑定
    */
@@ -505,7 +509,9 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
+  // region 员工工分
   /**
    * 获取指定月份员工工分列表
    *
@@ -528,68 +534,47 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
-    items: {id: string; name: string; score: number}[];
+    items: {id: string; name: string; score: number; type: string}[];
     rate?: number;
   }> {
-    //获取合法时间
-    const day = getEndTime(month);
-    //查询得分表
-    const result: StaffScoreModel = (
-      await appDB.execute(
-        //language=PostgreSQL
-        `
-          select result
-          from his_staff_result
-          where id = ?
-            and day = ?
-          limit 1
-        `,
-        id,
-        day
-      )
-    )[0]?.result;
-    //构造返回值
-    const returnValue = {
-      items: [
-        ...(result?.work?.self ?? []).map(it => ({
-          ...it,
-          type: HisWorkScoreType.WORK_ITEM
-        })),
-        ...(result?.work?.staffs ?? []).map(it => ({
-          ...it,
-          type: HisWorkScoreType.STAFF
-        }))
-      ],
-      rate: result?.check?.rate ?? null
-    };
-    //得分表里没数据, 可能是未打分, 补充当前配置
-    if (returnValue.items.length === 0) {
-      //工分配置
-      const self = await appDB.execute(
-        //language=PostgreSQL
-        `
-          select m.item as id, wi.name, null as score, '${HisWorkScoreType.WORK_ITEM}' as type
-          from his_staff_work_item_mapping m
-                 inner join his_work_item wi on m.item = wi.id
-          where m.staff = ?
-        `,
-        id
-      );
-      //工分来源
-      const staffs = await appDB.execute(
-        //language=PostgreSQL
-        `
-          select m.staff as id, s.name, null as score, '${HisWorkScoreType.STAFF}' as type
-          from his_staff_work_source m
-                 inner join staff s on m.staff = s.id
-          where m.staff = ?
-        `,
-        id
-      );
-      returnValue.items = [...staffs, ...self];
-    }
+    const rows: {
+      day: Date;
+      items: {
+        id: string;
+        name: string;
+        score: number;
+        type: string;
+      }[];
+      rate?: number;
+    }[] = await this.findWorkScoreDailyList(id, month);
 
-    return returnValue;
+    return rows.reduce(
+      (result, current) => {
+        result.day = current.day;
+        result.rate = current.rate;
+
+        //累加items
+        for (const item of result.items) {
+          const currentItem = current.items.find(it => it.id === item.id);
+          if (currentItem) {
+            item.score += currentItem.score;
+          }
+        }
+        for (const item of current.items) {
+          const currentItem = result.items.find(it => it.id === item.id);
+          if (!currentItem) {
+            result.items.push(item);
+          }
+        }
+
+        return result;
+      },
+      {
+        day: month,
+        rate: null,
+        items: []
+      }
+    );
   }
 
   /**
@@ -610,91 +595,59 @@ export default class HisStaff {
    * ]
    */
   @validate(should.string().required(), should.date().required())
-  async findWorkScoreDailyList(id, month) {
-    //工分员工来源
-    // language=PostgreSQL
-    const sources: {staff: string; rate: number}[] = await appDB.execute(
-      `
-        select unnest(sources) as staff, rate
-        from his_staff_work_source
-        where staff = ?
-      `,
-      id
-    );
-    //绑定工分项目
-    // language=PostgreSQL
-    const workItems = await appDB.execute(
-      `
-        select w.id, w.name, m.score
-        from his_staff_work_item_mapping m
-               inner join his_work_item w on m.item = w.id
-        where staff = ?
-      `,
-      id
-    );
-
-    const {start, end} = monthToRange(month);
-    // 查询工分值
-    // language=PostgreSQL
-    const scoreList: {
-      id: string;
-      name: string;
-      staff: string;
+  async findWorkScoreDailyList(
+    id,
+    month
+  ): Promise<
+    {
       day: Date;
-      score: number;
+      items: {
+        id: string;
+        name: string;
+        score: number;
+        type: string;
+      }[];
+      rate?: number;
+    }[]
+  > {
+    const {start} = monthToRange(month);
+    const end = getEndTime(month);
+    const rows: {
+      day: Date;
+      work: StaffWorkModel;
+      assess: StaffAssessModel;
     }[] = await appDB.execute(
+      // language=PostgreSQL
       `
-        select d.item                    as id,
-               date_trunc('day', d.date) as day,
-               sum(d.score * s.rate)     as score
-        from his_staff_work_score_detail d
-               inner join (
-          select unnest(sources) as staff, rate
-          from his_staff_work_source
-          where staff = ?
-        ) as s on d.staff = s.staff
-               inner join his_staff_work_item_mapping swm on swm.item = d.item and swm.staff = ?
-        where d.date >= ?
-          and d.date < ?
-        group by day, d.item, d.staff
+        select work, assess, day
+        from his_staff_result
+        where id = ?
+          and day >= ?
+          and day <= ?
+        order by day
       `,
-      id,
       id,
       start,
       end
     );
-    //查询质量系数列表
-    const rateList = await this.getRateList(id, month);
-    //定义返回值
-    const result: {
-      day: Date;
-      items: {id: string; name: string; score: number}[];
-      rate?: number;
-    }[] = [];
-    //当前月份的天数
-    const days = dayjs(end).diff(start, 'd');
-    //占坑
-    for (let i = 0; i < days; i++) {
-      const day = dayjs(start)
-        .add(i, 'd')
-        .toDate();
-      result.push({
-        day,
-        items: workItems.map(it => ({
-          ...it,
-          score:
-            scoreList.find(
-              item => item.id === it.id && item.day.getTime() === day.getTime()
-            )?.score ?? 0
+    return rows.map(it => ({
+      day: dayjs(it.day).toDate(),
+      items: [
+        ...it.work.self.map(item => ({
+          ...item,
+          type: HisWorkScoreType.WORK_ITEM
         })),
-        rate:
-          rateList.find(rateItem => rateItem.day.getTime() === day.getTime())
-            ?.rate ?? null
-      });
-    }
-    return result;
+        ...it.work.staffs.map(item => ({
+          ...item,
+          type: HisWorkScoreType.STAFF
+        }))
+      ],
+      rate: it?.assess?.rate ?? null
+    }));
   }
+  // endregion
 
+  // region 员工质量系数
   /**
    * 获取指定日期的质量系数
    *
@@ -811,6 +764,7 @@ export default class HisStaff {
       };
     });
   }
+  // endregion
 
   /**
    * 员工考核详情
@@ -853,25 +807,24 @@ export default class HisStaff {
       checkId
     );
     if (hisRules.length === 0) throw new KatoRuntimeError(`方案细则不存在`);
-    const ruleIds = hisRules.map(it => it.id);
+    // const ruleIds = hisRules.map(it => it.id);
 
     // 根据时间,员工,细则查询得分
     const scoreDate = getEndTime(month);
-    const ruleScores = await appDB.execute(
-      `select rule, score score
-            from his_rule_staff_score
-            where staff = ?
-             and date = ?
-             and rule in (${ruleIds.map(() => '?')})
+    const staffResults = await appDB.execute(
+      `select id, day, assess
+            from his_staff_result
+            where id = ?
+             and day = ?
         `,
       staff,
-      scoreDate,
-      ...ruleIds
+      scoreDate
     );
+    const ruleScores = staffResults[0]?.assess?.scores ?? [];
 
     // 把分值放到细则中
     const newHisRules = hisRules.map(it => {
-      const scoreIndex = ruleScores.find(item => it.id === item.rule);
+      const scoreIndex = ruleScores.find(item => it.id === item.id);
       return {
         ...it,
         staffScore: scoreIndex ? scoreIndex.score : null

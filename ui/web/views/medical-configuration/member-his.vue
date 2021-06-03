@@ -60,7 +60,7 @@
                   >查询</el-button
                 >
                 <el-button type="primary" size="mini" @click="reset">
-                  重置条件
+                  重置
                 </el-button>
               </el-form-item>
             </el-col>
@@ -107,7 +107,13 @@
             <el-button type="primary" size="mini" @click="editUser(row)">
               修改
             </el-button>
-            <el-button type="danger" size="mini" @click="delUser(row)">
+            <el-button
+              :disabled="row.removeLoading"
+              :icon="row.removeLoading ? 'el-icon-loading' : ''"
+              size="mini"
+              type="danger"
+              @click="delUser(row)"
+            >
               删除
             </el-button>
           </template>
@@ -234,7 +240,9 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
-        <el-button type="primary" @click="updateUser">确 定</el-button>
+        <el-button v-loading="updateLoading" type="primary" @click="updateUser"
+          >确 定</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -274,13 +282,15 @@ export default {
         name: [{required: true, message: '请输入姓名', trigger: 'blur'}]
       },
       tableLoading: false,
-      addBtnLoading: false
+      addBtnLoading: false,
+      updateLoading: false
     };
   },
   computed: {
     userList() {
       return this.listMember.map(it => ({
         ...it,
+        removeLoading: false,
         created_at: it.created_at?.$format() || '',
         updated_at: it.updated_at?.$format() || ''
       }));
@@ -399,6 +409,7 @@ export default {
       this.$refs.userFormEdit.validate(async valid => {
         if (valid) {
           try {
+            this.updateLoading = true;
             await this.$api.HisStaff.update(
               this.userForm.id,
               this.userForm.name.trim(),
@@ -413,6 +424,7 @@ export default {
           } catch (e) {
             this.$message.error(e.message);
           } finally {
+            this.updateLoading = false;
             this.dialogFormEditUsersVisible = false;
           }
         } else {
@@ -428,6 +440,7 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         });
+        row.removeLoading = true;
         await this.$api.HisStaff.delete(row.id);
         this.$message({
           type: 'success',
@@ -435,8 +448,9 @@ export default {
         });
         this.$asyncComputed.listMember.update();
       } catch (e) {
-        console.log(e);
-        // this.$message.error(e);
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      } finally {
+        row.removeLoading = false;
       }
     }
   }

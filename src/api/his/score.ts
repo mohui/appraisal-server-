@@ -1,11 +1,10 @@
 import {appDB, originalDB} from '../../app';
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {HisWorkMethod, HisWorkSource, MarkTagUsages} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
-import {sql as sqlRender} from '../../database/template';
 import {
   dateValid,
   dayToRange,
@@ -13,6 +12,7 @@ import {
   getHospital,
   getSettle,
   monthToRange,
+  StaffAssessModel,
   StaffWorkModel
 } from './service';
 
@@ -31,6 +31,187 @@ type WorkItemDetail = {
   //赋值时间
   date: Date;
 };
+
+/**
+ * 遍历打分
+ *
+ * @param ruleModels 细则列表
+ * @param ruleId 细则id
+ * @param score 细则得分
+ * @param assess 要添加的数组
+ */
+async function staffAssess(
+  ruleModels,
+  ruleId,
+  score,
+  assess: StaffAssessModel
+) {
+  let ruleScores;
+  // 如果没有数据,说明是没有打过分,需要把细则都放到里面,然后打分
+  if (!assess) {
+    ruleScores = ruleModels.map(ruleIt => {
+      return {
+        id: ruleIt.id,
+        auto: ruleIt.auto,
+        name: ruleIt.name,
+        detail: ruleIt.detail,
+        metric: ruleIt.metric,
+        operator: ruleIt.operator,
+        value: ruleIt.value,
+        score: ruleIt.id === ruleId ? score : null,
+        total: ruleIt.score
+      };
+    });
+  } else {
+    // 如果有数据, 就是打过分,需要排查细则有没有添加和删除的
+    const delRuleScore = assess?.scores.filter(scoreIt => {
+      // 在得分细则表里遍历, 如果这个得分细则的id在细则表中没有找到,说明这个细则已经删除了,需要在得分细则表里删除掉
+      const index = ruleModels.find(ruleIt => ruleIt.id === scoreIt.id);
+      if (!index) return scoreIt;
+    });
+    // 需要添加的数据
+    const addRuleScores = ruleModels.filter(ruleIt => {
+      // 在细则表里遍历查找, 如果这个细则的id在得分细则表中没有找到,说明这个细则需要添加
+      const index = assess?.scores.find(scoreIt => scoreIt.id === ruleIt.id);
+      if (!index) return ruleIt;
+    });
+    // 把细则表中新增的细则放到打分表的细则中
+    if (addRuleScores.length > 0) {
+      for (const ruleIt of addRuleScores) {
+        assess.scores.push({
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: null,
+          total: ruleIt.score
+        });
+      }
+    }
+    // 把打分细则表中已经删除的细则删除
+    if (delRuleScore.length > 0) {
+      for (const ruleIt of delRuleScore) {
+        const index = assess.scores.findIndex(
+          scoreIt => scoreIt.id === ruleIt.id
+        );
+        if (index > -1) assess.scores.splice(index, 1);
+      }
+    }
+
+    // 查找需要改分的细则
+    const assessOneModel = assess?.scores.find(
+      scoreIt => scoreIt.id === ruleId
+    );
+    // 因为上面补过,所以一定找的到
+    assessOneModel.score = score;
+    ruleScores = assess?.scores;
+  }
+  // 获取总分(分母)
+  const scoreDenominator = ruleScores.reduce(
+    (prev, curr) => Number(prev) + Number(curr?.total),
+    0
+  );
+
+  // 获取得分(分子)
+  const scoreNumerator = ruleScores.reduce(
+    (prev, curr) => Number(prev) + Number(curr?.score),
+    0
+  );
+  const rate = scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
+  return {
+    ruleScores,
+    rate
+  };
+}
+
+/**
+ * 自动打分细则
+ *
+ * @param ruleModels
+ * @param assess
+ */
+async function autoStaffAssess(ruleModels, assess: StaffAssessModel) {
+  let ruleScores;
+  // 如果没有数据,说明是没有打过分,需要把细则都放到里面,然后打分
+  if (!assess) {
+    ruleScores = ruleModels.map(ruleIt => {
+      return {
+        id: ruleIt.id,
+        auto: ruleIt.auto,
+        name: ruleIt.name,
+        detail: ruleIt.detail,
+        metric: ruleIt.metric,
+        operator: ruleIt.operator,
+        value: ruleIt.value,
+        score: null,
+        total: ruleIt.score
+      };
+    });
+  } else {
+    // 如果有数据,先把手动打分的数据全部筛选出来
+    assess.scores = assess?.scores.filter(scoreIt => scoreIt.auto === false);
+
+    for (const ruleIt of ruleModels) {
+      if (ruleIt.auto === true)
+        assess.scores.push({
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: null,
+          total: ruleIt.score
+        });
+    }
+
+    // 如果有数据, 就是打过分,需要排查细则有没有添加和删除的
+    const delRuleScore = assess?.scores.filter(scoreIt => {
+      // 在得分细则表里遍历, 如果这个得分细则的id在细则表中没有找到,说明这个细则已经删除了,需要在得分细则表里删除掉
+      const index = ruleModels.find(ruleIt => ruleIt.id === scoreIt.id);
+      if (!index) return scoreIt;
+    });
+    // 需要添加的数据
+    const addRuleScores = ruleModels.filter(ruleIt => {
+      // 在细则表里遍历查找, 如果这个细则的id在得分细则表中没有找到,说明这个细则需要添加
+      const index = assess?.scores.find(scoreIt => scoreIt.id === ruleIt.id);
+      if (!index) return ruleIt;
+    });
+    // 把细则表中新增的细则放到打分表的细则中
+    if (addRuleScores.length > 0) {
+      for (const ruleIt of addRuleScores) {
+        assess.scores.push({
+          id: ruleIt.id,
+          auto: ruleIt.auto,
+          name: ruleIt.name,
+          detail: ruleIt.detail,
+          metric: ruleIt.metric,
+          operator: ruleIt.operator,
+          value: ruleIt.value,
+          score: null,
+          total: ruleIt.score
+        });
+      }
+    }
+    // 把打分细则表中已经删除的细则删除
+    if (delRuleScore.length > 0) {
+      for (const ruleIt of delRuleScore) {
+        const index = assess.scores.findIndex(
+          scoreIt => scoreIt.id === ruleIt.id
+        );
+        if (index > -1) assess.scores.splice(index, 1);
+      }
+    }
+    ruleScores = assess?.scores;
+  }
+  return {
+    ruleScores
+  };
+}
 
 /**
  * 员工考核结果
@@ -70,7 +251,25 @@ export type StaffScoreModel = {
   };
 };
 
+async function getMark(hospital, year) {
+  const list = await originalDB.execute(
+    `select id, "HIS00"
+         from mark_his_hospital
+         where id = ? and year = ?
+    `,
+    hospital,
+    year
+  );
+  return (
+    list[0] ?? {
+      id: null,
+      HIS00: 0
+    }
+  );
+}
+
 export default class HisScore {
+  //region 未开发代码
   /**
    * 自动打分
    *
@@ -86,234 +285,207 @@ export default class HisScore {
    * @param id 机构id
    */
   async autoScoreHospital(month, id) {
-    return null;
+    const hospital = [];
+    try {
+      await appDB.joinTx(async () => {
+        for (const staffId of hospital) {
+          await this.autoScoreStaff(month, staffId?.id, id);
+        }
+      });
+    } catch (e) {
+      throw new KatoCommonError(e);
+    }
   }
+  //endregion
 
   /**
    * 员工自动打分
    * @param month 月份
    * @param staff 员工id
+   * @param hospital 机构id
    */
-  @validate(should.date().required(), should.string().required())
-  async autoScoreStaff(month, staff) {
-    // 先根据员工查询考核
-    const mapping = await appDB.execute(
-      `select staff, "check" from his_staff_check_mapping
+  @validate(
+    should.date().required(),
+    should.string().required(),
+    should.string().required()
+  )
+  async autoScoreStaff(month, staff, hospital) {
+    const mark = await getMark(hospital, dayjs(month).year());
+    return await appDB.joinTx(async () => {
+      // 先根据员工查询考核
+      const mapping = await appDB.execute(
+        `select staff, "check" from his_staff_check_mapping
         where staff = ?`,
-      staff
-    );
-    if (mapping.length === 0) throw new KatoRuntimeError(`员工${staff}无考核`);
-    // 取出考核id
-    const check = mapping[0]?.check;
+        staff
+      );
+      if (mapping.length === 0)
+        throw new KatoRuntimeError(`员工${staff}无考核`);
 
-    // 根据考核id查询考核细则
-    const rules = await appDB.execute(
-      `select id, auto,  name, detail,
+      // 查询方案
+      const checkSystemModels = await appDB.execute(
+        `select  id, name, hospital from his_check_system where id = ?`,
+        mapping[0].check
+      );
+
+      // 取出考核id
+      const check = mapping[0]?.check;
+
+      // 根据考核id查询考核细则
+      const ruleModels = await appDB.execute(
+        `select id, auto,  name, detail,
             metric, operator,
             value, score
           from his_check_rule
           where "check" = ?`,
-      check
-    );
-    if (rules.length === 0) throw new KatoRuntimeError(`考核${check}无细则`);
-    // 取出所有的自动打分的细则
-    const autoRules = rules.filter(it => it.auto);
-    // 取出手动打分的
-    const manualRuleIds = rules.filter(it => !it.auto).map(it => it.id);
+        check
+      );
+      if (ruleModels.length === 0)
+        throw new KatoRuntimeError(`考核${check}无细则`);
 
-    if (autoRules.length === 0)
-      throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
+      // 取出所有的自动打分的细则
+      const autoRules = ruleModels.filter(it => it.auto);
 
-    const scoreDate = getEndTime(month);
+      if (autoRules.length === 0)
+        throw new KatoRuntimeError(`考核${check}无自动打分的细则`);
 
-    // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
-    const [sql, params] = sqlRender(
-      `
-        select rule, staff, date, score
-          from his_rule_staff_score
-          where staff = {{? staff}}  and date = {{? scoreDate}}
-        {{#if manualRuleIds}}
-            AND rule not in ({{#each manualRuleIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-        {{/if}}
-      `,
-      {
-        staff,
-        scoreDate,
-        manualRuleIds
-      }
-    );
-
-    // 查询考核得分
-    const staffScore = await appDB.execute(sql, ...params);
-    // 需要自动打分的细则
-    let addAutoScoreRules = [];
-    // 需要更新分数的细则, 重新打分的时候有数据
-    const updAutoScoreRules = [];
-    // 需要删除的细则 如果细则被删除了, 之前打过分的得分记录全部删除
-    let delAutoScoreRules = [];
-
-    // 如果没有查到数据,当天没有被打过分;
-    if (staffScore.length === 0) {
-      addAutoScoreRules = autoRules.map(it => {
-        return {
-          rule: it.id,
-          ruleName: it.name,
+      // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
+      // const todayScore
+      let staffScores: {
+        id: string;
+        day: Date;
+        assess: StaffAssessModel;
+      } = (
+        await appDB.execute(
+          `
+          select id, day, assess from his_staff_result
+           where id = ? and day = ?
+        `,
           staff,
-          date: scoreDate,
-          score: 0, // 这个是得分
-          total: it.score // 这个是总分
+          month
+        )
+      )[0];
+      // 是添加还是修改
+      let upsert = '';
+
+      // 如果没有查到数据,或者查到数据了但是打分的字段为空,说明当天没有被打过分,需要先添加;
+      if (!staffScores) {
+        // 如果当天没有打过分, 先填充数据
+        const assessModelObj = await autoStaffAssess(
+          ruleModels,
+          staffScores?.assess
+        );
+
+        staffScores = {
+          // 员工id
+          id: staff,
+          day: month,
+          assess: {
+            id: checkSystemModels[0].id,
+            name: checkSystemModels[0].name,
+            scores: assessModelObj?.ruleScores,
+            //质量系数
+            rate: null
+          }
         };
-      });
-    } else {
-      // TODO: 如果查到数据,是重新打分,分为三种情况, 1: 是否有要删除的数据, 2: 是否有要新增的数据, 3: 需要更新的数据
+        // 是添加
+        upsert = 'add';
+      } else {
+        upsert = 'update';
+        // 如果查到数据,是重新打分,分为两种情况, 1: 打分字段有数据, 2: 打分字段无数据
+        const assessModelObj = await autoStaffAssess(
+          ruleModels,
+          staffScores?.assess
+        );
+
+        staffScores = {
+          // 员工id
+          id: staff,
+          day: month,
+          assess: {
+            id: checkSystemModels[0].id,
+            name: checkSystemModels[0].name,
+            scores: assessModelObj?.ruleScores,
+            //质量系数
+            rate: null
+          }
+        };
+      }
+
       for (const ruleIt of autoRules) {
-        // 查找得分表是否有这一条细则,有: 是需要更新的, 没有: 是需要新增的
-        const scoreIndex = staffScore.find(it => it.rule === ruleIt.id);
-        // 查找到, 是需要更新的数据
-        if (scoreIndex) {
-          // 找到: 2 是需要更新的
-          updAutoScoreRules.push({
-            rule: scoreIndex.rule,
-            ruleName: ruleIt.name,
-            staff: scoreIndex.staff,
-            date: scoreIndex.date,
-            score: scoreIndex.score,
-            total: ruleIt.score // 这个是总分
-          });
-        } else {
-          // 没找到: 3 是需要新增的员工细则分数
-          addAutoScoreRules.push({
-            rule: ruleIt.id,
-            ruleName: ruleIt.name,
-            staff,
-            date: scoreDate,
-            score: 0,
-            total: ruleIt.score // 这个是总分
-          });
+        // 如果查找到,是需要新增的数据
+        const scoreIndex = staffScores?.assess?.scores.find(
+          scoreIt => scoreIt.id === ruleIt.id
+        );
+
+        // 根据指标获取指标数据
+        if (ruleIt.metric === MarkTagUsages.HIS00.code) {
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
+            // 指标分数
+            scoreIndex.score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !mark?.HIS00) {
+            // 指标分数
+            scoreIndex.score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            scoreIndex.score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
         }
       }
-      // 查找是否有需要删除的数据
-      delAutoScoreRules = staffScore.filter(it => {
-        const index = autoRules.find(ruleIt => ruleIt.id === it.rule);
-        if (!index) return it;
-      });
-    }
 
-    for (const ruleIt of autoRules) {
-      // 如果查找到,是需要新增的数据
-      const addScoreIndex = addAutoScoreRules.find(
-        scoreIt => scoreIt.rule === ruleIt.id
-      );
-      // 如果查找到,是需要更新的数据
-      const updScoreIndex = updAutoScoreRules.find(
-        scoreIt => scoreIt.rule === ruleIt.id
+      // 获取总分(分母)
+      const scoreDenominator = staffScores?.assess?.scores.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.total),
+        0
       );
 
-      // 根据指标获取指标数据
-      // if (ruleIt.metric === '指定的指标') {
-      if (ruleIt.metric) {
-        // 根据指标算法,计算得分 之 结果为"是"得满分
-        if (ruleIt.operator === TagAlgorithmUsages.Y01.code) {
-          // 指标分数 之 新增
-          if (addScoreIndex) addScoreIndex.score = ruleIt.score;
-          // 指标分数 之 更新
-          if (updScoreIndex) updScoreIndex.score = ruleIt.score;
-        }
-        // 根据指标算法,计算得分 之 结果为"否"得满分
-        if (ruleIt.operator === TagAlgorithmUsages.N01.code) {
-          // 指标分数 之 新增
-          if (addScoreIndex) addScoreIndex.score = ruleIt.score;
-          // 指标分数 之 更新
-          if (updScoreIndex) updScoreIndex.score = ruleIt.score;
-        }
-        // “≥”时得满分，不足按比例得分
-        if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-          // 指标分数 之 新增
-          if (addScoreIndex) addScoreIndex.score = ruleIt.score;
-          // 指标分数 之 更新
-          if (updScoreIndex) updScoreIndex.score = ruleIt.score;
-        }
-        // “≤”时得满分，超过按比例得分
-        if (ruleIt.operator === TagAlgorithmUsages.elt.code) {
-          // 指标分数 之 新增
-          if (addScoreIndex) addScoreIndex.score = ruleIt.score;
-          // 指标分数 之 更新
-          if (updScoreIndex) updScoreIndex.score = ruleIt.score;
-        }
-      }
+      // 获取得分(分子)
+      const scoreNumerator = staffScores?.assess?.scores.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.score),
+        0
+      );
+      staffScores.assess.rate =
+        Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
 
-      // 指标分数 之 新增
-      if (addScoreIndex) addScoreIndex.score = 15;
-      // 指标分数 之 更新
-      if (updScoreIndex) updScoreIndex.score = 23;
-    }
-
-    // 先删除
-    if (delAutoScoreRules.length > 0) {
-      console.log('delete');
-      for (const it of delAutoScoreRules) {
-        await appDB.execute(
-          `delete from his_rule_staff_score where rule = ? and staff = ? and date = ?`,
-          it.rule,
-          it.staff,
-          it.date
-        );
-      }
-    }
-    // 自动打分
-    if (addAutoScoreRules.length > 0) {
-      console.log('add');
-      for (const it of addAutoScoreRules) {
-        const insertNow = new Date();
+      const nowDate = new Date();
+      // 是添加
+      if (upsert === 'add') {
         // 执行添加语句
-        await appDB.execute(
-          `insert into his_rule_staff_score(
-                  rule,
-                  rule_name,
-                  staff,
-                  date,
-                  score,
-                  total,
-                  created_at,
-                  updated_at)
-                values(?, ?, ?, ?, ?, ?, ?, ?)`,
-          it.rule,
-          it.ruleName,
-          it.staff,
-          it.date,
-          it.score,
-          it.total,
-          insertNow,
-          insertNow
+        return await appDB.execute(
+          `insert into
+              his_staff_result(id, day, assess, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          ...[
+            staffScores.id,
+            staffScores.day,
+            JSON.stringify(staffScores.assess),
+            nowDate,
+            nowDate
+          ]
+        );
+      } else {
+        // 执行修改语句
+        return await appDB.execute(
+          `
+            update his_staff_result
+              set assess = ?,
+                updated_at = ?
+            where id = ? and day = ?`,
+          JSON.stringify(staffScores.assess),
+          nowDate,
+          staffScores.id,
+          staffScores.day
         );
       }
-    }
-    // 重新打分
-    if (updAutoScoreRules.length > 0) {
-      console.log('update');
-      for (const it of updAutoScoreRules) {
-        const insertNow = new Date();
-        // 执行添加语句
-        await appDB.execute(
-          `update his_rule_staff_score set
-                  score = ?,
-                  rule_name = ?,
-                  total = ?,
-                  updated_at = ?
-               where rule = ? and staff = ? and date = ?
-          `,
-          it.score,
-          it.ruleName,
-          it.total,
-          insertNow,
-          it.rule,
-          it.staff,
-          it.date
-        );
-      }
-    }
+    });
   }
 
+  // region 重写的手动打分代码
   /**
    * 考核手动打分
    * 只要未结算,不管是新增,删除细则,都要按照细则表里的细则校验
@@ -342,21 +514,14 @@ export default class HisScore {
       .description('分值')
   )
   async setCheckScore(ruleId, staff, month, score) {
+    // 获取机构id
     const hospital = await getHospital();
+    // 是否结算
     const settle = await getSettle(hospital, month);
     if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
-    const scoreDate = getEndTime(month);
 
-    // 查询考核细则
-    const rules = await appDB.execute(
-      `select id, name, auto, "check", score
-            from his_check_rule where id = ?`,
-      ruleId
-    );
-    if (rules.length === 0) throw new KatoRuntimeError(`无此考核细则`);
-    // 自动打分的不能手动打分
-    if (rules[0].auto === true)
-      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+    // 时间转换为本月的当前时间或者之前学的最后一天
+    const scoreDate = getEndTime(month);
 
     // 根据员工id查询出改员工是否有考核
     const staffSystem = await appDB.execute(
@@ -365,51 +530,136 @@ export default class HisScore {
     );
     if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
 
-    if (rules[0].check !== staffSystem[0].check)
-      throw new KatoRuntimeError(`考核员工考核项目和细则考核项目不一致`);
+    // 查询方案
+    const checkSystemModels = await appDB.execute(
+      `select  id, name, hospital from his_check_system where id = ?`,
+      staffSystem[0].check
+    );
 
-    if (rules[0].score < score)
+    if (checkSystemModels.length === 0)
+      throw new KatoRuntimeError(`考核方案不存在`);
+
+    // 查询考核细则
+    const ruleModels = await appDB.execute(
+      `select id, name, detail, auto, "check",
+            metric, operator, value, score
+           from his_check_rule
+           where "check" = ?`,
+      staffSystem[0].check
+    );
+
+    if (ruleModels.length === 0) throw new KatoRuntimeError(`考核方案没有细则`);
+
+    const ruleOneModels = ruleModels.find(it => it.id === ruleId);
+
+    if (!ruleOneModels) throw new KatoRuntimeError(`无此考核细则`);
+
+    // 自动打分的不能手动打分
+    if (ruleOneModels.auto === true)
+      throw new KatoRuntimeError(`此考核细则不能手动打分`);
+
+    if (ruleOneModels.score < score)
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
 
     // 查询今天是否有分值
-    const todayScore = await appDB.execute(
-      `select *
-            from his_rule_staff_score
-            where rule = ? and staff = ? and date = ?`,
-      ruleId,
-      staff,
-      scoreDate
-    );
-    // 如果查找到,执行修改,没有查到到:添加
-    if (todayScore.length === 0) {
+    let todayScore: {
+      id: string;
+      day: Date;
+      assess: StaffAssessModel;
+    } = (
+      await appDB.execute(
+        `select id, day, assess
+           from his_staff_result
+           where id = ? and day = ?`,
+        staff,
+        scoreDate
+      )
+    )[0];
+    const nowDate = new Date();
+
+    // 如果没有查询到, 说明还没有打过分,需要添加
+    if (!todayScore) {
+      const assessModelObj = await staffAssess(
+        ruleModels,
+        ruleId,
+        score,
+        todayScore.assess
+      );
+      todayScore = {
+        // 员工id
+        id: staff,
+        day: scoreDate,
+        assess: {
+          id: checkSystemModels[0].id,
+          name: checkSystemModels[0].name,
+          scores: assessModelObj?.ruleScores,
+          //质量系数
+          rate: assessModelObj?.rate
+        }
+      };
+      // 执行添加语句
       return await appDB.execute(
         `insert into
-              his_rule_staff_score(rule, rule_name, staff, date, score, total, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+              his_staff_result(id, day, assess, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
         ...[
-          ruleId,
-          rules[0]?.name,
-          staff,
-          scoreDate,
-          score,
-          rules[0].score,
-          scoreDate,
-          scoreDate
+          todayScore.id,
+          todayScore.day,
+          JSON.stringify(todayScore.assess),
+          nowDate,
+          nowDate
         ]
       );
     } else {
+      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
+      if (todayScore.assess) {
+        // 如果考核方案有数据,找到要修改的分数
+        const assessModelObj = await staffAssess(
+          ruleModels,
+          ruleId,
+          score,
+          todayScore.assess
+        );
+
+        // 如果考核方案没有数据
+        todayScore.assess = {
+          id: checkSystemModels[0].id,
+          name: checkSystemModels[0].name,
+          scores: assessModelObj?.ruleScores,
+          //质量系数
+          rate: assessModelObj?.rate
+        };
+      } else {
+        const assessModelObj = await staffAssess(
+          ruleModels,
+          ruleId,
+          score,
+          todayScore.assess
+        );
+        // 如果考核方案没有数据
+        todayScore.assess = {
+          id: checkSystemModels[0].id,
+          name: checkSystemModels[0].name,
+          scores: assessModelObj?.ruleScores,
+          //质量系数
+          rate: assessModelObj?.rate
+        };
+      }
+      // 执行修改语句
       return await appDB.execute(
-        `update his_rule_staff_score
-            set score = ?, updated_at = ?
-            where rule = ? and staff = ? and date = ?`,
-        score,
-        scoreDate,
-        ruleId,
+        `
+            update his_staff_result
+              set assess = ?,
+                updated_at = ?
+            where id = ? and day = ?`,
+        JSON.stringify(todayScore.assess),
+        nowDate,
         staff,
         scoreDate
       );
     }
   }
+  // endregion
 
   //region 工分计算相关
   /**
@@ -561,7 +811,9 @@ export default class HisScore {
             and date < ?
         `,
         staff,
-        param.source
+        param.source,
+        start,
+        end
       );
       workItems = workItems.concat(
         //手工数据流水转换成工分流水

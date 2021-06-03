@@ -556,14 +556,21 @@ export default class HisWorkItem {
     should
       .string()
       .required()
-      .description('工分项目id')
+      .description('工分项目id'),
+    should
+      .array()
+      .min(1)
+      .required()
+      .description('员工id')
   )
-  async delStaffWorkItemMapping(id) {
+  async delStaffWorkItemMapping(id, staffs) {
     return appDB.transaction(async () => {
       // 删除对应关系
       await appDB.execute(
-        `delete from his_staff_work_item_mapping where item = ?`,
-        id
+        `delete from his_staff_work_item_mapping
+              where item = ? and staff in (${staffs.map(() => '?')})`,
+        id,
+        ...staffs
       );
     });
   }
