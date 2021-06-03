@@ -475,7 +475,7 @@ export default {
             type: 'bar',
             data: this.workScoreListData.map(it => it.score),
             itemStyle: {
-              color: 'rgba(180, 180, 180, 0.3)'
+              color: 'rgba(64, 158, 255, 0.3)'
             }
           },
           {
