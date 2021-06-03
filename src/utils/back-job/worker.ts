@@ -1,12 +1,13 @@
-import {parentPort, isMainThread, workerData} from 'worker_threads';
+import {isMainThread, parentPort, workerData} from 'worker_threads';
 import {appDB, initFS, unifs} from '../../app';
 import * as models from '../../database/model';
-import dayjs = require('dayjs');
 import Score from '../../api/group/score';
-const ScoreApi = new Score();
 import {getReportBuffer} from '../../api/group/system_area';
 import {getPersonExcelBuffer} from '../../api/person.js';
+import dayjs = require('dayjs');
+
 appDB.addModels(Object.values(models));
+const ScoreApi = new Score();
 
 if (isMainThread) throw new Error('线程错误');
 
