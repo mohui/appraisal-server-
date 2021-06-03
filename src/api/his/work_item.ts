@@ -217,7 +217,8 @@ export default class HisWorkItem {
       if (checkIds.length > 0) {
         checks = await originalDB.execute(
           `select id, name, '${HisWorkSource.CHECK}' as source
-             from his_check where id in (${checkIds.map(() => '?')})`,
+               from his_check
+               where status = true and id in (${checkIds.map(() => '?')})`,
           ...checkIds
         );
       }
@@ -270,7 +271,7 @@ export default class HisWorkItem {
         `
         select id, name
         from his_check
-        where 1 = 1
+        where status = true
         {{#if keyWord}}
             AND name like {{? keyWord}}
         {{/if}}
