@@ -7,26 +7,40 @@
           class="header"
           v-loading="$asyncComputed.overviewServerData.updating"
         >
-          <div class="header-title">{{ overviewData.name }}绩效考核</div>
-          <div>
-            <el-date-picker
-              v-model="currentDate"
+          <div class="left">
+            <div class="header-title">{{ overviewData.name }}绩效考核</div>
+            <div>
+              <el-date-picker
+                v-model="currentDate"
+                size="mini"
+                type="month"
+                placeholder="选择月"
+                @change="handleChangeDate"
+                :picker-options="disabledDate"
+              >
+              </el-date-picker>
+            </div>
+            <el-button
+              type="primary"
               size="mini"
-              type="month"
-              placeholder="选择月"
-              @change="handleChangeDate"
-              :picker-options="disabledDate"
+              :disabled="overviewData.settle"
+              style="margin-left: 20px"
+              @click="handleSettle()"
             >
-            </el-date-picker>
+              {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
+            </el-button>
           </div>
-          <el-button
-            type="primary"
-            size="mini"
-            :disabled="overviewData.settle"
-            style="margin-left: 20px"
-            @click="handleSettle()"
-            >{{ overviewData.settle ? '结果解冻' : '结果冻结' }}</el-button
-          >
+          <div class="right">
+            <el-button
+              type="primary"
+              size="mini"
+              :disabled="overviewData.settle"
+              style="margin-left: 20px"
+              @click="handleCompute"
+            >
+              计算
+            </el-button>
+          </div>
         </div>
       </el-card>
       <div>
@@ -174,6 +188,14 @@ export default {
           date: JSON.stringify(this.currentDate)
         }
       });
+    },
+    async handleCompute() {
+      try {
+        await this.$api.HisScore.score(this.currentDate);
+        this.$message.success('计算完成');
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
     async handleSettle() {
       this.$confirm('此操作无法恢复, 是否继续?', '提示', {
@@ -495,11 +517,19 @@ export default {
 .header {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  .header-title {
-    font: bold 20px/2 Arial;
-    color: $color-primary;
-    margin-right: 10px;
+  justify-content: space-between;
+  .left {
+    .header-title {
+      font: bold 20px/2 Arial;
+      color: $color-primary;
+      margin-right: 10px;
+    }
+  }
+  .left,
+  .right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
   }
 }
 
