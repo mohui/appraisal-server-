@@ -172,17 +172,39 @@ export default class HisScore {
     });
   }
 
-  //region 未开发代码
   /**
-   * 自动打分
+   * 系统定时打分
    *
-   * @param month 月份
+   * 此时都是计算前一天的分数
+   * 只有定时任务才会调用
    */
-  async autoScoreAll(month) {
-    return null;
+  async autoScoreAll() {
+    //打分的日期
+    const day = dayjs()
+      .startOf('d')
+      //自动打分, 都是计算前一天的分数, 所以, 要减一天
+      .subtract(1, 'd')
+      .toDate();
+    //查询结算状态
+    const {start} = monthToRange(day);
+    // language=PostgreSQL
+    const hospitals = (
+      await appDB.execute(
+        `
+        select a.code, a.name, hs.settle
+        from area a
+               left join his_hospital_settle hs on a.code = hs.hospital and hs.month = ?
+      `,
+        start
+      )
+    ).filter(it => it.settle === false);
+    for (const hospital of hospitals) {
+      //工分计算
+      await this.workScoreHospital(day, hospital);
+      //考核打分
+      await this.autoScoreHospital(day, hospital);
+    }
   }
-
-  //endregion
 
   // region 打分代码
   /**
@@ -726,6 +748,7 @@ export default class HisScore {
       );
     }
   }
+
   // endregion
 
   //region 工分计算相关
