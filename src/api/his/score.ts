@@ -357,19 +357,10 @@ export default class HisScore {
         }
       }
 
-      // 获取总分(分母)
-      const scoreDenominator = staffScores?.assess?.scores.reduce(
-        (prev, curr) => Number(prev) + Number(curr?.total),
-        0
+      // 算出占比
+      staffScores.assess.rate = await staffScoreRate(
+        staffScores?.assess?.scores
       );
-
-      // 获取得分(分子)
-      const scoreNumerator = staffScores?.assess?.scores.reduce(
-        (prev, curr) => Number(prev) + Number(curr?.score),
-        0
-      );
-      staffScores.assess.rate =
-        Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
 
       const nowDate = new Date();
       // 是添加
