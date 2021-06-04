@@ -246,8 +246,8 @@ export default class HisWorkItem {
   }
 
   /**
-   *
-   * @param type
+   * 医疗工分项目来源
+   * @param type 工分项目来源
    * @param keyWord 关键字搜索
    */
   @validate(
