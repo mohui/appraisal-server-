@@ -112,14 +112,24 @@
                         label="附加分"
                       ></el-input-number>
                     </div>
-                    <el-button
-                      class="more"
-                      type="text"
-                      :disabled="personInfoData.settle"
-                      @click="saveEditorAdditionalPoints"
-                    >
-                      {{ isEditor ? '完成' : '编辑' }}
-                    </el-button>
+                    <div>
+                      <el-button
+                        v-if="isEditor"
+                        class="more"
+                        type="text"
+                        @click="isEditor = false"
+                      >
+                        取消
+                      </el-button>
+                      <el-button
+                        class="more"
+                        type="text"
+                        :disabled="personInfoData.settle"
+                        @click="saveEditorAdditionalPoints"
+                      >
+                        {{ isEditor ? '完成' : '编辑' }}
+                      </el-button>
+                    </div>
                   </el-col>
                 </el-row>
               </div>
