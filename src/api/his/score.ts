@@ -659,23 +659,24 @@ export default class HisScore {
     )[0];
     const nowDate = new Date();
 
+    // 如果查到, 会过滤一遍分数表的细则, 如果没查到,会把细则表的细则添加进来
+    const assessModelObj = await autoStaffAssess(
+      ruleModels,
+      'manual',
+      todayScore?.assess
+    );
+
+    // 查找需要改分的细则, 因为上面补过,所以一定找的到
+    const assessOneModel = assessModelObj?.ruleScores.find(
+      scoreIt => scoreIt.id === ruleId
+    );
+    // 把分数赋值过去
+    assessOneModel.score = score;
+    // 算出占比
+    const rate = await staffScoreRate(assessModelObj?.ruleScores);
+
     // 如果没有查询到, 说明还没有打过分,需要添加
     if (!todayScore) {
-      const assessModelObj = await autoStaffAssess(
-        ruleModels,
-        'manual',
-        todayScore?.assess
-      );
-
-      // 查找需要改分的细则, 因为上面补过,所以一定找的到
-      const assessOneModel = assessModelObj?.ruleScores.find(
-        scoreIt => scoreIt.id === ruleId
-      );
-      // 把分数赋值过去
-      assessOneModel.score = score;
-
-      // 算出占比
-      const rate = await staffScoreRate(assessModelObj?.ruleScores);
       todayScore = {
         // 员工id
         id: staff,
@@ -702,24 +703,7 @@ export default class HisScore {
         ]
       );
     } else {
-      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
-      const assessModelObj = await autoStaffAssess(
-        ruleModels,
-        'manual',
-        todayScore.assess
-      );
-
-      // 查找需要改分的细则, 因为上面补过,所以一定找的到
-      const assessOneModel = assessModelObj?.ruleScores.find(
-        scoreIt => scoreIt.id === ruleId
-      );
-      // 把分数赋值过去
-      assessOneModel.score = score;
-
-      // 算出占比
-      const rate = await staffScoreRate(assessModelObj?.ruleScores);
-
-      // 如果考核方案没有数据
+      // 如果查询到,执行修改, 有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
       todayScore.assess = {
         id: checkSystemModels[0].id,
         name: checkSystemModels[0].name,
