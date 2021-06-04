@@ -203,6 +203,15 @@
         <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button
+              v-if="!scope.row.auto && scope.row.isRating"
+              size="small"
+              type="success"
+              plain
+              @click="scope.row.isRating = false"
+            >
+              取消
+            </el-button>
+            <el-button
               v-if="!scope.row.auto"
               size="small"
               type="primary"
