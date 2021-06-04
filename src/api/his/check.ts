@@ -1,7 +1,7 @@
 import {appDB} from '../../app';
 import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, KatoCommonError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {getEndTime, getHospital, getSettle} from './service';
 
@@ -129,6 +129,10 @@ async function upsertRule(id, automations, manuals) {
     automations.forEach(it => {
       // 如果id存在, 是修改, 否则是添加
       if (it.id) {
+        // 排查修改的分数是否比现在的小,如果小,返回错误
+        const index = hisRules.find(ruleIt => ruleIt.id === it.id);
+        if (it.score < index.score)
+          throw new KatoCommonError('自动分数不能小于当前分');
         // 要修改的细则
         updAutomations.push(it);
       } else {
@@ -136,15 +140,19 @@ async function upsertRule(id, automations, manuals) {
         addAutomations.push(it);
       }
     });
-    // 要添加的自动打分细则
+    // 要添加的手动打分细则
     const addManuals = [];
-    // 要修改的自动打分细则
+    // 要修改的手动打分细则
     const updManuals = [];
 
     // 处理手动打分细则
     manuals.forEach(it => {
       // 如果id,存在是修改,否则是添加
       if (it.id) {
+        // 排查修改的分数是否比现在的小,如果小,返回错误
+        const index = hisRules.find(ruleIt => ruleIt.id === it.id);
+        if (it.score < index.score)
+          throw new KatoCommonError('分数不能小于当前分');
         // 需要修改的细则
         updManuals.push(it);
       } else {
@@ -193,6 +201,7 @@ async function upsertRule(id, automations, manuals) {
         );
       }
     }
+    // 如果有要修改的自动打分细则
     if (updAutomations.length > 0) {
       for (const ruleIt of updAutomations) {
         // 自动打分
@@ -235,7 +244,7 @@ async function upsertRule(id, automations, manuals) {
         );
       }
     }
-    // 如果有要修改的自动打分细则
+    // 如果有要修改的手动打分细则
     if (updManuals.length > 0) {
       for (const ruleIt of updManuals) {
         // 自动打分
