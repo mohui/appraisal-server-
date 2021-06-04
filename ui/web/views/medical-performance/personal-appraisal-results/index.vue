@@ -116,6 +116,7 @@
                       <el-button
                         v-if="isEditor"
                         class="more"
+                        style="color: #91cc75"
                         type="text"
                         @click="isEditor = false"
                       >
