@@ -50,7 +50,7 @@ async function staffScoreRate(ruleScores) {
     (prev, curr) => Number(prev) + Number(curr?.score),
     0
   );
-  return scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
+  return Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
 }
 
 /**
@@ -496,7 +496,6 @@ export default class HisScore {
 
     // 当前时间
     const nowDate = new Date();
-    let upsert = '';
     // 如果没有查询到, 说明还没有打过分,需要添加
     if (!todayScore) {
       const assessModelObj = await autoStaffAssess(
@@ -515,6 +514,9 @@ export default class HisScore {
         }
       }
 
+      // 算出占比
+      const rate = await staffScoreRate(assessModelObj?.ruleScores);
+
       todayScore = {
         // 员工id
         id: staff,
@@ -524,44 +526,10 @@ export default class HisScore {
           name: checkSystemModels[0].name,
           scores: assessModelObj?.ruleScores,
           //质量系数
-          rate: null
+          rate: rate
         }
       };
-      upsert = 'add';
-    } else {
-      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
-      const assessModelObj = await autoStaffAssess(
-        ruleModels,
-        'manual',
-        todayScore?.assess
-      );
 
-      // 如果考核方案没有数据
-      todayScore.assess = {
-        id: checkSystemModels[0].id,
-        name: checkSystemModels[0].name,
-        scores: assessModelObj?.ruleScores,
-        //质量系数
-        rate: null
-      };
-      upsert = 'update';
-    }
-
-    // 获取总分(分母)
-    const scoreDenominator = todayScore?.assess?.scores.reduce(
-      (prev, curr) => Number(prev) + Number(curr?.total),
-      0
-    );
-
-    // 获取得分(分子)
-    const scoreNumerator = todayScore?.assess?.scores.reduce(
-      (prev, curr) => Number(prev) + Number(curr?.score),
-      0
-    );
-    todayScore.assess.rate =
-      Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
-
-    if (upsert === 'add') {
       // 执行添加语句
       return await appDB.execute(
         `insert into
@@ -576,6 +544,24 @@ export default class HisScore {
         ]
       );
     } else {
+      // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
+      const assessModelObj = await autoStaffAssess(
+        ruleModels,
+        'manual',
+        todayScore?.assess
+      );
+
+      // 算出占比
+      const rate = await staffScoreRate(assessModelObj?.ruleScores);
+
+      // 如果考核方案没有数据
+      todayScore.assess = {
+        id: checkSystemModels[0].id,
+        name: checkSystemModels[0].name,
+        scores: assessModelObj?.ruleScores,
+        //质量系数
+        rate: rate
+      };
       // 执行修改语句
       return await appDB.execute(
         `
