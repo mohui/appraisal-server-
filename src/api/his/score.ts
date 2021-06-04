@@ -198,11 +198,11 @@ export default class HisScore {
         start
       )
     ).filter(it => it.settle === false);
-    for (const hospital of hospitals) {
+    for (const hospitalModel of hospitals) {
       //工分计算
-      await this.workScoreHospital(day, hospital);
+      await this.workScoreHospital(day, hospitalModel.code);
       //考核打分
-      await this.autoScoreHospital(day, hospital);
+      await this.autoScoreHospital(day, hospitalModel.code);
     }
   }
 
