@@ -34,82 +34,11 @@ type WorkItemDetail = {
 };
 
 /**
- * 遍历打分
- *
- * @param ruleModels 细则列表
- * @param ruleId 细则id
- * @param score 细则得分
- * @param assess 要添加的数组
+ * 算出打分结果
+ * @param ruleScores 要添加的数组
  */
-async function staffAssess(
-  ruleModels,
-  ruleId,
-  score,
-  assess: StaffAssessModel
-) {
-  let ruleScores;
-  // 如果没有数据,说明是没有打过分,需要把细则都放到里面,然后打分
-  if (!assess) {
-    ruleScores = ruleModels.map(ruleIt => {
-      return {
-        id: ruleIt.id,
-        auto: ruleIt.auto,
-        name: ruleIt.name,
-        detail: ruleIt.detail,
-        metric: ruleIt.metric,
-        operator: ruleIt.operator,
-        value: ruleIt.value,
-        score: ruleIt.id === ruleId ? score : null,
-        total: ruleIt.score
-      };
-    });
-  } else {
-    // 如果有数据, 就是打过分,需要排查细则有没有添加和删除的
-    const delRuleScore = assess?.scores.filter(scoreIt => {
-      // 在得分细则表里遍历, 如果这个得分细则的id在细则表中没有找到,说明这个细则已经删除了,需要在得分细则表里删除掉
-      const index = ruleModels.find(ruleIt => ruleIt.id === scoreIt.id);
-      if (!index) return scoreIt;
-    });
-    // 需要添加的数据
-    const addRuleScores = ruleModels.filter(ruleIt => {
-      // 在细则表里遍历查找, 如果这个细则的id在得分细则表中没有找到,说明这个细则需要添加
-      const index = assess?.scores.find(scoreIt => scoreIt.id === ruleIt.id);
-      if (!index) return ruleIt;
-    });
-    // 把细则表中新增的细则放到打分表的细则中
-    if (addRuleScores.length > 0) {
-      for (const ruleIt of addRuleScores) {
-        assess.scores.push({
-          id: ruleIt.id,
-          auto: ruleIt.auto,
-          name: ruleIt.name,
-          detail: ruleIt.detail,
-          metric: ruleIt.metric,
-          operator: ruleIt.operator,
-          value: ruleIt.value,
-          score: null,
-          total: ruleIt.score
-        });
-      }
-    }
-    // 把打分细则表中已经删除的细则删除
-    if (delRuleScore.length > 0) {
-      for (const ruleIt of delRuleScore) {
-        const index = assess.scores.findIndex(
-          scoreIt => scoreIt.id === ruleIt.id
-        );
-        if (index > -1) assess.scores.splice(index, 1);
-      }
-    }
-
-    // 查找需要改分的细则
-    const assessOneModel = assess?.scores.find(
-      scoreIt => scoreIt.id === ruleId
-    );
-    // 因为上面补过,所以一定找的到
-    assessOneModel.score = score;
-    ruleScores = assess?.scores;
-  }
+async function staffScoreRate(ruleScores) {
+  if (!ruleScores) return null;
   // 获取总分(分母)
   const scoreDenominator = ruleScores.reduce(
     (prev, curr) => Number(prev) + Number(curr?.total),
@@ -121,11 +50,7 @@ async function staffAssess(
     (prev, curr) => Number(prev) + Number(curr?.score),
     0
   );
-  const rate = scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
-  return {
-    ruleScores,
-    rate
-  };
+  return scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
 }
 
 /**
@@ -759,12 +684,21 @@ export default class HisScore {
 
     // 如果没有查询到, 说明还没有打过分,需要添加
     if (!todayScore) {
-      const assessModelObj = await staffAssess(
+      const assessModelObj = await autoStaffAssess(
         ruleModels,
-        ruleId,
-        score,
-        todayScore.assess
+        'manual',
+        todayScore?.assess
       );
+
+      // 查找需要改分的细则, 因为上面补过,所以一定找的到
+      const assessOneModel = assessModelObj?.ruleScores.find(
+        scoreIt => scoreIt.id === ruleId
+      );
+      // 把分数赋值过去
+      assessOneModel.score = score;
+
+      // 算出占比
+      const rate = await staffScoreRate(assessModelObj?.ruleScores);
       todayScore = {
         // 员工id
         id: staff,
@@ -774,7 +708,7 @@ export default class HisScore {
           name: checkSystemModels[0].name,
           scores: assessModelObj?.ruleScores,
           //质量系数
-          rate: assessModelObj?.rate
+          rate: rate
         }
       };
       // 执行添加语句
@@ -805,18 +739,8 @@ export default class HisScore {
       // 把分数赋值过去
       assessOneModel.score = score;
 
-      // 获取总分(分母)
-      const scoreDenominator = assessModelObj?.ruleScores?.reduce(
-        (prev, curr) => Number(prev) + Number(curr?.total),
-        0
-      );
-
-      // 获取得分(分子)
-      const scoreNumerator = assessModelObj?.ruleScores?.reduce(
-        (prev, curr) => Number(prev) + Number(curr?.score),
-        0
-      );
-      const rate = scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
+      // 算出占比
+      const rate = await staffScoreRate(assessModelObj?.ruleScores);
 
       // 如果考核方案没有数据
       todayScore.assess = {
