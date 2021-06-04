@@ -230,7 +230,7 @@ export default class HisStaff {
       .description('主键')
   )
   async delete(id) {
-    // 先查询是否绑定过
+    // 先查询是否绑定过工分项
     const itemMapping = await appDB.execute(
       `select * from his_staff_work_item_mapping where staff = ?`,
       id
@@ -242,7 +242,15 @@ export default class HisStaff {
       id,
       id
     );
-    if (staffWorkSource.length > 0) throw new KatoRuntimeError(`员工添加考核`);
+    if (staffWorkSource.length > 0)
+      throw new KatoRuntimeError(`员工绑定过工分来源`);
+
+    // 查询员工是否绑定过方案
+    const checkMapping = await appDB.execute(
+      `select * from his_staff_check_mapping where staff = ?`,
+      id
+    );
+    if (checkMapping.length > 0) throw new KatoRuntimeError(`员工已绑定方案`);
 
     return await appDB.execute(
       `
@@ -281,6 +289,7 @@ export default class HisStaff {
         {{#if name}}
             AND name like {{? name}}
         {{/if}}
+        order by created_at
       `,
       {
         hospital,
