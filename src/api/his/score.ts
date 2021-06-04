@@ -182,6 +182,9 @@ export default class HisScore {
     return null;
   }
 
+  //endregion
+
+  // region 打分代码
   /**
    * 机构自动打分
    * @param month 月份
@@ -207,9 +210,6 @@ export default class HisScore {
     }
   }
 
-  //endregion
-
-  // region 打分代码
   /**
    * 员工自动打分
    * @param month 月份
