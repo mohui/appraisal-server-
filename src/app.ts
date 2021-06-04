@@ -182,6 +182,20 @@ export class Application {
         }
       });
     }
+    //医疗绩效的每日打分
+    const hisConfig = config.get<string>('queue.his');
+    if (hisConfig) {
+      cron.schedule(hisConfig, async () => {
+        try {
+          console.log('医疗绩效打分开始');
+          const api = new (require('./api/his/score').default)();
+          await api.autoScoreAll();
+          console.log('医疗绩效打分完成');
+        } catch (e) {
+          console.log(`医疗绩效打分失败: ${e}`);
+        }
+      });
+    }
   }
 
   async initBackJob(app) {

@@ -50,7 +50,8 @@ module.exports = {
   },
   // 定时任务
   queue: {
-    cron: '00 00 04 * * *'
+    cron: '00 00 04 * * *',
+    his: '' // 医疗绩效打分任务的cron配置
   },
   oss: {
     accessKeyId: '',
