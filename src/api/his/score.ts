@@ -187,10 +187,10 @@ export default class HisScore {
   // region 打分代码
   /**
    * 机构自动打分
-   * @param month 月份
+   * @param day 月份
    * @param id 机构id
    */
-  async autoScoreHospital(month, id) {
+  async autoScoreHospital(day, id) {
     const hospital = await appDB.execute(
       `
           select id, name, hospital
@@ -202,7 +202,7 @@ export default class HisScore {
     for (const staffIt of hospital) {
       try {
         log(`开始计算 ${staffIt.name} 打分`);
-        await this.autoScoreStaff(month, staffIt?.id, id);
+        await this.autoScoreStaff(day, staffIt?.id, id);
         log(`结束计算 ${staffIt.name} 打分`);
       } catch (e) {
         log(e);
@@ -212,7 +212,7 @@ export default class HisScore {
 
   /**
    * 员工自动打分
-   * @param month 月份
+   * @param day 月份
    * @param staff 员工id
    * @param hospital 机构id
    */
@@ -221,8 +221,8 @@ export default class HisScore {
     should.string().required(),
     should.string().required()
   )
-  async autoScoreStaff(month, staff, hospital) {
-    const mark = await getMark(hospital, dayjs(month).year());
+  async autoScoreStaff(day, staff, hospital) {
+    const mark = await getMark(hospital, dayjs(day).year());
     return await appDB.joinTx(async () => {
       // 先根据员工查询考核
       const mapping = await appDB.execute(
@@ -278,7 +278,7 @@ export default class HisScore {
            where id = ? and day = ?
         `,
           staff,
-          month
+          day
         )
       )[0];
       // 是添加还是修改
@@ -296,7 +296,7 @@ export default class HisScore {
         staffScores = {
           // 员工id
           id: staff,
-          day: month,
+          day: day,
           assess: {
             id: checkSystemModels[0].id,
             name: checkSystemModels[0].name,
@@ -319,7 +319,7 @@ export default class HisScore {
         staffScores = {
           // 员工id
           id: staff,
-          day: month,
+          day: day,
           assess: {
             id: checkSystemModels[0].id,
             name: checkSystemModels[0].name,
@@ -397,7 +397,7 @@ export default class HisScore {
 
   /**
    * 自动手工打分 打前一天的手工分
-   * @param month
+   * @param day
    * @param staff
    * @constructor
    */
@@ -411,7 +411,7 @@ export default class HisScore {
       .required()
       .description('考核员工id')
   )
-  async autoManualScore(month, staff) {
+  async autoManualScore(day, staff) {
     // 根据员工id查询出改员工是否有考核
     const staffSystem = await appDB.execute(
       `select staff, "check" from his_staff_check_mapping where staff = ?`,
@@ -457,12 +457,12 @@ export default class HisScore {
            from his_staff_result
            where id = ? and day = ?`,
         staff,
-        month
+        day
       )
     )[0];
 
     // 昨天的时间
-    const yesterday = dayjs(month)
+    const yesterday = dayjs(day)
       .subtract(1, 'day')
       .toDate();
     // 查询昨天的分数
@@ -511,7 +511,7 @@ export default class HisScore {
       todayScore = {
         // 员工id
         id: staff,
-        day: month,
+        day: day,
         assess: {
           id: checkSystemModels[0].id,
           name: checkSystemModels[0].name,
@@ -563,7 +563,7 @@ export default class HisScore {
         JSON.stringify(todayScore.assess),
         nowDate,
         staff,
-        month
+        day
       );
     }
   }
