@@ -254,6 +254,24 @@ export default class HisScore {
       );
       if (mapping.length === 0) {
         log(`员工${staff}无考核`);
+        const resultOne = await appDB.execute(
+          `
+              select * from his_staff_result
+              where id = ? and day = ?
+          `,
+          staff,
+          day
+        );
+        if (resultOne.length > 0) {
+          await appDB.execute(
+            `
+          update his_staff_result set assess = null
+           where id = ? and day = ?
+        `,
+            staff,
+            day
+          );
+        }
         return;
       }
 
