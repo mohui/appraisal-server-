@@ -792,12 +792,31 @@ export default class HisScore {
       );
     } else {
       // 如果存在,有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
-      const assessModelObj = await staffAssess(
+      const assessModelObj = await autoStaffAssess(
         ruleModels,
-        ruleId,
-        score,
+        'manual',
         todayScore.assess
       );
+
+      // 查找需要改分的细则, 因为上面补过,所以一定找的到
+      const assessOneModel = assessModelObj?.ruleScores.find(
+        scoreIt => scoreIt.id === ruleId
+      );
+      // 把分数赋值过去
+      assessOneModel.score = score;
+
+      // 获取总分(分母)
+      const scoreDenominator = assessModelObj?.ruleScores?.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.total),
+        0
+      );
+
+      // 获取得分(分子)
+      const scoreNumerator = assessModelObj?.ruleScores?.reduce(
+        (prev, curr) => Number(prev) + Number(curr?.score),
+        0
+      );
+      const rate = scoreDenominator > 0 ? scoreNumerator / scoreDenominator : 0;
 
       // 如果考核方案没有数据
       todayScore.assess = {
@@ -805,7 +824,7 @@ export default class HisScore {
         name: checkSystemModels[0].name,
         scores: assessModelObj?.ruleScores,
         //质量系数
-        rate: assessModelObj?.rate
+        rate: rate
       };
 
       // 执行修改语句
