@@ -319,17 +319,10 @@ export default class HisStaff {
     );
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
-      if (index) {
-        return {
-          ...it,
-          staffName: index.name
-        };
-      } else {
-        return {
-          ...it,
-          staffName: ''
-        };
-      }
+      return {
+        ...it,
+        staffName: index?.name ?? ''
+      };
     });
   }
 
