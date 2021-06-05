@@ -369,7 +369,7 @@ export default {
                 id: it.id,
                 member: it.sources.map(s => s.name),
                 staffs: it.sources.map(s => s.id),
-                rate: new Decimal(Number(it.rate)).mul(100).toNumber()
+                rate: new Decimal(it.rate).mul(100).toNumber()
               }))
               .sort(a => {
                 //把本人的数据排到第一个;
