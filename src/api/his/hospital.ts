@@ -159,7 +159,6 @@ export default class HisHospital {
    */
   @validate(dateValid)
   async findStaffCheckList(month) {
-    //TODO: 苟且一波
     const staffApi = new HisStaff();
     const hospital = await getHospital();
     return Promise.all(
@@ -170,6 +169,7 @@ export default class HisHospital {
             select id, name
             from staff
             where hospital = ?
+            order by created_at
           `,
           hospital
         )
