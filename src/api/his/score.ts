@@ -97,14 +97,17 @@ async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
           metric: ruleIt.metric,
           operator: ruleIt.operator,
           value: ruleIt.value,
-          score: index ? index.score : null,
+          score: index
+            ? index.score > index.total
+              ? index.total
+              : index.score
+            : null,
           total: ruleIt.score
         };
       });
     }
-    // 手动的情况,如果有数据, 只需要把可能存在的需要添加的细则加上, 不需要坐其他操作(不改变原分)
+    // 手动的情况,如果有数据, 只需要把可能存在的需要添加的细则加上, 不需要其他操作(不改变原分)
     if (type === 'manual') {
-      // 先把自动的筛选出来
       assess.scores = ruleModels.map(ruleIt => {
         const index = assess.scores.find(scoreIt => ruleIt.id === scoreIt.id);
         return {
@@ -115,7 +118,11 @@ async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
           metric: ruleIt.metric,
           operator: ruleIt.operator,
           value: ruleIt.value,
-          score: index ? index.score : null,
+          score: index
+            ? index.score > index.total
+              ? index.total
+              : index.score
+            : null,
           total: ruleIt.score
         };
       });
