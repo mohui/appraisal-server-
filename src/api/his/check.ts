@@ -1,7 +1,7 @@
 import {appDB} from '../../app';
 import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, KatoCommonError, should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
 import {getEndTime, getHospital, getSettle} from './service';
 
@@ -129,10 +129,6 @@ async function upsertRule(id, automations, manuals) {
     automations.forEach(it => {
       // 如果id存在, 是修改, 否则是添加
       if (it.id) {
-        // 排查修改的分数是否比现在的小,如果小,返回错误
-        const index = hisRules.find(ruleIt => ruleIt.id === it.id);
-        if (it.score < index.score)
-          throw new KatoCommonError('自动分数不能小于当前分');
         // 要修改的细则
         updAutomations.push(it);
       } else {
@@ -149,10 +145,6 @@ async function upsertRule(id, automations, manuals) {
     manuals.forEach(it => {
       // 如果id,存在是修改,否则是添加
       if (it.id) {
-        // 排查修改的分数是否比现在的小,如果小,返回错误
-        const index = hisRules.find(ruleIt => ruleIt.id === it.id);
-        if (it.score < index.score)
-          throw new KatoCommonError('分数不能小于当前分');
         // 需要修改的细则
         updManuals.push(it);
       } else {
