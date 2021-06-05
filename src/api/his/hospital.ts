@@ -156,10 +156,12 @@ export default class HisHospital {
         return {
           ...it,
           rate: result.rate,
-          score: result.items.reduce(
-            (result, current) => (result += current.score),
-            0
-          )
+          score: result.items.reduce((result, current) => {
+            if (current.score) {
+              result = new Decimal(result).add(current.score).toNumber();
+            }
+            return result;
+          }, 0)
         };
       })
     );
