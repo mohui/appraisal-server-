@@ -244,7 +244,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-
+import {Decimal} from 'decimal.js';
 export default {
   name: 'Member',
   data() {
@@ -320,7 +320,9 @@ export default {
             sourcesName: row.sourcesName,
             member: row.member, //名字
             subMember: row.sourcesName.join(','),
-            subRate: row.subRate * 100,
+            subRate: Decimal(Number(row.subRate))
+              .mul(100)
+              .toNumber(),
             removeLoading: false
           });
         });
@@ -369,7 +371,9 @@ export default {
                 id: it.id,
                 member: it.sources.map(s => s.name),
                 staffs: it.sources.map(s => s.id),
-                rate: it.rate * 100
+                rate: Decimal(Number(it.rate))
+                  .mul(100)
+                  .toNumber()
               }))
               .sort(a => {
                 //把本人的数据排到第一个;
