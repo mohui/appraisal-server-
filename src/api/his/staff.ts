@@ -657,11 +657,11 @@ export default class HisStaff {
     return rows.map(it => ({
       day: dayjs(it.day).toDate(),
       items: [
-        ...it.work.self.map(item => ({
+        ...(it?.work?.self ?? []).map(item => ({
           ...item,
           type: HisWorkScoreType.WORK_ITEM
         })),
-        ...it.work.staffs.map(item => ({
+        ...(it?.work?.staffs ?? []).map(item => ({
           ...item,
           type: HisWorkScoreType.STAFF
         }))
