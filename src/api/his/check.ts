@@ -745,22 +745,12 @@ export default class HisCheck {
         `,
       id
     );
-    const automations = hisRules
-      .map(it => {
-        if (it.auto === true) return it;
-      })
-      .filter(it => it);
-    const manuals = hisRules
-      .map(it => {
-        if (it.auto === false) return it;
-      })
-      .filter(it => it);
 
     return {
       id: hisSystems[0]?.id,
       name: hisSystems[0]?.name,
-      automations,
-      manuals
+      automations: hisRules?.filter(it => it.auto),
+      manuals: hisRules?.filter(it => !it.auto)
     };
   }
 }
