@@ -143,6 +143,8 @@ export default {
     overviewData() {
       return {
         ...this.overviewServerData,
+        originalScore: this.overviewServerData.originalScore?.toFixed(2),
+        correctScore: this.overviewServerData.correctScore?.toFixed(2),
         rate: this.overviewServerData.correctScore
           ? this.overviewServerData.correctScore /
             this.overviewServerData.originalScore
