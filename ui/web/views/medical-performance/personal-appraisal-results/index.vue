@@ -112,14 +112,25 @@
                         label="附加分"
                       ></el-input-number>
                     </div>
-                    <el-button
-                      class="more"
-                      type="text"
-                      :disabled="personInfoData.settle"
-                      @click="saveEditorAdditionalPoints"
-                    >
-                      {{ isEditor ? '完成' : '编辑' }}
-                    </el-button>
+                    <div>
+                      <el-button
+                        v-if="isEditor"
+                        class="more"
+                        style="color: #91cc75"
+                        type="text"
+                        @click="isEditor = false"
+                      >
+                        取消
+                      </el-button>
+                      <el-button
+                        class="more"
+                        type="text"
+                        :disabled="personInfoData.settle"
+                        @click="saveEditorAdditionalPoints"
+                      >
+                        {{ isEditor ? '完成' : '编辑' }}
+                      </el-button>
+                    </div>
                   </el-col>
                 </el-row>
               </div>
@@ -202,6 +213,15 @@
         </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
+            <el-button
+              v-if="!scope.row.auto && scope.row.isRating"
+              size="small"
+              type="success"
+              plain
+              @click="scope.row.isRating = false"
+            >
+              取消
+            </el-button>
             <el-button
               v-if="!scope.row.auto"
               size="small"
