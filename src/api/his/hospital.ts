@@ -105,14 +105,12 @@ export default class HisHospital {
     return await appDB.execute(
       // language=PostgreSQL
       `
-        select d.item as id, max(wi.name) as name, sum(d.score) as score
-        from his_staff_work_score_detail d
-               inner join staff on d.staff = staff.id
-               inner join his_work_item wi on d.item = wi.id
-        where staff.hospital = ?
-          and d.date >= ?
-          and d.date < ?
-        group by d.item
+        select m.item as id, max(wi.name) as name, sum(d.score) as score
+        from his_staff_work_item_mapping m
+               inner join his_work_item wi on m.item = wi.id
+               inner join staff s on m.staff = s.id and s.hospital = ?
+               left join his_staff_work_score_detail d on d.item = m.item and d.date >= ? and d.date < ?
+        group by m.item
       `,
       hospital,
       start,
