@@ -556,13 +556,14 @@ export default {
     padding-top: 50px;
   }
   .total-score {
-    font-size: 22px;
+    font-size: 26px;
     color: $color-primary;
     margin: 10px;
+    font-weight: bold;
   }
   .before-correction {
     color: darkgray;
-    font-size: 12px;
+    font-size: 15px;
     margin: 10px;
   }
 }
