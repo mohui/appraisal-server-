@@ -3,7 +3,7 @@ import * as uuid from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {getEndTime, getHospital, getSettle} from './service';
+import {getHospital} from './service';
 
 /**
  * 修改考核名称
@@ -36,16 +36,9 @@ async function upsetSystem(id, name) {
  * 修改考核员工
  * @param id
  * @param staffs
- * @param settleTimeObj
  */
-async function upsertStaff(id, staffs, settleTimeObj) {
+async function upsertStaff(id, staffs) {
   // 获取当前月,和上一月是否结算
-  const {lastSettle, lastDate, currentSettle, currentDate} = settleTimeObj;
-  const date = [];
-  // 如果上个月未结算,上个月需要删除
-  if (lastSettle === false) date.push(lastDate);
-  if (currentSettle === false) date.push(currentDate);
-
   return appDB.joinTx(async () => {
     // 查询该考核下所有的
     const checkStaffs = await appDB.execute(
@@ -70,20 +63,8 @@ async function upsertStaff(id, staffs, settleTimeObj) {
         if (!index) return it;
       })
       .filter(it => it);
-    // 要过存在要删除的员工,执行删除, 删除前需要先删除得分表未结算的数据
+    // 如果存在要删除的员工,执行删除, 该员工的得分情况统一在打分表里处理
     if (delStaffs.length > 0) {
-      // 如果存在未结算的,删除所有未结算的,如果为空,说明没有为结算的
-      if (date.length > 0) {
-        // 删除得分表
-        await appDB.execute(
-          `delete from his_rule_staff_score
-                where date in (${date.map(() => '?')})
-                 and staff in (${delStaffs.map(() => '?')})`,
-          ...date,
-          ...delStaffs
-        );
-      }
-
       await appDB.execute(
         `delete from his_staff_check_mapping
                 where staff in (${delStaffs.map(() => '?')})`,
@@ -136,9 +117,9 @@ async function upsertRule(id, automations, manuals) {
         addAutomations.push(it);
       }
     });
-    // 要添加的自动打分细则
+    // 要添加的手动打分细则
     const addManuals = [];
-    // 要修改的自动打分细则
+    // 要修改的手动打分细则
     const updManuals = [];
 
     // 处理手动打分细则
@@ -193,6 +174,7 @@ async function upsertRule(id, automations, manuals) {
         );
       }
     }
+    // 如果有要修改的自动打分细则
     if (updAutomations.length > 0) {
       for (const ruleIt of updAutomations) {
         // 自动打分
@@ -235,7 +217,7 @@ async function upsertRule(id, automations, manuals) {
         );
       }
     }
-    // 如果有要修改的自动打分细则
+    // 如果有要修改的手动打分细则
     if (updManuals.length > 0) {
       for (const ruleIt of updManuals) {
         // 自动打分
@@ -638,26 +620,6 @@ export default class HisCheck {
       .description('自动考核细则')
   )
   async update(id, name, staffs, automations, manuals) {
-    const hospital = await getHospital();
-    const currentMonth = new Date();
-    // 上个月时间
-    const lastMonth = dayjs()
-      .subtract(1, 'month')
-      .toDate();
-    const lastMonthEnd = getEndTime(lastMonth);
-
-    // 上个月是否结算
-    const lastSettle = await getSettle(hospital, lastMonth);
-    // 本月是否结算
-    const currentSettle = await getSettle(hospital, lastMonthEnd);
-
-    const settleTimeObj = {
-      lastSettle,
-      lastDate: lastMonthEnd,
-      currentSettle,
-      currentDate: currentMonth
-    };
-
     // 细则必须有
     if (!automations && !manuals)
       throw new KatoRuntimeError(`自动打分和手动打分不能都为空`);
@@ -666,7 +628,7 @@ export default class HisCheck {
       // 修改方案名称
       await upsetSystem(id, name);
       // 修改考核员工
-      await upsertStaff(id, staffs, settleTimeObj);
+      await upsertStaff(id, staffs);
       // 修改考核细则
       await upsertRule(id, automations, manuals);
     });
@@ -744,22 +706,12 @@ export default class HisCheck {
         `,
       id
     );
-    const automations = hisRules
-      .map(it => {
-        if (it.auto === true) return it;
-      })
-      .filter(it => it);
-    const manuals = hisRules
-      .map(it => {
-        if (it.auto === false) return it;
-      })
-      .filter(it => it);
 
     return {
       id: hisSystems[0]?.id,
       name: hisSystems[0]?.name,
-      automations,
-      manuals
+      automations: hisRules?.filter(it => it.auto),
+      manuals: hisRules?.filter(it => !it.auto)
     };
   }
 }

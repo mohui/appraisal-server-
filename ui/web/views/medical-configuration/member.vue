@@ -189,10 +189,11 @@
                       :value="m.id"
                       :disabled="
                         m.id === newMember.staff ||
-                          (newMember.subMembers.some(it =>
-                            it.staffs.find(s => s === m.id)
-                          ) &&
-                            !memberList.some(ml => row.staffs.includes(ml.id)))
+                          newMember.subMembers.some(
+                            it =>
+                              !row.staffs.includes(m.id) &&
+                              it.staffs.some(s => s === m.id)
+                          )
                       "
                     ></el-option>
                   </el-select>
@@ -243,7 +244,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-
+import {Decimal} from 'decimal.js';
 export default {
   name: 'Member',
   data() {
@@ -319,7 +320,7 @@ export default {
             sourcesName: row.sourcesName,
             member: row.member, //名字
             subMember: row.sourcesName.join(','),
-            subRate: row.subRate * 100,
+            subRate: new Decimal(row.subRate).mul(100).toNumber(),
             removeLoading: false
           });
         });
@@ -368,7 +369,7 @@ export default {
                 id: it.id,
                 member: it.sources.map(s => s.name),
                 staffs: it.sources.map(s => s.id),
-                rate: it.rate * 100
+                rate: new Decimal(it.rate).mul(100).toNumber()
               }))
               .sort(a => {
                 //把本人的数据排到第一个;

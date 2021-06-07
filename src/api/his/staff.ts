@@ -148,8 +148,10 @@ export default class HisStaff {
     } else {
       staff = null;
     }
-    return await appDB.execute(
-      `insert into
+    return appDB.transaction(async () => {
+      const staffId = uuid();
+      await appDB.execute(
+        `insert into
             staff(
               id,
               hospital,
@@ -161,15 +163,28 @@ export default class HisStaff {
               updated_at
               )
             values(?, ?, ?, ?, ?, ?, ?, ?)`,
-      uuid(),
-      hospital,
-      staff,
-      account,
-      password,
-      name,
-      dayjs().toDate(),
-      dayjs().toDate()
-    );
+        staffId,
+        hospital,
+        staff,
+        account,
+        password,
+        name,
+        dayjs().toDate(),
+        dayjs().toDate()
+      );
+
+      return await appDB.execute(
+        ` insert into
+              his_staff_work_source(id, staff, sources, rate, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+        uuid(),
+        staffId,
+        `{${staffId}}`,
+        1,
+        dayjs().toDate(),
+        dayjs().toDate()
+      );
+    });
   }
 
   @validate(
@@ -230,7 +245,7 @@ export default class HisStaff {
       .description('主键')
   )
   async delete(id) {
-    // 先查询是否绑定过
+    // 先查询是否绑定过工分项
     const itemMapping = await appDB.execute(
       `select * from his_staff_work_item_mapping where staff = ?`,
       id
@@ -242,7 +257,15 @@ export default class HisStaff {
       id,
       id
     );
-    if (staffWorkSource.length > 0) throw new KatoRuntimeError(`员工添加考核`);
+    if (staffWorkSource.length > 0)
+      throw new KatoRuntimeError(`员工绑定过工分来源`);
+
+    // 查询员工是否绑定过方案
+    const checkMapping = await appDB.execute(
+      `select * from his_staff_check_mapping where staff = ?`,
+      id
+    );
+    if (checkMapping.length > 0) throw new KatoRuntimeError(`员工已绑定方案`);
 
     return await appDB.execute(
       `
@@ -281,6 +304,7 @@ export default class HisStaff {
         {{#if name}}
             AND name like {{? name}}
         {{/if}}
+        order by created_at
       `,
       {
         hospital,
@@ -295,17 +319,10 @@ export default class HisStaff {
     );
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
-      if (index) {
-        return {
-          ...it,
-          staffName: index.name
-        };
-      } else {
-        return {
-          ...it,
-          staffName: ''
-        };
-      }
+      return {
+        ...it,
+        staffName: index?.name ?? ''
+      };
     });
   }
 
@@ -633,136 +650,17 @@ export default class HisStaff {
     return rows.map(it => ({
       day: dayjs(it.day).toDate(),
       items: [
-        ...it.work.self.map(item => ({
+        ...(it?.work?.self ?? []).map(item => ({
           ...item,
           type: HisWorkScoreType.WORK_ITEM
         })),
-        ...it.work.staffs.map(item => ({
+        ...(it?.work?.staffs ?? []).map(item => ({
           ...item,
           type: HisWorkScoreType.STAFF
         }))
       ],
       rate: it?.assess?.rate ?? null
     }));
-  }
-  // endregion
-
-  // region 员工质量系数
-  /**
-   * 获取指定日期的质量系数
-   *
-   * @param id 员工id
-   * @param day 日期
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .date()
-      .required()
-      .description('指定的日期')
-  )
-  async getRateByDay(id, day) {
-    day = dayjs(day).startOf('d');
-    // 获取质量系数列表
-    const list = await this.getRateList(id, day);
-    if (list.length === 0) return null;
-    // 查找当天的质量系数
-    const item = list.find(it => dayjs(it.day).diff(day, 'day') === 0);
-    if (item) return item?.rate;
-    return null;
-  }
-
-  /**
-   * 获取指定月份的质量系数(查询月份有记录最后一天的质量系数)
-   *
-   * @param id 员工id
-   * @param month 月份
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .date()
-      .required()
-      .description('指定的月份')
-  )
-  async getRate(id, month) {
-    const list = await this.getRateList(id, month);
-    if (list.length === 0) return null;
-    return list.pop()?.rate;
-  }
-
-  /**
-   * 获取指定月份的质量系数列表
-   *
-   * @param id 员工id
-   * @param month 月份
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .date()
-      .required()
-      .description('指定的月份')
-  )
-  async getRateList(id, month): Promise<{rate: number; day: Date}[]> {
-    const {start, end} = monthToRange(month);
-    // 先根据员工查询考核
-    const mapping = await appDB.execute(
-      `select staff, "check" from his_staff_check_mapping
-        where staff = ?`,
-      id
-    );
-    if (mapping.length === 0) return [];
-    // 取出考核id
-    const check = mapping[0]?.check;
-
-    // 根据考核id查询细则分数
-    const rules = await appDB.execute(
-      `select id, name, metric, score, auto
-          from his_check_rule
-          where "check" = ?`,
-      check
-    );
-    if (rules.length === 0) return [];
-
-    const ruleId = rules.map(it => it.id);
-
-    // 查询指定日期的得分
-    const staffScores = await appDB.execute(
-      `select date, sum(score) score
-            from his_rule_staff_score
-            where staff = ?
-              and date >= ? and date < ?
-              and rule in (${ruleId.map(() => '?')})
-            group by date`,
-      id,
-      start,
-      end,
-      ...ruleId
-    );
-
-    if (staffScores.length === 0) return [];
-    // 得出总分
-    const totalScore = rules.reduce(
-      (prev, curr) => Number(prev) + Number(curr.score),
-      0
-    );
-
-    return staffScores.map(it => {
-      return {
-        day: dayjs(it.date).toDate(),
-        rate: totalScore ? it.score / totalScore : 0
-      };
-    });
   }
   // endregion
 
