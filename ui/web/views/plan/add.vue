@@ -417,7 +417,7 @@ export default {
   },
   beforeRouteLeave(to, from, next) {
     if (JSON.stringify(this.form) !== this.formCopy) {
-      return this.$confirm('要离开此页面?, 您有尚未保存的修改', '提示', {
+      return this.$confirm('要离开此页面?, 您有尚未保存的信息', '提示', {
         confirmButtonText: '忽略离开',
         cancelButtonText: '回去保存',
         type: 'warning'
