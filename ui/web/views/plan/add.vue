@@ -318,6 +318,7 @@ export default {
           {required: isEdit, message: '请选择考核员工', trigger: 'change'}
         ]
       },
+      formCopy: '',
       form: {
         name: '',
         doctor: [],
@@ -328,8 +329,8 @@ export default {
             name: '',
             metric: '',
             mode: '',
-            value: '',
-            score: ''
+            value: 0,
+            score: 0
           }
         ],
         manual: [
@@ -337,7 +338,7 @@ export default {
             EDIT: true,
             id: '',
             name: '',
-            score: '',
+            score: 0,
             requirement: ''
           }
         ]
@@ -385,8 +386,8 @@ export default {
             name: '',
             metric: '',
             mode: '',
-            value: '',
-            score: ''
+            value: 0,
+            score: 0
           });
       },
       deep: true
@@ -398,20 +399,45 @@ export default {
             EDIT: true,
             id: '',
             name: '',
-            score: '',
+            score: 0,
             requirement: ''
           });
       },
       deep: true
     }
   },
-  created() {
+  async created() {
     const id = this.$route.query.id;
-    this.getMember(id || null);
+    await this.getMember(id || null);
     if (id) {
       this.id = id;
-      this.getDetail();
+      await this.getDetail();
     }
+    this.formCopy = JSON.stringify(this.form);
+  },
+  mounted() {
+    window.onbeforeunload = function() {
+      return '';
+    };
+  },
+  async beforeRouteLeave(to, from, next) {
+    if (JSON.stringify(this.form) !== this.formCopy) {
+      try {
+        await this.$confirm('要离开此页面?, 您有尚未保存的信息', '提示', {
+          confirmButtonText: '忽略离开',
+          cancelButtonText: '回去保存',
+          type: 'warning'
+        });
+        next();
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      next();
+    }
+  },
+  beforeDestroy() {
+    window.onbeforeunload = null;
   },
   methods: {
     async getDetail() {
