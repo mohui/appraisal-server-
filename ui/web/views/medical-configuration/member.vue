@@ -38,7 +38,14 @@
                   size="mini"
                   clearable
                   filterable
-                ></el-select>
+                >
+                  <el-option
+                    v-for="m in memberList"
+                    :key="m.id"
+                    :label="m.name"
+                    :value="m.id"
+                  ></el-option>
+                </el-select>
               </el-form-item>
             </el-col>
             <el-col :lg="6" :md="6" :sm="12" :span="6" :xl="6" :xs="24">
@@ -261,35 +268,39 @@ export default {
     tableData() {
       let data = [];
       //相同父员工的数据归类
-      const reduceData = this.serverData.rows.reduce((pre, next) => {
-        const cur = pre.find(p => p.staff === next.staff);
-        if (cur) {
-          cur.subs.push({
-            id: next.id,
-            staff: next.staff,
-            sources: next.sources,
-            sourcesName: next.sourcesName,
-            member: next.staffName, //名字
-            subMember: next.sourcesName.join(','),
-            subRate: next.rate
-          });
-        } else
-          pre.push({
-            staff: next.staff,
-            subs: [
-              {
-                id: next.id,
-                staff: next.staff,
-                sources: next.sources,
-                sourcesName: next.sourcesName,
-                member: next.staffName, //名字
-                subMember: next.sourcesName.join(','),
-                subRate: next.rate
-              }
-            ]
-          });
-        return pre;
-      }, []);
+      const reduceData = this.serverData.rows
+        .filter(
+          it => !this.searchForm.member || this.searchForm.member === it.staff
+        )
+        .reduce((pre, next) => {
+          const cur = pre.find(p => p.staff === next.staff);
+          if (cur) {
+            cur.subs.push({
+              id: next.id,
+              staff: next.staff,
+              sources: next.sources,
+              sourcesName: next.sourcesName,
+              member: next.staffName, //名字
+              subMember: next.sourcesName.join(','),
+              subRate: next.rate
+            });
+          } else
+            pre.push({
+              staff: next.staff,
+              subs: [
+                {
+                  id: next.id,
+                  staff: next.staff,
+                  sources: next.sources,
+                  sourcesName: next.sourcesName,
+                  member: next.staffName, //名字
+                  subMember: next.sourcesName.join(','),
+                  subRate: next.rate
+                }
+              ]
+            });
+          return pre;
+        }, []);
       //再按每条绑定数据平铺
       reduceData.forEach(reduce => {
         reduce.subs.forEach(row => {
@@ -388,6 +399,7 @@ export default {
       async get() {
         let data = [];
         try {
+          console.log(this.searchForm.member);
           data = await this.$api.HisStaff.selHisStaffWorkSource();
           return {
             counts: data.length,
