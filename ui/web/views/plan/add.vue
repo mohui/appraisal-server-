@@ -415,15 +415,23 @@ export default {
     }
     this.formCopy = JSON.stringify(this.form);
   },
-  beforeRouteLeave(to, from, next) {
+  mounted() {
+    window.onbeforeunload = function() {
+      return '';
+    };
+  },
+  async beforeRouteLeave(to, from, next) {
     if (JSON.stringify(this.form) !== this.formCopy) {
-      return this.$confirm('要离开此页面?, 您有尚未保存的信息', '提示', {
-        confirmButtonText: '忽略离开',
-        cancelButtonText: '回去保存',
-        type: 'warning'
-      }).then(() => {
+      try {
+        await this.$confirm('要离开此页面?, 您有尚未保存的信息', '提示', {
+          confirmButtonText: '忽略离开',
+          cancelButtonText: '回去保存',
+          type: 'warning'
+        });
         next();
-      });
+      } catch (e) {
+        console.log(e);
+      }
     } else {
       next();
     }
