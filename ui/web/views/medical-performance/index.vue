@@ -343,9 +343,7 @@ export default {
         },
         dataZoom: [
           {
-            show: true,
-            start: 0,
-            end: 50
+            show: true
           },
           {
             type: 'inside',
@@ -462,9 +460,7 @@ export default {
           {
             show: true,
             yAxisIndex: 0,
-            left: '0%',
-            startValue: 0,
-            endValue: 6
+            left: '0%'
           },
           {
             type: 'inside',
