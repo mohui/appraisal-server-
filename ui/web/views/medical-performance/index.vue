@@ -348,7 +348,8 @@ export default {
             end: 50
           },
           {
-            type: 'inside'
+            type: 'inside',
+            zoomOnMouseWheel: 'ctrl'
           }
         ],
         xAxis: [
@@ -467,7 +468,8 @@ export default {
           },
           {
             type: 'inside',
-            yAxisIndex: 0
+            yAxisIndex: 0,
+            zoomOnMouseWheel: 'ctrl'
           }
         ],
         xAxis: {
