@@ -59,12 +59,42 @@
         size="small"
         height="100%"
         style="flex-grow: 1;"
+        :row-class-name="getRowClass"
       >
-        <el-table-column
-          type="index"
-          align="center"
-          label="序号"
-        ></el-table-column>
+        <el-table-column type="expand">
+          <template slot-scope="scope">
+            <el-table
+              :data="scope.row.children"
+              stripe
+              border
+              size="small"
+              height="100%"
+            >
+              <el-table-column type="index" width="50" label="序号">
+              </el-table-column>
+              <el-table-column prop="value" label="数值"> </el-table-column>
+              <el-table-column prop="date" label="时间"> </el-table-column>
+              <el-table-column prop="files" label="附件"> </el-table-column>
+              <el-table-column prop="remark" label="备注"> </el-table-column>
+              <el-table-column label="操作">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    @click="delManual(scope)"
+                  >
+                    清除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" width="50" label="序号">
+          <template slot-scope="scope">
+            {{ scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="members" label="考核员工">
           <template slot-scope="scope">
             <div v-if="!scope.row.EDIT || query.input === MD.PROP">
@@ -209,6 +239,11 @@ export default {
     this.getMembers();
   },
   methods: {
+    getRowClass({row}) {
+      if (!row.children.length) {
+        return 'row-expand-cover';
+      }
+    },
     //获取结算状态
     async getSettle() {
       const {name, input, settle} = await this.$api.HisManualData.get(
@@ -236,7 +271,12 @@ export default {
     //获取属性数据列表
     async getListData(id, month) {
       const result = await this.$api.HisManualData.listData(id, month);
-      return result.map(it => ({...it, initial: it, EDIT: false}));
+      return result.map(it => ({
+        ...it,
+        initial: it,
+        EDIT: false,
+        children: it.children.map(i => ({...i, date: i.date.$format()}))
+      }));
     },
     //获取日志数据列表
     async getListLogData(id, month) {
@@ -347,4 +387,10 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.row-expand-cover {
+  .el-table__expand-icon {
+    visibility: hidden;
+  }
+}
+</style>
