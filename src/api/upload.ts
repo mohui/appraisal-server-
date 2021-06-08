@@ -33,7 +33,7 @@ export default class Upload {
   }
 
   @validate(should.string().required())
-  async removeAttach(imageKey) {
-    await unifs.deleteFile(imageKey);
+  async remove(path) {
+    await unifs.deleteFile(path);
   }
 }
