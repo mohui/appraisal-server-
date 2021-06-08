@@ -24,6 +24,7 @@ type ManualPropDataReturnValue = {
   date?: Date;
   // 手工数据子集
   children: {
+    id: string;
     date: Date;
     value: number;
     files: Array<string>;
@@ -242,6 +243,7 @@ export default class HisManualData {
     }));
     //查询手工数据流水表
     const list: {
+      id;
       item;
       staff;
       name;
@@ -260,6 +262,7 @@ export default class HisManualData {
         current.size += 1;
 
         current?.children.push({
+          id: row.id,
           date: row.created_at,
           value: row.value,
           files: row?.files,
