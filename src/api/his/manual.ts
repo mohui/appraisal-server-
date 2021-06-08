@@ -22,6 +22,13 @@ type ManualPropDataReturnValue = {
   size: number;
   //赋值时间
   date?: Date;
+  // 手工数据子集
+  children: {
+    date: Date;
+    value: number;
+    files: Array<string>;
+    remark: string;
+  }[];
   //创建时间
   created_at?: Date;
   //更新时间
@@ -175,6 +182,8 @@ export default class HisManualData {
                  s.name,
                  d.value,
                  d.date,
+                 d.files,
+                 d.remark,
                  d.created_at,
                  d.updated_at
           from his_staff_manual_data_detail d
@@ -225,6 +234,7 @@ export default class HisManualData {
       value: null,
       size: 0,
       date: null,
+      children: [],
       // eslint-disable-next-line @typescript-eslint/camelcase
       created_at: null,
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -237,6 +247,8 @@ export default class HisManualData {
       name;
       value;
       date;
+      files;
+      remark;
       created_at;
       updated_at;
     }[] = await this.listLogData(id, start);
@@ -246,6 +258,13 @@ export default class HisManualData {
       if (current) {
         current.value += row.value;
         current.size += 1;
+
+        current?.children.push({
+          date: row.created_at,
+          value: row.value,
+          files: row?.files,
+          remark: row?.remark
+        });
         //指定月最后一次赋值时间
         current.date = current.date ?? row.date;
         if (row.date.getTime() > current.date.getTime()) {
@@ -277,14 +296,18 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param value 值
    * @param date 赋值时间
+   * @param files 文件路径
+   * @param remark 备注
    */
   @validate(
     should.string().required(),
     should.string().required(),
     should.number().required(),
-    should.date().required()
+    should.date().required(),
+    should.array().allow(null),
+    should.string().allow(null)
   )
-  async addLogData(staff, id, value, date) {
+  async addLogData(staff, id, value, date, files, remark) {
     //校验是否可以操作
     await this.validDetail(id, date);
     //赋值时间的转换;
@@ -307,14 +330,16 @@ export default class HisManualData {
     await appDB.execute(
       // language=PostgreSQL
       `
-        insert into his_staff_manual_data_detail(id, staff, item, date, value)
-        values (?, ?, ?, ?, ?)
+        insert into his_staff_manual_data_detail(id, staff, item, date, value, files, remark)
+        values (?, ?, ?, ?, ?, ?, ?)
       `,
       uuid(),
       staff,
       id,
       date,
-      value
+      value,
+      `{${files?.map(item => `"${item}"`).join()}}`,
+      remark
     );
   }
 
@@ -325,13 +350,17 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param value 值
    * @param date 赋值时间
+   * @param files 文件
+   * @param remark 备注
    */
   @validate(
     should.string().required(),
     should.string().required(),
-    should.number().required()
+    should.number().required(),
+    should.array().allow(null),
+    should.string().allow(null)
   )
-  async setData(staff, id, value, date) {
+  async setData(staff, id, value, date, files, remark) {
     await this.validDetail(id, date);
     const {start, end} = monthToRange(date);
     //1. 查询所有数据
@@ -355,7 +384,7 @@ export default class HisManualData {
     //2. diff
     const diff = value - total;
     //3. addLogData
-    await this.addLogData(staff, id, diff, date);
+    await this.addLogData(staff, id, diff, date, files, remark);
   }
 
   /**
