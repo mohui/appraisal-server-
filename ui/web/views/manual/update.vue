@@ -13,22 +13,6 @@
     >
       <div slot="header" class="clearfix">
         <span>{{ query.name }}</span>
-        <el-button-group style="padding-left: 20px; display: none;">
-          <el-button
-            size="small"
-            :class="{'el-button--primary': query.input === MD.PROP}"
-            @click="typeChanged"
-          >
-            属性型
-          </el-button>
-          <el-button
-            size="small"
-            :class="{'el-button--primary': query.input === MD.LOG}"
-            @click="typeChanged"
-          >
-            日志型
-          </el-button>
-        </el-button-group>
         <el-date-picker
           style="margin-left: 20px"
           v-model="query.month"
@@ -287,28 +271,6 @@ export default {
         initial: it,
         createdAt: it.date?.$format()
       }));
-    },
-    //切换数据类型
-    typeChanged() {
-      this.query.input = this.query.input === MD.LOG ? MD.PROP : MD.LOG;
-      let list = this.list;
-
-      if (this.query.input === MD.LOG && list[list.length - 1].id !== '') {
-        this.list.forEach(it => (it.EDIT = false));
-        this.list.push({
-          EDIT: true,
-          id: '',
-          value: '',
-          staff: {
-            id: '',
-            name: ''
-          },
-          createdAt: new Date().$format()
-        });
-      }
-      if (this.query.input === MD.PROP && list[list.length - 1].id === '') {
-        this.list.pop();
-      }
     },
     //添加日志数据
     async addManual(item) {
