@@ -67,6 +67,7 @@ export class HisMigration implements IMigration {
         date         timestamp with time zone,
         value        double precision,
         files        varchar(255)[],
+        remark       varchar(500),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -76,6 +77,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_manual_data_detail.date is '赋值时间';
       comment on column his_staff_manual_data_detail.value is '单位量';
       comment on column his_staff_manual_data_detail.files is '附件; unifs地址数组';
+      comment on column his_staff_manual_data_detail.remark is '备注';
 
       --工分项目表
       create table if not exists "his_work_item"
