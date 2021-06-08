@@ -343,12 +343,11 @@ export default {
         },
         dataZoom: [
           {
-            show: true,
-            start: 0,
-            end: 50
+            show: true
           },
           {
-            type: 'inside'
+            type: 'inside',
+            zoomOnMouseWheel: 'ctrl'
           }
         ],
         xAxis: [
@@ -461,13 +460,12 @@ export default {
           {
             show: true,
             yAxisIndex: 0,
-            left: '0%',
-            startValue: 0,
-            endValue: 6
+            left: '0%'
           },
           {
             type: 'inside',
-            yAxisIndex: 0
+            yAxisIndex: 0,
+            zoomOnMouseWheel: 'ctrl'
           }
         ],
         xAxis: {
@@ -558,13 +556,14 @@ export default {
     padding-top: 50px;
   }
   .total-score {
-    font-size: 22px;
+    font-size: 26px;
     color: $color-primary;
     margin: 10px;
+    font-weight: bold;
   }
   .before-correction {
     color: darkgray;
-    font-size: 12px;
+    font-size: 15px;
     margin: 10px;
   }
 }

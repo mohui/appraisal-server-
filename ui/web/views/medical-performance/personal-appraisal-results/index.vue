@@ -45,7 +45,7 @@
               class="card person-info"
               v-loading="$asyncComputed.personInfoServerData.updating"
             >
-              <div>个人信息</div>
+              <div class="title">个人信息</div>
               <el-row :gutter="10" style="height: 100%">
                 <el-col
                   v-for="(value, key) in personInfo"
@@ -73,7 +73,7 @@
                   $asyncComputed.workScoreListServerData.updating
               "
             >
-              <div>得分细则</div>
+              <div class="title">得分细则</div>
               <div style="text-align: center;">
                 <el-row>
                   <el-col :span="8" class="item">
@@ -641,6 +641,9 @@ export default {
   color: #303133;
   transition: 0.3s;
   padding: 20px;
+  .title {
+    font-weight: 500;
+  }
 }
 
 .header {
@@ -648,7 +651,7 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
+  font-weight: 500;
   .content {
     display: flex;
     flex-direction: row;
