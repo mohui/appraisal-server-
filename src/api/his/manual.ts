@@ -66,7 +66,7 @@ export default class HisManualData {
    */
   list() {
     return appDB.execute(
-      `select id, name, input, created_at, updated_at from his_manual_data`
+      `select id, name, input, created_at, updated_at from his_manual_data order by created_at`
     );
   }
 
