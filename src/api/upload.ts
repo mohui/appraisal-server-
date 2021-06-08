@@ -1,7 +1,7 @@
 import {unifs} from '../app';
 import {v4 as uuid} from 'uuid';
 import * as path from 'path';
-import {KatoRuntimeError} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 
 /**
  * 医疗手工数据附件目录
@@ -30,5 +30,10 @@ export default class Upload {
     const filename = `${HisManualAttachPath}/${uuid()}${ext}`;
     await unifs.writeFile(filename, file.buffer);
     return filename;
+  }
+
+  @validate(should.string().required())
+  async removeAttach(imageKey) {
+    await unifs.deleteFile(imageKey);
   }
 }
