@@ -119,26 +119,6 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        background
-        :current-page="searchForm.pageNo"
-        :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, pager, next"
-        style="margin:10px 0 -20px;"
-        :total="listMember.count"
-        @size-change="
-          size => {
-            searchForm.pageSize = size;
-            searchForm.pageNo = 1;
-          }
-        "
-        @current-change="
-          no => {
-            searchForm.pageNo = no;
-          }
-        "
-      >
-      </el-pagination>
     </el-card>
     <el-dialog
       title="新建用户"
