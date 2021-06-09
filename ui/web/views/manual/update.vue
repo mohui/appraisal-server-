@@ -214,8 +214,15 @@
       :before-close="handleClose"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
-      <el-form :model="curManual" label-position="right" label-width="120px">
-        <el-form-item label="考核员工：">
+      <el-form
+        :model="curManual"
+        :rules="rules"
+        ref="manualForm"
+        label-position="right"
+        label-width="120px"
+        size="mini"
+      >
+        <el-form-item label="考核员工：" prop="staff">
           <div v-if="query.input === MD.PROP">
             {{ curManual.staff.name }}
           </div>
@@ -235,7 +242,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分值：">
+        <el-form-item label="分值：" prop="value">
           <el-input-number
             v-model="curManual.value"
             size="mini"
@@ -258,14 +265,22 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="备注：">
-          <el-input v-model="curManual.remark" type="textarea"></el-input>
+          <el-input
+            v-model="curManual.remark"
+            type="textarea"
+            rows="3"
+          ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button plain @click="dialogFormVisible = false">
+        <el-button size="small" plain @click="dialogFormVisible = false">
           取 消
         </el-button>
-        <el-button type="primary" :loading="saveLoading" @click="saveManual"
+        <el-button
+          size="small"
+          type="primary"
+          :loading="saveLoading"
+          @click="saveManual"
           >保存
         </el-button>
       </div>
@@ -311,6 +326,10 @@ export default {
         value: '',
         remark: ''
       },
+      rules: {
+        staff: [{required: true, message: '请选择考核员工', trigger: 'change'}],
+        value: [{required: true, message: '请输入分值', trigger: 'change'}]
+      },
       headers: {token: getToken()},
       maxSize: 5,
       fileList: [],
@@ -321,6 +340,7 @@ export default {
         id: '',
         name: '',
         type: '',
+        input: '',
         month: new Date()
       },
       members: [],
@@ -478,10 +498,15 @@ export default {
     async saveManual() {
       const {id, input, month} = this.query;
       const API = input === MD.PROP ? 'setData' : 'addLogData';
-
+      const {staff, value, files, remark} = this.curManual;
+      const valid = await this.$refs['manualForm'].validate();
+      if (!valid) return;
+      if (!staff.id) {
+        this.$message.warning('请选择要考核的员工');
+        return;
+      }
       this.saveLoading = true;
       try {
-        const {staff, value, files, remark} = this.curManual;
         await this.$api.HisManualData[API](
           staff.id,
           id,
