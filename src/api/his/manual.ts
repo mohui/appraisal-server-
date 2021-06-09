@@ -4,6 +4,7 @@ import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB, unifs} from '../../app';
 import {getHospital, monthToRange} from './service';
+import {sql as sqlRender} from '../../database/template';
 
 /**
  * 手工数据属性型返回值
@@ -167,17 +168,25 @@ export default class HisManualData {
 
   /**
    * 查询手工数据日志值
+   *
+   * @param id 项目id
+   * @param month 月份时间
+   * @param staff 员工id
    */
-  @validate(should.string().required(), should.date().required())
-  async listLogData(id, month) {
+  @validate(
+    should.string().required(),
+    should.date().required(),
+    should.string().allow(null)
+  )
+  async listLogData(id, month, staff) {
     const hospitalId = await getHospital();
     //月份转开始结束时间
     const {start, end} = monthToRange(month);
-    return (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select d.id,
+
+    // 拼装sql语句
+    const [sql, params] = sqlRender(
+      `
+        select d.id,
                  d.item,
                  d.staff,
                  s.name,
@@ -188,18 +197,25 @@ export default class HisManualData {
                  d.created_at,
                  d.updated_at
           from his_staff_manual_data_detail d
-                 inner join staff s on d.staff = s.id and s.hospital = ?
-          where d.item = ?
-            and d.date >= ?
-            and d.date < ?
+                 inner join staff s on d.staff = s.id and s.hospital = {{? hospitalId}}
+          where d.item = {{? id}}
+            and d.date >= {{? start}}
+            and d.date < {{? end}}
+            {{#if staff}}
+              AND d.staff = {{? staff}}
+            {{/if}}
           order by d.date, created_at
-        `,
+      `,
+      {
         hospitalId,
         id,
         start,
-        end
-      )
-    ).map(it => ({
+        end,
+        staff
+      }
+    );
+
+    return (await appDB.execute(sql, ...params)).map(it => ({
       ...it,
       staff: {
         id: it.staff,
@@ -253,7 +269,7 @@ export default class HisManualData {
       remark;
       created_at;
       updated_at;
-    }[] = await this.listLogData(id, start);
+    }[] = await this.listLogData(id, start, null);
     //累计属性值
     for (const row of list) {
       const current = rows.find(it => it.staff.id === row.staff.id);
