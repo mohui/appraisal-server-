@@ -438,14 +438,15 @@ export default {
           value,
           month,
           files,
-          remark
+          remark || null
         );
         await this.monthChanged();
         this.$message.success(input === MD.PROP ? '更新成功!' : '添加成功！');
-        this.handleClose();
-        this.saveLoading = false;
       } catch (e) {
         this.$message.error(e.message);
+      } finally {
+        this.handleClose();
+        this.saveLoading = false;
       }
     },
     //清除数据记录
