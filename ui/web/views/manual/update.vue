@@ -23,6 +23,24 @@
           @change="monthChanged"
         >
         </el-date-picker>
+        <el-select
+          v-if="query.input === MD.LOG"
+          v-model="searchForm.member"
+          style="margin-left: 10px"
+          size="mini"
+          clearable
+          filterable
+          placeholder="请选择考核员工"
+          @change="monthChanged"
+        >
+          <el-option
+            v-for="item in members"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          >
+          </el-option>
+        </el-select>
         <el-button
           style="float: right;margin: -4px 0 0 20px;"
           size="small"
@@ -268,6 +286,9 @@ export default {
   name: 'Update',
   data() {
     return {
+      searchForm: {
+        member: ''
+      },
       saveLoading: false,
       dialogImgVisible: false,
       imgUrl: '',
@@ -394,10 +415,11 @@ export default {
       this.isLoading = true;
       await this.getSettle();
       const {id, input, month} = this.query;
+      const {member} = this.searchForm;
       this.list =
         input === MD.PROP
           ? await this.getListData(id, month)
-          : await this.getListLogData(id, month);
+          : await this.getListLogData(id, month, member);
       this.isLoading = false;
     },
     //获取员工列表
@@ -413,8 +435,12 @@ export default {
       }));
     },
     //获取日志数据列表
-    async getListLogData(id, month) {
-      const result = await this.$api.HisManualData.listLogData(id, month);
+    async getListLogData(id, month, member) {
+      const result = await this.$api.HisManualData.listLogData(
+        id,
+        month,
+        member || null
+      );
       return result.map(it => ({
         ...it,
         createdAt: it.date?.$format()
