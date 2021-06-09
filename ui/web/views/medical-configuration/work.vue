@@ -125,62 +125,18 @@
         <el-form-item label="工分项" prop="work">
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
-        <el-form-item label="工分项来源" prop="source">
-          <el-button-group>
-            <el-button
-              v-for="s of HisWorkSource"
-              :key="s.key"
-              size="mini"
-              :class="{
-                'el-button--primary': newWork.source === s.value
-              }"
-              @click="newWork.source = s.value"
-            >
-              {{ s.value }}
-            </el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item label="关联项目" prop="projects">
-          <el-select
-            v-model="newWork.projects"
-            :loading="searchLoading"
-            style="width: 100%"
-            clearable
-            filterable
-            remote
-            :remote-method="remoteSearch"
-            multiple
-          >
-            <el-option
-              v-for="p in projectList"
-              :key="p.id"
-              :label="p.name"
-              :value="p.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="打分方式" prop="scoreMethod">
-          <el-button-group>
-            <el-button
-              size="small"
-              :class="{
-                'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
-              }"
-              @click="newWork.scoreMethod = HisWorkMethod.SUM"
-            >
-              {{ HisWorkMethod.SUM }}
-            </el-button>
-            <el-button
-              size="small"
-              :class="{
-                'el-button--primary':
-                  newWork.scoreMethod === HisWorkMethod.AMOUNT
-              }"
-              @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
-            >
-              {{ HisWorkMethod.AMOUNT }}
-            </el-button>
-          </el-button-group>
+        <el-form-item label="关联项目">
+          <div class="long-tree">
+            <el-tree
+              ref="tree"
+              :data="workTreeData"
+              :load="loadNode"
+              :props="treeProps"
+              lazy
+              node-key="id"
+              show-checkbox
+            ></el-tree>
+          </div>
         </el-form-item>
         <el-form-item
           v-show="newWork.oldProjects.length > 0"
@@ -253,7 +209,11 @@ export default {
       HisWorkSource: Object.keys(HisWorkSource).map(it => ({
         value: HisWorkSource[it],
         key: it
-      }))
+      })),
+      treeProps: {
+        label: 'name',
+        isLeaf: 'leaf'
+      }
     };
   },
   computed: {
@@ -304,12 +264,26 @@ export default {
         }
       },
       default: []
+    },
+    workTreeData: {
+      async get() {
+        return await this.$api.HisWorkItem.sources(null);
+      },
+      default() {
+        return [];
+      }
     }
   },
   methods: {
     async submit() {
       try {
+        const checked = this.$refs.tree.getCheckedNodes(true);
+        const current = this.$refs.tree.getHalfCheckedNodes();
+
+        console.log(checked);
+        console.log(current);
         const valid = await this.$refs['workForm'].validate();
+
         if (valid) {
           let allProjects = Array.from(
             new Set(
@@ -389,6 +363,7 @@ export default {
     },
     resetConfig(ref) {
       this.$refs[ref].resetFields();
+      this.$refs.tree.setCheckedKeys([]);
       this.newWork = {
         work: '',
         source: HisWorkSource.CHECK,
@@ -419,6 +394,16 @@ export default {
         this.searchLoading = false;
       }
     },
+    async loadNode(node, resolve) {
+      if (node.level === 0) {
+        return resolve(this.workTreeData);
+      }
+      console.log(node);
+      if (node.level > 0) {
+        const data = await this.$api.HisWorkItem.sources(node.data.id);
+        resolve(data);
+      } else return resolve([]);
+    },
     closeTag(tag) {
       this.newWork.oldProjects.splice(
         this.newWork.oldProjects.findIndex(o => o.id === tag.id),
@@ -433,6 +418,11 @@ export default {
 .work-header {
   display: flex;
   justify-content: space-between;
+}
+.long-tree {
+  height: 40vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .cell-long-span {
   width: 100%;
