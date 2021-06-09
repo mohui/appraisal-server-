@@ -19,6 +19,19 @@ export default class Upload {
   }
 
   /**
+   * unifs文件地址列表
+   * @param urls
+   */
+  @validate(should.array().required())
+  async signList(urls) {
+    const list = [];
+    for (const it of urls) {
+      list.push(await unifs.getExternalUrl(it));
+    }
+    return list;
+  }
+
+  /**
    * 医疗手工数据的附件上传接口
    *
    * @param file 文件对象
