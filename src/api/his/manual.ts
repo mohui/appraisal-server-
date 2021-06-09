@@ -2,7 +2,7 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
-import {appDB} from '../../app';
+import {appDB, unifs} from '../../app';
 import {getHospital, monthToRange} from './service';
 
 /**
@@ -430,28 +430,43 @@ export default class HisManualData {
    */
   @validate(should.string().required())
   async delLogData(id) {
-    const logModel: {id: string; staff: string; item: string; date: Date} = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select id, staff, item, date
+    return appDB.transaction(async () => {
+      const logModel: {
+        id: string;
+        staff: string;
+        item: string;
+        date: Date;
+        files: [];
+        remark: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          select id, staff, item, date, files, remark
           from his_staff_manual_data_detail
           where id = ?
         `,
-        id
-      )
-    )[0];
-    if (!logModel) throw new KatoRuntimeError(`数据不存在`);
-    await this.validDetail(logModel.item, logModel.date);
-    await appDB.execute(
-      // language=PostgreSQL
-      `
+          id
+        )
+      )[0];
+      if (!logModel) throw new KatoRuntimeError(`数据不存在`);
+      await this.validDetail(logModel.item, logModel.date);
+
+      if (logModel?.files?.length > 0) {
+        for (const file of logModel.files) {
+          await unifs.deleteFile(file);
+        }
+      }
+      await appDB.execute(
+        // language=PostgreSQL
+        `
         delete
         from his_staff_manual_data_detail
         where id = ?
       `,
-      id
-    );
+        id
+      );
+    });
   }
 
   /**
