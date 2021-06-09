@@ -19,6 +19,7 @@
           size="mini"
           type="month"
           placeholder="选择月"
+          :clearable="false"
           @change="monthChanged"
         >
         </el-date-picker>
