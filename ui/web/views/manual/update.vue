@@ -94,12 +94,13 @@
               <el-table-column prop="value" label="数值"> </el-table-column>
               <el-table-column prop="files" label="附件">
                 <template slot-scope="scope">
-                  <i
-                    v-for="it in scope.row.files"
-                    :key="it"
-                    class="el-icon-picture-outline"
-                    @click="getImg(it)"
-                  ></i>
+                  <el-image
+                    v-if="scope.row.hasFile"
+                    style="width: 20px; height: 20px"
+                    :src="scope.row.files[0]"
+                    :preview-src-list="scope.row.files"
+                  >
+                  </el-image>
                 </template>
               </el-table-column>
               <el-table-column prop="remark" label="备注"> </el-table-column>
@@ -172,12 +173,13 @@
         </el-table-column>
         <el-table-column prop="files" label="附件" align="center">
           <template slot-scope="scope">
-            <i
-              v-for="it in scope.row.files"
-              :key="it"
-              class="el-icon-picture-outline"
-              @click="getImg(it)"
-            ></i>
+            <el-image
+              v-if="scope.row.hasFile"
+              style="width: 20px; height: 20px"
+              :src="scope.row.files[0]"
+              :preview-src-list="scope.row.files"
+            >
+            </el-image>
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注"></el-table-column>
@@ -325,15 +327,6 @@ export default {
     this.getMembers();
   },
   methods: {
-    //获取图片完整URL
-    async getImg(url) {
-      try {
-        this.imgUrl = await this.$api.Upload.sign(url);
-        this.dialogImgVisible = true;
-      } catch (e) {
-        this.$message.error(e.message);
-      }
-    },
     //保存图片预览窗口
     handleImgClose() {
       this.dialogImgVisible = false;
@@ -429,10 +422,24 @@ export default {
     //获取属性数据列表
     async getListData(id, month) {
       const result = await this.$api.HisManualData.listData(id, month);
-      return result.map(it => ({
-        ...it,
-        children: it.children.map(i => ({...i, date: i.date.$format()}))
-      }));
+      return await Promise.all(
+        result.map(async it => ({
+          ...it,
+          children: await Promise.all(
+            it.children.map(async i => {
+              const files = await Promise.all(
+                (i?.files ?? []).map(url => this.$api.Upload.sign(url))
+              );
+              return {
+                ...i,
+                hasFile: !!i.files?.length,
+                files,
+                date: i.date.$format()
+              };
+            })
+          )
+        }))
+      );
     },
     //获取日志数据列表
     async getListLogData(id, month, member) {
@@ -441,10 +448,20 @@ export default {
         month,
         member || null
       );
-      return result.map(it => ({
-        ...it,
-        createdAt: it.date?.$format()
-      }));
+      return await Promise.all(
+        result.map(async it => {
+          const files = await Promise.all(
+            (it?.files ?? []).map(url => this.$api.Upload.sign(url))
+          );
+
+          return {
+            ...it,
+            hasFile: !!it.files?.length,
+            files,
+            createdAt: it.date?.$format()
+          };
+        })
+      );
     },
     editManual({row}) {
       this.dialogFormVisible = true;
