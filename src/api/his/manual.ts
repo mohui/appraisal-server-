@@ -422,6 +422,39 @@ export default class HisManualData {
   async delData(staff, id, month) {
     await this.validDetail(id, month);
     const {start, end} = monthToRange(month);
+    // 先查询
+    const logModels: {
+      id: string;
+      staff: string;
+      item: string;
+      date: Date;
+      files: [];
+      remark: string;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+          select id, staff, item, date, files, remark
+          from his_staff_manual_data_detail
+          where staff = ?
+          and item = ?
+          and date >= ?
+          and date < ?
+        `,
+      staff,
+      id,
+      start,
+      end
+    );
+
+    if (logModels.length === 0) throw new KatoRuntimeError(`没有可删除的数据`);
+    for (const detail of logModels) {
+      if (detail.files.length > 0) {
+        for (const file of detail.files) {
+          await unifs.deleteFile(file);
+        }
+      }
+    }
+
     await appDB.execute(
       // language=PostgreSQL
       `
