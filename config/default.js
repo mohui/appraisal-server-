@@ -118,6 +118,20 @@ module.exports = {
     //     region: 'oss-cn-shanghai',
     //     bucket: 'knrt-doctor-app'
     //   }
+    // },
+    // 医疗绩效手工数据附件
+    // {
+    //   path: '/his/manual',
+    //   type: 'local',
+    //   options: {
+    //     // 本机存储路径
+    //     base: '/tmp/his',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/his/manual',
+    //       key: ''
+    //     }
+    //   }
     // }
   ],
   // etl检查任务的配置

@@ -2,8 +2,9 @@ import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
-import {appDB} from '../../app';
+import {appDB, unifs} from '../../app';
 import {getHospital, monthToRange} from './service';
+import {sql as sqlRender} from '../../database/template';
 
 /**
  * 手工数据属性型返回值
@@ -22,6 +23,14 @@ type ManualPropDataReturnValue = {
   size: number;
   //赋值时间
   date?: Date;
+  // 手工数据子集
+  children: {
+    id: string;
+    date: Date;
+    value: number;
+    files: Array<string>;
+    remark: string;
+  }[];
   //创建时间
   created_at?: Date;
   //更新时间
@@ -66,7 +75,7 @@ export default class HisManualData {
    */
   list() {
     return appDB.execute(
-      `select id, name, input, created_at, updated_at from his_manual_data`
+      `select id, name, input, created_at, updated_at from his_manual_data order by created_at`
     );
   }
 
@@ -159,37 +168,54 @@ export default class HisManualData {
 
   /**
    * 查询手工数据日志值
+   *
+   * @param id 项目id
+   * @param month 月份时间
+   * @param staff 员工id
    */
-  @validate(should.string().required(), should.date().required())
-  async listLogData(id, month) {
+  @validate(
+    should.string().required(),
+    should.date().required(),
+    should.string().allow(null)
+  )
+  async listLogData(id, month, staff) {
     const hospitalId = await getHospital();
     //月份转开始结束时间
     const {start, end} = monthToRange(month);
-    return (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select d.id,
+
+    // 拼装sql语句
+    const [sql, params] = sqlRender(
+      `
+        select d.id,
                  d.item,
                  d.staff,
                  s.name,
                  d.value,
                  d.date,
+                 d.files,
+                 d.remark,
                  d.created_at,
                  d.updated_at
           from his_staff_manual_data_detail d
-                 inner join staff s on d.staff = s.id and s.hospital = ?
-          where d.item = ?
-            and d.date >= ?
-            and d.date < ?
+                 inner join staff s on d.staff = s.id and s.hospital = {{? hospitalId}}
+          where d.item = {{? id}}
+            and d.date >= {{? start}}
+            and d.date < {{? end}}
+            {{#if staff}}
+              AND d.staff = {{? staff}}
+            {{/if}}
           order by d.date, created_at
-        `,
+      `,
+      {
         hospitalId,
         id,
         start,
-        end
-      )
-    ).map(it => ({
+        end,
+        staff
+      }
+    );
+
+    return (await appDB.execute(sql, ...params)).map(it => ({
       ...it,
       staff: {
         id: it.staff,
@@ -225,6 +251,7 @@ export default class HisManualData {
       value: null,
       size: 0,
       date: null,
+      children: [],
       // eslint-disable-next-line @typescript-eslint/camelcase
       created_at: null,
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -232,20 +259,31 @@ export default class HisManualData {
     }));
     //查询手工数据流水表
     const list: {
+      id;
       item;
       staff;
       name;
       value;
       date;
+      files;
+      remark;
       created_at;
       updated_at;
-    }[] = await this.listLogData(id, start);
+    }[] = await this.listLogData(id, start, null);
     //累计属性值
     for (const row of list) {
       const current = rows.find(it => it.staff.id === row.staff.id);
       if (current) {
         current.value += row.value;
         current.size += 1;
+
+        current?.children.push({
+          id: row.id,
+          date: row.created_at,
+          value: row.value,
+          files: row?.files,
+          remark: row?.remark
+        });
         //指定月最后一次赋值时间
         current.date = current.date ?? row.date;
         if (row.date.getTime() > current.date.getTime()) {
@@ -277,14 +315,18 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param value 值
    * @param date 赋值时间
+   * @param files 文件路径
+   * @param remark 备注
    */
   @validate(
     should.string().required(),
     should.string().required(),
     should.number().required(),
-    should.date().required()
+    should.date().required(),
+    should.array().allow(null),
+    should.string().allow(null)
   )
-  async addLogData(staff, id, value, date) {
+  async addLogData(staff, id, value, date, files, remark) {
     //校验是否可以操作
     await this.validDetail(id, date);
     //赋值时间的转换;
@@ -307,14 +349,16 @@ export default class HisManualData {
     await appDB.execute(
       // language=PostgreSQL
       `
-        insert into his_staff_manual_data_detail(id, staff, item, date, value)
-        values (?, ?, ?, ?, ?)
+        insert into his_staff_manual_data_detail(id, staff, item, date, value, files, remark)
+        values (?, ?, ?, ?, ?, ?, ?)
       `,
       uuid(),
       staff,
       id,
       date,
-      value
+      value,
+      `{${files?.map(item => `"${item}"`).join()}}`,
+      remark
     );
   }
 
@@ -325,13 +369,18 @@ export default class HisManualData {
    * @param id 手工数据id
    * @param value 值
    * @param date 赋值时间
+   * @param files 文件
+   * @param remark 备注
    */
   @validate(
     should.string().required(),
     should.string().required(),
-    should.number().required()
+    should.number().required(),
+    should.date().required(),
+    should.array().allow(null),
+    should.string().allow(null)
   )
-  async setData(staff, id, value, date) {
+  async setData(staff, id, value, date, files, remark) {
     await this.validDetail(id, date);
     const {start, end} = monthToRange(date);
     //1. 查询所有数据
@@ -355,7 +404,7 @@ export default class HisManualData {
     //2. diff
     const diff = value - total;
     //3. addLogData
-    await this.addLogData(staff, id, diff, date);
+    await this.addLogData(staff, id, diff, date, files, remark);
   }
 
   /**
@@ -373,6 +422,39 @@ export default class HisManualData {
   async delData(staff, id, month) {
     await this.validDetail(id, month);
     const {start, end} = monthToRange(month);
+    // 先查询
+    const logModels: {
+      id: string;
+      staff: string;
+      item: string;
+      date: Date;
+      files: [];
+      remark: string;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+          select id, staff, item, date, files, remark
+          from his_staff_manual_data_detail
+          where staff = ?
+          and item = ?
+          and date >= ?
+          and date < ?
+        `,
+      staff,
+      id,
+      start,
+      end
+    );
+
+    if (logModels.length === 0) throw new KatoRuntimeError(`没有可删除的数据`);
+    for (const detail of logModels) {
+      if (detail.files.length > 0) {
+        for (const file of detail.files) {
+          await unifs.deleteFile(file);
+        }
+      }
+    }
+
     await appDB.execute(
       // language=PostgreSQL
       `
@@ -397,28 +479,43 @@ export default class HisManualData {
    */
   @validate(should.string().required())
   async delLogData(id) {
-    const logModel: {id: string; staff: string; item: string; date: Date} = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select id, staff, item, date
+    return appDB.transaction(async () => {
+      const logModel: {
+        id: string;
+        staff: string;
+        item: string;
+        date: Date;
+        files: [];
+        remark: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          select id, staff, item, date, files, remark
           from his_staff_manual_data_detail
           where id = ?
         `,
-        id
-      )
-    )[0];
-    if (!logModel) throw new KatoRuntimeError(`数据不存在`);
-    await this.validDetail(logModel.item, logModel.date);
-    await appDB.execute(
-      // language=PostgreSQL
-      `
+          id
+        )
+      )[0];
+      if (!logModel) throw new KatoRuntimeError(`数据不存在`);
+      await this.validDetail(logModel.item, logModel.date);
+
+      if (logModel?.files?.length > 0) {
+        for (const file of logModel.files) {
+          await unifs.deleteFile(file);
+        }
+      }
+      await appDB.execute(
+        // language=PostgreSQL
+        `
         delete
         from his_staff_manual_data_detail
         where id = ?
       `,
-      id
-    );
+        id
+      );
+    });
   }
 
   /**
