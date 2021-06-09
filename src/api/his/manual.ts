@@ -360,6 +360,7 @@ export default class HisManualData {
     should.string().required(),
     should.string().required(),
     should.number().required(),
+    should.date().required(),
     should.array().allow(null),
     should.string().allow(null)
   )
