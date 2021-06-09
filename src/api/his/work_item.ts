@@ -20,11 +20,7 @@ const HisWorkItemSources: {
   //{id: '住院-检查项目-{id}', name: 'B超', parent: '门诊-检查项目'},
   {id: '门诊-药品', name: '药品', parent: '门诊'},
   {id: '住院', name: '住院', parent: null},
-  {
-    id: '住院-检查项目',
-    name: '检查项目',
-    parent: '住院'
-  },
+  {id: '住院-检查项目', name: '检查项目', parent: '住院'},
   {id: '住院-药品', name: '药品', parent: '住院'},
   {id: '手工数据', name: '手工数据', parent: null},
   {id: '公卫数据', name: '公卫数据', parent: null}
@@ -40,6 +36,7 @@ const HisWorkItemSources: {
  * 公分项列表
  */
 export default class HisWorkItem {
+  // region 公分项目的增删改查
   /**
    * 新建公分项
    *
@@ -269,6 +266,9 @@ export default class HisWorkItem {
     return workItemList;
   }
 
+  // endregion
+
+  // region 公分项目来源, 和员工绑定的增删改查
   /**
    * 医疗工分项目来源
    * @param type 工分项目来源
@@ -631,5 +631,120 @@ export default class HisWorkItem {
         usable: !index
       };
     });
+  }
+  // endregion
+
+  /**
+   * 工分项目来源
+   * @param parent
+   */
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('父级id')
+  )
+  async sources(parent) {
+    if (!parent) return HisWorkItemSources.filter(it => !it.parent);
+    const hospital = await getHospital();
+    let sql, params;
+    switch (parent) {
+      case '门诊':
+        return HisWorkItemSources.filter(it => it.parent === '门诊');
+      case '住院':
+        return HisWorkItemSources.filter(it => it.parent === '住院');
+      case '手工数据':
+        [sql, params] = sqlRender(
+          `
+            select id, name
+              from his_manual_data
+            where hospital = {{? hospital}}
+            limit 50
+          `,
+          {
+            hospital
+          }
+        );
+        return (await appDB.execute(sql, ...params))?.map(it => {
+          return {
+            ...it,
+            parent: '手工数据'
+          };
+        });
+      case '公卫数据':
+        return HisWorkItemSources.filter(it => it.parent === '公卫数据');
+      case '门诊-检查项目':
+      case '住院-检查项目':
+        return (
+          await originalDB.execute(
+            `select code, name from his_dict where category_code = '10201005'`
+          )
+        )?.map(it => {
+          return {
+            id: `${parent}-${it.code}`,
+            name: it.name,
+            parent: parent
+          };
+        });
+      case '门诊-药品':
+      case '住院-药品':
+        return (
+          await originalDB.execute(
+            `select code, name from his_dict where category_code = '10301001'`
+          )
+        )?.map(it => {
+          return {
+            id: `${parent}-${it.code}`,
+            name: it.name,
+            parent: parent
+          };
+        });
+    }
+
+    const ids = parent.split('-');
+    if (ids.length < 3) throw new KatoRuntimeError(`参数有误`);
+
+    // 门诊,住院药品
+    if (ids[1] === '药品') {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_drug
+        where category = {{? category}}
+      `,
+        {
+          category: ids[2]
+        }
+      );
+      return (await originalDB.execute(sql, ...params))?.map(it => {
+        return {
+          id: `${parent}-${it.id}`,
+          name: it.name,
+          parent: parent
+        };
+      });
+    }
+    // 门诊,住院检查项目
+    if (ids[1] === '检查项目') {
+      [sql, params] = sqlRender(
+        `
+        select id, name
+        from his_check
+        where status = true
+        and category = {{? category}}
+      `,
+        {
+          category: ids[2]
+        }
+      );
+      return (await originalDB.execute(sql, ...params))?.map(it => {
+        return {
+          id: `${parent}-${it.id}`,
+          name: it.name,
+          parent: parent
+        };
+      });
+    }
+    throw new KatoRuntimeError(`参数有误`);
   }
 }
