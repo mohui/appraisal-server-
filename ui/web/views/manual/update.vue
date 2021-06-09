@@ -82,6 +82,12 @@
       >
         <el-table-column type="expand">
           <template slot-scope="scope">
+            <el-tabs v-model="activeName">
+              <el-tab-pane
+                :label="scope.row.staff.name + ' 的修改记录：'"
+                name="first"
+              ></el-tab-pane>
+            </el-tabs>
             <el-table
               :data="scope.row.children"
               stripe
@@ -288,6 +294,7 @@ export default {
   name: 'Update',
   data() {
     return {
+      activeName: 'first',
       searchForm: {
         member: ''
       },
