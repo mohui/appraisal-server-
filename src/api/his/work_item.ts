@@ -637,22 +637,53 @@ export default class HisWorkItem {
   /**
    * 工分项目来源
    * @param parent
+   * @param item
    */
   @validate(
     should
       .string()
       .allow(null)
-      .description('父级id')
+      .description('父级id'),
+    should
+      .string()
+      .allow(null)
+      .description('工分项目id')
   )
-  async sources(parent) {
-    if (!parent) return HisWorkItemSources.filter(it => !it.parent);
+  async sources(parent, item) {
     const hospital = await getHospital();
     let sql, params;
+    let list = [];
+    if (!parent) {
+      list = HisWorkItemSources.filter(it => !it.parent).map(it => {
+        return {
+          ...it
+        };
+      });
+    }
     switch (parent) {
       case '门诊':
-        return HisWorkItemSources.filter(it => it.parent === '门诊');
+        list = HisWorkItemSources.filter(it => it.parent === '门诊').map(it => {
+          return {
+            ...it
+          };
+        });
+        break;
       case '住院':
-        return HisWorkItemSources.filter(it => it.parent === '住院');
+        list = HisWorkItemSources.filter(it => it.parent === '住院').map(it => {
+          return {
+            ...it
+          };
+        });
+        break;
+      case '公卫数据':
+        list = HisWorkItemSources.filter(it => it.parent === '公卫数据').map(
+          it => {
+            return {
+              ...it
+            };
+          }
+        );
+        break;
       case '手工数据':
         [sql, params] = sqlRender(
           `
@@ -665,17 +696,16 @@ export default class HisWorkItem {
             hospital
           }
         );
-        return (await appDB.execute(sql, ...params))?.map(it => {
+        list = (await appDB.execute(sql, ...params))?.map(it => {
           return {
             ...it,
             parent: '手工数据'
           };
         });
-      case '公卫数据':
-        return HisWorkItemSources.filter(it => it.parent === '公卫数据');
+        break;
       case '门诊-检查项目':
       case '住院-检查项目':
-        return (
+        list = (
           await originalDB.execute(
             `select code, name from his_dict where category_code = '10201005'`
           )
@@ -686,9 +716,10 @@ export default class HisWorkItem {
             parent: parent
           };
         });
+        break;
       case '门诊-药品':
       case '住院-药品':
-        return (
+        list = (
           await originalDB.execute(
             `select code, name from his_dict where category_code = '10301001'`
           )
@@ -699,52 +730,74 @@ export default class HisWorkItem {
             parent: parent
           };
         });
-    }
+        break;
+      default:
+        // eslint-disable-next-line no-case-declarations
+        let ids = [];
+        if (parent) {
+          ids = parent.split('-');
+          if (ids.length < 3) throw new KatoRuntimeError(`参数有误`);
+        }
 
-    const ids = parent.split('-');
-    if (ids.length < 3) throw new KatoRuntimeError(`参数有误`);
-
-    // 门诊,住院药品
-    if (ids[1] === '药品') {
-      [sql, params] = sqlRender(
-        `
+        // 门诊,住院药品
+        if (ids[1] === '药品') {
+          [sql, params] = sqlRender(
+            `
         select id, name
         from his_drug
         where category = {{? category}}
       `,
-        {
-          category: ids[2]
+            {
+              category: ids[2]
+            }
+          );
+          list = (await originalDB.execute(sql, ...params))?.map(it => {
+            return {
+              id: `${parent}-${it.id}`,
+              name: it.name,
+              parent: parent
+            };
+          });
         }
-      );
-      return (await originalDB.execute(sql, ...params))?.map(it => {
-        return {
-          id: `${parent}-${it.id}`,
-          name: it.name,
-          parent: parent
-        };
-      });
-    }
-    // 门诊,住院检查项目
-    if (ids[1] === '检查项目') {
-      [sql, params] = sqlRender(
-        `
+        // 门诊,住院检查项目
+        if (ids[1] === '检查项目') {
+          [sql, params] = sqlRender(
+            `
         select id, name
         from his_check
         where status = true
         and category = {{? category}}
       `,
-        {
-          category: ids[2]
+            {
+              category: ids[2]
+            }
+          );
+          list = (await originalDB.execute(sql, ...params))?.map(it => {
+            return {
+              id: `${parent}-${it.id}`,
+              name: it.name,
+              parent: parent
+            };
+          });
         }
-      );
-      return (await originalDB.execute(sql, ...params))?.map(it => {
-        return {
-          id: `${parent}-${it.id}`,
-          name: it.name,
-          parent: parent
-        };
-      });
+        break;
     }
-    throw new KatoRuntimeError(`参数有误`);
+
+    let mappingItems = [];
+    // 如果传了工分项目id,说明是修改,需要把已有的来源默认选中
+    if (item) {
+      mappingItems = await appDB.execute(
+        `select source from his_work_item_mapping where item = ?`,
+        item
+      );
+    }
+
+    return list.map(it => {
+      const index = mappingItems.find(mapping => mapping.source === it.id);
+      return {
+        ...it,
+        selected: !!index
+      };
+    });
   }
 }
