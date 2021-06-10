@@ -102,9 +102,9 @@ export default class HisStaff {
     const settle = await getSettle(hospital, start);
     return {
       ...staffModel,
-      sex: hisModel.sex,
-      phone: hisModel.phone,
-      birth: hisModel.birth,
+      sex: hisModel?.sex ?? null,
+      phone: hisModel?.phone ?? null,
+      birth: hisModel?.birth ?? null,
       extra: score ?? null,
       settle
     };
