@@ -15,13 +15,13 @@ const HisWorkItemSources: {
   parent?: string;
 }[] = [
   {id: '门诊', name: '门诊', parent: null},
-  {id: '门诊-检查项目', name: '检查项目', parent: '门诊'},
+  {id: '门诊.检查项目', name: '检查项目', parent: '门诊'},
   //示例
   //{id: '住院-检查项目-{id}', name: 'B超', parent: '门诊-检查项目'},
-  {id: '门诊-药品', name: '药品', parent: '门诊'},
+  {id: '门诊.药品', name: '药品', parent: '门诊'},
   {id: '住院', name: '住院', parent: null},
-  {id: '住院-检查项目', name: '检查项目', parent: '住院'},
-  {id: '住院-药品', name: '药品', parent: '住院'},
+  {id: '住院.检查项目', name: '检查项目', parent: '住院'},
+  {id: '住院.药品', name: '药品', parent: '住院'},
   {id: '手工数据', name: '手工数据', parent: null},
   {id: '公卫数据', name: '公卫数据', parent: null}
 ];
@@ -78,12 +78,26 @@ export default class HisWorkItem {
 
       // 添加工分项目与his收费项目关联表
       for (const sourceId of mappings) {
+        let code = null;
+        const sources = sourceId?.split('.') ?? [];
+        // 手工数据
+        if (sourceId.startsWith('手工数据') && sources.length === 2) {
+          code = sources[1];
+        }
+        // 手工数据
+        if (
+          (sourceId.startsWith('门诊') || sourceId.startsWith('住院')) &&
+          sources.length === 4
+        ) {
+          code = sources[3];
+        }
         await appDB.execute(
           `insert into
-              his_work_item_mapping(item, source, created_at, updated_at)
-              values(?, ?, ?, ?)`,
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
           hisWorkItemId,
           sourceId,
+          code,
           dayjs().toDate(),
           dayjs().toDate()
         );
@@ -113,13 +127,6 @@ export default class HisWorkItem {
       .description('得分方式; 计数/总和'),
     should
       .array()
-      .items({
-        source: should.array().required(),
-        type: should
-          .string()
-          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
-          .description('类型; 检查项目/药品/手工数据')
-      })
       .required()
       .description('来源id[]')
   )
@@ -143,20 +150,31 @@ export default class HisWorkItem {
         id
       );
       // 添加工分项目与his收费项目关联表
-      for (const it of mappings) {
-        for (const sourceId of it.source) {
-          // 再添加
-          await appDB.execute(
-            `insert into
-              his_work_item_mapping(item, source, type, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-            id,
-            sourceId,
-            it.type,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
+      for (const sourceId of mappings) {
+        let code = null;
+        const sources = sourceId?.split('.') ?? [];
+        // 手工数据
+        if (sourceId.startsWith('手工数据') && sources.length === 2) {
+          code = sources[1];
         }
+        // 手工数据
+        if (
+          (sourceId.startsWith('门诊') || sourceId.startsWith('住院')) &&
+          sources.length === 4
+        ) {
+          code = sources[3];
+        }
+        // 再添加
+        await appDB.execute(
+          `insert into
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          id,
+          sourceId,
+          code,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
     });
   }
@@ -205,20 +223,21 @@ export default class HisWorkItem {
       const itemId = it?.id;
       // 查找工分项目来源
       const workItemMappingList = await appDB.execute(
-        `select item, source, type from his_work_item_mapping where item = ?`,
+        `select item, source, code from his_work_item_mapping where item = ?`,
         itemId
       );
       const checkIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.CHECK)
-        .map(it => it.source);
+        .filter(it => it.source?.includes('检查项目') && it.code)
+        .map(it => it.code);
+      // console.log(checkIds);
 
       const drugsIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.DRUG)
-        .map(it => it.source);
+        .filter(it => it.source?.includes('药品') && it.code)
+        .map(it => it.code);
 
       const manualIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.MANUAL)
-        .map(it => it.source);
+        .filter(it => it.source?.includes('手工数据') && it.code)
+        .map(it => it.code);
       // 检查项目列表
       let checks = [];
       // 药品
@@ -688,34 +707,35 @@ export default class HisWorkItem {
         );
         list = (await appDB.execute(sql, ...params))?.map(it => {
           return {
-            ...it,
+            id: `${parent}.${it.id}`,
+            name: it.name,
             parent: '手工数据'
           };
         });
         break;
-      case '门诊-检查项目':
-      case '住院-检查项目':
+      case '门诊.检查项目':
+      case '住院.检查项目':
         list = (
           await originalDB.execute(
             `select code, name from his_dict where category_code = '10201005'`
           )
         )?.map(it => {
           return {
-            id: `${parent}-${it.code}`,
+            id: `${parent}.${it.code}`,
             name: it.name,
             parent: parent
           };
         });
         break;
-      case '门诊-药品':
-      case '住院-药品':
+      case '门诊.药品':
+      case '住院.药品':
         list = (
           await originalDB.execute(
             `select code, name from his_dict where category_code = '10301001'`
           )
         )?.map(it => {
           return {
-            id: `${parent}-${it.code}`,
+            id: `${parent}.${it.code}`,
             name: it.name,
             parent: parent
           };
@@ -725,7 +745,7 @@ export default class HisWorkItem {
         // eslint-disable-next-line no-case-declarations
         let ids = [];
         if (parent) {
-          ids = parent.split('-');
+          ids = parent.split('.');
           if (ids.length !== 3) return [];
         }
 
@@ -743,7 +763,7 @@ export default class HisWorkItem {
           );
           list = (await originalDB.execute(sql, ...params))?.map(it => {
             return {
-              id: `${parent}-${it.id}`,
+              id: `${parent}.${it.id}`,
               name: it.name,
               parent: parent
             };
@@ -764,7 +784,7 @@ export default class HisWorkItem {
           );
           list = (await originalDB.execute(sql, ...params))?.map(it => {
             return {
-              id: `${parent}-${it.id}`,
+              id: `${parent}.${it.id}`,
               name: it.name,
               parent: parent
             };
