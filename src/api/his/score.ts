@@ -830,7 +830,6 @@ export default class HisScore {
   async syncDetail(staff, month) {
     const {start, end} = monthToRange(month);
     //查询该员工绑定的工分来源
-    // language=PostgreSQL
     const workItemSources: {
       //工分项id
       id: string;
@@ -841,6 +840,7 @@ export default class HisScore {
       //工分项目原始id
       source: string;
     }[] = await appDB.execute(
+      // language=PostgreSQL
       `
         select w.id, w.method, sm.score, wm.source
         from his_work_item_mapping wm
@@ -881,12 +881,13 @@ export default class HisScore {
             where doctor = ?
               and operate_time > ?
               and operate_time < ?
-              and item = ?
+              and item like ?
             order by operate_time
           `,
           hisStaffId,
           start,
           end,
+          `${param.id}%`,
           param.source
         );
         workItems = workItems.concat(
