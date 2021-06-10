@@ -125,7 +125,7 @@
         <el-form-item label="工分项" prop="work">
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
-        <el-form-item label="关联项目">
+        <el-form-item label="关联项目" prop="projectsSelected">
           <div class="long-tree">
             <el-tree
               ref="tree"
@@ -220,7 +220,7 @@ export default {
       addWorkVisible: false,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        projects: [{validator: validaProjects, trigger: 'change'}]
+        projectsSelected: [{validator: validaProjects, trigger: 'change'}]
       },
       tableLoading: false,
       addBtnLoading: false,
