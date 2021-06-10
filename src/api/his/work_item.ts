@@ -5,7 +5,6 @@ import * as dayjs from 'dayjs';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
-import manual from './manual';
 
 /**
  * 工分项目来源
@@ -777,6 +776,7 @@ export default class HisWorkItem {
       };
     });
   }
+
   // endregion
 
   /**
