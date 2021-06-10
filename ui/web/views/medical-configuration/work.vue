@@ -320,6 +320,8 @@ export default {
     resetConfig(ref) {
       this.$refs[ref].resetFields();
       this.$refs.tree.setCheckedKeys([]);
+      //重置默认选中项
+      this.currentTreeChecked = [];
       this.newWork = {
         work: '',
         source: HisWorkSource.CHECK,
