@@ -363,7 +363,10 @@ export default {
       }
       let data = [];
       if (node.level > 0) {
-        data = await this.$api.HisWorkItem.sources(node.data.id);
+        data = await this.$api.HisWorkItem.sources(
+          node.data.id,
+          this.newWork?.id
+        );
         this.currentTreeChecked = this.currentTreeChecked.concat(
           data.filter(it => it.selected).map(it => it.id)
         );
