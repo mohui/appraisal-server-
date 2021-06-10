@@ -95,15 +95,15 @@ export class HisMigration implements IMigration {
       (
         item         varchar(36),
         source       varchar(64),
-        type         varchar(255),
+        code         varchar(64),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
-        primary key (item, source, type)
+        primary key (item, source)
       );
-      comment on table "his_work_item_mapping" is '工分项目与his收费项目关联表';
+      comment on table "his_work_item_mapping" is '工分项目来源关联表';
       comment on column "his_work_item_mapping".item is '工分项目id';
       comment on column "his_work_item_mapping".source is '来源id';
-      comment on column "his_work_item_mapping".type is '类型; 检查项目/药品/手工数据';
+      comment on column "his_work_item_mapping".code is '检查项目/药品id';
 
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
