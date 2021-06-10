@@ -141,12 +141,12 @@
           </div>
         </el-form-item>
         <el-form-item
-          v-show="newWork.oldProjects.length > 0"
+          v-show="newWork.projectsSelected.length > 0"
           label="已有工分项"
-          prop="oldProjects"
+          prop="projectsSelected"
         >
           <el-tag
-            v-for="old in newWork.oldProjects"
+            v-for="old in newWork.projectsSelected"
             :key="old.id"
             style="margin: 0 5px"
             >{{ old.name }}</el-tag
@@ -171,7 +171,7 @@ export default {
   name: 'Work',
   data() {
     const validaProjects = (rule, value, callback) => {
-      if (value?.length < 1 && this.newWork.oldProjects.length < 1) {
+      if (value?.length < 1 && this.newWork.projectsSelected.length < 1) {
         callback(new Error('选择关联项目!'));
       }
       callback();
@@ -192,7 +192,7 @@ export default {
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         projects: [],
-        oldProjects: []
+        projectsSelected: []
       },
       addWorkVisible: false,
       workRules: {
@@ -262,13 +262,11 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
-          //被选中的节点
-          const mappings = this.$refs.tree.getCheckedKeys();
           this.addBtnLoading = true;
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
-            mappings
+            this.newWork.projectsSelected.map(it => it.id) //被选中的项目id
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -292,11 +290,10 @@ export default {
         JSON.stringify({
           id: row.id,
           work: row.work,
-          source: HisWorkSource.CHECK,
           scoreMethod: row.scoreMethod,
-          oldProjects: row.mappings.map(m => ({
-            name: `${m.name}(${m.source})`,
-            id: m.id + '_' + m.source
+          projectsSelected: row.mappings.map(m => ({
+            name: m.name,
+            id: m.id
           })),
           projects: []
         })
@@ -330,7 +327,7 @@ export default {
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         projects: [],
-        oldProjects: []
+        projectsSelected: []
       };
       this.addWorkVisible = false;
     },
@@ -375,15 +372,29 @@ export default {
       }
       resolve(data);
     },
-    treeCheck({id}, selected) {
+    treeCheck({id, name}, selected) {
       //选中的则push进当前选中项数组
-      if (selected) this.currentTreeChecked.push(id);
+      if (selected) {
+        this.currentTreeChecked.push(id);
+        //如果原有的工分项没有该项目,则添加进去
+        if (this.newWork.projectsSelected.findIndex(old => old.id === id) < 0) {
+          this.newWork.projectsSelected.push({id, name});
+        }
+      }
       //未选中的则从当前选中项剔除
-      if (!selected)
+      if (!selected) {
         this.currentTreeChecked.splice(
           this.currentTreeChecked.findIndex(it => it === id),
           1
         );
+        //如果原有的工分项有该项目,则删除
+        const index = this.newWork.projectsSelected.findIndex(
+          old => old.id === id
+        );
+        if (index > -1) {
+          this.newWork.projectsSelected.splice(index, 1);
+        }
+      }
     }
   }
 };
