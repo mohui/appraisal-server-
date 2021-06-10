@@ -194,14 +194,14 @@ export default class HisScore {
       .toDate();
     //查询结算状态
     const {start} = monthToRange(day);
-    // language=PostgreSQL
     const hospitals = (
       await appDB.execute(
+        // language=PostgreSQL
         `
-        select a.code, a.name, hs.settle
-        from area a
-               left join his_hospital_settle hs on a.code = hs.hospital and hs.month = ?
-      `,
+          select a.code, a.name, hs.settle
+          from area a
+                 left join his_hospital_settle hs on a.code = hs.hospital and hs.month = ?
+        `,
         start
       )
     ).filter(it => it.settle === false);
