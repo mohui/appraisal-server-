@@ -55,13 +55,6 @@ export default class HisWorkItem {
       .description('得分方式; 计数/总和'),
     should
       .array()
-      .items({
-        source: should.array().required(),
-        type: should
-          .string()
-          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
-          .description('类型; 检查项目/药品/手工数据')
-      })
       .required()
       .description('来源id[]')
   )
@@ -84,19 +77,16 @@ export default class HisWorkItem {
       );
 
       // 添加工分项目与his收费项目关联表
-      for (const it of mappings) {
-        for (const sourceId of it.source) {
-          await appDB.execute(
-            `insert into
-              his_work_item_mapping(item, source, type, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-            hisWorkItemId,
-            sourceId,
-            it.type,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
-        }
+      for (const sourceId of mappings) {
+        await appDB.execute(
+          `insert into
+              his_work_item_mapping(item, source, created_at, updated_at)
+              values(?, ?, ?, ?)`,
+          hisWorkItemId,
+          sourceId,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
     });
   }
