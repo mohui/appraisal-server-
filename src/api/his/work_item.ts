@@ -5,6 +5,7 @@ import * as dayjs from 'dayjs';
 import {HisWorkMethod, HisWorkSource} from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
+import manual from './manual';
 
 /**
  * 工分项目来源
@@ -226,18 +227,46 @@ export default class HisWorkItem {
         `select item, source, code from his_work_item_mapping where item = ?`,
         itemId
       );
-      const checkIds = workItemMappingList
-        .filter(it => it.source?.includes('检查项目') && it.code)
-        .map(it => it.code);
-      // console.log(checkIds);
+      // 检查项目id列表
+      const checkIds = [];
+      // 药品id列表
+      const drugsIds = [];
+      // 手工数据id列表
+      const manualIds = [];
+      // 没有id的列表
+      const mappings = [];
+      // 分类id的列表
+      const dictIds = [];
+      workItemMappingList.forEach(mappingIt => {
+        // 筛选出所有的检查项目id
+        if (mappingIt.source?.includes('检查项目') && mappingIt.code) {
+          checkIds.push(mappingIt);
+        }
+        // 筛选出所有的药品id
+        if (mappingIt.source?.includes('药品') && mappingIt.code) {
+          drugsIds.push(mappingIt);
+        }
+        if (mappingIt.source?.includes('手工数据') && mappingIt.code) {
+          manualIds.push(mappingIt);
+        }
+        const sourcesLength = mappingIt.source?.split('.')?.length;
+        // // 把所有的分类id筛选出来
+        // if (!mappingIt.code) {
+        //   mappings.push({
+        //     id: mappingIt.source,
+        //     name: mappingIt.source
+        //   });
+        // }
+        // 把所有的没有id的筛选出来
+        if (!mappingIt.code && sourcesLength < 3) {
+          mappings.push({
+            id: mappingIt.source,
+            name: mappingIt.source
+          });
+        }
+        // TODO:还差一个公卫数据
+      });
 
-      const drugsIds = workItemMappingList
-        .filter(it => it.source?.includes('药品') && it.code)
-        .map(it => it.code);
-
-      const manualIds = workItemMappingList
-        .filter(it => it.source?.includes('手工数据') && it.code)
-        .map(it => it.code);
       // 检查项目列表
       let checks = [];
       // 药品
@@ -245,30 +274,56 @@ export default class HisWorkItem {
       // 手工数据
       let manuals = [];
       if (checkIds.length > 0) {
-        checks = await originalDB.execute(
-          `select id, name, '${HisWorkSource.CHECK}' as source
+        const checkModels = await originalDB.execute(
+          `select id, name
                from his_check
                where status = true and id in (${checkIds.map(() => '?')})`,
-          ...checkIds
+          ...checkIds.map(it => it.code)
         );
+        checks = checkIds.map(checkIt => {
+          const index = checkModels.find(
+            modelIt => modelIt.id === checkIt.code
+          );
+          return {
+            id: checkIt.source,
+            name: index?.name
+          };
+        });
       }
       // 药品
       if (drugsIds.length > 0) {
-        drugs = await originalDB.execute(
-          `select id, name, '${HisWorkSource.DRUG}' as source
+        const drugModels = await originalDB.execute(
+          `select id, name
              from his_drug where id in (${drugsIds.map(() => '?')})`,
-          ...drugsIds
+          ...drugsIds.map(it => it.code)
         );
+        drugs = drugsIds.map(drugIt => {
+          const index = drugModels.find(modelIt => modelIt.id === drugIt.code);
+          return {
+            id: drugIt.source,
+            name: index?.name
+          };
+        });
       }
       // 手工数据
       if (manualIds.length > 0) {
-        manuals = await appDB.execute(
-          `select id, name, '${HisWorkSource.MANUAL}' as source
+        const manualModels = await appDB.execute(
+          `select id, name
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
-          ...manualIds
+          ...manualIds.map(it => it.code)
         );
+
+        manuals = manualIds.map(manualIt => {
+          const index = manualModels.find(
+            modelIt => modelIt.id === manualIt.code
+          );
+          return {
+            id: manualIt.source,
+            name: index?.name
+          };
+        });
       }
-      itemMappings = checks.concat(drugs, manuals);
+      itemMappings = checks.concat(drugs, manuals, mappings);
       it['mappings'] = itemMappings;
     }
 
