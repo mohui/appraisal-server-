@@ -829,6 +829,19 @@ export default class HisScore {
    */
   async syncDetail(staff, month) {
     const {start, end} = monthToRange(month);
+    //查询员工信息
+    // language=PostgreSQL
+    const staffModel: {staff?: string; hospital: string} = (
+      await appDB.execute(
+        `
+          select staff, hospital
+          from staff
+          where id = ?`,
+        staff
+      )
+    )[0];
+    //员工不存在, 直接返回
+    if (!staffModel) return;
     //查询该员工绑定的工分来源
     const workItemSources: {
       //工分项id
@@ -852,20 +865,20 @@ export default class HisScore {
     );
 
     let workItems: WorkItemDetail[] = [];
+    //工分来源临时变量
+    let params: {
+      //工分项id
+      id: string;
+      //得分方式
+      method: string;
+      //分值
+      score: number;
+      //工分项目原始id
+      source: string;
+    }[] = [];
     //region 计算CHECK和DRUG工分来源
-    //查询绑定的his账号id
-    // language=PostgreSQL
-    const hisStaffId = (
-      await appDB.execute(
-        `
-          select staff
-          from staff
-          where id = ?`,
-        staff
-      )
-    )[0].staff;
-    if (hisStaffId) {
-      const params = workItemSources.filter(
+    if (staffModel?.staff) {
+      params = workItemSources.filter(
         it => it.source.startsWith('门诊') || it.source.startsWith('住院')
       );
       for (const param of params) {
@@ -884,7 +897,7 @@ export default class HisScore {
               and item like ?
             order by operate_time
           `,
-          hisStaffId,
+          staffModel.staff,
           start,
           end,
           `${param.source}%`
@@ -912,9 +925,7 @@ export default class HisScore {
     }
     //endregion
     //region 计算MANUAL工分来源
-    const params = workItemSources.filter(it =>
-      it.source.startsWith('手工数据')
-    );
+    params = workItemSources.filter(it => it.source.startsWith('手工数据'));
     for (const param of params) {
       //查询手工数据流水表
       const rows: {date: Date; value: number}[] = await appDB.execute(
