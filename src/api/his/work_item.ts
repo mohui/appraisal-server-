@@ -223,7 +223,7 @@ export default class HisWorkItem {
     const hospital = await getHospital();
     // 查询工分项目
     const workItemList = await appDB.execute(
-      `select id, name, method from his_work_item where hospital = ?`,
+      `select id, name, method from his_work_item where hospital = ? order by created_at`,
       hospital
     );
     if (workItemList.length === 0) return [];
@@ -292,7 +292,6 @@ export default class HisWorkItem {
             name: mappingIt.source
           });
         }
-        // TODO:还差一个公卫数据
       });
 
       // 检查项目列表
@@ -777,8 +776,6 @@ export default class HisWorkItem {
     });
   }
 
-  // endregion
-
   /**
    * 工分项目来源
    * @param parent
@@ -946,4 +943,6 @@ export default class HisWorkItem {
       };
     });
   }
+
+  // endregion
 }
