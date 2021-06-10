@@ -2,7 +2,7 @@ import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource, MarkTagUsages} from '../../../common/his';
+import {HisWorkMethod, MarkTagUsages} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {
@@ -840,11 +840,9 @@ export default class HisScore {
       score: number;
       //工分项目原始id
       source: string;
-      //原始工分项目类型
-      type: string;
     }[] = await appDB.execute(
       `
-        select w.id, w.method, sm.score, wm.source, wm.type
+        select w.id, w.method, sm.score, wm.source
         from his_work_item_mapping wm
                inner join his_staff_work_item_mapping sm on sm.item = wm.item
                inner join his_work_item w on wm.item = w.id
@@ -868,30 +866,27 @@ export default class HisScore {
     )[0].staff;
     if (hisStaffId) {
       const params = workItemSources.filter(
-        it => it.type === HisWorkSource.CHECK || it.type == HisWorkSource.DRUG
+        it => it.id.startsWith('门诊') || it.id.startsWith('住院')
       );
       for (const param of params) {
         //查询his的收费项目
-        // language=PostgreSQL
         const rows: {
-          type: string;
           value: string;
           date: Date;
         }[] = await originalDB.execute(
+          // language=PostgreSQL
           `
-            select charges_type as type, total_price as value, operate_time as date
+            select total_price as value, operate_time as date
             from his_charge_detail
             where doctor = ?
               and operate_time > ?
               and operate_time < ?
-              and item_type = ?
               and item = ?
             order by operate_time
           `,
           hisStaffId,
           start,
           end,
-          param.type,
           param.source
         );
         workItems = workItems.concat(
@@ -899,9 +894,7 @@ export default class HisScore {
           rows.map<WorkItemDetail>(it => {
             let score = 0;
             //计算单位量; 收费/退费区别
-            const value = new Decimal(it.value)
-              .mul(it.type === '4' ? -1 : 1)
-              .toNumber();
+            const value = new Decimal(it.value).toNumber();
             //SUM得分方式
             if (param.method === HisWorkMethod.SUM) {
               score = new Decimal(value).mul(param.score).toNumber();
@@ -921,9 +914,7 @@ export default class HisScore {
     }
     //endregion
     //region 计算MANUAL工分来源
-    const params = workItemSources.filter(
-      it => it.type === HisWorkSource.MANUAL
-    );
+    const params = workItemSources.filter(it => it.id.startsWith('手工数据'));
     for (const param of params) {
       //查询手工数据流水表
       // language=PostgreSQL
