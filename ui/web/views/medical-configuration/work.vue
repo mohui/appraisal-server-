@@ -140,6 +140,29 @@
             ></el-tree>
           </div>
         </el-form-item>
+        <el-form-item label="打分方式" prop="scoreMethod">
+          <el-button-group>
+            <el-button
+              :class="{
+                'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
+              }"
+              size="small"
+              @click="newWork.scoreMethod = HisWorkMethod.SUM"
+            >
+              {{ HisWorkMethod.SUM }}
+            </el-button>
+            <el-button
+              :class="{
+                'el-button--primary':
+                  newWork.scoreMethod === HisWorkMethod.AMOUNT
+              }"
+              size="small"
+              @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+            >
+              {{ HisWorkMethod.AMOUNT }}
+            </el-button>
+          </el-button-group>
+        </el-form-item>
         <el-form-item
           v-show="newWork.projectsSelected.length > 0"
           label="已有工分项"
@@ -197,9 +220,6 @@ export default {
       addWorkVisible: false,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        scoreMethod: [
-          {required: true, message: '选择打分方式', trigger: 'change'}
-        ],
         projects: [{validator: validaProjects, trigger: 'change'}]
       },
       tableLoading: false,
