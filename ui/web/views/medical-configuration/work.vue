@@ -305,7 +305,7 @@ export default {
         this.addBtnLoading = false;
       }
     },
-    editRow(row) {
+    async editRow(row) {
       this.newWork = JSON.parse(
         JSON.stringify({
           id: row.id,
@@ -318,7 +318,17 @@ export default {
           projects: []
         })
       );
+      this.workTreeData = await this.$api.HisWorkItem.sources(
+        null,
+        this.newWork?.id
+      );
+      this.currentTreeChecked = this.currentTreeChecked.concat(
+        this.workTreeData.filter(it => it.selected).map(it => it.id)
+      );
       this.addWorkVisible = true;
+      this.$nextTick(() => {
+        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
+      });
     },
     async removeRow(row) {
       try {
@@ -374,14 +384,10 @@ export default {
     },
     async loadNode(node, resolve) {
       if (node.level === 0) {
-        this.currentTreeChecked = this.currentTreeChecked.concat(
-          this.workTreeData.filter(it => it.selected).map(it => it.id)
-        );
         return resolve(this.workTreeData);
       }
-      let data = [];
       if (node.level > 0) {
-        data = await this.$api.HisWorkItem.sources(
+        let data = await this.$api.HisWorkItem.sources(
           node.data.id,
           this.newWork?.id
         );
@@ -389,8 +395,8 @@ export default {
           data.filter(it => it.selected).map(it => it.id)
         );
         this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
+        return resolve(data);
       }
-      resolve(data);
     },
     treeCheck({id, name}, selected) {
       //选中的则push进当前选中项数组
