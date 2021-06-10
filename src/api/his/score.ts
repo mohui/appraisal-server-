@@ -894,11 +894,9 @@ export default class HisScore {
           //his收费项目转换成工分流水
           rows.map<WorkItemDetail>(it => {
             let score = 0;
-            //计算单位量; 收费/退费区别
-            const value = new Decimal(it.value).toNumber();
             //SUM得分方式
             if (param.method === HisWorkMethod.SUM) {
-              score = new Decimal(value).mul(param.score).toNumber();
+              score = new Decimal(it.value).mul(param.score).toNumber();
             }
             //AMOUNT得分方式
             if (param.method === HisWorkMethod.AMOUNT) {
