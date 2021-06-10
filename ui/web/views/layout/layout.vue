@@ -13,6 +13,7 @@
       <div>
         <kn-back-job></kn-back-job>
         <el-dropdown
+          style="line-height: normal;"
           class="dropdown"
           @command="handCommand"
           @visible-change="v => (dropdownVisible = v)"
