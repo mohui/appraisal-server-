@@ -866,7 +866,7 @@ export default class HisScore {
     )[0].staff;
     if (hisStaffId) {
       const params = workItemSources.filter(
-        it => it.id.startsWith('门诊') || it.id.startsWith('住院')
+        it => it.source.startsWith('门诊') || it.source.startsWith('住院')
       );
       for (const param of params) {
         //查询his的收费项目
@@ -887,8 +887,7 @@ export default class HisScore {
           hisStaffId,
           start,
           end,
-          `${param.id}%`,
-          param.source
+          `${param.source}%`
         );
         workItems = workItems.concat(
           //his收费项目转换成工分流水
@@ -913,7 +912,9 @@ export default class HisScore {
     }
     //endregion
     //region 计算MANUAL工分来源
-    const params = workItemSources.filter(it => it.id.startsWith('手工数据'));
+    const params = workItemSources.filter(it =>
+      it.source.startsWith('手工数据')
+    );
     for (const param of params) {
       //查询手工数据流水表
       // language=PostgreSQL
@@ -935,7 +936,6 @@ export default class HisScore {
         //手工数据流水转换成工分流水
         rows.map<WorkItemDetail>(it => {
           let score = 0;
-          //计算单位量; 收费/退费区别
           //SUM得分方式
           if (param.method === HisWorkMethod.SUM) {
             score = new Decimal(it.value).mul(param.score).toNumber();
