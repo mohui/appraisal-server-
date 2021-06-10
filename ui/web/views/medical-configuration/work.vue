@@ -136,6 +136,7 @@
               lazy
               node-key="id"
               show-checkbox
+              @check-change="treeCheck"
             ></el-tree>
           </div>
         </el-form-item>
@@ -373,6 +374,16 @@ export default {
         this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
       }
       resolve(data);
+    },
+    treeCheck({id}, selected) {
+      //选中的则push进当前选中项数组
+      if (selected) this.currentTreeChecked.push(id);
+      //未选中的则从当前选中项剔除
+      if (!selected)
+        this.currentTreeChecked.splice(
+          this.currentTreeChecked.findIndex(it => it === id),
+          1
+        );
     }
   }
 };
