@@ -917,8 +917,8 @@ export default class HisScore {
     );
     for (const param of params) {
       //查询手工数据流水表
-      // language=PostgreSQL
       const rows: {date: Date; value: number}[] = await appDB.execute(
+        // language=PostgreSQL
         `
           select date, value
           from his_staff_manual_data_detail
