@@ -1,4 +1,4 @@
-import {appDB, originalDB} from '../../app';
+import {appDB, mappingDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
@@ -16,6 +16,8 @@ import {
   StaffWorkModel
 } from './service';
 import {createBackJob} from '../../utils/back-job';
+import {HisWorkItemSources} from './work_item';
+import {sql as sqlRender} from '../../database';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -963,6 +965,76 @@ export default class HisScore {
           };
         })
       );
+    }
+    //endregion
+    //region 计算公卫数据工分来源
+    params = workItemSources.filter(it => it.source.startsWith('公卫数据'));
+    //查询hospital绑定关系
+    // language=PostgreSQL
+    const hisHospitals: string[] = (
+      await mappingDB.execute(
+        `
+          select hospital
+          from area_hospital_mapping
+          where code = ?
+            and etl_id like '国卫公卫%'
+        `,
+        staffModel.hospital
+      )
+    ).map(it => it.hospital);
+    //没有绑定关系, 直接跳过
+    if (hisHospitals.length === 0) params = [];
+    for (const param of params) {
+      const item = HisWorkItemSources.find(it => it.id === param.source);
+      //未配置数据表, 直接跳过
+      if (!item || !item?.datasource?.table) continue;
+      //渲染sql
+      const sqlRendResult = sqlRender(
+        `
+        select 1 as value, OperateTime as date
+        from {{table}}
+        where 1 = 1
+          and OperateTime >= {{? start}}
+          and OperateTime < {{? end}}
+          and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          {{#each columns}} and {{this}} is not null{{/each}}
+      `,
+        {
+          hospitals: hisHospitals,
+          table: item.datasource.table,
+          columns: item.datasource.columns,
+          start,
+          end
+        }
+      );
+      //查询公卫数据
+      try {
+        const rows: {date: Date; value: number}[] = await originalDB.execute(
+          sqlRendResult[0],
+          ...sqlRendResult[1]
+        );
+        workItems = workItems.concat(
+          //公卫数据转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(it.value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      } catch (e) {
+        log(`同步 ${staffModel.hospital} ${param.source} 出现异常`, e);
+      }
     }
     //endregion
     //region 同步流水
