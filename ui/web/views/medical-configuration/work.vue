@@ -239,6 +239,8 @@ export default {
           return await this.$api.HisWorkItem.list();
         } catch (e) {
           console.error(e.message);
+          this.$message.error(e.message);
+          return [];
         } finally {
           this.tableLoading = false;
         }
