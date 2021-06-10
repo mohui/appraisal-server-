@@ -129,6 +129,7 @@
           <div class="long-tree">
             <el-tree
               ref="tree"
+              :check-strictly="true"
               :data="workTreeData"
               :load="loadNode"
               :props="treeProps"
@@ -226,12 +227,6 @@ export default {
         mappings: d.mappings,
         removeLoading: false
       }));
-    },
-    projectList() {
-      return this.serverProjectData.map(it => ({
-        ...it,
-        id: it.id + '_' + this.newWork.source
-      }));
     }
   },
   watch: {},
@@ -251,23 +246,9 @@ export default {
       },
       default: []
     },
-    serverProjectData: {
-      async get() {
-        try {
-          this.searchLoading = true;
-          const {source} = this.newWork;
-          return await this.$api.HisWorkItem.searchSource(source);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          this.searchLoading = false;
-        }
-      },
-      default: []
-    },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources(null);
+        return await this.$api.HisWorkItem.sources();
       },
       default() {
         return [];
@@ -277,34 +258,10 @@ export default {
   methods: {
     async submit() {
       try {
-        const checked = this.$refs.tree.getCheckedNodes(true);
-        const current = this.$refs.tree.getHalfCheckedNodes();
-
-        console.log(checked);
-        console.log(current);
         const valid = await this.$refs['workForm'].validate();
-
         if (valid) {
-          let allProjects = Array.from(
-            new Set(
-              this.newWork.oldProjects
-                .map(o => o.id)
-                .concat(this.newWork.projects) //合并新老his工分项
-            )
-          );
-          const mappings = allProjects
-            .map(it => {
-              //分别获取工分项id和所属来源
-              const [source, type] = it.split('_');
-              return {source, type};
-            })
-            .reduce((res, next) => {
-              //工分项按来源归类
-              const current = res.find(i => i.type === next.type);
-              if (current) current.source.push(next.source);
-              else res.push({type: next.type, source: [next.source]});
-              return res;
-            }, []);
+          //被选中的节点
+          const mappings = this.$refs.tree.getCheckedKeys();
           this.addBtnLoading = true;
           const paramsArr = [
             this.newWork.work,
@@ -398,11 +355,11 @@ export default {
       if (node.level === 0) {
         return resolve(this.workTreeData);
       }
-      console.log(node);
+      let data = [];
       if (node.level > 0) {
-        const data = await this.$api.HisWorkItem.sources(node.data.id);
-        resolve(data);
-      } else return resolve([]);
+        data = await this.$api.HisWorkItem.sources(node.data.id);
+      }
+      resolve(data);
     },
     closeTag(tag) {
       this.newWork.oldProjects.splice(
