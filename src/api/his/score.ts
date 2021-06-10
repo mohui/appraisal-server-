@@ -928,7 +928,8 @@ export default class HisScore {
             and date < ?
         `,
         staff,
-        param.source,
+        //手工数据的source转id, 默认是只能必须选id
+        param.source.split('.')[1],
         start,
         end
       );
