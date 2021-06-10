@@ -736,7 +736,7 @@ export default class HisWorkItem {
         let ids = [];
         if (parent) {
           ids = parent.split('-');
-          if (ids.length < 3) throw new KatoRuntimeError(`参数有误`);
+          if (ids.length !== 3) return [];
         }
 
         // 门诊,住院药品
