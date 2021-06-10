@@ -48,6 +48,21 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  mapping: {
+    dialect: 'postgres',
+    host: 'localhost',
+    port: '123456',
+    username: 'root',
+    password: 'root',
+    database: 'mapping',
+    define: {
+      underscored: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    },
+    timezone: '+8:00',
+    logging: false
+  },
   // 定时任务
   queue: {
     cron: '00 00 04 * * *',

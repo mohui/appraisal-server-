@@ -34,6 +34,8 @@ export class Application {
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
+  //TODO: 临时需要, 等待公卫etl完成后即可弃用
+  mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
 
   constructor() {
@@ -235,5 +237,6 @@ export const app = new Application();
 export const appDB = app.appDB;
 export const etlDB = app.etlDB;
 export const originalDB = app.originalDB;
+export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;
