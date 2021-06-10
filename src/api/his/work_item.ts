@@ -10,10 +10,14 @@ import manual from './manual';
 /**
  * 工分项目来源
  */
-const HisWorkItemSources: {
+export const HisWorkItemSources: {
   id: string;
   name: string;
   parent?: string;
+  datasource?: {
+    table: string;
+    columns?: string[];
+  };
 }[] = [
   {id: '门诊', name: '门诊', parent: null},
   {id: '门诊.检查项目', name: '检查项目', parent: '门诊'},
@@ -24,7 +28,15 @@ const HisWorkItemSources: {
   {id: '住院.检查项目', name: '检查项目', parent: '住院'},
   {id: '住院.药品', name: '药品', parent: '住院'},
   {id: '手工数据', name: '手工数据', parent: null},
-  {id: '公卫数据', name: '公卫数据', parent: null}
+  {id: '公卫数据', name: '公卫数据', parent: null},
+  {
+    id: '公卫数据.老年人生活自理能力评估',
+    name: '老年人生活自理能力评估',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HealthCheckTableScore'
+    }
+  }
 ];
 
 /**
