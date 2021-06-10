@@ -216,8 +216,6 @@ export default class HisWorkItem {
       hospital
     );
     if (workItemList.length === 0) return [];
-    // 数据来源
-    let itemMappings = [];
 
     for (const it of workItemList) {
       // 工分项id
@@ -235,8 +233,10 @@ export default class HisWorkItem {
       const manualIds = [];
       // 没有id的列表
       const mappings = [];
-      // 分类id的列表
-      const dictIds = [];
+      // 检查项目分类id的列表
+      const checkDictIds = [];
+      // 药品分类id的列表
+      const drugDictIds = [];
       workItemMappingList.forEach(mappingIt => {
         // 筛选出所有的检查项目id
         if (mappingIt.source?.includes('检查项目') && mappingIt.code) {
@@ -249,14 +249,31 @@ export default class HisWorkItem {
         if (mappingIt.source?.includes('手工数据') && mappingIt.code) {
           manualIds.push(mappingIt);
         }
-        const sourcesLength = mappingIt.source?.split('.')?.length;
-        // // 把所有的分类id筛选出来
-        // if (!mappingIt.code) {
-        //   mappings.push({
-        //     id: mappingIt.source,
-        //     name: mappingIt.source
-        //   });
-        // }
+
+        const dicts = mappingIt.source?.split('.');
+        const sourcesLength = dicts?.length;
+        // 把所有的分类id筛选出来
+        if (!mappingIt.code && sourcesLength === 3) {
+          // 检查项目的分类id
+          if (
+            mappingIt.source.startsWith('门诊.检查项目') ||
+            mappingIt.source.startsWith('住院.检查项目')
+          ) {
+            checkDictIds.push({
+              source: mappingIt.source,
+              code: dicts[2]
+            });
+          }
+          if (
+            mappingIt.source.startsWith('门诊.药品') ||
+            mappingIt.source.startsWith('住院.药品')
+          ) {
+            drugDictIds.push({
+              source: mappingIt.source,
+              code: dicts[2]
+            });
+          }
+        }
         // 把所有的没有id的筛选出来
         if (!mappingIt.code && sourcesLength < 3) {
           mappings.push({
@@ -273,6 +290,10 @@ export default class HisWorkItem {
       let drugs = [];
       // 手工数据
       let manuals = [];
+      // 检查项目分类
+      let checkDict = [];
+      // 药品分类
+      let drugDict = [];
       if (checkIds.length > 0) {
         const checkModels = await originalDB.execute(
           `select id, name
@@ -323,8 +344,56 @@ export default class HisWorkItem {
           };
         });
       }
-      itemMappings = checks.concat(drugs, manuals, mappings);
-      it['mappings'] = itemMappings;
+      // 检查项目分类
+      if (checkDictIds.length > 0) {
+        const dictModels = await originalDB.execute(
+          `select code, name
+               from his_dict
+               where category_code = '10201005'
+                and code in (${checkDictIds.map(() => '?')})`,
+          ...checkDictIds.map(it => it.code)
+        );
+
+        checkDict = checkDictIds.map(dictIt => {
+          const index = dictModels.find(
+            modelIt => modelIt.code === dictIt.code
+          );
+          return {
+            id: dictIt.source,
+            name: index?.name
+          };
+        });
+      }
+      // 药品分类
+      if (drugDictIds.length > 0) {
+        const dictModels = await originalDB.execute(
+          `select code, name
+               from his_dict
+               where category_code = '10301001'
+                and code in (${drugDictIds.map(() => '?')})`,
+          ...drugDictIds.map(it => it.code)
+        );
+
+        drugDict = drugDictIds.map(dictIt => {
+          const index = dictModels.find(
+            modelIt => modelIt.code === dictIt.code
+          );
+          return {
+            id: dictIt.source,
+            name: index?.name
+          };
+        });
+      }
+
+      // 合并数组
+      it['mappings'] = [
+        ...checks,
+        ...drugs,
+        ...manuals,
+        ...checkDict,
+        ...drugDict,
+        ...mappings
+      ];
     }
 
     return workItemList;
