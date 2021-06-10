@@ -19,7 +19,7 @@
         </el-col>
         <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
           <!--年度选择-->
-          <span style="margin:0 10px">
+          <span style="margin:0 20px 10px 0;display: inline-block;">
             <el-select
               v-model="params.year"
               size="small"
@@ -35,7 +35,7 @@
               </el-option>
             </el-select>
           </span>
-          <span style="margin:0 10px">
+          <span style="margin:0 50px 10px 0;display: inline-block;">
             <el-button
               plain
               size="small"
@@ -48,9 +48,8 @@
               >考核共识下载</el-button
             >
           </span>
-          <span style="margin:0 10px">
+          <span style="margin:0 20px 10px 0;display: inline-block;">
             <el-button
-              style="margin-left: 30px;"
               size="small"
               type="primary"
               @click="handleAppraisalResultsDownload()"
@@ -97,7 +96,7 @@
         <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
         <el-button
           size="small"
-          style="float:right; margin: 5px 90px 20px 30px;"
+          style="float:right; margin: 5px 0 10px 0;"
           type="primary"
           @click="latTypeChanged('quality')"
           >关闭
@@ -105,9 +104,17 @@
       </div>
       <!--自身考核结果-->
       <div>
-        <el-row :gutter="20" style="margin: 20px -10px">
+        <el-row :gutter="10" style="margin: 10px -5px 0">
           <div v-if="params.listFlag === 'quality'">
-            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+            <el-col
+              :span="8"
+              :xs="24"
+              :sm="12"
+              :md="8"
+              :lg="8"
+              :xl="8"
+              style="margin-bottom: 10px;"
+            >
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -129,7 +136,15 @@
                 </div>
               </el-card>
             </el-col>
-            <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+            <el-col
+              :span="10"
+              :xs="24"
+              :sm="12"
+              :md="10"
+              :lg="10"
+              :xl="10"
+              style="margin-bottom: 10px;"
+            >
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -168,7 +183,15 @@
                 </el-tooltip>
               </el-card>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-col
+              :span="6"
+              :xs="24"
+              :sm="12"
+              :md="6"
+              :lg="6"
+              :xl="6"
+              style="margin-bottom: 10px;"
+            >
               <el-card
                 v-loading="$asyncComputed.faceCollectSeverData.updating"
                 shadow="hover"
@@ -240,10 +263,18 @@
         </el-row>
         <el-row
           v-if="params.listFlag === 'quality'"
-          :gutter="20"
-          style="margin: 20px -10px"
+          :gutter="10"
+          style="margin: 0 -5px"
         >
-          <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+          <el-col
+            :span="8"
+            :xs="24"
+            :sm="8"
+            :md="8"
+            :lg="8"
+            :xl="8"
+            style="margin-bottom: 10px;"
+          >
             <el-card shadow="hover">
               <div class="score-detail">
                 <p class="second-title" style="margin:0; text-align:left;">
@@ -263,7 +294,15 @@
               </div>
             </el-card>
           </el-col>
-          <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+          <el-col
+            :span="10"
+            :xs="24"
+            :sm="12"
+            :md="10"
+            :lg="10"
+            :xl="10"
+            style="margin-bottom: 10px;"
+          >
             <el-card shadow="hover">
               <div style="height: 300px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
@@ -323,7 +362,15 @@
               </div>
             </el-card>
           </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+          <el-col
+            :span="6"
+            :xs="24"
+            :sm="12"
+            :md="6"
+            :lg="6"
+            :xl="6"
+            style="margin-bottom: 10px;"
+          >
             <el-card shadow="hover">
               <div style="height: 300px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
@@ -425,11 +472,11 @@
         </el-row>
       </div>
       <!--下级排行-->
-      <div style="margin-top: 20px">
+      <div style="margin-top: 10px">
         <!--下级质量系数排行-->
         <el-row
           v-if="params.listFlag === 'quality' && this.rankData.length > 0"
-          :gutter="20"
+          :gutter="10"
         >
           <el-col :span="12">
             <el-card
@@ -488,10 +535,18 @@
         <!--下级工分排行 / 工分项目-->
         <el-row
           v-if="params.listFlag === 'score'"
-          :gutter="20"
-          style="margin-top: 20px"
+          :gutter="10"
+          style="margin-top: 10px"
         >
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col
+            :span="12"
+            :xs="24"
+            :sm="12"
+            :md="12"
+            :lg="12"
+            :xl="12"
+            style="margin-bottom: 10px;"
+          >
             <el-card
               v-loading="$asyncComputed.workpointRankServerData.updating"
               shadow="hover"
