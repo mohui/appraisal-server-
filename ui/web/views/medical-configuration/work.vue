@@ -147,9 +147,7 @@
           <el-tag
             v-for="old in newWork.oldProjects"
             :key="old.id"
-            closable
             style="margin: 0 5px"
-            @close="closeTag(old)"
             >{{ old.name }}</el-tag
           >
         </el-form-item>
@@ -214,7 +212,8 @@ export default {
       treeProps: {
         label: 'name',
         isLeaf: 'leaf'
-      }
+      },
+      currentTreeChecked: [] //当前被选中的node
     };
   },
   computed: {
@@ -248,7 +247,7 @@ export default {
     },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources();
+        return await this.$api.HisWorkItem.sources(null, this.newWork.id);
       },
       default() {
         return [];
@@ -353,19 +352,20 @@ export default {
     },
     async loadNode(node, resolve) {
       if (node.level === 0) {
+        this.currentTreeChecked = this.currentTreeChecked.concat(
+          this.workTreeData.filter(it => it.selected).map(it => it.id)
+        );
         return resolve(this.workTreeData);
       }
       let data = [];
       if (node.level > 0) {
         data = await this.$api.HisWorkItem.sources(node.data.id);
+        this.currentTreeChecked = this.currentTreeChecked.concat(
+          data.filter(it => it.selected).map(it => it.id)
+        );
+        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
       }
       resolve(data);
-    },
-    closeTag(tag) {
-      this.newWork.oldProjects.splice(
-        this.newWork.oldProjects.findIndex(o => o.id === tag.id),
-        1
-      );
     }
   }
 };
