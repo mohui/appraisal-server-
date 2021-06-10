@@ -166,7 +166,6 @@
         <el-form-item
           v-show="newWork.projectsSelected.length > 0"
           label="已有工分项"
-          prop="projectsSelected"
         >
           <el-tag
             v-for="old in newWork.projectsSelected"
