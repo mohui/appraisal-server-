@@ -935,6 +935,9 @@ export default {
         font-size: 14px;
       }
     }
+    .notes {
+      padding: 0 10px;
+    }
   }
 }
 .patient-tab-list {
