@@ -43,7 +43,7 @@ export const HisWorkItemSources: {
     name: '生活方式',
     parent: '公卫数据',
     datasource: {
-      table: 'view_HealthCheckTableScore',
+      table: 'view_Healthy',
       date: 'OperateTime',
       columns: ['dlpn']
     }
@@ -53,7 +53,7 @@ export const HisWorkItemSources: {
     name: '脏器功能',
     parent: '公卫数据',
     datasource: {
-      table: 'view_HealthCheckTableScore',
+      table: 'view_Healthy',
       date: 'OperateTime',
       columns: ['kc']
     }
