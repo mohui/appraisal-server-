@@ -30,7 +30,7 @@
           <div style="float: right;">编号：{{ person.checkupNo }}</div>
           姓名：<strong>{{ person.name }}</strong>
         </div>
-        <table class="record-he-table">
+        <table class="record-table">
           <tbody>
             <tr>
               <td colspan="2">体检日期</td>
@@ -1684,64 +1684,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@media screen and (max-width: 414px) {
-  .record-he-table {
-    border-right: none !important;
-    td {
-      display: block;
-      margin-left: 4px;
-      width: calc(100% - 36px);
-      border-left: none !important;
-      font-size: 14px;
-    }
-  }
-}
-.record-head {
-  padding: 5px;
-}
-.record-he-table {
-  width: 100%;
-  max-width: 1200px;
-  background-color: #fff;
-  border-collapse: collapse;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  line-height: 2;
-  tr {
-    td {
-      padding: 3px 10px;
-      border-top: 1px solid #ccc;
-      border-left: 1px solid #ccc;
-      em {
-        color: #409eff;
-      }
-      sub {
-        vertical-align: bottom;
-      }
-      &[rowspan] + td {
-        text-align: center;
-      }
-    }
-    :first-child {
-      text-align: center;
-      line-height: normal;
-    }
-    :last-child {
-      text-align: left;
-    }
-  }
-}
-.explain {
-  width: 100%;
-  max-width: 1200px;
-  font-size: 12px;
-  .title {
-    font-weight: bold;
-    font-size: 16px;
-  }
-  p {
-    padding: 0 5px;
-    text-indent: 24px;
-  }
-}
+@import './detail.scss';
 </style>
