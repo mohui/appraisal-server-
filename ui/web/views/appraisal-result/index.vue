@@ -478,7 +478,7 @@
           v-if="params.listFlag === 'quality' && this.rankData.length > 0"
           :gutter="10"
         >
-          <el-col :span="12" :xs="24">
+          <el-col :span="12" :xs="24" style="margin-bottom: 10px;">
             <el-card
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
