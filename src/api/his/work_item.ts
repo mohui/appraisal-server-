@@ -305,6 +305,15 @@ export const HisWorkItemSources: {
       date: 'checkupDate',
       columns: ['FastingGlucose']
     }
+  },
+  {
+    id: '公卫数据.老年人中医药服务',
+    name: '老年人中医药服务',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_QuestionnaireMain',
+      date: 'OperateTime'
+    }
   }
 ];
 
