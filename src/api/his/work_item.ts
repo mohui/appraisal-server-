@@ -314,6 +314,24 @@ export const HisWorkItemSources: {
       table: 'view_QuestionnaireMain',
       date: 'OperateTime'
     }
+  },
+  {
+    id: '公卫数据.卫生计生监督协管信息报告登记',
+    name: '卫生计生监督协管信息报告登记',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_SanitaryControlReport',
+      date: 'ReportTime'
+    }
+  },
+  {
+    id: '公卫数据.卫生计生监督协管巡查登记',
+    name: '卫生计生监督协管巡查登记',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_SanitaryControlAssist',
+      date: 'checkDate'
+    }
   }
 ];
 
