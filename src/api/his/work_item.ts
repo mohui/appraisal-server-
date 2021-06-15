@@ -57,7 +57,7 @@ export const HisWorkItemSources: {
       date: 'checkupDate',
       columns: ['yd']
     }
-  }
+  },
   // {
   //   id: '公卫数据.查体-足背动脉搏动',
   //   name: '查体-足背动脉搏动',
@@ -78,41 +78,146 @@ export const HisWorkItemSources: {
   //   name: '查体-其他',
   //   parent: '公卫数据'
   // },
-  // {
-  //   id: '公卫数据.辅助检查-血常规',
-  //   name: '辅助检查-血常规',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-尿常规',
-  //   name: '辅助检查-尿常规',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-空腹血糖',
-  //   name: '辅助检查-空腹血糖',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-心电图',
-  //   name: '辅助检查-心电图',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-尿微量白蛋白',
-  //   name: '辅助检查-尿微量白蛋白',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-大便潜血',
-  //   name: '辅助检查-大便潜血',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.辅助检查-糖化血红蛋白',
-  //   name: '辅助检查-糖化血红蛋白',
-  //   parent: '公卫数据'
-  // }
+  {
+    id: '公卫数据.辅助检查-血常规',
+    name: '辅助检查-血常规',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xcgHb']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-尿常规',
+    name: '辅助检查-尿常规',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['ncgndb']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-空腹血糖',
+    name: '辅助检查-空腹血糖',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['kfxt']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-心电图',
+    name: '辅助检查-心电图',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xdt']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-尿微量白蛋白',
+    name: '辅助检查-尿微量白蛋白',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['nwlbdb']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-大便潜血',
+    name: '辅助检查-大便潜血',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['dbqx']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-糖化血红蛋白',
+    name: '辅助检查-糖化血红蛋白',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['tnbthxhdb']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-乙型肝炎表面抗原',
+    name: '辅助检查-乙型肝炎表面抗原',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['HBsAg']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-肝功能',
+    name: '辅助检查-肝功能',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['ggnALT']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-肾功能',
+    name: '辅助检查-肾功能',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['sgnScr']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-血脂',
+    name: '辅助检查-血脂',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xzCHO']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-胸部X光片',
+    name: '辅助检查-胸部X光片',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xzCHO']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-B超',
+    name: '辅助检查-B超',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xp']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-宫颈涂片',
+    name: '辅助检查-宫颈涂片',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['xp']
+    }
+  }
 ];
 
 /**
