@@ -15,6 +15,7 @@ export const HisWorkItemSources: {
   parent?: string;
   datasource?: {
     table: string;
+    date: string;
     columns?: string[];
   };
 }[] = [
@@ -33,7 +34,8 @@ export const HisWorkItemSources: {
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
     datasource: {
-      table: 'view_HealthCheckTableScore'
+      table: 'view_HealthCheckTableScore',
+      date: 'OperateTime'
     }
   },
   // {
@@ -52,6 +54,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_Healthy',
+      date: 'checkupDate',
       columns: ['yd']
     }
   }
