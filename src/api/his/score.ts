@@ -1,8 +1,8 @@
-import {appDB, originalDB} from '../../app';
+import {appDB, mappingDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource, MarkTagUsages} from '../../../common/his';
+import {HisWorkMethod, MarkTagUsages} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {
@@ -16,6 +16,8 @@ import {
   StaffWorkModel
 } from './service';
 import {createBackJob} from '../../utils/back-job';
+import {HisWorkItemSources} from './work_item';
+import {sql as sqlRender} from '../../database';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -194,14 +196,14 @@ export default class HisScore {
       .toDate();
     //查询结算状态
     const {start} = monthToRange(day);
-    // language=PostgreSQL
     const hospitals = (
       await appDB.execute(
+        // language=PostgreSQL
         `
-        select a.code, a.name, hs.settle
-        from area a
-               left join his_hospital_settle hs on a.code = hs.hospital and hs.month = ?
-      `,
+          select a.code, a.name, hs.settle
+          from area a
+                 left join his_hospital_settle hs on a.code = hs.hospital and hs.month = ?
+        `,
         start
       )
     ).filter(it => it.settle === false);
@@ -829,8 +831,20 @@ export default class HisScore {
    */
   async syncDetail(staff, month) {
     const {start, end} = monthToRange(month);
-    //查询该员工绑定的工分来源
+    //查询员工信息
     // language=PostgreSQL
+    const staffModel: {staff?: string; hospital: string} = (
+      await appDB.execute(
+        `
+          select staff, hospital
+          from staff
+          where id = ?`,
+        staff
+      )
+    )[0];
+    //员工不存在, 直接返回
+    if (!staffModel) return;
+    //查询该员工绑定的工分来源
     const workItemSources: {
       //工分项id
       id: string;
@@ -840,11 +854,10 @@ export default class HisScore {
       score: number;
       //工分项目原始id
       source: string;
-      //原始工分项目类型
-      type: string;
     }[] = await appDB.execute(
+      // language=PostgreSQL
       `
-        select w.id, w.method, sm.score, wm.source, wm.type
+        select w.id, w.method, sm.score, wm.source
         from his_work_item_mapping wm
                inner join his_staff_work_item_mapping sm on sm.item = wm.item
                inner join his_work_item w on wm.item = w.id
@@ -854,57 +867,50 @@ export default class HisScore {
     );
 
     let workItems: WorkItemDetail[] = [];
+    //工分来源临时变量
+    let params: {
+      //工分项id
+      id: string;
+      //得分方式
+      method: string;
+      //分值
+      score: number;
+      //工分项目原始id
+      source: string;
+    }[] = [];
     //region 计算CHECK和DRUG工分来源
-    //查询绑定的his账号id
-    // language=PostgreSQL
-    const hisStaffId = (
-      await appDB.execute(
-        `
-          select staff
-          from staff
-          where id = ?`,
-        staff
-      )
-    )[0].staff;
-    if (hisStaffId) {
-      const params = workItemSources.filter(
-        it => it.type === HisWorkSource.CHECK || it.type == HisWorkSource.DRUG
+    if (staffModel?.staff) {
+      params = workItemSources.filter(
+        it => it.source.startsWith('门诊') || it.source.startsWith('住院')
       );
       for (const param of params) {
         //查询his的收费项目
-        // language=PostgreSQL
         const rows: {
-          type: string;
           value: string;
           date: Date;
         }[] = await originalDB.execute(
+          // language=PostgreSQL
           `
-            select charges_type as type, total_price as value, operate_time as date
+            select total_price as value, operate_time as date
             from his_charge_detail
             where doctor = ?
               and operate_time > ?
               and operate_time < ?
-              and item_type = ?
-              and item = ?
+              and item like ?
             order by operate_time
           `,
-          hisStaffId,
+          staffModel.staff,
           start,
           end,
-          param.type,
-          param.source
+          `${param.source}%`
         );
         workItems = workItems.concat(
           //his收费项目转换成工分流水
           rows.map<WorkItemDetail>(it => {
             let score = 0;
-            //计算单位量; 收费/退费区别
-            const value = new Decimal(it.value)
-              .mul(it.type === '4' ? -1 : 1)
-              .toNumber();
             //SUM得分方式
             if (param.method === HisWorkMethod.SUM) {
-              score = new Decimal(value).mul(param.score).toNumber();
+              score = new Decimal(it.value).mul(param.score).toNumber();
             }
             //AMOUNT得分方式
             if (param.method === HisWorkMethod.AMOUNT) {
@@ -921,13 +927,11 @@ export default class HisScore {
     }
     //endregion
     //region 计算MANUAL工分来源
-    const params = workItemSources.filter(
-      it => it.type === HisWorkSource.MANUAL
-    );
+    params = workItemSources.filter(it => it.source.startsWith('手工数据'));
     for (const param of params) {
       //查询手工数据流水表
-      // language=PostgreSQL
       const rows: {date: Date; value: number}[] = await appDB.execute(
+        // language=PostgreSQL
         `
           select date, value
           from his_staff_manual_data_detail
@@ -937,7 +941,8 @@ export default class HisScore {
             and date < ?
         `,
         staff,
-        param.source,
+        //手工数据的source转id, 默认是只能必须选id
+        param.source.split('.')[1],
         start,
         end
       );
@@ -945,7 +950,6 @@ export default class HisScore {
         //手工数据流水转换成工分流水
         rows.map<WorkItemDetail>(it => {
           let score = 0;
-          //计算单位量; 收费/退费区别
           //SUM得分方式
           if (param.method === HisWorkMethod.SUM) {
             score = new Decimal(it.value).mul(param.score).toNumber();
@@ -961,6 +965,76 @@ export default class HisScore {
           };
         })
       );
+    }
+    //endregion
+    //region 计算公卫数据工分来源
+    params = workItemSources.filter(it => it.source.startsWith('公卫数据'));
+    //查询hospital绑定关系
+    // language=PostgreSQL
+    const hisHospitals: string[] = (
+      await mappingDB.execute(
+        `
+          select hospital
+          from area_hospital_mapping
+          where code = ?
+            and etl_id like '国卫公卫%'
+        `,
+        staffModel.hospital
+      )
+    ).map(it => it.hospital);
+    //没有绑定关系, 直接跳过
+    if (hisHospitals.length === 0) params = [];
+    for (const param of params) {
+      const item = HisWorkItemSources.find(it => it.id === param.source);
+      //未配置数据表, 直接跳过
+      if (!item || !item?.datasource?.table) continue;
+      //渲染sql
+      const sqlRendResult = sqlRender(
+        `
+        select 1 as value, OperateTime as date
+        from {{table}}
+        where 1 = 1
+          and OperateTime >= {{? start}}
+          and OperateTime < {{? end}}
+          and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          {{#each columns}} and {{this}} is not null{{/each}}
+      `,
+        {
+          hospitals: hisHospitals,
+          table: item.datasource.table,
+          columns: item.datasource.columns,
+          start,
+          end
+        }
+      );
+      //查询公卫数据
+      try {
+        const rows: {date: Date; value: number}[] = await originalDB.execute(
+          sqlRendResult[0],
+          ...sqlRendResult[1]
+        );
+        workItems = workItems.concat(
+          //公卫数据转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(it.value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      } catch (e) {
+        log(`同步 ${staffModel.hospital} ${param.source} 出现异常`, e);
+      }
     }
     //endregion
     //region 同步流水

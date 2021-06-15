@@ -7,6 +7,112 @@ import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
 
 /**
+ * 工分项目来源
+ */
+export const HisWorkItemSources: {
+  id: string;
+  name: string;
+  parent?: string;
+  datasource?: {
+    table: string;
+    columns?: string[];
+  };
+}[] = [
+  {id: '门诊', name: '门诊', parent: null},
+  {id: '门诊.检查项目', name: '检查项目', parent: '门诊'},
+  //示例
+  //{id: '住院-检查项目-{id}', name: 'B超', parent: '门诊-检查项目'},
+  {id: '门诊.药品', name: '药品', parent: '门诊'},
+  {id: '住院', name: '住院', parent: null},
+  {id: '住院.检查项目', name: '检查项目', parent: '住院'},
+  {id: '住院.药品', name: '药品', parent: '住院'},
+  {id: '手工数据', name: '手工数据', parent: null},
+  {id: '公卫数据', name: '公卫数据', parent: null},
+  {
+    id: '公卫数据.老年人生活自理能力评估',
+    name: '老年人生活自理能力评估',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HealthCheckTableScore'
+    }
+  },
+  // {
+  //   id: '公卫数据.生活方式',
+  //   name: '生活方式',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.脏器功能',
+  //   name: '脏器功能',
+  //   parent: '公卫数据'
+  // },
+  {
+    id: '公卫数据.查体-眼底',
+    name: '查体-眼底',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      columns: ['yd']
+    }
+  }
+  // {
+  //   id: '公卫数据.查体-足背动脉搏动',
+  //   name: '查体-足背动脉搏动',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.查体-肛门指诊',
+  //   name: '查体-肛门指诊',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.查体-妇科',
+  //   name: '查体-妇科',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.查体-其他',
+  //   name: '查体-其他',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-血常规',
+  //   name: '辅助检查-血常规',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-尿常规',
+  //   name: '辅助检查-尿常规',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-空腹血糖',
+  //   name: '辅助检查-空腹血糖',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-心电图',
+  //   name: '辅助检查-心电图',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-尿微量白蛋白',
+  //   name: '辅助检查-尿微量白蛋白',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-大便潜血',
+  //   name: '辅助检查-大便潜血',
+  //   parent: '公卫数据'
+  // },
+  // {
+  //   id: '公卫数据.辅助检查-糖化血红蛋白',
+  //   name: '辅助检查-糖化血红蛋白',
+  //   parent: '公卫数据'
+  // }
+];
+
+/**
  * 接口
  *
  * 新建公分项
@@ -16,6 +122,7 @@ import {getHospital} from './service';
  * 公分项列表
  */
 export default class HisWorkItem {
+  // region 公分项目的增删改查
   /**
    * 新建公分项
    *
@@ -34,13 +141,6 @@ export default class HisWorkItem {
       .description('得分方式; 计数/总和'),
     should
       .array()
-      .items({
-        source: should.array().required(),
-        type: should
-          .string()
-          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
-          .description('类型; 检查项目/药品/手工数据')
-      })
       .required()
       .description('来源id[]')
   )
@@ -63,19 +163,30 @@ export default class HisWorkItem {
       );
 
       // 添加工分项目与his收费项目关联表
-      for (const it of mappings) {
-        for (const sourceId of it.source) {
-          await appDB.execute(
-            `insert into
-              his_work_item_mapping(item, source, type, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-            hisWorkItemId,
-            sourceId,
-            it.type,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
+      for (const sourceId of mappings) {
+        let code = null;
+        const sources = sourceId?.split('.') ?? [];
+        // 手工数据
+        if (sourceId.startsWith('手工数据') && sources.length === 2) {
+          code = sources[1];
         }
+        // 手工数据
+        if (
+          (sourceId.startsWith('门诊') || sourceId.startsWith('住院')) &&
+          sources.length === 4
+        ) {
+          code = sources[3];
+        }
+        await appDB.execute(
+          `insert into
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          hisWorkItemId,
+          sourceId,
+          code,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
     });
   }
@@ -102,13 +213,6 @@ export default class HisWorkItem {
       .description('得分方式; 计数/总和'),
     should
       .array()
-      .items({
-        source: should.array().required(),
-        type: should
-          .string()
-          .only(HisWorkSource.CHECK, HisWorkSource.DRUG, HisWorkSource.MANUAL)
-          .description('类型; 检查项目/药品/手工数据')
-      })
       .required()
       .description('来源id[]')
   )
@@ -132,20 +236,31 @@ export default class HisWorkItem {
         id
       );
       // 添加工分项目与his收费项目关联表
-      for (const it of mappings) {
-        for (const sourceId of it.source) {
-          // 再添加
-          await appDB.execute(
-            `insert into
-              his_work_item_mapping(item, source, type, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
-            id,
-            sourceId,
-            it.type,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
+      for (const sourceId of mappings) {
+        let code = null;
+        const sources = sourceId?.split('.') ?? [];
+        // 手工数据
+        if (sourceId.startsWith('手工数据') && sources.length === 2) {
+          code = sources[1];
         }
+        // 手工数据
+        if (
+          (sourceId.startsWith('门诊') || sourceId.startsWith('住院')) &&
+          sources.length === 4
+        ) {
+          code = sources[3];
+        }
+        // 再添加
+        await appDB.execute(
+          `insert into
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          id,
+          sourceId,
+          code,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
     });
   }
@@ -182,69 +297,195 @@ export default class HisWorkItem {
     const hospital = await getHospital();
     // 查询工分项目
     const workItemList = await appDB.execute(
-      `select id, name, method from his_work_item where hospital = ?`,
+      `select id, name, method from his_work_item where hospital = ? order by created_at`,
       hospital
     );
     if (workItemList.length === 0) return [];
-    // 数据来源
-    let itemMappings = [];
 
     for (const it of workItemList) {
       // 工分项id
       const itemId = it?.id;
       // 查找工分项目来源
       const workItemMappingList = await appDB.execute(
-        `select item, source, type from his_work_item_mapping where item = ?`,
+        `select item, source, code from his_work_item_mapping where item = ?`,
         itemId
       );
-      const checkIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.CHECK)
-        .map(it => it.source);
+      // 检查项目id列表
+      const checkIds = [];
+      // 药品id列表
+      const drugsIds = [];
+      // 手工数据id列表
+      const manualIds = [];
+      // 没有id的列表
+      const mappings = [];
+      // 检查项目分类id的列表
+      const checkDictIds = [];
+      // 药品分类id的列表
+      const drugDictIds = [];
+      workItemMappingList.forEach(mappingIt => {
+        // 筛选出所有的检查项目id
+        if (mappingIt.source?.includes('检查项目') && mappingIt.code) {
+          checkIds.push(mappingIt);
+        }
+        // 筛选出所有的药品id
+        if (mappingIt.source?.includes('药品') && mappingIt.code) {
+          drugsIds.push(mappingIt);
+        }
+        if (mappingIt.source?.includes('手工数据') && mappingIt.code) {
+          manualIds.push(mappingIt);
+        }
 
-      const drugsIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.DRUG)
-        .map(it => it.source);
+        const dicts = mappingIt.source?.split('.');
+        const sourcesLength = dicts?.length;
+        // 把所有的分类id筛选出来
+        if (!mappingIt.code && sourcesLength === 3) {
+          // 检查项目的分类id
+          if (
+            mappingIt.source.startsWith('门诊.检查项目') ||
+            mappingIt.source.startsWith('住院.检查项目')
+          ) {
+            checkDictIds.push({
+              source: mappingIt.source,
+              code: dicts[2]
+            });
+          }
+          if (
+            mappingIt.source.startsWith('门诊.药品') ||
+            mappingIt.source.startsWith('住院.药品')
+          ) {
+            drugDictIds.push({
+              source: mappingIt.source,
+              code: dicts[2]
+            });
+          }
+        }
+        // 把所有的没有id的筛选出来
+        if (!mappingIt.code && sourcesLength < 3) {
+          mappings.push({
+            id: mappingIt.source,
+            name: mappingIt.source
+          });
+        }
+      });
 
-      const manualIds = workItemMappingList
-        .filter(it => it.type === HisWorkSource.MANUAL)
-        .map(it => it.source);
       // 检查项目列表
       let checks = [];
       // 药品
       let drugs = [];
       // 手工数据
       let manuals = [];
+      // 检查项目分类
+      let checkDict = [];
+      // 药品分类
+      let drugDict = [];
       if (checkIds.length > 0) {
-        checks = await originalDB.execute(
-          `select id, name, '${HisWorkSource.CHECK}' as source
+        const checkModels = await originalDB.execute(
+          `select id, name
                from his_check
                where status = true and id in (${checkIds.map(() => '?')})`,
-          ...checkIds
+          ...checkIds.map(it => it.code)
         );
+        checks = checkIds.map(checkIt => {
+          const index = checkModels.find(
+            modelIt => modelIt.id === checkIt.code
+          );
+          return {
+            id: checkIt.source,
+            name: index?.name
+          };
+        });
       }
       // 药品
       if (drugsIds.length > 0) {
-        drugs = await originalDB.execute(
-          `select id, name, '${HisWorkSource.DRUG}' as source
+        const drugModels = await originalDB.execute(
+          `select id, name
              from his_drug where id in (${drugsIds.map(() => '?')})`,
-          ...drugsIds
+          ...drugsIds.map(it => it.code)
         );
+        drugs = drugsIds.map(drugIt => {
+          const index = drugModels.find(modelIt => modelIt.id === drugIt.code);
+          return {
+            id: drugIt.source,
+            name: index?.name
+          };
+        });
       }
       // 手工数据
       if (manualIds.length > 0) {
-        manuals = await appDB.execute(
-          `select id, name, '${HisWorkSource.MANUAL}' as source
+        const manualModels = await appDB.execute(
+          `select id, name
              from his_manual_data where id in (${manualIds.map(() => '?')})`,
-          ...manualIds
+          ...manualIds.map(it => it.code)
         );
+
+        manuals = manualIds.map(manualIt => {
+          const index = manualModels.find(
+            modelIt => modelIt.id === manualIt.code
+          );
+          return {
+            id: manualIt.source,
+            name: index?.name
+          };
+        });
       }
-      itemMappings = checks.concat(drugs, manuals);
-      it['mappings'] = itemMappings;
+      // 检查项目分类
+      if (checkDictIds.length > 0) {
+        const dictModels = await originalDB.execute(
+          `select code, name
+               from his_dict
+               where category_code = '10201005'
+                and code in (${checkDictIds.map(() => '?')})`,
+          ...checkDictIds.map(it => it.code)
+        );
+
+        checkDict = checkDictIds.map(dictIt => {
+          const index = dictModels.find(
+            modelIt => modelIt.code === dictIt.code
+          );
+          return {
+            id: dictIt.source,
+            name: index?.name
+          };
+        });
+      }
+      // 药品分类
+      if (drugDictIds.length > 0) {
+        const dictModels = await originalDB.execute(
+          `select code, name
+               from his_dict
+               where category_code = '10301001'
+                and code in (${drugDictIds.map(() => '?')})`,
+          ...drugDictIds.map(it => it.code)
+        );
+
+        drugDict = drugDictIds.map(dictIt => {
+          const index = dictModels.find(
+            modelIt => modelIt.code === dictIt.code
+          );
+          return {
+            id: dictIt.source,
+            name: index?.name
+          };
+        });
+      }
+
+      // 合并数组
+      it['mappings'] = [
+        ...checks,
+        ...drugs,
+        ...manuals,
+        ...checkDict,
+        ...drugDict,
+        ...mappings
+      ];
     }
 
     return workItemList;
   }
 
+  // endregion
+
+  // region 公分项目来源, 和员工绑定的增删改查
   /**
    * 医疗工分项目来源
    * @param type 工分项目来源
@@ -608,4 +849,174 @@ export default class HisWorkItem {
       };
     });
   }
+
+  /**
+   * 工分项目来源
+   * @param parent
+   * @param item
+   */
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('父级id'),
+    should
+      .string()
+      .allow(null)
+      .description('工分项目id')
+  )
+  async sources(parent, item) {
+    const hospital = await getHospital();
+    let sql, params;
+    let list = [];
+    if (!parent) {
+      list = HisWorkItemSources.filter(it => !it.parent).map(it => {
+        return {
+          ...it
+        };
+      });
+    }
+    switch (parent) {
+      case '门诊':
+        list = HisWorkItemSources.filter(it => it.parent === '门诊').map(it => {
+          return {
+            ...it
+          };
+        });
+        break;
+      case '住院':
+        list = HisWorkItemSources.filter(it => it.parent === '住院').map(it => {
+          return {
+            ...it
+          };
+        });
+        break;
+      case '公卫数据':
+        list = HisWorkItemSources.filter(it => it.parent === '公卫数据').map(
+          it => {
+            return {
+              ...it
+            };
+          }
+        );
+        break;
+      case '手工数据':
+        [sql, params] = sqlRender(
+          `
+            select id, name
+              from his_manual_data
+            where hospital = {{? hospital}}
+            limit 50
+          `,
+          {
+            hospital
+          }
+        );
+        list = (await appDB.execute(sql, ...params))?.map(it => {
+          return {
+            id: `${parent}.${it.id}`,
+            name: it.name,
+            parent: '手工数据'
+          };
+        });
+        break;
+      case '门诊.检查项目':
+      case '住院.检查项目':
+        list = (
+          await originalDB.execute(
+            `select code, name from his_dict where category_code = '10201005'`
+          )
+        )?.map(it => {
+          return {
+            id: `${parent}.${it.code}`,
+            name: it.name,
+            parent: parent
+          };
+        });
+        break;
+      case '门诊.药品':
+      case '住院.药品':
+        list = (
+          await originalDB.execute(
+            `select code, name from his_dict where category_code = '10301001'`
+          )
+        )?.map(it => {
+          return {
+            id: `${parent}.${it.code}`,
+            name: it.name,
+            parent: parent
+          };
+        });
+        break;
+      default:
+        // eslint-disable-next-line no-case-declarations
+        let ids = [];
+        if (parent) {
+          ids = parent.split('.');
+          if (ids.length !== 3) return [];
+        }
+
+        // 门诊,住院药品
+        if (ids[1] === '药品') {
+          [sql, params] = sqlRender(
+            `
+        select id, name
+        from his_drug
+        where category = {{? category}}
+      `,
+            {
+              category: ids[2]
+            }
+          );
+          list = (await originalDB.execute(sql, ...params))?.map(it => {
+            return {
+              id: `${parent}.${it.id}`,
+              name: it.name,
+              parent: parent
+            };
+          });
+        }
+        // 门诊,住院检查项目
+        if (ids[1] === '检查项目') {
+          [sql, params] = sqlRender(
+            `
+        select id, name
+        from his_check
+        where status = true
+        and category = {{? category}}
+      `,
+            {
+              category: ids[2]
+            }
+          );
+          list = (await originalDB.execute(sql, ...params))?.map(it => {
+            return {
+              id: `${parent}.${it.id}`,
+              name: it.name,
+              parent: parent
+            };
+          });
+        }
+        break;
+    }
+
+    let mappingItems = [];
+    // 如果传了工分项目id,说明是修改,需要把已有的来源默认选中
+    if (item) {
+      mappingItems = await appDB.execute(
+        `select source from his_work_item_mapping where item = ?`,
+        item
+      );
+    }
+
+    return list.map(it => {
+      const index = mappingItems.find(mapping => mapping.source === it.id);
+      return {
+        ...it,
+        selected: !!index
+      };
+    });
+  }
+
+  // endregion
 }

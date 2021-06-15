@@ -125,57 +125,38 @@
         <el-form-item label="工分项" prop="work">
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
-        <el-form-item label="工分项来源" prop="source">
-          <el-button-group>
-            <el-button
-              v-for="s of HisWorkSource"
-              :key="s.key"
-              size="mini"
-              :class="{
-                'el-button--primary': newWork.source === s.value
-              }"
-              @click="newWork.source = s.value"
-            >
-              {{ s.value }}
-            </el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item label="关联项目" prop="projects">
-          <el-select
-            v-model="newWork.projects"
-            :loading="searchLoading"
-            style="width: 100%"
-            clearable
-            filterable
-            remote
-            :remote-method="remoteSearch"
-            multiple
-          >
-            <el-option
-              v-for="p in projectList"
-              :key="p.id"
-              :label="p.name"
-              :value="p.id"
-            ></el-option>
-          </el-select>
+        <el-form-item label="关联项目" prop="projectsSelected">
+          <div class="long-tree">
+            <el-tree
+              ref="tree"
+              :check-strictly="true"
+              :data="workTreeData"
+              :load="loadNode"
+              :props="treeProps"
+              lazy
+              node-key="id"
+              show-checkbox
+              @check-change="treeCheck"
+            ></el-tree>
+          </div>
         </el-form-item>
         <el-form-item label="打分方式" prop="scoreMethod">
           <el-button-group>
             <el-button
-              size="small"
               :class="{
                 'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
               }"
+              size="small"
               @click="newWork.scoreMethod = HisWorkMethod.SUM"
             >
               {{ HisWorkMethod.SUM }}
             </el-button>
             <el-button
-              size="small"
               :class="{
                 'el-button--primary':
                   newWork.scoreMethod === HisWorkMethod.AMOUNT
               }"
+              size="small"
               @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
             >
               {{ HisWorkMethod.AMOUNT }}
@@ -183,16 +164,13 @@
           </el-button-group>
         </el-form-item>
         <el-form-item
-          v-show="newWork.oldProjects.length > 0"
+          v-show="newWork.projectsSelected.length > 0"
           label="已有工分项"
-          prop="oldProjects"
         >
           <el-tag
-            v-for="old in newWork.oldProjects"
+            v-for="old in newWork.projectsSelected"
             :key="old.id"
-            closable
             style="margin: 0 5px"
-            @close="closeTag(old)"
             >{{ old.name }}</el-tag
           >
         </el-form-item>
@@ -215,7 +193,7 @@ export default {
   name: 'Work',
   data() {
     const validaProjects = (rule, value, callback) => {
-      if (value?.length < 1 && this.newWork.oldProjects.length < 1) {
+      if (value?.length < 1 && this.newWork.projectsSelected.length < 1) {
         callback(new Error('选择关联项目!'));
       }
       callback();
@@ -236,15 +214,12 @@ export default {
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         projects: [],
-        oldProjects: []
+        projectsSelected: []
       },
       addWorkVisible: false,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        scoreMethod: [
-          {required: true, message: '选择打分方式', trigger: 'change'}
-        ],
-        projects: [{validator: validaProjects, trigger: 'change'}]
+        projectsSelected: [{validator: validaProjects, trigger: 'change'}]
       },
       tableLoading: false,
       addBtnLoading: false,
@@ -253,7 +228,12 @@ export default {
       HisWorkSource: Object.keys(HisWorkSource).map(it => ({
         value: HisWorkSource[it],
         key: it
-      }))
+      })),
+      treeProps: {
+        label: 'name',
+        isLeaf: 'leaf'
+      },
+      currentTreeChecked: [] //当前被选中的node
     };
   },
   computed: {
@@ -265,12 +245,6 @@ export default {
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings,
         removeLoading: false
-      }));
-    },
-    projectList() {
-      return this.serverProjectData.map(it => ({
-        ...it,
-        id: it.id + '_' + this.newWork.source
       }));
     }
   },
@@ -285,25 +259,21 @@ export default {
           return await this.$api.HisWorkItem.list();
         } catch (e) {
           console.error(e.message);
+          this.$message.error(e.message);
+          return [];
         } finally {
           this.tableLoading = false;
         }
       },
       default: []
     },
-    serverProjectData: {
+    workTreeData: {
       async get() {
-        try {
-          this.searchLoading = true;
-          const {source} = this.newWork;
-          return await this.$api.HisWorkItem.searchSource(source);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          this.searchLoading = false;
-        }
+        return await this.$api.HisWorkItem.sources(null, this.newWork.id);
       },
-      default: []
+      default() {
+        return [];
+      }
     }
   },
   methods: {
@@ -311,31 +281,11 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
-          let allProjects = Array.from(
-            new Set(
-              this.newWork.oldProjects
-                .map(o => o.id)
-                .concat(this.newWork.projects) //合并新老his工分项
-            )
-          );
-          const mappings = allProjects
-            .map(it => {
-              //分别获取工分项id和所属来源
-              const [source, type] = it.split('_');
-              return {source, type};
-            })
-            .reduce((res, next) => {
-              //工分项按来源归类
-              const current = res.find(i => i.type === next.type);
-              if (current) current.source.push(next.source);
-              else res.push({type: next.type, source: [next.source]});
-              return res;
-            }, []);
           this.addBtnLoading = true;
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
-            mappings
+            this.newWork.projectsSelected.map(it => it.id) //被选中的项目id
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -354,21 +304,30 @@ export default {
         this.addBtnLoading = false;
       }
     },
-    editRow(row) {
+    async editRow(row) {
       this.newWork = JSON.parse(
         JSON.stringify({
           id: row.id,
           work: row.work,
-          source: HisWorkSource.CHECK,
           scoreMethod: row.scoreMethod,
-          oldProjects: row.mappings.map(m => ({
-            name: `${m.name}(${m.source})`,
-            id: m.id + '_' + m.source
+          projectsSelected: row.mappings.map(m => ({
+            name: m.name,
+            id: m.id
           })),
           projects: []
         })
       );
+      this.workTreeData = await this.$api.HisWorkItem.sources(
+        null,
+        this.newWork?.id
+      );
+      this.currentTreeChecked = this.currentTreeChecked.concat(
+        this.workTreeData.filter(it => it.selected).map(it => it.id)
+      );
       this.addWorkVisible = true;
+      this.$nextTick(() => {
+        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
+      });
     },
     async removeRow(row) {
       try {
@@ -389,12 +348,15 @@ export default {
     },
     resetConfig(ref) {
       this.$refs[ref].resetFields();
+      this.$refs.tree.setCheckedKeys([]);
+      //重置默认选中项
+      this.currentTreeChecked = [];
       this.newWork = {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         projects: [],
-        oldProjects: []
+        projectsSelected: []
       };
       this.addWorkVisible = false;
     },
@@ -419,11 +381,45 @@ export default {
         this.searchLoading = false;
       }
     },
-    closeTag(tag) {
-      this.newWork.oldProjects.splice(
-        this.newWork.oldProjects.findIndex(o => o.id === tag.id),
-        1
-      );
+    async loadNode(node, resolve) {
+      if (node.level === 0) {
+        return resolve(this.workTreeData);
+      }
+      if (node.level > 0) {
+        let data = await this.$api.HisWorkItem.sources(
+          node.data.id,
+          this.newWork?.id
+        );
+        this.currentTreeChecked = this.currentTreeChecked.concat(
+          data.filter(it => it.selected).map(it => it.id)
+        );
+        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
+        return resolve(data);
+      }
+    },
+    treeCheck({id, name}, selected) {
+      //选中的则push进当前选中项数组
+      if (selected) {
+        this.currentTreeChecked.push(id);
+        //如果原有的工分项没有该项目,则添加进去
+        if (this.newWork.projectsSelected.findIndex(old => old.id === id) < 0) {
+          this.newWork.projectsSelected.push({id, name});
+        }
+      }
+      //未选中的则从当前选中项剔除
+      if (!selected) {
+        this.currentTreeChecked.splice(
+          this.currentTreeChecked.findIndex(it => it === id),
+          1
+        );
+        //如果原有的工分项有该项目,则删除
+        const index = this.newWork.projectsSelected.findIndex(
+          old => old.id === id
+        );
+        if (index > -1) {
+          this.newWork.projectsSelected.splice(index, 1);
+        }
+      }
     }
   }
 };
@@ -433,6 +429,11 @@ export default {
 .work-header {
   display: flex;
   justify-content: space-between;
+}
+.long-tree {
+  height: 40vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .cell-long-span {
   width: 100%;
