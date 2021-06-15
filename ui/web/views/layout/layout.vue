@@ -20,12 +20,14 @@
         >
           <div>
             <i style="padding: 0 6px" class="el-icon-user"></i>
-            {{ $settings.user.name }}
-            <i
-              :class="
-                dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-              "
-            ></i>
+            <span v-if="!$settings.isMobile">
+              {{ $settings.user.name }}
+              <i
+                :class="
+                  dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                "
+              ></i>
+            </span>
           </div>
 
           <el-dropdown-menu slot="dropdown">
