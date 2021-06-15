@@ -257,6 +257,54 @@ export const HisWorkItemSources: {
       date: 'checkupDate',
       columns: ['jkfzjcqt']
     }
+  },
+  {
+    id: '公卫数据.高血压随访',
+    name: '高血压随访',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HypertensionVisit',
+      date: 'checkupDate'
+    }
+  },
+  {
+    id: '公卫数据.高血压随访-辅助检查',
+    name: '高血压随访-辅助检查',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HypertensionVisit',
+      date: 'checkupDate',
+      columns: ['Fzjc']
+    }
+  },
+  {
+    id: '公卫数据.2型糖尿病随访',
+    name: '2型糖尿病随访',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_DiabetesVisit',
+      date: 'checkupDate'
+    }
+  },
+  {
+    id: '公卫数据.2型糖尿病随访-糖化血红蛋白',
+    name: '2型糖尿病随访-糖化血红蛋白',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_DiabetesVisit',
+      date: 'checkupDate',
+      columns: ['Hemoglobin']
+    }
+  },
+  {
+    id: '公卫数据.2型糖尿病随访-空腹血糖',
+    name: '2型糖尿病随访-空腹血糖',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_DiabetesVisit',
+      date: 'checkupDate',
+      columns: ['FastingGlucose']
+    }
   }
 ];
 
