@@ -38,16 +38,26 @@ export const HisWorkItemSources: {
       date: 'OperateTime'
     }
   },
-  // {
-  //   id: '公卫数据.生活方式',
-  //   name: '生活方式',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.脏器功能',
-  //   name: '脏器功能',
-  //   parent: '公卫数据'
-  // },
+  {
+    id: '公卫数据.生活方式',
+    name: '生活方式',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HealthCheckTableScore',
+      date: 'OperateTime',
+      columns: ['dlpn']
+    }
+  },
+  {
+    id: '公卫数据.脏器功能',
+    name: '脏器功能',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_HealthCheckTableScore',
+      date: 'OperateTime',
+      columns: ['kc']
+    }
+  },
   {
     id: '公卫数据.查体-眼底',
     name: '查体-眼底',
@@ -58,26 +68,46 @@ export const HisWorkItemSources: {
       columns: ['yd']
     }
   },
-  // {
-  //   id: '公卫数据.查体-足背动脉搏动',
-  //   name: '查体-足背动脉搏动',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.查体-肛门指诊',
-  //   name: '查体-肛门指诊',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.查体-妇科',
-  //   name: '查体-妇科',
-  //   parent: '公卫数据'
-  // },
-  // {
-  //   id: '公卫数据.查体-其他',
-  //   name: '查体-其他',
-  //   parent: '公卫数据'
-  // },
+  {
+    id: '公卫数据.查体-足背动脉搏动',
+    name: '查体-足背动脉搏动',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['tnbzbdmbd']
+    }
+  },
+  {
+    id: '公卫数据.查体-肛门指诊',
+    name: '查体-肛门指诊',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['gmzz']
+    }
+  },
+  {
+    id: '公卫数据.查体-妇科',
+    name: '查体-妇科',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['fk_wy']
+    }
+  },
+  {
+    id: '公卫数据.查体-其他',
+    name: '查体-其他',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['ctqt']
+    }
+  },
   {
     id: '公卫数据.辅助检查-血常规',
     name: '辅助检查-血常规',
@@ -216,6 +246,16 @@ export const HisWorkItemSources: {
       table: 'view_Healthy',
       date: 'checkupDate',
       columns: ['xp']
+    }
+  },
+  {
+    id: '公卫数据.辅助检查-宫颈涂片',
+    name: '辅助检查-其他',
+    parent: '公卫数据',
+    datasource: {
+      table: 'view_Healthy',
+      date: 'checkupDate',
+      columns: ['jkfzjcqt']
     }
   }
 ];
