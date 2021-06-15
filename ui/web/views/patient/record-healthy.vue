@@ -5,9 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 60px)' : 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -25,12 +26,10 @@
         v-loading="isLoading"
         v-show="!isError"
       >
-        <el-row type="flex" class="record-head" justify="space-between">
-          <el-col :span="6">
-            姓名：<strong>{{ person.name }}</strong>
-          </el-col>
-          <el-col :span="6">编号：{{ person.checkupNo }}</el-col>
-        </el-row>
+        <div class="record-head">
+          <div style="float: right;">编号：{{ person.checkupNo }}</div>
+          姓名：<strong>{{ person.name }}</strong>
+        </div>
         <table class="record-he-table">
           <tbody>
             <tr>
@@ -1684,11 +1683,21 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+@media screen and (max-width: 414px) {
+  .record-he-table {
+    border-right: none !important;
+    td {
+      display: block;
+      margin-left: 4px;
+      width: calc(100% - 36px);
+      border-left: none !important;
+      font-size: 14px;
+    }
+  }
+}
 .record-head {
-  width: 100%;
-  max-width: 1200px;
-  margin-bottom: 10px;
+  padding: 5px;
 }
 .record-he-table {
   width: 100%;
@@ -1729,6 +1738,10 @@ export default {
   .title {
     font-weight: bold;
     font-size: 16px;
+  }
+  p {
+    padding: 0 5px;
+    text-indent: 24px;
   }
 }
 </style>
