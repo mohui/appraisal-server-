@@ -991,15 +991,16 @@ export default class HisScore {
       //渲染sql
       const sqlRendResult = sqlRender(
         `
-        select 1 as value, OperateTime as date
+        select 1 as value, {{dateCol}} as date
         from {{table}}
         where 1 = 1
-          and OperateTime >= {{? start}}
-          and OperateTime < {{? end}}
+          and {{dateCol}} >= {{? start}}
+          and {{dateCol}} < {{? end}}
           and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
           {{#each columns}} and {{this}} is not null{{/each}}
       `,
         {
+          dateCol: item.datasource.date,
           hospitals: hisHospitals,
           table: item.datasource.table,
           columns: item.datasource.columns,
