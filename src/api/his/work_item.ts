@@ -264,7 +264,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_HypertensionVisit',
-      date: 'checkupDate'
+      date: 'FollowUpDate'
     }
   },
   {
@@ -273,7 +273,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_HypertensionVisit',
-      date: 'checkupDate',
+      date: 'FollowUpDate',
       columns: ['Fzjc']
     }
   },
@@ -283,7 +283,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_DiabetesVisit',
-      date: 'checkupDate'
+      date: 'FollowUpDate'
     }
   },
   {
@@ -292,7 +292,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_DiabetesVisit',
-      date: 'checkupDate',
+      date: 'FollowUpDate',
       columns: ['Hemoglobin']
     }
   },
@@ -302,7 +302,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     datasource: {
       table: 'view_DiabetesVisit',
-      date: 'checkupDate',
+      date: 'FollowUpDate',
       columns: ['FastingGlucose']
     }
   },
