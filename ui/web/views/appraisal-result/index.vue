@@ -472,13 +472,13 @@
         </el-row>
       </div>
       <!--下级排行-->
-      <div style="margin-top: 10px">
+      <div>
         <!--下级质量系数排行-->
         <el-row
           v-if="params.listFlag === 'quality' && this.rankData.length > 0"
           :gutter="10"
         >
-          <el-col :span="12">
+          <el-col :span="12" :xs="24">
             <el-card
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
@@ -505,7 +505,7 @@
               </div>
             </el-card>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="12" :xs="24">
             <el-card
               v-loading="$asyncComputed.rankServerData.updating"
               shadow="hover"
