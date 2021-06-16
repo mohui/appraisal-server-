@@ -412,7 +412,8 @@ export default {
           tags: this.queryForm.tags
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
-              res[`${next}`] = next.includes('C') || next.includes('E');
+              res[`${next}`] =
+                next.includes('C') || next.includes('E') || next === 'ai';
               return res;
             }, {}),
           include: this.queryForm.include,

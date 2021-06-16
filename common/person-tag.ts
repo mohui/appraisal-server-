@@ -15,7 +15,8 @@ export const personTags = {
   C10: {label: '残疾人', type: true, code: 'C10'},
   C11: {label: '其他慢病', type: true, code: 'C11'},
   C13: {label: '高危人群', type: true, code: 'C13'},
-  C14: {label: '高校', type: true, code: 'C14'}
+  C14: {label: '高校', type: true, code: 'C14'},
+  ai: {label: 'AI高危风险预测', type: true, code: 'ai'}
 };
 /***
  * 人群分类的选项框options
@@ -89,6 +90,11 @@ export const personTagList = [
   {
     id: 'C14',
     name: personTags.C14.label,
+    type: true
+  },
+  {
+    id: 'ai',
+    name: personTags.ai.label,
     type: true
   }
 ];
@@ -241,6 +247,7 @@ export function getTagsList(it) {
   if (it.C11) it.personTags.push(personTags.C11);
   if (it.C13) it.personTags.push(personTags.C13);
   if (it.C14) it.personTags.push(personTags.C14);
+  if (it.ai) it.personTags.push(personTags.ai);
   // 健康档案标记
   if (it.S03 != undefined) it.tags.push(documentTags.S03(it.S03));
   if (it.S23 != undefined) it.tags.push(documentTags.S23(it.S23));
