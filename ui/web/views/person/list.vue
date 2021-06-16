@@ -198,10 +198,41 @@
             <el-tag
               v-for="tag of scope.row.personTags"
               :key="tag.label"
-              style="margin-right: 5px"
+              :style="{
+                marginRight: '5px',
+                background: tag.type
+                  ? ''
+                  : 'linear-gradient(to right, rgba(83, 33, 188,1), rgba(81, 33, 188,0.5))',
+                color: tag.type ? '' : 'white'
+              }"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
-              >{{ tag.label }}
+            >
+              <el-popover
+                placement="top"
+                width="200"
+                trigger="click"
+                :disabled="
+                  tag.type ||
+                    !$settings.permissions.includes(permission.TAGS_DETAIL)
+                "
+              >
+                <div>
+                  糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
+                </div>
+                <i
+                  :style="{
+                    cursor:
+                      !tag.type &&
+                      $settings.permissions.includes(permission.TAGS_DETAIL)
+                        ? 'pointer'
+                        : 'auto',
+                    'font-style': 'normal'
+                  }"
+                  slot="reference"
+                  >{{ tag.label }}</i
+                >
+              </el-popover>
             </el-tag>
           </template>
         </el-table-column>
@@ -412,7 +443,8 @@ export default {
           tags: this.queryForm.tags
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
-              res[`${next}`] = next.includes('C') || next.includes('E');
+              res[`${next}`] =
+                next.includes('C') || next.includes('E') || next === 'ai';
               return res;
             }, {}),
           include: this.queryForm.include,
