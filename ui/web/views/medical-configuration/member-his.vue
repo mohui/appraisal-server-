@@ -301,7 +301,9 @@ export default {
         try {
           return await this.$api.HisStaff.list(account || null, name || null);
         } catch (e) {
+          this.$message.error(e.message);
           console.error(e.message);
+          return [];
         } finally {
           this.tableLoading = false;
         }
@@ -312,7 +314,12 @@ export default {
     },
     serverHisData: {
       async get() {
-        return await this.$api.HisStaff.listHisStaffs();
+        try {
+          return await this.$api.HisStaff.listHisStaffs();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
       },
       default: []
     }

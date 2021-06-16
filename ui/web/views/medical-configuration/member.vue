@@ -406,14 +406,22 @@ export default {
             rows: data
           };
         } catch (e) {
+          this.$message.error(e.message);
           console.error(e.message);
+          return {counts: 0, rows: []};
         }
       },
       default: {counts: 0, rows: []}
     },
     serverMemberData: {
       async get() {
-        return await this.$api.HisStaff.workSourceStaffList();
+        try {
+          return await this.$api.HisStaff.workSourceStaffList();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return {counts: 0, rows: []};
+        }
       },
       default: []
     }
