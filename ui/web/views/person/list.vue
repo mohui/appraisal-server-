@@ -198,11 +198,22 @@
             <el-tag
               v-for="tag of scope.row.personTags"
               :key="tag.label"
-              style="margin-right: 5px"
+              :style="{
+                marginRight: '5px',
+                background: tag.type
+                  ? ''
+                  : 'linear-gradient(to right, rgba(83, 33, 188,1), rgba(81, 33, 188,0.5))',
+                color: tag.type ? '' : 'white'
+              }"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
             >
-              <el-popover placement="top" width="200" trigger="click">
+              <el-popover
+                placement="top"
+                width="200"
+                trigger="click"
+                :disabled="tag.type"
+              >
                 <div>
                   糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
                 </div>
