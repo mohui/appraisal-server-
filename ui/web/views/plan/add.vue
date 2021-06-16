@@ -76,7 +76,7 @@
                 <el-table-column prop="name" label="指标">
                   <template slot-scope="scope">
                     <div v-if="!scope.row.EDIT">
-                      {{ scope.row.name }}
+                      {{ targetName(scope.row.metric) }}
                     </div>
                     <el-cascader
                       v-if="scope.row.EDIT"
@@ -163,7 +163,7 @@
                       v-if="!scope.row.id"
                       type="primary"
                       size="mini"
-                      :disabled="!scope.row.name || !scope.row.mode"
+                      :disabled="!scope.row.metric || !scope.row.mode"
                       @click="addTarget(scope)"
                     >
                       添加
@@ -172,7 +172,7 @@
                       v-if="scope.row.id && scope.row.EDIT"
                       type="primary"
                       size="mini"
-                      :disabled="!scope.row.name || !scope.row.mode"
+                      :disabled="!scope.row.metric || !scope.row.mode"
                       @click="saveTarget(scope)"
                     >
                       保存
@@ -319,6 +319,7 @@ export default {
         ]
       },
       formCopy: '',
+      isSave: false,
       form: {
         name: '',
         doctor: [],
@@ -421,7 +422,7 @@ export default {
     };
   },
   async beforeRouteLeave(to, from, next) {
-    if (JSON.stringify(this.form) !== this.formCopy) {
+    if (!this.isSave && JSON.stringify(this.form) !== this.formCopy) {
       try {
         await this.$confirm('要离开此页面?, 您有尚未保存的信息', '提示', {
           confirmButtonText: '忽略离开',
@@ -631,6 +632,7 @@ export default {
               );
               this.$message.success('添加成功！');
             }
+            this.isSave = true;
             return this.$router.push({
               name: 'plan'
             });
