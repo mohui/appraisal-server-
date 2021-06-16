@@ -291,17 +291,36 @@ export default class Person {
       let code = '';
       //code默认为hospital,否则为region
       code = hospital ? hospital : region;
+      //当前用户级别是否是地区
+      const isRegion = Context.current.user.isRegion;
       //两者都没有,则用用户默认code
-      if (!code) code = Context.current.user.code;
+      if (!code) {
+        code = Context.current.user.code;
+        if (isRegion) params.region = code; //补充默认的地区code
+        if (!isRegion) params.hospital = code; //补充默认的机构code
+      }
       let fileName = '';
       if (hospital)
         fileName =
           (await HospitalModel.findOne({where: {id: code}}))?.name +
           '人员档案表格';
 
-      if (!hospital && code)
-        fileName =
-          (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
+      if (!hospital && code) {
+        if (isRegion) {
+          //可能是个地址
+          fileName =
+            (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
+        }
+        if (!isRegion) {
+          //可能是机构
+          fileName =
+            (
+              await HospitalModel.findOne({
+                where: {id: code}
+              })
+            )?.name + '人员档案表格';
+        }
+      }
       return createBackJob('personExcel', fileName, {params, fileName});
     } catch (e) {
       throw new KatoCommonError(e.message);
@@ -2205,8 +2224,7 @@ export async function getPersonExcelBuffer(params) {
   if (name) name = `%${name}%`;
   let hospitals = [];
   //没有选机构和地区,则默认查询当前用户所拥有的机构
-  if (!region && !hospital)
-    hospitals = Context.current.user.hospitals.map(it => it.id);
+  if (!region && !hospital) throw new KatoCommonError('未传机构id或者地区code');
   //仅有地区,则查询该地区下的所有机构
   if (region && !hospital) {
     hospitals = (
