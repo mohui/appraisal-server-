@@ -16,7 +16,7 @@ export const personTags = {
   C11: {label: '其他慢病', type: true, code: 'C11'},
   C13: {label: '高危人群', type: true, code: 'C13'},
   C14: {label: '高校', type: true, code: 'C14'},
-  ai: {label: 'AI高危风险预测', type: true, code: 'ai'}
+  ai: {label: 'AI高危风险预测', type: false, code: 'ai'}
 };
 /***
  * 人群分类的选项框options

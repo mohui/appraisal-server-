@@ -201,7 +201,24 @@
               style="margin-right: 5px"
               size="mini"
               :type="tag.type ? 'primary' : 'danger'"
-              >{{ tag.label }}
+            >
+              <el-popover placement="top" width="200" trigger="click">
+                <div>
+                  糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
+                </div>
+                <i
+                  :style="{
+                    cursor:
+                      !tag.type &&
+                      $settings.permissions.includes(permission.TAGS_DETAIL)
+                        ? 'pointer'
+                        : 'auto',
+                    'font-style': 'normal'
+                  }"
+                  slot="reference"
+                  >{{ tag.label }}</i
+                >
+              </el-popover>
             </el-tag>
           </template>
         </el-table-column>
