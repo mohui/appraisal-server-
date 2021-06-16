@@ -178,7 +178,7 @@ export default {
 .mobile {
   max-height: 100%;
   z-index: 2002;
-  transition: max-height 2s;
+  transition: max-height 1s ease;
 }
 .mobile.hiddenMenu {
   max-height: 0;
