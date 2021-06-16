@@ -606,7 +606,7 @@ export default {
                 name,
                 doctor,
                 target
-                  .filter(it => it.name)
+                  .filter(it => it.metric)
                   .map(it => ({
                     auto: true,
                     name: this.targetName(it.metric),
