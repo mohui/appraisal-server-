@@ -318,11 +318,14 @@ export default class HisCheck {
       // 查找考核得分
       const findIndex = returnList.find(find => find.id === it.id);
       if (findIndex) {
-        findIndex.staffs.push({
-          staff: it.staff,
-          account: it.account,
-          name: it.staffName
-        });
+        // 如果有员工id
+        if (it.staff) {
+          findIndex.staffs.push({
+            staff: it.staff,
+            account: it.account,
+            name: it.staffName
+          });
+        }
         // 如果员工有工分项目,需要判断这个员工的工分项目是否已经在列表中
         if (workItemObj) {
           for (const staffWorkItem of workItemObj.item) {
@@ -342,13 +345,15 @@ export default class HisCheck {
           id: it.id,
           name: it.name,
           score: scoreObj?.score,
-          staffs: [
-            {
-              staff: it.staff,
-              account: it.account,
-              name: it.staffName
-            }
-          ],
+          staffs: it.staff
+            ? [
+                {
+                  staff: it.staff,
+                  account: it.account,
+                  name: it.staffName
+                }
+              ]
+            : [],
           item: workItemObj?.item ?? []
         });
       }
@@ -528,7 +533,7 @@ export default class HisCheck {
         id
       );
       if (staffs.length > 0)
-        throw new KatoRuntimeError(`考核方案存在考核规则, 不能删`);
+        throw new KatoRuntimeError(`考核方案存在考核员工, 不能删`);
       // 删除医疗考核规则
       const rule = await appDB.execute(
         `select * from his_check_rule where "check" = ?`,
