@@ -212,7 +212,10 @@
                 placement="top"
                 width="200"
                 trigger="click"
-                :disabled="tag.type"
+                :disabled="
+                  tag.type ||
+                    !$settings.permissions.includes(permission.TAGS_DETAIL)
+                "
               >
                 <div>
                   糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
