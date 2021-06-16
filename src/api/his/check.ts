@@ -534,13 +534,9 @@ export default class HisCheck {
       );
       if (staffs.length > 0)
         throw new KatoRuntimeError(`考核方案存在考核员工, 不能删`);
+
       // 删除医疗考核规则
-      const rule = await appDB.execute(
-        `select * from his_check_rule where "check" = ?`,
-        id
-      );
-      if (rule.length > 0)
-        throw new KatoRuntimeError(`考核方案存在考核规则, 不能删`);
+      await appDB.execute(`delete from his_check_rule where "check" = ?`, id);
 
       // 删除医疗考核方案
       await appDB.execute(`delete from his_check_system where id = ?`, id);
