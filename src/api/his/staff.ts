@@ -117,6 +117,7 @@ export default class HisStaff {
    * @param account
    * @param password
    * @param name
+   * @param virtual 是否是虚拟账户
    */
   @validate(
     should
@@ -134,9 +135,13 @@ export default class HisStaff {
     should
       .string()
       .required()
-      .description('名称')
+      .description('名称'),
+    should
+      .bool()
+      .required()
+      .description('是否是虚拟账户')
   )
-  async add(staff, account, password, name) {
+  async add(staff, account, password, name, virtual) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -159,16 +164,18 @@ export default class HisStaff {
               account,
               password,
               name,
+              virtual,
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
         account,
         password,
         name,
+        virtual,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -203,12 +210,16 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('his员工')
+      .description('his员工'),
+    should
+      .bool()
+      .required()
+      .description('是否是虚拟账户')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff) {
+  async update(id, name, password, staff, virtual) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -225,11 +236,13 @@ export default class HisStaff {
           name = ?,
           password = ?,
           staff = ?,
+          virtual = ?,
           updated_at = ?
         where id = ?`,
       name,
       password,
       staff,
+      virtual,
       dayjs().toDate(),
       id
     );
@@ -295,7 +308,7 @@ export default class HisStaff {
 
     const [sql, params] = sqlRender(
       `
-        select id, hospital, staff, account, password, name, created_at, updated_at
+        select id, hospital, staff, account, password, name, virtual, created_at, updated_at
         from staff
         where hospital = {{? hospital}}
         {{#if account}}

@@ -15,6 +15,7 @@ export class HisMigration implements IMigration {
         hospital     varchar(36),
         staff        varchar(64) unique,
         account      varchar(255) unique,
+        virtual      boolean                           default false not null,
         password     varchar(255),
         name         varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
@@ -24,6 +25,7 @@ export class HisMigration implements IMigration {
       comment on column staff.hospital is '所属医院';
       comment on column staff.staff is '绑定his员工id';
       comment on column staff.account is '登录名';
+      comment on column staff.virtual is '虚拟用户标识';
       comment on column staff.password is '密码';
       comment on column staff.name is '名称';
 

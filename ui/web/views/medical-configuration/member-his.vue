@@ -143,6 +143,13 @@
         <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
+        <el-form-item
+          label="是否虚拟账户"
+          prop="his"
+          :label-width="formLabelWidth"
+        >
+          <el-switch v-model="userForm.virtual"></el-switch>
+        </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
             v-model="userForm.his"
@@ -201,6 +208,13 @@
         <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
+        <el-form-item
+          label="是否虚拟账户"
+          prop="his"
+          :label-width="formLabelWidth"
+        >
+          <el-switch v-model="userForm.virtual"></el-switch>
+        </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
             v-model="userForm.his"
@@ -245,7 +259,8 @@ export default {
         account: '',
         password: '',
         name: '',
-        his: ''
+        his: '',
+        virtual: false
       },
       searchForm: {
         account: '',
@@ -345,7 +360,8 @@ export default {
         account: '',
         password: '',
         name: '',
-        his: ''
+        his: '',
+        virtual: false
       };
     },
     //保存新建用户
@@ -358,7 +374,8 @@ export default {
               this.userForm.his || null,
               this.userForm.account.trim(),
               this.userForm.password.trim(),
-              this.userForm.name.trim()
+              this.userForm.name.trim(),
+              this.userForm.virtual || false
             );
             this.$message({
               type: 'success',
@@ -386,7 +403,8 @@ export default {
           account: row.account,
           password: row.password,
           name: row.name,
-          his: row.staff
+          his: row.staff,
+          virtual: row.virtual
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -401,7 +419,8 @@ export default {
               this.userForm.id,
               this.userForm.name.trim(),
               this.userForm.password.trim(),
-              this.userForm.his || null
+              this.userForm.his || null,
+              this.userForm.virtual || false
             );
             this.$message({
               type: 'success',
