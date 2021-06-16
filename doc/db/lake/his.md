@@ -143,6 +143,8 @@
 
 #### 员工得分表(his_staff_result)
 
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
 | id | varchar(36) | 主键 |
 | day | date | 日期 |
 | work | jsonb | 工分结果 |
