@@ -35,7 +35,10 @@
               </el-option>
             </el-select>
           </span>
-          <span style="margin:0 50px 10px 0;display: inline-block;">
+          <span
+            v-if="!$settings.isMobile"
+            style="margin:0 50px 10px 0;display: inline-block;"
+          >
             <el-button
               plain
               size="small"
@@ -48,7 +51,10 @@
               >考核共识下载</el-button
             >
           </span>
-          <span style="margin:0 20px 10px 0;display: inline-block;">
+          <span
+            v-if="!$settings.isMobile"
+            style="margin:0 20px 10px 0;display: inline-block;"
+          >
             <el-button
               size="small"
               type="primary"
