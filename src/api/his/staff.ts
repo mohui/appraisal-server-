@@ -308,7 +308,7 @@ export default class HisStaff {
 
     const [sql, params] = sqlRender(
       `
-        select id, hospital, staff, account, password, name, created_at, updated_at
+        select id, hospital, staff, account, password, name, virtual, created_at, updated_at
         from staff
         where hospital = {{? hospital}}
         {{#if account}}
