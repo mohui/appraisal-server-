@@ -9,12 +9,14 @@ module.exports = [
       Permission.APPRAISAL_BASIC_DATA
     ],
     label: '绩效考核',
+    sign: 'show',
     icon: 'el-icon-data-analysis',
     children: [
       {
         index: 'appraisal-result',
         permission: [Permission.APPRAISAL_RESULT],
         router: '/appraisal-result',
+        sign: 'show',
         label: '考核结果'
       },
       {
@@ -47,6 +49,7 @@ module.exports = [
     index: 'person',
     permission: [Permission.PROFILE],
     label: '个人档案',
+    sign: 'show',
     icon: 'el-icon-edit',
     router: '/person'
   },
@@ -88,6 +91,7 @@ module.exports = [
     index: 'medical-performance',
     permission: [Permission.MEDICAL_PERFORMANCE],
     label: '医疗绩效',
+    sign: 'show',
     icon: 'el-icon-s-data',
     router: '/medical-performance'
   },
