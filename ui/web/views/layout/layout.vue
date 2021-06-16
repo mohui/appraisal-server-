@@ -37,9 +37,11 @@
         </el-dropdown>
       </div>
     </el-header>
-    <el-container>
+    <el-container
+      :style="{'flex-direction': $settings.isMobile ? 'column' : 'row'}"
+    >
       <el-aside
-        width="270px"
+        :width="$settings.isMobile ? '100%' : '270px'"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -174,22 +176,18 @@ export default {
   cursor: pointer;
 }
 .mobile {
-  position: absolute;
-  height: 100%;
+  max-height: 100%;
   z-index: 2002;
+  transition: max-height 2s;
 }
-.hiddenMenu {
-  display: none;
+.mobile.hiddenMenu {
+  max-height: 0;
 }
 .mask {
-  position: fixed;
   width: 100%;
   height: 100%;
   background-color: rgba(100, 100, 100, 0.5);
   z-index: 9;
-  ul {
-    width: 200px;
-  }
 }
 ::v-deep .el-menu {
   & > li {
