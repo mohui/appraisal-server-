@@ -249,7 +249,7 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.辅助检查-宫颈涂片',
+    id: '公卫数据.辅助检查-其他',
     name: '辅助检查-其他',
     parent: '公卫数据',
     datasource: {
