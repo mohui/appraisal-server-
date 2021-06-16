@@ -148,12 +148,7 @@
           prop="his"
           :label-width="formLabelWidth"
         >
-          <el-switch
-            v-model="userForm.virtual"
-            active-color="#13ce66"
-            inactive-color="#ff4949"
-          >
-          </el-switch>
+          <el-switch v-model="userForm.virtual"></el-switch>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
@@ -218,12 +213,7 @@
           prop="his"
           :label-width="formLabelWidth"
         >
-          <el-switch
-            v-model="userForm.virtual"
-            active-color="#13ce66"
-            inactive-color="#ff4949"
-          >
-          </el-switch>
+          <el-switch v-model="userForm.virtual"></el-switch>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
