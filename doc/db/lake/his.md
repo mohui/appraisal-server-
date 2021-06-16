@@ -8,6 +8,7 @@
 | hospital | varchar(36) | 所属医院 |
 | staff | varchar(64) | 绑定his员工id |
 | account | varchar(255) | 登录名 |
+| virtual | boolean | 虚拟用户标识 |
 | password | varchar(255) | 密码 |
 | name | varchar(255) | 名称 |
 | created_at | timestamp | 创建时间 |
@@ -21,6 +22,31 @@
 | staff | varchar(36) | 员工id |
 | sources | varchar(36)[] | 关联员工id数组 |
 | rate | double precision | 权重系数 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 医疗手工数据表(his_manual_data)
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| hospital | varchar(36) | 所属医院id |
+| name | varchar(255) | 名称 |
+| input | varchar(255) | 输入方式; 属性/日志 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 工分项目表(his_staff_manual_data_detail)
+
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| staff | varchar(36) | 员工id |
+| item | varchar(36) | 手工数据id |
+| date | timestamp | 赋值时间 |
+| value | double | 单位量 |
+| files | varchar(255)[] | 附件; unifs地址数组 |
+| remark | varchar(500) | 备注 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -40,8 +66,8 @@
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
 | item | varchar(36) | 工分项目id |
-| charge | varchar(255) | 收费项目id |
-| type | varchar(255) | 收费项目类型; 检查项目/药品 |
+| source | varchar(255) | 来源id |
+| code | varchar(255) | 检查项目/药品id |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -50,6 +76,7 @@
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
+| id | varchar(36) | 主键 |
 | staff | varchar(36) | 员工id |
 | item | varchar(36) | 工分项目id |
 | score | int | 分值 |
@@ -64,6 +91,18 @@
 | item | varchar(36) | 工分项目id |
 | date | date | 日期; 手动打分默认每月1号 |
 | score | int | 得分 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 员工工分项目得分流水表(his_staff_work_score_detail)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| staff | varchar(36) | 员工id |
+| item | varchar(36) | 工分项目id |
+| date | date | 得分时间 |
+| score | double | 得分 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -94,6 +133,7 @@
 | "check" | varchar(36) | 所属考核方案 |
 | auto | boolean | 是否自动考核 |
 | name | varchar(255) | 名称 |
+| detail | varchar(255) | 考核要求 |
 | metric | varchar(255) | 指标 |
 | operator | varchar(255) | 计算方式 |
 | value | double precision | 参考值 |
@@ -101,14 +141,12 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 考核得分表(his_rule_staff_score)
+#### 员工得分表(his_staff_result)
 
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| rule | varchar(36) | 考核规则id |
-| staff | varchar(36) | 员工id |
-| date | date | 日期 |
-| score | double | 得分 |
+| id | varchar(36) | 主键 |
+| day | date | 日期 |
+| work | jsonb | 工分结果 |
+| assess | jsonb | 考核结果 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
