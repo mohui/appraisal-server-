@@ -35,7 +35,7 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 工分项目表(his_staff_manual_data_detail)
+#### 医疗手工数据流水表(his_staff_manual_data_detail)
 
 
 | 字段名 | 字段类型 | 注释 |
@@ -61,7 +61,7 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 工分项目与his收费项目关联表(his_work_item_mapping)
+#### 工分项目来源关联表(his_work_item_mapping)
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
@@ -80,17 +80,6 @@
 | staff | varchar(36) | 员工id |
 | item | varchar(36) | 工分项目id |
 | score | int | 分值 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
-
-#### 员工工分项目得分表(his_staff_work_score)
-
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| staff | varchar(36) | 员工id |
-| item | varchar(36) | 工分项目id |
-| date | date | 日期; 手动打分默认每月1号 |
-| score | int | 得分 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
