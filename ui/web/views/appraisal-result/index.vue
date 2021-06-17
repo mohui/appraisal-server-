@@ -38,6 +38,7 @@
             <select
               v-if="$settings.isMobile"
               v-model="params.year"
+              style="height: 32px; line-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; padding: 0 15px;"
               @change="handleYearChange(params.year)"
             >
               <option
