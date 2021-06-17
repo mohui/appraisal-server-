@@ -397,7 +397,7 @@ export default {
               this.userForm.password.trim(),
               this.userForm.name.trim(),
               this.userForm.virtual || false,
-              this.userForm.remark.trim() || null
+              this.userForm.remark?.trim() || null
             );
             this.$message({
               type: 'success',
@@ -444,7 +444,7 @@ export default {
               this.userForm.password.trim(),
               this.userForm.his || null,
               this.userForm.virtual || false,
-              this.userForm.remark.trim() || null
+              this.userForm.remark?.trim() || null
             );
             this.$message({
               type: 'success',
