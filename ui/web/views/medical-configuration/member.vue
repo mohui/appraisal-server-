@@ -497,7 +497,7 @@ export default {
                     it.avg
                   );
                 }
-                if (!it.id && it.staffs.length > 0 && it.rate > 0) {
+                if (!it.id && it.staffs.length > 0 && (it.avg || it.rate > 0)) {
                   //在编辑操作中又添加新的绑定关系
                   return await this.$api.HisStaff.addHisStaffWorkSource(
                     this.newMember.staff,
