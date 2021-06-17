@@ -155,7 +155,7 @@
     >
       <el-table
         :data="workScoreListData"
-        max-height="50vh"
+        height="50vh"
         :header-cell-style="{textAlign: 'center'}"
         :cell-style="{textAlign: 'center'}"
       >
@@ -182,7 +182,7 @@
     >
       <el-table
         :data="staffCheckData.list"
-        max-height="50vh"
+        height="50vh"
         :header-cell-style="{textAlign: 'center'}"
         :cell-style="{textAlign: 'center'}"
       >
