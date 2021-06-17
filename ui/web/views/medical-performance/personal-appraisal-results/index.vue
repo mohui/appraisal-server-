@@ -140,7 +140,7 @@
       </div>
       <div
         class="card"
-        style="height: 300px ; margin-top: 20px"
+        style="height: 400px ; margin-top: 20px"
         v-loading="$asyncComputed.workScoreDailyListServerData.updating"
       >
         <div
