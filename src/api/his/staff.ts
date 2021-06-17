@@ -118,6 +118,7 @@ export default class HisStaff {
    * @param password
    * @param name
    * @param virtual 是否是虚拟账户
+   * @param remark 备注
    */
   @validate(
     should
@@ -139,9 +140,13 @@ export default class HisStaff {
     should
       .bool()
       .required()
-      .description('是否是虚拟账户')
+      .description('是否是虚拟账户'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
-  async add(staff, account, password, name, virtual) {
+  async add(staff, account, password, name, virtual, remark) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -165,10 +170,11 @@ export default class HisStaff {
               password,
               name,
               virtual,
+              remark,
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
@@ -176,6 +182,7 @@ export default class HisStaff {
         password,
         name,
         virtual,
+        remark,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -214,12 +221,16 @@ export default class HisStaff {
     should
       .bool()
       .required()
-      .description('是否是虚拟账户')
+      .description('是否是虚拟账户'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff, virtual) {
+  async update(id, name, password, staff, virtual, remark) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -237,12 +248,14 @@ export default class HisStaff {
           password = ?,
           staff = ?,
           virtual = ?,
+          remark = ?,
           updated_at = ?
         where id = ?`,
       name,
       password,
       staff,
       virtual,
+      remark,
       dayjs().toDate(),
       id
     );
@@ -308,7 +321,17 @@ export default class HisStaff {
 
     const [sql, params] = sqlRender(
       `
-        select id, hospital, staff, account, password, name, virtual, created_at, updated_at
+        select
+          id,
+          hospital,
+          staff,
+          account,
+          password,
+          name,
+          virtual,
+          remark,
+          created_at,
+          updated_at
         from staff
         where hospital = {{? hospital}}
         {{#if account}}
@@ -350,7 +373,7 @@ export default class HisStaff {
     );
     // 获取可选择的员工列表
     const staffList = await appDB.execute(
-      `select id, account, name
+      `select id, account, name, remark
             from staff
             where hospital = ?`,
       hospital

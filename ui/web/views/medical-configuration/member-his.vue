@@ -93,6 +93,11 @@
           min-width="100"
         ></el-table-column>
         <el-table-column
+          prop="remark"
+          label="备注"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
           prop="created_at"
           label="创建时间"
           min-width="100"
@@ -149,6 +154,13 @@
           :label-width="formLabelWidth"
         >
           <el-switch v-model="userForm.virtual"></el-switch>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
+          <el-input
+            v-model="userForm.remark"
+            type="textarea"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
@@ -215,6 +227,13 @@
         >
           <el-switch v-model="userForm.virtual"></el-switch>
         </el-form-item>
+        <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
+          <el-input
+            v-model="userForm.remark"
+            type="textarea"
+            autocomplete="off"
+          ></el-input>
+        </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
             v-model="userForm.his"
@@ -260,7 +279,8 @@ export default {
         password: '',
         name: '',
         his: '',
-        virtual: false
+        virtual: false,
+        remark: null
       },
       searchForm: {
         account: '',
@@ -361,7 +381,8 @@ export default {
         password: '',
         name: '',
         his: '',
-        virtual: false
+        virtual: false,
+        remark: null
       };
     },
     //保存新建用户
@@ -375,7 +396,8 @@ export default {
               this.userForm.account.trim(),
               this.userForm.password.trim(),
               this.userForm.name.trim(),
-              this.userForm.virtual || false
+              this.userForm.virtual || false,
+              this.userForm.remark?.trim() || null
             );
             this.$message({
               type: 'success',
@@ -404,7 +426,8 @@ export default {
           password: row.password,
           name: row.name,
           his: row.staff,
-          virtual: row.virtual
+          virtual: row.virtual,
+          remark: row.remark
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -420,7 +443,8 @@ export default {
               this.userForm.name.trim(),
               this.userForm.password.trim(),
               this.userForm.his || null,
-              this.userForm.virtual || false
+              this.userForm.virtual || false,
+              this.userForm.remark?.trim() || null
             );
             this.$message({
               type: 'success',
