@@ -373,7 +373,7 @@ export default class HisStaff {
     );
     // 获取可选择的员工列表
     const staffList = await appDB.execute(
-      `select id, account, name
+      `select id, account, name, remark
             from staff
             where hospital = ?`,
       hospital
