@@ -61,7 +61,7 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### (工分项目与his收费项目关联表)工分项目来源关联表(his_work_item_mapping)
+#### 工分项目来源关联表(his_work_item_mapping)
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
