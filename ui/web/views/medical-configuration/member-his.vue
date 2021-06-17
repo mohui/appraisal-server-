@@ -150,7 +150,7 @@
         </el-form-item>
         <el-form-item
           label="是否虚拟账户"
-          prop="his"
+          prop="virtual"
           :label-width="formLabelWidth"
         >
           <el-switch v-model="userForm.virtual"></el-switch>
@@ -222,7 +222,7 @@
         </el-form-item>
         <el-form-item
           label="是否虚拟账户"
-          prop="his"
+          prop="virtual"
           :label-width="formLabelWidth"
         >
           <el-switch v-model="userForm.virtual"></el-switch>
