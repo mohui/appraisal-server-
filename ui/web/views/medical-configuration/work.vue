@@ -133,6 +133,7 @@
               :data="workTreeData"
               :load="loadNode"
               :props="treeProps"
+              :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
               lazy
               node-key="id"
               show-checkbox
@@ -170,6 +171,8 @@
           <el-tag
             v-for="old in newWork.projectsSelected"
             :key="old.id"
+            closable
+            @close="closeTag(old)"
             style="margin: 0 5px"
             >{{ old.name }}</el-tag
           >
@@ -235,8 +238,7 @@ export default {
         disabled: data => {
           return data.id === '公卫数据' || data.id === '手工数据';
         }
-      },
-      currentTreeChecked: [] //当前被选中的node
+      }
     };
   },
   computed: {
@@ -324,13 +326,7 @@ export default {
         null,
         this.newWork?.id
       );
-      this.currentTreeChecked = this.currentTreeChecked.concat(
-        this.workTreeData.filter(it => it.selected).map(it => it.id)
-      );
       this.addWorkVisible = true;
-      this.$nextTick(() => {
-        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
-      });
     },
     async removeRow(row) {
       try {
@@ -353,7 +349,6 @@ export default {
       this.$refs[ref].resetFields();
       this.$refs.tree.setCheckedKeys([]);
       //重置默认选中项
-      this.currentTreeChecked = [];
       this.newWork = {
         work: '',
         source: HisWorkSource.CHECK,
@@ -393,17 +388,12 @@ export default {
           node.data.id,
           this.newWork?.id
         );
-        this.currentTreeChecked = this.currentTreeChecked.concat(
-          data.filter(it => it.selected).map(it => it.id)
-        );
-        this.$refs.tree.setCheckedKeys(this.currentTreeChecked);
         return resolve(data);
       }
     },
     treeCheck({id, name}, selected) {
       //选中的则push进当前选中项数组
       if (selected) {
-        this.currentTreeChecked.push(id);
         //如果原有的工分项没有该项目,则添加进去
         if (this.newWork.projectsSelected.findIndex(old => old.id === id) < 0) {
           this.newWork.projectsSelected.push({id, name});
@@ -411,10 +401,6 @@ export default {
       }
       //未选中的则从当前选中项剔除
       if (!selected) {
-        this.currentTreeChecked.splice(
-          this.currentTreeChecked.findIndex(it => it === id),
-          1
-        );
         //如果原有的工分项有该项目,则删除
         const index = this.newWork.projectsSelected.findIndex(
           old => old.id === id
@@ -423,6 +409,12 @@ export default {
           this.newWork.projectsSelected.splice(index, 1);
         }
       }
+    },
+    closeTag(tag) {
+      this.treeCheck({id: tag.id, name: tag.name}, false);
+      this.$refs.tree.setCheckedKeys(
+        this.newWork.projectsSelected.map(it => it.id)
+      );
     }
   }
 };
