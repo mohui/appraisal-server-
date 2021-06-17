@@ -29,7 +29,7 @@
       </div>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+          <el-col :span="10" :xs="24" :sm="24" :md="24" :lg="10" :xl="10">
             <div
               class="card"
               v-loading="$asyncComputed.workScoreListServerData.updating"
@@ -40,7 +40,7 @@
               ></div>
             </div>
           </el-col>
-          <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+          <el-col :span="14" :xs="24" :sm="24" :md="24" :lg="14" :xl="14">
             <div
               class="card person-info"
               v-loading="$asyncComputed.personInfoServerData.updating"
@@ -140,7 +140,7 @@
       </div>
       <div
         class="card"
-        style="height: 300px ; margin-top: 20px"
+        style="height: 400px ; margin-top: 20px"
         v-loading="$asyncComputed.workScoreDailyListServerData.updating"
       >
         <div
@@ -292,7 +292,10 @@ export default {
   },
   computed: {
     workScoreListData() {
-      return this.workScoreListServerData?.items?.map(it => it);
+      return this.workScoreListServerData?.items?.map(it => ({
+        ...it,
+        score: Number(it.score.toFixed(2))
+      }));
     },
     workScore() {
       const total = this.workScoreListData
@@ -301,9 +304,9 @@ export default {
       return {
         total: total,
         rate: this.workScoreListServerData.rate,
-        afterCorrectionScore: (
-          total * this.workScoreListServerData.rate
-        ).toFixed(2),
+        afterCorrectionScore: Number(
+          (total * this.workScoreListServerData.rate).toFixed(2)
+        ),
         rateFormat:
           this.workScoreListServerData.rate === null
             ? '暂未考核'
@@ -459,7 +462,8 @@ export default {
         //设置颜色
         color: this.chartColors,
         legend: {
-          top: 'bottom'
+          top: 'bottom',
+          type: 'scroll'
         },
         series: [
           {
@@ -571,7 +575,11 @@ export default {
         legend: {
           data: legendData,
           // 设置图例选中状态表
-          selected: selected
+          selected: selected,
+          type: 'scroll'
+        },
+        grid: {
+          top: 80
         },
         xAxis: {
           type: 'category',
@@ -612,6 +620,11 @@ export default {
         }
         option.legend.selected = selected;
         myChart.setOption(option);
+      });
+
+      // 窗口自适应，表图大小随浏览器窗口的缩放自适应
+      window.addEventListener('resize', function() {
+        myChart.resize();
       });
     }
   }
