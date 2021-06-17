@@ -155,19 +155,19 @@
     >
       <el-table
         :data="workScoreListData"
-        max-height="50vh"
+        height="50vh"
         :header-cell-style="{textAlign: 'center'}"
         :cell-style="{textAlign: 'center'}"
       >
         <el-table-column
           property="type"
           label="类型"
-          width="200"
+          min-width="150"
         ></el-table-column>
         <el-table-column
           property="name"
           label="名称"
-          width="200"
+          min-width="200"
         ></el-table-column>
         <el-table-column
           property="score"
@@ -182,7 +182,7 @@
     >
       <el-table
         :data="staffCheckData.list"
-        max-height="50vh"
+        height="50vh"
         :header-cell-style="{textAlign: 'center'}"
         :cell-style="{textAlign: 'center'}"
       >
