@@ -408,7 +408,11 @@ export default class HisStaff {
         rate: should
           .number()
           .required()
-          .description('权重系数')
+          .description('权重系数'),
+        avg: should
+          .boolean()
+          .required()
+          .description('是否平均分配')
       })
       .required()
       .description('关联员工[]')
@@ -419,12 +423,13 @@ export default class HisStaff {
       for (const it of sourceRate) {
         await appDB.execute(
           ` insert into
-              his_staff_work_source(id, staff, sources, rate, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
+              his_staff_work_source(id, staff, sources, rate, avg, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?)`,
           uuid(),
           staff,
           `{${it.source.map(item => `"${item}"`).join()}}`,
           it.rate,
+          it.avg,
           dayjs().toDate(),
           dayjs().toDate()
         );
@@ -456,17 +461,19 @@ export default class HisStaff {
       .required()
       .description('关联员工[]')
   )
-  async updateHisStaffWorkSource(id, sources, rate) {
+  async updateHisStaffWorkSource(id, sources, rate, avg) {
     return appDB.transaction(async () => {
       await appDB.execute(
         ` update his_staff_work_source
                 set
                 sources = ?,
                 rate = ?,
+                avg = ?,
                 updated_at = ?
               where id = ?`,
         `{${sources.map(item => `"${item}"`).join()}}`,
         rate,
+        avg,
         dayjs().toDate(),
         id
       );
@@ -485,6 +492,7 @@ export default class HisStaff {
           ,source.staff
           ,source.sources
           ,source.rate
+          ,source.avg
           ,staff.name "staffName"
         from his_staff_work_source source
         left join staff on source.staff = staff.id
@@ -530,6 +538,7 @@ export default class HisStaff {
           ,source.staff
           ,source.sources
           ,source.rate
+          ,source.avg
           ,staff.name "staffName"
         from his_staff_work_source source
         left join staff on source.staff = staff.id
