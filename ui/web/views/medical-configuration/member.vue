@@ -349,7 +349,10 @@ export default {
       return arr;
     },
     memberList() {
-      return this.serverMemberData;
+      return this.serverMemberData.map(it => ({
+        ...it,
+        name: it.remark ? `${it.name} (${it.remark})` : it.name
+      }));
     }
   },
   watch: {
