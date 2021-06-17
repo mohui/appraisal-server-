@@ -462,7 +462,8 @@ export default {
         //设置颜色
         color: this.chartColors,
         legend: {
-          top: 'bottom'
+          top: 'bottom',
+          type: 'scroll'
         },
         series: [
           {
@@ -574,7 +575,11 @@ export default {
         legend: {
           data: legendData,
           // 设置图例选中状态表
-          selected: selected
+          selected: selected,
+          type: 'scroll'
+        },
+        grid: {
+          top: 80
         },
         xAxis: {
           type: 'category',
