@@ -21,6 +21,7 @@
           <!--年度选择-->
           <span style="margin:0 20px 10px 0;display: inline-block;">
             <el-select
+              v-if="!$settings.isMobile"
               v-model="params.year"
               size="small"
               placeholder="请选择考核年度"
@@ -34,6 +35,19 @@
               >
               </el-option>
             </el-select>
+            <select
+              v-if="$settings.isMobile"
+              v-model="params.year"
+              @change="handleYearChange(params.year)"
+            >
+              <option
+                v-for="item in yearList"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </select>
           </span>
           <span
             v-if="!$settings.isMobile"
