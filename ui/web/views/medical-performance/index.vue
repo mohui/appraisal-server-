@@ -7,35 +7,33 @@
           class="header"
           v-loading="$asyncComputed.overviewServerData.updating"
         >
-          <div class="left">
-            <div class="header-title">{{ overviewData.name }}绩效考核</div>
-            <div>
-              <el-date-picker
-                v-model="currentDate"
-                size="mini"
-                type="month"
-                placeholder="选择月"
-                @change="handleChangeDate"
-                :picker-options="disabledDate"
-              >
-              </el-date-picker>
-            </div>
+          <div class="header-title">{{ overviewData.name }}绩效考核</div>
+          <div>
+            <el-date-picker
+              v-model="currentDate"
+              size="mini"
+              type="month"
+              placeholder="选择月"
+              @change="handleChangeDate"
+              :picker-options="disabledDate"
+            >
+            </el-date-picker>
+          </div>
+          <div>
             <el-button
               type="primary"
               size="mini"
               :disabled="overviewData.settle"
-              style="margin-left: 20px"
               @click="handleSettle()"
             >
               {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
             </el-button>
           </div>
-          <div class="right">
+          <div class="compute">
             <el-button
               type="primary"
               size="mini"
               :disabled="overviewData.settle"
-              style="margin-left: 20px"
               @click="handleCompute"
             >
               计算
@@ -44,14 +42,25 @@
         </div>
       </el-card>
       <div>
-        <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="10" :xs="24" :sm="10" :md="10" :lg="10" :xl="10">
+        <el-row :gutter="10" style="margin: 10px -5px 0;">
+          <el-col
+            :span="10"
+            :xs="24"
+            :sm="10"
+            :md="10"
+            :lg="10"
+            :xl="10"
+            style="margin-bottom: 10px;"
+          >
             <el-card
               shadow="hover"
               v-loading="$asyncComputed.overviewServerData.updating"
             >
-              <el-col :span="12">
-                <div class="score-detail">
+              <el-col :span="12" :xs="24">
+                <div
+                  class="score-detail"
+                  :style="{height: $settings.isMobile ? '200px' : '300px'}"
+                >
                   <div class="total-score-title">总分</div>
                   <div class="total-score">
                     {{ overviewData.correctScore }}
@@ -62,7 +71,7 @@
                   </div>
                 </div>
               </el-col>
-              <el-col :span="12">
+              <el-col :span="12" :xs="24">
                 <div>
                   <div
                     id="rateGauge"
@@ -72,7 +81,15 @@
               </el-col>
             </el-card>
           </el-col>
-          <el-col :span="14" :xs="24" :sm="14" :md="14" :lg="14" :xl="14">
+          <el-col
+            :span="14"
+            :xs="24"
+            :sm="14"
+            :md="14"
+            :lg="14"
+            :xl="14"
+            style="margin-bottom: 10px;"
+          >
             <el-card
               shadow="hover"
               v-loading="$asyncComputed.staffCheckListSeverData.updating"
@@ -528,21 +545,18 @@ export default {
 }
 
 .header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  .left {
-    .header-title {
-      font: bold 20px/2 Arial;
-      color: $color-primary;
-      margin-right: 10px;
-    }
+  margin-bottom: -10px;
+  & > div {
+    margin: 0 20px 10px 0;
+    float: left;
   }
-  .left,
-  .right {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+  .compute {
+    float: right;
+    margin-right: 0;
+  }
+  .header-title {
+    font: bold 20px/1.4 Arial;
+    color: $color-primary;
   }
 }
 

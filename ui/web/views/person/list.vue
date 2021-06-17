@@ -5,10 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 70px)' : 'calc(100% - 110px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '5px 0 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">

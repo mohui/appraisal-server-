@@ -1,6 +1,6 @@
 <template>
   <div style="height: 100%;">
-    <el-row :gutter="20" style="height: 100%;">
+    <el-row :gutter="10" style="height: 100%;">
       <el-col :span="6" :xs="24">
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
         <el-alert
@@ -18,7 +18,8 @@
           shadow="never"
           style="height: 100%;"
           :body-style="{
-            height: 'calc(100% - 40px)'
+            height: 'calc(100% - 40px)',
+            padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
           ><el-button
             style="position: absolute;top:15px;right:30px;z-index: 9;"
@@ -27,23 +28,24 @@
             @click="$router.go(-1)"
             >返回
           </el-button>
-          <el-tabs v-model="activeTab" class="patient-tab-list">
+          <el-tabs
+            v-model="activeTab"
+            class="patient-tab-list"
+            :style="{width: $settings.isMobile ? '100%' : 'calc(100% - 70px)'}"
+          >
             <el-tab-pane
               label="个人基本信息表"
               name="personal"
               v-if="personDetailSeverData.length"
             >
               <div>
-                <el-row
-                  type="flex"
-                  class="base-info-head"
-                  justify="space-between"
-                >
-                  <el-col :span="6">
-                    姓名：<strong>{{ personDetailData.name }}</strong>
-                  </el-col>
-                  <el-col :span="6">编号：{{ personDetailData.id }}</el-col>
-                </el-row>
+                <div style="padding: 5px;">
+                  <div style="float: right;">
+                    编号：{{ personDetailData.id }}
+                  </div>
+                  姓名：<strong>{{ personDetailData.name }}</strong>
+                </div>
+
                 <table class="base-info-table">
                   <tbody>
                     <tr>
@@ -922,8 +924,23 @@ export default {
 </script>
 
 <style lang="scss">
+@media screen and (max-width: 414px) {
+  .patient-tab-list {
+    table {
+      td {
+        display: block;
+        margin-left: 4px;
+        width: calc(100% - 36px);
+        border-left: none !important;
+        font-size: 14px;
+      }
+    }
+    .notes {
+      padding: 0 10px;
+    }
+  }
+}
 .patient-tab-list {
-  width: calc(100% - 70px);
   height: 100%;
   display: flex;
   flex-direction: column;

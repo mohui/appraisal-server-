@@ -5,17 +5,21 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 120px)',
+        height: $settings.isMobile
+          ? 'calc(100% - 115px)'
+          : 'calc(100% - 130px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
         <span>金额列表</span>
         <!--年度选择-->
-        <span style="margin: 0 10px">
+        <span style="margin: 0 10px 10px;display: inline-block;">
           <el-select
             v-model="params.year"
+            size="small"
             placeholder="请选择考核年度"
             @change="handleYearChange(params.year)"
           >

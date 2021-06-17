@@ -6,6 +6,9 @@
         (!menu.permission || findPermission(menu.permission))
     "
     :index="menu.index"
+    :style="{
+      display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
+    }"
   >
     <template slot="title">
       <i :class="menu.icon"></i>
@@ -22,6 +25,9 @@
     v-else-if="!menu.permission || findPermission(menu.permission)"
     :route="menu.router"
     :index="menu.index"
+    :style="{
+      display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
+    }"
   >
     <i :class="menu.icon"></i>
     <span>{{ menu.label }}</span>

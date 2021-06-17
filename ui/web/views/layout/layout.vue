@@ -13,18 +13,21 @@
       <div>
         <kn-back-job></kn-back-job>
         <el-dropdown
+          style="line-height: normal;"
           class="dropdown"
           @command="handCommand"
           @visible-change="v => (dropdownVisible = v)"
         >
           <div>
             <i style="padding: 0 6px" class="el-icon-user"></i>
-            {{ $settings.user.name }}
-            <i
-              :class="
-                dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-              "
-            ></i>
+            <span v-if="!$settings.isMobile">
+              {{ $settings.user.name }}
+              <i
+                :class="
+                  dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                "
+              ></i>
+            </span>
           </div>
 
           <el-dropdown-menu slot="dropdown">
@@ -34,9 +37,11 @@
         </el-dropdown>
       </div>
     </el-header>
-    <el-container>
+    <el-container
+      :style="{'flex-direction': $settings.isMobile ? 'column' : 'row'}"
+    >
       <el-aside
-        width="270px"
+        :width="$settings.isMobile ? '100%' : '270px'"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -171,22 +176,18 @@ export default {
   cursor: pointer;
 }
 .mobile {
-  position: absolute;
-  height: 100%;
+  max-height: 100%;
   z-index: 2002;
+  transition: max-height 1s ease;
 }
-.hiddenMenu {
-  display: none;
+.mobile.hiddenMenu {
+  max-height: 0;
 }
 .mask {
-  position: fixed;
   width: 100%;
   height: 100%;
   background-color: rgba(100, 100, 100, 0.5);
   z-index: 9;
-  ul {
-    width: 200px;
-  }
 }
 ::v-deep .el-menu {
   & > li {
