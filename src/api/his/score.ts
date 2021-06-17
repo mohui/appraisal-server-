@@ -1096,7 +1096,7 @@ export default class HisScore {
         `
           select foo.*, wi.name as item_name, wi.method, s.name as staff_name
           from (
-                 select ss.staff, sim.item, sum(sd.score) as score
+                 select ss.staff, sim.item, sum(sd.score) * ss.rate as score
                  from (
                         select unnest(sources) as staff, rate
                         from his_staff_work_source
@@ -1105,7 +1105,7 @@ export default class HisScore {
                         inner join his_staff_work_item_mapping sim on ss.staff = sim.staff
                         left join his_staff_work_score_detail sd
                                   on ss.staff = sd.staff and sim.item = sd.item and sd.date >= ? and sd.date < ?
-                 group by ss.staff, sim.item
+                 group by ss.staff, sim.item, ss.rate
                ) foo
                  inner join his_work_item wi on foo.item = wi.id
                  inner join staff s on foo.staff = s.id
