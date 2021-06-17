@@ -29,7 +29,7 @@
       </div>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="8" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+          <el-col :span="10" :xs="24" :sm="24" :md="24" :lg="10" :xl="10">
             <div
               class="card"
               v-loading="$asyncComputed.workScoreListServerData.updating"
@@ -40,7 +40,7 @@
               ></div>
             </div>
           </el-col>
-          <el-col :span="16" :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+          <el-col :span="14" :xs="24" :sm="24" :md="24" :lg="14" :xl="14">
             <div
               class="card person-info"
               v-loading="$asyncComputed.personInfoServerData.updating"
