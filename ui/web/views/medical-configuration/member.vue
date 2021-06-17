@@ -264,8 +264,9 @@ export default {
   name: 'Member',
   data() {
     const ValidSubMember = (rule, value, callback) => {
-      if (value.some(v => v.staffs.length < 1 && v.rate < 1)) callback();
-      if (value.some(v => v.staffs.length < 1 || v.rate < 1))
+      if (value.some(v => v.staffs.length < 1 && (v.rate < 1 || v.avg)))
+        callback();
+      if (value.some(v => v.staffs.length < 1 || (v.rate < 1 && !v.avg)))
         callback(new Error('关联员工信息未填写完整'));
       callback();
     };
