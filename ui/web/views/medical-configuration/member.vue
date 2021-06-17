@@ -101,7 +101,8 @@
           width="80"
         >
           <template slot-scope="{row}">
-            <div>{{ row.subRate }}%</div>
+            <div v-if="!row.avg">{{ row.subRate }}%</div>
+            <div v-if="row.avg">平均分配</div>
           </template>
         </el-table-column>
         <el-table-column prop="opera" label="操作" align="center" width="200">
@@ -204,8 +205,10 @@
                     style="margin-right: 10px"
                     v-model="row.avg"
                     inactive-color="#13ce66"
-                    active-text="平均分配"
-                    inactive-text="比例分配"
+                    active-text="比例分配"
+                    inactive-text="平均分配"
+                    :active-value="false"
+                    :inactive-value="true"
                   ></el-switch>
 
                   <el-input-number
