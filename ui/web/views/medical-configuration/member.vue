@@ -74,11 +74,16 @@
         :span-method="spanMethod"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column prop="member" label="考核员工"></el-table-column>
-        <el-table-column prop="subMembers" label="关联员工" width="200">
+        <el-table-column
+          prop="member"
+          label="考核员工"
+          width="100"
+          align="center"
+        ></el-table-column>
+        <el-table-column prop="subMembers" label="关联员工" align="center">
           <template slot-scope="{row}">
             <el-tooltip
-              v-if="$widthCompute([row.subMember]) >= 200"
+              v-if="$widthCompute([row.subMember]) >= 400"
               effect="dark"
               placement="top"
               :content="row.subMember"
@@ -89,12 +94,17 @@
             <div v-else>{{ row.subMember }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="subRate" label="权重系数">
+        <el-table-column
+          prop="subRate"
+          label="权重系数"
+          align="center"
+          width="80"
+        >
           <template slot-scope="{row}">
             <div>{{ row.subRate }}%</div>
           </template>
         </el-table-column>
-        <el-table-column prop="opera" label="操作">
+        <el-table-column prop="opera" label="操作" align="center" width="200">
           <template slot-scope="{row}">
             <el-tooltip content="编辑" :enterable="false">
               <el-button
