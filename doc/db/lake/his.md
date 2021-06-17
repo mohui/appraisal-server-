@@ -11,6 +11,7 @@
 | virtual | boolean | 虚拟用户标识 |
 | password | varchar(255) | 密码 |
 | name | varchar(255) | 名称 |
+| remark | varchar(500) | 备注 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
