@@ -616,6 +616,11 @@ export default {
         option.legend.selected = selected;
         myChart.setOption(option);
       });
+
+      // 窗口自适应，表图大小随浏览器窗口的缩放自适应
+      window.addEventListener('resize', function() {
+        myChart.resize();
+      });
     }
   }
 };
