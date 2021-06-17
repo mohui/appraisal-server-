@@ -292,7 +292,10 @@ export default {
   },
   computed: {
     workScoreListData() {
-      return this.workScoreListServerData?.items?.map(it => it);
+      return this.workScoreListServerData?.items?.map(it => ({
+        ...it,
+        score: Number(it.score.toFixed(2))
+      }));
     },
     workScore() {
       const total = this.workScoreListData
