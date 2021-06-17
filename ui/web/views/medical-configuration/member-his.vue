@@ -150,7 +150,7 @@
         </el-form-item>
         <el-form-item
           label="是否虚拟账户"
-          prop="virtual"
+          prop="his"
           :label-width="formLabelWidth"
         >
           <el-switch v-model="userForm.virtual"></el-switch>
@@ -280,7 +280,7 @@ export default {
         name: '',
         his: '',
         virtual: false,
-        remark: ''
+        remark: null
       },
       searchForm: {
         account: '',
@@ -382,7 +382,7 @@ export default {
         name: '',
         his: '',
         virtual: false,
-        remark: ''
+        remark: null
       };
     },
     //保存新建用户
