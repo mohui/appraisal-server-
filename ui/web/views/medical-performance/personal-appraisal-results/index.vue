@@ -304,9 +304,9 @@ export default {
       return {
         total: total,
         rate: this.workScoreListServerData.rate,
-        afterCorrectionScore: (
-          total * this.workScoreListServerData.rate
-        ).toFixed(2),
+        afterCorrectionScore: Number(
+          (total * this.workScoreListServerData.rate).toFixed(2)
+        ),
         rateFormat:
           this.workScoreListServerData.rate === null
             ? '暂未考核'
