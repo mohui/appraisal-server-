@@ -1101,6 +1101,7 @@ export default class HisWorkItem {
         };
       });
     }
+    let hisList = [];
     switch (parent) {
       case '门诊':
         list = HisWorkItemSources.filter(it => it.parent === '门诊').map(it => {
@@ -1185,18 +1186,39 @@ export default class HisWorkItem {
         if (ids[1] === '药品') {
           [sql, params] = sqlRender(
             `
-        select id, name
-        from his_drug
-        where category = {{? category}}
-      `,
+              select id, name
+              from his_drug
+              where category = {{? category}}
+            `,
             {
               category: ids[2]
             }
           );
-          list = (await originalDB.execute(sql, ...params))?.map(it => {
+          // his药品
+          hisList = await originalDB.execute(sql, ...params);
+
+          // 查询his_charge_detail药品列表
+          const chargeModels = await originalDB.execute(
+            // language=PostgreSQL
+            `
+              select distinct item
+              from his_charge_detail
+              where item like ?
+            `,
+            `${parent}.%`
+          );
+          list = chargeModels.map(it => {
+            // 把item切割成数组
+            const drugs = it.item.split('.');
+            // 算出数组长度
+            const drugLength = drugs.length;
+            // 查找在his_drug中的名称
+            const index = hisList.find(
+              hisDrugIt => hisDrugIt.id === drugs[drugLength - 1]
+            );
             return {
-              id: `${parent}.${it.id}`,
-              name: it.name,
+              id: it.item,
+              name: index?.name ?? '',
               parent: parent
             };
           });
@@ -1205,19 +1227,39 @@ export default class HisWorkItem {
         if (ids[1] === '检查项目') {
           [sql, params] = sqlRender(
             `
-        select id, name
-        from his_check
-        where status = true
-        and category = {{? category}}
-      `,
+              select id, name
+              from his_check
+              where category = {{? category}}
+            `,
             {
               category: ids[2]
             }
           );
-          list = (await originalDB.execute(sql, ...params))?.map(it => {
+          hisList = await originalDB.execute(sql, ...params);
+
+          // 查询his_charge_detail药品列表
+          const chargeModels = await originalDB.execute(
+            // language=PostgreSQL
+            `
+              select distinct item
+              from his_charge_detail
+              where item like ?
+            `,
+            `${parent}.%`
+          );
+
+          list = chargeModels.map(it => {
+            // 把item切割成数组
+            const checks = it.item.split('.');
+            // 算出数组长度
+            const checkLength = checks.length;
+            // 查找在his_drug中的名称
+            const index = hisList.find(
+              hisDictIt => hisDictIt.id === checks[checkLength - 1]
+            );
             return {
-              id: `${parent}.${it.id}`,
-              name: it.name,
+              id: it.item,
+              name: index?.name ?? '',
               parent: parent
             };
           });
@@ -1225,22 +1267,43 @@ export default class HisWorkItem {
         break;
     }
 
+    // 添加是否选中字段
+    list = list.map(it => ({
+      ...it,
+      selected: false
+    }));
     let mappingItems = [];
     // 如果传了工分项目id,说明是修改,需要把已有的来源默认选中
     if (item) {
+      // 查询绑定过的关联项目
       mappingItems = await appDB.execute(
-        `select source from his_work_item_mapping where item = ?`,
+        `select source from his_work_item_mapping where item = ? and source like '${parent}%'`,
         item
       );
-    }
 
-    return list.map(it => {
-      const index = mappingItems.find(mapping => mapping.source === it.id);
-      return {
-        ...it,
-        selected: !!index
-      };
-    });
+      mappingItems.forEach(it => {
+        // 查找关联过的项目是否在关联项目列表中,如果不在,需要push进去
+        const index = list.find(listIt => listIt.id === it.source);
+        // 如果么有查找到, 说明存在关联项目不在列表中
+        if (!index) {
+          const hisIndex = hisList.find(hisListIt =>
+            it.source.endsWith(hisListIt.id)
+          );
+          // 防止父级放到子集中
+          if (hisIndex)
+            list.push({
+              id: it.source,
+              name: hisIndex?.name,
+              parent,
+              selected: true
+            });
+        } else {
+          // 如果查找到, 默认选中
+          index.selected = true;
+        }
+      });
+    }
+    return list;
   }
 
   // endregion
