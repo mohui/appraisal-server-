@@ -1038,6 +1038,55 @@ export default class HisScore {
       }
     }
     //endregion
+    // region 其他-门诊,住院诊疗人次
+    params = workItemSources.filter(it => it.source.startsWith('其他'));
+    if (staffModel?.staff) {
+      for (const param of params) {
+        let chargeType = '门诊';
+        if (param.source === '其他.住院诊疗人次') chargeType = '住院';
+        const rows: {date: Date; value: number}[] = (
+          await originalDB.execute(
+            // language=PostgreSQL
+            `
+            select distinct treat
+            from his_charge_master
+            where doctor = ?
+              and operate_time > ?
+              and operate_time < ?
+              and charge_type = ?
+          `,
+            staffModel.staff,
+            start,
+            end,
+            chargeType
+          )
+        ).map(() => ({
+          value: 1,
+          date: month
+        }));
+
+        workItems = workItems.concat(
+          //公卫数据转换成工分流水
+          rows.map<WorkItemDetail>(it => {
+            let score = 0;
+            //SUM得分方式
+            if (param.method === HisWorkMethod.SUM) {
+              score = new Decimal(it.value).mul(param.score).toNumber();
+            }
+            //AMOUNT得分方式
+            if (param.method === HisWorkMethod.AMOUNT) {
+              score = param.score;
+            }
+            return {
+              item: param.id,
+              date: it.date,
+              score: score
+            };
+          })
+        );
+      }
+    }
+    //endregion
     //region 同步流水
     await appDB.joinTx(async () => {
       //删除旧流水

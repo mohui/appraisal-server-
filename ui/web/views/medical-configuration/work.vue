@@ -236,7 +236,11 @@ export default {
         label: 'name',
         isLeaf: 'leaf',
         disabled: data => {
-          return data.id === '公卫数据' || data.id === '手工数据';
+          return (
+            data.id === '公卫数据' ||
+            data.id === '手工数据' ||
+            data.id === '其他'
+          );
         }
       }
     };
