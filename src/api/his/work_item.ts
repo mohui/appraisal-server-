@@ -332,7 +332,10 @@ export const HisWorkItemSources: {
       table: 'view_SanitaryControlAssist',
       date: 'checkDate'
     }
-  }
+  },
+  {id: '其他', name: '其他', parent: null},
+  {id: '其他.门诊诊疗人次', name: '门诊诊疗人次', parent: '其他'},
+  {id: '其他.住院诊疗人次', name: '住院诊疗人次', parent: '其他'}
 ];
 
 /**
