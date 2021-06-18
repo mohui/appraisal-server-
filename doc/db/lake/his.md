@@ -23,6 +23,7 @@
 | staff | varchar(36) | 员工id |
 | sources | varchar(36)[] | 关联员工id数组 |
 | rate | double precision | 权重系数 |
+| avg | boolean | 是否平均分配 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 

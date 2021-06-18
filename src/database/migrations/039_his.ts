@@ -36,6 +36,7 @@ export class HisMigration implements IMigration {
         staff        varchar(36),
         sources      varchar(36)[],
         rate         double precision,
+        avg          boolean                           default false not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -43,6 +44,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_source.staff is '员工id';
       comment on column his_staff_work_source."sources" is '关联员工id数组';
       comment on column his_staff_work_source.rate is '权重系数';
+      comment on column his_staff_work_source.avg is '是否平均';
 
       --医疗手工数据表
       create table if not exists his_manual_data
