@@ -1044,7 +1044,7 @@ export default class HisScore {
       // return params;
       for (const param of params) {
         let chargeType = '门诊';
-        if (param.source.includes('住院')) chargeType = '住院';
+        if (param.source === '其他.住院诊疗人次') chargeType = '住院';
         const rows: {date: Date; value: number}[] = (
           await originalDB.execute(
             // language=PostgreSQL
