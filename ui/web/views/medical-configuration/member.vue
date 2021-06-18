@@ -185,12 +185,11 @@
                       :label="m.name"
                       :value="m.id"
                       :disabled="
-                        m.id === newMember.staff ||
-                          newMember.subMembers.some(
-                            it =>
-                              !row.staffs.includes(m.id) &&
-                              it.staffs.some(s => s === m.id)
-                          )
+                        newMember.subMembers.some(
+                          it =>
+                            !row.staffs.includes(m.id) &&
+                            it.staffs.some(s => s === m.id)
+                        )
                       "
                     ></el-option>
                   </el-select>
