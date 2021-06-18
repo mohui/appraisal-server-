@@ -116,6 +116,10 @@ export const PermissionDetail = [
     name: '操作日志'
   },
   {
+    key: 'ai',
+    name: 'AI预测'
+  },
+  {
     key: 'medical-configuration-list',
     name: '医疗绩效配置列表'
   },
@@ -179,6 +183,7 @@ export const Permission = {
   TAGS_DETAIL: 'tags-detail',
   PERSON_EXCEL: 'person-excel',
   AUDIT_LOG: 'audit-log',
+  AI: 'ai',
   MEDICAL_CONFIGURATION_LIST: 'medical-configuration-list',
   MEDICAL_CONFIGURATION_WORK: 'medical-configuration-work',
   MEDICAL_CONFIGURATION_MEMBER: 'medical-configuration-member',
@@ -340,6 +345,10 @@ export const PermissionTree = [
   {
     key: Permission.AUDIT_LOG,
     label: '操作日志'
+  },
+  {
+    key: Permission.AI,
+    label: 'ai预测'
   },
   {
     key: Permission.MEDICAL_PERFORMANCE,

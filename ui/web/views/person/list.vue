@@ -318,7 +318,8 @@
 import {
   documentTagList,
   getTagsList,
-  personTagList
+  personTagList,
+  personTags
 } from '../../../../common/person-tag.ts';
 import {Permission} from '../../../../common/permission.ts';
 
@@ -346,7 +347,6 @@ export default {
         documentOr: false //档案问题是否or查询
       },
       permission: Permission,
-      personTagList: personTagList,
       tagList: documentTagList,
       yearList: [
         {value: 2020, label: '2020年度'},
@@ -358,8 +358,21 @@ export default {
     };
   },
   computed: {
+    //人群分类下拉框选项
+    personTagList() {
+      return personTagList.filter(
+        it =>
+          it.id !== personTags.ai.code ||
+          (it.id === personTags.ai.code &&
+            this.$settings.permissions.includes(this.permission.AI))
+      );
+    },
+    //表格数据
     tableData() {
       return this.serverData.rows.map(it => {
+        if (!this.$settings.permissions.includes(this.permission.AI)) {
+          it[personTags.ai.code] = null;
+        }
         return getTagsList(it);
       });
     },
