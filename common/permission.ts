@@ -114,6 +114,10 @@ export const PermissionDetail = [
   {
     key: 'audit-log',
     name: '操作日志'
+  },
+  {
+    key: 'ai',
+    name: 'AI预测'
   }
 ];
 
@@ -146,7 +150,8 @@ export const Permission = {
   SUPER_ADMIN: 'super-admin',
   TAGS_DETAIL: 'tags-detail',
   PERSON_EXCEL: 'person-excel',
-  AUDIT_LOG: 'audit-log'
+  AUDIT_LOG: 'audit-log',
+  AI: 'ai'
 };
 export const PermissionTree = [
   {
@@ -300,6 +305,10 @@ export const PermissionTree = [
   {
     key: Permission.AUDIT_LOG,
     label: '操作日志'
+  },
+  {
+    key: Permission.AI,
+    label: 'ai预测'
   }
 ];
 export function getPermission(key) {
