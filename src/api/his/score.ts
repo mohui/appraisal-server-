@@ -1041,7 +1041,6 @@ export default class HisScore {
     // region 其他-门诊,住院诊疗人次
     params = workItemSources.filter(it => it.source.startsWith('其他'));
     if (staffModel?.staff) {
-      // return params;
       for (const param of params) {
         let chargeType = '门诊';
         if (param.source === '其他.住院诊疗人次') chargeType = '住院';
