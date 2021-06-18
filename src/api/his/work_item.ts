@@ -1176,6 +1176,13 @@ export default class HisWorkItem {
           };
         });
         break;
+      case '其他':
+        list = HisWorkItemSources.filter(it => it.parent === '其他').map(
+          it => ({
+            ...it
+          })
+        );
+        break;
       default:
         // eslint-disable-next-line no-case-declarations
         let ids = [];
