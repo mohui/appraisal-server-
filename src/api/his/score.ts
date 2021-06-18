@@ -976,7 +976,7 @@ export default class HisScore {
         `
           select hospital
           from area_hospital_mapping
-          where code = ?
+          where area = ?
             and etl_id like '国卫公卫%'
         `,
         staffModel.hospital

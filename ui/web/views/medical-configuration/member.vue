@@ -101,7 +101,8 @@
           width="80"
         >
           <template slot-scope="{row}">
-            <div>{{ row.subRate }}%</div>
+            <div v-if="!row.avg">{{ row.subRate }}%</div>
+            <div v-if="row.avg">平均分配</div>
           </template>
         </el-table-column>
         <el-table-column prop="opera" label="操作" align="center" width="200">
@@ -169,7 +170,7 @@
             border
             size="mini"
           >
-            <el-table-column label="员工" prop="name">
+            <el-table-column label="员工" prop="name" width="200">
               <template slot-scope="{$index, row}">
                 <div>
                   <el-select
@@ -196,18 +197,30 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="权重系数" prop="rate">
+            <el-table-column label="权重系数" prop="rate" min-width="360">
               <template slot-scope="{$index, row}">
                 <div>
+                  <el-switch
+                    style="margin-right: 10px"
+                    v-model="row.avg"
+                    inactive-color="#13ce66"
+                    active-text="比例分配"
+                    inactive-text="平均分配"
+                    :active-value="false"
+                    :inactive-value="true"
+                  ></el-switch>
+
                   <el-input-number
+                    v-show="!row.avg"
+                    style="width: 100px"
                     v-model="row.rate"
                     size="mini"
                   ></el-input-number>
-                  &nbsp;&nbsp;%
+                  <span v-show="!row.avg">&nbsp;&nbsp;%</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="操作" width="100">
               <template slot-scope="{$index, row}">
                 <el-button type="text" @click="removeSubMember(row, $index)"
                   >删除</el-button
@@ -222,7 +235,12 @@
             type="warning"
             size="mini"
             @click="
-              newMember.subMembers.push({member: [], staffs: [], rate: 0})
+              newMember.subMembers.push({
+                member: [],
+                staffs: [],
+                rate: 0,
+                avg: false
+              })
             "
             >新增关联员工</el-button
           >
@@ -245,8 +263,9 @@ export default {
   name: 'Member',
   data() {
     const ValidSubMember = (rule, value, callback) => {
-      if (value.some(v => v.staffs.length < 1 && v.rate < 1)) callback();
-      if (value.some(v => v.staffs.length < 1 || v.rate < 1))
+      if (value.some(v => v.staffs.length < 1 && (v.rate < 1 || v.avg)))
+        callback();
+      if (value.some(v => v.staffs.length < 1 || (v.rate < 1 && !v.avg)))
         callback(new Error('关联员工信息未填写完整'));
       callback();
     };
@@ -291,7 +310,8 @@ export default {
               sourcesName: next.sourcesName,
               member: next.staffName, //名字
               subMember: next.sourcesName.join(','),
-              subRate: next.rate
+              subRate: next.rate,
+              avg: next.avg
             });
           } else
             pre.push({
@@ -304,7 +324,8 @@ export default {
                   sourcesName: next.sourcesName,
                   member: next.staffName, //名字
                   subMember: next.sourcesName.join(','),
-                  subRate: next.rate
+                  subRate: next.rate,
+                  avg: next.avg
                 }
               ]
             });
@@ -319,6 +340,7 @@ export default {
             sources: row.sources,
             sourcesName: row.sourcesName,
             member: row.member, //名字
+            avg: row.avg,
             subMember: row.sourcesName.join(','),
             subRate: new Decimal(row.subRate).mul(100).toNumber(),
             removeLoading: false
@@ -372,7 +394,8 @@ export default {
                 id: it.id,
                 member: it.sources.map(s => s.name),
                 staffs: it.sources.map(s => s.id),
-                rate: new Decimal(it.rate).mul(100).toNumber()
+                rate: new Decimal(it.rate).mul(100).toNumber(),
+                avg: it.avg || false
               }))
               .sort(a => {
                 //把本人的数据排到第一个;
@@ -396,12 +419,14 @@ export default {
             this.memberList.find(it => it.id === this.newMember.staff).name
           ],
           staffs: [this.newMember.staff],
-          rate: 100
+          rate: 100,
+          avg: false
         });
         this.newMember.subMembers.push({
           member: [],
           staffs: [],
-          rate: 0
+          rate: 0,
+          avg: false
         });
       }
     }
@@ -449,6 +474,7 @@ export default {
               .filter(it => it.rate > 0 && it.staffs.length > 0)
               .map(it => ({
                 source: it.staffs,
+                avg: it.avg,
                 rate: it.rate / 100
               }));
             await this.$api.HisStaff.addHisStaffWorkSource(
@@ -457,6 +483,7 @@ export default {
             );
             this.$message.success('添加成功');
           }
+          console.log(this.newMember.subMembers);
           if (this.newMember.id) {
             await Promise.all(
               this.newMember.subMembers.map(async it => {
@@ -465,16 +492,18 @@ export default {
                   return await this.$api.HisStaff.updateHisStaffWorkSource(
                     it.id,
                     it.staffs,
-                    it.rate / 100
+                    it.rate / 100,
+                    it.avg
                   );
                 }
-                if (!it.id && it.staffs.length > 0 && it.rate > 0) {
+                if (!it.id && it.staffs.length > 0 && (it.avg || it.rate > 0)) {
                   //在编辑操作中又添加新的绑定关系
                   return await this.$api.HisStaff.addHisStaffWorkSource(
                     this.newMember.staff,
                     [
                       {
                         source: it.staffs,
+                        avg: it.avg,
                         rate: it.rate / 100
                       }
                     ]
@@ -516,7 +545,8 @@ export default {
           staff: r.staff,
           staffs: r.sources,
           rate: r.subRate,
-          member: r.sourcesName
+          member: r.sourcesName,
+          avg: r.avg || true
         });
       });
       currentSubMember = currentSubMember.sort(a => {
