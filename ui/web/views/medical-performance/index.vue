@@ -143,8 +143,10 @@ export default {
     overviewData() {
       return {
         ...this.overviewServerData,
-        originalScore: this.overviewServerData.originalScore?.toFixed(2),
-        correctScore: this.overviewServerData.correctScore?.toFixed(2),
+        originalScore:
+          Number(this.overviewServerData.originalScore?.toFixed(2)) || 0,
+        correctScore:
+          Number(this.overviewServerData.correctScore?.toFixed(2)) || 0,
         rate: this.overviewServerData.correctScore
           ? this.overviewServerData.correctScore /
             this.overviewServerData.originalScore
@@ -152,10 +154,16 @@ export default {
       };
     },
     workScoreListData() {
-      return this.workScoreListSeverData;
+      return this.workScoreListSeverData?.map(it => ({
+        ...it,
+        score: Number(it.score?.toFixed(2)) || 0
+      }));
     },
     staffCheckListData() {
-      return this.staffCheckListSeverData;
+      return this.staffCheckListSeverData?.map(it => ({
+        ...it,
+        score: Number(it.score?.toFixed(2)) || 0
+      }));
     }
   },
   asyncComputed: {
@@ -403,7 +411,7 @@ export default {
             name: '质量系数',
             type: 'bar',
             yAxisIndex: 1,
-            data: doctorData.map(it => (it.rate * 100).toFixed(2))
+            data: doctorData.map(it => Number((it.rate * 100).toFixed(2)))
           }
         ]
       };
@@ -494,8 +502,8 @@ export default {
           {
             name: '项目实际得分',
             type: 'bar',
-            data: this.workScoreListData.map(
-              it => it.score * this.overviewData.rate
+            data: this.workScoreListData.map(it =>
+              Number((it.score * this.overviewData.rate).toFixed(2))
             ),
             itemStyle: {
               color: this.chartColors[0]

@@ -337,7 +337,7 @@ export default {
             if (index === -1) {
               projects.push({
                 name: it.name,
-                score: [it.score],
+                score: [Number(it.score?.toFixed(2))],
                 auxiliaryDate: [0]
               });
             } else {
@@ -346,7 +346,7 @@ export default {
                   return total + currentValue;
                 }, 0)
               );
-              projects[index].score.push(it.score);
+              projects[index].score.push(Number(it.score?.toFixed(2)));
             }
           }
         }
