@@ -1178,11 +1178,7 @@ export default class HisWorkItem {
         });
         break;
       case '其他':
-        list = HisWorkItemSources.filter(it => it.parent === '其他').map(
-          it => ({
-            ...it
-          })
-        );
+        list = HisWorkItemSources.filter(it => it.parent === '其他');
         break;
       default:
         // eslint-disable-next-line no-case-declarations
