@@ -333,6 +333,71 @@ export const HisWorkItemSources: {
       date: 'checkDate'
     }
   },
+  {
+    id: '公卫数据.新生儿家庭访视表',
+    name: '新生儿家庭访视表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_NewbornVisit_KN',
+      date: 'VisitDate'
+    }
+  },
+  {
+    id: '公卫数据.12-30月龄儿童健康检查记录表',
+    name: '12-30月龄儿童健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_ChildCheck_KN',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 12', 'chronologicalage < 31']
+    }
+  },
+  {
+    id: '公卫数据.3-6岁儿童健康检查记录表',
+    name: '3-6岁儿童健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_ChildCheck_KN',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 36', 'chronologicalage < 73']
+    }
+  },
+  {
+    id: '公卫数据.第1次产前检查服务记录表',
+    name: '第1次产前检查服务记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_NewlyDiagnosed_KN',
+      date: 'NewlyDiagnosedDate'
+    }
+  },
+  {
+    id: '公卫数据.第2~5次产前随访服务记录表',
+    name: '第2~5次产前随访服务记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_PrenatalCare_KN',
+      date: 'CheckDate'
+    }
+  },
+  {
+    id: '公卫数据.产后访视记录表',
+    name: '产后访视记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_MaternalVisits_KN',
+      date: 'VisitDate'
+    }
+  },
+  {
+    id: '公卫数据.产后42天健康检查记录表',
+    name: '产后42天健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_Examine42thDay_KN',
+      date: 'VisitDate'
+    }
+  },
   {id: '其他', name: '其他', parent: null},
   {id: '其他.门诊诊疗人次', name: '门诊诊疗人次', parent: '其他'},
   {id: '其他.住院诊疗人次', name: '住院诊疗人次', parent: '其他'}
