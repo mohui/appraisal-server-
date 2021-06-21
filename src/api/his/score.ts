@@ -997,7 +997,7 @@ export default class HisScore {
           and {{dateCol}} >= {{? start}}
           and {{dateCol}} < {{? end}}
           and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-          {{#each columns}} and {{this}} is not null{{/each}}
+          {{#each columns}} and {{this}} {{/each}}
       `,
         {
           dateCol: item.datasource.date,
