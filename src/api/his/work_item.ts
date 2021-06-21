@@ -45,7 +45,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
-      columns: ['dlpn']
+      columns: ['dlpn is not null']
     }
   },
   {
@@ -55,7 +55,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
-      columns: ['kc']
+      columns: ['kc is not null']
     }
   },
   {
@@ -65,7 +65,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['yd']
+      columns: ['yd is not null']
     }
   },
   {
@@ -75,7 +75,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['tnbzbdmbd']
+      columns: ['tnbzbdmbd is not null']
     }
   },
   {
@@ -85,7 +85,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['gmzz']
+      columns: ['gmzz is not null']
     }
   },
   {
@@ -95,7 +95,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['fk_wy']
+      columns: ['fk_wy is not null']
     }
   },
   {
@@ -105,7 +105,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ctqt']
+      columns: ['ctqt is not null']
     }
   },
   {
@@ -115,7 +115,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xcgHb']
+      columns: ['xcgHb is not null']
     }
   },
   {
@@ -125,7 +125,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ncgndb']
+      columns: ['ncgndb is not null']
     }
   },
   {
@@ -135,7 +135,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['kfxt']
+      columns: ['kfxt is not null']
     }
   },
   {
@@ -145,7 +145,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xdt']
+      columns: ['xdt is not null']
     }
   },
   {
@@ -155,7 +155,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['nwlbdb']
+      columns: ['nwlbdb is not null']
     }
   },
   {
@@ -165,7 +165,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['dbqx']
+      columns: ['dbqx is not null']
     }
   },
   {
@@ -175,7 +175,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['tnbthxhdb']
+      columns: ['tnbthxhdb is not null']
     }
   },
   {
@@ -185,7 +185,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['HBsAg']
+      columns: ['HBsAg is not null']
     }
   },
   {
@@ -195,7 +195,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ggnALT']
+      columns: ['ggnALT is not null']
     }
   },
   {
@@ -205,7 +205,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['sgnScr']
+      columns: ['sgnScr is not null']
     }
   },
   {
@@ -215,7 +215,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xzCHO']
+      columns: ['xzCHO is not null']
     }
   },
   {
@@ -225,7 +225,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xzCHO']
+      columns: ['xzCHO is not null']
     }
   },
   {
@@ -235,7 +235,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xp']
+      columns: ['xp is not null']
     }
   },
   {
@@ -245,7 +245,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xp']
+      columns: ['xp is not null']
     }
   },
   {
@@ -255,7 +255,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['jkfzjcqt']
+      columns: ['jkfzjcqt is not null']
     }
   },
   {
@@ -274,7 +274,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate',
-      columns: ['Fzjc']
+      columns: ['Fzjc is not null']
     }
   },
   {
@@ -293,7 +293,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
-      columns: ['Hemoglobin']
+      columns: ['Hemoglobin is not null']
     }
   },
   {
@@ -303,7 +303,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
-      columns: ['FastingGlucose']
+      columns: ['FastingGlucose is not null']
     }
   },
   {
@@ -975,6 +975,7 @@ export default class HisWorkItem {
         {{#if staffName}}
             AND staff.name like {{? staffName}}
         {{/if}}
+        order by item.created_at
       `,
       {
         hospital,
