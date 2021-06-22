@@ -45,7 +45,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
-      columns: ['dlpn']
+      columns: ['dlpn is not null']
     }
   },
   {
@@ -55,7 +55,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
-      columns: ['kc']
+      columns: ['kc is not null']
     }
   },
   {
@@ -65,7 +65,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['yd']
+      columns: ['yd is not null']
     }
   },
   {
@@ -75,7 +75,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['tnbzbdmbd']
+      columns: ['tnbzbdmbd is not null']
     }
   },
   {
@@ -85,7 +85,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['gmzz']
+      columns: ['gmzz is not null']
     }
   },
   {
@@ -95,7 +95,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['fk_wy']
+      columns: ['fk_wy is not null']
     }
   },
   {
@@ -105,7 +105,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ctqt']
+      columns: ['ctqt is not null']
     }
   },
   {
@@ -115,7 +115,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xcgHb']
+      columns: ['xcgHb is not null']
     }
   },
   {
@@ -125,7 +125,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ncgndb']
+      columns: ['ncgndb is not null']
     }
   },
   {
@@ -135,7 +135,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['kfxt']
+      columns: ['kfxt is not null']
     }
   },
   {
@@ -145,7 +145,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xdt']
+      columns: ['xdt is not null']
     }
   },
   {
@@ -155,7 +155,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['nwlbdb']
+      columns: ['nwlbdb is not null']
     }
   },
   {
@@ -165,7 +165,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['dbqx']
+      columns: ['dbqx is not null']
     }
   },
   {
@@ -175,7 +175,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['tnbthxhdb']
+      columns: ['tnbthxhdb is not null']
     }
   },
   {
@@ -185,7 +185,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['HBsAg']
+      columns: ['HBsAg is not null']
     }
   },
   {
@@ -195,7 +195,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['ggnALT']
+      columns: ['ggnALT is not null']
     }
   },
   {
@@ -205,7 +205,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['sgnScr']
+      columns: ['sgnScr is not null']
     }
   },
   {
@@ -215,7 +215,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xzCHO']
+      columns: ['xzCHO is not null']
     }
   },
   {
@@ -225,7 +225,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xzCHO']
+      columns: ['xzCHO is not null']
     }
   },
   {
@@ -235,7 +235,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xp']
+      columns: ['xp is not null']
     }
   },
   {
@@ -245,7 +245,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['xp']
+      columns: ['xp is not null']
     }
   },
   {
@@ -255,7 +255,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
-      columns: ['jkfzjcqt']
+      columns: ['jkfzjcqt is not null']
     }
   },
   {
@@ -274,7 +274,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate',
-      columns: ['Fzjc']
+      columns: ['Fzjc is not null']
     }
   },
   {
@@ -293,7 +293,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
-      columns: ['Hemoglobin']
+      columns: ['Hemoglobin is not null']
     }
   },
   {
@@ -303,7 +303,7 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
-      columns: ['FastingGlucose']
+      columns: ['FastingGlucose is not null']
     }
   },
   {
@@ -331,6 +331,71 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'view_SanitaryControlAssist',
       date: 'checkDate'
+    }
+  },
+  {
+    id: '公卫数据.新生儿家庭访视表',
+    name: '新生儿家庭访视表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_NewbornVisit_KN',
+      date: 'VisitDate'
+    }
+  },
+  {
+    id: '公卫数据.12-30月龄儿童健康检查记录表',
+    name: '12-30月龄儿童健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_ChildCheck_KN',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 12', 'chronologicalage < 31']
+    }
+  },
+  {
+    id: '公卫数据.3-6岁儿童健康检查记录表',
+    name: '3-6岁儿童健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_ChildCheck_KN',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 36', 'chronologicalage < 73']
+    }
+  },
+  {
+    id: '公卫数据.第1次产前检查服务记录表',
+    name: '第1次产前检查服务记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_NewlyDiagnosed_KN',
+      date: 'NewlyDiagnosedDate'
+    }
+  },
+  {
+    id: '公卫数据.第2~5次产前随访服务记录表',
+    name: '第2~5次产前随访服务记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_PrenatalCare_KN',
+      date: 'CheckDate'
+    }
+  },
+  {
+    id: '公卫数据.产后访视记录表',
+    name: '产后访视记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_MaternalVisits_KN',
+      date: 'VisitDate'
+    }
+  },
+  {
+    id: '公卫数据.产后42天健康检查记录表',
+    name: '产后42天健康检查记录表',
+    parent: '公卫数据',
+    datasource: {
+      table: 'V_Examine42thDay_KN',
+      date: 'VisitDate'
     }
   },
   {id: '其他', name: '其他', parent: null},
