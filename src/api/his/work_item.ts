@@ -1040,6 +1040,7 @@ export default class HisWorkItem {
         {{#if staffName}}
             AND staff.name like {{? staffName}}
         {{/if}}
+        order by item.created_at
       `,
       {
         hospital,
