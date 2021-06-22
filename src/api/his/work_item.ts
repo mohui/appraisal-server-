@@ -1274,9 +1274,12 @@ export default class HisWorkItem {
             // language=PostgreSQL
             `
               select distinct item
-              from his_charge_detail
-              where item like ?
+              from his_charge_detail detail
+                     left join his_charge_master hcm on detail.main = hcm.id
+              where hcm.hospital = ?
+                and item like ?
             `,
+            hospital,
             `${parent}.%`
           );
           list = chargeModels.map(it => {
@@ -1314,9 +1317,11 @@ export default class HisWorkItem {
             // language=PostgreSQL
             `
               select distinct item
-              from his_charge_detail
-              where item like ?
+              from his_charge_detail detail
+                     left join his_charge_master hcm on detail.main = hcm.id
+              where hcm.hospital = ? and item like ?
             `,
+            hospital,
             `${parent}.%`
           );
 
