@@ -15,7 +15,9 @@
               {{ personInfoData.name }}
             </div>
             <div class="item">
-              校正后总得分（分）：{{ workScore.afterCorrectionScore }}
+              总得分（分）：{{
+                workScore.afterCorrectionScore + personInfoData.extra
+              }}
             </div>
             <div class="item">
               质量系数：{{ workScore.rateFormat
@@ -76,18 +78,23 @@
               <div class="title">得分细则</div>
               <div style="text-align: center;">
                 <el-row>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
                     <div>校正前工分</div>
-                    <div class="content">{{ workScore.total }}</div>
+                    <div class="content">
+                      {{ workScore.beforeCorrectionScore }}
+                    </div>
                     <el-button
                       class="more"
                       type="text"
-                      @click="dialogWorkScoreTableVisible = true"
+                      @click="
+                        dialogWorkScoreTableVisible = true;
+                        dialogScoreType = 'before';
+                      "
                     >
                       点击查看
                     </el-button>
                   </el-col>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
                     <div>质量系数</div>
                     <div class="content">
                       {{ workScore.rateFormat
@@ -101,7 +108,23 @@
                       点击查看
                     </el-button>
                   </el-col>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
+                    <div>校正后工分</div>
+                    <div class="content">
+                      {{ workScore.afterCorrectionScore }}
+                    </div>
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="
+                        dialogWorkScoreTableVisible = true;
+                        dialogScoreType = 'after';
+                      "
+                    >
+                      点击查看
+                    </el-button>
+                  </el-col>
+                  <el-col :span="6" class="item">
                     <div>附加分</div>
                     <div class="content">
                       <div v-if="!isEditor">{{ personInfoData.extra }}</div>
@@ -118,7 +141,10 @@
                         class="more"
                         style="color: #91cc75"
                         type="text"
-                        @click="isEditor = false"
+                        @click="
+                          isEditor = false;
+                          personInfoData.extra = originExtraScore;
+                        "
                       >
                         取消
                       </el-button>
@@ -150,7 +176,7 @@
       </div>
     </div>
     <el-dialog
-      title="校正前工分明细"
+      :title="dialogScoreType === 'after' ? '校正后工分明细' : '校正前工分明细'"
       :visible.sync="dialogWorkScoreTableVisible"
     >
       <el-table
@@ -170,7 +196,9 @@
           min-width="200"
         ></el-table-column>
         <el-table-column
-          property="score"
+          :property="
+            dialogScoreType === 'after' ? 'afterCorrectionScore' : 'score'
+          "
           label="得分"
           width="150"
         ></el-table-column>
@@ -249,7 +277,11 @@ export default {
       curDate: new Date(JSON.parse(this.$route.query.date)),
       isEditor: false,
       dialogWorkScoreTableVisible: false,
+      // 弹出工分列表的类型:校正前（before）、校正后(after)
+      dialogScoreType: 'before',
       dialogRateTableVisible: false,
+      // 记录打分前的附加分
+      originExtraScore: 0,
       personInfo: {
         name: '姓名',
         staff: '员工号',
@@ -294,18 +326,21 @@ export default {
     workScoreListData() {
       return this.workScoreListServerData?.items?.map(it => ({
         ...it,
-        score: Number(it.score.toFixed(2))
+        score: Number(it.score.toFixed(2)),
+        afterCorrectionScore: Number(
+          (it.score * (this.workScoreListServerData.rate || 1)).toFixed(2)
+        )
       }));
     },
     workScore() {
-      const total = this.workScoreListData
+      const sumScore = this.workScoreListData
         .map(it => it.score)
         .reduce((prev, curr) => prev + curr, 0);
       return {
-        total: total,
+        beforeCorrectionScore: sumScore,
         rate: this.workScoreListServerData.rate,
         afterCorrectionScore: Number(
-          (total * this.workScoreListServerData.rate).toFixed(2)
+          (sumScore * (this.workScoreListServerData.rate || 1)).toFixed(2)
         ),
         rateFormat:
           this.workScoreListServerData.rate === null
@@ -421,6 +456,8 @@ export default {
         }
       } else {
         this.isEditor = !this.isEditor;
+        // 记录原始分，取消时给input-number组件值还原
+        this.originExtraScore = this.personInfoData.extra;
       }
     },
     // 手动工分项打分
