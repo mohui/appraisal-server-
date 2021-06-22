@@ -86,7 +86,10 @@
                     <el-button
                       class="more"
                       type="text"
-                      @click="dialogWorkScoreTableVisible = true"
+                      @click="
+                        dialogWorkScoreTableVisible = true;
+                        dialogScoreType = 'before';
+                      "
                     >
                       点击查看
                     </el-button>
@@ -113,7 +116,10 @@
                     <el-button
                       class="more"
                       type="text"
-                      @click="dialogWorkScoreTableVisible = true"
+                      @click="
+                        dialogWorkScoreTableVisible = true;
+                        dialogScoreType = 'after';
+                      "
                     >
                       点击查看
                     </el-button>
@@ -167,7 +173,7 @@
       </div>
     </div>
     <el-dialog
-      title="校正前工分明细"
+      :title="dialogScoreType === 'after' ? '校正后工分明细' : '校正前工分明细'"
       :visible.sync="dialogWorkScoreTableVisible"
     >
       <el-table
@@ -187,7 +193,9 @@
           min-width="200"
         ></el-table-column>
         <el-table-column
-          property="score"
+          :property="
+            dialogScoreType === 'after' ? 'afterCorrectionScore' : 'score'
+          "
           label="得分"
           width="150"
         ></el-table-column>
@@ -266,6 +274,8 @@ export default {
       curDate: new Date(JSON.parse(this.$route.query.date)),
       isEditor: false,
       dialogWorkScoreTableVisible: false,
+      // 弹出工分列表的类型:校正前（before）、校正后(after)
+      dialogScoreType: 'before',
       dialogRateTableVisible: false,
       personInfo: {
         name: '姓名',
@@ -311,7 +321,10 @@ export default {
     workScoreListData() {
       return this.workScoreListServerData?.items?.map(it => ({
         ...it,
-        score: Number(it.score.toFixed(2))
+        score: Number(it.score.toFixed(2)),
+        afterCorrectionScore: Number(
+          (it.score * this.workScoreListServerData.rate).toFixed(2)
+        )
       }));
     },
     workScore() {
