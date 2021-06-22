@@ -174,12 +174,14 @@ export default class HisHospital {
     // 根据机构id查询员工
     // language=PostgreSQL
     const staffs = await appDB.execute(
-      `select id, name, account, staff.staff
-         from staff
-         where hospital = ? and virtual = false`,
+      `
+        select id, name
+        from staff
+        where hospital = ?
+          and virtual = false
+      `,
       hospital
     );
-    if (staffs.length === 0) return [];
 
     const staffList = [];
     for (const staffIt of staffs) {
