@@ -1319,7 +1319,8 @@ export default class HisWorkItem {
               select distinct item
               from his_charge_detail detail
                      left join his_charge_master hcm on detail.main = hcm.id
-              where hcm.hospital = ? and item like ?
+              where hcm.hospital = ?
+                and item like ?
             `,
             hospital,
             `${parent}.%`
