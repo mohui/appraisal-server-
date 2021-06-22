@@ -323,7 +323,7 @@ export default {
         ...it,
         score: Number(it.score.toFixed(2)),
         afterCorrectionScore: Number(
-          (it.score * this.workScoreListServerData.rate).toFixed(2)
+          (it.score * (this.workScoreListServerData.rate || 1)).toFixed(2)
         )
       }));
     },
@@ -335,7 +335,7 @@ export default {
         beforeCorrectionScore: sumScore,
         rate: this.workScoreListServerData.rate,
         afterCorrectionScore: Number(
-          (sumScore * this.workScoreListServerData.rate).toFixed(2)
+          (sumScore * (this.workScoreListServerData.rate || 1)).toFixed(2)
         ),
         rateFormat:
           this.workScoreListServerData.rate === null
