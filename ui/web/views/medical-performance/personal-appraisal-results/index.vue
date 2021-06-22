@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div class="container">
       <!--顶部表头-->
       <div class="card" v-sticky>
         <div
@@ -636,8 +636,7 @@ export default {
 .wrapper {
   height: 100%;
   position: relative;
-
-  & > div {
+  .container {
     position: absolute;
     top: 0;
     left: 0;
