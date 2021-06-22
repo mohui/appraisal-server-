@@ -1,6 +1,6 @@
 import HisStaff from './staff';
 import {appDB} from '../../app';
-import {KatoRuntimeError, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
 import {dateValid, getHospital, getSettle, monthToRange} from './service';
 import Decimal from 'decimal.js';
 
@@ -164,5 +164,36 @@ export default class HisHospital {
         };
       })
     );
+  }
+
+  // 机构详情
+  @validate(should.date().required())
+  async report(month) {
+    const staffApi = new HisStaff();
+    const hospital = await getHospital();
+    // 根据机构id查询员工
+    // language=PostgreSQL
+    const staffs = await appDB.execute(
+      `
+        select id, name
+        from staff
+        where hospital = ?
+          and virtual = false
+      `,
+      hospital
+    );
+
+    const staffList = [];
+    for (const staffIt of staffs) {
+      const workScoreList = await staffApi.findWorkScoreList(staffIt.id, month);
+      const gets = await staffApi.get(staffIt.id, month);
+      staffList.push({
+        ...workScoreList,
+        extra: gets?.extra,
+        id: staffIt.id,
+        name: staffIt.name
+      });
+    }
+    return staffList;
   }
 }
