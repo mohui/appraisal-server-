@@ -78,7 +78,7 @@
               <div class="title">得分细则</div>
               <div style="text-align: center;">
                 <el-row>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
                     <div>校正前工分</div>
                     <div class="content">
                       {{ workScore.beforeCorrectionScore }}
@@ -91,7 +91,7 @@
                       点击查看
                     </el-button>
                   </el-col>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
                     <div>质量系数</div>
                     <div class="content">
                       {{ workScore.rateFormat
@@ -105,7 +105,20 @@
                       点击查看
                     </el-button>
                   </el-col>
-                  <el-col :span="8" class="item">
+                  <el-col :span="6" class="item">
+                    <div>校正后工分</div>
+                    <div class="content">
+                      {{ workScore.afterCorrectionScore }}
+                    </div>
+                    <el-button
+                      class="more"
+                      type="text"
+                      @click="dialogWorkScoreTableVisible = true"
+                    >
+                      点击查看
+                    </el-button>
+                  </el-col>
+                  <el-col :span="6" class="item">
                     <div>附加分</div>
                     <div class="content">
                       <div v-if="!isEditor">{{ personInfoData.extra }}</div>
