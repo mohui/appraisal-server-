@@ -15,7 +15,9 @@
               {{ personInfoData.name }}
             </div>
             <div class="item">
-              校正后总得分（分）：{{ workScore.afterCorrectionScore }}
+              总得分（分）：{{
+                workScore.afterCorrectionScore + personInfoData.extra
+              }}
             </div>
             <div class="item">
               质量系数：{{ workScore.rateFormat
