@@ -80,7 +80,9 @@
                 <el-row>
                   <el-col :span="8" class="item">
                     <div>校正前工分</div>
-                    <div class="content">{{ workScore.total }}</div>
+                    <div class="content">
+                      {{ workScore.beforeCorrectionScore }}
+                    </div>
                     <el-button
                       class="more"
                       type="text"
@@ -300,14 +302,14 @@ export default {
       }));
     },
     workScore() {
-      const total = this.workScoreListData
+      const sumScore = this.workScoreListData
         .map(it => it.score)
         .reduce((prev, curr) => prev + curr, 0);
       return {
-        total: total,
+        beforeCorrectionScore: sumScore,
         rate: this.workScoreListServerData.rate,
         afterCorrectionScore: Number(
-          (total * this.workScoreListServerData.rate).toFixed(2)
+          (sumScore * this.workScoreListServerData.rate).toFixed(2)
         ),
         rateFormat:
           this.workScoreListServerData.rate === null
