@@ -141,7 +141,10 @@
                         class="more"
                         style="color: #91cc75"
                         type="text"
-                        @click="isEditor = false"
+                        @click="
+                          isEditor = false;
+                          personInfoData.extra = originExtraScore;
+                        "
                       >
                         取消
                       </el-button>
@@ -277,6 +280,8 @@ export default {
       // 弹出工分列表的类型:校正前（before）、校正后(after)
       dialogScoreType: 'before',
       dialogRateTableVisible: false,
+      // 记录打分前的附加分
+      originExtraScore: 0,
       personInfo: {
         name: '姓名',
         staff: '员工号',
@@ -451,6 +456,8 @@ export default {
         }
       } else {
         this.isEditor = !this.isEditor;
+        // 记录原始分，取消时给input-number组件值还原
+        this.originExtraScore = this.personInfoData.extra;
       }
     },
     // 手动工分项打分
