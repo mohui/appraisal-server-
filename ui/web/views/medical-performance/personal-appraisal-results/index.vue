@@ -338,13 +338,14 @@ export default {
               projects.push({
                 name: it.name,
                 score: [Number(it.score?.toFixed(2))],
-                auxiliaryDate: [0]
+                auxiliaryData: [0]
               });
             } else {
-              projects[index].auxiliaryDate.push(
-                projects[index].score.reduce((total, currentValue) => {
-                  return total + currentValue;
-                }, 0)
+              projects[index].auxiliaryData.push(
+                projects[index].score.reduce(
+                  (total, currentValue) => total + (currentValue || 0),
+                  0
+                )
               );
               projects[index].score.push(Number(it.score?.toFixed(2)));
             }
@@ -541,7 +542,7 @@ export default {
               color: 'rgba(0,0,0,0)'
             }
           },
-          data: it.auxiliaryDate
+          data: it.auxiliaryData
         };
         series.push(auxiliaryS, s);
       }
