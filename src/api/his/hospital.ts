@@ -168,7 +168,7 @@ export default class HisHospital {
 
   // 机构详情
   @validate(should.date().required())
-  async hospitalDetails(month) {
+  async report(month) {
     const staffApi = new HisStaff();
     const hospital = await getHospital();
     // 根据机构id查询员工
@@ -188,10 +188,8 @@ export default class HisHospital {
       staffList.push({
         ...workScoreList,
         extra: gets?.extra,
-        staff: {
-          id: staffIt.id,
-          name: staffIt.name
-        }
+        id: staffIt.id,
+        name: staffIt.name
       });
     }
     return staffList;
