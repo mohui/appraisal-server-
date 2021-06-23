@@ -133,8 +133,18 @@
             placeholder="请输入金额"
             v-model="amount"
           ></el-input>
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="
+              exportReport('reportTable', overviewData.name + '报表.xlsx')
+            "
+            >导出</el-button
+          >
         </div>
         <el-table
+          id="reportTable"
           :data="reportData"
           :span-method="objectSpanMethod"
           height="70vh"
@@ -191,6 +201,8 @@
 <script>
 import VueSticky from 'vue-sticky';
 import * as dayjs from 'dayjs';
+import FileSaver from 'file-saver';
+import XLSX from 'xlsx';
 
 export default {
   name: 'index',
@@ -428,6 +440,36 @@ export default {
         const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
+      }
+    },
+    // 导出报表
+    // id为要导出的table节点id（父节点也可以），title是导出的表格文件名
+    exportReport(id, title) {
+      // 判断要导出的节点中是否有fixed的表格，如果有，转换excel时先将该dom移除，然后append回去，
+      const fix = document.querySelector('.el-table__fixed');
+      let wb;
+      if (fix) {
+        wb = XLSX.utils.table_to_book(
+          document.getElementById(id).removeChild(fix)
+        );
+        document.querySelector(id).appendChild(fix);
+      } else {
+        wb = XLSX.utils.table_to_book(document.getElementById(id));
+      }
+      const wbOut = XLSX.write(wb, {
+        bookType: 'xlsx',
+        bookSST: true,
+        type: 'array'
+      });
+      try {
+        FileSaver.saveAs(
+          new Blob([wbOut], {
+            type: 'application/octet-stream'
+          }),
+          title
+        );
+      } catch (e) {
+        if (typeof console !== 'undefined') console.log(e, wbOut);
       }
     },
     // 绘制图表
