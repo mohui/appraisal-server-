@@ -260,7 +260,7 @@ export default {
         for (const i of list) {
           // 累加各员工校正后工分
           organizationScore += i.items.reduce(
-            (prev, curr) => prev + curr.score * (i.rate || 0.5),
+            (prev, curr) => prev + curr.score * (i.rate || 1),
             0
           );
           // 累加各员工附加分
@@ -271,7 +271,6 @@ export default {
               (prev, curr) => prev + curr.score,
               0
             );
-            console.log('sumScore:', sumScore);
             for (const it of i.items) {
               const item = {};
               item.name = i.name;
@@ -298,21 +297,13 @@ export default {
             result.push(item);
           }
         }
-        console.log('organizationScore:', organizationScore);
         for (const i of result) {
           // 员工总得分在机构中所占比例
           i.proportion = (i.totalScore || 0) / organizationScore;
-          console.log(
-            '所占比例:',
-            i.proportion,
-            i.totalScore,
-            organizationScore
-          );
           // 所得金额
           i.amount = Number((this.amount * i.proportion).toFixed(2));
         }
       }
-      console.log('result:', result);
       return result;
     },
     spanArr() {
