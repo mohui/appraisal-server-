@@ -127,9 +127,6 @@
             placeholder="请输入金额"
             v-model="amount"
           ></el-input>
-          <el-button type="primary" size="mini" style="margin-left: 20px"
-            >分配</el-button
-          >
         </div>
         <el-table
           :data="reportData"
