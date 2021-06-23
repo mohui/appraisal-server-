@@ -29,7 +29,15 @@
               {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
             </el-button>
           </div>
-          <div class="compute">
+          <div class="right">
+            <el-button
+              type="primary"
+              size="mini"
+              :disabled="overviewData.settle"
+              @click="dialogStaffTableVisible = true"
+            >
+              报表
+            </el-button>
             <el-button
               type="primary"
               size="mini"
@@ -111,6 +119,67 @@
           :style="{width: '100%', height: '400px'}"
         ></div>
       </el-card>
+      <el-dialog title="报表" :visible.sync="dialogStaffTableVisible">
+        <div slot="title" class="dialog-header">
+          <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
+          <el-input
+            style="width: 200px"
+            placeholder="请输入金额"
+            v-model="amount"
+          ></el-input>
+          <el-button type="primary" size="mini" style="margin-left: 20px"
+            >分配</el-button
+          >
+        </div>
+        <el-table
+          :data="reportData"
+          height="60vh"
+          border
+          :header-cell-style="{textAlign: 'center'}"
+          :cell-style="{textAlign: 'center'}"
+        >
+          <el-table-column
+            property="name"
+            label="姓名"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="workPointName"
+            label="工分项"
+            min-width="150"
+          ></el-table-column>
+          <el-table-column
+            property="score"
+            label="校正前得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="rate"
+            label="质量系数"
+            min-width="100"
+          ></el-table-column>
+          <!--          <el-table-column-->
+          <!--            property="afterCorrectionScore"-->
+          <!--            label="校正后得分"-->
+          <!--            min-width="120"-->
+          <!--          ></el-table-column>-->
+          <el-table-column
+            property="extra"
+            label="附加分"
+            min-width="120"
+          ></el-table-column>
+          <!--          <el-table-column-->
+          <!--            property="total"-->
+          <!--            label="总得分"-->
+          <!--            min-width="120"-->
+          <!--          ></el-table-column>-->
+          <!--          <el-table-column-->
+          <!--            property="amount"-->
+          <!--            label="金额"-->
+          <!--            min-width="120"-->
+          <!--          ></el-table-column>-->
+        </el-table>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -131,6 +200,8 @@ export default {
           return time.getTime() > dayjs().toDate();
         }
       },
+      dialogStaffTableVisible: false,
+      amount: null,
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -181,6 +252,35 @@ export default {
         ...it,
         score: Number(it.score?.toFixed(2)) || 0
       }));
+    },
+    reportData() {
+      const list = this.reportSeverData;
+      const result = [];
+      if (list) {
+        for (const i of list) {
+          if (i.items.length > 0) {
+            for (const it of i.items) {
+              console.log(it);
+              const item = {};
+              item.name = i.name;
+              item.day = i.day;
+              item.rate = i.rate || 1;
+              item.extra = i.extra;
+              item.workPointName = it.name;
+              item.score = it.score;
+              result.push(item);
+            }
+          } else {
+            const item = {};
+            item.name = i.name;
+            item.day = i.day;
+            item.rate = i.rate;
+            item.extra = i.extra;
+            result.push(item);
+          }
+        }
+      }
+      return result;
     }
   },
   asyncComputed: {
@@ -203,6 +303,14 @@ export default {
     staffCheckListSeverData: {
       async get() {
         return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    },
+    reportSeverData: {
+      async get() {
+        return await this.$api.HisHospital.report(this.currentDate);
       },
       default() {
         return [];
@@ -263,6 +371,7 @@ export default {
           });
         });
     },
+
     // 绘制图表
     drawChart() {
       this.drawRateGauge();
@@ -558,7 +667,7 @@ export default {
     margin: 0 20px 10px 0;
     float: left;
   }
-  .compute {
+  .right {
     float: right;
     margin-right: 0;
   }
@@ -588,5 +697,13 @@ export default {
     font-size: 15px;
     margin: 10px;
   }
+}
+
+.dialog-header {
+  width: calc(100% - 30px);
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 </style>
