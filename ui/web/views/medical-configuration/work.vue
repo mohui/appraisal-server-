@@ -131,10 +131,8 @@
               ref="tree"
               :check-strictly="true"
               :data="workTreeData"
-              :load="loadNode"
               :props="treeProps"
               :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
-              lazy
               node-key="id"
               show-checkbox
               @check-change="treeCheck"
@@ -278,7 +276,7 @@ export default {
     },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources(null, this.newWork.id);
+        return await this.$api.HisWorkItem.sources(null, null);
       },
       default() {
         return [];
@@ -326,10 +324,6 @@ export default {
           projects: []
         })
       );
-      this.workTreeData = await this.$api.HisWorkItem.sources(
-        null,
-        this.newWork?.id
-      );
       this.addWorkVisible = true;
     },
     async removeRow(row) {
@@ -352,6 +346,12 @@ export default {
     resetConfig(ref) {
       this.$refs[ref].resetFields();
       this.$refs.tree.setCheckedKeys([]);
+      //将树形结构全部折叠
+      for (let i = 0; i < this.workTreeData.length; i++) {
+        this.$refs.tree.store.nodesMap[
+          this.workTreeData[i].id
+        ].expanded = false;
+      }
       //重置默认选中项
       this.newWork = {
         work: '',
@@ -381,18 +381,6 @@ export default {
         console.error(e);
       } finally {
         this.searchLoading = false;
-      }
-    },
-    async loadNode(node, resolve) {
-      if (node.level === 0) {
-        return resolve(this.workTreeData);
-      }
-      if (node.level > 0) {
-        let data = await this.$api.HisWorkItem.sources(
-          node.data.id,
-          this.newWork?.id
-        );
-        return resolve(data);
       }
     },
     treeCheck({id, name}, selected) {
