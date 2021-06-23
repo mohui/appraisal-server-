@@ -151,6 +151,7 @@
           :data="reportData"
           :span-method="objectSpanMethod"
           height="70vh"
+          size="mini"
           border
           :header-cell-style="{textAlign: 'center'}"
           :cell-style="{textAlign: 'center'}"
