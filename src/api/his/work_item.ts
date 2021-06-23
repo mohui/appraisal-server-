@@ -1146,240 +1146,243 @@ export default class HisWorkItem {
 
   /**
    * 工分项目来源
-   * @param parent
    * @param item
    */
   @validate(
     should
       .string()
       .allow(null)
-      .description('父级id'),
-    should
-      .string()
-      .allow(null)
       .description('工分项目id')
   )
-  async sources(parent, item) {
+  async sources(item) {
     const hospital = await getHospital();
     let sql, params;
-    let list = [];
-    if (!parent) {
-      list = HisWorkItemSources.filter(it => !it.parent).map(it => {
-        return {
-          ...it
-        };
+    // 查询分类
+    const dictModels = await originalDB.execute(
+      `select code, name, category_code from his_dict where category_code in ('10201005', '10301001')`
+    );
+    // 门诊/住院 检查项目/药品
+    let dictList = [];
+    // 筛选门诊,住院检查项目, 门诊,住院药品
+    for (const dictIt of dictModels) {
+      // 门诊/住院 检查项目分类
+      if (dictIt.category_code === '10201005') {
+        dictList.push({
+          id: `门诊.检查项目.${dictIt.code}`,
+          name: dictIt.name?.trim(),
+          parent: `门诊.检查项目`
+        });
+        dictList.push({
+          id: `住院.检查项目.${dictIt.code}`,
+          name: dictIt.name?.trim(),
+          parent: `住院.检查项目`
+        });
+      }
+      // 门诊/住院 药品分类
+      if (dictIt.category_code === '10301001') {
+        dictList.push({
+          id: `门诊.药品.${dictIt.code}`,
+          name: dictIt.name?.trim(),
+          parent: `门诊.药品`
+        });
+        dictList.push({
+          id: `住院.药品.${dictIt.code}`,
+          name: dictIt.name?.trim(),
+          parent: `住院.药品`
+        });
+      }
+    }
+
+    // 查询药品和检查项目叶子节点
+    const chargeModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select distinct item
+        from his_charge_detail detail
+               left join his_charge_master hcm on detail.main = hcm.id
+        where hcm.hospital = ?
+          and item not like ?
+      `,
+      hospital,
+      `%..%`
+    );
+
+    // 查询已经选中过的所有项目
+    if (item) {
+      // 查询绑定过的关联项目
+      const mappingModels = await appDB.execute(
+        `select source from his_work_item_mapping where item = ?`,
+        item
+      );
+      const mappingItems = mappingModels.filter(
+        it => it.source?.split('.').length === 4
+      );
+
+      mappingItems.forEach(it => {
+        // 查找关联过的项目是否在关联项目列表中,如果不在,需要push进去
+        const index = chargeModels.find(
+          chargeIt => chargeIt.item === it.source
+        );
+        // 如果么有查找到, 说明存在关联项目不在列表中
+        if (!index) {
+          chargeModels.push({
+            item: it.source
+          });
+        }
       });
     }
-    let hisList = [];
-    switch (parent) {
-      case '门诊':
-        list = HisWorkItemSources.filter(it => it.parent === '门诊').map(it => {
-          return {
-            ...it
-          };
-        });
-        break;
-      case '住院':
-        list = HisWorkItemSources.filter(it => it.parent === '住院').map(it => {
-          return {
-            ...it
-          };
-        });
-        break;
-      case '公卫数据':
-        list = HisWorkItemSources.filter(it => it.parent === '公卫数据').map(
-          it => {
-            return {
-              ...it
-            };
-          }
+
+    const chargeMaps = chargeModels.map(it => {
+      const items = it.item.split('.');
+      return {
+        id: it.item,
+        parent: items.slice(0, 3).join('.'),
+        code: items[3],
+        category: items[2]
+      };
+    });
+    const hisCheckParams = chargeMaps
+      .filter(it => it.id?.includes('检查项目'))
+      .map(it => ({code: it.code, category: it.category}));
+    const hisDrugParams = chargeMaps
+      .filter(it => it.id?.includes('药品'))
+      .map(it => ({code: it.code, category: it.category}));
+
+    // 匹配检查项目名称列表
+    let hisCheckModels = [];
+    // 匹配药品名称列表
+    let hisDrugModels = [];
+    if (hisCheckParams.length > 0) {
+      // 检查项目
+      [sql, params] = sqlRender(
+        `
+       select id, name, category
+       from his_check
+       where concat(category,id) in ({{#each categoryId}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
+       `,
+        {
+          categoryId: hisCheckParams.map(it => `${it.category}${it.code}`)
+        }
+      );
+      // 查询检查项目
+      hisCheckModels = await originalDB.execute(sql, ...params);
+    }
+
+    if (hisDrugParams.length > 0) {
+      // 药品
+      [sql, params] = sqlRender(
+        `
+       select id, name, category
+       from his_drug
+       where concat(category,id) in ({{#each categoryId}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
+       `,
+        {
+          categoryId: hisDrugParams.map(it => `${it.category}${it.code}`)
+        }
+      );
+      // 执行药品查询语句
+      hisDrugModels = await originalDB.execute(sql, ...params);
+    }
+
+    // 给his药品和检查项目赋名称
+    const hisList = chargeMaps.map(it => {
+      const checkIndex = hisCheckModels.find(
+        checkIt => checkIt.id === it.code && checkIt.category === it.category
+      );
+      const drugIndex = hisDrugModels.find(
+        checkIt => checkIt.id === it.code && checkIt.category === it.category
+      );
+      return {
+        id: it.id,
+        name: checkIndex?.name
+          ? checkIndex.name
+          : drugIndex?.name
+          ? drugIndex.name
+          : null,
+        parent: it.parent
+      };
+    });
+
+    // 给药品分类,和检查项目分类添加子集元素
+    dictList = dictList.map(it => ({
+      ...it,
+      children: []
+    }));
+
+    for (const hisIt of hisList) {
+      const index = dictList.find(dictIt => hisIt.parent === dictIt.id);
+      if (index) index.children.push(hisIt);
+    }
+
+    // 第一层
+    const list = HisWorkItemSources.filter(it => !it.parent);
+    // 第二层
+    for (const treeIt1 of list) {
+      if (treeIt1.id === '门诊') {
+        treeIt1['children'] = HisWorkItemSources.filter(
+          it => it.parent === '门诊'
         );
-        break;
-      case '手工数据':
+        // 第三层
+        for (const deptIt of treeIt1['children']) {
+          if (deptIt.id === '门诊.检查项目') {
+            deptIt['children'] = dictList.filter(
+              it => it.parent === '门诊.检查项目'
+            );
+          }
+          if (deptIt.id === '门诊.药品') {
+            deptIt['children'] = dictList.filter(
+              it => it.parent === '门诊.药品'
+            );
+          }
+        }
+      }
+      if (treeIt1.id === '住院') {
+        treeIt1['children'] = HisWorkItemSources.filter(
+          it => it.parent === '住院'
+        );
+        // 第三层
+        for (const deptIt of treeIt1['children']) {
+          if (deptIt.id === '住院.检查项目') {
+            deptIt['children'] = dictList.filter(
+              it => it.parent === '住院.检查项目'
+            );
+          }
+          if (deptIt.id === '住院.药品') {
+            deptIt['children'] = dictList.filter(
+              it => it.parent === '住院.药品'
+            );
+          }
+        }
+      }
+      if (treeIt1.id === '公卫数据') {
+        treeIt1['children'] = HisWorkItemSources.filter(
+          it => it.parent === '公卫数据'
+        );
+      }
+      if (treeIt1.id === '其他') {
+        treeIt1['children'] = HisWorkItemSources.filter(
+          it => it.parent === '其他'
+        );
+      }
+      if (treeIt1.id === '手工数据') {
         [sql, params] = sqlRender(
           `
             select id, name
-              from his_manual_data
+            from his_manual_data
             where hospital = {{? hospital}}
-            limit 50
           `,
           {
             hospital
           }
         );
-        list = (await appDB.execute(sql, ...params))?.map(it => {
-          return {
-            id: `${parent}.${it.id}`,
+        treeIt1['children'] = (await appDB.execute(sql, ...params))?.map(
+          it => ({
+            id: `${treeIt1.id}.${it.id}`,
             name: it.name,
             parent: '手工数据'
-          };
-        });
-        break;
-      case '门诊.检查项目':
-      case '住院.检查项目':
-        list = (
-          await originalDB.execute(
-            `select code, name from his_dict where category_code = '10201005'`
-          )
-        )?.map(it => {
-          return {
-            id: `${parent}.${it.code}`,
-            name: it.name,
-            parent: parent
-          };
-        });
-        break;
-      case '门诊.药品':
-      case '住院.药品':
-        list = (
-          await originalDB.execute(
-            `select code, name from his_dict where category_code = '10301001'`
-          )
-        )?.map(it => {
-          return {
-            id: `${parent}.${it.code}`,
-            name: it.name,
-            parent: parent
-          };
-        });
-        break;
-      case '其他':
-        list = HisWorkItemSources.filter(it => it.parent === '其他');
-        break;
-      default:
-        // eslint-disable-next-line no-case-declarations
-        let ids = [];
-        if (parent) {
-          ids = parent.split('.');
-          if (ids.length !== 3) return [];
-        }
-
-        // 门诊,住院药品
-        if (ids[1] === '药品') {
-          [sql, params] = sqlRender(
-            `
-              select id, name
-              from his_drug
-              where category = {{? category}}
-            `,
-            {
-              category: ids[2]
-            }
-          );
-          // his药品
-          hisList = await originalDB.execute(sql, ...params);
-
-          // 查询his_charge_detail药品列表
-          const chargeModels = await originalDB.execute(
-            // language=PostgreSQL
-            `
-              select distinct item
-              from his_charge_detail detail
-                     left join his_charge_master hcm on detail.main = hcm.id
-              where hcm.hospital = ?
-                and item like ?
-            `,
-            hospital,
-            `${parent}.%`
-          );
-          list = chargeModels.map(it => {
-            // 把item切割成数组
-            const drugs = it.item.split('.');
-            // 算出数组长度
-            const drugLength = drugs.length;
-            // 查找在his_drug中的名称
-            const index = hisList.find(
-              hisDrugIt => hisDrugIt.id === drugs[drugLength - 1]
-            );
-            return {
-              id: it.item,
-              name: index?.name ?? '',
-              parent: parent
-            };
-          });
-        }
-        // 门诊,住院检查项目
-        if (ids[1] === '检查项目') {
-          [sql, params] = sqlRender(
-            `
-              select id, name
-              from his_check
-              where category = {{? category}}
-            `,
-            {
-              category: ids[2]
-            }
-          );
-          hisList = await originalDB.execute(sql, ...params);
-
-          // 查询his_charge_detail药品列表
-          const chargeModels = await originalDB.execute(
-            // language=PostgreSQL
-            `
-              select distinct item
-              from his_charge_detail detail
-                     left join his_charge_master hcm on detail.main = hcm.id
-              where hcm.hospital = ?
-                and item like ?
-            `,
-            hospital,
-            `${parent}.%`
-          );
-
-          list = chargeModels.map(it => {
-            // 把item切割成数组
-            const checks = it.item.split('.');
-            // 算出数组长度
-            const checkLength = checks.length;
-            // 查找在his_drug中的名称
-            const index = hisList.find(
-              hisDictIt => hisDictIt.id === checks[checkLength - 1]
-            );
-            return {
-              id: it.item,
-              name: index?.name ?? '',
-              parent: parent
-            };
-          });
-        }
-        break;
-    }
-
-    // 添加是否选中字段
-    list = list.map(it => ({
-      ...it,
-      selected: false
-    }));
-    let mappingItems = [];
-    // 如果传了工分项目id,说明是修改,需要把已有的来源默认选中
-    if (item) {
-      // 查询绑定过的关联项目
-      mappingItems = await appDB.execute(
-        `select source from his_work_item_mapping where item = ? and source like '${parent}%'`,
-        item
-      );
-
-      mappingItems.forEach(it => {
-        // 查找关联过的项目是否在关联项目列表中,如果不在,需要push进去
-        const index = list.find(listIt => listIt.id === it.source);
-        // 如果么有查找到, 说明存在关联项目不在列表中
-        if (!index) {
-          const hisIndex = hisList.find(hisListIt =>
-            it.source.endsWith(hisListIt.id)
-          );
-          // 防止父级放到子集中
-          if (hisIndex)
-            list.push({
-              id: it.source,
-              name: hisIndex?.name,
-              parent,
-              selected: true
-            });
-        } else {
-          // 如果查找到, 默认选中
-          index.selected = true;
-        }
-      });
+          })
+        );
+      }
     }
     return list;
   }
