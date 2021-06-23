@@ -445,7 +445,7 @@ export default class HisManualData {
           and item = ?
           and date >= ?
           and date < ?
-        `,
+      `,
       staff,
       id,
       start,
@@ -497,10 +497,10 @@ export default class HisManualData {
         await appDB.execute(
           // language=PostgreSQL
           `
-          select id, staff, item, date, files, remark
-          from his_staff_manual_data_detail
-          where id = ?
-        `,
+            select id, staff, item, date, files, remark
+            from his_staff_manual_data_detail
+            where id = ?
+          `,
           id
         )
       )[0];
@@ -515,10 +515,10 @@ export default class HisManualData {
       await appDB.execute(
         // language=PostgreSQL
         `
-        delete
-        from his_staff_manual_data_detail
-        where id = ?
-      `,
+          delete
+          from his_staff_manual_data_detail
+          where id = ?
+        `,
         id
       );
     });
