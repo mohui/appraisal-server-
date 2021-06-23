@@ -128,6 +128,7 @@
         <div slot="title" class="dialog-header">
           <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
           <el-input
+            size="mini"
             style="width: 200px"
             placeholder="请输入金额"
             v-model="amount"
