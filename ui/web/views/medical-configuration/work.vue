@@ -135,7 +135,6 @@
           <div class="long-tree">
             <el-tree
               ref="tree"
-              :check-strictly="true"
               :data="workTreeData"
               :props="treeProps"
               :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
@@ -391,27 +390,22 @@ export default {
         this.searchLoading = false;
       }
     },
-    treeCheck({id, name}, selected) {
-      //选中的则push进当前选中项数组
-      if (selected) {
-        //如果原有的工分项没有该项目,则添加进去
-        if (this.newWork.projectsSelected.findIndex(old => old.id === id) < 0) {
-          this.newWork.projectsSelected.push({id, name});
+    treeCheck() {
+      let checkedNodes = this.$refs.tree.getCheckedNodes();
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
         }
       }
-      //未选中的则从当前选中项剔除
-      if (!selected) {
-        //如果原有的工分项有该项目,则删除
-        const index = this.newWork.projectsSelected.findIndex(
-          old => old.id === id
-        );
-        if (index > -1) {
-          this.newWork.projectsSelected.splice(index, 1);
-        }
-      }
+      this.newWork.projectsSelected = checkedNodes;
     },
     closeTag(tag) {
-      this.treeCheck({id: tag.id, name: tag.name}, false);
+      //如果原有的工分项有该项目,则删除
+      const index = this.newWork.projectsSelected.findIndex(
+        old => old.id === tag.id
+      );
+      if (index > -1) this.newWork.projectsSelected.splice(index, 1);
       this.$refs.tree.setCheckedKeys(
         this.newWork.projectsSelected.map(it => it.id)
       );
