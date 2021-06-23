@@ -159,21 +159,21 @@
             label="质量系数"
             min-width="100"
           ></el-table-column>
-          <!--          <el-table-column-->
-          <!--            property="afterCorrectionScore"-->
-          <!--            label="校正后得分"-->
-          <!--            min-width="120"-->
-          <!--          ></el-table-column>-->
+          <el-table-column
+            property="afterCorrectionScore"
+            label="校正后得分"
+            min-width="120"
+          ></el-table-column>
           <el-table-column
             property="extra"
             label="附加分"
             min-width="120"
           ></el-table-column>
-          <!--          <el-table-column-->
-          <!--            property="total"-->
-          <!--            label="总得分"-->
-          <!--            min-width="120"-->
-          <!--          ></el-table-column>-->
+          <el-table-column
+            property="totalScore"
+            label="总得分"
+            min-width="120"
+          ></el-table-column>
           <!--          <el-table-column-->
           <!--            property="amount"-->
           <!--            label="金额"-->
@@ -260,8 +260,12 @@ export default {
       if (list) {
         for (const i of list) {
           if (i.items.length > 0) {
+            const sumScore = i.items.reduce(
+              (prev, curr) => prev + curr.score,
+              0
+            );
+            console.log('sumScore:', sumScore);
             for (const it of i.items) {
-              console.log(it);
               const item = {};
               item.name = i.name;
               item.day = i.day;
@@ -269,6 +273,10 @@ export default {
               item.extra = i.extra;
               item.workPointName = it.name;
               item.score = it.score;
+              item.afterCorrectionScore = Number(
+                (sumScore * item.rate).toFixed(2)
+              );
+              item.totalScore = item.afterCorrectionScore + item.extra;
               result.push(item);
             }
           } else {
@@ -281,6 +289,7 @@ export default {
           }
         }
       }
+      console.log('result:', result);
       return result;
     },
     spanArr() {
