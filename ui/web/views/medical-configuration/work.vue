@@ -126,16 +126,20 @@
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
         <el-form-item label="关联项目" prop="projectsSelected">
+          <el-input
+            size="mini"
+            placeholder="输入关键字进行过滤"
+            v-model="filterText"
+          >
+          </el-input>
           <div class="long-tree">
             <el-tree
               ref="tree"
-              :check-strictly="true"
               :data="workTreeData"
-              :load="loadNode"
               :props="treeProps"
               :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
-              lazy
               node-key="id"
+              :filter-node-method="filterNode"
               show-checkbox
               @check-change="treeCheck"
             ></el-tree>
@@ -234,7 +238,6 @@ export default {
       })),
       treeProps: {
         label: 'name',
-        isLeaf: 'leaf',
         disabled: data => {
           return (
             data.id === '公卫数据' ||
@@ -242,7 +245,8 @@ export default {
             data.id === '其他'
           );
         }
-      }
+      },
+      filterText: ''
     };
   },
   computed: {
@@ -257,7 +261,11 @@ export default {
       }));
     }
   },
-  watch: {},
+  watch: {
+    filterText(value) {
+      this.$refs.tree.filter(value);
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
@@ -278,7 +286,7 @@ export default {
     },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources(null, this.newWork.id);
+        return await this.$api.HisWorkItem.sources(null, null);
       },
       default() {
         return [];
@@ -326,10 +334,6 @@ export default {
           projects: []
         })
       );
-      this.workTreeData = await this.$api.HisWorkItem.sources(
-        null,
-        this.newWork?.id
-      );
       this.addWorkVisible = true;
     },
     async removeRow(row) {
@@ -352,6 +356,12 @@ export default {
     resetConfig(ref) {
       this.$refs[ref].resetFields();
       this.$refs.tree.setCheckedKeys([]);
+      //将树形结构全部折叠
+      for (let i = 0; i < this.workTreeData.length; i++) {
+        this.$refs.tree.store.nodesMap[
+          this.workTreeData[i].id
+        ].expanded = false;
+      }
       //重置默认选中项
       this.newWork = {
         work: '',
@@ -370,52 +380,32 @@ export default {
       }
       return contentStr;
     },
-    async remoteSearch(query) {
+    filterNode(query, data) {
       try {
-        this.searchLoading = true;
-        this.serverProjectData = await this.$api.HisWorkItem.searchSource(
-          this.newWork.source,
-          query || undefined
-        );
+        if (!query) return true;
+        return data.name.indexOf(query) > -1;
       } catch (e) {
         console.error(e);
       } finally {
         this.searchLoading = false;
       }
     },
-    async loadNode(node, resolve) {
-      if (node.level === 0) {
-        return resolve(this.workTreeData);
-      }
-      if (node.level > 0) {
-        let data = await this.$api.HisWorkItem.sources(
-          node.data.id,
-          this.newWork?.id
-        );
-        return resolve(data);
-      }
-    },
-    treeCheck({id, name}, selected) {
-      //选中的则push进当前选中项数组
-      if (selected) {
-        //如果原有的工分项没有该项目,则添加进去
-        if (this.newWork.projectsSelected.findIndex(old => old.id === id) < 0) {
-          this.newWork.projectsSelected.push({id, name});
+    treeCheck() {
+      let checkedNodes = this.$refs.tree.getCheckedNodes();
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
         }
       }
-      //未选中的则从当前选中项剔除
-      if (!selected) {
-        //如果原有的工分项有该项目,则删除
-        const index = this.newWork.projectsSelected.findIndex(
-          old => old.id === id
-        );
-        if (index > -1) {
-          this.newWork.projectsSelected.splice(index, 1);
-        }
-      }
+      this.newWork.projectsSelected = checkedNodes;
     },
     closeTag(tag) {
-      this.treeCheck({id: tag.id, name: tag.name}, false);
+      //如果原有的工分项有该项目,则删除
+      const index = this.newWork.projectsSelected.findIndex(
+        old => old.id === tag.id
+      );
+      if (index > -1) this.newWork.projectsSelected.splice(index, 1);
       this.$refs.tree.setCheckedKeys(
         this.newWork.projectsSelected.map(it => it.id)
       );
