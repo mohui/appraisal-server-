@@ -119,7 +119,12 @@
           :style="{width: '100%', height: '400px'}"
         ></div>
       </el-card>
-      <el-dialog title="报表" :visible.sync="dialogStaffTableVisible">
+      <el-dialog
+        title="报表"
+        :visible.sync="dialogStaffTableVisible"
+        width="90%"
+        top="10vh"
+      >
         <div slot="title" class="dialog-header">
           <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
           <el-input
@@ -131,7 +136,7 @@
         <el-table
           :data="reportData"
           :span-method="objectSpanMethod"
-          height="60vh"
+          height="70vh"
           border
           :header-cell-style="{textAlign: 'center'}"
           :cell-style="{textAlign: 'center'}"
