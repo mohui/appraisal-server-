@@ -133,6 +133,7 @@
         </div>
         <el-table
           :data="reportData"
+          :span-method="objectSpanMethod"
           height="60vh"
           border
           :header-cell-style="{textAlign: 'center'}"
@@ -281,6 +282,26 @@ export default {
         }
       }
       return result;
+    },
+    spanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].name === this.reportData[i - 1].name) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     }
   },
   asyncComputed: {
@@ -371,7 +392,13 @@ export default {
           });
         });
     },
-
+    objectSpanMethod({column, rowIndex}) {
+      if (column.property !== 'workPointName' && column.property !== 'score') {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
+    },
     // 绘制图表
     drawChart() {
       this.drawRateGauge();
