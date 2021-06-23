@@ -158,7 +158,7 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
-            property="rate"
+            property="rateFormat"
             label="质量系数"
             min-width="100"
           ></el-table-column>
@@ -282,6 +282,7 @@ export default {
               item.name = i.name;
               item.day = i.day;
               item.rate = i.rate || 1;
+              item.rateFormat = item.rate * 100 + '%';
               item.extra = i.extra;
               item.workPointName = it.name;
               // 校正前工分（单个工分项）
@@ -299,6 +300,7 @@ export default {
             item.name = i.name;
             item.day = i.day;
             item.rate = i.rate;
+            item.rateFormat = item.rate * 100 + '%';
             item.extra = i.extra;
             result.push(item);
           }
