@@ -174,11 +174,11 @@
             label="总得分"
             min-width="120"
           ></el-table-column>
-          <!--          <el-table-column-->
-          <!--            property="amount"-->
-          <!--            label="金额"-->
-          <!--            min-width="120"-->
-          <!--          ></el-table-column>-->
+          <el-table-column
+            property="amount"
+            label="金额"
+            min-width="120"
+          ></el-table-column>
         </el-table>
       </el-dialog>
     </div>
@@ -258,8 +258,18 @@ export default {
       const list = this.reportSeverData;
       const result = [];
       if (list) {
+        // 机构总分
+        let organizationScore = 0;
         for (const i of list) {
+          // 累加各员工校正后工分
+          organizationScore += i.items.reduce(
+            (prev, curr) => prev + curr.score * (i.rate || 0.5),
+            0
+          );
+          // 累加各员工附加分
+          organizationScore += i.extra || 0;
           if (i.items.length > 0) {
+            // 校正前总工分（所有工分项之和）
             const sumScore = i.items.reduce(
               (prev, curr) => prev + curr.score,
               0
@@ -272,10 +282,13 @@ export default {
               item.rate = i.rate || 1;
               item.extra = i.extra;
               item.workPointName = it.name;
+              // 校正前工分（单个工分项）
               item.score = it.score;
+              // 校正后总工分
               item.afterCorrectionScore = Number(
                 (sumScore * item.rate).toFixed(2)
               );
+              // 总得分
               item.totalScore = item.afterCorrectionScore + item.extra;
               result.push(item);
             }
@@ -287,6 +300,19 @@ export default {
             item.extra = i.extra;
             result.push(item);
           }
+        }
+        console.log('organizationScore:', organizationScore);
+        for (const i of result) {
+          // 员工总得分在机构中所占比例
+          i.proportion = (i.totalScore || 0) / organizationScore;
+          console.log(
+            '所占比例:',
+            i.proportion,
+            i.totalScore,
+            organizationScore
+          );
+          // 所得金额
+          i.amount = Number((this.amount * i.proportion).toFixed(2));
         }
       }
       console.log('result:', result);
