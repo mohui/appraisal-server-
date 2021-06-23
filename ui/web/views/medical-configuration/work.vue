@@ -126,6 +126,12 @@
           <el-input v-model="newWork.work"> </el-input>
         </el-form-item>
         <el-form-item label="关联项目" prop="projectsSelected">
+          <el-input
+            size="mini"
+            placeholder="输入关键字进行过滤"
+            v-model="filterText"
+          >
+          </el-input>
           <div class="long-tree">
             <el-tree
               ref="tree"
@@ -134,6 +140,7 @@
               :props="treeProps"
               :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
               node-key="id"
+              :filter-node-method="filterNode"
               show-checkbox
               @check-change="treeCheck"
             ></el-tree>
@@ -232,7 +239,6 @@ export default {
       })),
       treeProps: {
         label: 'name',
-        isLeaf: 'leaf',
         disabled: data => {
           return (
             data.id === '公卫数据' ||
@@ -240,7 +246,8 @@ export default {
             data.id === '其他'
           );
         }
-      }
+      },
+      filterText: ''
     };
   },
   computed: {
@@ -255,7 +262,11 @@ export default {
       }));
     }
   },
-  watch: {},
+  watch: {
+    filterText(value) {
+      this.$refs.tree.filter(value);
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
@@ -370,13 +381,10 @@ export default {
       }
       return contentStr;
     },
-    async remoteSearch(query) {
+    filterNode(query, data) {
       try {
-        this.searchLoading = true;
-        this.serverProjectData = await this.$api.HisWorkItem.searchSource(
-          this.newWork.source,
-          query || undefined
-        );
+        if (!query) return true;
+        return data.name.indexOf(query) > -1;
       } catch (e) {
         console.error(e);
       } finally {
