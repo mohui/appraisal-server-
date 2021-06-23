@@ -73,9 +73,15 @@ export default class HisManualData {
   /**
    * 查询手工数据
    */
-  list() {
-    return appDB.execute(
-      `select id, name, input, created_at, updated_at from his_manual_data order by created_at`
+  async list() {
+    const hospital = await getHospital();
+    // language=PostgreSQL
+    return await appDB.execute(
+      `select id, name, input, created_at, updated_at
+         from his_manual_data
+         where hospital = ?
+         order by created_at`,
+      hospital
     );
   }
 
