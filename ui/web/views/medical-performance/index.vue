@@ -138,7 +138,10 @@
             size="mini"
             style="margin-left: 20px"
             @click="
-              exportReport('reportTable', overviewData.name + '报表.xlsx')
+              exportReport(
+                'reportTable',
+                overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
+              )
             "
             >导出</el-button
           >
