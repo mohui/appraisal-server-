@@ -418,13 +418,6 @@ export default class HisStaff {
       .description('关联员工[]')
   )
   async addHisStaffWorkSource(staff, sourceRate) {
-    sourceRate = sourceRate.map(it => {
-      // 如果为平均分配,计算平均值
-      if (it.avg) {
-        it.rate = it.source.length ? 1 / it.source.length : 0;
-      }
-      return it;
-    });
     return appDB.transaction(async () => {
       // 添加员工关联
       for (const it of sourceRate) {
@@ -469,10 +462,6 @@ export default class HisStaff {
       .description('关联员工[]')
   )
   async updateHisStaffWorkSource(id, sources, rate, avg) {
-    // 如果为平均分配,计算平均值
-    if (avg) {
-      rate = sources.length ? 1 / sources.length : 0;
-    }
     return appDB.transaction(async () => {
       await appDB.execute(
         ` update his_staff_work_source
