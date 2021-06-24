@@ -436,8 +436,24 @@ export default class HisWorkItem {
       .description('来源id[]')
   )
   async add(name, method, mappings) {
-    if (mappings.find(it => it === '手工数据' || it === '公卫数据'))
+    if (
+      mappings.find(
+        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+      )
+    )
       throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const newMappings = [];
+    for (const sourceIt of mappingSorts) {
+      // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
+      const index = newMappings.find(
+        newIt => sourceIt.startsWith(newIt) && newIt.length <= sourceIt.length
+      );
+      // 如果没有, push进去
+      if (!index) {
+        newMappings.push(sourceIt);
+      }
+    }
     const hospital = await getHospital();
 
     return appDB.transaction(async () => {
@@ -456,7 +472,7 @@ export default class HisWorkItem {
       );
 
       // 添加工分项目与his收费项目关联表
-      for (const sourceId of mappings) {
+      for (const sourceId of newMappings) {
         let code = null;
         const sources = sourceId?.split('.') ?? [];
         // 手工数据
@@ -510,6 +526,26 @@ export default class HisWorkItem {
       .description('来源id[]')
   )
   async update(id, name, method, mappings) {
+    if (
+      mappings.find(
+        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+      )
+    )
+      throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+
+    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const newMappings = [];
+    for (const sourceIt of mappingSorts) {
+      // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
+      const index = newMappings.find(
+        newIt => sourceIt.startsWith(newIt) && newIt.length <= sourceIt.length
+      );
+      // 如果没有, push进去
+      if (!index) {
+        newMappings.push(sourceIt);
+      }
+    }
+
     return appDB.transaction(async () => {
       // 添加工分项目
       await appDB.execute(
@@ -529,7 +565,7 @@ export default class HisWorkItem {
         id
       );
       // 添加工分项目与his收费项目关联表
-      for (const sourceId of mappings) {
+      for (const sourceId of newMappings) {
         let code = null;
         const sources = sourceId?.split('.') ?? [];
         // 手工数据
