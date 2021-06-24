@@ -19,31 +19,6 @@
           >
         </div>
       </div>
-      <kn-collapse
-        :is-collapsed="isCollapsed"
-        :is-show="$settings.isMobile"
-        @toggle="is => (isCollapsed = is)"
-      >
-        <el-form
-          ref="ruleForm"
-          :model="searchForm"
-          label-width="100px"
-          size="mini"
-        >
-          <el-row>
-            <el-col :lg="6" :md="6" :sm="12" :span="6" :xl="6" :xs="24">
-              <el-form-item>
-                <el-button
-                  size="mini"
-                  type="primary"
-                  @click="$asyncComputed.serverData.update()"
-                  >查询</el-button
-                >
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-      </kn-collapse>
       <el-table
         v-loading="tableLoading"
         stripe
@@ -207,16 +182,7 @@ export default {
       callback();
     };
     return {
-      isCollapsed: !!this.$settings.isMobile,
       permission: Permission,
-      searchForm: {
-        work: '',
-        scoreMethod: '',
-        projects: [],
-        dateRange: '',
-        pageSize: 20,
-        pageNo: 1
-      },
       newWork: {
         work: '',
         source: HisWorkSource.CHECK,
@@ -274,8 +240,6 @@ export default {
     serverData: {
       async get() {
         this.tableLoading = true;
-        const {work, scoreMethod, dateRange} = this.searchForm;
-        console.log(work, scoreMethod, dateRange);
         try {
           return await this.$api.HisWorkItem.list();
         } catch (e) {
