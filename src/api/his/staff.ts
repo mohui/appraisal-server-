@@ -459,7 +459,15 @@ export default class HisStaff {
     should
       .array()
       .required()
-      .description('关联员工[]')
+      .description('关联员工[]'),
+    should
+      .number()
+      .required()
+      .description('权重系数'),
+    should
+      .boolean()
+      .required()
+      .description('是否平均分配')
   )
   async updateHisStaffWorkSource(id, sources, rate, avg) {
     return appDB.transaction(async () => {
