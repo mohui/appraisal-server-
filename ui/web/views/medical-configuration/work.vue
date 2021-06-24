@@ -135,7 +135,7 @@
           <div class="long-tree">
             <el-tree
               ref="tree"
-              :data="workTreeData"
+              :data="treeData"
               :props="treeProps"
               :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
               node-key="id"
@@ -195,6 +195,7 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod, HisWorkSource} from '../../../../common/his.ts';
+import {strToPinyin} from '../../utils/pinyin';
 
 export default {
   name: 'Work',
@@ -259,6 +260,9 @@ export default {
         mappings: d.mappings,
         removeLoading: false
       }));
+    },
+    treeData() {
+      return this.addPinyin(this.workTreeData);
     }
   },
   watch: {
@@ -380,15 +384,22 @@ export default {
       }
       return contentStr;
     },
+    addPinyin(arr) {
+      arr = arr.map(it => ({...it, pinyin: strToPinyin(it.name)}));
+      for (let current of arr) {
+        if (current?.children?.length > 0) {
+          current.children = this.addPinyin(current.children);
+        }
+      }
+      return arr;
+    },
     filterNode(query, data) {
       try {
         if (!query) return true;
         //模糊匹配字符
         if (data.name.indexOf(query) > -1) return true;
-        //统一转换小写字母
-        query = query.toLowerCase();
         //模糊匹配拼音首字母
-        return data.name.toPinyin().indexOf(query) > -1;
+        return data.pinyin.indexOf(query.toLowerCase()) > -1;
       } catch (e) {
         console.error(e);
       } finally {

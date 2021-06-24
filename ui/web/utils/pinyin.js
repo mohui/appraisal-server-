@@ -814,6 +814,3 @@ function isEnglishLetter(value) {
 function isDigist(value) {
   return parseFloat(value).toString() !== 'NaN';
 }
-
-String.prototype.toPinyin = strToPinyin;
-String.prototype.toPinyinArray = strToPinyinArray;
