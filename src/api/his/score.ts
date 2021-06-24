@@ -1147,7 +1147,10 @@ export default class HisScore {
           from (
                  select ss.staff, sim.item, sum(sd.score) * ss.rate as score
                  from (
-                        select unnest(sources) as staff, rate
+                        select unnest(sources) as staff,
+                               case avg
+                                 when true then rate / array_length(sources, 1)
+                                 else rate end as rate
                         from his_staff_work_source
                         where staff = ?
                       ) ss
