@@ -15,8 +15,8 @@
         <span>员工管理</span>
         <div>
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
-            >考核员工配置</el-button
-          >
+            >考核员工配置
+          </el-button>
         </div>
       </div>
       <kn-collapse
@@ -54,8 +54,8 @@
                   size="mini"
                   type="primary"
                   @click="$asyncComputed.serverData.update()"
-                  >查询</el-button
-                >
+                  >查询
+                </el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -222,8 +222,8 @@
             <el-table-column label="操作" width="100">
               <template slot-scope="{$index, row}">
                 <el-button type="text" @click="removeSubMember(row, $index)"
-                  >删除</el-button
-                >
+                  >删除
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -241,8 +241,8 @@
                 avg: false
               })
             "
-            >新增关联员工</el-button
-          >
+            >新增关联员工
+          </el-button>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -622,7 +622,7 @@ export default {
   justify-content: space-between;
 }
 
-/deep/.expanded-member-table {
+/deep/ .expanded-member-table {
   .el-table__expanded-cell {
     padding: 10px 20px;
   }
