@@ -15,8 +15,8 @@
         <span>员工管理</span>
         <div>
           <el-button size="mini" type="primary" @click="addMemberVisible = true"
-            >考核员工配置</el-button
-          >
+            >考核员工配置
+          </el-button>
         </div>
       </div>
       <kn-collapse
@@ -54,8 +54,8 @@
                   size="mini"
                   type="primary"
                   @click="$asyncComputed.serverData.update()"
-                  >查询</el-button
-                >
+                  >查询
+                </el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -94,6 +94,12 @@
             <div v-else>{{ row.subMember }}</div>
           </template>
         </el-table-column>
+        <el-table-column prop="avg" label="统计方式" align="center" width="80">
+          <template slot-scope="{row}">
+            <div v-if="!row.avg">总和</div>
+            <div v-if="row.avg">平均</div>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="subRate"
           label="权重系数"
@@ -101,8 +107,7 @@
           width="80"
         >
           <template slot-scope="{row}">
-            <div v-if="!row.avg">{{ row.subRate }}%</div>
-            <div v-if="row.avg">平均分配</div>
+            <div>{{ row.subRate }}%</div>
           </template>
         </el-table-column>
         <el-table-column prop="opera" label="操作" align="center" width="200">
@@ -135,7 +140,7 @@
     <el-dialog
       title="员工考核配置"
       :visible.sync="addMemberVisible"
-      :width="$settings.isMobile ? '99%' : '50%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="resetConfig"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -197,34 +202,37 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="权重系数" prop="rate" min-width="360">
+            <el-table-column label="统计方式" prop="rate" min-width="160">
               <template slot-scope="{$index, row}">
                 <div>
                   <el-switch
                     style="margin-right: 10px"
                     v-model="row.avg"
                     inactive-color="#13ce66"
-                    active-text="比例分配"
-                    inactive-text="平均分配"
+                    active-text="总和"
+                    inactive-text="平均"
                     :active-value="false"
                     :inactive-value="true"
                   ></el-switch>
-
-                  <el-input-number
-                    v-show="!row.avg"
-                    style="width: 100px"
-                    v-model="row.rate"
-                    size="mini"
-                  ></el-input-number>
-                  <span v-show="!row.avg">&nbsp;&nbsp;%</span>
                 </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="权重系数" width="200">
+              <template slot-scope="{$index, row}">
+                <el-input-number
+                  style="width: 100px"
+                  v-model="row.rate"
+                  size="mini"
+                ></el-input-number>
+                <span>&nbsp;&nbsp;%</span>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="100">
               <template slot-scope="{$index, row}">
                 <el-button type="text" @click="removeSubMember(row, $index)"
-                  >删除</el-button
-                >
+                  >删除
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -242,8 +250,8 @@
                 avg: false
               })
             "
-            >新增关联员工</el-button
-          >
+            >新增关联员工
+          </el-button>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -593,6 +601,7 @@ export default {
       if (
         column.property !== 'subMembers' &&
         column.property !== 'opera' &&
+        column.property !== 'avg' &&
         column.property !== 'subRate'
       ) {
         const _row = this.spanArr[rowIndex];
@@ -623,7 +632,7 @@ export default {
   justify-content: space-between;
 }
 
-/deep/.expanded-member-table {
+/deep/ .expanded-member-table {
   .el-table__expanded-cell {
     padding: 10px 20px;
   }
