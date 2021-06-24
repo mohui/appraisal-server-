@@ -29,7 +29,15 @@
               {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
             </el-button>
           </div>
-          <div class="compute">
+          <div class="right">
+            <el-button
+              type="primary"
+              size="mini"
+              :disabled="overviewData.settle"
+              @click="dialogStaffTableVisible = true"
+            >
+              报表
+            </el-button>
             <el-button
               type="primary"
               size="mini"
@@ -111,6 +119,85 @@
           :style="{width: '100%', height: '400px'}"
         ></div>
       </el-card>
+      <el-dialog
+        title="报表"
+        :visible.sync="dialogStaffTableVisible"
+        width="90%"
+        top="10vh"
+      >
+        <div slot="title" class="dialog-header">
+          <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
+          <el-input
+            size="mini"
+            style="width: 200px"
+            placeholder="请输入金额"
+            v-model="amount"
+          ></el-input>
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="
+              exportReport(
+                'reportTable',
+                overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
+              )
+            "
+            >导出</el-button
+          >
+        </div>
+        <el-table
+          id="reportTable"
+          :data="reportData"
+          :span-method="objectSpanMethod"
+          height="70vh"
+          size="mini"
+          border
+          :header-cell-style="{textAlign: 'center'}"
+          :cell-style="{textAlign: 'center'}"
+        >
+          <el-table-column
+            property="name"
+            label="姓名"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="workPointName"
+            label="工分项"
+            min-width="150"
+          ></el-table-column>
+          <el-table-column
+            property="score"
+            label="校正前得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="rateFormat"
+            label="质量系数"
+            min-width="100"
+          ></el-table-column>
+          <el-table-column
+            property="afterCorrectionScore"
+            label="校正后得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="extra"
+            label="附加分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="totalScore"
+            label="总得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="amount"
+            label="金额"
+            min-width="120"
+          ></el-table-column>
+        </el-table>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -118,6 +205,8 @@
 <script>
 import VueSticky from 'vue-sticky';
 import * as dayjs from 'dayjs';
+import FileSaver from 'file-saver';
+import XLSX from 'xlsx';
 
 export default {
   name: 'index',
@@ -131,6 +220,8 @@ export default {
           return time.getTime() > dayjs().toDate();
         }
       },
+      dialogStaffTableVisible: false,
+      amount: null,
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -181,6 +272,83 @@ export default {
         ...it,
         score: Number(it.score?.toFixed(2)) || 0
       }));
+    },
+    reportData() {
+      const list = this.reportSeverData;
+      const result = [];
+      if (list) {
+        // 机构总分
+        let organizationScore = 0;
+        for (const i of list) {
+          // 累加各员工校正后工分
+          organizationScore += i.items.reduce(
+            (prev, curr) => prev + curr.score * (i.rate || 1),
+            0
+          );
+          // 累加各员工附加分
+          organizationScore += i.extra || 0;
+          if (i.items.length > 0) {
+            // 校正前总工分（所有工分项之和）
+            const sumScore = i.items.reduce(
+              (prev, curr) => prev + curr.score,
+              0
+            );
+            for (const it of i.items) {
+              const item = {};
+              item.name = i.name;
+              item.day = i.day;
+              item.rate = i.rate || 1;
+              item.rateFormat = item.rate * 100 + '%';
+              item.extra = i.extra;
+              item.workPointName = it.name;
+              // 校正前工分（单个工分项）
+              item.score = it.score;
+              // 校正后总工分
+              item.afterCorrectionScore = Number(
+                (sumScore * item.rate).toFixed(2)
+              );
+              // 总得分
+              item.totalScore = item.afterCorrectionScore + item.extra;
+              result.push(item);
+            }
+          } else {
+            const item = {};
+            item.name = i.name;
+            item.day = i.day;
+            item.rate = i.rate;
+            item.rateFormat = item.rate * 100 + '%';
+            item.extra = i.extra;
+            result.push(item);
+          }
+        }
+        for (const i of result) {
+          // 员工总得分在机构中所占比例
+          i.proportion = (i.totalScore || 0) / organizationScore;
+          // 所得金额
+          i.amount = Number((this.amount * i.proportion).toFixed(2));
+        }
+      }
+      return result;
+    },
+    spanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].name === this.reportData[i - 1].name) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     }
   },
   asyncComputed: {
@@ -203,6 +371,14 @@ export default {
     staffCheckListSeverData: {
       async get() {
         return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    },
+    reportSeverData: {
+      async get() {
+        return await this.$api.HisHospital.report(this.currentDate);
       },
       default() {
         return [];
@@ -262,6 +438,43 @@ export default {
             message: '已取消删除'
           });
         });
+    },
+    objectSpanMethod({column, rowIndex}) {
+      if (column.property !== 'workPointName' && column.property !== 'score') {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
+    },
+    // 导出报表
+    // id为要导出的table节点id（父节点也可以），title是导出的表格文件名
+    exportReport(id, title) {
+      // 判断要导出的节点中是否有fixed的表格，如果有，转换excel时先将该dom移除，然后append回去，
+      const fix = document.querySelector('.el-table__fixed');
+      let wb;
+      if (fix) {
+        wb = XLSX.utils.table_to_book(
+          document.getElementById(id).removeChild(fix)
+        );
+        document.querySelector(id).appendChild(fix);
+      } else {
+        wb = XLSX.utils.table_to_book(document.getElementById(id));
+      }
+      const wbOut = XLSX.write(wb, {
+        bookType: 'xlsx',
+        bookSST: true,
+        type: 'array'
+      });
+      try {
+        FileSaver.saveAs(
+          new Blob([wbOut], {
+            type: 'application/octet-stream'
+          }),
+          title
+        );
+      } catch (e) {
+        if (typeof console !== 'undefined') console.log(e, wbOut);
+      }
     },
     // 绘制图表
     drawChart() {
@@ -558,7 +771,7 @@ export default {
     margin: 0 20px 10px 0;
     float: left;
   }
-  .compute {
+  .right {
     float: right;
     margin-right: 0;
   }
@@ -588,5 +801,13 @@ export default {
     font-size: 15px;
     margin: 10px;
   }
+}
+
+.dialog-header {
+  width: calc(100% - 30px);
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 </style>
