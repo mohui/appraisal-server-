@@ -526,6 +526,13 @@ export default class HisWorkItem {
       .description('来源id[]')
   )
   async update(id, name, method, mappings) {
+    if (
+      mappings.find(
+        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+      )
+    )
+      throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
