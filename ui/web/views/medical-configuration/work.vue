@@ -383,7 +383,12 @@ export default {
     filterNode(query, data) {
       try {
         if (!query) return true;
-        return data.name.indexOf(query) > -1;
+        //模糊匹配字符
+        if (data.name.indexOf(query) > -1) return true;
+        //统一转换小写字母
+        query = query.toLowerCase();
+        //模糊匹配拼音首字母
+        return data.name.toPinyin().indexOf(query) > -1;
       } catch (e) {
         console.error(e);
       } finally {
