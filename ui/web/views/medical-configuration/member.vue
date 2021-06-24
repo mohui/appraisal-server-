@@ -211,12 +211,11 @@
                   ></el-switch>
 
                   <el-input-number
-                    v-show="!row.avg"
                     style="width: 100px"
                     v-model="row.rate"
                     size="mini"
                   ></el-input-number>
-                  <span v-show="!row.avg">&nbsp;&nbsp;%</span>
+                  <span>&nbsp;&nbsp;%</span>
                 </div>
               </template>
             </el-table-column>
