@@ -246,7 +246,7 @@
               newMember.subMembers.push({
                 member: [],
                 staffs: [],
-                rate: 0,
+                rate: 100,
                 avg: false
               })
             "
@@ -433,7 +433,7 @@ export default {
         this.newMember.subMembers.push({
           member: [],
           staffs: [],
-          rate: 0,
+          rate: 100,
           avg: false
         });
       }
