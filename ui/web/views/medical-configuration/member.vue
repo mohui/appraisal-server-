@@ -566,18 +566,15 @@ export default {
       this.addMemberVisible = true;
     },
     async removeRow(row) {
+      console.log(row);
       try {
-        await this.$confirm(
-          `确定删除 ${row.member} 和 "${row.subMember}"该配置?`,
-          '提示',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        );
+        await this.$confirm(`确定删除 ${row.member}配置?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
         row.removeLoading = true;
-        await this.$api.HisStaff.delHisStaffWorkSource(row.id);
+        await this.$api.HisStaff.delHisStaffWorkSourceAll(row.staff);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
         this.$asyncComputed.serverMemberData.update();
@@ -593,7 +590,6 @@ export default {
     spanMethod({column, rowIndex}) {
       if (
         column.property !== 'subMembers' &&
-        column.property !== 'opera' &&
         column.property !== 'avg' &&
         column.property !== 'subRate'
       ) {
