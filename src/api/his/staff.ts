@@ -438,9 +438,9 @@ export default class HisStaff {
   }
 
   /**
-   * 删除员工绑定, 仅删除一条
+   * 根据id删除员工绑定
    */
-  async delHisStaffWorkSource(id) {
+  async delWorkSourceById(id) {
     return await appDB.execute(
       `
         delete from his_staff_work_source where id = ?`,
@@ -449,9 +449,9 @@ export default class HisStaff {
   }
 
   /**
-   * 删除员工绑定 全部删除
+   * 根据考核员工id删除员工绑定
    */
-  async delHisStaffWorkSourceAll(staff) {
+  async delWorkSources(staff) {
     return await appDB.execute(
       `
         delete from his_staff_work_source where staff = ?`,

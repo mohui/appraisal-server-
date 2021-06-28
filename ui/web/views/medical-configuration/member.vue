@@ -518,9 +518,7 @@ export default {
                 .filter(
                   it => !this.newMember.subMembers.some(s => s.id === it.id)
                 )
-                .map(async del =>
-                  this.$api.HisStaff.delHisStaffWorkSource(del.id)
-                )
+                .map(async del => this.$api.HisStaff.delWorkSourceById(del.id))
             );
             this.$message.success('修改成功');
           }
@@ -574,7 +572,7 @@ export default {
           type: 'warning'
         });
         row.removeLoading = true;
-        await this.$api.HisStaff.delHisStaffWorkSourceAll(row.staff);
+        await this.$api.HisStaff.delWorkSources(row.staff);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
         this.$asyncComputed.serverMemberData.update();
