@@ -443,7 +443,7 @@ export default class HisStaff {
   async delHisStaffWorkSource(id) {
     return await appDB.execute(
       `
-        delete from his_staff_work_source where id = ?`,
+        delete from his_staff_work_source where staff = ?`,
       id
     );
   }
