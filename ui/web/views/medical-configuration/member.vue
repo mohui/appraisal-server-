@@ -190,13 +190,6 @@
                       :key="m.id"
                       :label="m.name"
                       :value="m.id"
-                      :disabled="
-                        newMember.subMembers.some(
-                          it =>
-                            !row.staffs.includes(m.id) &&
-                            it.staffs.some(s => s === m.id)
-                        )
-                      "
                     ></el-option>
                   </el-select>
                 </div>
