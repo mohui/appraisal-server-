@@ -387,6 +387,7 @@ export default class HisStaff {
       };
     });
   }
+
   // endregion
 
   // region 员工绑定的增删改查
@@ -438,13 +439,32 @@ export default class HisStaff {
   }
 
   /**
-   * 删除员工绑定
+   * 根据id删除员工绑定
    */
-  async delHisStaffWorkSource(id) {
+  async delWorkSourceById(id) {
+    // language=PostgreSQL
     return await appDB.execute(
       `
-        delete from his_staff_work_source where id = ?`,
+        delete
+        from his_staff_work_source
+        where id = ?
+      `,
       id
+    );
+  }
+
+  /**
+   * 根据考核员工id删除员工绑定
+   */
+  async delWorkSources(staff) {
+    // language=PostgreSQL
+    return await appDB.execute(
+      `
+        delete
+        from his_staff_work_source
+        where staff = ?
+      `,
+      staff
     );
   }
 
@@ -579,6 +599,7 @@ export default class HisStaff {
       };
     });
   }
+
   // endregion
 
   // region 员工工分
@@ -715,6 +736,7 @@ export default class HisStaff {
       rate: it?.assess?.rate ?? null
     }));
   }
+
   // endregion
 
   /**
