@@ -42,6 +42,27 @@ export default class HisDepartment {
     });
   }
 
+  async delete(id) {
+    return appDB.transaction(async () => {
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+        update staff set
+          department = null,
+          updated_at = ?
+        where department = ?`,
+        new Date(),
+        id
+      );
+      // language=PostgreSQL
+      return await appDB.execute(
+        `
+          delete from his_department where id = ?`,
+        id
+      );
+    });
+  }
+
   // 科室列表
   async list() {
     const hospital = await getHospital();
