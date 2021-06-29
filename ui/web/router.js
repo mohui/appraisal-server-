@@ -295,7 +295,7 @@ const router = new Router({
           path: 'medical-configuration-department',
           name: 'medical-configuration-department',
           meta: {permission: [Permission.MEDICAL_CONFIGURATION_DEPARTMENT]},
-          component: () => import('./views/department/index')
+          component: () => import('./views/medical-configuration/department')
         }
       ]
     },
