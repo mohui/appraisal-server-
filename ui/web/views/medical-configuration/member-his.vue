@@ -162,6 +162,25 @@
             autocomplete="off"
           ></el-input>
         </el-form-item>
+        <el-form-item
+          label="科室"
+          prop="department"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.department"
+            style="width:100%"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in departmentList"
+              :key="h.id"
+              :label="h.name"
+              :value="h.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
             v-model="userForm.his"
@@ -234,6 +253,25 @@
             autocomplete="off"
           ></el-input>
         </el-form-item>
+        <el-form-item
+          label="科室"
+          prop="department"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.department"
+            style="width: 100%"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in departmentList"
+              :key="h.id"
+              :label="h.name"
+              :value="h.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
           <el-select
             v-model="userForm.his"
@@ -280,7 +318,8 @@ export default {
         name: '',
         his: '',
         virtual: false,
-        remark: null
+        remark: null,
+        department: null
       },
       searchForm: {
         account: '',
@@ -312,6 +351,10 @@ export default {
     },
     hisList() {
       return this.serverHisData;
+    },
+    // 科室列表
+    departmentList() {
+      return this.serverDepartment;
     }
   },
   watch: {
@@ -351,6 +394,17 @@ export default {
       async get() {
         try {
           return await this.$api.HisStaff.listHisStaffs();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
+    serverDepartment: {
+      async get() {
+        try {
+          return await this.$api.HisDepartment.list();
         } catch (e) {
           this.$message.error(e.message);
           return [];
@@ -397,7 +451,8 @@ export default {
               this.userForm.password.trim(),
               this.userForm.name.trim(),
               this.userForm.virtual || false,
-              this.userForm.remark?.trim() || null
+              this.userForm.remark?.trim() || null,
+              this.userForm.department?.trim() || null
             );
             this.$message({
               type: 'success',
@@ -427,7 +482,8 @@ export default {
           name: row.name,
           his: row.staff,
           virtual: row.virtual,
-          remark: row.remark
+          remark: row.remark,
+          department: row.department
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -444,7 +500,8 @@ export default {
               this.userForm.password.trim(),
               this.userForm.his || null,
               this.userForm.virtual || false,
-              this.userForm.remark?.trim() || null
+              this.userForm.remark?.trim() || null,
+              this.userForm.department?.trim() || null
             );
             this.$message({
               type: 'success',
