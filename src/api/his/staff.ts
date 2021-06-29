@@ -366,11 +366,23 @@ export default class HisStaff {
       `select id, name from his_staff where hospital = ?`,
       hospital
     );
+
+    const dept = await appDB.execute(
+      `
+        select id, hospital, name, created_at
+        from his_department
+        where hospital = ?
+        order by created_at
+      `,
+      hospital
+    );
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
+      const deptIndex = dept.find(item => item.id === it.department);
       return {
         ...it,
-        staffName: index?.name ?? ''
+        staffName: index?.name ?? '',
+        departmentName: deptIndex?.name ?? ''
       };
     });
   }

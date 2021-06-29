@@ -76,21 +76,25 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column align="center" width="50" label="序号">
+        <el-table-column align="center" min-width="50" label="序号">
           <template slot-scope="scope">
             {{ scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="account" label="登录名"></el-table-column>
+        <el-table-column
+          prop="account"
+          label="登录名"
+          min-width="80"
+        ></el-table-column>
         <el-table-column
           prop="name"
           label="姓名"
-          min-width="100"
+          min-width="80"
         ></el-table-column>
         <el-table-column
           prop="staffName"
           label="His用户"
-          min-width="100"
+          min-width="80"
         ></el-table-column>
         <el-table-column
           prop="remark"
@@ -98,14 +102,19 @@
           min-width="100"
         ></el-table-column>
         <el-table-column
+          prop="departmentName"
+          label="科室"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
           prop="created_at"
           label="创建时间"
-          min-width="100"
+          min-width="120"
         ></el-table-column>
         <el-table-column
           prop="updated_at"
           label="修改时间"
-          min-width="100"
+          min-width="120"
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
           <template slot-scope="{row}">
