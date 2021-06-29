@@ -764,6 +764,7 @@ export default class HisStaff {
 
   // endregion
 
+  // region 员工考核详情
   /**
    * 员工考核详情
    * @param staff 考核员工
@@ -838,4 +839,5 @@ export default class HisStaff {
       manuals
     };
   }
+  // endregion
 }
