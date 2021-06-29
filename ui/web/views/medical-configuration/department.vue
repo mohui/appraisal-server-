@@ -56,8 +56,12 @@
       </el-table>
     </el-card>
     <el-dialog title="科室弹窗" :visible.sync="addDepartmentVisible">
-      <el-form :model="addForm">
-        <el-form-item label="科室名称" :label-width="formLabelWidth">
+      <el-form ref="departmentForm" :model="addForm" :rules="rulesAdd">
+        <el-form-item
+          label="科室名称"
+          prop="name"
+          :label-width="formLabelWidth"
+        >
           <el-input v-model="addForm.name" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
@@ -78,7 +82,10 @@ export default {
         name: null
       },
       formLabelWidth: '120px',
-      addDepartmentVisible: false
+      addDepartmentVisible: false,
+      rulesAdd: {
+        name: [{required: true, message: '请输入科室名称', trigger: 'blur'}]
+      }
     };
   },
   computed: {
@@ -100,23 +107,29 @@ export default {
   },
   methods: {
     async submit() {
-      try {
-        if (this.addForm.id) {
-          await this.$api.HisDepartment.update(
-            this.addForm.id,
-            this.addForm.name
-          );
+      this.$refs.departmentForm.validate(async valid => {
+        if (valid) {
+          try {
+            if (this.addForm.id) {
+              await this.$api.HisDepartment.update(
+                this.addForm.id,
+                this.addForm.name
+              );
+            } else {
+              await this.$api.HisDepartment.add(this.addForm.name);
+            }
+            this.$message.success('操作成功');
+            this.$asyncComputed.deptListService.update();
+          } catch (e) {
+            console.error(e);
+            if (e) this.$message.error(e.message);
+          } finally {
+            this.addDepartmentVisible = false;
+          }
         } else {
-          await this.$api.HisDepartment.add(this.addForm.name);
+          return false;
         }
-        this.$message.success('操作成功');
-        this.$asyncComputed.deptListService.update();
-      } catch (e) {
-        console.error(e);
-        if (e) this.$message.error(e.message);
-      } finally {
-        this.addDepartmentVisible = false;
-      }
+      });
     },
     async editRow(row) {
       this.addForm = JSON.parse(
