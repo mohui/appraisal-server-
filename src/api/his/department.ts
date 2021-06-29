@@ -1,8 +1,15 @@
 import {getHospital} from './service';
 import {appDB} from '../../app';
 import {v4 as uuid} from 'uuid';
+import {should, validate} from 'kato-server';
 
 export default class HisDepartment {
+  @validate(
+    should
+      .string()
+      .required()
+      .description('科室')
+  )
   async add(name) {
     const hospital = await getHospital();
     return appDB.transaction(async () => {
@@ -26,6 +33,16 @@ export default class HisDepartment {
    * @param id
    * @param name
    */
+  @validate(
+    should
+      .string()
+      .required()
+      .description('主键'),
+    should
+      .string()
+      .required()
+      .description('科室名称')
+  )
   async update(id, name) {
     return appDB.transaction(async () => {
       // language=PostgreSQL
@@ -42,6 +59,13 @@ export default class HisDepartment {
     });
   }
 
+  // 科室删除功能
+  @validate(
+    should
+      .string()
+      .required()
+      .description('主键')
+  )
   async delete(id) {
     return appDB.transaction(async () => {
       // language=PostgreSQL
