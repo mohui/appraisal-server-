@@ -120,6 +120,7 @@ export default {
             }
             this.$message.success('操作成功');
             this.$asyncComputed.deptListService.update();
+            this.resetForm();
           } catch (e) {
             console.error(e);
             if (e) this.$message.error(e.message);
