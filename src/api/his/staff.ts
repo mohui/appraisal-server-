@@ -144,9 +144,13 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('科室')
   )
-  async add(staff, account, password, name, virtual, remark) {
+  async add(staff, account, password, name, virtual, remark, department) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -171,10 +175,11 @@ export default class HisStaff {
               name,
               virtual,
               remark,
+              department,
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
@@ -183,6 +188,7 @@ export default class HisStaff {
         name,
         virtual,
         remark,
+        department,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -225,12 +231,16 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('科室')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff, virtual, remark) {
+  async update(id, name, password, staff, virtual, remark, department) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -249,6 +259,7 @@ export default class HisStaff {
           staff = ?,
           virtual = ?,
           remark = ?,
+          department = ?,
           updated_at = ?
         where id = ?`,
       name,
@@ -256,6 +267,7 @@ export default class HisStaff {
       staff,
       virtual,
       remark,
+      department,
       dayjs().toDate(),
       id
     );
@@ -330,6 +342,7 @@ export default class HisStaff {
           name,
           virtual,
           remark,
+          department,
           created_at,
           updated_at
         from staff
