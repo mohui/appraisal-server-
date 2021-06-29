@@ -40,6 +40,17 @@
               >
               </el-button>
             </el-tooltip>
+            <el-tooltip content="删除" :enterable="false">
+              <el-button
+                type="danger"
+                :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
+                :disabled="row.removeLoading"
+                round
+                size="mini"
+                @click="delRow(row)"
+              >
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -74,6 +85,7 @@ export default {
     tableData() {
       return this.deptListService?.map(it => ({
         ...it,
+        removeLoading: false,
         created_at: it.created_at?.$format()
       }));
     }
@@ -114,6 +126,23 @@ export default {
         })
       );
       this.addDepartmentVisible = true;
+    },
+    async delRow(row) {
+      try {
+        await this.$confirm('确定删除该科室?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        row.removeLoading = true;
+        await this.$api.HisDepartment.delete(row.id);
+        this.$message.success('删除成功');
+        this.$asyncComputed.deptListService.update();
+      } catch (e) {
+        console.log(e);
+      } finally {
+        row.removeLoading = false;
+      }
     },
     resetForm() {
       this.addForm.id = null;
