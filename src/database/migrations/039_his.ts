@@ -9,7 +9,7 @@ export class HisMigration implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       --科室表
-      create table if not exists department
+      create table if not exists his_department
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
@@ -17,9 +17,9 @@ export class HisMigration implements IMigration {
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
-      comment on table department is '科室表';
-      comment on column department.hospital is '所属医院';
-      comment on column department.name is '名称';
+      comment on table his_department is '科室表';
+      comment on column his_department.hospital is '所属医院';
+      comment on column his_department.name is '名称';
 
       --员工表
       create table if not exists staff
