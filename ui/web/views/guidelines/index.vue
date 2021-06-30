@@ -202,8 +202,16 @@ export default {
     handleCellClick(row, column) {
       if (column.property === 'name') {
         this.pdfTitle = row.name;
-        this.url = pdf.createLoadingTask(row.url);
-        this.dialogVisible = true;
+
+        const loadingTask = pdf.createLoadingTask(row.url);
+        this.url = loadingTask;
+        loadingTask.promise
+          .then(() => {
+            this.dialogVisible = true;
+          })
+          .catch(() => {
+            this.$message.error('文件不存在');
+          });
       }
     },
     reset() {
