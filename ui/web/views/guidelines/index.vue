@@ -83,29 +83,23 @@
       </el-pagination>
     </el-card>
     <el-dialog
-      title="查看文件"
+      :title="pdfTitle"
       :visible.sync="dialogVisible"
-      fullscreen
+      width="90%"
       class="dialog"
       :before-close="handleClose"
     >
-      <div class="pdf">
+      <div class="pdf" v-loading="!pageTotalNum">
         <el-button-group style="margin: 0 auto;">
           <el-button
             type="primary"
             icon="el-icon-arrow-left"
             size="mini"
-            :disabled="pageNum === 1"
             @click="prePage"
           >
             上一页
           </el-button>
-          <el-button
-            type="primary"
-            size="mini"
-            @click="nextPage"
-            :disabled="pageNum === pageTotalNum"
-          >
+          <el-button type="primary" size="mini" @click="nextPage">
             下一页
             <i class="el-icon-arrow-right el-icon--right"></i>
           </el-button>
@@ -116,7 +110,6 @@
         <pdf
           :page="pageNum"
           :src="url"
-          @progress="loadedRatio = $event"
           @num-pages="pageTotalNum = $event"
         ></pdf>
       </div>
@@ -139,9 +132,9 @@ export default {
       isLoading: false,
       dialogVisible: false,
       url: '',
+      pdfTitle: '',
       pageNum: 1,
-      pageTotalNum: 1,
-      loadedRatio: 0,
+      pageTotalNum: 0,
       searchForm: {
         keyword: null,
         pageSize: 20,
@@ -203,7 +196,8 @@ export default {
     //点击标题跳转详情
     handleCellClick(row, column) {
       if (column.property === 'name') {
-        this.url = row.url;
+        this.pdfTitle = row.name;
+        this.url = pdf.createLoadingTask(row.url);
         this.dialogVisible = true;
       }
     },
@@ -230,6 +224,9 @@ export default {
   flex-direction: column;
 }
 /deep/ .dialog {
+  .el-dialog__header {
+    border-bottom: 1px dashed #1a95d7;
+  }
   .el-dialog__body {
     height: calc(100% - 190px);
     overflow-y: auto;
