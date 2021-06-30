@@ -83,5 +83,12 @@ module.exports = [
     label: '操作日志',
     icon: 'el-icon-refresh',
     router: '/audit-log'
+  },
+  {
+    index: 'guidelines',
+    permission: [Permission.GUIDELINES],
+    label: '医学指南',
+    icon: 'el-icon-guide',
+    router: '/guidelines'
   }
 ];
