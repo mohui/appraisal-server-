@@ -112,6 +112,23 @@
           :src="url"
           @num-pages="pageTotalNum = $event"
         ></pdf>
+        <div style="margin:10px auto 0; color: #409EFF">
+          {{ pageNum }} / {{ pageTotalNum }}
+        </div>
+        <el-button-group style="margin: 0 auto;">
+          <el-button
+            type="primary"
+            icon="el-icon-arrow-left"
+            size="mini"
+            @click="prePage"
+          >
+            上一页
+          </el-button>
+          <el-button type="primary" size="mini" @click="nextPage">
+            下一页
+            <i class="el-icon-arrow-right el-icon--right"></i>
+          </el-button>
+        </el-button-group>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleClose">关 闭</el-button>
