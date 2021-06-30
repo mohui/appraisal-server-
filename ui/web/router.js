@@ -207,6 +207,14 @@ const router = new Router({
           name: 'audit-log',
           meta: {permission: [Permission.AUDIT_LOG]},
           component: () => import('./views/audit/index')
+        },
+        {
+          path: 'guidelines',
+          name: 'guidelines',
+          meta: {
+            permission: [Permission.GUIDELINES]
+          },
+          component: () => import('./views/guidelines/index')
         }
       ]
     },
