@@ -190,7 +190,7 @@ export default {
             elink.setAttribute('download', this.pdfTitle);
             document.body.appendChild(elink);
             elink.click();
-            URL.revokeObjectURL(elink.href); // 释放URL 对象
+            URL.revokeObjectURL(elink.href);
             document.body.removeChild(elink);
           }
         }
@@ -254,7 +254,7 @@ export default {
         const loadingTask = pdf.createLoadingTask(row.url);
         this.url = loadingTask;
         this.downloadURL = row.url;
-        console.log(this.url);
+
         loadingTask.promise
           .then(() => {
             this.dialogVisible = true;
@@ -299,9 +299,6 @@ export default {
     .el-dialog__body {
       height: calc(100% - 140px);
       overflow-y: auto;
-    }
-    .el-dialog__footer {
-      text-align: center;
     }
   }
 }
