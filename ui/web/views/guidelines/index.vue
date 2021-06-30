@@ -148,7 +148,12 @@ export default {
   asyncComputed: {
     list: {
       async get() {
-        return await this.$api.Guidelines.list(this.searchForm);
+        const {keyword, pageSize, pageNo} = this.searchForm;
+        return await this.$api.Guidelines.list({
+          keyword: keyword || null,
+          pageSize,
+          pageNo
+        });
       },
       default() {
         return {
