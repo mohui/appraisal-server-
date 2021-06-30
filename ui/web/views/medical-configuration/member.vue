@@ -260,6 +260,7 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {Decimal} from 'decimal.js';
+
 export default {
   name: 'Member',
   data() {
@@ -624,6 +625,7 @@ export default {
     padding: 10px 20px;
   }
 }
+
 .cell-long-span {
   width: 100%;
   text-overflow: ellipsis;
