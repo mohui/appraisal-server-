@@ -413,6 +413,48 @@ export default class HisStaff {
     });
   }
 
+  async staffTree() {
+    const hospital = await getHospital();
+    // 获取可选择的员工列表
+    const staffList = await appDB.execute(
+      `select staff.id, staff.name, staff.department, dept.name "deptName"
+            from staff
+            left join his_department dept on staff.department = dept.id
+            where staff.hospital = ?`,
+      hospital
+    );
+
+    const trees = [];
+    staffList.forEach(it => {
+      if (it.department) {
+        const index = trees.find(deptId => deptId.value === it.department);
+        if (index) {
+          index.children.push({
+            value: it.id,
+            label: it.name
+          });
+        } else {
+          trees.push({
+            value: it.department,
+            label: it.deptName ?? '',
+            children: [
+              {
+                value: it.id,
+                label: it.name
+              }
+            ]
+          });
+        }
+      } else {
+        trees.push({
+          value: it.id,
+          label: it.name
+        });
+      }
+    });
+    return trees;
+  }
+
   // endregion
 
   // region 员工绑定的增删改查
