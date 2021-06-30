@@ -175,23 +175,18 @@
             border
             size="mini"
           >
-            <el-table-column label="员工" prop="name" width="200">
+            <el-table-column label="员工" prop="names" width="200">
               <template slot-scope="{$index, row}">
-                <div>
-                  <el-select
+                <div class="block">
+                  <span class="demonstration">多选可搜索</span>
+                  <el-cascader
                     v-model="row.staffs"
-                    multiple
-                    collapse-tags
+                    placeholder="输入关键字"
+                    :options="treeList"
+                    :props="{multiple: true, emitPath: false}"
                     filterable
-                    size="mini"
-                  >
-                    <el-option
-                      v-for="m in memberList"
-                      :key="m.id"
-                      :label="m.name"
-                      :value="m.id"
-                    ></el-option>
-                  </el-select>
+                    collapse-tags
+                  ></el-cascader>
                 </div>
               </template>
             </el-table-column>
@@ -376,6 +371,9 @@ export default {
         ...it,
         name: it.remark ? `${it.name} (${it.remark})` : it.name
       }));
+    },
+    treeList() {
+      return this.serverTree;
     }
   },
   watch: {
@@ -460,6 +458,18 @@ export default {
           this.$message.error(e.message);
           console.error(e.message);
           return {counts: 0, rows: []};
+        }
+      },
+      default: []
+    },
+    serverTree: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.staffTree();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
         }
       },
       default: []
@@ -566,7 +576,6 @@ export default {
       this.addMemberVisible = true;
     },
     async removeRow(row) {
-      console.log(row);
       try {
         await this.$confirm(`确定删除 ${row.member}配置?`, '提示', {
           confirmButtonText: '确定',
