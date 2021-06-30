@@ -471,6 +471,7 @@ export default {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           this.submitLoading = true;
+          // 如果id为空,是添加
           if (!this.newMember.id) {
             const sourceRate = this.newMember.subMembers
               .filter(it => it.rate > 0 && it.staffs.length > 0)
@@ -485,7 +486,7 @@ export default {
             );
             this.$message.success('添加成功');
           }
-          console.log(this.newMember.subMembers);
+          // 如果id不为空,是修改
           if (this.newMember.id) {
             await Promise.all(
               this.newMember.subMembers.map(async it => {
