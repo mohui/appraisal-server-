@@ -83,62 +83,57 @@
       </el-pagination>
     </el-card>
     <el-dialog
-      :title="pdfTitle"
       :visible.sync="dialogVisible"
       width="90%"
       class="dialog"
+      top="5vh"
       :before-close="handleClose"
     >
-      <div class="pdf" v-loading="!pageTotalNum">
-        <el-button-group style="margin: 0 auto;">
-          <el-button
-            type="primary"
-            icon="el-icon-arrow-left"
-            size="mini"
-            @click="prePage"
-          >
-            上一页
-          </el-button>
-          <el-button type="primary" size="mini" @click="nextPage">
-            下一页
-            <i class="el-icon-arrow-right el-icon--right"></i>
-          </el-button>
-        </el-button-group>
-        <div style="margin:10px auto 0; color: #409EFF">
-          {{ pageNum }} / {{ pageTotalNum }}
+      <div slot="title" class="pdf-title">
+        <div>
+          {{ pdfTitle }}
+          <span style="margin:0 auto; color: #409EFF">
+            {{ pageNum }} / {{ pageTotalNum }}
+          </span>
         </div>
+        <div>
+          <el-button-group style="margin: 0 auto;">
+            <el-button
+              type="primary"
+              icon="el-icon-arrow-left"
+              size="mini"
+              @click="prePage"
+            >
+              上一页
+            </el-button>
+            <el-button type="primary" size="mini" @click="nextPage">
+              下一页
+              <i class="el-icon-arrow-right el-icon--right"></i>
+            </el-button>
+          </el-button-group>
+        </div>
+        <div>
+          <el-button type="primary" size="mini" @click="downloadFile" plain>
+            下载
+          </el-button>
+        </div>
+        <div>&nbsp;</div>
+      </div>
+      <div class="pdf" v-loading="!pageTotalNum">
         <pdf
           :page="pageNum"
           :src="url"
           @num-pages="pageTotalNum = $event"
         ></pdf>
-        <div style="margin:10px auto 0; color: #409EFF">
-          {{ pageNum }} / {{ pageTotalNum }}
-        </div>
-        <el-button-group style="margin: 0 auto;">
-          <el-button
-            type="primary"
-            icon="el-icon-arrow-left"
-            size="mini"
-            @click="prePage"
-          >
-            上一页
-          </el-button>
-          <el-button type="primary" size="mini" @click="nextPage">
-            下一页
-            <i class="el-icon-arrow-right el-icon--right"></i>
-          </el-button>
-        </el-button-group>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="handleClose">关 闭</el-button>
-      </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
 import pdf from 'vue-pdf';
+import axios from 'axios';
+
 export default {
   name: 'Guidelines',
   components: {
@@ -149,6 +144,7 @@ export default {
       isLoading: false,
       dialogVisible: false,
       url: '',
+      downloadURL: '',
       pdfTitle: '',
       pageNum: 1,
       pageTotalNum: 0,
@@ -182,6 +178,41 @@ export default {
     }
   },
   methods: {
+    downloadFile() {
+      this.previewDown().then(v => {
+        if (v.status === 200) {
+          if (v) {
+            const elink = document.createElement('a');
+            elink.href = window.URL.createObjectURL(
+              new Blob([v.data], {type: `application/pdf`})
+            );
+            elink.style.display = 'none';
+            elink.setAttribute('download', this.pdfTitle);
+            document.body.appendChild(elink);
+            elink.click();
+            URL.revokeObjectURL(elink.href); // 释放URL 对象
+            document.body.removeChild(elink);
+          }
+        }
+      });
+    },
+    previewDown() {
+      return new Promise((resolve, reject) => {
+        axios({
+          url: this.downloadURL,
+          timeout: 0,
+          method: 'get',
+          responseType: 'blob',
+          header: {'Content-Type': 'multipart/form-data'}
+        })
+          .then(res => {
+            resolve(res);
+          })
+          .catch(err => {
+            reject(err);
+          });
+      });
+    },
     handleClose() {
       this.url = '';
       this.dialogVisible = false;
@@ -222,6 +253,8 @@ export default {
 
         const loadingTask = pdf.createLoadingTask(row.url);
         this.url = loadingTask;
+        this.downloadURL = row.url;
+        console.log(this.url);
         loadingTask.promise
           .then(() => {
             this.dialogVisible = true;
@@ -254,12 +287,22 @@ export default {
   flex-direction: column;
 }
 /deep/ .dialog {
-  .el-dialog__header {
-    border-bottom: 1px dashed #1a95d7;
-  }
-  .el-dialog__body {
-    height: calc(100% - 190px);
-    overflow-y: auto;
+  .el-dialog {
+    height: calc(100% - 140px);
+    .el-dialog__header {
+      border-bottom: 1px dashed #1a95d7;
+      .pdf-title {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+    .el-dialog__body {
+      height: calc(100% - 140px);
+      overflow-y: auto;
+    }
+    .el-dialog__footer {
+      text-align: center;
+    }
   }
 }
 </style>
