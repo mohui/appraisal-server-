@@ -199,8 +199,8 @@
               <template slot-scope="{$index, row}">
                 <div>
                   <el-switch
-                    style="margin-right: 10px"
                     v-model="row.avg"
+                    style="margin-right: 10px"
                     inactive-color="#13ce66"
                     active-text="总和"
                     inactive-text="平均"
@@ -214,8 +214,8 @@
             <el-table-column label="权重系数" width="200">
               <template slot-scope="{$index, row}">
                 <el-input-number
-                  style="width: 100px"
                   v-model="row.rate"
+                  style="width: 100px"
                   size="mini"
                 ></el-input-number>
                 <span>&nbsp;&nbsp;%</span>
