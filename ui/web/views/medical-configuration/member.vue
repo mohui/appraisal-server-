@@ -175,11 +175,12 @@
             border
             size="mini"
           >
-            <el-table-column label="员工" prop="names" width="200">
+            <el-table-column label="员工" prop="names" width="280">
               <template slot-scope="{$index, row}">
                 <div class="block">
-                  <span class="demonstration">多选可搜索</span>
                   <el-cascader
+                    size="mini"
+                    style="width: 100%"
                     v-model="row.staffs"
                     placeholder="输入关键字"
                     :options="treeList"
@@ -216,7 +217,7 @@
                 <span>&nbsp;&nbsp;%</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column label="操作" width="60">
               <template slot-scope="{$index, row}">
                 <el-button type="text" @click="removeSubMember(row, $index)"
                   >删除
