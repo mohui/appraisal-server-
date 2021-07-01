@@ -22,7 +22,7 @@
           </el-button>
         </div>
       </div>
-      <el-table :data="tableData" style="width: 100%">
+      <el-table :data="tableData" style="width: 100%" size="mini">
         <el-table-column type="index" label="序号" width="180">
         </el-table-column>
         <el-table-column prop="name" label="科室名称" width="180">
@@ -45,7 +45,7 @@
                 type="danger"
                 :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
                 :disabled="row.removeLoading"
-                round
+                circle
                 size="mini"
                 @click="delRow(row)"
               >
