@@ -242,7 +242,6 @@ export default {
       this.dialogVisible = false;
       this.pageTotalNum = 1;
       this.pageNum = 1;
-      console.log(this.$refs.pdfViewer);
     },
     // 上一页
     prePage() {
