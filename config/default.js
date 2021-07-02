@@ -132,6 +132,17 @@ module.exports = {
     //     secretKey: '',
     //     region: 'oss-cn-shanghai',
     //     bucket: 'knrt-doctor-app'
+    //   },
+    // {
+    //   path: '/guidelines', // 医学指南地址
+    //   type: 'local',
+    //   options: {
+    //     base: '/guidelines',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/guidelines',
+    //       key: 'default'
+    //     }
     //   }
     // },
     // 医疗绩效手工数据附件

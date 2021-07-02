@@ -249,6 +249,14 @@ const router = new Router({
           component: () => import('./views/audit/index')
         },
         {
+          path: 'guidelines',
+          name: 'guidelines',
+          meta: {
+            permission: [Permission.GUIDELINES]
+          },
+          component: () => import('./views/guidelines/index')
+        },
+        {
           path: 'medical-performance',
           name: 'medical-performance',
           meta: {

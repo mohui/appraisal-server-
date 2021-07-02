@@ -88,6 +88,13 @@ module.exports = [
     router: '/audit-log'
   },
   {
+    index: 'guidelines',
+    permission: [Permission.GUIDELINES],
+    label: '医学指南',
+    icon: 'el-icon-guide',
+    router: '/guidelines'
+  },
+  {
     index: 'medical-performance',
     permission: [Permission.MEDICAL_PERFORMANCE],
     label: '医疗绩效',
