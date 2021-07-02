@@ -144,9 +144,13 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('科室')
   )
-  async add(staff, account, password, name, virtual, remark) {
+  async add(staff, account, password, name, virtual, remark, department) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -171,10 +175,11 @@ export default class HisStaff {
               name,
               virtual,
               remark,
+              department,
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
@@ -183,6 +188,7 @@ export default class HisStaff {
         name,
         virtual,
         remark,
+        department,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -225,12 +231,16 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('科室')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff, virtual, remark) {
+  async update(id, name, password, staff, virtual, remark, department) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -249,6 +259,7 @@ export default class HisStaff {
           staff = ?,
           virtual = ?,
           remark = ?,
+          department = ?,
           updated_at = ?
         where id = ?`,
       name,
@@ -256,6 +267,7 @@ export default class HisStaff {
       staff,
       virtual,
       remark,
+      department,
       dayjs().toDate(),
       id
     );
@@ -330,6 +342,7 @@ export default class HisStaff {
           name,
           virtual,
           remark,
+          department,
           created_at,
           updated_at
         from staff
@@ -353,11 +366,23 @@ export default class HisStaff {
       `select id, name from his_staff where hospital = ?`,
       hospital
     );
+
+    const dept = await appDB.execute(
+      `
+        select id, hospital, name, created_at
+        from his_department
+        where hospital = ?
+        order by created_at
+      `,
+      hospital
+    );
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
+      const deptIndex = dept.find(item => item.id === it.department);
       return {
         ...it,
-        staffName: index?.name ?? ''
+        staffName: index?.name ?? '',
+        departmentName: deptIndex?.name ?? ''
       };
     });
   }
@@ -386,6 +411,48 @@ export default class HisStaff {
         usable: !index
       };
     });
+  }
+
+  async staffTree() {
+    const hospital = await getHospital();
+    // 获取可选择的员工列表
+    const staffList = await appDB.execute(
+      `select staff.id, staff.name, staff.department, dept.name "deptName"
+            from staff
+            left join his_department dept on staff.department = dept.id
+            where staff.hospital = ?`,
+      hospital
+    );
+
+    const trees = [];
+    staffList.forEach(it => {
+      if (it.department) {
+        const index = trees.find(deptId => deptId.value === it.department);
+        if (index) {
+          index.children.push({
+            value: it.id,
+            label: it.name
+          });
+        } else {
+          trees.push({
+            value: it.department,
+            label: it.deptName ?? '',
+            children: [
+              {
+                value: it.id,
+                label: it.name
+              }
+            ]
+          });
+        }
+      } else {
+        trees.push({
+          value: it.id,
+          label: it.name
+        });
+      }
+    });
+    return trees;
   }
 
   // endregion
@@ -739,6 +806,7 @@ export default class HisStaff {
 
   // endregion
 
+  // region 员工考核详情
   /**
    * 员工考核详情
    * @param staff 考核员工
@@ -813,4 +881,5 @@ export default class HisStaff {
       manuals
     };
   }
+  // endregion
 }

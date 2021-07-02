@@ -128,6 +128,12 @@ module.exports = [
         permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS],
         router: '/medical-configuration-member-his',
         label: '员工管理'
+      },
+      {
+        index: 'medical-configuration-department',
+        permission: [Permission.MEDICAL_CONFIGURATION_DEPARTMENT],
+        router: '/medical-configuration-department',
+        label: '科室管理'
       }
     ]
   },

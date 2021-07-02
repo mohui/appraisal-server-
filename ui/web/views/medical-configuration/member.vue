@@ -175,23 +175,19 @@
             border
             size="mini"
           >
-            <el-table-column label="员工" prop="name" width="200">
+            <el-table-column label="员工" prop="names" width="280">
               <template slot-scope="{$index, row}">
-                <div>
-                  <el-select
-                    v-model="row.staffs"
-                    multiple
-                    collapse-tags
-                    filterable
+                <div class="block">
+                  <el-cascader
                     size="mini"
-                  >
-                    <el-option
-                      v-for="m in memberList"
-                      :key="m.id"
-                      :label="m.name"
-                      :value="m.id"
-                    ></el-option>
-                  </el-select>
+                    style="width: 100%"
+                    v-model="row.staffs"
+                    placeholder="输入关键字"
+                    :options="treeList"
+                    :props="{multiple: true, emitPath: false}"
+                    filterable
+                    collapse-tags
+                  ></el-cascader>
                 </div>
               </template>
             </el-table-column>
@@ -199,8 +195,8 @@
               <template slot-scope="{$index, row}">
                 <div>
                   <el-switch
-                    style="margin-right: 10px"
                     v-model="row.avg"
+                    style="margin-right: 10px"
                     inactive-color="#13ce66"
                     active-text="总和"
                     inactive-text="平均"
@@ -214,14 +210,14 @@
             <el-table-column label="权重系数" width="200">
               <template slot-scope="{$index, row}">
                 <el-input-number
-                  style="width: 100px"
                   v-model="row.rate"
+                  style="width: 100px"
                   size="mini"
                 ></el-input-number>
                 <span>&nbsp;&nbsp;%</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column label="操作" width="60">
               <template slot-scope="{$index, row}">
                 <el-button type="text" @click="removeSubMember(row, $index)"
                   >删除
@@ -260,6 +256,7 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {Decimal} from 'decimal.js';
+
 export default {
   name: 'Member',
   data() {
@@ -375,6 +372,9 @@ export default {
         ...it,
         name: it.remark ? `${it.name} (${it.remark})` : it.name
       }));
+    },
+    treeList() {
+      return this.serverTree;
     }
   },
   watch: {
@@ -462,6 +462,18 @@ export default {
         }
       },
       default: []
+    },
+    serverTree: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.staffTree();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
@@ -470,6 +482,7 @@ export default {
         const valid = await this.$refs['memberForm'].validate();
         if (valid) {
           this.submitLoading = true;
+          // 如果id为空,是添加
           if (!this.newMember.id) {
             const sourceRate = this.newMember.subMembers
               .filter(it => it.rate > 0 && it.staffs.length > 0)
@@ -484,7 +497,7 @@ export default {
             );
             this.$message.success('添加成功');
           }
-          console.log(this.newMember.subMembers);
+          // 如果id不为空,是修改
           if (this.newMember.id) {
             await Promise.all(
               this.newMember.subMembers.map(async it => {
@@ -564,7 +577,6 @@ export default {
       this.addMemberVisible = true;
     },
     async removeRow(row) {
-      console.log(row);
       try {
         await this.$confirm(`确定删除 ${row.member}配置?`, '提示', {
           confirmButtonText: '确定',
@@ -624,6 +636,7 @@ export default {
     padding: 10px 20px;
   }
 }
+
 .cell-long-span {
   width: 100%;
   text-overflow: ellipsis;

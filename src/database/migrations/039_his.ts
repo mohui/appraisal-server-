@@ -8,11 +8,25 @@ export class HisMigration implements IMigration {
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
     await client.execute(`
+      --科室表
+      create table if not exists his_department
+      (
+        id           varchar(36) primary key,
+        hospital     varchar(36),
+        name         varchar(255),
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table his_department is '科室表';
+      comment on column his_department.hospital is '所属医院';
+      comment on column his_department.name is '名称';
+
       --员工表
       create table if not exists staff
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
+        department   varchar(36),
         staff        varchar(64) unique,
         account      varchar(255) unique,
         virtual      boolean                           default false not null,
@@ -23,6 +37,7 @@ export class HisMigration implements IMigration {
       );
       comment on table staff is '员工表';
       comment on column staff.hospital is '所属医院';
+      comment on column staff.department is '所属科室';
       comment on column staff.staff is '绑定his员工id';
       comment on column staff.account is '登录名';
       comment on column staff.virtual is '虚拟用户标识';
