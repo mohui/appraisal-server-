@@ -3,22 +3,29 @@ const tableBodyClass = 'el-table__body-wrapper';
 
 Vue.directive('reset-scroll', {
   bind(el, binding, vnode) {
-    el.addEventListener('click', () => resetScroll(vnode, binding.value));
+    el.addEventListener('click', () => {
+      const refId = binding.value;
+      if (refId) {
+        //指定了ref,则只获取该ref的table-body
+        const tableComp = vnode.context.$refs[binding.value];
+        if (tableComp) {
+          let bodyWrapper;
+          if (tableComp instanceof Array)
+            bodyWrapper = tableComp[0].$refs.bodyWrapper;
+          else bodyWrapper = tableComp.$refs.bodyWrapper;
+          //将table的滚动条置顶
+          if (bodyWrapper) bodyWrapper.scrollTop = 0;
+        }
+      }
+      if (!refId) {
+        //没有指定ref,默认获取element-table的body元素
+        const tableBody = vnode.elm.parentElement.getElementsByClassName(
+          tableBodyClass
+        )[0];
+        if (tableBody?.scrollTop >= 0) tableBody.scrollTop = 0; //将table的滚动条置顶
+      }
+    });
   }
 });
-function resetScroll(ele, className) {
-  let tableBody = {scrollTop: 0};
-  const tableDiv = ele.elm.parentElement.getElementsByClassName(className)[0];
 
-  //如果有指定的div类,先获取该div,再获取div里面的table-body元素
-  if (tableDiv) tableBody = tableDiv.getElementsByClassName(tableBodyClass)[0];
-
-  //如果没有指定的div,默认获取element-table的body元素
-  if (!tableDiv)
-    tableBody = ele.elm.parentElement.getElementsByClassName(tableBodyClass)[0];
-
-  if (tableBody?.scrollTop >= 0) {
-    tableBody.scrollTop = 0;
-  }
-}
 export default Vue.directive('reset-scroll');
