@@ -296,7 +296,18 @@ export default {
         }
         const loadingTask = pdf.createLoadingTask({
           url: row.url,
-          CMapReaderFactory
+          CMapReaderFactory() {
+            const original_reader = new CMapReaderFactory();
+            return {
+              async fetch(query) {
+                const cmap = await original_reader.fetch(query);
+                return {
+                  ...cmap,
+                  cMapData: Buffer.from(cmap.cMapData)
+                };
+              }
+            };
+          }
         });
         this.url = loadingTask;
         this.downloadURL = row.url;
