@@ -179,6 +179,14 @@ export default {
       }));
     }
   },
+  watch: {
+    ['searchForm.keyword']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    }
+  },
   created() {
     this.getList();
   },
