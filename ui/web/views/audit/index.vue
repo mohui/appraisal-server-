@@ -118,6 +118,7 @@
       </el-table>
       <!--分页-->
       <el-pagination
+        el-pagination
         :current-page="searchForm.pageNo"
         :page-size="searchForm.pageSize"
         layout="sizes, prev, pager, next"
