@@ -45,18 +45,19 @@
         </el-row>
       </el-form>
       <el-table
+        v-loading="$asyncComputed.list.updating"
         stripe
         size="medium"
         :cell-class-name="cellClassHover"
-        :data="list.data"
+        :data="listData"
         border
         height="100%"
         style="flex-grow: 1;"
         @row-click="handleCellClick"
       >
-        <el-table-column align="center" width="50" label="序号">
+        <el-table-column align="center" width="60" label="序号">
           <template slot-scope="scope">
-            {{ scope.$index + 1 }}
+            {{ scope.row.index }}
           </template>
         </el-table-column>
         <el-table-column label="名称" prop="name"> </el-table-column>
@@ -99,6 +100,7 @@
         <div>
           <el-button-group style="margin: 0 auto;">
             <el-button
+              :disabled="!pageTotalNum"
               type="primary"
               icon="el-icon-arrow-left"
               size="mini"
@@ -106,21 +108,34 @@
             >
               上一页
             </el-button>
-            <el-button type="primary" size="mini" @click="nextPage">
+            <el-button
+              :disabled="!pageTotalNum"
+              type="primary"
+              size="mini"
+              @click="nextPage"
+            >
               下一页
               <i class="el-icon-arrow-right el-icon--right"></i>
             </el-button>
           </el-button-group>
         </div>
         <div>
-          <el-button type="primary" size="mini" @click="downloadFile" plain>
+          <el-button
+            :disabled="!pageTotalNum"
+            type="primary"
+            size="mini"
+            plain
+            @click="downloadFile"
+          >
             下载
           </el-button>
         </div>
         <div>&nbsp;</div>
       </div>
-      <div class="pdf" v-loading="!pageTotalNum">
+      <div v-loading="!pageTotalNum" class="pdf">
         <pdf
+          v-if="url"
+          ref="pdfViewer"
           :page="pageNum"
           :src="url"
           @num-pages="pageTotalNum = $event"
@@ -154,6 +169,15 @@ export default {
         pageNo: 1
       }
     };
+  },
+  computed: {
+    listData() {
+      const {pageSize, pageNo} = this.searchForm;
+      return this.list.data.map((it, i) => ({
+        ...it,
+        index: (pageNo - 1) * pageSize + i + 1
+      }));
+    }
   },
   created() {
     this.getList();
@@ -224,6 +248,8 @@ export default {
       let page = this.pageNum;
       page = page > 1 ? page - 1 : this.pageTotalNum;
       this.pageNum = page;
+
+      this.$refs.pdfViewer.$el.scrollIntoView();
     },
 
     // 下一页
@@ -231,6 +257,8 @@ export default {
       let page = this.pageNum;
       page = page < this.pageTotalNum ? page + 1 : 1;
       this.pageNum = page;
+
+      this.$refs.pdfViewer.$el.scrollIntoView();
     },
     async getList() {
       this.isLoading = true;
@@ -251,15 +279,22 @@ export default {
       if (column.property === 'name') {
         this.pdfTitle = row.name;
 
+        if (row.url) {
+          this.dialogVisible = true;
+        } else {
+          this.$message.error('文件不存在');
+          return;
+        }
         const loadingTask = pdf.createLoadingTask(row.url);
         this.url = loadingTask;
         this.downloadURL = row.url;
 
         loadingTask.promise
           .then(() => {
-            this.dialogVisible = true;
+            this.$refs.pdfViewer.$el.scrollIntoView();
           })
           .catch(() => {
+            this.dialogVisible = false;
             this.$message.error('文件不存在');
           });
       }
@@ -276,7 +311,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.tags-title {
+/deep/.guide-name {
   cursor: pointer;
   :hover {
     color: #1a95d7;
