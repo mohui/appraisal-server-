@@ -67,7 +67,7 @@
         background
         :current-page="searchForm.pageNo"
         :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, pager, next"
+        layout="total, sizes, prev, next"
         style="margin:10px 0 -20px;"
         :total="list.rows"
         @size-change="
@@ -148,6 +148,7 @@
 
 <script>
 import pdf from 'vue-pdf';
+import CMapReaderFactory from 'vue-pdf/src/CMapReaderFactory.js';
 import axios from 'axios';
 
 export default {
@@ -178,6 +179,14 @@ export default {
         ...it,
         index: (pageNo - 1) * pageSize + i + 1
       }));
+    }
+  },
+  watch: {
+    ['searchForm.keyword']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
     }
   },
   created() {
@@ -286,7 +295,21 @@ export default {
           this.$message.error('文件不存在');
           return;
         }
-        const loadingTask = pdf.createLoadingTask(row.url);
+        const loadingTask = pdf.createLoadingTask({
+          url: row.url,
+          CMapReaderFactory() {
+            const original_reader = new CMapReaderFactory();
+            return {
+              async fetch(query) {
+                const cmap = await original_reader.fetch(query);
+                return {
+                  ...cmap,
+                  cMapData: Buffer.from(cmap.cMapData)
+                };
+              }
+            };
+          }
+        });
         this.url = loadingTask;
         this.downloadURL = row.url;
 
