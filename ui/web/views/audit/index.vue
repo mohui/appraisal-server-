@@ -118,6 +118,7 @@
       </el-table>
       <!--分页-->
       <el-pagination
+        v-reset-scroll
         :current-page="searchForm.pageNo"
         :page-size="searchForm.pageSize"
         layout="sizes, prev, pager, next"

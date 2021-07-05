@@ -168,6 +168,7 @@
         </el-form>
       </kn-collapse>
       <el-table
+        ref="personTable"
         v-loading="$asyncComputed.serverData.updating"
         :data="tableData"
         empty-text="没有筛选到符合条件的数据"
@@ -286,6 +287,7 @@
       </el-table>
       <el-scrollbar class="scrollbar" v-if="$settings.isMobile">
         <el-pagination
+          v-reset-scroll="'personTable'"
           background
           :page-size="pageSize"
           :current-page="pageNo"
@@ -300,6 +302,7 @@
       </el-scrollbar>
       <el-pagination
         v-else
+        v-reset-scroll="'personTable'"
         background
         :page-size="pageSize"
         :current-page="pageNo"
