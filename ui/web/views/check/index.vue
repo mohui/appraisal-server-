@@ -527,17 +527,6 @@ export default {
     }
   },
   watch: {
-    // searchForm: {
-    //   handler: function() {
-    //     // console.log(this.searchForm.pageNo);
-    //     const el = this.$el.getElementsByClassName('el-table__body-wrapper');
-    //     console.log(el[0]);
-    //     if (el[0]?.scrollTop >= 0) {
-    //       el[0].scrollTop = 0;
-    //     }
-    //   },
-    //   deep: true
-    // },
     treeServerData() {
       this.treeServerData.forEach(it => {
         //记录选中的节点
