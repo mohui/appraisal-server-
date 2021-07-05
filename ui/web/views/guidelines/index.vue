@@ -147,6 +147,7 @@
 
 <script>
 import pdf from 'vue-pdf';
+import CMapReaderFactory from 'vue-pdf/src/CMapReaderFactory.js';
 import axios from 'axios';
 
 export default {
@@ -293,7 +294,10 @@ export default {
           this.$message.error('文件不存在');
           return;
         }
-        const loadingTask = pdf.createLoadingTask(row.url);
+        const loadingTask = pdf.createLoadingTask({
+          url: row.url,
+          CMapReaderFactory
+        });
         this.url = loadingTask;
         this.downloadURL = row.url;
 
