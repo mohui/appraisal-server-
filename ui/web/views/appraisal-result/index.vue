@@ -337,6 +337,7 @@
                     :name="tag.type"
                   >
                     <el-table
+                      :ref="tag.type"
                       v-loading="
                         $asyncComputed.healthEducationServerData.updating
                       "
@@ -363,22 +364,23 @@
                       >
                       </el-table-column>
                     </el-table>
+                    <div style="margin-top: 3px">
+                      <el-pagination
+                        v-reset-scroll="tag.type"
+                        small
+                        background
+                        :page-size="healthEducationPageSize"
+                        :current-page="healthEducationPageNo"
+                        layout="total, prev, pager, next"
+                        :total="healthEducationServerData.rows"
+                        @current-change="
+                          no => {
+                            healthEducationPageNo = no;
+                          }
+                        "
+                      ></el-pagination>
+                    </div>
                   </el-tab-pane>
-                  <div style="margin-top: 3px">
-                    <el-pagination
-                      small
-                      background
-                      :page-size="healthEducationPageSize"
-                      :current-page="healthEducationPageNo"
-                      layout="total, prev, pager, next"
-                      :total="healthEducationServerData.rows"
-                      @current-change="
-                        no => {
-                          healthEducationPageNo = no;
-                        }
-                      "
-                    ></el-pagination>
-                  </div>
                 </el-tabs>
               </div>
             </el-card>
@@ -403,6 +405,7 @@
                     label="报告"
                   >
                     <el-table
+                      ref="reportTable"
                       v-loading="
                         $asyncComputed.supervisionReportServerData.updating
                       "
@@ -428,6 +431,7 @@
                     </el-table>
                     <div style="margin-top: 3px">
                       <el-pagination
+                        v-reset-scroll="'reportTable'"
                         small
                         background
                         :page-size="supervisionReportPageSize"
@@ -447,6 +451,7 @@
                     label="巡查"
                   >
                     <el-table
+                      ref="assistTable"
                       v-loading="
                         $asyncComputed.supervisionAssistServerData.updating
                       "
@@ -472,6 +477,7 @@
                     </el-table>
                     <div style="margin-top: 3px">
                       <el-pagination
+                        v-reset-scroll="'assistTable'"
                         small
                         background
                         :page-size="supervisionAssistPageSize"

@@ -82,6 +82,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
+        v-reset-scroll
         background
         :current-page="pageNo"
         :page-sizes="[10, 20, 30, 50, 100]"

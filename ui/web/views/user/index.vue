@@ -166,6 +166,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
+        v-reset-scroll
         background
         :current-page="searchForm.pageNo"
         :page-size="searchForm.pageSize"
