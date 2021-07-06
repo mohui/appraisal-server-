@@ -17,9 +17,9 @@ export const personTags = {
   C13: {label: '高危人群', type: true, code: 'C13'},
   C14: {label: '高校', type: true, code: 'C14'},
   // eslint-disable-next-line @typescript-eslint/camelcase
-  ai_2dm: {label: 'AI高尿酸血症风险', type: false, code: 'ai_2dm'},
+  ai_2dm: {label: 'AI糖尿病风险', type: false, code: 'ai_2dm'},
   // eslint-disable-next-line @typescript-eslint/camelcase
-  ai_hua: {label: 'AI糖尿病风险', type: false, code: 'ai_hua'}
+  ai_hua: {label: 'AI高尿酸血症风险', type: false, code: 'ai_hua'}
 };
 /***
  * 人群分类的选项框options
