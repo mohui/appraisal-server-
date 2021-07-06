@@ -480,8 +480,9 @@ export default class User {
          where 1 = 1
         {{#if IsSuperAdmin}}
           and role.permissions:: text[] <@ array[{{#each allRoles}}{{? this}}{{#sep}},{{/sep}}{{/each}}]
-        {{/if}} offset {{? pageNo}} limit  {{? pageSize}}
+        {{/if}}
         order by name
+        offset {{? pageNo}} limit  {{? pageSize}}
       ) role
       left join user_role_mapping mapping on role.id = mapping.role_id
       left join "user" u on u.id = mapping.user_id
