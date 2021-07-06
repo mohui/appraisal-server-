@@ -365,8 +365,10 @@ export default {
     personTagList() {
       return personTagList.filter(
         it =>
-          it.id !== personTags.ai.code ||
-          (it.id === personTags.ai.code &&
+          (it.id !== personTags.ai_hua.code &&
+            it.id !== personTags.ai_2dm.code) ||
+          ((it.id === personTags.ai_hua.code ||
+            it.id === personTags.ai_2dm.code) &&
             this.$settings.permissions.includes(this.permission.AI))
       );
     },
@@ -374,7 +376,8 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         if (!this.$settings.permissions.includes(this.permission.AI)) {
-          it[personTags.ai.code] = null;
+          it[personTags.ai_2dm.code] = null;
+          it[personTags.ai_hua.code] = null;
         }
         return getTagsList(it);
       });
@@ -460,7 +463,10 @@ export default {
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
               res[`${next}`] =
-                next.includes('C') || next.includes('E') || next === 'ai';
+                next.includes('C') ||
+                next.includes('E') ||
+                next === 'ai_hua' ||
+                next === 'ai_2dm';
               return res;
             }, {}),
           include: this.queryForm.include,
