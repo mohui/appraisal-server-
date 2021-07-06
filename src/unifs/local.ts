@@ -16,6 +16,7 @@ import {Request, Response, NextFunction} from 'express';
 import * as forge from 'node-forge';
 import * as url from 'url';
 import {app} from '../app';
+import * as cors from 'cors';
 
 type LocalFileSystemOptions = {
   //本地文件路径
@@ -58,6 +59,7 @@ export class LocalFileSystem extends UnionFileSystem {
       //准备初始化挂载
       app.express.use(
         this.options.external.prefix,
+        cors(),
         async (req: Request, res: Response, next: NextFunction) => {
           if (req.method === 'GET' && typeof req.query.key !== 'undefined') {
             const filePath = url.parse(decodeURIComponent(req.url)).pathname;
