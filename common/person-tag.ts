@@ -16,7 +16,10 @@ export const personTags = {
   C11: {label: '其他慢病', type: true, code: 'C11'},
   C13: {label: '高危人群', type: true, code: 'C13'},
   C14: {label: '高校', type: true, code: 'C14'},
-  ai: {label: 'AI高危风险预测', type: false, code: 'ai'}
+  // eslint-disable-next-line @typescript-eslint/camelcase
+  ai_2dm: {label: 'AI糖尿病风险', type: false, code: 'ai_2dm'},
+  // eslint-disable-next-line @typescript-eslint/camelcase
+  ai_hua: {label: 'AI高尿酸血症风险', type: false, code: 'ai_hua'}
 };
 /***
  * 人群分类的选项框options
@@ -93,8 +96,13 @@ export const personTagList = [
     type: true
   },
   {
-    id: 'ai',
-    name: personTags.ai.label,
+    id: 'ai_2dm',
+    name: personTags.ai_2dm.label,
+    type: true
+  },
+  {
+    id: 'ai_hua',
+    name: personTags.ai_hua.label,
     type: true
   }
 ];
@@ -247,7 +255,8 @@ export function getTagsList(it) {
   if (it.C11) it.personTags.push(personTags.C11);
   if (it.C13) it.personTags.push(personTags.C13);
   if (it.C14) it.personTags.push(personTags.C14);
-  if (it.ai) it.personTags.push(personTags.ai);
+  if (it.ai_2dm) it.personTags.push(personTags.ai_2dm);
+  if (it.ai_hua) it.personTags.push(personTags.ai_hua);
   // 健康档案标记
   if (it.S03 != undefined) it.tags.push(documentTags.S03(it.S03));
   if (it.S23 != undefined) it.tags.push(documentTags.S23(it.S23));
