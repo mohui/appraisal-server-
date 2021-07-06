@@ -1,6 +1,5 @@
 import {sql as sqlRender} from '../database';
 import {originalDB, unifs} from '../app';
-import * as path from 'upath';
 import {should, validate} from 'kato-server';
 
 /**
@@ -41,7 +40,7 @@ export default class Guidelines {
     if (params.keyword) params.keyword = `%${params.keyword}%`;
     //sql渲染
     const sqlResult = sqlRender(
-      `select * from guideline {{#if keyword}} where name like {{? keyword}} {{/if}} order by updated_at`,
+      `select * from guideline {{#if keyword}} where name like {{? keyword}} {{/if}} order by updated_at desc`,
       {
         keyword: params.keyword
       }
@@ -56,10 +55,7 @@ export default class Guidelines {
     //组织返回值
     for (const it of result.data) {
       //文件是否存在
-      const exist = await unifs.isFileExist(it.name);
-      if (exist) it.url = await unifs.getExternalUrl(it.name);
-      //名称使用文件名, 不带后缀
-      it.name = path.parse(it.name).name;
+      it.url = await unifs.getExternalUrl(it.path);
     }
     return result;
   }
