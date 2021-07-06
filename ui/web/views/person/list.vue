@@ -218,8 +218,11 @@
                     !$settings.permissions.includes(permission.TAGS_DETAIL)
                 "
               >
-                <div>
+                <div v-if="tag.code === 'ai_2dm'">
                   糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
+                </div>
+                <div v-else-if="tag.code === 'ai_hua'">
+                  高尿酸血症发病高风险，建议定期进行相关检查并注意预防
                 </div>
                 <i
                   :style="{
