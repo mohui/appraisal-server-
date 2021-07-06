@@ -442,7 +442,6 @@ export default class User {
   async listRole(params) {
     const {pageNo = 1, pageSize = 20} = params || {};
     // 判断是否是超过超级管理员账户, 如果不是, 按照条件查询,如果是,查询所有
-    // eslint-disable-next-line no-unused-vars
     let IsSuperAdmin = true;
     if (Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
       // 如果是, 不设置条件
