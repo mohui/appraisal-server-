@@ -67,8 +67,8 @@
         background
         :current-page="searchForm.pageNo"
         :page-size="searchForm.pageSize"
-        layout="total, sizes, prev, next"
-        style="margin:10px 0 -20px;"
+        layout="sizes, prev, next"
+        style="margin:10px 0 -20px -10px;"
         :total="list.rows"
         @size-change="
           size => {
