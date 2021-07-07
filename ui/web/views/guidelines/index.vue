@@ -87,17 +87,24 @@
     <el-dialog
       :visible.sync="dialogVisible"
       width="90%"
-      class="dialog"
+      class="pdf-dialog"
       top="5vh"
       :before-close="handleClose"
     >
       <div slot="title" class="pdf-title">
-        <div>
-          {{ pdfTitle }}
-          <span style="margin:0 auto; color: #409EFF">
-            {{ pageNum }} / {{ pageTotalNum }}
-          </span>
-        </div>
+        {{ pdfTitle }}
+      </div>
+      <div v-loading="!pageTotalNum" class="pdf">
+        <pdf
+          v-if="url"
+          ref="pdfViewer"
+          :page="pageNum"
+          :src="url"
+          @num-pages="pageTotalNum = $event"
+        ></pdf>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <div style="color: #409EFF">{{ pageNum }} / {{ pageTotalNum }}</div>
         <div>
           <el-button-group style="margin: 0 auto;">
             <el-button
@@ -131,16 +138,6 @@
             下载
           </el-button>
         </div>
-        <div>&nbsp;</div>
-      </div>
-      <div v-loading="!pageTotalNum" class="pdf">
-        <pdf
-          v-if="url"
-          ref="pdfViewer"
-          :page="pageNum"
-          :src="url"
-          @num-pages="pageTotalNum = $event"
-        ></pdf>
       </div>
     </el-dialog>
   </div>
@@ -345,19 +342,24 @@ export default {
   display: flex;
   flex-direction: column;
 }
-/deep/ .dialog {
+/deep/ .pdf-dialog {
   .el-dialog {
     height: calc(100% - 140px);
     .el-dialog__header {
       border-bottom: 1px dashed #1a95d7;
       .pdf-title {
-        display: flex;
-        justify-content: space-between;
+        text-align: center;
       }
     }
     .el-dialog__body {
-      height: calc(100% - 140px);
+      height: calc(100% - 160px);
       overflow-y: auto;
+    }
+    .el-dialog__footer {
+      .dialog-footer {
+        display: flex;
+        justify-content: space-between;
+      }
     }
   }
 }
