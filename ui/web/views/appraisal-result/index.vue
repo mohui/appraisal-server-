@@ -651,7 +651,9 @@ export default {
         {type: '3', name: '健康教育宣传栏'},
         {type: '4', name: '健康知识讲座'},
         {type: '5', name: '公众健康咨询'},
-        {type: '6', name: '个体化健康教育'}
+        {type: '6', name: '个体化健康教育'},
+        {type: '8', name: '慢病自我管理小组活动'},
+        {type: '9', name: '全民健康生活方式行动'}
       ],
       healthEducationPageSize: 20, // 每页数量
       healthEducationPageNo: 1 // 当前第几页
