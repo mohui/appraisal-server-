@@ -441,34 +441,95 @@ export default class User {
   )
   async listRole(params) {
     const {pageNo = 1, pageSize = 20} = params || {};
-    let result = await RoleModel.findAndCountAll({
-      offset: (pageNo - 1) * pageSize,
-      limit: pageSize,
-      distinct: true,
-      include: [
-        {
-          model: UserModel,
-          attributes: {exclude: ['password']},
-          through: {attributes: []}
+    // 判断是否是超过超级管理员账户, 如果不是, 按照条件查询,如果是,查询所有
+    let IsSuperAdmin = true;
+    if (Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
+      // 如果是, 不设置条件
+      IsSuperAdmin = false;
+    }
+    const [sql, paramList] = sqlRender(
+      `
+        select count(1) count from role
+         where 1 = 1
+        {{#if IsSuperAdmin}}
+          and role.permissions:: text[] <@ array[{{#each allRoles}}{{? this}}{{#sep}},{{/sep}}{{/each}}]
+        {{/if}} offset {{? pageNo}} limit  {{? pageSize}}
+      `,
+      {
+        allRoles: Context.current.user.permissions,
+        IsSuperAdmin
+      }
+    );
+    const count = await appDB.execute(sql, ...paramList);
+    // 如果不是超越超级管理员账户
+    const [ruleSql, ruleParams] = sqlRender(
+      `
+      select
+        role.id,
+        role.name,
+        role.permissions,
+        role.deleted_at,
+        role.creator,
+        role.created_at,
+        role.updated_at,
+        u.id "userId",
+        u.account,
+        u.name "userName"
+      from (
+        select * from role
+         where 1 = 1
+        {{#if IsSuperAdmin}}
+          and role.permissions:: text[] <@ array[{{#each allRoles}}{{? this}}{{#sep}},{{/sep}}{{/each}}]
+        {{/if}}
+        order by name
+        offset {{? pageNo}} limit  {{? pageSize}}
+      ) role
+      left join user_role_mapping mapping on role.id = mapping.role_id
+      left join "user" u on u.id = mapping.user_id
+      `,
+      {
+        allRoles: Context.current.user.permissions,
+        IsSuperAdmin,
+        pageNo: pageNo === 1 ? 0 : (pageNo - 1) * pageSize,
+        pageSize
+      }
+    );
+    // 查询所有权限
+    const roles = await appDB.execute(ruleSql, ...ruleParams);
+    const list = [];
+    roles.forEach(it => {
+      const index = list.find(item => item.id === it.id);
+      if (index) {
+        if (it.userId) {
+          index.users.push({
+            id: it.userId,
+            account: it.account,
+            name: it.userName
+          });
         }
-      ]
+      } else {
+        list.push({
+          id: it.id,
+          name: it.name,
+          creator: it.creator,
+          created_at: it.created_at,
+          updated_at: it.updated_at,
+          permissions: it.permissions
+            .map(key => getPermission(key))
+            .filter(it => it),
+          users: it.userId
+            ? [
+                {
+                  id: it.userId,
+                  account: it.account,
+                  name: it.userName
+                }
+              ]
+            : []
+        });
+      }
     });
-    result.rows = result.rows
-      .map(it => ({
-        ...it.toJSON(),
-        permissions: it.permissions
-          .map(key => getPermission(key))
-          .filter(it => it)
-      }))
-      .filter(
-        //过滤掉当前用户没有权限的角色
-        it =>
-          Context.current.user.permissions.includes(Permission.SUPER_ADMIN) ||
-          !it.permissions.some(
-            p => !Context.current.user.permissions.includes(p.key)
-          )
-      );
-    return {rows: result.rows, count: result.rows.length};
+    return {rows: list, count: Number(count[0]?.count ?? 0)};
   }
 
   @validate(should.string().required(), should.string().required())
