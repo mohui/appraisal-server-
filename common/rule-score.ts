@@ -557,6 +557,16 @@ export const MarkTags = [
             name: '健康教育咨询活动是否含有中医药和无烟内容',
             code: 'HE13',
             enabled: true
+          },
+          {
+            name: '慢病自我管理小组活动次数',
+            code: 'HE14',
+            enabled: true
+          },
+          {
+            name: '全民健康生活方式活动次数',
+            code: 'HE15',
+            enabled: true
           }
         ]
       }
@@ -747,6 +757,14 @@ export const MarkTagUsages = {
   HE13: {
     name: '健康教育咨询活动是否含有中医药和无烟内容',
     code: 'HE13'
+  },
+  HE14: {
+    name: '慢病自我管理小组活动次数',
+    code: 'HE14'
+  },
+  HE15: {
+    name: '全民健康生活方式活动次数',
+    code: 'HE15'
   },
   SC00: {
     name: '卫生计生监督协管信息报告率',
