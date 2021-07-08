@@ -85,6 +85,8 @@ export async function getMarks(
   HE11: number;
   HE12: number;
   HE13: number;
+  HE14: number;
+  HE15: number;
   SC00: number;
   SC01: number;
 }> {
@@ -140,6 +142,8 @@ export async function getMarks(
       HE11: 0,
       HE12: 0,
       HE13: 0,
+      HE14: 0,
+      HE15: 0,
       SC00: 0,
       SC01: 0
     }
