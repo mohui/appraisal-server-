@@ -59,7 +59,8 @@ function listRender(params) {
             {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
             {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
             {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
-            {{#compare ai}}{{#if personOr}} or {{else}} and {{/if}} mp."ai"={{? ai}} {{/compare}}
+            {{#compare ai_2dm}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_2dm"={{? ai_2dm}} {{/compare}}
+            {{#compare ai_hua}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_hua"={{? ai_hua}} {{/compare}}
           )
     `,
     params
@@ -261,7 +262,8 @@ export default class Person {
                 mp."C13",
                 mp."C14",
                 mp."E00",
-                mp.ai,
+                mp.ai_2dm,
+                mp.ai_hua,
                 mp.year,
                 vh.hospname    as "hospitalName",
                 vp.operatetime as date

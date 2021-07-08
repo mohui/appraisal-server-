@@ -218,8 +218,11 @@
                     !$settings.permissions.includes(permission.TAGS_DETAIL)
                 "
               >
-                <div>
+                <div v-if="tag.code === 'ai_2dm'">
                   糖尿病高风险，建议行口服葡萄糖耐量试验(OGTT)或糖化血红蛋白检查
+                </div>
+                <div v-else-if="tag.code === 'ai_hua'">
+                  高尿酸血症发病高风险，建议定期进行相关检查并注意预防
                 </div>
                 <i
                   :style="{
@@ -365,8 +368,10 @@ export default {
     personTagList() {
       return personTagList.filter(
         it =>
-          it.id !== personTags.ai.code ||
-          (it.id === personTags.ai.code &&
+          (it.id !== personTags.ai_hua.code &&
+            it.id !== personTags.ai_2dm.code) ||
+          ((it.id === personTags.ai_hua.code ||
+            it.id === personTags.ai_2dm.code) &&
             this.$settings.permissions.includes(this.permission.AI))
       );
     },
@@ -374,7 +379,8 @@ export default {
     tableData() {
       return this.serverData.rows.map(it => {
         if (!this.$settings.permissions.includes(this.permission.AI)) {
-          it[personTags.ai.code] = null;
+          it[personTags.ai_2dm.code] = null;
+          it[personTags.ai_hua.code] = null;
         }
         return getTagsList(it);
       });
@@ -460,7 +466,10 @@ export default {
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
               res[`${next}`] =
-                next.includes('C') || next.includes('E') || next === 'ai';
+                next.includes('C') ||
+                next.includes('E') ||
+                next === 'ai_hua' ||
+                next === 'ai_2dm';
               return res;
             }, {}),
           include: this.queryForm.include,

@@ -196,29 +196,9 @@ export class LocalFileSystem extends UnionFileSystem {
     //-1代表永久授权
     const unixTime = expireTime ? expireTime.getTime() : -1;
 
-    // let url = path.join(this.options.external.baseUrl, this.options.external.prefix, name);
-    let url = `${this.options.external.baseUrl}${this.options.external.prefix}${name}`;
-
-    if (this.options.external.key) {
-      //生成授权key
-      const hmac = forge.hmac.create();
-      hmac.start('sha1', this.options.external.key);
-      hmac.update(`${unixTime}:${name}`);
-      const key = hmac.digest().toHex();
-
-      url = url + '?key=' + key;
-    }
-
-    if (unixTime !== -1) url = url + '&time=' + unixTime;
-    return url;
-  }
-
-  getExternalUrlSync(name: string, expireTime?: Date): string {
-    //-1代表永久授权
-    const unixTime = expireTime ? expireTime.getTime() : -1;
-
-    // let url = path.join(this.options.external.baseUrl, this.options.external.prefix, name);
-    let url = `${this.options.external.baseUrl}${this.options.external.prefix}${name}`;
+    let url = encodeURI(
+      `${this.options.external.baseUrl}${this.options.external.prefix}${name}`
+    );
 
     if (this.options.external.key) {
       //生成授权key
