@@ -8,6 +8,7 @@ import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
+import {getLeaves} from './group';
 
 async function dictionaryQuery(categoryno) {
   return await originalDB.execute(
@@ -169,11 +170,21 @@ export default class Person {
       hospitals = Context.current.user.hospitals.map(it => it.id);
     //仅有地区,则查询该地区下的所有机构
     if (region && !hospital) {
+      const children = await getLeaves(region);
       hospitals = (
         await HospitalModel.findAll({
-          where: {region: {[Op.like]: `${region}%`}}
+          where: {
+            id: {
+              [Op.in]: children
+                .map(it => it.code)
+                //TODO: 苟且区分一下地区和机构
+                .filter(it => it.length === 36)
+            }
+          }
         })
-      ).map(it => it.id);
+      )
+        .map(it => it.toJSON())
+        .map(it => it.id);
     }
     if (hospital) hospitals = [hospital];
 
