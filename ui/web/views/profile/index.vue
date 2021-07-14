@@ -76,24 +76,6 @@
             </el-col>
           </el-row>
         </el-tab-pane>
-        <el-tab-pane label="二维码">
-          <el-row :gutter="20">
-            <el-col :span="16" :xs="24" style="padding-left: 40px;">
-              <div class="title">
-                <el-button @click="test" type="primary">
-                  二维码
-                </el-button>
-              </div>
-              <div>
-                <img
-                  style="width: 245px;margin: 0 auto;display: block;"
-                  :src="QRCode"
-                  alt=""
-                />
-              </div>
-            </el-col>
-          </el-row>
-        </el-tab-pane>
       </el-tabs>
     </el-card>
   </div>
@@ -114,8 +96,7 @@ export default {
         region: {
           name: ''
         }
-      },
-      QRCode: ''
+      }
     };
   },
   async created() {
@@ -146,9 +127,6 @@ export default {
       } catch (e) {
         this.$message.error(e.message);
       }
-    },
-    async test() {
-      this.QRCode = (await this.$api.User.getQRCode()).image;
     }
   }
 };
