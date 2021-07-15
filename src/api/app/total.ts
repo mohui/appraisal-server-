@@ -1,13 +1,13 @@
 import {originalDB} from '../../app';
 import {monthToRange} from '../his/service';
 import dayjs = require('dayjs');
-import {getOriginalArray} from '../group';
+import {getLeaves, getOriginalArray} from '../group';
 
 export default class AppTotal {
   /**
    * 绩效小程序 汇总数量
    *
-   * hospital 首页汇总数据
+   * group 地区编码
    *
    * return {
    *  money: '本月医疗收入',
@@ -17,31 +17,36 @@ export default class AppTotal {
    *  H00D00: '慢病管理人数'
    * }
    */
-  async total(hospital) {
+  async total(group) {
+    const leaves = await getLeaves(group);
+
+    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
+    const hospitals = hisHospitals.map(it => it.code);
+    const hospitalIds = hisHospitals.map(it => it.id);
+
     // 医疗人员数量
-    const doctorIds = await originalDB.execute(
+    const doctor = await originalDB.execute(
       `
-        select id
+        select count(id) count
             from his_staff
-            where hospital = ?
+            where hospital in (${hospitals.map(() => '?')})
       `,
-      hospital
+      ...hospitals
     );
+
     //获取当前月
     const month = dayjs().toDate();
     const year = dayjs(month).year();
 
-    // 获取机构
-    const viewHospitals = await getOriginalArray([hospital]);
     // 获取 居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
     const mark = await originalDB.execute(
       `
             select "S00", "H00", "D00"
             from mark_organization
-            where id = ?
+            where id in (${hospitalIds.map(() => '?')})
               and year = ?
           `,
-      viewHospitals[0].id,
+      ...hospitalIds,
       year
     );
 
@@ -55,11 +60,11 @@ export default class AppTotal {
             select count(distinct master.treat) count
             from his_staff staff
             inner join his_charge_master master on staff.id = master.doctor
-            where staff.hospital = ?
+            where staff.hospital in (${hospitals.map(() => '?')})
               and master.operate_time > ?
               and master.operate_time < ?
           `,
-      hospital,
+      ...hospitals,
       start,
       end
     );
@@ -70,15 +75,15 @@ export default class AppTotal {
         select sum(detail.total_price) as price
             from his_staff staff
              left join his_charge_detail detail on staff.id = detail.doctor
-            where staff.hospital = ?
+            where staff.hospital in (${hospitals.map(() => '?')})
               and detail.operate_time > ?
               and detail.operate_time < ?`,
-      hospital,
+      ...hospitals,
       start,
       end
     );
     return {
-      doctor: doctorIds?.length,
+      doctor: Number(doctor[0]?.count),
       visits: Number(rows[0]?.count),
       money: Number(moneys[0]?.price),
       S00: Number(mark[0]?.S00),
