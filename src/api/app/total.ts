@@ -47,6 +47,22 @@ export default class AppTotal {
     // 获取月份的时间范围
     const {start, end} = monthToRange(month);
 
+    // 本月诊疗人次
+    const rows = await originalDB.execute(
+      // language=PostgreSQL
+      `
+            select count(distinct master.treat) count
+            from his_staff staff
+            inner join his_charge_master master on staff.id = master.doctor
+            where staff.hospital = ?
+              and master.operate_time > ?
+              and master.operate_time < ?
+          `,
+      hospital,
+      start,
+      end
+    );
+
     // 本月医疗收入
     const moneys = await originalDB.execute(
       `
