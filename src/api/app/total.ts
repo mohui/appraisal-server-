@@ -21,15 +21,7 @@ export default class AppTotal {
     //获取当前月
     const month = dayjs().toDate();
     const year = dayjs(month).year();
-    // 本月诊疗人次
-    const his00 = await originalDB.execute(
-      `select "HIS00"
-         from mark_his_hospital
-         where id = ? and year = ?
-    `,
-      hospital,
-      year
-    );
+
     // 获取机构
     const viewHospitals = await getOriginalArray([hospital]);
     // 获取居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
@@ -78,9 +70,9 @@ export default class AppTotal {
     );
     return {
       doctor: doctorIds?.length,
-      his00: his00[0]?.HIS00,
-      money: moneys[0]?.price,
-      S00: mark[0]?.S00,
+      visits: Number(rows[0]?.count),
+      money: Number(moneys[0]?.price),
+      S00: Number(mark[0]?.S00),
       H00D00: Number(mark[0]?.H00) + Number(mark[0]?.D00)
     };
   }
