@@ -6,7 +6,16 @@ import {getOriginalArray} from '../group';
 export default class AppTotal {
   /**
    * 绩效小程序 汇总数量
-   * return {money: '本月医疗收入', doctor: '医疗人员数量'}
+   *
+   * hospital 首页汇总数据
+   *
+   * return {
+   *  money: '本月医疗收入',
+   *  doctor: '医疗人员数量',
+   *  visits: '诊疗人次',
+   *  S00: '居民档案次数'
+   *  H00D00: '慢病管理人数'
+   * }
    */
   async total(hospital) {
     // 医疗人员数量
@@ -24,7 +33,7 @@ export default class AppTotal {
 
     // 获取机构
     const viewHospitals = await getOriginalArray([hospital]);
-    // 获取居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
+    // 获取 居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
     const mark = await originalDB.execute(
       `
             select "S00", "H00", "D00"
