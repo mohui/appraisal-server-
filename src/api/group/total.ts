@@ -32,10 +32,10 @@ export default class AppTotal {
     );
     // 获取机构
     const viewHospitals = await getOriginalArray([hospital]);
-    // 获取居民档案数量
-    const S00 = await originalDB.execute(
+    // 获取居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
+    const mark = await originalDB.execute(
       `
-            select "S00"
+            select "S00", "H00", "D00"
             from mark_organization
             where id = ?
               and year = ?
@@ -64,7 +64,8 @@ export default class AppTotal {
       doctor: doctorIds?.length,
       his00: his00[0]?.HIS00,
       money: moneys[0]?.price,
-      S00: S00[0]?.S00
+      S00: mark[0]?.S00,
+      H00D00: Number(mark[0]?.H00) + Number(mark[0]?.D00)
     };
   }
 }
