@@ -5,9 +5,18 @@ import dayjs = require('dayjs');
 export default class AppTotal {
   /**
    * 绩效小程序 汇总数量
-   * return {money: '本月医疗收入'}
+   * return {money: '本月医疗收入', doctor: '医疗人员数量'}
    */
   async total(hospital) {
+    // 本月医疗收入
+    const doctorIds = await originalDB.execute(
+      `
+        select id
+            from his_staff
+            where hospital = ?
+      `,
+      hospital
+    );
     //获取当前月
     const month = dayjs().toDate();
 
@@ -28,6 +37,7 @@ export default class AppTotal {
       end
     );
     return {
+      doctor: doctorIds?.length,
       money: moneys[0]?.price
     };
   }
