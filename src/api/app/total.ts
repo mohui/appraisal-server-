@@ -26,6 +26,7 @@ export default class AppTotal {
 
     // 医疗人员数量
     const doctor = await originalDB.execute(
+      // language=PostgreSQL
       `
         select count(id) count
             from his_staff
@@ -40,6 +41,7 @@ export default class AppTotal {
 
     // 获取 居民档案数量(S00), 高血压数(H00), 糖尿病数(D00)
     const mark = await originalDB.execute(
+      // language=PostgreSQL
       `
             select "S00", "H00", "D00"
             from mark_organization
@@ -71,6 +73,7 @@ export default class AppTotal {
 
     // 本月医疗收入
     const moneys = await originalDB.execute(
+      // language=PostgreSQL
       `
         select sum(detail.total_price) as price
             from his_staff staff
