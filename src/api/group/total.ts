@@ -1,6 +1,7 @@
 import {originalDB} from '../../app';
 import {monthToRange} from '../his/service';
 import dayjs = require('dayjs');
+import {getOriginalArray} from '../group';
 
 export default class AppTotal {
   /**
@@ -8,7 +9,7 @@ export default class AppTotal {
    * return {money: '本月医疗收入', doctor: '医疗人员数量'}
    */
   async total(hospital) {
-    // 本月医疗收入
+    // 医疗人员数量
     const doctorIds = await originalDB.execute(
       `
         select id
@@ -19,6 +20,29 @@ export default class AppTotal {
     );
     //获取当前月
     const month = dayjs().toDate();
+    const year = dayjs(month).year();
+    // 本月诊疗人次
+    const his00 = await originalDB.execute(
+      `select "HIS00"
+         from mark_his_hospital
+         where id = ? and year = ?
+    `,
+      hospital,
+      year
+    );
+    // 获取机构
+    const viewHospitals = await getOriginalArray([hospital]);
+    // 获取居民档案数量
+    const S00 = await originalDB.execute(
+      `
+            select "S00"
+            from mark_organization
+            where id = ?
+              and year = ?
+          `,
+      viewHospitals[0].id,
+      year
+    );
 
     // 获取月份的时间范围
     const {start, end} = monthToRange(month);
@@ -38,7 +62,9 @@ export default class AppTotal {
     );
     return {
       doctor: doctorIds?.length,
-      money: moneys[0]?.price
+      his00: his00[0]?.HIS00,
+      money: moneys[0]?.price,
+      S00: S00[0]?.S00
     };
   }
 }
