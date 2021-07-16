@@ -89,6 +89,10 @@ export async function getMarks(
   HE15: number;
   SC00: number;
   SC01: number;
+  CH00: number;
+  CH01: number;
+  CO00: number;
+  CO01: number;
 }> {
   const leaves = await getLeaves(group);
   const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
@@ -145,7 +149,11 @@ export async function getMarks(
       HE14: 0,
       HE15: 0,
       SC00: 0,
-      SC01: 0
+      SC01: 0,
+      CH00: 0,
+      CH01: 0,
+      CO00: 0,
+      CO01: 0
     }
   );
   return {...obj, id: group};
