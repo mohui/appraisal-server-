@@ -603,6 +603,28 @@ export const MarkTags = [
             enabled: true
           }
         ]
+      },
+      {
+        name: '高危人群管理服务',
+        code: 'HighRisk',
+        children: [
+          {
+            name: '慢病高危人群规范管理率',
+            code: 'CH01',
+            enabled: true
+          }
+        ]
+      },
+      {
+        name: '其他慢病人群管理服务',
+        code: 'OtherChronicDisease',
+        children: [
+          {
+            name: '其他慢病规范管理率',
+            code: 'CO01',
+            enabled: true
+          }
+        ]
       }
     ]
   },
