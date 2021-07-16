@@ -8,14 +8,6 @@ export default class AppTotal {
    * 绩效小程序 汇总数量
    *
    * group 地区编码
-   *
-   * return {
-   *  money: '本月医疗收入',
-   *  doctor: '医疗人员数量',
-   *  visits: '诊疗人次',
-   *  S00: '居民档案次数'
-   *  H00D00: '慢病管理人数'
-   * }
    */
   async total(group) {
     const leaves = await getLeaves(group);
@@ -85,12 +77,42 @@ export default class AppTotal {
       start,
       end
     );
-    return {
-      doctor: Number(doctor[0]?.count),
-      visits: Number(rows[0]?.count),
-      money: Number(moneys[0]?.price),
-      S00: Number(mark[0]?.S00),
-      H00D00: Number(mark[0]?.H00) + Number(mark[0]?.D00)
-    };
+    return [
+      {
+        code: 'doctor',
+        title: '医疗人员数量',
+        data: Number(doctor[0]?.count),
+        description: '根据机构的所有医疗人员汇总',
+        url: null
+      },
+      {
+        code: 'visits',
+        title: '本月诊疗人次',
+        data: Number(rows[0]?.count),
+        description: null,
+        url: '当月的来诊疗人数'
+      },
+      {
+        code: 'money',
+        title: '本月医疗收入',
+        data: Number(moneys[0]?.price),
+        description: null,
+        url: null
+      },
+      {
+        code: 'S00',
+        title: '居民档案数量',
+        data: Number(mark[0]?.S00),
+        description: null,
+        url: `Person/list.ac?params={"pageSize": 50,"pageNo": 1,"region": ${group},"year": ${year}`
+      },
+      {
+        code: 'H00D00',
+        title: '慢病管理人数',
+        data: Number(mark[0]?.H00) + Number(mark[0]?.D00),
+        description: null,
+        url: `Person/list.ac?params={"pageSize":50,"pageNo":1,"region":"${group}","tags":{"C02":true,"C03":true},"year":${year}}`
+      }
+    ];
   }
 }
