@@ -232,6 +232,40 @@ export const BasicTags = [
         name: '健康教育咨询次数'
       }
     ]
+  },
+  {
+    code: 'HighRisk',
+    name: '高危人群管理服务',
+    children: [
+      {
+        code: 'CH00',
+        name: '已管理的高危人群'
+      },
+      {
+        code: 'CH01',
+        name: '规范管理的高危人群'
+      }
+    ]
+  },
+  {
+    code: 'HighRisk',
+    name: '高危人群管理服务',
+    children: [
+      {
+        code: 'HR00',
+        name: '年内应管理高危人群人数'
+      }
+    ]
+  },
+  {
+    code: 'OtherChronicDisease',
+    name: '其他慢病人群管理服务',
+    children: [
+      {
+        code: 'OCD00',
+        name: '年内应管理其他慢病人群人数'
+      }
+    ]
   }
 ];
 
