@@ -282,7 +282,12 @@ export const BasicTagUsages = {
   Supervision: 'Supervision00',
   // 一年内应举办健康知识讲座的次数
   HE07: 'HE07',
-  HE09: 'HE09'
+  // 一年内应举办健康教育咨询的次数
+  HE09: 'HE09',
+  // 年内应管理高危人群人数
+  HR00: 'HR00',
+  // 年内应管理其他慢病人群人数
+  OCD00: 'OCD00'
 };
 
 /**
