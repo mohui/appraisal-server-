@@ -270,11 +270,17 @@ export const BasicTags = [
 ];
 
 export const BasicTagUsages = {
+  // 辖区内常住居民数
   DocPeople: 'doc-people',
+  // 辖区内65岁及以上常住居民数
   OldPeople: 'old-people',
+  // 年内辖区应管理高血压患者总数
   HypertensionPeople: 'hypertension-people',
+  // 年内辖区2型糖尿病患者总数
   DiabetesPeople: 'diabetes-people',
+  // 发现的事件或线索次数
   Supervision: 'Supervision00',
+  // 一年内应举办健康知识讲座的次数
   HE07: 'HE07',
   HE09: 'HE09'
 };
