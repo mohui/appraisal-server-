@@ -840,6 +840,14 @@ export const MarkTagUsages = {
   SC01: {
     name: '协助开展的实地巡查次数',
     code: 'SC01'
+  },
+  CH01: {
+    name: '慢病高危人群规范管理率',
+    code: 'CH01'
+  },
+  CO01: {
+    name: '其他慢病规范管理率',
+    code: 'CO01'
   }
 };
 
