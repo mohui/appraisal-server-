@@ -1,6 +1,6 @@
 import {originalDB} from '../../app';
 import {monthToRange} from '../his/service';
-import dayjs = require('dayjs');
+import * as dayjs from 'dayjs';
 import {getLeaves, getOriginalArray} from '../group';
 import {Context} from '../context';
 
