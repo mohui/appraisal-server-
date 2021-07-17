@@ -3,7 +3,7 @@ import {monthToRange} from '../his/service';
 import dayjs = require('dayjs');
 import {getLeaves, getOriginalArray} from '../group';
 
-export default class AppTotal {
+export default class AppHome {
   /**
    * 绩效小程序 汇总数量
    *
