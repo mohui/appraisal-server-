@@ -6,7 +6,7 @@ import {Context} from '../context';
 
 export default class AppHome {
   // 获取医疗人员数量
-  async staffCount() {
+  async staff() {
     const group = Context.current.user.areaCode;
     const leaves = await getLeaves(group);
 
@@ -83,7 +83,7 @@ export default class AppHome {
     return Number(rows[0]?.count);
   }
   // 居民档案数量
-  async healthArchives() {
+  async person() {
     const group = Context.current.user.areaCode;
     const leaves = await getLeaves(group);
 
@@ -110,7 +110,7 @@ export default class AppHome {
     return Number(mark[0]?.S00);
   }
   // 慢病管理人数
-  async chronicDisease() {
+  async chronic() {
     const group = Context.current.user.areaCode;
     const leaves = await getLeaves(group);
 
