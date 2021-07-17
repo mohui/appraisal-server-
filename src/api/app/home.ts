@@ -33,9 +33,8 @@ export default class AppHome {
     const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
     const hospitals = hisHospitals.map(it => it.code);
 
-    const day = dayjs().toDate();
     // 获取月份的时间范围
-    const {start, end} = monthToRange(day);
+    const {start, end} = monthToRange(dayjs().toDate());
 
     // 本月医疗收入
     const moneys = await originalDB.execute(
@@ -61,9 +60,8 @@ export default class AppHome {
     const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
     const hospitals = hisHospitals.map(it => it.code);
 
-    const day = dayjs().toDate();
     // 获取月份的时间范围
-    const {start, end} = monthToRange(day);
+    const {start, end} = monthToRange(dayjs().toDate());
 
     // 本月诊疗人次
     const rows = await originalDB.execute(
