@@ -91,8 +91,7 @@ export default class AppHome {
     const hospitalIds = hisHospitals.map(it => it.id);
 
     //获取当前月
-    const month = dayjs().toDate();
-    const year = dayjs(month).year();
+    const year = dayjs().year();
 
     // 获取 居民档案数量(S00)
     const mark = await originalDB.execute(
@@ -118,9 +117,8 @@ export default class AppHome {
     const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
     const hospitalIds = hisHospitals.map(it => it.id);
 
-    //获取当前月
-    const month = dayjs().toDate();
-    const year = dayjs(month).year();
+    //获取当前年
+    const year = dayjs().year();
 
     // 获取 高血压数(H00), 糖尿病数(D00)
     const mark = await originalDB.execute(
