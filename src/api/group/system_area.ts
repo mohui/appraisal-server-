@@ -1291,6 +1291,17 @@ export async function getReportBuffer(code, year) {
     // 把此考核放到考核分组中
     checkGroups.push(checkObj);
   }
+  checkGroups.forEach(it => {
+    it.parentRule.forEach(item => {
+      if (item.children.length === 0) {
+        item.children.push({
+          ruleId: '',
+          ruleName: '',
+          ruleScore: 0
+        });
+      }
+    });
+  });
 
   // 实例化导出方法
   const workBook = new Workbook();
