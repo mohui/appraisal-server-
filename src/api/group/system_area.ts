@@ -1344,8 +1344,8 @@ export async function getReportBuffer(code, year) {
       ];
       // 设置第二行的内容[细则标题]
       secondRow.push(
-        ...parentIt.children.map(
-          rule => `${rule.ruleName}(${rule.ruleScore}分)`
+        ...parentIt.children.map(rule =>
+          rule.ruleName ? `${rule.ruleName}(${rule.ruleScore}分)` : ' '
         ),
         ...parentRuleSecond
       );
