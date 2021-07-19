@@ -1307,9 +1307,10 @@ export async function getReportBuffer(code, year) {
     const cells = [];
     for (const parentIt of checkDetail.parentRule) {
       // 此小项下有多少个细则,就补充[n+2]个空字符串,因为后面多三个[金额,公分,质量系数]
-      // eslint-disable-next-line prefer-spread
-      const childrenRule = Array(parentIt.children.length - 1).fill('');
-
+      const childrenRule =
+        parentIt.children.length > 0
+          ? Array(parentIt.children.length - 1).fill('')
+          : Array(parentIt.children.length).fill('');
       const parentRuleChildren = [
         `${parentIt.parentName}总金额(${parentIt.parentBudget}元)`,
         ``,
@@ -1419,7 +1420,10 @@ export async function getReportBuffer(code, year) {
     let cellCount = 0;
     firstRow.forEach((row, index) => {
       if (firstRow[index] && !(firstRow[index] && !secondRow[index])) {
-        workSheet.mergeCells(1, index + 1, 1, index + cells[cellCount++]);
+        const cellCount1 = cellCount++;
+        if (index + 1 < index + cells[cellCount1]) {
+          workSheet.mergeCells(1, index + 1, 1, index + cells[cellCount1]);
+        }
       }
     });
     workSheet.mergeCells('A1', 'A2');
