@@ -232,17 +232,48 @@ export const BasicTags = [
         name: '健康教育咨询次数'
       }
     ]
+  },
+  {
+    code: 'HighRisk',
+    name: '高危人群管理服务',
+    children: [
+      {
+        code: 'HR00',
+        name: '年内应管理高危人群人数'
+      }
+    ]
+  },
+  {
+    code: 'OtherChronicDisease',
+    name: '其他慢病人群管理服务',
+    children: [
+      {
+        code: 'OCD00',
+        name: '年内应管理其他慢病人群人数'
+      }
+    ]
   }
 ];
 
 export const BasicTagUsages = {
+  // 辖区内常住居民数
   DocPeople: 'doc-people',
+  // 辖区内65岁及以上常住居民数
   OldPeople: 'old-people',
+  // 年内辖区应管理高血压患者总数
   HypertensionPeople: 'hypertension-people',
+  // 年内辖区2型糖尿病患者总数
   DiabetesPeople: 'diabetes-people',
+  // 发现的事件或线索次数
   Supervision: 'Supervision00',
+  // 一年内应举办健康知识讲座的次数
   HE07: 'HE07',
-  HE09: 'HE09'
+  // 一年内应举办健康教育咨询的次数
+  HE09: 'HE09',
+  // 年内应管理高危人群人数
+  HR00: 'HR00',
+  // 年内应管理其他慢病人群人数
+  OCD00: 'OCD00'
 };
 
 /**
@@ -569,6 +600,28 @@ export const MarkTags = [
             enabled: true
           }
         ]
+      },
+      {
+        name: '高危人群管理服务',
+        code: 'HighRisk',
+        children: [
+          {
+            name: '慢病高危人群规范管理率',
+            code: 'CH01',
+            enabled: true
+          }
+        ]
+      },
+      {
+        name: '其他慢病人群管理服务',
+        code: 'OtherChronicDisease',
+        children: [
+          {
+            name: '其他慢病规范管理率',
+            code: 'CO01',
+            enabled: true
+          }
+        ]
       }
     ]
   },
@@ -773,6 +826,14 @@ export const MarkTagUsages = {
   SC01: {
     name: '协助开展的实地巡查次数',
     code: 'SC01'
+  },
+  CH01: {
+    name: '慢病高危人群规范管理率',
+    code: 'CH01'
+  },
+  CO01: {
+    name: '其他慢病规范管理率',
+    code: 'CO01'
   }
 };
 

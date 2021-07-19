@@ -774,6 +774,100 @@ async function getExponent(code, time) {
           }
         }
       }
+      // 慢病高危人群规范管理率 CH01
+      if (MarkTagUsages[markItem].code === 'CH01') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(leaves, BasicTagUsages.HR00, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.CH01,
+          basic: basicData,
+          rate: `${percentString(mark?.CH01, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of leaves) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.HR00,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.CH01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.CH01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 其他慢病规范管理率 CO01
+      if (MarkTagUsages[markItem].code === 'CO01') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(
+          leaves,
+          BasicTagUsages.OCD00,
+          year
+        );
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.CO01,
+          basic: basicData,
+          rate: `${percentString(mark?.CO01, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of leaves) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.OCD00,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.CO01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.CO01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
       i++;
     }
     // 区分数据列表是率还是数
