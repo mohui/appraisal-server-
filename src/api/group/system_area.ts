@@ -1291,6 +1291,17 @@ export async function getReportBuffer(code, year) {
     // 把此考核放到考核分组中
     checkGroups.push(checkObj);
   }
+  checkGroups.forEach(it => {
+    it.parentRule.forEach(item => {
+      if (item.children.length === 0) {
+        item.children.push({
+          ruleId: '',
+          ruleName: '',
+          ruleScore: 0
+        });
+      }
+    });
+  });
 
   // 实例化导出方法
   const workBook = new Workbook();
@@ -1307,9 +1318,7 @@ export async function getReportBuffer(code, year) {
     const cells = [];
     for (const parentIt of checkDetail.parentRule) {
       // 此小项下有多少个细则,就补充[n+2]个空字符串,因为后面多三个[金额,公分,质量系数]
-      // eslint-disable-next-line prefer-spread
       const childrenRule = Array(parentIt.children.length - 1).fill('');
-
       const parentRuleChildren = [
         `${parentIt.parentName}总金额(${parentIt.parentBudget}元)`,
         ``,
@@ -1332,8 +1341,8 @@ export async function getReportBuffer(code, year) {
       ];
       // 设置第二行的内容[细则标题]
       secondRow.push(
-        ...parentIt.children.map(
-          rule => `${rule.ruleName}(${rule.ruleScore}分)`
+        ...parentIt.children.map(rule =>
+          rule.ruleName ? `${rule.ruleName}(${rule.ruleScore}分)` : ' '
         ),
         ...parentRuleSecond
       );
