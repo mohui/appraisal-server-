@@ -2142,6 +2142,17 @@ export default class Person {
       .description('问卷表id')
   )
   async questionnaireDetail(id) {
+    /**
+     * view_questionoptionslib: 中医问卷题库答案得分
+     *    optioncontent: 答案名称
+     *    optioncode: 答案代码
+     *    score: 得分
+     * view_questionnairedetail: 问卷明细
+     *    questionnairemainsn: 问卷主表的主键
+     *    questionnairedetailcontent: 问题内容
+     * view_questionlib: 中医问卷题库
+     *    questioncode: 问卷代码
+     */
     const questionnaire = (
       await originalDB.execute(
         `select
@@ -2163,9 +2174,11 @@ export default class Person {
       )
     ).reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
+      // 如果查找到, 说明这个答案得分有两次
       if (current) {
-        //正向分数排在前面
+        //有反向分数(1 -> 5 [选1得5分])和正向分数(选几得几分)之分
         if (current.optionCode === current.score.toString()) {
+          // 反向分数(即:选1得5分)放到secondScore中
           current.secondScore = next.score;
         } else {
           //分数和选项序号相反,则交换位置
