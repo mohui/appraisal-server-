@@ -896,13 +896,14 @@ export default class HisScore {
             where doctor = ?
               and operate_time > ?
               and operate_time < ?
-              and item like ?
+              and (item like ? or item = ?)
             order by operate_time
           `,
           staffModel.staff,
           start,
           end,
-          `${param.source}%`
+          `${param.source}.%`,
+          param.source
         );
         workItems = workItems.concat(
           //his收费项目转换成工分流水
