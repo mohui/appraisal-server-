@@ -2177,7 +2177,7 @@ export default class Person {
       // 如果查找到, 说明这个答案得分有两次
       if (current) {
         //有反向分数(1 -> 5 [选1得5分])和正向分数(选几得几分)之分
-        if (current.optionCode === current.score.toString()) {
+        if (Number(current.optionCode) === Number(current.score)) {
           // 反向分数(即:选1得5分)放到secondScore中
           current.secondScore = next.score;
         } else {
