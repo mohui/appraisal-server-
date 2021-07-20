@@ -167,7 +167,7 @@
             min-width="150"
           ></el-table-column>
           <el-table-column
-            property="score"
+            property="scoreFormat"
             label="校正前得分"
             min-width="120"
           ></el-table-column>
@@ -303,6 +303,7 @@ export default {
               item.workPointName = it.name;
               // 校正前工分（单个工分项）
               item.score = it.score;
+              item.scoreFormat = Number(it.score.toFixed(2));
               // 校正后总工分
               item.afterCorrectionScore = Number(
                 (sumScore * item.rate).toFixed(2)
