@@ -2191,7 +2191,7 @@ export default class Person {
         where vqd.questionnairemainsn = ? limit 1;`,
           id
         )
-      )[0]?.name ?? '';
+      )[0]?.name ?? null;
     //体质结果
     const constitution =
       (
@@ -2209,9 +2209,9 @@ export default class Person {
             where vq.questionnairemainsn = ?`,
           questionnaire[0]?.detailId
         )
-      )[0] ?? [];
+      )[0] ?? null;
     //TODO 指定建议暂时无数据
-    constitution.guide = '';
+    if (constitution) constitution.guide = '';
     return {name, questionnaire, constitution};
   }
 }
