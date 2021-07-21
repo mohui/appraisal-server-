@@ -2120,8 +2120,8 @@ export default class Person {
    *      question:     问题描述
    *      option:       选择描述
    *      optionCode:   选项编号
-   *      score:        选项分数
-   *      secondScore:  选项反向分数
+   *      score:        选项分数(正向分数([选几得几分])
+   *      secondScore?:  选项反向分数(选1得5分,比如平和质)
    *    }
    *   constitution: 体质结果
    *    {
@@ -2142,17 +2142,6 @@ export default class Person {
       .description('问卷表id')
   )
   async questionnaireDetail(id) {
-    /**
-     * view_questionoptionslib: 中医问卷题库答案得分
-     *    optioncontent: 答案名称
-     *    optioncode: 答案代码
-     *    score: 得分
-     * view_questionnairedetail: 问卷明细
-     *    questionnairemainsn: 问卷主表的主键
-     *    questionnairedetailcontent: 问题内容
-     * view_questionlib: 中医问卷题库
-     *    questioncode: 问卷代码
-     */
     const questionnaire = (
       await originalDB.execute(
         `select
