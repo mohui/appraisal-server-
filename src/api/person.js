@@ -2120,8 +2120,8 @@ export default class Person {
    *      question:     问题描述
    *      option:       选择描述
    *      optionCode:   选项编号
-   *      score:        选项分数
-   *      secondScore:  选项反向分数
+   *      score:        选项分数(正向分数([选几得几分])
+   *      secondScore?:  选项反向分数(选1得5分,比如平和质)
    *    }
    *   constitution: 体质结果
    *    {
@@ -2163,9 +2163,11 @@ export default class Person {
       )
     ).reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
+      // 如果查找到, 说明这个答案得分有两次
       if (current) {
-        //正向分数排在前面
-        if (current.optionCode === current.score.toString()) {
+        //有反向分数(1 -> 5 [选1得5分])和正向分数(选几得几分)之分
+        if (Number(current.optionCode) === Number(current.score)) {
+          // 反向分数(即:选1得5分)放到secondScore中
           current.secondScore = next.score;
         } else {
           //分数和选项序号相反,则交换位置
@@ -2191,7 +2193,7 @@ export default class Person {
         where vqd.questionnairemainsn = ? limit 1;`,
           id
         )
-      )[0]?.name ?? '';
+      )[0]?.name ?? null;
     //体质结果
     const constitution =
       (
@@ -2209,9 +2211,9 @@ export default class Person {
             where vq.questionnairemainsn = ?`,
           questionnaire[0]?.detailId
         )
-      )[0] ?? [];
+      )[0] ?? null;
     //TODO 指定建议暂时无数据
-    constitution.guide = '';
+    if (constitution) constitution.guide = '';
     return {name, questionnaire, constitution};
   }
 }
