@@ -89,6 +89,10 @@ export async function getMarks(
   HE15: number;
   SC00: number;
   SC01: number;
+  CH00: number;
+  CH01: number;
+  CO00: number;
+  CO01: number;
 }> {
   const leaves = await getLeaves(group);
   const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
@@ -145,7 +149,11 @@ export async function getMarks(
       HE14: 0,
       HE15: 0,
       SC00: 0,
-      SC01: 0
+      SC01: 0,
+      CH00: 0,
+      CH01: 0,
+      CO00: 0,
+      CO01: 0
     }
   );
   return {...obj, id: group};
@@ -1052,6 +1060,79 @@ export default class Score {
                   mark?.SC01
                 ) {
                   const rate = mark?.SC01 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 其他慢病规范管理率
+              if (tagModel.tag === MarkTagUsages.CO01.code) {
+                // 查询老年人人数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.OCD00,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.CO01.name
+                  } = 规范管理的其他慢性病档案 / 其他慢病管理人数档案数 = ${
+                    mark?.CO01
+                  } / ${basicData} = ${percentString(mark?.CO01, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.CO01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.CO01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  basicData &&
+                  mark?.CO01
+                ) {
+                  const rate = mark.CO01 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 慢病高危人群规范管理率
+              if (tagModel.tag === MarkTagUsages.CH01.code) {
+                // 查询老年人人数
+                const basicData = await getBasicData(
+                  leaves,
+                  BasicTagUsages.HR00,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.CH01.name
+                  } = 规范管理的慢病高危人群数 / 慢病高危人群档案数 = ${
+                    mark?.CH01
+                  } / ${basicData} = ${percentString(mark?.CH01, basicData)}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.CH01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.CH01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  basicData &&
+                  mark?.CH01
+                ) {
+                  const rate = mark.CH01 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
