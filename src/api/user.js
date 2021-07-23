@@ -1,8 +1,6 @@
 import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
-import {appDB} from '../app';
+import {appDB, originalDB} from '../app';
 import {
-  HospitalModel,
-  RegionModel,
   RoleModel,
   UserHospitalModel,
   UserModel,
@@ -108,12 +106,63 @@ export default class User {
       .description('密码')
   )
   async login(account, password) {
-    let user = await UserModel.findOne({
-      where: {account, password},
-      include: [RoleModel, RegionModel]
-    });
+    // 查询账号密码是否正确
+    const userModels = await appDB.execute(
+      `select "user".id,
+                    "user".account,
+                    "user".name,
+                    "user".password,
+                    "user".area "areaCode",
+                    "user".region "regionId",
+                    "user".creator "creatorId",
+                    "user".editor "editorId",
+                    "user".created_at,
+                    "user".updated_at,
+                    role.id "roleId",
+                    role.name "roleName",
+                    role.creator "roleCreator",
+                    role.permissions
+             from "user"
+             left join user_role_mapping mapping on "user".id = mapping.user_id
+             inner join role on mapping.role_id = role.id
+             where account = ? and password = ?`,
+      account,
+      password
+    );
     //是否查询出结果
-    if (!user) throw new KatoLogicError('账户密码有误', 1002);
+    if (userModels.length === 0) throw new KatoLogicError('账户密码有误', 1002);
+    const user = {
+      id: userModels[0]?.id,
+      account: userModels[0]?.account,
+      name: userModels[0]?.name,
+      password: userModels[0]?.password,
+      areaCode: userModels[0]?.areaCode,
+      regionId: userModels[0]?.regionId,
+      creatorId: userModels[0]?.creatorId,
+      editorId: userModels[0]?.editorId,
+      created_at: userModels[0]?.created_at,
+      roles: [],
+      region: null
+    };
+    userModels.forEach(it => {
+      const index = user.roles.find(item => item.id === it.roleId);
+      if (!index) {
+        user.roles.push({
+          id: it.roleId,
+          name: it.roleName,
+          creator: it.roleCreator,
+          permissions: it.permissions
+        });
+      }
+    });
+
+    user.region =
+      (
+        await originalDB.execute(
+          `select code, name, parent, label, path from area where code = ?`,
+          user.areaCode
+        )
+      )[0] ?? null;
     return user;
   }
 
@@ -311,35 +360,10 @@ export default class User {
       //修改操作
       user.editorId = Context.current.user.id;
 
-      // 兼容老代码
+      // 修改用户和机构绑定
       await UserHospitalModel.destroy({where: {userId: user.id}});
-      user.regionId = user.areaCode;
-      const regionModel = await RegionModel.findOne({
-        where: {code: user.areaCode}
-      });
-      if (regionModel) {
-        user.regionId = user.areaCode;
-      } else {
-        const hospitalModel = await HospitalModel.findOne({
-          where: {id: user.areaCode}
-        });
-        if (hospitalModel) {
-          user.regionId = hospitalModel.regionId;
-          await UserHospitalModel.create({
-            hospitalId: hospitalModel.id,
-            userId: user.id
-          });
-        } else {
-          // 中心层, 既不是区划, 也不是机构
-          const hospitalRegions = await appDB.execute(
-            `select h.region from hospital_mapping hm inner join hospital h on hm.h_id = h.id where u_id = ?`,
-            user.areaCode
-          );
-          if (hospitalRegions.length === 1) {
-            user.regionId = hospitalRegions[0].region;
-          }
-        }
-      }
+
+      // 修改用户信息
       await UserModel.update(user, {where: {id: user.id}});
     });
   }
