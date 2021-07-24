@@ -41,7 +41,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         `%${user.areaCode}%`
       );
 
-      // 根据地区查询当前地区信息
+      // 根据地区查询当前地区信息[少了 budget]
       // language=PostgreSQL
       user.region =
         (
@@ -50,6 +50,12 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
                   select code,
                          name,
                          parent,
+                         case label when 'province' then 1
+                             when 'city' then 2
+                             when 'district' then 3
+                             when 'centre' then 4
+                             else 5
+                             end as level,
                          label
                   from area
                   where code = ?
