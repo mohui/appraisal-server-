@@ -42,24 +42,16 @@
             <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
               <el-form-item label="地区机构:">
                 <div style="display: flex">
-                  <kn-area-cascader
-                    style="width: 100%"
-                    :code="queryForm.region"
-                    :hospital="queryForm.hospital"
-                    @outValue="
-                      value => {
-                        queryForm.region = value.regionId;
-                        queryForm.hospital = value.hospitalId;
-                      }
-                    "
-                  ></kn-area-cascader>
-                  <el-tooltip content="包含下属机构">
-                    <el-checkbox
-                      v-model="queryForm.include"
-                      style="margin: 0 0 1px 5px"
-                      :disabled="!queryForm.hospital"
-                    ></el-checkbox>
-                  </el-tooltip>
+                  <el-cascader
+                    clearable
+                    v-model="queryForm.region"
+                    :placeholder="'请选择地区'"
+                    :props="regionList"
+                    collapse-tags
+                    filterable
+                    size="mini"
+                  >
+                  </el-cascader>
                 </div>
               </el-form-item>
             </el-col>
@@ -335,6 +327,7 @@ export default {
     this.initParams(this.$route);
   },
   data() {
+    const that = this;
     return {
       isCollapsed: !!this.$settings.isMobile,
       pageSize: 50,
@@ -342,12 +335,10 @@ export default {
       hospitals: this.$settings.user.hospitals,
       queryForm: {
         name: '',
-        hospital: '',
         idCard: '',
         tags: [],
         year: this.$dayjs().year(),
         region: '',
-        include: false,
         personTags: [],
         personOr: false, //人群分类是否or查询
         documentOr: false //档案问题是否or查询
@@ -360,7 +351,22 @@ export default {
       ],
       archivesID: '', //档案id
       code: '', //tag code
-      isInit: false //是否初始化页面,
+      isInit: false, //是否初始化页面,
+      regionList: {
+        lazy: true,
+        checkStrictly: true,
+        emitPath: false,
+        async lazyLoad(node, resolve) {
+          console.log(node);
+          const {level, value = null} = node;
+          const region = (await that.region(value)).map(it => ({
+            value: it.code,
+            label: it.name,
+            leaf: level >= 4
+          }));
+          resolve(region);
+        }
+      }
     };
   },
   computed: {
@@ -403,10 +409,8 @@ export default {
         const urlPersonTags = JSON.stringify(this.queryForm.personTags);
         let query = {};
         if (this.queryForm.name) query.name = this.queryForm.name;
-        if (this.queryForm.hospital) query.hospital = this.queryForm.hospital;
         if (this.queryForm.region) query.region = this.queryForm.region;
         if (this.queryForm.idCard) query.idCard = this.queryForm.idCard;
-        if (this.queryForm.include) query.include = this.queryForm.include;
         if (this.queryForm.tags.length) query.tags = urlTags;
         else delete query.tags;
         if (this.queryForm.documentOr)
@@ -420,17 +424,6 @@ export default {
         });
       },
       deep: true
-    },
-    'queryForm.hospital'() {
-      //判断是否是初始化页面，刷新过url
-      //ture：保留原有的include
-      //false：说明是手动更改机构，将include置为false（默认不包含下级机构）
-      if (this.isInit) {
-        //设置为默认值的false
-        this.isInit = false;
-      } else {
-        this.queryForm.include = false;
-      }
     },
     'queryForm.personTags'() {
       if (!this.queryForm.personTags.length > 0) {
@@ -460,7 +453,6 @@ export default {
           pageNo: this.pageNo,
           name: this.queryForm.name,
           idCard: this.queryForm.idCard,
-          hospital: this.queryForm.hospital,
           region: this.queryForm.region,
           tags: this.queryForm.tags
             .concat(this.queryForm.personTags)
@@ -472,7 +464,6 @@ export default {
                 next === 'ai_2dm';
               return res;
             }, {}),
-          include: this.queryForm.include,
           personOr: this.queryForm.personOr,
           documentOr: this.queryForm.documentOr,
           year: this.queryForm.year
@@ -510,7 +501,6 @@ export default {
       await this.$api.Person.personExcel({
         name: this.queryForm.name,
         idCard: this.queryForm.idCard,
-        hospital: this.queryForm.hospital,
         region: this.queryForm.region,
         tags: this.queryForm.tags
           .concat(this.queryForm.personTags)
@@ -518,7 +508,6 @@ export default {
             res[`${next}`] = next.includes('C') || next.includes('E');
             return res;
           }, {}),
-        include: this.queryForm.include,
         personOr: this.queryForm.personOr,
         documentOr: this.queryForm.documentOr,
         year: this.queryForm.year
@@ -528,11 +517,8 @@ export default {
     initParams(route) {
       this.isInit = true;
       if (route.query.name) this.queryForm.name = route.query.name;
-      if (route.query.hospital) this.queryForm.hospital = route.query.hospital;
       if (route.query.region) this.queryForm.region = route.query.region;
       if (route.query.idCard) this.queryForm.idCard = route.query.idCard;
-      if (route.query.include)
-        this.queryForm.include = JSON.parse(route.query.include);
       if (route.query.tags) this.queryForm.tags = JSON.parse(route.query.tags);
       if (route.query.documentOr)
         this.queryForm.documentOr = JSON.parse(route.query.documentOr);
@@ -566,15 +552,17 @@ export default {
     handleResetCondition() {
       this.queryForm = {
         name: '',
-        hospital: '',
         region: '',
         idCard: '',
         tags: [],
-        include: false,
         personTags: [],
         personOr: false,
         documentOr: false
       };
+    },
+    //异步加载地区列表
+    async region(code) {
+      return await this.$api.Group.children(code);
     }
   }
 };
