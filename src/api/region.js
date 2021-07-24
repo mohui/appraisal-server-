@@ -1,8 +1,4 @@
-import {
-  RegionModel,
-  HospitalModel,
-  WorkDifficultyModel
-} from '../database/model';
+import {RegionModel, WorkDifficultyModel} from '../database/model';
 import {should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {originalDB} from '../app';
@@ -80,24 +76,6 @@ export default class Region {
   )
   async info(code) {
     return RegionModel.findOne({where: {code}});
-  }
-
-  @validate(should.string().description('通过code查询区域下的机构'))
-  async listHospital(code) {
-    return await HospitalModel.findAll({
-      attributes: {
-        exclude: ['deleted_at']
-      },
-      where: {region: code},
-      paranoid: false,
-      include: {
-        model: RegionModel,
-        paranoid: false,
-        attributes: {
-          exclude: ['deleted_at']
-        }
-      }
-    });
   }
 
   /***
