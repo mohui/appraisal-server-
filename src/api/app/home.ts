@@ -1,8 +1,16 @@
 import {originalDB} from '../../app';
 import {monthToRange} from '../his/service';
 import * as dayjs from 'dayjs';
+import * as dayOfYear from 'dayjs/plugin/dayOfYear';
+import * as isLeapYear from 'dayjs/plugin/isLeapYear';
 import {getLeaves, getOriginalArray} from '../group';
 import {Context} from '../context';
+import {getBasicData, getMarks} from '../group/score';
+import {BasicTagUsages} from '../../../common/rule-score';
+
+//dayjs 加载插件
+dayjs.extend(dayOfYear);
+dayjs.extend(isLeapYear);
 
 export default class AppHome {
   // 获取医疗人员数量
@@ -133,5 +141,106 @@ export default class AppHome {
 
     // 获取月份的时间范围
     return Number(mark[0]?.H00) + Number(mark[0]?.D00);
+  }
+
+  /**
+   * 高血压规范管理率
+   */
+  async htn() {
+    const year = dayjs().year();
+    const markModel = await getMarks(Context.current.user.code, year);
+    return markModel.H00 ? 0 : markModel.H01 / markModel.H00;
+  }
+
+  /**
+   * 糖尿病规范管理率
+   */
+  async t2dm() {
+    const year = dayjs().year();
+    const markModel = await getMarks(Context.current.user.code, year);
+    return markModel.D00 ? 0 : markModel.D01 / markModel.D00;
+  }
+
+  /**
+   * 老年人管理率
+   */
+  async old() {
+    const areaCode = Context.current.user.code;
+    const year = dayjs().year();
+    const markModel = await getMarks(areaCode, year);
+    if (!markModel.O00) {
+      return 0;
+    }
+    //获取基础数据
+    const leaves = await getLeaves(areaCode);
+    const basicData = await getBasicData(
+      leaves,
+      BasicTagUsages.OldPeople,
+      year
+    );
+    return markModel.O00 / basicData;
+  }
+
+  /**
+   * 医师日均诊疗人次
+   */
+  async doctorDailyVisits() {
+    const areaCode = Context.current.user.code;
+    //医师人数
+    const doctors =
+      (
+        await originalDB.execute(
+          //language=PostgreSQL
+          `
+            with recursive area_tree as (
+              select *
+              from area
+              where code = ?
+              union all
+              select self.*
+              from area self
+                     inner join area_tree on self.parent = area_tree.code
+            )
+            select count(1) as counts
+            from his_staff
+                   inner join area_tree on his_staff.hospital = area_tree.code
+          `,
+          areaCode
+        )
+      )[0]?.counts ?? 0;
+    if (!doctors) {
+      return 0;
+    }
+    //诊疗人次
+    const today = dayjs();
+    const counts =
+      (
+        await originalDB.execute(
+          //language=PostgreSQL
+          `
+            with recursive area_tree as (
+              select *
+              from area
+              where code = ?
+              union all
+              select self.*
+              from area self
+                     inner join area_tree on self.parent = area_tree.code
+            )
+            select count(distinct cm.treat) as counts
+            from his_charge_master cm
+                   inner join area_tree at on cm.hospital = at.code
+            where extract(year from cm.operate_time) = ?
+          `,
+          areaCode,
+          today.year()
+        )
+      )[0]?.counts ?? 0;
+    return (
+      (counts /
+        doctors /
+        (today.dayOfYear() / (today.isLeapYear() ? 366 : 365))) *
+      251
+    );
   }
 }
