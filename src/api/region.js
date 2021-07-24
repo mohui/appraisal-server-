@@ -67,17 +67,6 @@ export default class Region {
     });
   }
 
-  //地区的信息
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code')
-  )
-  async info(code) {
-    return RegionModel.findOne({where: {code}});
-  }
-
   /***
    * 工分的难度列表
    * @param params
