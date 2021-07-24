@@ -236,11 +236,6 @@ export default class AppHome {
           today.year()
         )
       )[0]?.counts ?? 0;
-    return (
-      (counts /
-        doctors /
-        (today.dayOfYear() / (today.isLeapYear() ? 366 : 365))) *
-      251
-    );
+    return (counts / doctors / today.dayOfYear() / 251) * 365;
   }
 }
