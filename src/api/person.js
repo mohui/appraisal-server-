@@ -8,7 +8,6 @@ import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
-import {getLeaves} from './group';
 
 async function dictionaryQuery(categoryno) {
   return await originalDB.execute(
@@ -124,10 +123,6 @@ export default class Person {
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       name: should.string().allow('', null),
-      hospital: should
-        .string()
-        .required()
-        .allow('', null),
       region: should
         .string()
         .required()
@@ -140,7 +135,6 @@ export default class Person {
         .object()
         .required()
         .allow([]),
-      include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
       year: should.number().allow(null)
@@ -150,11 +144,9 @@ export default class Person {
     const {
       pageSize,
       pageNo,
-      hospital,
       region,
       idCard,
       tags,
-      include,
       personOr = false,
       documentOr = false,
       year = dayjs().year()
@@ -165,28 +157,20 @@ export default class Person {
     let {name} = params;
     if (name) name = `%${name}%`;
     let hospitals = [];
-    //没有选机构和地区,则默认查询当前用户所拥有的机构
-    if (!region && !hospital)
-      hospitals = Context.current.user.hospitals.map(it => it.id);
-    //仅有地区,则查询该地区下的所有机构
-    if (region && !hospital) {
-      const children = await getLeaves(region);
-      hospitals = (
-        await HospitalModel.findAll({
-          where: {
-            id: {
-              [Op.in]: children
-                .map(it => it.code)
-                //TODO: 苟且区分一下地区和机构
-                .filter(it => it.length === 36)
-            }
-          }
-        })
-      )
-        .map(it => it.toJSON())
-        .map(it => it.id);
-    }
-    if (hospital) hospitals = [hospital];
+    //没有选地区,则默认查询当前用户所拥有的机构
+    if (!region) hospitals = Context.current.user.hospitals.map(it => it.id);
+
+    const areaModels = await originalDB.execute(
+      // language=PostgreSQL
+      `select code id,
+                  name
+             from area
+             where label in ('hospital.center', 'hospital.station')
+               and (code = ? or path like ?)`,
+      region,
+      `%${region}%`
+    );
+    hospitals = areaModels.map(it => it.id);
 
     //如果查询出来的机构列表为空,则数据都为空
     if (hospitals.length === 0) return {count: 0, rows: []};
@@ -206,24 +190,6 @@ export default class Person {
         (result, current) => [...result, ...current.map(it => it.id)],
         []
       );
-    if (include && hospital)
-      hospitals = (
-        await Promise.all(
-          hospitals.map(item =>
-            //查询机构的下属机构
-            originalDB.execute(
-              `select hospid as id from view_hospital where hos_hospid = ?`,
-              item
-            )
-          )
-        )
-      )
-        .filter(it => it.length > 0)
-        .reduce(
-          (result, current) => [...result, ...current.map(it => it.id)],
-          []
-        )
-        .concat(hospitals);
 
     const sqlRenderResult = listRender({
       his,
