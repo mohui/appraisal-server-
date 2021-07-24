@@ -1,4 +1,4 @@
-import {RegionModel, WorkDifficultyModel} from '../database/model';
+import {WorkDifficultyModel} from '../database/model';
 import {should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {originalDB} from '../app';
@@ -59,12 +59,26 @@ export default class Region {
   //通过code查询下一级行政区域
   @validate(should.string().allow(null))
   async list(code) {
-    if (!code) code = Context.current.user.regionId;
-    return await RegionModel.findAll({
-      paranoid: false,
-      attributes: {exclude: ['deleted_at']},
-      where: {parent: code}
-    });
+    if (!code) code = Context.current.user.code;
+    // language=PostgreSQL
+    return await originalDB.execute(
+      `
+        select code,
+               name,
+               parent,
+               case label
+                 when 'province' then 1
+                 when 'city' then 2
+                 when 'district' then 3
+                 when 'centre' then 4
+                 else 5
+                 end as level,
+               label
+        from area
+        where parent = ?
+      `,
+      code
+    );
   }
 
   /***
