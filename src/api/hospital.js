@@ -1,88 +1,9 @@
-import {HospitalModel, RegionModel, sql as sqlRender} from '../database';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {sql as sqlRender} from '../database';
+import {KatoCommonError} from 'kato-server';
 import {appDB, originalDB} from '../app';
 import * as dayjs from 'dayjs';
-import {Projects} from '../../common/project';
 
 export default class Hospital {
-  @validate(
-    should
-      .string()
-      .required()
-      .description('父级机构的id')
-  )
-  async list(parent) {
-    return HospitalModel.findAll({
-      attributes: {
-        exclude: ['deleted_at']
-      },
-      where: {parent},
-      paranoid: false,
-      include: {
-        model: RegionModel,
-        paranoid: false,
-        attributes: {
-          exclude: ['deleted_at']
-        }
-      }
-    });
-  }
-
-  async workpoints(code) {
-    const hospitalMapping = await appDB.execute(
-      `select hishospid as id
-            from hospital_mapping mapping
-            where h_id = ?`,
-      code
-    );
-
-    // 查询所属his
-    const hospital = await HospitalModel.findOne({
-      where: {id: code}
-    });
-    if (!hospital) throw new KatoCommonError(`code为 ${code} 的机构不存在`);
-
-    const hisHospitalId = hospitalMapping[0]?.id;
-    const type = hospital?.his;
-
-    return (
-      await originalDB.execute(
-        `select cast(sum(vws.score) as int) as score,
-              vws.operatorid as doctorId,
-              vws.doctor as doctorName,
-              vws.projecttype as "projectId"
-           from view_workscoretotal vws
-           where vws.operateorganization = ?
-             and missiontime >= ?
-             and missiontime < ?
-         group by vws.operatorid, vws.doctor,vws.projecttype`,
-        hisHospitalId,
-        dayjs()
-          .startOf('y')
-          .toDate(),
-        dayjs()
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
-      )
-    ).map(it => ({
-      ...it,
-      name: Projects.find(p => {
-        return p.mappings.find(
-          mapping => mapping.id === it.projectId && mapping.type === type
-        );
-      })?.name
-    }));
-  }
-
-  /***
-   * 机构信息
-   * @param id
-   */
-  async info(id) {
-    return HospitalModel.findOne({where: {id}});
-  }
-
   async healthEducation(hospitalId) {
     const hisHospId =
       (
