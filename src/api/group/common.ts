@@ -43,9 +43,3 @@ export async function getChildrenArea(code: string) {
   }
   return children;
 }
-
-export default class Common {
-  async test(code) {
-    return getHospitals(code);
-  }
-}
