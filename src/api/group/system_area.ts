@@ -21,6 +21,7 @@ import {getWorkPoints} from './score';
 import {Workbook} from 'exceljs';
 import {Context} from '../context';
 import {createBackJob} from '../../utils/back-job';
+import {getHospitals} from './common';
 
 /**
  * 通过地区编码和时间获取checkId
@@ -267,12 +268,8 @@ export default class SystemArea {
       .description('年份')
   )
   async faceCollect(code, year) {
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    const hospitals = await getHospitals(code);
+    const hospitalIds = hospitals.map(it => it.code);
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
     const hisHospIds = hisHospIdObjs.map(it => it.id);
@@ -325,13 +322,10 @@ export default class SystemArea {
       .description('年份')
   )
   async signRegister(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
@@ -444,13 +438,10 @@ export default class SystemArea {
     // 赋值默认值
     if (!pageNo) pageNo = 1;
     if (!pageSize) pageSize = 20;
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
@@ -520,13 +511,10 @@ export default class SystemArea {
     if (!pageNo) pageNo = 1;
     if (!pageSize) pageSize = 20;
 
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
@@ -601,13 +589,10 @@ export default class SystemArea {
     if (!pageNo) pageNo = 1;
     // 默认条数
     if (!pageSize) pageSize = 20;
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
