@@ -21,7 +21,7 @@ import {getWorkPoints} from './score';
 import {Workbook} from 'exceljs';
 import {Context} from '../context';
 import {createBackJob} from '../../utils/back-job';
-import {getHospitals} from './common';
+import {getChildrenArea, getHospitals} from './common';
 
 /**
  * 通过地区编码和时间获取checkId
@@ -673,29 +673,25 @@ export default class SystemArea {
       .description('年份')
   )
   async workPointsArea(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
 
-    // 权限的下级子节点
-    let childrenTree = [];
-    // 如果没有查到子节点,可能是机构节点,判断机构节点是否合法
-    if (tree.length === 0)
+    if (hospitals.length === 0)
       throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
-    else if (tree.length > 1) {
-      // 非机构权限, 列表为下级权限 => 找到自己的子节点
-      childrenTree = tree
-        .map(it => {
-          if (it.parent === code) return it;
-        })
-        .filter(item => item);
-    }
-    // 找到所有的叶子节点
-    const hospitalIds = tree.filter(it => it.leaf === true);
+
+    const newHospitals = hospitals.map(it => ({
+      ...it,
+      path: it?.path?.split('.')
+    }));
+
+    // 获取下级菜单
+    const childrenTree = await getChildrenArea(code);
+
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(
-      hospitalIds.map(item => item.code)
-    );
+    const hisHospIdObjs = await getOriginalArray(hospitalIds);
 
     const hisHospIds = hisHospIdObjs.map(it => it['id']);
 
@@ -749,7 +745,7 @@ export default class SystemArea {
         };
       })
       .map(it => {
-        const index = hospitalIds.find(item => item.code === it.hospitalId);
+        const index = newHospitals.find(item => item.code === it.hospitalId);
         return {
           ...it,
           path: index.path
