@@ -4,57 +4,6 @@ import {appDB, originalDB} from '../app';
 import * as dayjs from 'dayjs';
 
 export default class Hospital {
-  async healthEducation(hospitalId) {
-    const hisHospId =
-      (
-        await appDB.execute(
-          `select hishospid as id
-           from hospital_mapping
-           where h_id = ?`,
-          hospitalId
-        )
-      )[0]?.id ?? null;
-    const data = await originalDB.execute(
-      //language=MySQL
-      `
-        SELECT vhe.ActivityFormCode as "ActivityFormCode",
-               vhe.PrintDataName    as "PrintDataName",
-               vhe.ActivityName     as "ActivityName",
-               vcd.CodeName         as "CodeName",
-               vcd.CodeName         as "ActivityFormName",
-               vhe.ActivityTime     as "ActivityTime"
-        FROM view_HealthEducation vhe
-               LEFT JOIN view_CodeDictionary vcd ON vcd.Code = vhe.ActivityFormCode
-          AND vcd.CategoryNo = '270105'
-        where vhe.OperateOrganization = ?
-          and vhe.ActivityTime >= ?
-          and vhe.ActivityTime < ?
-          and vhe.State = 1
-        order by vhe.ActivityTime desc
-      `,
-      hisHospId,
-      dayjs()
-        .startOf('y')
-        .toDate(),
-      dayjs()
-        .startOf('y')
-        .add(1, 'y')
-        .toDate()
-    );
-    return data.map(i => ({
-      ActivityName:
-        i.ActivityFormCode === '1' || i.ActivityFormCode === '2'
-          ? i.PrintDataName
-          : i.ActivityFormCode === '3' ||
-            i.ActivityFormCode === '4' ||
-            i.ActivityFormCode === '5'
-          ? i.ActivityName
-          : i.ActivityName ?? i.PrintDataName ?? i.CodeName ?? null,
-      ActivityFormName: i.ActivityFormName,
-      ActivityTime: i.ActivityTime
-    }));
-  }
-
   /**
    * 监督协管报告
    *
