@@ -186,7 +186,7 @@ export default class User {
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
       //递归查询用户所属地区的所有下属地区
       const childrenCode = (
-        await appDB.query(
+        await originalDB.query(
           `
             with recursive r as (
                 select * from area
