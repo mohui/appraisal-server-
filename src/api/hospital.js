@@ -5,48 +5,6 @@ import * as dayjs from 'dayjs';
 
 export default class Hospital {
   /**
-   * 监督协管报告
-   *
-   * @param hospitalId
-   */
-  async supervisionReport(hospitalId) {
-    const hisHospId =
-      (
-        await appDB.execute(
-          `
-            select hishospid as id
-            from hospital_mapping
-            where h_id = ?`,
-          hospitalId
-        )
-      )[0]?.id ?? null;
-    const sql = sqlRender(
-      `
-    select
-        institutionname as "InstitutionName",
-        address as "Address",
-        Contents as "Contents",
-        ReportTime as "Date"
-    from view_SanitaryControlReport
-    where OperateOrganization={{? hisHospId}}
-    and ReportTime>={{? start}} and ReportTime<{{? end}}
-    order by ReportTime desc
-    `,
-      {
-        hisHospId,
-        start: dayjs()
-          .startOf('y')
-          .toDate(),
-        end: dayjs()
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
-      }
-    );
-    return await originalDB.execute(sql[0], ...sql[1]);
-  }
-
-  /**
    * 监督协管巡查
    *
    * @param hospitalId
