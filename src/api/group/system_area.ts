@@ -795,13 +795,10 @@ export default class SystemArea {
       .description('年份')
   )
   async workPointsProject(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据机构id获取对应的原始数据id
     const hisHospIdObjs = await getOriginalArray(hospitalIds);
