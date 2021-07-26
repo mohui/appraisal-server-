@@ -1,5 +1,6 @@
 import {originalDB} from '../../app';
 
+// 获取地区下的所有机构, 如果本身是机构返回自己
 export async function getHospitals(code: string) {
   return await originalDB.execute(
     // language=PostgreSQL
@@ -16,8 +17,9 @@ export async function getHospitals(code: string) {
   );
 }
 
+// 获取地区的下属地区,没有下属返回空数组
 export async function getChildrenArea(code: string) {
-  const children = await originalDB.execute(
+  return await originalDB.execute(
     // language=PostgreSQL
     `select code,
               name,
@@ -28,18 +30,4 @@ export async function getChildrenArea(code: string) {
        where parent = ?`,
     code
   );
-  if (children.length === 0) {
-    return await originalDB.execute(
-      // language=PostgreSQL
-      `select code,
-              name,
-              parent,
-              path,
-              label
-       from area
-       where code = ?`,
-      code
-    );
-  }
-  return children;
 }
