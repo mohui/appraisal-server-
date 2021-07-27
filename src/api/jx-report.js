@@ -4,12 +4,13 @@ import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import {KatoCommonError, should, validate} from 'kato-server';
 
-import {getAreaTree, getLeaves} from './group';
+import {getAreaTree} from './group';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
 import {appDB} from '../app';
 import {displayTime} from './report';
+import {getHospitals} from './group/common';
 
 /**
  * 获取指标数据
@@ -90,15 +91,17 @@ async function getExponent(code, time) {
 
     // 循环获取分母
     for (const it of streetList) {
-      // 获取当前权限(中心层级)下的所有机构(最后一级的卫生站或者卫生室,包括中心自己)
-      const leaves = await getLeaves(it.code);
+      // 获取所有机构信息
+      const hospitals = await getHospitals(it.code);
+      // 获取机构id
+      const hospitalIds = hospitals.map(it => it.code);
 
       // 建档率
       if (MarkTagUsages[markItem].code === 'S01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData = await getBasicData(
-          leaves,
+          hospitalIds,
           BasicTagUsages.DocPeople,
           year
         );
@@ -111,12 +114,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.S00, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.DocPeople,
             year
           );
@@ -157,7 +160,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -197,7 +200,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -228,7 +231,7 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData = await getBasicData(
-          leaves,
+          hospitalIds,
           BasicTagUsages.OldPeople,
           year
         );
@@ -240,12 +243,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.O00, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.OldPeople,
             year
           );
@@ -277,7 +280,7 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData = await getBasicData(
-          leaves,
+          hospitalIds,
           BasicTagUsages.OldPeople,
           year
         );
@@ -289,12 +292,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.O02, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.OldPeople,
             year
           );
@@ -326,7 +329,7 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData = await getBasicData(
-          leaves,
+          hospitalIds,
           BasicTagUsages.HypertensionPeople,
           year
         );
@@ -338,12 +341,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.H00, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.HypertensionPeople,
             year
           );
@@ -384,7 +387,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -424,7 +427,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -455,7 +458,7 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData = await getBasicData(
-          leaves,
+          hospitalIds,
           BasicTagUsages.DiabetesPeople,
           year
         );
@@ -467,12 +470,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.D00, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.DiabetesPeople,
             year
           );
@@ -513,7 +516,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -553,7 +556,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -592,7 +595,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -627,7 +630,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -662,7 +665,7 @@ async function getExponent(code, time) {
         });
 
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
@@ -688,7 +691,11 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'HE07') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData = await getBasicData(leaves, BasicTagUsages.HE07, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.HE07,
+          year
+        );
         dataRow1.push({
           index: i,
           name: `${it?.name}`,
@@ -697,12 +704,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.HE07, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.HE07,
             year
           );
@@ -733,7 +740,11 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'HE09') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData = await getBasicData(leaves, BasicTagUsages.HE09, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.HE09,
+          year
+        );
         dataRow1.push({
           index: i,
           name: `${it?.name}`,
@@ -742,12 +753,12 @@ async function getExponent(code, time) {
           rate: `${percentString(mark?.HE09, basicData)}`
         });
         // 表二表三只显示机构本身的
-        for (const hospital of leaves) {
+        for (const hospital of hospitals) {
           // 仅仅返回中心这一个机构的数据
           const hospitalMark = await getMarks(hospital.code, year);
 
           const hospitalBasicData = await getBasicData(
-            [hospital],
+            [hospital.code],
             BasicTagUsages.HE09,
             year
           );
