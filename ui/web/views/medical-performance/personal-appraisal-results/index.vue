@@ -164,16 +164,6 @@
           </el-col>
         </el-row>
       </div>
-      <div
-        class="card"
-        style="height: 400px ; margin-top: 20px"
-        v-loading="$asyncComputed.workScoreDailyListServerData.updating"
-      >
-        <div
-          id="projectWorkPointBarRateLine"
-          :style="{width: '100%', height: '100%'}"
-        ></div>
-      </div>
     </div>
     <el-dialog
       :title="dialogScoreType === 'after' ? '校正后工分明细' : '校正前工分明细'"
@@ -317,9 +307,6 @@ export default {
   watch: {
     workScorePieData: function() {
       this.drawProjectWorkPointPie();
-    },
-    workScoreDailyListData: function() {
-      this.drawProjectWorkPointBarRateLine();
     }
   },
   computed: {
@@ -354,42 +341,6 @@ export default {
         name: it.name
       }));
     },
-    workScoreDailyListData() {
-      let result = {};
-      result.day = this.workScoreDailyListServerData?.map(it =>
-        it.day.$format('MM-DD')
-      );
-      result.rates = this.workScoreDailyListServerData?.map(
-        it => it.rate * 100
-      );
-      let items = [];
-      items = this.workScoreDailyListServerData?.map(it => it.items);
-      let projects = [];
-      if (items?.length > 0) {
-        for (const item of items) {
-          for (const it of item) {
-            const index = projects.findIndex(p => p.name === it.name);
-            if (index === -1) {
-              projects.push({
-                name: it.name,
-                score: [Number(it.score?.toFixed(2))],
-                auxiliaryData: [0]
-              });
-            } else {
-              projects[index].auxiliaryData.push(
-                projects[index].score.reduce(
-                  (total, currentValue) => total + (currentValue || 0),
-                  0
-                )
-              );
-              projects[index].score.push(Number(it.score?.toFixed(2)));
-            }
-          }
-        }
-      }
-      result.projects = projects;
-      return result;
-    },
     personInfoData() {
       return this.personInfoServerData;
     },
@@ -415,15 +366,6 @@ export default {
         );
       },
       default: {items: [], rate: 0}
-    },
-    workScoreDailyListServerData: {
-      async get() {
-        return await this.$api.HisStaff.findWorkScoreDailyList(
-          this.id,
-          this.curDate
-        );
-      },
-      default: []
     },
     personInfoServerData: {
       async get() {
@@ -473,7 +415,6 @@ export default {
           row.isRating = !row.isRating;
           this.$message.success('打分成功');
           this.$asyncComputed.staffCheckServerData.update();
-          this.$asyncComputed.workScoreDailyListServerData.update();
           this.$asyncComputed.workScoreListServerData.update();
         } catch (e) {
           console.log(e.message);
@@ -486,7 +427,6 @@ export default {
     // 绘制图表
     drawChart() {
       this.drawProjectWorkPointPie();
-      this.drawProjectWorkPointBarRateLine();
     },
     // 项目工分饼状图
     drawProjectWorkPointPie() {
@@ -533,132 +473,6 @@ export default {
       };
       // 绘制图表
       myChart.setOption(option);
-
-      // 窗口自适应，表图大小随浏览器窗口的缩放自适应
-      window.addEventListener('resize', function() {
-        myChart.resize();
-      });
-    },
-    // 项目工分瀑布、质量系数折线混合图
-    drawProjectWorkPointBarRateLine() {
-      // 基于准备好的dom，初始化echarts实例
-      const myChart = this.$echarts.init(
-        document.getElementById('projectWorkPointBarRateLine')
-      );
-      let series = [];
-      const rateS = {
-        name: '质量系数',
-        yAxisIndex: 1,
-        data: this.workScoreDailyListData.rates,
-        type: 'line'
-      };
-      series.push(rateS);
-      for (const it of this.workScoreDailyListData.projects) {
-        const s = {
-          name: it.name,
-          type: 'bar',
-          barGap: '-100%',
-          stack: it.name,
-          label: {
-            show: true,
-            position: 'top'
-          },
-          data: it.score
-        };
-        const auxiliaryS = {
-          name: it.name + '辅助',
-          type: 'bar',
-          stack: it.name,
-          itemStyle: {
-            barBorderColor: 'rgba(0,0,0,0)',
-            color: 'rgba(0,0,0,0)'
-          },
-          emphasis: {
-            itemStyle: {
-              barBorderColor: 'rgba(0,0,0,0)',
-              color: 'rgba(0,0,0,0)'
-            }
-          },
-          data: it.auxiliaryData
-        };
-        series.push(auxiliaryS, s);
-      }
-      const legendData = this.workScoreDailyListData?.projects.map(
-        it => it.name
-      );
-      legendData.push('质量系数');
-
-      const selected = {};
-      for (let i = 0; i < legendData.length; i++) {
-        if (i === 0) {
-          selected[`${legendData[0]}`] = true;
-        } else {
-          selected[`${legendData[i]}`] = false;
-        }
-      }
-      selected['质量系数'] = true;
-
-      let option;
-      option = {
-        //设置颜色
-        color: this.chartColors,
-        tooltip: {
-          show: false,
-          trigger: 'axis',
-          axisPointer: {
-            // 坐标轴指示器，坐标轴触发有效
-            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-          }
-        },
-        legend: {
-          data: legendData,
-          // 设置图例选中状态表
-          selected: selected,
-          type: 'scroll'
-        },
-        grid: {
-          top: 80
-        },
-        xAxis: {
-          type: 'category',
-          data: this.workScoreDailyListData.day,
-          axisTick: {
-            alignWithLabel: true
-          }
-        },
-        yAxis: [
-          {
-            type: 'value',
-            name: '工分',
-            axisLabel: {
-              formatter: '{value}分'
-            }
-          },
-          {
-            type: 'value',
-            name: '质量系数',
-            min: 0,
-            max: 100,
-            axisLabel: {
-              formatter: '{value}%'
-            }
-          }
-        ],
-        series: series
-      };
-      myChart.setOption(option);
-
-      myChart.on('legendselectchanged', params => {
-        if (params.name === '质量系数') return;
-        const selected = params.selected;
-        for (const item in selected) {
-          if (item !== params.name && item !== '质量系数') {
-            selected[item] = false;
-          }
-        }
-        option.legend.selected = selected;
-        myChart.setOption(option);
-      });
 
       // 窗口自适应，表图大小随浏览器窗口的缩放自适应
       window.addEventListener('resize', function() {
