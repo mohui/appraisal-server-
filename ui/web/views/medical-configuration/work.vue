@@ -12,7 +12,7 @@
       }"
     >
       <div slot="header" class="work-header">
-        <span>工分项配置</span>
+        <span>工分项管理</span>
         <div>
           <el-button size="mini" type="primary" @click="addWorkVisible = true"
             >新增工分项</el-button
