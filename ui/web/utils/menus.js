@@ -122,7 +122,7 @@ module.exports = [
         index: 'medical-configuration-work',
         permission: [Permission.MEDICAL_CONFIGURATION_WORK],
         router: '/medical-configuration-work',
-        label: '工分项配置'
+        label: '工分项管理'
       },
       {
         index: 'medical-configuration-member',
