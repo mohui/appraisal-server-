@@ -30,6 +30,7 @@ import {createBackJob} from '../../utils/back-job';
 import {v4 as uuid} from 'uuid';
 import * as path from 'path';
 import {ossClient} from '../../../util/oss';
+import {getHospitals} from './common';
 
 /**
  * 获取百分数字符串, 默认返回'0'
@@ -90,8 +91,11 @@ export async function getMarks(
   SC00: number;
   SC01: number;
 }> {
-  const leaves = await getLeaves(group);
-  const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
+  // 获取所有机构信息
+  const hospitals = await getHospitals(group);
+  // 获取机构id
+  const hospitalIds = hospitals.map(it => it.code);
+  const viewHospitals = await getOriginalArray(hospitalIds);
   const result = [];
   for (const id of viewHospitals.map(it => it.id)) {
     // language=PostgreSQL
