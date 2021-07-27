@@ -4,9 +4,11 @@
   "private": true,
   "description": "performance appraisal system",
   "scripts": {
+    "build:test": "webpack-cli --hide-modules --config webpack.test.js",
     "build:server": "webpack-cli --hide-modules --config webpack.prod.js",
     "build:web": "webpack-cli --hide-modules --config ui/webpack.prod.js",
     "build": "run-s build:**",
+    "test": "jest --detectOpenHandles --forceExit",
     "dev": "cross-env NODE_ENV=development webpack-cli -w --hide-modules --config webpack.dev.js",
     "dev:web": "cross-env NODE_ENV=development webpack-cli -w --hide-modules --config webpack.web.js"
   },
@@ -136,6 +138,15 @@
     "*.{js,vue,ts}": [
       "eslint",
       "prettier --write"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/dist/__tests__/**/*.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
     ]
   }
 }
