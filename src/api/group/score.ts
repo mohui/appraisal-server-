@@ -2,7 +2,7 @@ import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
 import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
-import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
+import {getOriginalArray} from '../group';
 import {
   BasicTagUsages,
   MarkTagUsages,
@@ -242,14 +242,14 @@ where OperateOrganization = {{? id}}
  * @param year 年份
  */
 export async function getBasicData(
-  leaves: AreaTreeNode[],
+  hospital: string[],
   tag: string,
   year: number
 ): Promise<number> {
   const data: number = await BasicTagDataModel.sum('value', {
     where: {
       hospital: {
-        [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
+        [Op.in]: hospital
       },
       code: tag,
       year
