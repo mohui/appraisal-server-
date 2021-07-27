@@ -425,10 +425,12 @@ export default class Score {
         totalScore: 0,
         rate: 0
       };
-      // 查询当前地区对应的叶子节点
-      const leaves = await getLeaves(group);
+      // 获取所有机构信息
+      const hospitals = await getHospitals(group);
+      // 获取机构id
+      const hospitalIds = hospitals.map(it => it.code);
       // 获取原始机构id数组
-      const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
+      const viewHospitals = await getOriginalArray(hospitalIds);
       // 查询考核对象对应的考核体系的考核小项
       // language=PostgreSQL
       const parentRules: {id: string}[] = await appDB.execute(
@@ -508,7 +510,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.S01.code) {
                 // 查询服务总人口数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.DocPeople,
                   year
                 );
@@ -609,7 +611,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.O00.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.OldPeople,
                   year
                 );
@@ -645,7 +647,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.O02.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.OldPeople,
                   year
                 );
@@ -682,7 +684,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.H00.code) {
                 // 查询高血压人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HypertensionPeople,
                   year
                 );
@@ -780,7 +782,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.D00.code) {
                 // 查询糖尿病人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.DiabetesPeople,
                   year
                 );
@@ -905,7 +907,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.HE09.code) {
                 // 查询健康教育咨询的次数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HE09,
                   year
                 );
@@ -940,7 +942,7 @@ export default class Score {
               else if (tagModel.tag === MarkTagUsages.HE07.code) {
                 // 查询健康知识讲座的次数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HE07,
                   year
                 );
@@ -1002,7 +1004,7 @@ export default class Score {
               //卫生计生监督协管信息报告率
               if (tagModel.tag === MarkTagUsages.SC00.code) {
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.Supervision,
                   year
                 );
