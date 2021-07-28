@@ -105,6 +105,7 @@ export class HisMigration implements IMigration {
         hospital     varchar(36),
         name         varchar(255),
         method       varchar(255),
+        type       varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -112,6 +113,7 @@ export class HisMigration implements IMigration {
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
       comment on column "his_work_item".method is '得分方式; 计数/总和';
+      comment on column "his_work_item".type is '关联员工; 动态/固定';
 
       --工分项目来源关联表
       create table if not exists "his_work_item_mapping"
