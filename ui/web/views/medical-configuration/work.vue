@@ -22,6 +22,7 @@
       <el-table
         v-loading="tableLoading"
         stripe
+        border
         size="small"
         :data="tableData"
         height="100%"
