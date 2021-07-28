@@ -99,7 +99,7 @@
         label-width="120px"
       >
         <el-form-item label="工分项" prop="work">
-          <el-input v-model="newWork.work"> </el-input>
+          <el-input v-model="newWork.work" size="mini"> </el-input>
         </el-form-item>
         <el-form-item label="关联项目" prop="projectsSelected">
           <el-input
