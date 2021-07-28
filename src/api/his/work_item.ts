@@ -2,7 +2,11 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {
+  HisWorkMethod,
+  HisWorkSource,
+  HisStaffMethod
+} from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
 
@@ -420,6 +424,8 @@ export default class HisWorkItem {
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
    * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
+   * @param staffMethod 指定方式; 动态/固定
+   * @param staffs [绑定的员工]
    */
   @validate(
     should
@@ -433,15 +439,31 @@ export default class HisWorkItem {
     should
       .array()
       .required()
-      .description('来源id[]')
+      .description('来源id[]'),
+    should
+      .string()
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
+      .description('得分方式; 固定/动态'),
+    should
+      .array()
+      .items({
+        code: should.string().description('科室id/员工id'),
+        type: should.string().description('类型: dept/staff')
+      })
+      .description('绑定的员工或者科室')
   )
-  async add(name, method, mappings) {
+  async add(name, method, mappings, staffMethod, staffs) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+    if (
+      staffMethod === HisStaffMethod.STATIC &&
+      (!staffs || staffs?.length === 0)
+    )
+      throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
@@ -461,15 +483,32 @@ export default class HisWorkItem {
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
+              his_work_item(id, hospital, name, method, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
         method,
+        staffMethod,
         dayjs().toDate(),
         dayjs().toDate()
       );
+      // 如果是固定时候,需要把绑定员工放到数据中
+      if (staffMethod === HisStaffMethod.STATIC) {
+        for (const it of staffs) {
+          await appDB.execute(
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+            uuid(),
+            hisWorkItemId,
+            it.code,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      }
 
       // 添加工分项目与his收费项目关联表
       for (const sourceId of newMappings) {
@@ -505,6 +544,8 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
+   * @param staffMethod 指定方式; 动态/固定
+   * @param staffs [绑定的员工]
    * @param mappings
    */
   @validate(
@@ -523,15 +564,39 @@ export default class HisWorkItem {
     should
       .array()
       .required()
-      .description('来源id[]')
+      .description('来源id[]'),
+    should
+      .string()
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
+      .description('得分方式; 固定/动态'),
+    should
+      .array()
+      .items({
+        code: should.string().description('科室id/员工id'),
+        type: should.string().description('类型: dept/staff')
+      })
+      .description('绑定的员工或者科室')
   )
-  async update(id, name, method, mappings) {
+  async update(id, name, method, mappings, staffMethod, staffs) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+
+    if (
+      staffMethod === HisStaffMethod.STATIC &&
+      (!staffs || staffs?.length === 0)
+    )
+      throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
+
+    // 修改之前查询公分项是否存在
+    const find = await appDB.execute(
+      ` select * from his_work_item where id = ?`,
+      id
+    );
+    if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
@@ -591,6 +656,28 @@ export default class HisWorkItem {
           dayjs().toDate()
         );
       }
+
+      // 先删除
+      await appDB.execute(
+        `delete from his_work_item_staff_mapping where item = ?`,
+        id
+      );
+      // 如果是固定时候,需要把绑定员工放到数据中
+      if (staffMethod === HisStaffMethod.STATIC) {
+        for (const it of staffs) {
+          await appDB.execute(
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+            uuid(),
+            id,
+            it.code,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      }
     });
   }
 
@@ -611,6 +698,12 @@ export default class HisWorkItem {
       // 删除工分项目来源
       await appDB.execute(
         `delete from his_work_item_mapping where item = ?`,
+        id
+      );
+
+      // 删除工分项和员工的绑定
+      await appDB.execute(
+        `delete from his_work_item_staff_mapping where item = ?`,
         id
       );
       // 删除工分项目
