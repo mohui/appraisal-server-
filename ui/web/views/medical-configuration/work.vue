@@ -56,6 +56,30 @@
             <div v-else>{{ row.projects.join(',') }}</div>
           </template>
         </el-table-column>
+        <el-table-column
+          prop="project"
+          label="关联员工"
+          align="center"
+          width="300"
+        >
+          <template slot-scope="{row}">
+            <el-tooltip
+              v-if="$widthCompute([row.staffMappings.join(',')]) >= 300"
+              effect="dark"
+              placement="top"
+              :content="row.projects.join(',')"
+            >
+              <div
+                slot="content"
+                v-html="toBreak(row.staffMappings.join(','))"
+              ></div>
+              <span class="cell-long-span">{{
+                row.staffMappings.join(',')
+              }}</span>
+            </el-tooltip>
+            <div v-else>{{ row.staffMappings.join(',') }}</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
             <el-tooltip content="编辑" :enterable="false">
@@ -170,7 +194,11 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import {HisWorkMethod, HisWorkSource} from '../../../../common/his.ts';
+import {
+  HisWorkMethod,
+  HisWorkSource,
+  HisStaffMethod
+} from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 
 export default {
@@ -225,7 +253,11 @@ export default {
         scoreMethod: d.method,
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings,
-        removeLoading: false
+        removeLoading: false,
+        staffMappings:
+          d.staffMappings?.length > 0
+            ? d.staffMappings
+            : [HisStaffMethod.DYNAMIC]
       }));
     },
     treeData() {
