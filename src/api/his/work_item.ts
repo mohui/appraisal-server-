@@ -718,11 +718,67 @@ export default class HisWorkItem {
     // 获取机构id
     const hospital = await getHospital();
     // 查询工分项目
-    const workItemList = await appDB.execute(
-      `select id, name, method from his_work_item where hospital = ? order by created_at`,
+    // language=PostgreSQL
+    const workItemModels = await appDB.execute(
+      `
+        select item.id,
+               item.name,
+               item.method,
+               mapping.source
+        from his_work_item item
+        left join his_work_item_staff_mapping mapping on item.id = mapping.item
+        where hospital = ?
+        order by item.created_at
+      `,
       hospital
     );
-    if (workItemList.length === 0) return [];
+    if (workItemModels.length === 0) return [];
+    // 查询科室
+    // language=PostgreSQL
+    const deptModels = await appDB.execute(
+      `
+        select id, name
+        from his_department
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 查询员工
+    // language=PostgreSQL
+    const staffModels = await appDB.execute(
+      `
+        select id, name
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    const deptStaffs = deptModels.concat(staffModels);
+    // 以员工/科室 id为key, name为value
+    const deptStaffObj = {};
+    deptStaffs.forEach(it => {
+      deptStaffObj[it.id] = it.name;
+    });
+    const workItemList = [];
+    workItemModels.forEach(it => {
+      // 查找是否已经在数组中
+      const index = workItemList.find(item => item.id === it.id);
+      //如果再数组中,把关联员工或科室放到子集中
+      if (index) {
+        if (it.source) {
+          index.staffMappings.push(deptStaffObj[it.source]);
+          index.staffIdMappings.push(it.source);
+        }
+      } else {
+        workItemList.push({
+          id: it.id,
+          name: it.name,
+          method: it.method,
+          staffMappings: it.source ? [deptStaffObj[it.source]] : [],
+          staffIdMappings: it.source ? [it.source] : []
+        });
+      }
+    });
 
     for (const it of workItemList) {
       // 工分项id
