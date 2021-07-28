@@ -128,6 +128,21 @@ export class HisMigration implements IMigration {
       comment on column "his_work_item_mapping".source is '来源id';
       comment on column "his_work_item_mapping".code is '检查项目/药品id';
 
+      -- 工分项目和员工绑定表
+      create table if not exists his_work_item_staff_mapping
+      (
+        id           varchar(36) primary key,
+        item        varchar(36),
+        source      varchar(36),
+        type      varchar(36),
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table his_work_item_staff_mapping is '工分项目员工关联表';
+      comment on column his_work_item_staff_mapping.item is '工分项目id';
+      comment on column his_work_item_staff_mapping."source" is '关联员工id/科室id';
+      comment on column his_work_item_staff_mapping."type" is '关联员工类型';
+
       --员工和工分项绑定表
       create table his_staff_work_item_mapping
       (
