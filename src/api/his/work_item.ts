@@ -724,6 +724,7 @@ export default class HisWorkItem {
         select item.id,
                item.name,
                item.method,
+               item.type,
                mapping.source
         from his_work_item item
         left join his_work_item_staff_mapping mapping on item.id = mapping.item
@@ -774,6 +775,7 @@ export default class HisWorkItem {
           id: it.id,
           name: it.name,
           method: it.method,
+          type: it.type,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
           staffIdMappings: it.source ? [it.source] : []
         });
