@@ -18,8 +18,8 @@
             size="mini"
             type="primary"
             @click="addConfigurationVisible = true"
-            >新增配置</el-button
-          >
+            >新增配置
+          </el-button>
         </div>
       </div>
       <kn-collapse
@@ -216,6 +216,7 @@
             clearable
             filterable
             style="width: 100%"
+            size="mini"
           >
             <el-option
               v-for="work in workList"
@@ -232,6 +233,7 @@
             filterable
             multiple
             style="width: 100%"
+            size="mini"
           >
             <el-option
               v-for="m in memberList"
@@ -242,7 +244,10 @@
           </el-select>
         </el-form-item>
         <el-form-item style="width: 100%" label="分配分值" prop="score">
-          <el-input-number v-model="newConfig.score"> </el-input-number>
+          <el-input-number
+            v-model="newConfig.score"
+            size="mini"
+          ></el-input-number>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -482,6 +487,7 @@ export default {
   display: flex;
   justify-content: space-between;
 }
+
 .cell-long-span {
   width: 100%;
   display: block;
