@@ -1063,7 +1063,12 @@ export default class HisWorkItem {
               .number()
               .required()
               .allow(null)
-              .description('分值')
+              .description('分值'),
+            rate: should
+              .number()
+              .required()
+              .allow(null)
+              .description('权重系数')
           })
           .required()
           .description('要添加的绑定关系'),
@@ -1077,7 +1082,12 @@ export default class HisWorkItem {
               .number()
               .required()
               .allow(null)
-              .description('分值')
+              .description('分值'),
+            rate: should
+              .number()
+              .required()
+              .allow(null)
+              .description('权重')
           })
           .required()
           .description('要修改的绑定关系'),
@@ -1139,12 +1149,13 @@ export default class HisWorkItem {
         for (const staffIt of staffIds) {
           await appDB.execute(
             ` insert into
-              his_staff_work_item_mapping(id, item, staff, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
+              his_staff_work_item_mapping(id, item, staff, score, rate, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?)`,
             uuid(),
             item,
             staffIt,
             params.insert.score,
+            params.insert.rate,
             dayjs().toDate(),
             dayjs().toDate()
           );
@@ -1155,7 +1166,7 @@ export default class HisWorkItem {
       if (params?.update.ids.length > 0) {
         // 先根据id查询到该工分项下的员工是否在其他分数中存在
         const updList = await appDB.execute(
-          `select id, staff, item, score
+          `select id, staff, item, score, rate
                 from his_staff_work_item_mapping
                 where id in (${params?.update.ids.map(() => '?')})`,
           ...params.update.ids
@@ -1169,10 +1180,11 @@ export default class HisWorkItem {
             throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
         });
         await appDB.execute(
-          `update his_staff_work_item_mapping set score = ?, updated_at = ?
+          `update his_staff_work_item_mapping set score = ?, rate = ?, updated_at = ?
                 where id in (${params?.update.ids.map(() => '?')})
           `,
           params.update.score,
+          params.update.rate,
           dayjs().toDate(),
           ...params.update.ids
         );
@@ -1210,6 +1222,7 @@ export default class HisWorkItem {
           ,mapping.id "mappingId"
           ,mapping.staff
           ,mapping.score
+          ,mapping.rate
           ,staff.name "staffName"
           ,staff.account
         from his_staff_work_item_mapping mapping
@@ -1257,6 +1270,7 @@ export default class HisWorkItem {
           name: it.name,
           method: it.method,
           score: it.score,
+          rate: it.rate,
           staffs: it.staff
             ? [
                 {
