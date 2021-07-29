@@ -142,6 +142,15 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column align="center" prop="rate" label="配置权重">
+          <template slot-scope="{row}">
+            <div v-if="!row.isEdit">{{ row.rate }}</div>
+            <div v-else-if="row.isEdit">
+              <el-input-number v-model="tempRow.rate" size="mini">
+              </el-input-number>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column align="center" prop="" label="操作">
           <template slot-scope="{row}">
             <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
@@ -249,6 +258,14 @@
             size="mini"
           ></el-input-number>
         </el-form-item>
+        <el-form-item style="width: 100%" label="权重系数" prop="rate">
+          <el-input-number
+            v-model="newConfig.rate"
+            style="width: 100px"
+            size="mini"
+          ></el-input-number>
+          <span>&nbsp;&nbsp;%</span>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig()">取 消</el-button>
@@ -281,13 +298,15 @@ export default {
         work: '',
         scoreType: '',
         member: [],
-        score: 0
+        score: 0,
+        rate: 100
       },
       addConfigurationVisible: false,
       configRules: {
         work: [{required: true, message: '选择工分项', trigger: 'change'}],
         member: [{required: true, message: '选择考核员工', trigger: 'change'}],
-        score: [{required: true, message: '输入分值', trigger: 'change'}]
+        score: [{required: true, message: '输入分值', trigger: 'change'}],
+        rate: [{required: true, message: '输入权重系数', trigger: 'change'}]
       },
       tempRow: '',
       HisWorkMethod: Object.keys(HisWorkMethod).map(it => ({
@@ -306,6 +325,7 @@ export default {
         workId: d.id,
         work: d.name,
         scoreType: d.method || '',
+        rate: d.rate * 100,
         scoreMember: d.staffs.map(m => m.name),
         memberIds: d.staffs.map(m => m.id),
         isEdit: false,
@@ -378,9 +398,10 @@ export default {
             {
               insert: {
                 staffs: this.newConfig.member,
-                score: this.newConfig.score
+                score: this.newConfig.score,
+                rate: this.newConfig.rate / 100
               },
-              update: {ids: [], score: null},
+              update: {ids: [], score: null, rate: null},
               delete: []
             }
           );
@@ -430,8 +451,16 @@ export default {
         await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
           this.tempRow.workId,
           {
-            insert: {staffs: insertArr, score: this.tempRow.score},
-            update: {ids: upsert, score: this.tempRow.score},
+            insert: {
+              staffs: insertArr,
+              score: this.tempRow.score,
+              rate: this.tempRow.rate / 100
+            },
+            update: {
+              ids: upsert,
+              score: this.tempRow.score,
+              rate: this.tempRow.rate / 100
+            },
             delete: deleteArr
           }
         );
