@@ -794,7 +794,6 @@ export default class HisWorkItem {
       }
       //如果再数组中,把关联员工或科室放到子集中
       if (index) {
-        console.log(index);
         if (it.source) {
           index.staffMappings.push(deptStaffObj[it.source]);
           index.staffIdMappings.push(...staffs);
