@@ -617,10 +617,12 @@ export default class HisWorkItem {
         ` update his_work_item
               set name = ?,
                 method = ?,
+                type = ?,
                 updated_at = ?
               where id = ?`,
         name,
         method,
+        staffMethod,
         dayjs().toDate(),
         id
       );
