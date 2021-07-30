@@ -362,43 +362,44 @@ export default {
   methods: {
     async submit() {
       try {
-        console.log(this.newWork.staffs);
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
-          const staffTrees = this.$refs['refTree'].getCheckedNodes();
-          // 要传的值
-          const staffs = [];
-          for (let c of staffTrees) {
-            // 选中状态
-            if (c.checked) {
-              // 有子集
-              if (c.children?.length > 0) {
-                staffs.push({
-                  code: c.value,
-                  type: 'dept'
-                });
-              } else {
-                // 员工没有挂载科室, 没有子集
-                if (!c.parent) {
+          if (this.newWork.staffMethod === HisStaffMethod.STATIC) {
+            const staffTrees = this.$refs['refTree'].getCheckedNodes();
+            // 要传的值
+            const staffs = [];
+            for (let c of staffTrees) {
+              // 选中状态
+              if (c.checked) {
+                // 有子集
+                if (c.children?.length > 0) {
                   staffs.push({
                     code: c.value,
-                    type: 'staff'
+                    type: 'dept'
                   });
                 } else {
-                  // 否则就是子集
-                  const index = staffs.find(it => it.code === c.parent.value);
-                  if (!index) {
+                  // 员工没有挂载科室, 没有子集
+                  if (!c.parent) {
                     staffs.push({
                       code: c.value,
                       type: 'staff'
                     });
+                  } else {
+                    // 否则就是子集
+                    const index = staffs.find(it => it.code === c.parent.value);
+                    if (!index) {
+                      staffs.push({
+                        code: c.value,
+                        type: 'staff'
+                      });
+                    }
                   }
                 }
               }
             }
+            this.newWork.staffs = staffs;
           }
-          this.newWork.staffs = staffs;
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
