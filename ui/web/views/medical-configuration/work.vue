@@ -379,13 +379,21 @@ export default {
                   type: 'dept'
                 });
               } else {
-                // 否则就是子集
-                const index = staffs.find(it => it.code === c.parent.value);
-                if (!index) {
+                // 员工没有挂载科室, 没有子集
+                if (!c.parent) {
                   staffs.push({
                     code: c.value,
                     type: 'staff'
                   });
+                } else {
+                  // 否则就是子集
+                  const index = staffs.find(it => it.code === c.parent.value);
+                  if (!index) {
+                    staffs.push({
+                      code: c.value,
+                      type: 'staff'
+                    });
+                  }
                 }
               }
             }
