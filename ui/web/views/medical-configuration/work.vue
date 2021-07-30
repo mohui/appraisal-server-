@@ -181,6 +181,51 @@
             >{{ old.name }}</el-tag
           >
         </el-form-item>
+        <el-form-item label="关联员工" prop="staffMethod">
+          <el-button-group>
+            <el-button
+              :type="
+                newWork.staffMethod === HisStaffMethod.DYNAMIC
+                  ? 'primary'
+                  : 'default'
+              "
+              size="small"
+              @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
+            >
+              {{ HisStaffMethod.DYNAMIC }}
+            </el-button>
+            <el-button
+              :type="
+                newWork.staffMethod === HisStaffMethod.STATIC
+                  ? 'primary'
+                  : 'default'
+              "
+              size="small"
+              @click="newWork.staffMethod = HisStaffMethod.STATIC"
+            >
+              {{ HisStaffMethod.STATIC }}
+            </el-button>
+          </el-button-group>
+        </el-form-item>
+        <el-form-item
+          v-if="newWork.staffMethod === HisStaffMethod.STATIC"
+          label="员工"
+          prop="sources"
+        >
+          <div class="long-tree">
+            <el-cascader
+              ref="refTree"
+              v-model="newWork.staffs"
+              size="mini"
+              style="width: 100%"
+              placeholder="输入关键字"
+              :options="treeList"
+              :props="{multiple: true, emitPath: false}"
+              filterable
+              collapse-tags
+            ></el-cascader>
+          </div>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig('workForm')">取 消</el-button>
@@ -216,6 +261,8 @@ export default {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
+        staffMethod: HisStaffMethod.DYNAMIC,
+        staffs: [],
         projects: [],
         projectsSelected: []
       },
@@ -228,6 +275,7 @@ export default {
       addBtnLoading: false,
       searchLoading: false,
       HisWorkMethod: HisWorkMethod,
+      HisStaffMethod: HisStaffMethod,
       HisWorkSource: Object.keys(HisWorkSource).map(it => ({
         value: HisWorkSource[it],
         key: it
@@ -254,6 +302,8 @@ export default {
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings,
         removeLoading: false,
+        staffMethod: d.type ? d.type : HisStaffMethod.DYNAMIC, // 默认是动态
+        staffIdMappings: d.staffIdMappings,
         staffMappings:
           d.staffMappings?.length > 0
             ? d.staffMappings
@@ -262,6 +312,9 @@ export default {
     },
     treeData() {
       return this.addPinyin(this.workTreeData);
+    },
+    treeList() {
+      return this.serverTree;
     }
   },
   watch: {
@@ -292,18 +345,58 @@ export default {
       default() {
         return [];
       }
+    },
+    serverTree: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.staffTree();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
     async submit() {
       try {
+        console.log(this.newWork.staffs);
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
+          const staffTrees = this.$refs['refTree'].getCheckedNodes();
+          // 要传的值
+          const staffs = [];
+          for (let c of staffTrees) {
+            // 选中状态
+            if (c.checked) {
+              // 有子集
+              if (c.children?.length > 0) {
+                staffs.push({
+                  code: c.value,
+                  type: 'dept'
+                });
+              } else {
+                // 否则就是子集
+                const index = staffs.find(it => it.code === c.parent.value);
+                if (!index) {
+                  staffs.push({
+                    code: c.value,
+                    type: 'staff'
+                  });
+                }
+              }
+            }
+          }
+          this.newWork.staffs = staffs;
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
-            this.newWork.projectsSelected.map(it => it.id) //被选中的项目id
+            this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
+            this.newWork.staffMethod,
+            this.newWork.staffs
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -332,7 +425,9 @@ export default {
             name: m.name,
             id: m.id
           })),
-          projects: []
+          projects: [],
+          staffMethod: row.staffMethod,
+          staffs: row.staffIdMappings
         })
       );
       this.addWorkVisible = true;
@@ -368,6 +463,7 @@ export default {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
+        staffMethod: HisStaffMethod.DYNAMIC,
         projects: [],
         projectsSelected: []
       };
@@ -433,7 +529,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
-  height: 40vh;
+  height: 30vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
