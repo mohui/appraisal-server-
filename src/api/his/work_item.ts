@@ -725,7 +725,8 @@ export default class HisWorkItem {
                item.name,
                item.method,
                item.type,
-               mapping.source
+               mapping.source,
+               mapping.type "sourceType"
         from his_work_item item
         left join his_work_item_staff_mapping mapping on item.id = mapping.item
         where hospital = ?
@@ -748,13 +749,32 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const staffModels = await appDB.execute(
       `
-        select id, name
+        select id, name, department
         from staff
         where hospital = ?
       `,
       hospital
     );
     const deptStaffs = deptModels.concat(staffModels);
+
+    // 汇总同一机构下的员工
+    const deptStaffList = [];
+    staffModels.forEach(it => {
+      // 只汇总有科室的员工
+      if (it.department) {
+        // 查找科室是否在数组中
+        const index = deptStaffList.find(deptId => deptId.id === it.department);
+        if (index) {
+          index.children.push(it.id);
+        } else {
+          // 如果没查找到,放到数组中
+          deptStaffList.push({
+            id: it.department,
+            children: [it.id]
+          });
+        }
+      }
+    });
     // 以员工/科室 id为key, name为value
     const deptStaffObj = {};
     deptStaffs.forEach(it => {
@@ -764,11 +784,20 @@ export default class HisWorkItem {
     workItemModels.forEach(it => {
       // 查找是否已经在数组中
       const index = workItemList.find(item => item.id === it.id);
+      // 定义员工数组
+      let staffs = [];
+      if (it.sourceType === 'dept') {
+        const index = deptStaffList.find(deptIt => deptIt.id === it.source);
+        if (index) staffs = index.children;
+      } else {
+        staffs = it.source ? [it.source] : [];
+      }
       //如果再数组中,把关联员工或科室放到子集中
       if (index) {
+        console.log(index);
         if (it.source) {
           index.staffMappings.push(deptStaffObj[it.source]);
-          index.staffIdMappings.push(it.source);
+          index.staffIdMappings.push(...staffs);
         }
       } else {
         workItemList.push({
@@ -777,7 +806,7 @@ export default class HisWorkItem {
           method: it.method,
           type: it.type,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
-          staffIdMappings: it.source ? [it.source] : []
+          staffIdMappings: staffs
         });
       }
     });
