@@ -973,12 +973,11 @@ export default class HisScore {
     //查询hospital绑定关系
     // language=PostgreSQL
     const hisHospitals: string[] = (
-      await mappingDB.execute(
+      await appDB.execute(
         `
-          select hospital
-          from area_hospital_mapping
-          where area = ?
-            and etl_id like '国卫公卫%'
+          select hishospid hospital
+          from hospital_mapping
+          where h_id = ?
         `,
         staffModel.hospital
       )
