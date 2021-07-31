@@ -105,7 +105,7 @@ export class HisMigration implements IMigration {
         hospital     varchar(36),
         name         varchar(255),
         method       varchar(255),
-        type       varchar(255),
+        type         varchar(255),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -134,9 +134,9 @@ export class HisMigration implements IMigration {
       create table if not exists his_work_item_staff_mapping
       (
         id           varchar(36) primary key,
-        item        varchar(36),
-        source      varchar(36),
-        type      varchar(36),
+        item         varchar(36),
+        source       varchar(36),
+        type         varchar(36),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -152,7 +152,7 @@ export class HisMigration implements IMigration {
         staff        varchar(36),
         item         varchar(36),
         score        double precision,
-        rate        double precision,
+        rate         double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (staff, item)
