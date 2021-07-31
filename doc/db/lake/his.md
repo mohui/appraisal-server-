@@ -83,6 +83,7 @@
 | staff | varchar(36) | 员工id |
 | item | varchar(36) | 工分项目id |
 | score | int | 分值 |
+| rate | double precision | 权重系数 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
