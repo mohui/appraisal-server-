@@ -1206,11 +1206,12 @@ export default class HisScore {
         end,
         id
       );
-      //本人的工分来源列表
+      //本人的工分累加
       const selfs = scoreDetails.reduce((result, current) => {
-        //过滤掉本人
+        // 查找工分项是否存在
         const obj = result.find(it => it.id === current.item);
         if (obj) {
+          // 根据工分项累加
           obj.score += current.score;
         } else {
           result.push({
