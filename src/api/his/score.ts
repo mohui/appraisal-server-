@@ -1206,25 +1206,16 @@ export default class HisScore {
         end,
         id
       );
-      //本人的工分项目得分列表
-      const self = scoreDetails
-        .filter(it => it.staff === id)
-        .map(it => ({
-          id: it.item,
-          name: it.item_name,
-          score: it.score
-        }));
       //本人的工分来源列表
-      const staffs = scoreDetails.reduce((result, current) => {
+      const selfs = scoreDetails.reduce((result, current) => {
         //过滤掉本人
-        if (current.staff === id) return result;
-        const obj = result.find(it => it.id === current.staff);
+        const obj = result.find(it => it.id === current.item);
         if (obj) {
           obj.score += current.score;
         } else {
           result.push({
-            id: current.staff,
-            name: current.staff_name,
+            id: current.item,
+            name: current.item_name,
             score: current.score
           });
         }
@@ -1250,8 +1241,8 @@ export default class HisScore {
           staffs: []
         };
       }
-      resultModel.self = self;
-      resultModel.staffs = staffs;
+      resultModel.self = selfs;
+      resultModel.staffs = [];
       const resultValue = JSON.stringify(resultModel);
       await appDB.execute(
         //language=PostgreSQL
