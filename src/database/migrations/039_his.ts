@@ -67,7 +67,7 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        input        varchar(255),
+        input        varchar(255)             not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (hospital, name)
@@ -104,8 +104,8 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        method       varchar(255),
-        type         varchar(255),
+        method       varchar(255)             not null,
+        type         varchar(255)             not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -136,7 +136,7 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         item         varchar(36),
         source       varchar(36),
-        type         varchar(36),
+        type         varchar(36)              not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
