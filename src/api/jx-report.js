@@ -8,8 +8,8 @@ import {getAreaTree, getLeaves} from './group';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-import {appDB} from '../app';
-import {displayTime} from './report';
+import {appDB, unifs} from '../app';
+import {displayTime, reportDir} from './report';
 
 /**
  * 获取指标数据
@@ -1009,12 +1009,21 @@ async function render(data) {
   //渲染数据
   doc.render();
   //导出文件
-  await fs.writeFile(
-    path.join('./tmp', data.file),
-    doc.getZip().generate({
-      type: 'nodebuffer'
-    })
-  );
+  if (process.env.NODE_ENV === 'production') {
+    await unifs.writeFile(
+      path.join(reportDir, data.file),
+      doc.getZip().generate({
+        type: 'nodebuffer'
+      })
+    );
+  } else {
+    await fs.writeFile(
+      path.join('./tmp', data.file),
+      doc.getZip().generate({
+        type: 'nodebuffer'
+      })
+    );
+  }
 }
 
 export default class JxReport {
@@ -1034,6 +1043,7 @@ export default class JxReport {
       await this.generate(time, it.code);
     }
   }
+
   /**
    * 生成公卫报告
    * @param time 年份加月份
