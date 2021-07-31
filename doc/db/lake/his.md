@@ -61,6 +61,7 @@
 | hospital | varchar(36) | 所属医院id |
 | name | varchar(255) | 名称 |
 | method | varchar(255) | 得分方式; 计数/总和 |
+| type | varchar(255) | 关联员工状态; 动态/固定 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
