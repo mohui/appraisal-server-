@@ -789,7 +789,7 @@ export default class HisWorkItem {
       const index = workItemList.find(item => item.id === it.id);
       // 定义员工数组
       let staffs = [];
-      if (it.sourceType === `${HisStaffDeptType.Staff}`) {
+      if (it.sourceType === `${HisStaffDeptType.DEPT}`) {
         const index = deptStaffList.find(deptIt => deptIt.id === it.source);
         if (index) staffs = index.children;
       } else {
