@@ -242,7 +242,8 @@ import {Permission} from '../../../../common/permission.ts';
 import {
   HisWorkMethod,
   HisWorkSource,
-  HisStaffMethod
+  HisStaffMethod,
+  HisStaffDeptType
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 
@@ -376,14 +377,14 @@ export default {
                 if (c.children?.length > 0) {
                   staffs.push({
                     code: c.value,
-                    type: 'dept'
+                    type: `${HisStaffDeptType.DEPT}`
                   });
                 } else {
                   // 员工没有挂载科室, 没有子集
                   if (!c.parent) {
                     staffs.push({
                       code: c.value,
-                      type: 'staff'
+                      type: `${HisStaffDeptType.Staff}`
                     });
                   } else {
                     // 否则就是子集
@@ -391,7 +392,7 @@ export default {
                     if (!index) {
                       staffs.push({
                         code: c.value,
-                        type: 'staff'
+                        type: `${HisStaffDeptType.Staff}`
                       });
                     }
                   }
