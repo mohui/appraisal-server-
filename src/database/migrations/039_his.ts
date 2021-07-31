@@ -152,6 +152,7 @@ export class HisMigration implements IMigration {
         staff        varchar(36),
         item         varchar(36),
         score        double precision,
+        rate        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (staff, item)
@@ -160,6 +161,7 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_item_mapping.staff is '员工id';
       comment on column his_staff_work_item_mapping.item is '工分项目id';
       comment on column his_staff_work_item_mapping.score is '分值';
+      comment on column his_staff_work_item_mapping.rate is '占比';
 
       --员工工分项目得分流水表
       create table if not exists his_staff_work_score_detail
