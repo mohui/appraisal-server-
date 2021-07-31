@@ -1143,28 +1143,68 @@ export default class HisScore {
         staff_name: string;
       }[] = await appDB.execute(
         `
-          select foo.*, wi.name as item_name, wi.method, s.name as staff_name
-          from (
-                 select ss.staff, sim.item, sum(sd.score) * ss.rate as score
-                 from (
-                        select unnest(sources) as staff,
-                               case avg
-                                 when true then rate / array_length(sources, 1)
-                                 else rate end as rate
-                        from his_staff_work_source
-                        where staff = ?
-                      ) ss
-                        inner join his_staff_work_item_mapping sim on ss.staff = sim.staff
-                        left join his_staff_work_score_detail sd
-                                  on ss.staff = sd.staff and sim.item = sd.item and sd.date >= ? and sd.date < ?
-                 group by ss.staff, sim.item, ss.rate
-               ) foo
-                 inner join his_work_item wi on foo.item = wi.id
-                 inner join staff s on foo.staff = s.id
+          -- 查询工分项为固定,关联为员工的工分
+          select staffWorkItem.item
+               , workItem.name as                                                 item_name
+               , workItem.method
+               , workItemStaff.source                                             staff
+               , staff.name                                                       staff_name
+               , COALESCE(scoreDetail.score, 0) * COALESCE(staffWorkItem.rate, 1) score
+          from his_staff_work_item_mapping staffWorkItem
+                 inner join his_work_item workItem on staffWorkItem.item = workItem.id
+                 left join his_work_item_staff_mapping workItemStaff on staffWorkItem.item = workItemStaff.item
+                 left join his_staff_work_score_detail scoreDetail ON workItemStaff.item = scoreDetail.item
+            and workItemStaff.source = scoreDetail.staff
+            and scoreDetail.date >= ?
+            and scoreDetail.date < ?
+                 inner join staff on workItemStaff.source = staff.id
+          where workItemStaff.type = 'staff'
+            and staffWorkItem.staff = ?
+          union
+          -- 查询工分项为固定,关联为科室的工分
+          select distinct staffWorkItem.item
+                        , workItem.name as                                                 item_name
+                        , workItem.method
+                        , staff.id                                                         staff
+                        , staff.name                                                       staff_name
+                        , COALESCE(scoreDetail.score, 0) * COALESCE(staffWorkItem.rate, 1) score
+          from his_staff_work_item_mapping staffWorkItem
+                 inner join his_work_item workItem on staffWorkItem.item = workItem.id
+                 inner join his_work_item_staff_mapping workItemStaff on staffWorkItem.item = workItemStaff.item
+                 inner join staff on workItemStaff.source = staff.department
+                 left join his_staff_work_score_detail scoreDetail ON workItemStaff.item = scoreDetail.item
+            and staff.id = scoreDetail.staff
+            and scoreDetail.date >= ?
+            and scoreDetail.date < ?
+          where workItemStaff.type = 'dept'
+            and staffWorkItem.staff = ?
+          union
+          -- 查询工分项为动态
+          select distinct staffWorkItem.item
+                        , workItem.name as                                                 item_name
+                        , workItem.method
+                        , staffWorkItem.staff
+                        , staff.name                                                       staff_name
+                        , COALESCE(scoreDetail.score, 0) * COALESCE(staffWorkItem.rate, 1) score
+          from his_staff_work_item_mapping staffWorkItem
+                 left join his_work_item workItem on staffWorkItem.item = workItem.id
+                 left join his_staff_work_score_detail scoreDetail ON staffWorkItem.item = scoreDetail.item
+            and staffWorkItem.staff = scoreDetail.staff
+            and scoreDetail.date >= ?
+            and scoreDetail.date < ?
+                 inner join staff on staffWorkItem.staff = staff.id
+          WHERE COALESCE(workItem.type, '动态') = '动态'
+            and staffWorkItem.staff = ?
         `,
+        start,
+        end,
         id,
         start,
-        end
+        end,
+        id,
+        start,
+        end,
+        id
       );
       //本人的工分项目得分列表
       const self = scoreDetails
