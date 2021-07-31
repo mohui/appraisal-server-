@@ -75,6 +75,17 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
+#### 工分项目和员工关联表(his_work_item_staff_mapping)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | varchar(36) primary key |
+| item | varchar(36) | 工分项目id |
+| source | varchar(36) | 来源id |
+| type | varchar(36) | 关联员工类型 科室/员工 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
 
 #### 员工和工分项绑定表(his_staff_work_item_mapping)
 
