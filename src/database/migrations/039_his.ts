@@ -130,7 +130,7 @@ export class HisMigration implements IMigration {
       comment on column "his_work_item_mapping".source is '来源id';
       comment on column "his_work_item_mapping".code is '检查项目/药品id';
 
-      -- 工分项目和员工绑定表
+      -- 工分项目和员工关联表
       create table if not exists his_work_item_staff_mapping
       (
         id           varchar(36) primary key,
