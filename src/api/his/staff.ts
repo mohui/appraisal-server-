@@ -164,7 +164,7 @@ export default class HisStaff {
     }
     return appDB.transaction(async () => {
       const staffId = uuid();
-      await appDB.execute(
+      return await appDB.execute(
         `insert into
             staff(
               id,
@@ -189,18 +189,6 @@ export default class HisStaff {
         virtual,
         remark,
         department,
-        dayjs().toDate(),
-        dayjs().toDate()
-      );
-
-      return await appDB.execute(
-        ` insert into
-              his_staff_work_source(id, staff, sources, rate, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
-        uuid(),
-        staffId,
-        `{${staffId}}`,
-        1,
         dayjs().toDate(),
         dayjs().toDate()
       );
