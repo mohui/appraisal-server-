@@ -44,6 +44,14 @@ export enum HisStaffMethod {
 }
 
 /**
+ * 公分项和员工关联类型
+ */
+export enum HisStaffDeptType {
+  Staff = '员工',
+  DEPT = '科室'
+}
+
+/**
  * 医疗工分项目来源
  */
 export enum HisWorkSource {
