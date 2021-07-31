@@ -1048,13 +1048,13 @@ export default class HisScore {
           await originalDB.execute(
             // language=PostgreSQL
             `
-            select distinct treat
-            from his_charge_master
-            where doctor = ?
-              and operate_time > ?
-              and operate_time < ?
-              and charge_type = ?
-          `,
+              select distinct treat
+              from his_charge_master
+              where doctor = ?
+                and operate_time > ?
+                and operate_time < ?
+                and charge_type = ?
+            `,
             staffModel.staff,
             start,
             end,
