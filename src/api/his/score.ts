@@ -1,4 +1,4 @@
-import {appDB, mappingDB, originalDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
