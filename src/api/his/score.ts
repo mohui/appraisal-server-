@@ -2,7 +2,12 @@ import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, MarkTagUsages} from '../../../common/his';
+import {
+  HisWorkMethod,
+  MarkTagUsages,
+  HisStaffDeptType,
+  HisStaffMethod
+} from '../../../common/his';
 import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 import {
@@ -1158,7 +1163,7 @@ export default class HisScore {
             and scoreDetail.date >= ?
             and scoreDetail.date < ?
                  inner join staff on workItemStaff.source = staff.id
-          where workItemStaff.type = 'staff'
+          where workItemStaff.type = '${HisStaffDeptType.Staff}'
             and staffWorkItem.staff = ?
           union
           -- 查询工分项为固定,关联为科室的工分
@@ -1176,7 +1181,7 @@ export default class HisScore {
             and staff.id = scoreDetail.staff
             and scoreDetail.date >= ?
             and scoreDetail.date < ?
-          where workItemStaff.type = 'dept'
+          where workItemStaff.type = '${HisStaffDeptType.DEPT}'
             and staffWorkItem.staff = ?
           union
           -- 查询工分项为动态
@@ -1193,7 +1198,7 @@ export default class HisScore {
             and scoreDetail.date >= ?
             and scoreDetail.date < ?
                  inner join staff on staffWorkItem.staff = staff.id
-          WHERE COALESCE(workItem.type, '动态') = '动态'
+          WHERE COALESCE(workItem.type, '${HisStaffMethod.DYNAMIC}') = '${HisStaffMethod.DYNAMIC}'
             and staffWorkItem.staff = ?
         `,
         start,

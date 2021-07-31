@@ -5,7 +5,8 @@ import * as dayjs from 'dayjs';
 import {
   HisWorkMethod,
   HisWorkSource,
-  HisStaffMethod
+  HisStaffMethod,
+  HisStaffDeptType
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
@@ -448,7 +449,7 @@ export default class HisWorkItem {
       .array()
       .items({
         code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: dept/staff')
+        type: should.string().description('类型: 科室/员工')
       })
       .description('绑定的员工或者科室')
   )
@@ -573,7 +574,7 @@ export default class HisWorkItem {
       .array()
       .items({
         code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: dept/staff')
+        type: should.string().description('类型: 科室/员工')
       })
       .description('绑定的员工或者科室')
   )
@@ -788,7 +789,7 @@ export default class HisWorkItem {
       const index = workItemList.find(item => item.id === it.id);
       // 定义员工数组
       let staffs = [];
-      if (it.sourceType === 'dept') {
+      if (it.sourceType === `${HisStaffDeptType.Staff}`) {
         const index = deptStaffList.find(deptIt => deptIt.id === it.source);
         if (index) staffs = index.children;
       } else {
