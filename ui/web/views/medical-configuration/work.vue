@@ -128,6 +128,32 @@
               <el-input v-model="newWork.work" size="mini"> </el-input>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="打分方式" prop="scoreMethod">
+              <el-button-group>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.SUM
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
+                >
+                  {{ HisWorkMethod.SUM }}
+                </el-button>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+                >
+                  {{ HisWorkMethod.AMOUNT }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="关联项目" prop="projectsSelected">
               <el-input
@@ -153,6 +179,32 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
+            <el-form-item label="关联员工" prop="staffMethod">
+              <el-button-group>
+                <el-button
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.DYNAMIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
+                >
+                  {{ HisStaffMethod.DYNAMIC }}
+                </el-button>
+                <el-button
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.STATIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
+                >
+                  {{ HisStaffMethod.STATIC }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
             <el-form-item
               v-if="newWork.staffMethod === HisStaffMethod.STATIC"
               label="员工"
@@ -174,60 +226,6 @@
                   @check-change="staffCheck"
                 ></el-tree>
               </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="打分方式" prop="scoreMethod">
-              <el-button-group>
-                <el-button
-                  :class="{
-                    'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.SUM
-                  }"
-                  size="small"
-                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
-                >
-                  {{ HisWorkMethod.SUM }}
-                </el-button>
-                <el-button
-                  :class="{
-                    'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.AMOUNT
-                  }"
-                  size="small"
-                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
-                >
-                  {{ HisWorkMethod.AMOUNT }}
-                </el-button>
-              </el-button-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="关联员工" prop="staffMethod">
-              <el-button-group>
-                <el-button
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.DYNAMIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="small"
-                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
-                >
-                  {{ HisStaffMethod.DYNAMIC }}
-                </el-button>
-                <el-button
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.STATIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="small"
-                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
-                >
-                  {{ HisStaffMethod.STATIC }}
-                </el-button>
-              </el-button-group>
             </el-form-item>
           </el-col>
         </el-row>
