@@ -51,7 +51,7 @@
             </tr>
           </tbody>
         </table>
-        <table class="record-old-table">
+        <table class="record-table">
           <thead>
             <tr>
               <th>体质类型</th>
@@ -149,7 +149,7 @@
         </div>
 
         <p>（附件 2）体质判定标准表</p>
-        <table class="record-old-table">
+        <table class="record-table">
           <thead>
             <tr>
               <th>体质类型及对应条目</th>
