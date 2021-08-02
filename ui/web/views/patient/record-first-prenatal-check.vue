@@ -362,11 +362,11 @@ export default {
   },
   computed: {
     firstPrenatalCheckDate() {
-      const date = this.firstPrenatalCheckServerDate;
-      date.newlydiagnoseddate = date.newlydiagnoseddate?.$format('YYYY-MM-DD');
-      date.birth = date.birth?.$format('YYYY-MM-DD');
-      date.lastmenstrual = date.lastmenstrual?.$format('YYYY-MM-DD');
-      return date;
+      const data = this.firstPrenatalCheckServerDate;
+      data.newlydiagnoseddate = data.newlydiagnoseddate?.$format('YYYY-MM-DD');
+      data.birth = data.birth?.$format('YYYY-MM-DD');
+      data.lastmenstrual = data.lastmenstrual?.$format('YYYY-MM-DD');
+      return data;
     }
   },
   asyncComputed: {
