@@ -16,18 +16,6 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 员工医疗工分来源表(his_staff_work_source)
-
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| id | varchar(36) | 主键 |
-| staff | varchar(36) | 员工id |
-| sources | varchar(36)[] | 关联员工id数组 |
-| rate | double precision | 权重系数 |
-| avg | boolean | 是否平均分配 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
-
 #### 医疗手工数据表(his_manual_data)
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
