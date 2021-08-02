@@ -200,21 +200,6 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item
-              v-show="newWork.projectsSelected.length > 0"
-              label="已有工分项"
-            >
-              <el-tag
-                v-for="old in newWork.projectsSelected"
-                :key="old.id"
-                closable
-                @close="closeTag(old)"
-                style="margin: 0 5px"
-                >{{ old.name }}</el-tag
-              >
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
             <el-form-item label="关联员工" prop="staffMethod">
               <el-button-group>
                 <el-button
@@ -535,16 +520,6 @@ export default {
         }
       }
       this.newWork.projectsSelected = checkedNodes;
-    },
-    closeTag(tag) {
-      //如果原有的工分项有该项目,则删除
-      const index = this.newWork.projectsSelected.findIndex(
-        old => old.id === tag.id
-      );
-      if (index > -1) this.newWork.projectsSelected.splice(index, 1);
-      this.$refs.tree.setCheckedKeys(
-        this.newWork.projectsSelected.map(it => it.id)
-      );
     }
   }
 };
