@@ -1197,12 +1197,11 @@ export default class HisWorkItem {
         for (const staffIt of staffIds) {
           await appDB.execute(
             ` insert into
-              his_staff_work_item_mapping(id, item, staff, score, rate, created_at, updated_at)
+              his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
               values(?, ?, ?, ?, ?, ?, ?)`,
             uuid(),
             item,
             staffIt,
-            params.insert.score,
             params.insert.rate,
             dayjs().toDate(),
             dayjs().toDate()
@@ -1228,10 +1227,9 @@ export default class HisWorkItem {
             throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
         });
         await appDB.execute(
-          `update his_staff_work_item_mapping set score = ?, rate = ?, updated_at = ?
+          `update his_staff_work_item_mapping set rate = ?, updated_at = ?
                 where id in (${params?.update.ids.map(() => '?')})
           `,
-          params.update.score,
           params.update.rate,
           dayjs().toDate(),
           ...params.update.ids
@@ -1264,18 +1262,22 @@ export default class HisWorkItem {
 
     const [sql, params] = sqlRender(
       `
-        select item.id
-          ,item.name
+        select
+          item.id "itemId"
+          ,item.name "itemName"
           ,item.method
+          ,item.score
+
           ,mapping.id "mappingId"
-          ,mapping.staff
-          ,mapping.score
+          ,mapping.staff "mappingStaff"
           ,mapping.rate
+
+          ,staff.id "staffId"
           ,staff.name "staffName"
           ,staff.account
-        from his_staff_work_item_mapping mapping
+        from staff
+         left join his_staff_work_item_mapping mapping on staff.id = mapping.staff
         left join his_work_item item  on mapping.item = item.id
-        left join staff on mapping.staff = staff.id
         where item.hospital = {{? hospital}}
         {{#if method}}
             AND item.method = {{? method}}
@@ -1295,44 +1297,114 @@ export default class HisWorkItem {
         staffName
       }
     );
-    const itemList = await appDB.execute(sql, ...params);
-    if (itemList.length === 0) return [];
+    const staffModels = await appDB.execute(sql, ...params);
+    if (staffModels.length === 0) return [];
 
-    const returnList = [];
-    for (const it of itemList) {
-      const index = returnList.find(
-        item => item.id === it.id && item.score === it.score
-      );
+    const staffList = [];
+    for (const it of staffModels) {
+      // 根据用户汇总
+      const index = staffList.find(item => item.id === it.staffId);
       if (index) {
-        if (it.staff) {
-          index.staffs.push({
+        if (it.itemId) {
+          index.children.push({
             mapping: it.mappingId,
-            id: it.staff,
-            name: it.staffName,
-            account: it.account
+            id: it.itemId,
+            name: it.itemName,
+            rate: it.rate
           });
         }
       } else {
-        returnList.push({
-          id: it.id,
-          name: it.name,
-          method: it.method,
-          score: it.score,
-          rate: it.rate,
-          staffs: it.staff
+        staffList.push({
+          id: it.staffId,
+          name: it.staffName,
+          account: it.account,
+          children: it.itemId
             ? [
                 {
                   mapping: it.mappingId,
-                  id: it.staff,
-                  name: it.staffName,
-                  account: it.account
+                  id: it.itemId,
+                  name: it.itemName,
+                  rate: it.rate
                 }
               ]
             : []
         });
       }
     }
-    return returnList;
+
+    const [itemSql, itemParams] = sqlRender(
+      `
+        select
+          item.id "itemId"
+          ,item.name "itemName"
+          ,item.method
+          ,item.score
+
+          ,mapping.id "mappingId"
+          ,mapping.staff "mappingStaff"
+          ,mapping.rate
+
+          ,staff.id "staffId"
+          ,staff.name "staffName"
+          ,staff.account
+        from his_work_item item
+        left join his_staff_work_item_mapping mapping on item.id = mapping.item
+        left join staff on staff.id = mapping.staff
+        where item.hospital = {{? hospital}}
+        {{#if method}}
+            AND item.method = {{? method}}
+        {{/if}}
+        {{#if name}}
+            AND item.name like {{? name}}
+        {{/if}}
+        {{#if staffName}}
+            AND staff.name like {{? staffName}}
+        {{/if}}
+        order by item.created_at
+      `,
+      {
+        hospital,
+        method,
+        name,
+        staffName
+      }
+    );
+    const workItemModels = await appDB.execute(itemSql, ...itemParams);
+
+    const workItemList = [];
+    for (const it of workItemModels) {
+      // 根据用户汇总
+      const index = workItemList.find(item => item.id === it.itemId);
+      if (index) {
+        if (it.staffId) {
+          index.children.push({
+            mapping: it.mappingId,
+            id: it.staffId,
+            name: it.staffName,
+            rate: it.rate
+          });
+        }
+      } else {
+        workItemList.push({
+          id: it.itemId,
+          name: it.itemName,
+          children: it.itemId
+            ? [
+                {
+                  mapping: it.mappingId,
+                  id: it.staffId,
+                  name: it.staffName,
+                  rate: it.rate
+                }
+              ]
+            : []
+        });
+      }
+    }
+    return {
+      workItemList,
+      staffList
+    };
   }
 
   @validate(
