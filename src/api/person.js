@@ -2214,6 +2214,50 @@ export default class Person {
     constitution.guide = '';
     return {name, questionnaire, constitution};
   }
+
+  /**
+   * 慢病高危随访列表
+   *
+   * @param id 居民id
+   * @return []
+   */
+  // eslint-disable-next-line no-unused-vars
+  async chronicDiseaseHighList(id) {
+    return [];
+  }
+
+  /**
+   * 慢病高危随访详情
+   *
+   * @param id 随访id
+   * @return {}
+   */
+  // eslint-disable-next-line no-unused-vars
+  async chronicDiseaseHighVisit(id) {
+    return {};
+  }
+
+  /**
+   * 其他慢病随访列表
+   *
+   * @param id 居民id
+   * @return []
+   */
+  // eslint-disable-next-line no-unused-vars
+  async chronicDiseaseOtherList(id) {
+    return [];
+  }
+
+  /**
+   * 其他慢病随访详情
+   *
+   * @param id 随访id
+   * @return {}
+   */
+  // eslint-disable-next-line no-unused-vars
+  async chronicDiseaseOtherVisit(id) {
+    return {};
+  }
 }
 
 /***
