@@ -29,7 +29,6 @@ import {Permission} from '../../../common/permission';
 import {createBackJob} from '../../utils/back-job';
 import {v4 as uuid} from 'uuid';
 import * as path from 'path';
-import {ossClient} from '../../../util/oss';
 
 /**
  * 获取百分数字符串, 默认返回'0'
