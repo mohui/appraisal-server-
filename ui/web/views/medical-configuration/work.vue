@@ -147,6 +147,7 @@
                   node-key="id"
                   :filter-node-method="filterNode"
                   show-checkbox
+                  check-strictly
                   @check-change="treeCheck"
                 ></el-tree>
               </div>
