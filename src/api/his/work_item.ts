@@ -427,6 +427,7 @@ export default class HisWorkItem {
    * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [绑定的员工]
+   * @param score 分值
    */
   @validate(
     should
@@ -451,9 +452,14 @@ export default class HisWorkItem {
         code: should.string().description('科室id/员工id'),
         type: should.string().description('类型: 科室/员工')
       })
-      .description('绑定的员工或者科室')
+      .description('绑定的员工或者科室'),
+    should
+      .number()
+      .required()
+      .allow(null)
+      .description('分值')
   )
-  async add(name, method, mappings, staffMethod, staffs) {
+  async add(name, method, mappings, staffMethod, staffs, score) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -484,13 +490,14 @@ export default class HisWorkItem {
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, type, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?)`,
+              his_work_item(id, hospital, name, method, type, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
         method,
         staffMethod,
+        score,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -548,6 +555,7 @@ export default class HisWorkItem {
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [绑定的员工]
    * @param mappings
+   * @param score
    */
   @validate(
     should
@@ -576,9 +584,14 @@ export default class HisWorkItem {
         code: should.string().description('科室id/员工id'),
         type: should.string().description('类型: 科室/员工')
       })
-      .description('绑定的员工或者科室')
+      .description('绑定的员工或者科室'),
+    should
+      .number()
+      .required()
+      .allow(null)
+      .description('分值')
   )
-  async update(id, name, method, mappings, staffMethod, staffs) {
+  async update(id, name, method, mappings, staffMethod, staffs, score) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -619,11 +632,13 @@ export default class HisWorkItem {
               set name = ?,
                 method = ?,
                 type = ?,
+                score = ?,
                 updated_at = ?
               where id = ?`,
         name,
         method,
         staffMethod,
+        score,
         dayjs().toDate(),
         id
       );
