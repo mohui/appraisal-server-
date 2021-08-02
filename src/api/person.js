@@ -1736,7 +1736,7 @@ export default class Person {
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
       `
-        select b.fathername, b.fatherage, n.*, n.height / n.weight / n.weight as bmi
+        select b.fathername, b.fatherage, n.*, n.weight / (n.height / 100) ^ 2 as bmi
         from v_newlydiagnosed_kn n
                inner join v_pregnancybooks_kn b on n.pre_newlydiagnosedcode = b.newlydiagnosedcode
         where n.newlydiagnosedcode = ?
