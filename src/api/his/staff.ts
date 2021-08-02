@@ -3,7 +3,7 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {HisWorkScoreType} from '../../../common/his';
+import {HisWorkScoreType, HisStaffDeptType} from '../../../common/his';
 import {
   dateValid,
   getEndTime,
@@ -385,16 +385,19 @@ export default class HisStaff {
         if (index) {
           index.children.push({
             value: it.id,
-            label: it.name
+            label: it.name,
+            type: `${HisStaffDeptType.Staff}`
           });
         } else {
           trees.push({
             value: it.department,
             label: it.deptName ?? '',
+            type: `${HisStaffDeptType.DEPT}`,
             children: [
               {
                 value: it.id,
-                label: it.name
+                label: it.name,
+                type: `${HisStaffDeptType.Staff}`
               }
             ]
           });
@@ -402,7 +405,8 @@ export default class HisStaff {
       } else {
         trees.push({
           value: it.id,
-          label: it.name
+          label: it.name,
+          type: `${HisStaffDeptType.Staff}`
         });
       }
     });
