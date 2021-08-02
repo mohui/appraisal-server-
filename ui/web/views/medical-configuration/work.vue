@@ -122,110 +122,127 @@
         label-position="right"
         label-width="120px"
       >
-        <el-form-item label="工分项" prop="work">
-          <el-input v-model="newWork.work" size="mini"> </el-input>
-        </el-form-item>
-        <el-form-item label="关联项目" prop="projectsSelected">
-          <el-input
-            size="mini"
-            placeholder="输入关键字进行过滤"
-            v-model="filterText"
-          >
-          </el-input>
-          <div class="long-tree">
-            <el-tree
-              ref="tree"
-              :data="treeData"
-              :props="treeProps"
-              :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
-              node-key="id"
-              :filter-node-method="filterNode"
-              show-checkbox
-              @check-change="treeCheck"
-            ></el-tree>
-          </div>
-        </el-form-item>
-        <el-form-item label="打分方式" prop="scoreMethod">
-          <el-button-group>
-            <el-button
-              :class="{
-                'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
-              }"
-              size="small"
-              @click="newWork.scoreMethod = HisWorkMethod.SUM"
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="工分项" prop="work">
+              <el-input v-model="newWork.work" size="mini"> </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="关联项目" prop="projectsSelected">
+              <el-input
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="filterText"
+              >
+              </el-input>
+              <div class="long-tree">
+                <el-tree
+                  ref="tree"
+                  :data="treeData"
+                  :props="treeProps"
+                  :default-checked-keys="
+                    newWork.projectsSelected.map(it => it.id)
+                  "
+                  node-key="id"
+                  :filter-node-method="filterNode"
+                  show-checkbox
+                  @check-change="treeCheck"
+                ></el-tree>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              v-if="newWork.staffMethod === HisStaffMethod.STATIC"
+              label="员工"
+              prop="sources"
             >
-              {{ HisWorkMethod.SUM }}
-            </el-button>
-            <el-button
-              :class="{
-                'el-button--primary':
-                  newWork.scoreMethod === HisWorkMethod.AMOUNT
-              }"
-              size="small"
-              @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+              <div class="long-tree">
+                <el-cascader
+                  ref="refTree"
+                  v-model="newWork.staffs"
+                  size="mini"
+                  style="width: 100%"
+                  placeholder="输入关键字"
+                  :options="treeList"
+                  :props="{multiple: true, emitPath: false}"
+                  filterable
+                  collapse-tags
+                ></el-cascader>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="打分方式" prop="scoreMethod">
+              <el-button-group>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.SUM
+                  }"
+                  size="small"
+                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
+                >
+                  {{ HisWorkMethod.SUM }}
+                </el-button>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                  }"
+                  size="small"
+                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+                >
+                  {{ HisWorkMethod.AMOUNT }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              v-show="newWork.projectsSelected.length > 0"
+              label="已有工分项"
             >
-              {{ HisWorkMethod.AMOUNT }}
-            </el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item
-          v-show="newWork.projectsSelected.length > 0"
-          label="已有工分项"
-        >
-          <el-tag
-            v-for="old in newWork.projectsSelected"
-            :key="old.id"
-            closable
-            @close="closeTag(old)"
-            style="margin: 0 5px"
-            >{{ old.name }}</el-tag
-          >
-        </el-form-item>
-        <el-form-item label="关联员工" prop="staffMethod">
-          <el-button-group>
-            <el-button
-              :type="
-                newWork.staffMethod === HisStaffMethod.DYNAMIC
-                  ? 'primary'
-                  : 'default'
-              "
-              size="small"
-              @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
-            >
-              {{ HisStaffMethod.DYNAMIC }}
-            </el-button>
-            <el-button
-              :type="
-                newWork.staffMethod === HisStaffMethod.STATIC
-                  ? 'primary'
-                  : 'default'
-              "
-              size="small"
-              @click="newWork.staffMethod = HisStaffMethod.STATIC"
-            >
-              {{ HisStaffMethod.STATIC }}
-            </el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item
-          v-if="newWork.staffMethod === HisStaffMethod.STATIC"
-          label="员工"
-          prop="sources"
-        >
-          <div class="long-tree">
-            <el-cascader
-              ref="refTree"
-              v-model="newWork.staffs"
-              size="mini"
-              style="width: 100%"
-              placeholder="输入关键字"
-              :options="treeList"
-              :props="{multiple: true, emitPath: false}"
-              filterable
-              collapse-tags
-            ></el-cascader>
-          </div>
-        </el-form-item>
+              <el-tag
+                v-for="old in newWork.projectsSelected"
+                :key="old.id"
+                closable
+                @close="closeTag(old)"
+                style="margin: 0 5px"
+                >{{ old.name }}</el-tag
+              >
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="关联员工" prop="staffMethod">
+              <el-button-group>
+                <el-button
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.DYNAMIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="small"
+                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
+                >
+                  {{ HisStaffMethod.DYNAMIC }}
+                </el-button>
+                <el-button
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.STATIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="small"
+                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
+                >
+                  {{ HisStaffMethod.STATIC }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig('workForm')">取 消</el-button>
@@ -539,7 +556,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
-  height: 30vh;
+  max-height: 40vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
