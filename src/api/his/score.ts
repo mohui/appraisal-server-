@@ -1154,7 +1154,7 @@ export default class HisScore {
                , workItem.method
                , workItemStaff.source                                             staff
                , staff.name                                                       staff_name
-               , COALESCE(scoreDetail.score, 0) * COALESCE(staffWorkItem.rate, 1) score
+               , COALESCE(scoreDetail.score, 0) * COALESCE(staffWorkItem.rate, 0) score
           from his_staff_work_item_mapping staffWorkItem
                  inner join his_work_item workItem on staffWorkItem.item = workItem.id
                  left join his_work_item_staff_mapping workItemStaff on staffWorkItem.item = workItemStaff.item
