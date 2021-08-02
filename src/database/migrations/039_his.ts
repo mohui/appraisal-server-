@@ -44,23 +44,6 @@ export class HisMigration implements IMigration {
       comment on column staff.password is '密码';
       comment on column staff.name is '名称';
 
-      --员工医疗工分来源表
-      create table if not exists his_staff_work_source
-      (
-        id           varchar(36) primary key,
-        staff        varchar(36),
-        sources      varchar(36)[],
-        rate         double precision,
-        avg          boolean                           default false not null,
-        "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
-      );
-      comment on table his_staff_work_source is '员工医疗工分来源表';
-      comment on column his_staff_work_source.staff is '员工id';
-      comment on column his_staff_work_source."sources" is '关联员工id数组';
-      comment on column his_staff_work_source.rate is '权重系数';
-      comment on column his_staff_work_source.avg is '是否平均';
-
       --医疗手工数据表
       create table if not exists his_manual_data
       (
