@@ -157,20 +157,23 @@
             <el-form-item
               v-if="newWork.staffMethod === HisStaffMethod.STATIC"
               label="员工"
-              prop="sources"
+              prop="staffs"
             >
+              <el-input
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="staffFilterText"
+              ></el-input>
               <div class="long-tree">
-                <el-cascader
-                  ref="refTree"
-                  v-model="newWork.staffs"
-                  size="mini"
-                  style="width: 100%"
-                  placeholder="输入关键字"
-                  :options="treeList"
-                  :props="{multiple: true, emitPath: false}"
-                  filterable
-                  collapse-tags
-                ></el-cascader>
+                <el-tree
+                  ref="staffTree"
+                  :data="staffTree"
+                  node-key="id"
+                  :filter-node-method="filterNode"
+                  show-checkbox
+                  check-strictly
+                  @check-change="treeCheck"
+                ></el-tree>
               </div>
             </el-form-item>
           </el-col>
@@ -294,7 +297,8 @@ export default {
           );
         }
       },
-      filterText: ''
+      filterText: '',
+      staffFilterText: ''
     };
   },
   computed: {
@@ -317,13 +321,16 @@ export default {
     treeData() {
       return this.addPinyin(this.workTreeData);
     },
-    treeList() {
-      return this.serverTree;
+    staffTree() {
+      return this.addPinyin(this.staffTreeData);
     }
   },
   watch: {
     filterText(value) {
       this.$refs.tree.filter(value);
+    },
+    staffFilterText(value) {
+      this.$refs.staffTree.filter(value);
     }
   },
   asyncComputed: {
@@ -350,7 +357,7 @@ export default {
         return [];
       }
     },
-    serverTree: {
+    staffTreeData: {
       async get() {
         try {
           return await this.$api.HisStaff.staffTree();
@@ -491,7 +498,11 @@ export default {
       return contentStr;
     },
     addPinyin(arr) {
-      arr = arr.map(it => ({...it, pinyin: strToPinyin(it.name)}));
+      arr = arr.map(it => ({
+        ...it,
+        name: it.name || it.label,
+        pinyin: strToPinyin(it.name || it.label)
+      }));
       for (let current of arr) {
         if (current?.children?.length > 0) {
           current.children = this.addPinyin(current.children);
