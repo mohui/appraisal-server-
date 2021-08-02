@@ -135,7 +135,7 @@
             <tr>
               <td colspan="4">体质指数（BMI)</td>
               <td colspan="8">
-                <em>{{ firstPrenatalCheckDate.height }}</em> kg/m2
+                <em>{{ firstPrenatalCheckDate.bmi }}</em> kg/m2
               </td>
               <td colspan="4">血压</td>
               <td colspan="8">
@@ -366,6 +366,7 @@ export default {
       data.newlydiagnoseddate = data.newlydiagnoseddate?.$format('YYYY-MM-DD');
       data.birth = data.birth?.$format('YYYY-MM-DD');
       data.lastmenstrual = data.lastmenstrual?.$format('YYYY-MM-DD');
+      data.bmi = Number(data.bmi)?.toFixed(4);
       return data;
     }
   },
