@@ -167,11 +167,11 @@
                 <el-tree
                   ref="staffTree"
                   :data="staffTree"
-                  node-key="id"
+                  :default-checked-keys="newWork.staffs"
+                  node-key="value"
                   :filter-node-method="filterNode"
                   show-checkbox
-                  check-strictly
-                  @check-change="treeCheck"
+                  @check-change="staffCheck"
                 ></el-tree>
               </div>
             </el-form-item>
@@ -247,8 +247,7 @@ import {Permission} from '../../../../common/permission.ts';
 import {
   HisWorkMethod,
   HisWorkSource,
-  HisStaffMethod,
-  HisStaffDeptType
+  HisStaffMethod
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 
@@ -380,47 +379,15 @@ export default {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
-          if (this.newWork.staffMethod === HisStaffMethod.STATIC) {
-            const staffTrees = this.$refs['refTree'].getCheckedNodes();
-            // 要传的值
-            const staffs = [];
-            for (let c of staffTrees) {
-              // 选中状态
-              if (c.checked) {
-                // 有子集
-                if (c.children?.length > 0) {
-                  staffs.push({
-                    code: c.value,
-                    type: `${HisStaffDeptType.DEPT}`
-                  });
-                } else {
-                  // 员工没有挂载科室, 没有子集
-                  if (!c.parent) {
-                    staffs.push({
-                      code: c.value,
-                      type: `${HisStaffDeptType.Staff}`
-                    });
-                  } else {
-                    // 否则就是子集
-                    const index = staffs.find(it => it.code === c.parent.value);
-                    if (!index) {
-                      staffs.push({
-                        code: c.value,
-                        type: `${HisStaffDeptType.Staff}`
-                      });
-                    }
-                  }
-                }
-              }
-            }
-            this.newWork.staffs = staffs;
-          }
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
             this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
             this.newWork.staffMethod,
-            this.newWork.staffs
+            this.newWork.staffs.map(it => ({
+              code: it.value,
+              type: it.type
+            }))
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -526,6 +493,18 @@ export default {
       } finally {
         this.searchLoading = false;
       }
+    },
+    staffCheck() {
+      let checkedNodes = this.$refs.staffTree.getCheckedNodes();
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(
+            it => !c.children.some(child => it.value === child.value)
+          );
+        }
+      }
+      this.newWork.staffs = checkedNodes;
     },
     treeCheck() {
       let checkedNodes = this.$refs.tree.getCheckedNodes();
