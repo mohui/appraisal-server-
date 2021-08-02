@@ -42,6 +42,8 @@ function listRender(params) {
             {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
             {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
             {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+            {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
+            {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
           )
           and
           (
@@ -272,6 +274,8 @@ export default class Person {
                 mp."C11",
                 mp."C13",
                 mp."C14",
+                mp."CH01",
+                mp."CO01",
                 mp."E00",
                 mp.ai_2dm,
                 mp.ai_hua,

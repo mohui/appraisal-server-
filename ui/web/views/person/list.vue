@@ -466,7 +466,9 @@ export default {
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
               res[`${next}`] =
-                next.includes('C') ||
+                (next.includes('C') &&
+                  !next.includes('CH01') &&
+                  !next.includes('CO01')) ||
                 next.includes('E') ||
                 next === 'ai_hua' ||
                 next === 'ai_2dm';
