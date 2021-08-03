@@ -1231,169 +1231,49 @@ export default class HisWorkItem {
   /**
    * 公分项和员工列表
    */
-  @validate(
-    should
-      .string()
-      .allow(null)
-      .description('工分项目id'),
-    should
-      .string()
-      .allow(null)
-      .description('公分项名称'),
-    should
-      .string()
-      .allow(null)
-      .description('员工名称')
-  )
-  async selStaffWorkItemMapping(method, name, staffName) {
+  async selStaffWorkItemMapping() {
     const hospital = await getHospital();
-    if (name) name = `%${name}%`;
-    if (staffName) staffName = `%${staffName}%`;
-
-    const [sql, params] = sqlRender(
+    // 查询员工列表
+    // language=PostgreSQL
+    const staffModes = await appDB.execute(
       `
-        select
-          item.id "itemId"
-          ,item.name "itemName"
-          ,item.method
-          ,item.score
-
-          ,mapping.id "mappingId"
-          ,mapping.staff "mappingStaff"
-          ,mapping.rate
-
-          ,staff.id "staffId"
-          ,staff.name "staffName"
-          ,staff.account
+        select id, name, account
         from staff
-         left join his_staff_work_item_mapping mapping on staff.id = mapping.staff
-        left join his_work_item item  on mapping.item = item.id
-        where item.hospital = {{? hospital}}
-        {{#if method}}
-            AND item.method = {{? method}}
-        {{/if}}
-        {{#if name}}
-            AND item.name like {{? name}}
-        {{/if}}
-        {{#if staffName}}
-            AND staff.name like {{? staffName}}
-        {{/if}}
-        order by item.created_at
+        where hospital = ?
       `,
-      {
-        hospital,
-        method,
-        name,
-        staffName
-      }
+      hospital
     );
-    const staffModels = await appDB.execute(sql, ...params);
-    if (staffModels.length === 0) return [];
 
-    const staffList = [];
-    for (const it of staffModels) {
-      // 根据用户汇总
-      const index = staffList.find(item => item.id === it.staffId);
-      if (index) {
-        if (it.itemId) {
-          index.children.push({
-            mapping: it.mappingId,
-            id: it.itemId,
-            name: it.itemName,
-            rate: it.rate
-          });
-        }
-      } else {
-        staffList.push({
-          id: it.staffId,
-          name: it.staffName,
-          account: it.account,
-          children: it.itemId
-            ? [
-                {
-                  mapping: it.mappingId,
-                  id: it.itemId,
-                  name: it.itemName,
-                  rate: it.rate
-                }
-              ]
-            : []
-        });
-      }
-    }
-
-    const [itemSql, itemParams] = sqlRender(
+    // 查询公分项
+    // language=PostgreSQL
+    const workItemModes = await appDB.execute(
       `
-        select
-          item.id "itemId"
-          ,item.name "itemName"
-          ,item.method
-          ,item.score
-
-          ,mapping.id "mappingId"
-          ,mapping.staff "mappingStaff"
-          ,mapping.rate
-
-          ,staff.id "staffId"
-          ,staff.name "staffName"
-          ,staff.account
-        from his_work_item item
-        left join his_staff_work_item_mapping mapping on item.id = mapping.item
-        left join staff on staff.id = mapping.staff
-        where item.hospital = {{? hospital}}
-        {{#if method}}
-            AND item.method = {{? method}}
-        {{/if}}
-        {{#if name}}
-            AND item.name like {{? name}}
-        {{/if}}
-        {{#if staffName}}
-            AND staff.name like {{? staffName}}
-        {{/if}}
-        order by item.created_at
+        select id, name, method, score
+        from his_work_item
+        where hospital = ?
       `,
-      {
-        hospital,
-        method,
-        name,
-        staffName
-      }
+      hospital
     );
-    const workItemModels = await appDB.execute(itemSql, ...itemParams);
 
-    const workItemList = [];
-    for (const it of workItemModels) {
-      // 根据用户汇总
-      const index = workItemList.find(item => item.id === it.itemId);
-      if (index) {
-        if (it.staffId) {
-          index.children.push({
-            mapping: it.mappingId,
-            id: it.staffId,
-            name: it.staffName,
-            rate: it.rate
-          });
-        }
-      } else {
-        workItemList.push({
-          id: it.itemId,
-          name: it.itemName,
-          children: it.itemId
-            ? [
-                {
-                  mapping: it.mappingId,
-                  id: it.staffId,
-                  name: it.staffName,
-                  rate: it.rate
-                }
-              ]
-            : []
-        });
-      }
-    }
+    // 查询公分项和员工的绑定
+    // language=PostgreSQL
+    const mappingModels = await appDB.execute(
+      `
+        select mapping.id
+             , mapping.staff
+             , mapping.item
+             , mapping.rate
+        from his_staff_work_item_mapping mapping
+               left join staff on mapping.staff = staff.id
+        where staff.hospital = ?
+      `,
+      hospital
+    );
+
     return {
-      workItemList,
-      staffList
+      staffs: staffModes,
+      workItems: workItemModes,
+      mappings: mappingModels
     };
   }
 
