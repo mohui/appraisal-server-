@@ -94,10 +94,11 @@
         ></el-table-column>
         <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.rate }}</div>
+            <div v-if="!row.isEdit">{{ row.rate }} %</div>
             <div v-else-if="row.isEdit">
               <el-input-number v-model="tempRow.rate" size="mini">
               </el-input-number>
+              %
             </div>
           </template>
         </el-table-column>
@@ -322,7 +323,7 @@ export default {
             staffName: row.name, //工分项维度时用到的员工变量
             itemId: row.item, //员工维度时用到的工分变量
             itemName: row.name, //员工维度时用到的工分名变量
-            rate: row.rate
+            rate: row.rate * 100
           });
         });
       });
