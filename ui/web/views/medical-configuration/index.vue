@@ -318,10 +318,10 @@ export default {
           targetData.push({
             ...data,
             mappingId: row.id,
-            staffId: row.staff, //工分项维度时用到的变量
-            staffName: row.name, //工分项维度时用到的变量
-            ItemId: row.staff, //员工维度时用到的变量
-            ItemName: row.name, //员工维度时用到的变量
+            staffId: row.staff, //工分项维度时用到的员工变量
+            staffName: row.name, //工分项维度时用到的员工变量
+            itemId: row.item, //员工维度时用到的工分变量
+            itemName: row.name, //员工维度时用到的工分名变量
             rate: row.rate
           });
         });
@@ -505,10 +505,7 @@ export default {
           type: 'warning'
         });
         row.removeLoading = true;
-        await this.$api.HisWorkItem.delStaffWorkItemMapping(
-          row.id,
-          row.memberIds
-        );
+        await this.$api.HisWorkItem.delStaffWorkItemMapping(row.mappingId);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
