@@ -213,74 +213,6 @@
         </el-table-column>
       </el-table>
     </el-card>
-    <el-dialog
-      title="新建配置"
-      :visible.sync="addConfigurationVisible"
-      :width="$settings.isMobile ? '99%' : '50%'"
-      :before-close="resetConfig"
-    >
-      <el-form
-        ref="configForm"
-        :model="newConfig"
-        :rules="configRules"
-        label-position="right"
-        label-width="120px"
-      >
-        <el-form-item label="工分项" prop="work">
-          <el-select
-            v-model="newConfig.work"
-            clearable
-            filterable
-            style="width: 100%"
-            size="mini"
-          >
-            <el-option
-              v-for="work in workList"
-              :key="work.id"
-              :label="work.name"
-              :value="work.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="考核员工" prop="member">
-          <el-select
-            v-model="newConfig.member"
-            clearable
-            filterable
-            multiple
-            style="width: 100%"
-            size="mini"
-          >
-            <el-option
-              v-for="m in memberList"
-              :key="m.id"
-              :label="m.name"
-              :value="m.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item style="width: 100%" label="分配分值" prop="score">
-          <el-input-number
-            v-model="newConfig.score"
-            size="mini"
-          ></el-input-number>
-        </el-form-item>
-        <el-form-item style="width: 100%" label="权重系数" prop="rate">
-          <el-input-number
-            v-model="newConfig.rate"
-            style="width: 100px"
-            size="mini"
-          ></el-input-number>
-          <span>&nbsp;&nbsp;%</span>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="resetConfig()">取 消</el-button>
-        <el-button v-loading="submitLoading" type="primary" @click="submit()">
-          确 定
-        </el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -301,27 +233,12 @@ export default {
         pageSize: 20,
         pageNo: 1
       },
-      newConfig: {
-        work: '',
-        scoreType: '',
-        member: [],
-        score: 0,
-        rate: 100
-      },
-      addConfigurationVisible: false,
-      configRules: {
-        work: [{required: true, message: '选择工分项', trigger: 'change'}],
-        member: [{required: true, message: '选择考核员工', trigger: 'change'}],
-        score: [{required: true, message: '输入分值', trigger: 'change'}],
-        rate: [{required: true, message: '输入权重系数', trigger: 'change'}]
-      },
       tempRow: '',
       HisWorkMethod: Object.keys(HisWorkMethod).map(it => ({
         value: HisWorkMethod[it],
         key: it
       })),
       HisWorkScoreType: HisWorkScoreType,
-      submitLoading: false,
       updateLoading: false,
       removeLoading: false,
       currentTarget: HisWorkScoreType.WORK_ITEM //默认以工作量维度
@@ -463,33 +380,6 @@ export default {
     }
   },
   methods: {
-    async submit() {
-      try {
-        const valid = await this.$refs['configForm'].validate();
-        if (valid) {
-          this.submitLoading = true;
-          await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
-            this.newConfig.work,
-            {
-              insert: {
-                staffs: this.newConfig.member,
-                score: this.newConfig.score,
-                rate: this.newConfig.rate / 100
-              },
-              update: {ids: [], score: null, rate: null},
-              delete: []
-            }
-          );
-          this.resetConfig();
-          this.$asyncComputed.serverData.update();
-        }
-      } catch (e) {
-        console.error(e);
-        if (e) this.$message.error(e.message);
-      } finally {
-        this.submitLoading = false;
-      }
-    },
     addRow(row) {
       if (this.tempRow) {
         this.$message.warning('已有其他数据正在编辑');
@@ -578,18 +468,6 @@ export default {
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
       }
-    },
-    resetConfig() {
-      this.$refs['configForm'].resetFields();
-      this.addConfigurationVisible = false;
-    },
-    toBreak(content) {
-      let contentStr = '';
-      for (let index in content) {
-        if (index !== '0' && index % 20 === 0) contentStr += '<br/>';
-        contentStr += content[index];
-      }
-      return contentStr;
     }
   }
 };
