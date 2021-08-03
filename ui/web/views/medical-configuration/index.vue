@@ -17,16 +17,22 @@
           维度:
           <el-button-group>
             <el-button
-              :type="currentTarget === 'work' ? 'primary' : 'default'"
+              :type="
+                currentTarget === HisWorkScoreType.WORK_ITEM
+                  ? 'primary'
+                  : 'default'
+              "
               size="mini"
-              @click="currentTarget = 'work'"
+              @click="currentTarget = HisWorkScoreType.WORK_ITEM"
             >
               工作
             </el-button>
             <el-button
-              :type="currentTarget === 'staff' ? 'primary' : 'default'"
+              :type="
+                currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
+              "
               size="mini"
-              @click="currentTarget = 'staff'"
+              @click="currentTarget = HisWorkScoreType.STAFF"
             >
               员工
             </el-button>
@@ -245,6 +251,7 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod} from '../../../../common/his.ts';
+import {HisWorkScoreType} from '../../../../common/his.ts';
 
 export default {
   name: 'Configuration',
@@ -281,14 +288,15 @@ export default {
       submitLoading: false,
       updateLoading: false,
       removeLoading: false,
-      currentTarget: 'work' //默认以工作量维度
+      currentTarget: HisWorkScoreType.WORK_ITEM //默认以工作量维度
     };
   },
   computed: {
     tableData() {
       let data = [];
       let targetData = [];
-      if (this.currentTarget === 'work') {
+      //以工作量为维度
+      if (this.currentTarget === HisWorkScoreType.WORK_ITEM) {
         data = this.serverData.workItems.map(it => {
           //找出每个工作量绑定的员工
           const bindStaffs = this.serverData.mappings
@@ -300,6 +308,10 @@ export default {
             }));
           return {...it, subs: bindStaffs};
         });
+      }
+      //以员工为维度
+      if (this.currentTarget === HisWorkScoreType.STAFF) {
+        return [];
       }
       //平铺每条绑定的数据
       data.forEach(data => {
