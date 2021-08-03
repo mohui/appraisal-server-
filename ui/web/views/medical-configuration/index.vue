@@ -14,12 +14,23 @@
       <div slot="header" class="header">
         <span>工作量管理</span>
         <div>
-          <el-button
-            size="mini"
-            type="primary"
-            @click="addConfigurationVisible = true"
-            >新增配置
-          </el-button>
+          维度:
+          <el-button-group>
+            <el-button
+              :type="currentTarget === 'work' ? 'primary' : 'default'"
+              size="mini"
+              @click="currentTarget = 'work'"
+            >
+              工作
+            </el-button>
+            <el-button
+              :type="currentTarget === 'staff' ? 'primary' : 'default'"
+              size="mini"
+              @click="currentTarget = 'staff'"
+            >
+              员工
+            </el-button>
+          </el-button-group>
         </div>
       </div>
       <kn-collapse
