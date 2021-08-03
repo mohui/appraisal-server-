@@ -115,7 +115,7 @@ module.exports = [
         index: 'medical-configuration',
         permission: [Permission.MEDICAL_CONFIGURATION_LIST],
         router: '/medical-configuration',
-        label: '配置列表'
+        label: '工作量管理'
       },
       {
         index: 'medical-configuration-work',

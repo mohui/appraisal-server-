@@ -12,7 +12,7 @@
       }"
     >
       <div slot="header" class="header">
-        <span>配置列表</span>
+        <span>工作量管理</span>
         <div>
           <el-button
             size="mini"
