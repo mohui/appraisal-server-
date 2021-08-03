@@ -74,75 +74,21 @@
         :data="tableData"
         height="100%"
         style="flex-grow: 1;"
+        current-row-key="id"
+        :span-method="spanMethod"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
         <el-table-column
           align="center"
-          type="index"
-          label="序号"
-        ></el-table-column>
-        <el-table-column
-          align="center"
           label="工分项"
-          prop="work"
+          prop="name"
         ></el-table-column>
         <el-table-column
           align="center"
-          prop="scoreType"
-          label="得分方式"
-        ></el-table-column>
-        <el-table-column
-          align="center"
-          prop="scoreMember"
+          prop="staffName"
           label="考核员工"
-          width="200"
-        >
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">
-              <el-tooltip
-                v-if="$widthCompute([row.scoreMember.join(',')]) >= 200"
-                effect="dark"
-                placement="top"
-                :content="row.scoreMember.join(',')"
-              >
-                <div
-                  slot="content"
-                  v-html="toBreak(row.scoreMember.join(','))"
-                ></div>
-                <span class="cell-long-span">{{
-                  row.scoreMember.join(',')
-                }}</span>
-              </el-tooltip>
-              <div v-else>{{ row.scoreMember.join(',') }}</div>
-            </div>
-            <div v-else-if="row.isEdit">
-              <el-select
-                v-model="tempRow.memberIds"
-                size="mini"
-                multiple
-                filterable
-                collapse-tags
-              >
-                <el-option
-                  v-for="work in memberList"
-                  :key="work.id"
-                  :label="work.name"
-                  :value="work.id"
-                ></el-option>
-              </el-select>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" prop="score" label="配置得分">
-          <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.score }}</div>
-            <div v-else-if="row.isEdit">
-              <el-input-number v-model="tempRow.score" size="mini">
-              </el-input-number>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" prop="rate" label="配置权重">
+        ></el-table-column>
+        <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.rate }}</div>
             <div v-else-if="row.isEdit">
@@ -151,7 +97,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="" label="操作">
+        <el-table-column align="center" prop="operation" label="操作">
           <template slot-scope="{row}">
             <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
               <el-button
@@ -200,6 +146,14 @@
                 size="mini"
                 @click="removeRow(row)"
               >
+              </el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="add" label="操作">
+          <template>
+            <el-tooltip content="新增" :enterable="false">
+              <el-button type="success" icon="el-icon-plus" circle size="mini">
               </el-button>
             </el-tooltip>
           </template>
@@ -315,19 +269,41 @@ export default {
       })),
       submitLoading: false,
       updateLoading: false,
-      removeLoading: false
+      removeLoading: false,
+      currentTarget: 'work' //默认以工作量维度
     };
   },
   computed: {
     tableData() {
-      return this.serverData.rows.map(d => ({
+      let data = [];
+      let targetData = [];
+      if (this.currentTarget === 'work') {
+        data = this.serverData.workItems.map(it => {
+          //找出每个工作量绑定的员工
+          const bindStaffs = this.serverData.mappings
+            .filter(map => map.item === it.id)
+            .map(it => ({
+              ...it,
+              name: this.serverData.staffs.find(staff => staff.id === it.staff)
+                ?.name //员工名字
+            }));
+          return {...it, subs: bindStaffs};
+        });
+      }
+      //平铺每条绑定的数据
+      data.forEach(data => {
+        data.subs.forEach(row => {
+          targetData.push({
+            ...data,
+            mappingId: row.id,
+            staffId: row.staff,
+            staffName: row.name,
+            rate: row.rate
+          });
+        });
+      });
+      return targetData.map(d => ({
         ...d,
-        workId: d.id,
-        work: d.name,
-        scoreType: d.method || '',
-        rate: d.rate * 100,
-        scoreMember: d.staffs.map(m => m.name),
-        memberIds: d.staffs.map(m => m.id),
         isEdit: false,
         removeLoading: false
       }));
@@ -337,6 +313,27 @@ export default {
     },
     memberList() {
       return this.serverMemberData;
+    },
+    //表格合并方法
+    spanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.tableData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.tableData[i].id === this.tableData[i - 1].id) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     }
   },
   watch: {},
@@ -350,17 +347,18 @@ export default {
             scoreType || undefined,
             work || undefined
           );
-          return {
-            counts: data.length,
-            rows: data
-          };
+          return data;
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
           return {counts: 0, rows: []};
         }
       },
-      default: {counts: 0, rows: []}
+      default: {
+        mappings: [],
+        staffs: [],
+        workItems: []
+      }
     },
     serverWorkData: {
       async get() {
@@ -493,6 +491,17 @@ export default {
         console.log(e);
       } finally {
         row.removeLoading = false;
+      }
+    },
+    spanMethod({column, rowIndex}) {
+      if (
+        column.property !== 'staffName' &&
+        column.property !== 'rate' &&
+        column.property !== 'operation'
+      ) {
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
       }
     },
     resetConfig() {
