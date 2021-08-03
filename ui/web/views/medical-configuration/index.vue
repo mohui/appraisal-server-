@@ -457,12 +457,12 @@ export default {
     async submitEdit(row) {
       this.updateLoading = true;
       try {
-        await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
-          row.mappingId,
-          row.itemId,
-          row.staff,
-          row.rate / 100
-        );
+        await this.$api.HisWorkItem.upsertStaffWorkItemMapping({
+          id: row.mappingId,
+          item: row.itemId,
+          staff: row.staffId,
+          rate: this.tempRow.rate / 100
+        });
         this.$message.success('修改成功');
         row.isEdit = !row.isEdit;
         await this.$asyncComputed.serverData.update();
