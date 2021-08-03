@@ -1107,11 +1107,6 @@ export default class HisWorkItem {
               .array()
               .required()
               .description('员工id'),
-            score: should
-              .number()
-              .required()
-              .allow(null)
-              .description('分值'),
             rate: should
               .number()
               .required()
@@ -1126,11 +1121,6 @@ export default class HisWorkItem {
               .array()
               .required()
               .description('员工和工分项绑定id'),
-            score: should
-              .number()
-              .required()
-              .allow(null)
-              .description('分值'),
             rate: should
               .number()
               .required()
@@ -1158,7 +1148,7 @@ export default class HisWorkItem {
 
       // 排查公分项是否存在
       const staffItemList = await appDB.execute(
-        `select id, staff, item, score from his_staff_work_item_mapping where item = ?`,
+        `select id, staff, item from his_staff_work_item_mapping where item = ?`,
         item
       );
 
@@ -1213,7 +1203,7 @@ export default class HisWorkItem {
       if (params?.update.ids.length > 0) {
         // 先根据id查询到该工分项下的员工是否在其他分数中存在
         const updList = await appDB.execute(
-          `select id, staff, item, score, rate
+          `select id, staff, item, rate
                 from his_staff_work_item_mapping
                 where id in (${params?.update.ids.map(() => '?')})`,
           ...params.update.ids
