@@ -720,6 +720,10 @@ export default {
     chronicDiseaseHighData() {
       return this.chronicDiseaseHighServerDate;
     },
+    // 慢病高危规范管理列表数据
+    chronicDiseaseOtherData() {
+      return this.chronicDiseaseOtherServerDate;
+    },
     // 添加默认排序
     titleList() {
       return [
@@ -766,6 +770,12 @@ export default {
           label: '慢病高危管理记录',
           disabled: this.chronicDiseaseHighData.length < 1,
           updating: this.$asyncComputed.chronicDiseaseHighServerDate.updating
+        },
+        {
+          code: 'chronicDiseaseOther',
+          label: '其它慢病管理记录',
+          disabled: this.chronicDiseaseOtherData.length < 1,
+          updating: this.$asyncComputed.chronicDiseaseOtherServerDate.updating
         }
       ].sort((a, b) => a.disabled - b.disabled);
     }
@@ -866,6 +876,15 @@ export default {
     chronicDiseaseHighServerDate: {
       async get() {
         return await this.$api.Person.chronicDiseaseHighList(this.id);
+      },
+      default() {
+        return [];
+      }
+    },
+    // 其他慢病规范管理列表数据
+    chronicDiseaseOtherServerDate: {
+      async get() {
+        return await this.$api.Person.chronicDiseaseOtherList(this.id);
       },
       default() {
         return [];
