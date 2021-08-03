@@ -455,41 +455,13 @@ export default {
       this.tempRow = '';
     },
     async submitEdit(row) {
-      if (this.tempRow?.memberIds.length < 1) {
-        this.$message.warning('考核员工不能为空');
-        return;
-      }
-      //要新添的新员工
-      const insertArr = this.tempRow.memberIds.filter(
-        m => !row.staffs.some(s => s.id === m)
-      );
-      //要删除的员工与工分的mapping
-      const deleteArr = this.tempRow.staffs
-        .filter(s => !this.tempRow.memberIds.some(m => s.id === m))
-        .map(s => s.mapping);
-      //要更新的员工与工分mapping
-      const upsert = this.tempRow.memberIds
-        .filter(
-          it => !insertArr.some(u => u === it) && !deleteArr.some(d => d === it)
-        )
-        .map(it => this.tempRow.staffs.find(s => s.id === it)?.mapping);
       this.updateLoading = true;
       try {
         await this.$api.HisWorkItem.upsertStaffWorkItemMapping(
-          this.tempRow.workId,
-          {
-            insert: {
-              staffs: insertArr,
-              score: this.tempRow.score,
-              rate: this.tempRow.rate / 100
-            },
-            update: {
-              ids: upsert,
-              score: this.tempRow.score,
-              rate: this.tempRow.rate / 100
-            },
-            delete: deleteArr
-          }
+          row.mappingId,
+          row.itemId,
+          row.staff,
+          row.rate / 100
         );
         this.$message.success('修改成功');
         row.isEdit = !row.isEdit;
