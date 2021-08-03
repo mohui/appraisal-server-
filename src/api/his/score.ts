@@ -862,7 +862,7 @@ export default class HisScore {
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-        select w.id, w.method, sm.score, wm.source
+        select w.id, w.method, w.score, wm.source
         from his_work_item_mapping wm
                inner join his_staff_work_item_mapping sm on sm.item = wm.item
                inner join his_work_item w on wm.item = w.id
