@@ -87,6 +87,7 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
+        score        double precision,
         method       varchar(255)             not null,
         type         varchar(255)             not null,
         "created_at" timestamp with time zone not null default current_timestamp,
@@ -95,6 +96,7 @@ export class HisMigration implements IMigration {
       comment on table "his_work_item" is '工分项目表';
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
+      comment on column his_work_item.score is '分值';
       comment on column "his_work_item".method is '得分方式; 计数/总和';
       comment on column "his_work_item".type is '关联员工; 动态/固定';
 
