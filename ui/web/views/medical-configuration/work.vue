@@ -227,6 +227,19 @@
                 ></el-tree>
               </div>
             </el-form-item>
+            <el-form-item v-else label="范围">
+              <el-button-group>
+                <el-button type="primary" size="mini">
+                  本人
+                </el-button>
+                <el-button disabled size="mini">
+                  本人所在科室
+                </el-button>
+                <el-button disabled size="mini">
+                  本人所在机构
+                </el-button>
+              </el-button-group>
+            </el-form-item>
           </el-col>
         </el-row>
       </el-form>
