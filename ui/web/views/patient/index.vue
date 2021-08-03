@@ -500,7 +500,7 @@
               </div>
 
               <div v-show="item.code === 'maternal'">
-                <div v-for="(item, index) of maternalDate" :key="index">
+                <div v-for="(item, index) of maternalData" :key="index">
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
                   </div>
@@ -765,23 +765,23 @@ export default {
         return it;
       });
     },
-    maternalDate() {
-      return this.maternalServerDate;
+    maternalData() {
+      return this.maternalServerData;
     },
     // 儿童健康管理记录数据
     childrenHealthCheckData() {
-      return this.childrenHealthCheckServerDate;
+      return this.childrenHealthCheckServerData;
     },
     // 慢病高危规范管理列表数据
     chronicDiseaseHighData() {
-      return this.chronicDiseaseHighServerDate.map(it => ({
+      return this.chronicDiseaseHighServerData.map(it => ({
         ...it,
         followDate: it.followDate?.$format('YYYY-MM-DD')
       }));
     },
     // 其它慢病规范管理列表数据
     chronicDiseaseOtherData() {
-      return this.chronicDiseaseOtherServerDate.map(it => ({
+      return this.chronicDiseaseOtherServerData.map(it => ({
         ...it,
         followDate: it.followDate ? it.followDate.$format('YYYY-MM-DD') : ''
       }));
@@ -818,26 +818,26 @@ export default {
         {
           code: 'maternal',
           label: '孕产妇健康管理记录',
-          disabled: this.maternalDate.length < 1,
-          updating: this.$asyncComputed.maternalServerDate.updating
+          disabled: this.maternalData.length < 1,
+          updating: this.$asyncComputed.maternalServerData.updating
         },
         {
           code: 'children',
           label: '儿童健康检查管理记录',
           disabled: this.childrenHealthCheckData.length < 1,
-          updating: this.$asyncComputed.childrenHealthCheckServerDate.updating
+          updating: this.$asyncComputed.childrenHealthCheckServerData.updating
         },
         {
           code: 'chronicDiseaseHigh',
           label: '慢病高危管理记录',
           disabled: this.chronicDiseaseHighData.length < 1,
-          updating: this.$asyncComputed.chronicDiseaseHighServerDate.updating
+          updating: this.$asyncComputed.chronicDiseaseHighServerData.updating
         },
         {
           code: 'chronicDiseaseOther',
           label: '其它慢病管理记录',
           disabled: this.chronicDiseaseOtherData.length < 1,
-          updating: this.$asyncComputed.chronicDiseaseOtherServerDate.updating
+          updating: this.$asyncComputed.chronicDiseaseOtherServerData.updating
         }
       ].sort((a, b) => a.disabled - b.disabled);
     }
@@ -918,7 +918,7 @@ export default {
         return [];
       }
     },
-    maternalServerDate: {
+    maternalServerData: {
       async get() {
         return await this.$api.Person.maternalHealthCheck(this.id);
       },
@@ -926,7 +926,7 @@ export default {
         return [];
       }
     },
-    childrenHealthCheckServerDate: {
+    childrenHealthCheckServerData: {
       async get() {
         return await this.$api.Person.childrenHealthCheck(this.id);
       },
@@ -935,7 +935,7 @@ export default {
       }
     },
     // 慢病高危规范管理列表数据
-    chronicDiseaseHighServerDate: {
+    chronicDiseaseHighServerData: {
       async get() {
         return await this.$api.Person.chronicDiseaseHighList(this.id);
       },
@@ -944,7 +944,7 @@ export default {
       }
     },
     // 其他慢病规范管理列表数据
-    chronicDiseaseOtherServerDate: {
+    chronicDiseaseOtherServerData: {
       async get() {
         return await this.$api.Person.chronicDiseaseOtherList(this.id);
       },
