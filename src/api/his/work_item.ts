@@ -1281,21 +1281,15 @@ export default class HisWorkItem {
     should
       .string()
       .required()
-      .description('工分项目id'),
-    should
-      .array()
-      .min(1)
-      .required()
-      .description('员工id')
+      .description('工分项目和员工关联表主键')
   )
-  async delStaffWorkItemMapping(id, staffs) {
+  async delStaffWorkItemMapping(id) {
     return appDB.transaction(async () => {
       // 删除对应关系
+      // language=PostgreSQL
       await appDB.execute(
-        `delete from his_staff_work_item_mapping
-              where item = ? and staff in (${staffs.map(() => '?')})`,
-        id,
-        ...staffs
+        `delete from his_staff_work_item_mapping where id = ?`,
+        id
       );
     });
   }
