@@ -97,13 +97,21 @@
       >
         <el-table-column
           align="center"
-          label="工分项"
+          :label="
+            this.currentTarget === HisWorkScoreType.WORK_ITEM
+              ? '工分项'
+              : '员工'
+          "
           prop="name"
         ></el-table-column>
         <el-table-column
           align="center"
           prop="staffName"
-          label="考核员工"
+          :label="
+            this.currentTarget === HisWorkScoreType.WORK_ITEM
+              ? '员工'
+              : '工分项'
+          "
         ></el-table-column>
         <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
@@ -250,8 +258,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import {HisWorkMethod} from '../../../../common/his.ts';
-import {HisWorkScoreType} from '../../../../common/his.ts';
+import {HisWorkMethod, HisWorkScoreType} from '../../../../common/his.ts';
 
 export default {
   name: 'Configuration',
@@ -285,6 +292,7 @@ export default {
         value: HisWorkMethod[it],
         key: it
       })),
+      HisWorkScoreType: HisWorkScoreType,
       submitLoading: false,
       updateLoading: false,
       removeLoading: false,
@@ -301,17 +309,29 @@ export default {
           //找出每个工作量绑定的员工
           const bindStaffs = this.serverData.mappings
             .filter(map => map.item === it.id)
-            .map(it => ({
-              ...it,
-              name: this.serverData.staffs.find(staff => staff.id === it.staff)
-                ?.name //员工名字
+            .map(item => ({
+              ...item,
+              name: this.serverData.staffs.find(
+                staff => staff.id === item.staff
+              )?.name //员工名字
             }));
           return {...it, subs: bindStaffs};
         });
       }
       //以员工为维度
       if (this.currentTarget === HisWorkScoreType.STAFF) {
-        return [];
+        data = this.serverData.staffs.map(it => {
+          //找出每个员工所绑定的工作量
+          const bindItems = this.serverData.mappings
+            .filter(map => map.staff === it.id)
+            .map(item => ({
+              ...item,
+              name: this.serverData.workItems.find(
+                work => work.id === item.item
+              )?.name //工分名称
+            }));
+          return {...it, subs: bindItems};
+        });
       }
       //平铺每条绑定的数据
       data.forEach(data => {
@@ -319,8 +339,10 @@ export default {
           targetData.push({
             ...data,
             mappingId: row.id,
-            staffId: row.staff,
-            staffName: row.name,
+            staffId: row.staff, //工分项维度时用到的变量
+            staffName: row.name, //工分项维度时用到的变量
+            ItemId: row.staff, //员工维度时用到的变量
+            ItemName: row.name, //员工维度时用到的变量
             rate: row.rate
           });
         });
