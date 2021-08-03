@@ -91,7 +91,49 @@
               ? '员工'
               : '工分项'
           "
-        ></el-table-column>
+        >
+          <template slot-scope="{row}">
+            <div
+              v-if="
+                !row.staffId && currentTarget === HisWorkScoreType.WORK_ITEM
+              "
+            >
+              <el-select
+                v-model="tempRow.staffId"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="m in memberList"
+                  :key="m.id"
+                  :label="m.name"
+                  :value="m.id"
+                ></el-option>
+              </el-select>
+            </div>
+            <div
+              v-else-if="
+                !row.itemId && currentTarget === HisWorkScoreType.STAFF
+              "
+            >
+              <el-select
+                v-model="tempRow.item"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="m in workList"
+                  :key="m.id"
+                  :label="m.name"
+                  :value="m.id"
+                ></el-option>
+              </el-select>
+            </div>
+            <div v-else>{{ row.staffName }}</div>
+          </template>
+        </el-table-column>
         <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
             <div v-if="!row.isEdit">{{ row.rate }} %</div>
@@ -156,9 +198,15 @@
           </template>
         </el-table-column>
         <el-table-column align="center" prop="add" label="操作">
-          <template>
+          <template slot-scope="{row}">
             <el-tooltip content="新增" :enterable="false">
-              <el-button type="success" icon="el-icon-plus" circle size="mini">
+              <el-button
+                type="success"
+                icon="el-icon-plus"
+                circle
+                size="mini"
+                @click="addRow(row)"
+              >
               </el-button>
             </el-tooltip>
           </template>
@@ -329,7 +377,7 @@ export default {
       });
       return targetData.map(d => ({
         ...d,
-        isEdit: false,
+        isEdit: !d.mappingId,
         removeLoading: false
       }));
     },
@@ -442,6 +490,31 @@ export default {
         this.submitLoading = false;
       }
     },
+    addRow(row) {
+      if (this.tempRow) {
+        this.$message.warning('已有其他数据正在编辑');
+        return;
+      }
+      //新增一项没有mappingId的数据
+      let addRow = {
+        id: '',
+        item: '',
+        staffId: '',
+        rate: 0,
+        isEdit: true
+      };
+      this.tempRow = JSON.parse(JSON.stringify(addRow));
+
+      //工分项绑定新的员工,工分项id是固定的
+      if (this.currentTarget === HisWorkScoreType.WORK_ITEM)
+        addRow.item = row.id;
+
+      //员工绑定新的工分项,员工id是固定的
+      if (this.currentTarget === HisWorkScoreType.STAFF) addRow.staff = row.id;
+
+      //新增一个以当前维度为主id的临时数据进去
+      this.serverData.mappings.push(addRow);
+    },
     editRow(row) {
       if (this.tempRow) {
         this.$message.warning('已有其他数据正在编辑');
@@ -451,6 +524,10 @@ export default {
       this.tempRow = JSON.parse(JSON.stringify(row));
     },
     cancelEdit(row) {
+      if (!row.mappingId) {
+        //新增时取消了,撤回新添进去的临时数据
+        this.serverData.mappings.splice(this.serverData.mappings.length - 1, 1);
+      }
       row.isEdit = !row.isEdit;
       this.tempRow = '';
     },
@@ -458,9 +535,9 @@ export default {
       this.updateLoading = true;
       try {
         await this.$api.HisWorkItem.upsertStaffWorkItemMapping({
-          id: row.mappingId,
-          item: row.itemId,
-          staff: row.staffId,
+          id: row.mappingId || null,
+          item: row.itemId || this.tempRow.item,
+          staff: row.staffId || this.tempRow.staffId,
           rate: this.tempRow.rate / 100
         });
         this.$message.success('修改成功');
