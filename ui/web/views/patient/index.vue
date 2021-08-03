@@ -668,6 +668,34 @@
                   </p>
                 </div>
               </div>
+
+              <div v-show="item.code === 'chronicDiseaseHigh'">
+                <div
+                  class="notes"
+                  v-for="(item, index) of chronicDiseaseHighData"
+                  :key="index"
+                  @click="
+                    $router.push({
+                      name: '',
+                      query: {
+                        id: item.id
+                      }
+                    })
+                  "
+                >
+                  <div class="notes-block">
+                    <span class="hospital">随访医生：{{ item.doctor }}</span>
+                    <span class="visitTime"
+                      >随访时间：{{ item.followDate }}</span
+                    >
+                  </div>
+                  <p>
+                    随访方式：{{ item.followWay }}；当前症状：{{
+                      item.riskFactorsName
+                    }}
+                  </p>
+                </div>
+              </div>
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -746,7 +774,10 @@ export default {
     },
     // 慢病高危规范管理列表数据
     chronicDiseaseHighData() {
-      return this.chronicDiseaseHighServerDate;
+      return this.chronicDiseaseHighServerDate.map(it => ({
+        ...it,
+        followDate: it.followDate?.$format('YYYY-MM-DD')
+      }));
     },
     // 其它慢病规范管理列表数据
     chronicDiseaseOtherData() {
