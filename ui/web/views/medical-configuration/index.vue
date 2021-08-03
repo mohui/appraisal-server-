@@ -95,7 +95,9 @@
           <template slot-scope="{row}">
             <div
               v-if="
-                !row.staffId && currentTarget === HisWorkScoreType.WORK_ITEM
+                !row.staffId &&
+                  currentTarget === HisWorkScoreType.WORK_ITEM &&
+                  !row.noConfig
               "
             >
               <el-select
@@ -114,7 +116,9 @@
             </div>
             <div
               v-else-if="
-                !row.itemId && currentTarget === HisWorkScoreType.STAFF
+                !row.itemId &&
+                  currentTarget === HisWorkScoreType.STAFF &&
+                  !row.noConfig
               "
             >
               <el-select
@@ -131,12 +135,12 @@
                 ></el-option>
               </el-select>
             </div>
-            <div v-else>{{ row.staffName }}</div>
+            <div v-else>{{ row.staffName || '没有配置' }}</div>
           </template>
         </el-table-column>
         <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit">{{ row.rate }} %</div>
+            <div v-if="!row.isEdit && !row.noConfig">{{ row.rate }} %</div>
             <div v-else-if="row.isEdit">
               <el-input-number v-model="tempRow.rate" size="mini">
               </el-input-number>
@@ -146,7 +150,11 @@
         </el-table-column>
         <el-table-column align="center" prop="operation" label="操作">
           <template slot-scope="{row}">
-            <el-tooltip v-show="!row.isEdit" content="编辑" :enterable="false">
+            <el-tooltip
+              v-show="!row.isEdit && !row.noConfig"
+              content="编辑"
+              :enterable="false"
+            >
               <el-button
                 type="primary"
                 icon="el-icon-edit"
@@ -184,7 +192,11 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip v-show="!row.isEdit" content="删除" :enterable="false">
+            <el-tooltip
+              v-show="!row.isEdit && !row.noConfig"
+              content="删除"
+              :enterable="false"
+            >
               <el-button
                 type="danger"
                 :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
@@ -280,21 +292,27 @@ export default {
       }
       //平铺每条绑定的数据
       data.forEach(data => {
-        data.subs.forEach(row => {
+        if (data.subs.length > 0)
+          data.subs.forEach(row => {
+            targetData.push({
+              ...data,
+              mappingId: row.id,
+              staffId: row.staff, //工分项维度时用到的员工变量
+              staffName: row.name, //工分项维度时用到的员工变量
+              itemId: row.item, //员工维度时用到的工分变量
+              itemName: row.name, //员工维度时用到的工分名变量
+              rate: row.rate * 100
+            });
+          });
+        else
           targetData.push({
             ...data,
-            mappingId: row.id,
-            staffId: row.staff, //工分项维度时用到的员工变量
-            staffName: row.name, //工分项维度时用到的员工变量
-            itemId: row.item, //员工维度时用到的工分变量
-            itemName: row.name, //员工维度时用到的工分名变量
-            rate: row.rate * 100
+            noConfig: true
           });
-        });
       });
       return targetData.map(d => ({
         ...d,
-        isEdit: !d.mappingId,
+        isEdit: !d.mappingId && !d.noConfig,
         removeLoading: false
       }));
     },
