@@ -51,27 +51,6 @@
           size="mini"
         >
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="得分方式:">
-              <el-select v-model="searchForm.scoreType" size="mini" clearable>
-                <el-option
-                  v-for="m in HisWorkMethod"
-                  :key="m.key"
-                  :value="m.value"
-                  :label="m.value"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="工分项:">
-              <el-input
-                v-model="searchForm.work"
-                size="mini"
-                clearable
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
             <el-form-item label="">
               <el-button
                 size="mini"
