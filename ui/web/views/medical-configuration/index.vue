@@ -361,7 +361,11 @@ export default {
       return arr;
     }
   },
-  watch: {},
+  watch: {
+    currentTarget() {
+      this.tempRow = ''; //切换维度时重置临时变量
+    }
+  },
   asyncComputed: {
     serverData: {
       async get() {
