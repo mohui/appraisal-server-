@@ -68,15 +68,6 @@ module.exports = {
     cron: '00 00 04 * * *',
     his: '' // 医疗绩效打分任务的cron配置
   },
-  oss: {
-    accessKeyId: '',
-    accessKeySecret: '',
-    region: '',
-    bucket: ''
-  },
-  report: {
-    prefix: '' // 报告存储key的前缀
-  },
   unifs: [
     // {
     //   path: '/reportCheck',
