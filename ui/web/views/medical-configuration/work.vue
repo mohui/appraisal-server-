@@ -428,10 +428,12 @@ export default {
             this.newWork.scoreMethod,
             this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
             this.newWork.staffMethod,
-            this.newWork.staffs.map(it => ({
-              code: it.value,
-              type: it.type
-            })),
+            this.newWork.staffMethod === HisStaffMethod.STATIC
+              ? this.newWork.staffs.map(it => ({
+                  code: it.value,
+                  type: it.type
+                }))
+              : [],
             this.newWork.score,
             this.newWork.staffMethod === HisStaffMethod.DYNAMIC
               ? this.newWork.scope
