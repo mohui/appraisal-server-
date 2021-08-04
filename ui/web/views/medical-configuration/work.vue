@@ -108,7 +108,6 @@
       </el-table>
     </el-card>
     <el-dialog
-      title="配置弹窗"
       :visible.sync="addWorkVisible"
       :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
@@ -354,7 +353,9 @@ export default {
         staffMappings:
           d.staffMappings?.length > 0
             ? d.staffMappings
-            : [HisStaffMethod.DYNAMIC]
+            : [HisStaffMethod.DYNAMIC],
+        scope: d.scope || HisStaffDeptType.Staff,
+        score: d.score
       }));
     },
     treeData() {
@@ -463,7 +464,9 @@ export default {
           })),
           projects: [],
           staffMethod: row.staffMethod,
-          staffs: row.staffIdMappings
+          staffs: row.staffIdMappings,
+          scope: row.scope || HisStaffDeptType.Staff,
+          score: row.score
         })
       );
       this.addWorkVisible = true;
