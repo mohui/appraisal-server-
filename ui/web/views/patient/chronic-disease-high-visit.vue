@@ -46,51 +46,51 @@
               </td>
             </tr>
             <tr>
-              <td rowspan="8" colspan="1">体征</td>
-              <td colspan="3">血 压</td>
+              <td rowspan="8" colspan="2">体征</td>
+              <td colspan="2">血 压</td>
               <td colspan="20">
                 <em>{{ detailDate.systolicPressure }}</em
                 >/<em>{{ detailDate.assertPressure }}</em> mmHg
               </td>
             </tr>
             <tr>
-              <td colspan="3">血脂</td>
+              <td colspan="2">血脂</td>
               <td colspan="20">
                 <em>{{ detailDate.bloodFat }}</em> mmol/L
               </td>
             </tr>
             <tr>
-              <td colspan="3">体重</td>
+              <td colspan="2">体重</td>
               <td colspan="20">
                 <em>{{ detailDate.weight }}</em> kg
               </td>
             </tr>
             <tr>
-              <td colspan="3">腰围</td>
+              <td colspan="2">腰围</td>
               <td colspan="20">
                 <em>{{ detailDate.waist }}</em> cm
               </td>
             </tr>
             <tr>
-              <td colspan="3">空腹血糖</td>
+              <td colspan="2">空腹血糖</td>
               <td colspan="20">
                 <em>{{ detailDate.kfxt }}</em> mmol/L
               </td>
             </tr>
             <tr>
-              <td colspan="3">随机血糖</td>
+              <td colspan="2">随机血糖</td>
               <td colspan="20">
                 <em>{{ detailDate.sjxt }}</em> mmol/L
               </td>
             </tr>
             <tr>
-              <td colspan="3">是否吸烟</td>
+              <td colspan="2">是否吸烟</td>
               <td colspan="20">
                 <em>{{ detailDate.isSmoke ? '是' : '否' }}</em>
               </td>
             </tr>
             <tr>
-              <td colspan="3">吸烟量</td>
+              <td colspan="2">吸烟量</td>
               <td colspan="20">
                 <em>{{ detailDate.daySmoke }}</em>
               </td>
