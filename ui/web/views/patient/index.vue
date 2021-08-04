@@ -648,7 +648,7 @@
                   :key="index"
                   @click="
                     $router.push({
-                      name: 'chronic-disease-high-visit',
+                      name: 'chronic-disease-other-visit',
                       query: {
                         id: item.id
                       }
