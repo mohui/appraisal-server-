@@ -143,7 +143,9 @@
                 row.id === tempRow.id && tableData.some(d => d.batchEditing)
               "
             >
-              <div>{{ tempRow.rate }} %</div>
+              <el-input-number disabled v-model="tempRow.rate" size="mini">
+              </el-input-number>
+              %
             </div>
             <div v-else-if="!row.isEdit && !row.noConfig">{{ row.rate }} %</div>
           </template>
