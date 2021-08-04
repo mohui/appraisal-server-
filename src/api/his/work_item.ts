@@ -644,7 +644,6 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
     if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
-    return 123;
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
