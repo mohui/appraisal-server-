@@ -133,78 +133,93 @@
         </el-table-column>
         <el-table-column align="center" prop="rate" label="权重">
           <template slot-scope="{row}">
-            <div v-if="!row.isEdit && !row.noConfig">{{ row.rate }} %</div>
-            <div v-else-if="row.isEdit">
+            <div v-if="row.isEdit">
               <el-input-number v-model="tempRow.rate" size="mini">
               </el-input-number>
               %
             </div>
+            <div
+              v-else-if="
+                row.id === tempRow.id && tableData.some(d => d.batchEditing)
+              "
+            >
+              <div>{{ tempRow.rate }} %</div>
+            </div>
+            <div v-else-if="!row.isEdit && !row.noConfig">{{ row.rate }} %</div>
           </template>
         </el-table-column>
         <el-table-column align="center" prop="operation" label="操作">
           <template slot-scope="{row}">
-            <el-tooltip
-              v-show="!row.isEdit && !row.noConfig"
-              content="编辑"
-              :enterable="false"
-            >
-              <el-button
-                type="primary"
-                icon="el-icon-edit"
-                circle
-                size="mini"
-                @click="editRow(row)"
+            <div v-show="!row.batchEditing">
+              <el-tooltip
+                v-show="!row.isEdit && !row.noConfig"
+                content="编辑"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="提交修改"
-              :enterable="false"
-            >
-              <el-button
-                type="success"
-                :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
-                circle
-                size="mini"
-                @click="submitEdit(row)"
+                <el-button
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
+                  size="mini"
+                  @click="editRow(row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                v-show="row.isEdit"
+                content="提交修改"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.isEdit"
-              content="取消修改"
-              :enterable="false"
-            >
-              <el-button
-                type="default"
-                icon="el-icon-close"
-                circle
-                size="mini"
-                @click="cancelEdit(row)"
+                <el-button
+                  type="success"
+                  :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
+                  circle
+                  size="mini"
+                  @click="submitEdit(row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                v-show="row.isEdit"
+                content="取消修改"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="!row.isEdit && !row.noConfig"
-              content="删除"
-              :enterable="false"
-            >
-              <el-button
-                type="danger"
-                :icon="row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'"
-                :disabled="row.removeLoading"
-                circle
-                size="mini"
-                @click="removeRow(row)"
+                <el-button
+                  type="default"
+                  icon="el-icon-close"
+                  circle
+                  size="mini"
+                  @click="cancelEdit(row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                v-show="!row.isEdit && !row.noConfig"
+                content="删除"
+                :enterable="false"
               >
-              </el-button>
-            </el-tooltip>
+                <el-button
+                  type="danger"
+                  :icon="
+                    row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'
+                  "
+                  :disabled="row.removeLoading"
+                  circle
+                  size="mini"
+                  @click="removeRow(row)"
+                >
+                </el-button>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
         <el-table-column align="center" prop="add" label="操作">
           <template slot-scope="{row}">
-            <el-tooltip content="新增" :enterable="false">
+            <el-tooltip
+              v-show="!row.batchEditing"
+              content="新增"
+              :enterable="false"
+            >
               <el-button
                 type="success"
                 icon="el-icon-plus"
@@ -214,7 +229,11 @@
               >
               </el-button>
             </el-tooltip>
-            <el-tooltip content="批量编辑" :enterable="false">
+            <el-tooltip
+              v-show="!row.batchEditing"
+              content="批量编辑"
+              :enterable="false"
+            >
               <el-button
                 type="primary"
                 icon="el-icon-edit-outline"
@@ -222,19 +241,50 @@
                 size="mini"
                 @click="batchEdit(row)"
               >
-              </el-button> </el-tooltip
-            ><el-tooltip content="批量删除" :enterable="false">
+              </el-button>
+            </el-tooltip>
+            <el-tooltip
+              v-show="!row.batchEditing"
+              content="批量删除"
+              :enterable="false"
+            >
               <el-button
                 type="danger"
                 :icon="
-                  row.removeLoading
-                    ? 'el-icon-loading'
-                    : 'el-icon-document-delete'
+                  removeLoading ? 'el-icon-loading' : 'el-icon-document-delete'
                 "
-                :disabled="row.removeLoading"
+                :disabled="removeLoading"
                 circle
                 size="mini"
                 @click="batchRemove(row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip
+              v-show="row.batchEditing"
+              content="提交批量修改"
+              :enterable="false"
+            >
+              <el-button
+                type="success"
+                :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
+                circle
+                size="mini"
+                @click="submitBatchEdit(row)"
+              >
+              </el-button>
+            </el-tooltip>
+            <el-tooltip
+              v-show="row.batchEditing"
+              content="取消修改"
+              :enterable="false"
+            >
+              <el-button
+                type="default"
+                icon="el-icon-close"
+                circle
+                size="mini"
+                @click="cancelEdit(row)"
               >
               </el-button>
             </el-tooltip>
@@ -330,7 +380,8 @@ export default {
       return targetData.map(d => ({
         ...d,
         isEdit: !d.mappingId && !d.noConfig,
-        removeLoading: false
+        removeLoading: false,
+        batchEditing: false
       }));
     },
     workList() {
@@ -454,6 +505,7 @@ export default {
         this.serverData.mappings.splice(this.serverData.mappings.length - 1, 1);
       }
       row.isEdit = !row.isEdit;
+      row.batchEditing = false;
       this.tempRow = '';
     },
     async submitEdit(row) {
@@ -467,6 +519,46 @@ export default {
         });
         this.$message.success('修改成功');
         row.isEdit = !row.isEdit;
+        await this.$asyncComputed.serverData.update();
+        this.tempRow = '';
+      } catch (e) {
+        console.log(e);
+        this.$message.error(e);
+      } finally {
+        this.updateLoading = false;
+      }
+    },
+    async submitBatchEdit(row) {
+      this.updateLoading = true;
+      try {
+        let editArr = [];
+        //以工分项维度
+        if (this.currentTarget === HisWorkScoreType.WORK_ITEM)
+          editArr = this.serverData.mappings.filter(
+            it => it.item === row.itemId
+          );
+
+        //以员工的维度
+        if (this.currentTarget === HisWorkScoreType.STAFF)
+          editArr = this.serverData.mappings.filter(
+            it => it.staff === row.staffId
+          );
+        if (editArr.length === 0) {
+          this.$message.info('没有可编辑项');
+          return;
+        }
+        for (const current of editArr) {
+          await this.$api.HisWorkItem.upsertStaffWorkItemMapping({
+            id: current.id || null,
+            item: current.item,
+            staff: current.staff,
+            rate: this.tempRow.rate / 100
+          });
+        }
+
+        this.$message.success('修改成功');
+        row.isEdit = !row.isEdit;
+        row.batchEditing = false;
         await this.$asyncComputed.serverData.update();
         this.tempRow = '';
       } catch (e) {
@@ -494,7 +586,13 @@ export default {
       }
     },
     batchEdit(row) {
-      console.log(row);
+      if (this.tempRow) {
+        this.$message.warning('已有其他数据正在编辑');
+        return;
+      }
+      row.isEdit = !row.isEdit;
+      row.batchEditing = !row.batchEditing;
+      this.tempRow = JSON.parse(JSON.stringify(row));
     },
     async batchRemove(row) {
       try {
