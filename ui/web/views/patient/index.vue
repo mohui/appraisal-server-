@@ -816,18 +816,6 @@ export default {
           updating: this.$asyncComputed.oldManSelfCare.updating
         },
         {
-          code: 'maternal',
-          label: '孕产妇健康管理记录',
-          disabled: this.maternalData.length < 1,
-          updating: this.$asyncComputed.maternalServerData.updating
-        },
-        {
-          code: 'children',
-          label: '儿童健康检查管理记录',
-          disabled: this.childrenHealthCheckData.length < 1,
-          updating: this.$asyncComputed.childrenHealthCheckServerData.updating
-        },
-        {
           code: 'chronicDiseaseHigh',
           label: '慢病高危管理记录',
           disabled: this.chronicDiseaseHighData.length < 1,
@@ -838,6 +826,18 @@ export default {
           label: '其它慢病管理记录',
           disabled: this.chronicDiseaseOtherData.length < 1,
           updating: this.$asyncComputed.chronicDiseaseOtherServerData.updating
+        },
+        {
+          code: 'maternal',
+          label: '孕产妇健康管理记录',
+          disabled: this.maternalData.length < 1,
+          updating: this.$asyncComputed.maternalServerData.updating
+        },
+        {
+          code: 'children',
+          label: '儿童健康检查管理记录',
+          disabled: this.childrenHealthCheckData.length < 1,
+          updating: this.$asyncComputed.childrenHealthCheckServerData.updating
         }
       ].sort((a, b) => a.disabled - b.disabled);
     }
