@@ -438,7 +438,7 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
-    items: {id: string; name: string; score: number; type: string}[];
+    items: {id: string; name: string; score: number}[];
     rate?: number;
   }> {
     const rows: {
@@ -447,7 +447,6 @@ export default class HisStaff {
         id: string;
         name: string;
         score: number;
-        type: string;
       }[];
       rate?: number;
     }[] = await this.findWorkScoreDailyList(id, month);
@@ -509,7 +508,6 @@ export default class HisStaff {
         id: string;
         name: string;
         score: number;
-        type: string;
       }[];
       rate?: number;
     }[]
@@ -538,12 +536,7 @@ export default class HisStaff {
       day: dayjs(it.day).toDate(),
       items: [
         ...(it?.work?.self ?? []).map(item => ({
-          ...item,
-          type: HisWorkScoreType.WORK_ITEM
-        })),
-        ...(it?.work?.staffs ?? []).map(item => ({
-          ...item,
-          type: HisWorkScoreType.STAFF
+          ...item
         }))
       ],
       rate: it?.assess?.rate ?? null
