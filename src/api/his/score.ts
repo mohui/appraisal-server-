@@ -168,6 +168,7 @@ async function getMark(hospital, year) {
 }
 
 export default class HisScore {
+  // region 自动打分
   /**
    * 重新计算
    *
@@ -219,6 +220,7 @@ export default class HisScore {
       await this.autoScoreHospital(day, hospitalModel.code);
     }
   }
+  // endregion
 
   // region 打分代码
   /**
