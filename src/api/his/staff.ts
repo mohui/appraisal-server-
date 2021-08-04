@@ -534,11 +534,7 @@ export default class HisStaff {
     );
     return rows.map(it => ({
       day: dayjs(it.day).toDate(),
-      items: [
-        ...(it?.work?.self ?? []).map(item => ({
-          ...item
-        }))
-      ],
+      items: [...(it?.work?.self ?? [])],
       rate: it?.assess?.rate ?? null
     }));
   }
