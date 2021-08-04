@@ -236,7 +236,7 @@
                 ></el-tree>
               </div>
             </el-form-item>
-            <el-form-item v-else label="范围">
+            <el-form-item v-else label="范围" props="scope">
               <el-button-group>
                 <el-button
                   @click="newWork.scope = HisStaffDeptType.Staff"
@@ -506,7 +506,9 @@ export default {
         scoreMethod: HisWorkMethod.SUM,
         staffMethod: HisStaffMethod.DYNAMIC,
         projects: [],
-        projectsSelected: []
+        projectsSelected: [],
+        scope: HisStaffDeptType.Staff,
+        score: 0
       };
       this.addWorkVisible = false;
     },
