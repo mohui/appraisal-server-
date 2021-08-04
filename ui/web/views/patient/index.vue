@@ -648,7 +648,7 @@
                   :key="index"
                   @click="
                     $router.push({
-                      name: '',
+                      name: 'chronic-disease-high-visit',
                       query: {
                         id: item.id
                       }
@@ -676,7 +676,7 @@
                   :key="index"
                   @click="
                     $router.push({
-                      name: '',
+                      name: 'chronic-disease-high-visit',
                       query: {
                         id: item.id
                       }
