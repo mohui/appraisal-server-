@@ -2242,21 +2242,20 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-        select
-          vdv.ChronicDiseaseHighID as "id",
-          vdv.FollowUpDate as "followDate",
-          vdv.FollowUpWay as "followWay",
-          vdv.RiskFactorsName as "riskFactorsName",
-          vdv.Doctor,
-          vdv.OperateTime as "updateAt"
-        from view_ChronicDiseaseHighFollowUp vdv
-               inner join view_ChronicDiseaseHighCard vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
-        where vd.PersonNum = ?
-          and vd.TerminationManage = true
-          and vd.IsDelete = false
-          and vdv.IsDelete = false
-        order by vdv.OperateTime desc
-      `,
+          select vdv.ChronicDiseaseHighID as "id",
+                 vdv.FollowUpDate         as "followDate",
+                 vdv.FollowUpWay          as "followWay",
+                 vdv.RiskFactorsName      as "riskFactorsName",
+                 vdv.Doctor,
+                 vdv.OperateTime          as "updateAt"
+          from view_ChronicDiseaseHighFollowUp vdv
+                 inner join view_ChronicDiseaseHighCard vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          where vd.PersonNum = ?
+            and vd.TerminationManage = true
+            and vd.IsDelete = false
+            and vdv.IsDelete = false
+          order by vdv.OperateTime desc
+        `,
         id
       )
     ).map(item => ({
@@ -2370,21 +2369,21 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-        select
-          vdv.HighbloodID as "id",
-          vdv.FollowUpDate as "followDate",
-          vdv.FollowUpWay as "followWay",
-          vdv.PresentSymptoms as "presentSymptoms",
-          vdv.Doctor,
-          vdv.OperateTime as "updateAt"
-        from view_ChronicDiseaseHighCardOtherFollowUp vdv
-               inner join view_ChronicDiseaseHighCardOther vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
-        where vd.PersonNum = ?
-          and vd.TerminationManage = true
-          and vd.IsDelete = false
-          and vdv.IsDelete = false
-        order by vdv.OperateTime desc
-      `,
+          select vdv.HighbloodID     as "id",
+                 vdv.FollowUpDate    as "followDate",
+                 vdv.FollowUpWay     as "followWay",
+                 vdv.PresentSymptoms as "presentSymptoms",
+                 vdv.Doctor,
+                 vdv.OperateTime     as "updateAt"
+          from view_ChronicDiseaseHighCardOtherFollowUp vdv
+                 inner join view_ChronicDiseaseHighCardOther vd
+                            on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          where vd.PersonNum = ?
+            and vd.TerminationManage = true
+            and vd.IsDelete = false
+            and vdv.IsDelete = false
+          order by vdv.OperateTime desc
+        `,
         id
       )
     ).map(item => ({
