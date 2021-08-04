@@ -214,6 +214,30 @@
               >
               </el-button>
             </el-tooltip>
+            <el-tooltip content="批量编辑" :enterable="false">
+              <el-button
+                type="primary"
+                icon="el-icon-edit-outline"
+                circle
+                size="mini"
+                @click="batchEdit(row)"
+              >
+              </el-button> </el-tooltip
+            ><el-tooltip content="批量删除" :enterable="false">
+              <el-button
+                type="danger"
+                :icon="
+                  row.removeLoading
+                    ? 'el-icon-loading'
+                    : 'el-icon-document-delete'
+                "
+                :disabled="row.removeLoading"
+                circle
+                size="mini"
+                @click="batchRemove(row)"
+              >
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -461,6 +485,49 @@ export default {
         });
         row.removeLoading = true;
         await this.$api.HisWorkItem.delStaffWorkItemMapping(row.mappingId);
+        this.$message.success('删除成功');
+        this.$asyncComputed.serverData.update();
+      } catch (e) {
+        console.log(e);
+      } finally {
+        row.removeLoading = false;
+      }
+    },
+    batchEdit(row) {
+      console.log(row);
+    },
+    async batchRemove(row) {
+      try {
+        let removeArr = [];
+        //以工分项维度
+        if (this.currentTarget === HisWorkScoreType.WORK_ITEM)
+          removeArr = this.serverData.mappings.filter(
+            it => it.item === row.itemId
+          );
+
+        //以员工的维度
+        if (this.currentTarget === HisWorkScoreType.STAFF)
+          removeArr = this.serverData.mappings.filter(
+            it => it.staff === row.staffId
+          );
+        if (removeArr.length === 0) {
+          this.$message.info('没有可删除项');
+          return;
+        }
+        await this.$confirm(
+          `确定删除"${row.name}"的所有配置? 删除后不可恢复!`,
+          '提示',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        );
+        row.removeLoading = true;
+        //挨个遍历删除
+        for (const row of removeArr) {
+          await this.$api.HisWorkItem.delStaffWorkItemMapping(row.id);
+        }
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
       } catch (e) {
