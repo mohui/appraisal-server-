@@ -2273,6 +2273,7 @@ export default class Person {
    * return {
    * id: 随访主键,
    * No: 随访编号,
+   * name: 姓名,
    * followDate: 随访时间
    * followWay: 随访方式,
    * riskFactorsName: 高危因素,
@@ -2305,38 +2306,43 @@ export default class Person {
     // language=PostgreSQL
     return (
       await originalDB.execute(
-        `select
-        vd.ChronicDiseaseHighID as "id",
-        vd.serialNum as "No",
-        vd.followUpDate as "followDate",
-        vc_follow.codename as "followWay",
-        vd.RiskFactorsName as "riskFactorsName",
-        vd.SystolicPressure as "systolicPressure",
-        vd.AssertPressure as "assertPressure",
-        vd.Blood_Fat as "bloodFat",
-        vd.Weight as "weight",
-        vd.The_Waist as "waist",
-        vd.Blood_Sugar as "kfxt",
-        vd.Blood_Random as "sjxt",
-        vd.IsSmoke as "isSmoke",
-        vd.DaySmoke as "daySmoke",
-        vd.IsDiet as "isDiet",
-        vd.DietDescription as "dietDescription",
-        vd.IsPhysicalActivity as "isPhysicalActivity",
-        vd.PhysicalActivityDesc as "physicalActivityDesc",
-        vd.IsQuitSmoking as "isQuitSmoking",
-        vd.QuitSmokingDesc as "quitSmokingDesc",
-        vd.IsLimitDrink as "isLimitDrink",
-        vd.LimitDrinkDesc as "limitDrinkDesc",
-        vd.IsVisit as "isVisit",
-        vd.VisitReason as "visitReason",
-        vd.NextVisitDate as "nextVisitDate",
-        vd.OperateTime as "updateAt",
-        vd.Doctor as "doctor",
-        vd.Remark as "remark"
-        from view_ChronicDiseaseHighFollowUp vd
-        left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        where ChronicDiseaseHighID = ? and vd.isdelete = false`,
+        `
+          select vd.ChronicDiseaseHighID as "id",
+                 vd.serialNum            as "No",
+                 vp.name                 as "name",
+                 vd.followUpDate         as "followDate",
+                 vc_follow.codename      as "followWay",
+                 vd.RiskFactorsName      as "riskFactorsName",
+                 vd.SystolicPressure     as "systolicPressure",
+                 vd.AssertPressure       as "assertPressure",
+                 vd.Blood_Fat            as "bloodFat",
+                 vd.Weight               as "weight",
+                 vd.The_Waist            as "waist",
+                 vd.Blood_Sugar          as "kfxt",
+                 vd.Blood_Random         as "sjxt",
+                 vd.IsSmoke              as "isSmoke",
+                 vd.DaySmoke             as "daySmoke",
+                 vd.IsDiet               as "isDiet",
+                 vd.DietDescription      as "dietDescription",
+                 vd.IsPhysicalActivity   as "isPhysicalActivity",
+                 vd.PhysicalActivityDesc as "physicalActivityDesc",
+                 vd.IsQuitSmoking        as "isQuitSmoking",
+                 vd.QuitSmokingDesc      as "quitSmokingDesc",
+                 vd.IsLimitDrink         as "isLimitDrink",
+                 vd.LimitDrinkDesc       as "limitDrinkDesc",
+                 vd.IsVisit              as "isVisit",
+                 vd.VisitReason          as "visitReason",
+                 vd.NextVisitDate        as "nextVisitDate",
+                 vd.OperateTime          as "updateAt",
+                 vd.Doctor               as "doctor",
+                 vd.Remark               as "remark"
+          from view_ChronicDiseaseHighFollowUp vd
+                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
+                 left join view_codedictionary vc_follow
+                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
+          where ChronicDiseaseHighID = ?
+            and vd.isdelete = false
+        `,
         id
       )
     )[0];
@@ -2395,6 +2401,7 @@ export default class Person {
    * return {
    * id: 随访主键,
    * No: 随访编号,
+   * name: 姓名,
    * followDate: 随访时间
    * followWay: 随访方式,
    * symptoms: 症状,
@@ -2450,68 +2457,79 @@ export default class Person {
     // language=PostgreSQL
     return (
       await originalDB.execute(
-        `select
-        vd.HighbloodID as "id",
-        vd.serialNum as "No",
-        vd.followUpDate as "followDate",
-        vc_follow.codename as "followWay",
-        vd.presentSymptoms as "symptoms",
-        vd.SystolicPressure as "systolicPressure",
-        vd.AssertPressure as "assertPressure",
-        vd.Weight as "weight",
-        vd.Weight_Suggest as "weightSuggest",
-        vd.Stature as "stature",
-        vd.BMI as "BMI",
-        vd.BMI_Suggest as "BMISuggest",
-        vd.HeartRate as "HeartRate",
-        vd.Other_Tz as "other",
-        vd.DaySmoke as "daySmoke",
-        vd.DaySmoke_Suggest as "daySmokeSuggest",
-        vd.DayDrink as "dayDrink",
-        vd.DayDrink_Suggest as "dayDrinkSuggest",
-        vd.Sport_Week as "exerciseWeek",
-        vd.Sport_Minute as "exerciseMinute",
-        vd.Sport_Week_Suggest as "exerciseWeekSuggest",
-        vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-        vc_salt.codename as "saltSituation",
-        vc_salt_suggest.codename as "saltSituationSuggest",
-        vc_mental.codename as "mental",
-        vc_doctor_s.codename as "doctorStatue",
-        vd.Other_Sysjc as "qtzysx",
-        vd.Fzjc as "fzjc",
-        vc_ma.codename as "medicationAdherence",
-        vc_effect.codename as "adverseReactions",
-        vd.AdverseEffectOther as "adverseReactionsExplain",
-        vc_vc.codename as "visitClass",
-        vd.DrugName1 as "drugName1",
-        vd.Usage_Day1 as "dailyTimesDrugName1",
-        vd.Usage_Time1 as "usageDrugName1",
-        vd.DrugName2 as "drugName2",
-        vd.Usage_Day2 as "dailyTimesDrugName2",
-        vd.Usage_Time2 as "usageDrugName2",
-        vd.DrugName3 as "drugName3",
-        vd.Usage_Day3 as "dailyTimesDrugName3",
-        vd.Usage_Time3 as "usageDrugName3",
-        vd.DrugNameOther as "otherDrugName",
-        vd.Usage_DayOther as "otherDailyTimesDrugName",
-        vd.Usage_TimeOther as "otherUsageDrugName",
-        vd.Remark as "remark",
-        vd.Referral as "referral",
-        vd.ReferralReason as "referralReason",
-        vd.ReferralAgencies as "referralAgencies",
-        vd.NextVisitDate as "nextVisitDate",
-        vd.OperateTime as "updateAt",
-        vd.Doctor as "doctor"
-        from view_ChronicDiseaseHighCardOtherFollowUp vd
-        left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vd.Salt_Situation
-        left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vd.Salt_Situation_Suggest
-        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet
-        left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
-        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
-        left join view_codedictionary vc_effect on vc_effect.categoryno='005' and vc_effect.code = vd.AdverseEffect
-        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
-        where HighbloodID = ? and vd.isdelete = false`,
+        `
+          select vd.HighbloodID           as "id",
+                 vd.serialNum             as "No",
+                 vp.name                  as "name",
+                 vd.followUpDate          as "followDate",
+                 vc_follow.codename       as "followWay",
+                 vd.presentSymptoms       as "symptoms",
+                 vd.SystolicPressure      as "systolicPressure",
+                 vd.AssertPressure        as "assertPressure",
+                 vd.Weight                as "weight",
+                 vd.Weight_Suggest        as "weightSuggest",
+                 vd.Stature               as "stature",
+                 vd.BMI                   as "BMI",
+                 vd.BMI_Suggest           as "BMISuggest",
+                 vd.HeartRate             as "HeartRate",
+                 vd.Other_Tz              as "other",
+                 vd.DaySmoke              as "daySmoke",
+                 vd.DaySmoke_Suggest      as "daySmokeSuggest",
+                 vd.DayDrink              as "dayDrink",
+                 vd.DayDrink_Suggest      as "dayDrinkSuggest",
+                 vd.Sport_Week            as "exerciseWeek",
+                 vd.Sport_Minute          as "exerciseMinute",
+                 vd.Sport_Week_Suggest    as "exerciseWeekSuggest",
+                 vd.Sport_Minute_Suggest  as "exerciseMinuteSuggest",
+                 vc_salt.codename         as "saltSituation",
+                 vc_salt_suggest.codename as "saltSituationSuggest",
+                 vc_mental.codename       as "mental",
+                 vc_doctor_s.codename     as "doctorStatue",
+                 vd.Other_Sysjc           as "qtzysx",
+                 vd.Fzjc                  as "fzjc",
+                 vc_ma.codename           as "medicationAdherence",
+                 vc_effect.codename       as "adverseReactions",
+                 vd.AdverseEffectOther    as "adverseReactionsExplain",
+                 vc_vc.codename           as "visitClass",
+                 vd.DrugName1             as "drugName1",
+                 vd.Usage_Day1            as "dailyTimesDrugName1",
+                 vd.Usage_Time1           as "usageDrugName1",
+                 vd.DrugName2             as "drugName2",
+                 vd.Usage_Day2            as "dailyTimesDrugName2",
+                 vd.Usage_Time2           as "usageDrugName2",
+                 vd.DrugName3             as "drugName3",
+                 vd.Usage_Day3            as "dailyTimesDrugName3",
+                 vd.Usage_Time3           as "usageDrugName3",
+                 vd.DrugNameOther         as "otherDrugName",
+                 vd.Usage_DayOther        as "otherDailyTimesDrugName",
+                 vd.Usage_TimeOther       as "otherUsageDrugName",
+                 vd.Remark                as "remark",
+                 vd.Referral              as "referral",
+                 vd.ReferralReason        as "referralReason",
+                 vd.ReferralAgencies      as "referralAgencies",
+                 vd.NextVisitDate         as "nextVisitDate",
+                 vd.OperateTime           as "updateAt",
+                 vd.Doctor                as "doctor"
+          from view_ChronicDiseaseHighCardOtherFollowUp vd
+                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
+                 left join view_codedictionary vc_follow
+                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
+                 left join view_codedictionary vc_salt
+                           on vc_salt.categoryno = '7010112' and vc_salt.code = vd.Salt_Situation
+                 left join view_codedictionary vc_salt_suggest
+                           on vc_salt_suggest.categoryno = '7010112' and
+                              vc_salt_suggest.code = vd.Salt_Situation_Suggest
+                 left join view_codedictionary vc_mental
+                           on vc_mental.categoryno = '331' and vc_mental.code = vd.MentalSet
+                 left join view_codedictionary vc_doctor_s
+                           on vc_doctor_s.categoryno = '332' and vc_doctor_s.code = vd.DoctorStatue
+                 left join view_codedictionary vc_ma on vc_ma.categoryno = '181' and vc_ma.code = vd.MedicationAdherence
+                 left join view_codedictionary vc_effect
+                           on vc_effect.categoryno = '005' and vc_effect.code = vd.AdverseEffect
+                 left join view_codedictionary vc_vc on vc_vc.categoryno = '7010106' and vc_vc.code = vd.VisitClass
+          where HighbloodID = ?
+            and vd.isdelete = false
+        `,
         id
       )
     )[0];
