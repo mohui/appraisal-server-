@@ -202,6 +202,7 @@
                   {{ HisStaffMethod.DYNAMIC }}
                 </el-button>
                 <el-button
+                  :disabled="onlyHospital"
                   :type="
                     newWork.staffMethod === HisStaffMethod.STATIC
                       ? 'primary'
@@ -239,6 +240,7 @@
             <el-form-item v-else label="范围" props="scope">
               <el-button-group>
                 <el-button
+                  :disabled="onlyHospital"
                   @click="newWork.scope = HisStaffDeptType.Staff"
                   :type="
                     newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
@@ -248,6 +250,7 @@
                   {{ HisStaffDeptType.Staff }}
                 </el-button>
                 <el-button
+                  :disabled="onlyHospital"
                   @click="newWork.scope = HisStaffDeptType.DEPT"
                   :type="
                     newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
@@ -266,6 +269,9 @@
                   {{ HisStaffDeptType.HOSPITAL }}
                 </el-button>
               </el-button-group>
+              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
+                所选工分项仅适用于机构范围
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -364,12 +370,18 @@ export default {
       return this.addPinyin(
         this.workTreeData.map(it => ({
           ...it,
+          tag: ['其他', '手工数据', '公卫数据'].includes(it.name)
+            ? 'hospital'
+            : 'person',
           disabled: ['其他', '手工数据', '公卫数据'].includes(it.name)
         }))
       );
     },
     staffTree() {
       return this.addPinyin(this.staffTreeData);
+    },
+    onlyHospital() {
+      return this.newWork.projectsSelected.some(p => p.tag === 'hospital');
     }
   },
   watch: {
@@ -378,6 +390,12 @@ export default {
     },
     staffFilterText(value) {
       this.$refs.staffTree.filter(value);
+    },
+    'newWork.projectsSelected'() {
+      if (this.newWork.projectsSelected.some(p => p.tag === 'hospital')) {
+        this.newWork.staffMethod = HisStaffMethod.DYNAMIC;
+        this.newWork.scope = HisStaffDeptType.HOSPITAL;
+      }
     }
   },
   asyncComputed: {
