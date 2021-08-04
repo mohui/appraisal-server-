@@ -425,9 +425,10 @@ export default class HisWorkItem {
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
    * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
-   * @param staffMethod 指定方式; 动态/固定
-   * @param staffs [绑定的员工]
+   * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
+   * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
    * @param score 分值
+   * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    */
   @validate(
     should
@@ -457,9 +458,14 @@ export default class HisWorkItem {
       .number()
       .required()
       .allow(null)
-      .description('分值')
+      .description('分值'),
+    should
+      .number()
+      .required()
+      .allow(null)
+      .description('固定的时候的范围, 员工/科室/机构')
   )
-  async add(name, method, mappings, staffMethod, staffs, score) {
+  async add(name, method, mappings, staffMethod, staffs, score, scope) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -471,6 +477,10 @@ export default class HisWorkItem {
       (!staffs || staffs?.length === 0)
     )
       throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
+
+    if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
+      throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
@@ -516,6 +526,18 @@ export default class HisWorkItem {
             dayjs().toDate()
           );
         }
+      } else {
+        // 如果关联员工为动态, type为员工,科室,机构, source 字段为空
+        await appDB.execute(
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          uuid(),
+          hisWorkItemId,
+          scope,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
 
       // 添加工分项目与his收费项目关联表
@@ -555,7 +577,8 @@ export default class HisWorkItem {
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [绑定的员工]
    * @param mappings
-   * @param score
+   * @param score 分值
+   * @param scope 固定的时候范围必传
    */
   @validate(
     should
@@ -589,9 +612,14 @@ export default class HisWorkItem {
       .number()
       .required()
       .allow(null)
-      .description('分值')
+      .description('分值'),
+    should
+      .string()
+      .required()
+      .allow(null)
+      .description('固定的时候的范围, 员工/科室/机构')
   )
-  async update(id, name, method, mappings, staffMethod, staffs, score) {
+  async update(id, name, method, mappings, staffMethod, staffs, score, scope) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -604,6 +632,8 @@ export default class HisWorkItem {
       (!staffs || staffs?.length === 0)
     )
       throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
+    if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
+      throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
@@ -695,6 +725,18 @@ export default class HisWorkItem {
             dayjs().toDate()
           );
         }
+      } else {
+        // 当是动态的时候, type 为 员工(本人), 科室(本人所在科室), 机构(本人所在机构)
+        await appDB.execute(
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          uuid(),
+          id,
+          scope,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
       }
     });
   }
