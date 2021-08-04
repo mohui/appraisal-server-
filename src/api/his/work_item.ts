@@ -460,7 +460,12 @@ export default class HisWorkItem {
       .allow(null)
       .description('分值'),
     should
-      .number()
+      .string()
+      .only(
+        HisStaffDeptType.Staff,
+        HisStaffDeptType.DEPT,
+        HisStaffDeptType.HOSPITAL
+      )
       .required()
       .allow(null)
       .description('固定的时候的范围, 员工/科室/机构')
@@ -615,6 +620,11 @@ export default class HisWorkItem {
       .description('分值'),
     should
       .string()
+      .only(
+        HisStaffDeptType.Staff,
+        HisStaffDeptType.DEPT,
+        HisStaffDeptType.HOSPITAL
+      )
       .required()
       .allow(null)
       .description('固定的时候的范围, 员工/科室/机构')
@@ -634,6 +644,7 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
     if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+    return 123;
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
