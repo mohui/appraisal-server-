@@ -13,31 +13,6 @@
     >
       <div slot="header" class="header">
         <span>工作量管理</span>
-        <div>
-          维度:
-          <el-button-group>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.WORK_ITEM
-                  ? 'primary'
-                  : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.WORK_ITEM"
-            >
-              工作
-            </el-button>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.STAFF"
-            >
-              员工
-            </el-button>
-          </el-button-group>
-        </div>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -51,13 +26,31 @@
           size="mini"
         >
           <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="">
-              <el-button
-                size="mini"
-                type="primary"
-                @click="$asyncComputed.serverData.update()"
-                >查 询
-              </el-button>
+            <el-form-item label="维度">
+              <el-button-group>
+                <el-button
+                  :type="
+                    currentTarget === HisWorkScoreType.WORK_ITEM
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="currentTarget = HisWorkScoreType.WORK_ITEM"
+                >
+                  工作
+                </el-button>
+                <el-button
+                  :type="
+                    currentTarget === HisWorkScoreType.STAFF
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="currentTarget = HisWorkScoreType.STAFF"
+                >
+                  员工
+                </el-button>
+              </el-button-group>
             </el-form-item>
           </el-col>
         </el-form>
