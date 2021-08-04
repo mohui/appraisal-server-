@@ -110,7 +110,7 @@
     <el-dialog
       title="配置弹窗"
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : '50%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -152,6 +152,14 @@
                   {{ HisWorkMethod.AMOUNT }}
                 </el-button>
               </el-button-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="得分" prop="score">
+              <el-input-number
+                size="mini"
+                v-model="newWork.score"
+              ></el-input-number>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -229,14 +237,32 @@
             </el-form-item>
             <el-form-item v-else label="范围">
               <el-button-group>
-                <el-button type="primary" size="mini">
-                  本人
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.Staff"
+                  :type="
+                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.Staff }}
                 </el-button>
-                <el-button disabled size="mini">
-                  本人所在科室
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.DEPT"
+                  :type="
+                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.DEPT }}
                 </el-button>
-                <el-button disabled size="mini">
-                  本人所在机构
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
+                  :type="
+                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.HOSPITAL }}
                 </el-button>
               </el-button-group>
             </el-form-item>
@@ -258,7 +284,8 @@ import {Permission} from '../../../../common/permission.ts';
 import {
   HisWorkMethod,
   HisWorkSource,
-  HisStaffMethod
+  HisStaffMethod,
+  HisStaffDeptType
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 
@@ -280,7 +307,9 @@ export default {
         staffMethod: HisStaffMethod.DYNAMIC,
         staffs: [],
         projects: [],
-        projectsSelected: []
+        projectsSelected: [],
+        score: 0,
+        scope: HisStaffDeptType.Staff
       },
       addWorkVisible: false,
       workRules: {
@@ -292,6 +321,7 @@ export default {
       searchLoading: false,
       HisWorkMethod: HisWorkMethod,
       HisStaffMethod: HisStaffMethod,
+      HisStaffDeptType: HisStaffDeptType,
       HisWorkSource: Object.keys(HisWorkSource).map(it => ({
         value: HisWorkSource[it],
         key: it
@@ -398,7 +428,11 @@ export default {
             this.newWork.staffs.map(it => ({
               code: it.value,
               type: it.type
-            }))
+            })),
+            this.newWork.score,
+            this.newWork.staffMethod === HisStaffMethod.DYNAMIC
+              ? this.newWork.scope
+              : null
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
