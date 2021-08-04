@@ -795,6 +795,7 @@ export default class HisWorkItem {
                item.name,
                item.method,
                item.type,
+               item.score,
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
@@ -874,6 +875,8 @@ export default class HisWorkItem {
           name: it.name,
           method: it.method,
           type: it.type,
+          score: it.score,
+          scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
           staffIdMappings: staffs
         });
