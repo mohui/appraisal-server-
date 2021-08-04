@@ -32,6 +32,8 @@
         <el-table-column type="index" label="序号"></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
         </el-table-column>
+        <el-table-column prop="score" align="center" label="得分">
+        </el-table-column>
         <el-table-column prop="scoreMethod" label="打分方式" align="center">
         </el-table-column>
         <el-table-column
@@ -355,7 +357,7 @@ export default {
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
         scope: d.scope || HisStaffDeptType.Staff,
-        score: d.score
+        score: d.score || 0
       }));
     },
     treeData() {
