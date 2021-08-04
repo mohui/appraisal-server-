@@ -1,5 +1,8 @@
 <template>
-  <div style="height: 100%">
+  <div
+    style="height: 100%"
+    v-loading="$asyncComputed.detailServerDate.updating"
+  >
     <el-card
       class="box-card"
       style="height: 100%"
