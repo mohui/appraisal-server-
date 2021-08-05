@@ -137,40 +137,6 @@
               <el-input v-model="newWork.work" size="mini"> </el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="打分方式" prop="scoreMethod">
-              <el-button-group>
-                <el-button
-                  :class="{
-                    'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.SUM
-                  }"
-                  size="mini"
-                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
-                >
-                  {{ HisWorkMethod.SUM }}
-                </el-button>
-                <el-button
-                  :class="{
-                    'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.AMOUNT
-                  }"
-                  size="mini"
-                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
-                >
-                  {{ HisWorkMethod.AMOUNT }}
-                </el-button>
-              </el-button-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="单位量得分" prop="score">
-              <el-input-number
-                size="mini"
-                v-model="newWork.score"
-              ></el-input-number>
-            </el-form-item>
-          </el-col>
           <el-col :span="12">
             <el-form-item label="关联项目" prop="projectsSelected">
               <el-input
@@ -308,6 +274,40 @@
               <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
                 所选工分项仅适用于机构范围
               </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="打分方式" prop="scoreMethod">
+              <el-button-group>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.SUM
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
+                >
+                  {{ HisWorkMethod.SUM }}
+                </el-button>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+                >
+                  {{ HisWorkMethod.AMOUNT }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="单位量得分" prop="score">
+              <el-input-number
+                size="mini"
+                v-model="newWork.score"
+              ></el-input-number>
             </el-form-item>
           </el-col>
         </el-row>
