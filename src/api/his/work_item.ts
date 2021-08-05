@@ -1,4 +1,4 @@
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
@@ -1326,7 +1326,9 @@ export default class HisWorkItem {
           mapping => mapping.staff === params?.staff
         );
         if (index)
-          throw new KatoRuntimeError(`员工${index.id}已绑定过该工分项`);
+          throw new KatoCommonError(
+            `员工${checkStaff[0]?.name}已绑定过该工分项`
+          );
 
         // 执行添加语句
         // language=PostgreSQL
