@@ -196,7 +196,7 @@
                         placement="right"
                         width="200"
                         trigger="hover"
-                        :content="`此节点固定不可选`"
+                        :content="disabledContent(data)"
                       >
                         <i
                           style="color: #CC3300"
@@ -598,6 +598,16 @@ export default {
         console.error(e);
       } finally {
         this.searchLoading = false;
+      }
+    },
+    disabledContent(data) {
+      if (['其他', '手工数据', '公卫数据'].includes(data.name))
+        return '固定不可选';
+      if (data.scope === HisStaffDeptType.Staff) {
+        return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
+      }
+      if (data.scope === HisStaffDeptType.HOSPITAL) {
+        return `不能与${HisStaffDeptType.Staff}工分同时选`;
       }
     },
     staffCheck() {
