@@ -3,13 +3,12 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {
-  HisWorkMethod,
-  MarkTagUsages,
   HisStaffDeptType,
-  HisStaffMethod
+  HisStaffMethod,
+  HisWorkMethod,
+  MarkTagUsages
 } from '../../../common/his';
 import Decimal from 'decimal.js';
-import {v4 as uuid} from 'uuid';
 import {
   dateValid,
   dayToRange,
