@@ -541,7 +541,6 @@ export default class HisWorkItem {
       .description('绑定的员工或者科室'),
     should
       .number()
-      .min(0)
       .required()
       .description('分值'),
     should
@@ -711,7 +710,6 @@ export default class HisWorkItem {
       .description('绑定的员工或者科室'),
     should
       .number()
-      .min(0)
       .required()
       .description('分值'),
     should
