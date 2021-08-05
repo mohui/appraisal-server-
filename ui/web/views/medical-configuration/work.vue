@@ -384,12 +384,7 @@ export default {
       }));
     },
     treeData() {
-      return this.addPinyin(
-        this.workTreeData.map(it => ({
-          ...it,
-          disabled: ['其他', '手工数据', '公卫数据'].includes(it.name)
-        }))
-      );
+      return this.addDisabled(this.workTreeData);
     },
     staffTree() {
       return this.addPinyin(this.staffTreeData);
@@ -441,7 +436,7 @@ export default {
     },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources(null, null);
+        return this.addPinyin(await this.$api.HisWorkItem.sources(null, null));
       },
       default() {
         return [];
@@ -571,6 +566,15 @@ export default {
         name: it.name || it.label,
         pinyin: strToPinyin(it.name || it.label)
       }));
+      for (let current of arr) {
+        if (current?.children?.length > 0) {
+          current.children = this.addPinyin(current.children);
+        }
+      }
+      return arr;
+    },
+    //动态修改disabled状态
+    addDisabled(arr) {
       arr = arr.map(data => ({
         ...data,
         disabled:
@@ -582,7 +586,7 @@ export default {
       }));
       for (let current of arr) {
         if (current?.children?.length > 0) {
-          current.children = this.addPinyin(current.children);
+          current.children = this.addDisabled(current.children);
         }
       }
       return arr;
