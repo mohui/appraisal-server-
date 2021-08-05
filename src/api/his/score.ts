@@ -920,7 +920,7 @@ export default class HisScore {
         param.staff_level === HisStaffDeptType.Staff
       ) {
         staffValue = param.staff_id;
-        staffCondition = 'staff = ?';
+        staffCondition = 'id = ?';
       }
       //员工关联是 固定且科室
       if (
@@ -930,10 +930,10 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 'department = ?';
       }
-      //员工关联是 固定且科室
+      //员工关联是 固定且机构
       if (
         param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.DEPT
+        param.staff_level === HisStaffDeptType.HOSPITAL
       ) {
         staffValue = param.staff_id;
         staffCondition = 'hospital = ?';
@@ -944,8 +944,8 @@ export default class HisScore {
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.Staff
       ) {
-        staffValue = staffModel.staff;
-        staffCondition = 'staff = ?';
+        staffValue = staffModel.id;
+        staffCondition = 'id = ?';
       }
       //员工关联是 动态且科室
       if (
@@ -1032,7 +1032,7 @@ export default class HisScore {
         param.staff_level === HisStaffDeptType.Staff
       ) {
         staffValue = param.staff_id;
-        staffCondition = 's.staff = ?';
+        staffCondition = 's.id = ?';
       }
       //员工关联是 固定且科室
       if (
@@ -1042,10 +1042,10 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 's.department = ?';
       }
-      //员工关联是 固定且科室
+      //员工关联是 固定且机构
       if (
         param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.DEPT
+        param.staff_level === HisStaffDeptType.HOSPITAL
       ) {
         staffValue = param.staff_id;
         staffCondition = 's.hospital = ?';
@@ -1056,8 +1056,8 @@ export default class HisScore {
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.Staff
       ) {
-        staffValue = staffModel.staff;
-        staffCondition = 's.staff = ?';
+        staffValue = staffModel.id;
+        staffCondition = 's.id = ?';
       }
       //员工关联是 动态且科室
       if (
@@ -1117,31 +1117,33 @@ export default class HisScore {
         })
       );
       //endregion
-      //region 计算公卫数据工分来源
-      for (const param of bindings.filter(it =>
-        it.source.startsWith('手工数据')
-      )) {
-        //机构级别的数据, 直接用当前员工的机构id即可
-        //查询hospital绑定关系
-        // language=PostgreSQL
-        const hisHospitals: string[] = (
-          await appDB.execute(
-            `
-              select hishospid hospital
-              from hospital_mapping
-              where h_id = ?
-            `,
-            staffModel.hospital
-          )
-        ).map(it => it.hospital);
-        //没有绑定关系, 直接跳过
-        if (hisHospitals.length === 0) continue;
-        const item = HisWorkItemSources.find(it => it.id === param.source);
-        //未配置数据表, 直接跳过
-        if (!item || !item?.datasource?.table) continue;
-        //渲染sql
-        const sqlRendResult = sqlRender(
+    }
+    //endregion
+    //region 计算公卫数据工分来源
+    for (const param of bindings.filter(it =>
+      it.source.startsWith('手工数据')
+    )) {
+      //机构级别的数据, 直接用当前员工的机构id即可
+      //查询hospital绑定关系
+      // language=PostgreSQL
+      const hisHospitals: string[] = (
+        await appDB.execute(
           `
+            select hishospid hospital
+            from hospital_mapping
+            where h_id = ?
+          `,
+          staffModel.hospital
+        )
+      ).map(it => it.hospital);
+      //没有绑定关系, 直接跳过
+      if (hisHospitals.length === 0) continue;
+      const item = HisWorkItemSources.find(it => it.id === param.source);
+      //未配置数据表, 直接跳过
+      if (!item || !item?.datasource?.table) continue;
+      //渲染sql
+      const sqlRendResult = sqlRender(
+        `
 select 1 as value, {{dateCol}} as date
 from {{table}}
 where 1 = 1
@@ -1149,44 +1151,43 @@ where 1 = 1
   and {{dateCol}} < {{? end}}
   and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
 {{#each columns}} and {{this}} {{/each}}`,
-          {
-            dateCol: item.datasource.date,
-            hospitals: hisHospitals,
-            table: item.datasource.table,
-            columns: item.datasource.columns,
-            start,
-            end
+        {
+          dateCol: item.datasource.date,
+          hospitals: hisHospitals,
+          table: item.datasource.table,
+          columns: item.datasource.columns,
+          start,
+          end
+        }
+      );
+      const rows: {date: Date; value: number}[] = await originalDB.execute(
+        sqlRendResult[0],
+        ...sqlRendResult[1]
+      );
+      //公卫数据流水转换成工分流水
+      workItems = workItems.concat(
+        rows.map<WorkItemDetail>(it => {
+          let score = 0;
+          //SUM得分方式
+          if (param.method === HisWorkMethod.SUM) {
+            score = new Decimal(it.value).mul(param.score).toNumber();
           }
-        );
-        const rows: {date: Date; value: number}[] = await originalDB.execute(
-          sqlRendResult[0],
-          ...sqlRendResult[1]
-        );
-        //公卫数据流水转换成工分流水
-        workItems = workItems.concat(
-          rows.map<WorkItemDetail>(it => {
-            let score = 0;
-            //SUM得分方式
-            if (param.method === HisWorkMethod.SUM) {
-              score = new Decimal(it.value).mul(param.score).toNumber();
-            }
-            //AMOUNT得分方式
-            if (param.method === HisWorkMethod.AMOUNT) {
-              score = param.score;
-            }
-            //权重系数
-            score = new Decimal(score).mul(param.rate).toNumber();
-            return {
-              id: param.id,
-              name: param.name,
-              score: score
-            };
-          })
-        );
-      }
+          //AMOUNT得分方式
+          if (param.method === HisWorkMethod.AMOUNT) {
+            score = param.score;
+          }
+          //权重系数
+          score = new Decimal(score).mul(param.rate).toNumber();
+          return {
+            id: param.id,
+            name: param.name,
+            score: score
+          };
+        })
+      );
     }
     //endregion
-    //region 其他工分来源
+    //region 计算其他工分来源
     for (const param of bindings.filter(it => it.source.startsWith('其他'))) {
       let type = '';
       if (param.source === '其他.住院诊疗人次') type = '住院';
