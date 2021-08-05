@@ -529,8 +529,9 @@ export default class HisWorkItem {
       .description('来源id[]'),
     should
       .string()
+      .required()
       .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('得分方式; 固定/动态'),
+      .description('关联员工的关联方式; 固定/动态'),
     should
       .array()
       .items({
@@ -688,8 +689,9 @@ export default class HisWorkItem {
       .description('来源id[]'),
     should
       .string()
+      .required()
       .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('得分方式; 固定/动态'),
+      .description('关联员工的关联方式; 固定/动态'),
     should
       .array()
       .items({
