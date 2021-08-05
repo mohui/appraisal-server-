@@ -624,7 +624,9 @@ export default {
     treeCheck() {
       let checkedNodes = this.$refs.tree.getCheckedNodes();
       //先过滤一下不需要传的节点
-      checkedNodes = checkedNodes.filter(it => !it.disabled);
+      checkedNodes = checkedNodes.filter(
+        it => !['其他', '手工数据', '公卫数据'].includes(it.name)
+      );
       for (let c of checkedNodes) {
         if (c?.children?.length > 0) {
           //children内的元素一定都是选上的,所以只保留它们共同的父项
