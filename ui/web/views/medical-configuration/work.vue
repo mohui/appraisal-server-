@@ -538,8 +538,8 @@ export default {
     findItem(id, arr) {
       for (let i = 0; i < arr.length; i++) {
         if (arr[i].id === id) return arr[i];
-        if (arr[i]?.children?.length > 0)
-          return this.findItem(id, arr[i].children);
+        const ret = this.findItem(id, arr[i]?.children ?? []);
+        if (ret) return ret;
       }
     },
     async removeRow(row) {
