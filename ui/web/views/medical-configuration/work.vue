@@ -188,7 +188,12 @@
                     <span style="font-size: 14px; color: #606266">{{
                       `${data.name}`
                     }}</span>
-                    <span v-show="node.disabled">
+                    <span
+                      v-show="
+                        node.disabled &&
+                          !['其他', '手工数据', '公卫数据'].includes(data.name)
+                      "
+                    >
                       <el-popover
                         placement="right"
                         width="200"
@@ -593,8 +598,6 @@ export default {
       }
     },
     disabledContent(data) {
-      if (['其他', '手工数据', '公卫数据'].includes(data.name))
-        return '固定不可选';
       if (data.scope === HisStaffDeptType.Staff) {
         return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
       }
