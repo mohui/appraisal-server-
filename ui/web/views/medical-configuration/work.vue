@@ -524,7 +524,7 @@ export default {
           projectsSelected: row.mappings.map(m => ({
             name: m.name,
             id: m.id,
-            scope: row.scope
+            scope: this.findItem(m.id, this.workTreeData).scope
           })),
           projects: [],
           staffMethod: row.staffMethod,
@@ -534,6 +534,13 @@ export default {
         })
       );
       this.addWorkVisible = true;
+    },
+    findItem(id, arr) {
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].id === id) return arr[i];
+        if (arr[i]?.children?.length > 0)
+          return this.findItem(id, arr[i].children);
+      }
     },
     async removeRow(row) {
       try {
