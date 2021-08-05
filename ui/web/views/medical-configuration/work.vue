@@ -32,10 +32,6 @@
         <el-table-column type="index" label="序号"></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
         </el-table-column>
-        <el-table-column prop="score" align="center" label="得分">
-        </el-table-column>
-        <el-table-column prop="scoreMethod" label="打分方式" align="center">
-        </el-table-column>
         <el-table-column
           prop="project"
           label="关联项目"
@@ -81,6 +77,10 @@
             </el-tooltip>
             <div v-else>{{ row.staffMappings.join(',') }}</div>
           </template>
+        </el-table-column>
+        <el-table-column prop="scoreMethod" label="打分方式" align="center">
+        </el-table-column>
+        <el-table-column prop="score" align="center" label="单位量得分">
         </el-table-column>
         <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
@@ -156,7 +156,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="得分" prop="score">
+            <el-form-item label="单位量得分" prop="score">
               <el-input-number
                 size="mini"
                 v-model="newWork.score"
