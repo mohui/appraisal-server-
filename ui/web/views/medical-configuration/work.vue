@@ -241,6 +241,8 @@
                 </el-button>
               </el-button-group>
             </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item
               v-if="newWork.staffMethod === HisStaffMethod.STATIC"
               label="员工"
@@ -513,7 +515,8 @@ export default {
           scoreMethod: row.scoreMethod,
           projectsSelected: row.mappings.map(m => ({
             name: m.name,
-            id: m.id
+            id: m.id,
+            scope: row.scope
           })),
           projects: [],
           staffMethod: row.staffMethod,
@@ -556,10 +559,11 @@ export default {
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
         staffMethod: HisStaffMethod.DYNAMIC,
+        staffs: [],
         projects: [],
         projectsSelected: [],
-        scope: HisStaffDeptType.Staff,
-        score: 0
+        score: 0,
+        scope: HisStaffDeptType.Staff
       };
       this.addWorkVisible = false;
     },
