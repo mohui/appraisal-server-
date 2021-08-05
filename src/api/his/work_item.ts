@@ -570,6 +570,16 @@ export default class HisWorkItem {
 
     if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+    // 如果选了公卫数据,和其他, scope必须是机构
+    mappings.forEach(it => {
+      if (
+        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
+        scope !== HisStaffDeptType.HOSPITAL
+      )
+        throw new KatoRuntimeError(
+          `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
+        );
+    });
 
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
@@ -730,6 +740,16 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
     if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+    // 如果选了公卫数据,和其他, scope必须是机构
+    mappings.forEach(it => {
+      if (
+        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
+        scope !== HisStaffDeptType.HOSPITAL
+      )
+        throw new KatoRuntimeError(
+          `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
+        );
+    });
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
