@@ -87,18 +87,6 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 员工工分项目得分流水表(his_staff_work_score_detail)
-
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| id | varchar(36) | 主键 |
-| staff | varchar(36) | 员工id |
-| item | varchar(36) | 工分项目id |
-| date | date | 得分时间 |
-| score | double | 得分 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
-
 #### 医疗考核方案表(his_check_system)
 
 | 字段名 | 字段类型 | 注释 |

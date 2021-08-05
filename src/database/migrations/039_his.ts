@@ -146,23 +146,6 @@ export class HisMigration implements IMigration {
       comment on column his_staff_work_item_mapping.item is '工分项目id';
       comment on column his_staff_work_item_mapping.rate is '占比';
 
-      --员工工分项目得分流水表
-      create table if not exists his_staff_work_score_detail
-      (
-        id           varchar(36) primary key,
-        staff        varchar(36),
-        item         varchar(36),
-        date         timestamp with time zone,
-        score        double precision,
-        "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
-      );
-      comment on table his_staff_work_score_detail is '员工工分项目得分流水表';
-      comment on column his_staff_work_score_detail.staff is '员工id';
-      comment on column his_staff_work_score_detail.item is '工分项目id';
-      comment on column his_staff_work_score_detail.date is '得分时间';
-      comment on column his_staff_work_score_detail.score is '得分';
-
       --医疗考核方案表
       create table if not exists "his_check_system"
       (
