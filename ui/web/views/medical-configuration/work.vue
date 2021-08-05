@@ -75,7 +75,15 @@
                 row.staffMappings.join(',')
               }}</span>
             </el-tooltip>
-            <div v-else>{{ row.staffMappings.join(',') }}</div>
+            <div v-else>
+              {{
+                `${row.staffMappings.join(',')}${
+                  row.staffMethod === HisStaffMethod.DYNAMIC
+                    ? `-${row.scope}`
+                    : ''
+                }`
+              }}
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="scoreMethod" label="打分方式" align="center">
