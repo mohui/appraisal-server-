@@ -1239,7 +1239,7 @@ where 1 = 1
     resultModel.self = workItems.reduce((result, current) => {
       const obj = result.find(it => it.id === current.id);
       if (obj) {
-        obj.score += current.score;
+        obj.score = new Decimal(obj.score).add(current.score).toNumber();
       } else {
         result.push({
           id: current.id,
