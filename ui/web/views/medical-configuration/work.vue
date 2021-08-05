@@ -337,6 +337,8 @@ export default {
         label: 'name',
         disabled: data => {
           return (
+            (data.tag === 'person' && this.onlyHospital) || //机构工分选中后禁用个人工分
+            (data.tag === 'hospital' && this.onlyPerson) || //个人工分项选中后禁用机构工分
             data.id === '公卫数据' ||
             data.id === '手工数据' ||
             data.id === '其他'
@@ -370,9 +372,6 @@ export default {
       return this.addPinyin(
         this.workTreeData.map(it => ({
           ...it,
-          tag: ['其他', '手工数据', '公卫数据'].includes(it.name)
-            ? 'hospital'
-            : 'person',
           disabled: ['其他', '手工数据', '公卫数据'].includes(it.name)
         }))
       );
@@ -382,6 +381,9 @@ export default {
     },
     onlyHospital() {
       return this.newWork.projectsSelected.some(p => p.tag === 'hospital');
+    },
+    onlyPerson() {
+      return this.newWork.projectsSelected.some(p => p.tag === 'person');
     }
   },
   watch: {
@@ -544,7 +546,11 @@ export default {
       arr = arr.map(it => ({
         ...it,
         name: it.name || it.label,
-        pinyin: strToPinyin(it.name || it.label)
+        pinyin: strToPinyin(it.name || it.label),
+        tag:
+          it.id.indexOf('公卫') > -1 || it.id.indexOf('其他') > -1
+            ? 'hospital'
+            : 'person'
       }));
       for (let current of arr) {
         if (current?.children?.length > 0) {
