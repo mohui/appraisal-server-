@@ -44,7 +44,7 @@ export enum HisStaffMethod {
 }
 
 /**
- * 公分项和员工关联类型
+ * 关联员工类型
  */
 export enum HisStaffDeptType {
   Staff = '员工',
