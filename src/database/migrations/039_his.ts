@@ -131,7 +131,7 @@ export class HisMigration implements IMigration {
       comment on column his_work_item_staff_mapping."type" is '关联员工类型';
 
       --员工和工分项绑定表
-      create table his_staff_work_item_mapping
+      create table if not exists his_staff_work_item_mapping
       (
         id           varchar(36) primary key,
         staff        varchar(36),
