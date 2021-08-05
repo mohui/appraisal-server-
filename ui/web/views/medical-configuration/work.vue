@@ -179,11 +179,35 @@
                   :default-checked-keys="
                     newWork.projectsSelected.map(it => it.id)
                   "
+                  :default-expanded-keys="
+                    newWork.projectsSelected.map(it => it.id)
+                  "
                   node-key="id"
                   :filter-node-method="filterNode"
                   show-checkbox
                   @check-change="treeCheck"
-                ></el-tree>
+                >
+                  <span slot-scope="{node, data}">
+                    <span style="font-size: 14px; color: #606266">{{
+                      `${data.name}`
+                    }}</span>
+                    <span v-show="data.disabled">
+                      <el-popover
+                        placement="right"
+                        width="200"
+                        trigger="hover"
+                        :content="`此节点固定不可选`"
+                      >
+                        <i
+                          style="color: #CC3300"
+                          slot="reference"
+                          class="el-icon-warning-outline"
+                        >
+                        </i>
+                      </el-popover>
+                    </span>
+                  </span>
+                </el-tree>
               </div>
             </el-form-item>
           </el-col>
@@ -334,16 +358,7 @@ export default {
         key: it
       })),
       treeProps: {
-        label: 'name',
-        disabled: data => {
-          return (
-            (data.tag === 'person' && this.onlyHospital) || //机构工分选中后禁用个人工分
-            (data.tag === 'hospital' && this.onlyPerson) || //个人工分项选中后禁用机构工分
-            data.id === '公卫数据' ||
-            data.id === '手工数据' ||
-            data.id === '其他'
-          );
-        }
+        label: 'name'
       },
       filterText: '',
       staffFilterText: ''
@@ -380,10 +395,14 @@ export default {
       return this.addPinyin(this.staffTreeData);
     },
     onlyHospital() {
-      return this.newWork.projectsSelected.some(p => p.tag === 'hospital');
+      return this.newWork.projectsSelected.some(
+        p => p.scope === HisStaffDeptType.HOSPITAL
+      );
     },
     onlyPerson() {
-      return this.newWork.projectsSelected.some(p => p.tag === 'person');
+      return this.newWork.projectsSelected.some(
+        p => p.scope === HisStaffDeptType.Staff
+      );
     }
   },
   watch: {
@@ -394,7 +413,11 @@ export default {
       this.$refs.staffTree.filter(value);
     },
     'newWork.projectsSelected'() {
-      if (this.newWork.projectsSelected.some(p => p.tag === 'hospital')) {
+      if (
+        this.newWork.projectsSelected.some(
+          p => p.scope === HisStaffDeptType.HOSPITAL
+        )
+      ) {
         this.newWork.staffMethod = HisStaffMethod.DYNAMIC;
         this.newWork.scope = HisStaffDeptType.HOSPITAL;
       }
@@ -546,11 +569,16 @@ export default {
       arr = arr.map(it => ({
         ...it,
         name: it.name || it.label,
-        pinyin: strToPinyin(it.name || it.label),
-        tag:
-          it.id.indexOf('公卫') > -1 || it.id.indexOf('其他') > -1
-            ? 'hospital'
-            : 'person'
+        pinyin: strToPinyin(it.name || it.label)
+      }));
+      arr = arr.map(data => ({
+        ...data,
+        disabled:
+          (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
+          (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
+          data.id === '公卫数据' ||
+          data.id === '手工数据' ||
+          data.id === '其他'
       }));
       for (let current of arr) {
         if (current?.children?.length > 0) {
