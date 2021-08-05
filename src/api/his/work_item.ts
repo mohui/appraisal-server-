@@ -561,7 +561,7 @@ export default class HisWorkItem {
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
       )
     )
-      throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+      throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
     if (
       staffMethod === HisStaffMethod.STATIC &&
       (!staffs || staffs?.length === 0)
