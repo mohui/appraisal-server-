@@ -18,26 +18,63 @@ export const HisWorkItemSources: {
   id: string;
   name: string;
   parent?: string;
+  scope: string;
   datasource?: {
     table: string;
     date: string;
     columns?: string[];
   };
 }[] = [
-  {id: '门诊', name: '门诊', parent: null},
-  {id: '门诊.检查项目', name: '检查项目', parent: '门诊'},
+  {
+    id: '门诊',
+    name: '门诊',
+    parent: null,
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '门诊.检查项目',
+    name: '检查项目',
+    parent: '门诊',
+    scope: HisStaffDeptType.Staff
+  },
   //示例
   //{id: '住院-检查项目-{id}', name: 'B超', parent: '门诊-检查项目'},
-  {id: '门诊.药品', name: '药品', parent: '门诊'},
-  {id: '住院', name: '住院', parent: null},
-  {id: '住院.检查项目', name: '检查项目', parent: '住院'},
-  {id: '住院.药品', name: '药品', parent: '住院'},
-  {id: '手工数据', name: '手工数据', parent: null},
-  {id: '公卫数据', name: '公卫数据', parent: null},
+  {
+    id: '门诊.药品',
+    name: '药品',
+    parent: '门诊',
+    scope: HisStaffDeptType.Staff
+  },
+  {id: '住院', name: '住院', parent: null, scope: HisStaffDeptType.Staff},
+  {
+    id: '住院.检查项目',
+    name: '检查项目',
+    parent: '住院',
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '住院.药品',
+    name: '药品',
+    parent: '住院',
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '手工数据',
+    name: '手工数据',
+    parent: null,
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '公卫数据',
+    name: '公卫数据',
+    parent: null,
+    scope: HisStaffDeptType.HOSPITAL
+  },
   {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HealthCheckTableScore',
       date: 'OperateTime'
@@ -47,6 +84,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.生活方式',
     name: '生活方式',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
@@ -57,6 +95,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.脏器功能',
     name: '脏器功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
@@ -67,6 +106,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-眼底',
     name: '查体-眼底',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -77,6 +117,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-足背动脉搏动',
     name: '查体-足背动脉搏动',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -87,6 +128,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-肛门指诊',
     name: '查体-肛门指诊',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -97,6 +139,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-妇科',
     name: '查体-妇科',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -107,6 +150,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-其他',
     name: '查体-其他',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -117,6 +161,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-血常规',
     name: '辅助检查-血常规',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -127,6 +172,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-尿常规',
     name: '辅助检查-尿常规',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -137,6 +183,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-空腹血糖',
     name: '辅助检查-空腹血糖',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -147,6 +194,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-心电图',
     name: '辅助检查-心电图',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -157,6 +205,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-尿微量白蛋白',
     name: '辅助检查-尿微量白蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -167,6 +216,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-大便潜血',
     name: '辅助检查-大便潜血',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -177,6 +227,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-糖化血红蛋白',
     name: '辅助检查-糖化血红蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -187,6 +238,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-乙型肝炎表面抗原',
     name: '辅助检查-乙型肝炎表面抗原',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -197,6 +249,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-肝功能',
     name: '辅助检查-肝功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -207,6 +260,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-肾功能',
     name: '辅助检查-肾功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -217,6 +271,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-血脂',
     name: '辅助检查-血脂',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -227,6 +282,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-胸部X光片',
     name: '辅助检查-胸部X光片',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -237,6 +293,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-B超',
     name: '辅助检查-B超',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -247,6 +304,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-宫颈涂片',
     name: '辅助检查-宫颈涂片',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -257,6 +315,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-其他',
     name: '辅助检查-其他',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -267,6 +326,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访',
     name: '高血压随访',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate'
@@ -276,6 +336,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访-辅助检查',
     name: '高血压随访-辅助检查',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate',
@@ -286,6 +347,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访',
     name: '2型糖尿病随访',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate'
@@ -295,6 +357,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访-糖化血红蛋白',
     name: '2型糖尿病随访-糖化血红蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
@@ -305,6 +368,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访-空腹血糖',
     name: '2型糖尿病随访-空腹血糖',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
@@ -315,6 +379,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人中医药服务',
     name: '老年人中医药服务',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_QuestionnaireMain',
       date: 'OperateTime'
@@ -324,6 +389,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.卫生计生监督协管信息报告登记',
     name: '卫生计生监督协管信息报告登记',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_SanitaryControlReport',
       date: 'ReportTime'
@@ -333,6 +399,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.卫生计生监督协管巡查登记',
     name: '卫生计生监督协管巡查登记',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_SanitaryControlAssist',
       date: 'checkDate'
@@ -342,6 +409,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.新生儿家庭访视表',
     name: '新生儿家庭访视表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_NewbornVisit_KN',
       date: 'VisitDate'
@@ -351,6 +419,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.12-30月龄儿童健康检查记录表',
     name: '12-30月龄儿童健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_ChildCheck_KN',
       date: 'CheckDate',
@@ -361,6 +430,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.3-6岁儿童健康检查记录表',
     name: '3-6岁儿童健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_ChildCheck_KN',
       date: 'CheckDate',
@@ -371,6 +441,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.第1次产前检查服务记录表',
     name: '第1次产前检查服务记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_NewlyDiagnosed_KN',
       date: 'NewlyDiagnosedDate'
@@ -380,6 +451,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.第2~5次产前随访服务记录表',
     name: '第2~5次产前随访服务记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_PrenatalCare_KN',
       date: 'CheckDate'
@@ -389,6 +461,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.产后访视记录表',
     name: '产后访视记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_MaternalVisits_KN',
       date: 'VisitDate'
@@ -398,14 +471,25 @@ export const HisWorkItemSources: {
     id: '公卫数据.产后42天健康检查记录表',
     name: '产后42天健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_Examine42thDay_KN',
       date: 'VisitDate'
     }
   },
-  {id: '其他', name: '其他', parent: null},
-  {id: '其他.门诊诊疗人次', name: '门诊诊疗人次', parent: '其他'},
-  {id: '其他.住院诊疗人次', name: '住院诊疗人次', parent: '其他'}
+  {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
+  {
+    id: '其他.门诊诊疗人次',
+    name: '门诊诊疗人次',
+    parent: '其他',
+    scope: HisStaffDeptType.HOSPITAL
+  },
+  {
+    id: '其他.住院诊疗人次',
+    name: '住院诊疗人次',
+    parent: '其他',
+    scope: HisStaffDeptType.HOSPITAL
+  }
 ];
 
 /**
@@ -1366,12 +1450,14 @@ export default class HisWorkItem {
         dictList.push({
           id: `门诊.检查项目.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `门诊.检查项目`
+          parent: `门诊.检查项目`,
+          scope: HisStaffDeptType.Staff
         });
         dictList.push({
           id: `住院.检查项目.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `住院.检查项目`
+          parent: `住院.检查项目`,
+          scope: HisStaffDeptType.Staff
         });
       }
       // 门诊/住院 药品分类
@@ -1379,12 +1465,14 @@ export default class HisWorkItem {
         dictList.push({
           id: `门诊.药品.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `门诊.药品`
+          parent: `门诊.药品`,
+          scope: HisStaffDeptType.Staff
         });
         dictList.push({
           id: `住院.药品.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `住院.药品`
+          parent: `住院.药品`,
+          scope: HisStaffDeptType.Staff
         });
       }
     }
@@ -1495,7 +1583,8 @@ export default class HisWorkItem {
           : drugIndex?.name
           ? drugIndex.name
           : null,
-        parent: it.parent
+        parent: it.parent,
+        scope: HisStaffDeptType.Staff
       };
     });
 
@@ -1575,7 +1664,8 @@ export default class HisWorkItem {
           it => ({
             id: `${treeIt1.id}.${it.id}`,
             name: it.name,
-            parent: '手工数据'
+            parent: '手工数据',
+            scope: HisStaffDeptType.Staff
           })
         );
       }
