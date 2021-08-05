@@ -1,7 +1,13 @@
 import HisStaff from './staff';
 import {appDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {dateValid, getHospital, getSettle, monthToRange} from './service';
+import {
+  dateValid,
+  getHospital,
+  getSettle,
+  monthToRange,
+  StaffWorkModel
+} from './service';
 import Decimal from 'decimal.js';
 
 /**
@@ -102,20 +108,48 @@ export default class HisHospital {
   async findWorkScoreList(month) {
     const hospital = await getHospital();
     const {start, end} = monthToRange(month);
-    return await appDB.execute(
-      // language=PostgreSQL
+    //查询员工工分结果
+    // language=PostgreSQL
+    const rows: {work: StaffWorkModel}[] = await appDB.execute(
       `
-        select m.item as id, max(wi.name) as name, sum(d.score) as score
-        from his_staff_work_item_mapping m
-               inner join his_work_item wi on m.item = wi.id
-               inner join staff s on m.staff = s.id and s.hospital = ?
-               left join his_staff_work_score_detail d on d.item = m.item and d.date >= ? and d.date < ?
-        group by m.item
+        select work
+        from his_staff_result r
+               inner join staff s on r.id = s.id and s.hospital = ?
+        where r.day >= ?
+          and r.day < ?
       `,
       hospital,
       start,
       end
     );
+    //定义返回值
+    const result: {id: string; name: string; score: number}[] = [];
+    //填充得分的工分项
+    for (const row of rows) {
+      for (const model of row.work.self) {
+        const obj = result.find(it => it.id === model.id);
+        if (obj) {
+          obj.score += model.score;
+        } else {
+          result.push(model);
+        }
+      }
+    }
+    //填充未得分的工分项
+    const workItemModels: {id: string; name: string}[] = await appDB.execute(
+      `select id, name from his_work_item where hospital = ?`,
+      hospital
+    );
+    for (const model of workItemModels) {
+      const obj = result.find(it => it.id === model.id);
+      if (!obj)
+        result.push({
+          id: model.id,
+          name: model.name,
+          score: 0
+        });
+    }
+    return result;
   }
 
   /**

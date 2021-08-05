@@ -36,6 +36,23 @@ export enum HisWorkMethod {
 }
 
 /**
+ * 医疗工分项目和员工绑定方式
+ */
+export enum HisStaffMethod {
+  STATIC = '固定',
+  DYNAMIC = '动态'
+}
+
+/**
+ * 关联员工类型
+ */
+export enum HisStaffDeptType {
+  Staff = '员工',
+  DEPT = '科室',
+  HOSPITAL = '机构'
+}
+
+/**
  * 医疗工分项目来源
  */
 export enum HisWorkSource {

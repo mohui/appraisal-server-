@@ -22,6 +22,7 @@
       <el-table
         v-loading="tableLoading"
         stripe
+        border
         size="small"
         :data="tableData"
         height="100%"
@@ -30,8 +31,6 @@
       >
         <el-table-column type="index" label="序号"></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
-        </el-table-column>
-        <el-table-column prop="scoreMethod" label="打分方式" align="center">
         </el-table-column>
         <el-table-column
           prop="project"
@@ -54,6 +53,42 @@
             </el-tooltip>
             <div v-else>{{ row.projects.join(',') }}</div>
           </template>
+        </el-table-column>
+        <el-table-column
+          prop="project"
+          label="关联员工"
+          align="center"
+          width="300"
+        >
+          <template slot-scope="{row}">
+            <el-tooltip
+              v-if="$widthCompute([row.staffMappings.join(',')]) >= 300"
+              effect="dark"
+              placement="top"
+              :content="row.projects.join(',')"
+            >
+              <div
+                slot="content"
+                v-html="toBreak(row.staffMappings.join(','))"
+              ></div>
+              <span class="cell-long-span">{{
+                row.staffMappings.join(',')
+              }}</span>
+            </el-tooltip>
+            <div v-else>
+              {{
+                `${row.staffMappings.join(',')}${
+                  row.staffMethod === HisStaffMethod.DYNAMIC
+                    ? `-${row.scope}`
+                    : ''
+                }`
+              }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="scoreMethod" label="打分方式" align="center">
+        </el-table-column>
+        <el-table-column prop="score" align="center" label="单位量得分">
         </el-table-column>
         <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
@@ -83,9 +118,8 @@
       </el-table>
     </el-card>
     <el-dialog
-      title="配置弹窗"
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : '50%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -97,65 +131,186 @@
         label-position="right"
         label-width="120px"
       >
-        <el-form-item label="工分项" prop="work">
-          <el-input v-model="newWork.work"> </el-input>
-        </el-form-item>
-        <el-form-item label="关联项目" prop="projectsSelected">
-          <el-input
-            size="mini"
-            placeholder="输入关键字进行过滤"
-            v-model="filterText"
-          >
-          </el-input>
-          <div class="long-tree">
-            <el-tree
-              ref="tree"
-              :data="treeData"
-              :props="treeProps"
-              :default-checked-keys="newWork.projectsSelected.map(it => it.id)"
-              node-key="id"
-              :filter-node-method="filterNode"
-              show-checkbox
-              @check-change="treeCheck"
-            ></el-tree>
-          </div>
-        </el-form-item>
-        <el-form-item label="打分方式" prop="scoreMethod">
-          <el-button-group>
-            <el-button
-              :class="{
-                'el-button--primary': newWork.scoreMethod === HisWorkMethod.SUM
-              }"
-              size="small"
-              @click="newWork.scoreMethod = HisWorkMethod.SUM"
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="工分项" prop="work">
+              <el-input v-model="newWork.work" size="mini"> </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="关联项目" prop="projectsSelected">
+              <el-input
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="filterText"
+              >
+              </el-input>
+              <div class="long-tree">
+                <el-tree
+                  ref="tree"
+                  :data="treeData"
+                  :props="treeProps"
+                  :default-checked-keys="
+                    newWork.projectsSelected.map(it => it.id)
+                  "
+                  node-key="id"
+                  :filter-node-method="filterNode"
+                  show-checkbox
+                  @check-change="treeCheck"
+                >
+                  <span slot-scope="{node, data}">
+                    <span style="font-size: 14px; color: #606266">{{
+                      `${data.name}`
+                    }}</span>
+                    <span
+                      v-show="
+                        node.disabled &&
+                          !['其他', '手工数据', '公卫数据'].includes(data.name)
+                      "
+                    >
+                      <el-popover
+                        placement="right"
+                        width="200"
+                        trigger="hover"
+                        :content="disabledContent(data)"
+                      >
+                        <i
+                          style="color: #CC3300"
+                          slot="reference"
+                          class="el-icon-warning-outline"
+                        >
+                        </i>
+                      </el-popover>
+                    </span>
+                  </span>
+                </el-tree>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="关联员工" prop="staffMethod">
+              <el-button-group>
+                <el-button
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.DYNAMIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
+                >
+                  {{ HisStaffMethod.DYNAMIC }}
+                </el-button>
+                <el-button
+                  :disabled="onlyHospital"
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.STATIC
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="mini"
+                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
+                >
+                  {{ HisStaffMethod.STATIC }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              v-if="newWork.staffMethod === HisStaffMethod.STATIC"
+              label="员工"
+              prop="staffs"
             >
-              {{ HisWorkMethod.SUM }}
-            </el-button>
-            <el-button
-              :class="{
-                'el-button--primary':
-                  newWork.scoreMethod === HisWorkMethod.AMOUNT
-              }"
-              size="small"
-              @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
-            >
-              {{ HisWorkMethod.AMOUNT }}
-            </el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item
-          v-show="newWork.projectsSelected.length > 0"
-          label="已有工分项"
-        >
-          <el-tag
-            v-for="old in newWork.projectsSelected"
-            :key="old.id"
-            closable
-            @close="closeTag(old)"
-            style="margin: 0 5px"
-            >{{ old.name }}</el-tag
-          >
-        </el-form-item>
+              <el-input
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="staffFilterText"
+              ></el-input>
+              <div class="long-tree">
+                <el-tree
+                  ref="staffTree"
+                  :data="staffTree"
+                  :default-checked-keys="newWork.staffs"
+                  node-key="value"
+                  :filter-node-method="filterNode"
+                  show-checkbox
+                  @check-change="staffCheck"
+                ></el-tree>
+              </div>
+            </el-form-item>
+            <el-form-item v-else label="范围" props="scope">
+              <el-button-group>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.Staff"
+                  :type="
+                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.Staff }}
+                </el-button>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.DEPT"
+                  :type="
+                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.DEPT }}
+                </el-button>
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
+                  :type="
+                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.HOSPITAL }}
+                </el-button>
+              </el-button-group>
+              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
+                所选工分项仅适用于机构范围
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="打分方式" prop="scoreMethod">
+              <el-button-group>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.SUM
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.SUM"
+                >
+                  {{ HisWorkMethod.SUM }}
+                </el-button>
+                <el-button
+                  :class="{
+                    'el-button--primary':
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                  }"
+                  size="mini"
+                  @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
+                >
+                  {{ HisWorkMethod.AMOUNT }}
+                </el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="单位量得分" prop="score">
+              <el-input-number
+                size="mini"
+                v-model="newWork.score"
+              ></el-input-number>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetConfig('workForm')">取 消</el-button>
@@ -169,7 +324,12 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import {HisWorkMethod, HisWorkSource} from '../../../../common/his.ts';
+import {
+  HisWorkMethod,
+  HisWorkSource,
+  HisStaffMethod,
+  HisStaffDeptType
+} from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 
 export default {
@@ -187,8 +347,12 @@ export default {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
+        staffMethod: HisStaffMethod.DYNAMIC,
+        staffs: [],
         projects: [],
-        projectsSelected: []
+        projectsSelected: [],
+        score: 0,
+        scope: HisStaffDeptType.Staff
       },
       addWorkVisible: false,
       workRules: {
@@ -199,6 +363,8 @@ export default {
       addBtnLoading: false,
       searchLoading: false,
       HisWorkMethod: HisWorkMethod,
+      HisStaffMethod: HisStaffMethod,
+      HisStaffDeptType: HisStaffDeptType,
       HisWorkSource: Object.keys(HisWorkSource).map(it => ({
         value: HisWorkSource[it],
         key: it
@@ -207,13 +373,16 @@ export default {
         label: 'name',
         disabled: data => {
           return (
+            (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
+            (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
             data.id === '公卫数据' ||
             data.id === '手工数据' ||
             data.id === '其他'
           );
         }
       },
-      filterText: ''
+      filterText: '',
+      staffFilterText: ''
     };
   },
   computed: {
@@ -224,16 +393,50 @@ export default {
         scoreMethod: d.method,
         projects: d.mappings.map(it => it.name),
         mappings: d.mappings,
-        removeLoading: false
+        removeLoading: false,
+        staffMethod: d.type ? d.type : HisStaffMethod.DYNAMIC, // 默认是动态
+        staffIdMappings: d.staffIdMappings,
+        staffMappings:
+          d.staffMappings?.length > 0
+            ? d.staffMappings
+            : [HisStaffMethod.DYNAMIC],
+        scope: d.scope || HisStaffDeptType.Staff,
+        score: d.score || 0
       }));
     },
     treeData() {
-      return this.addPinyin(this.workTreeData);
+      return this.workTreeData;
+    },
+    staffTree() {
+      return this.addPinyin(this.staffTreeData);
+    },
+    onlyHospital() {
+      return this.newWork.projectsSelected.some(
+        p => p.scope === HisStaffDeptType.HOSPITAL
+      );
+    },
+    onlyPerson() {
+      return this.newWork.projectsSelected.some(
+        p => p.scope === HisStaffDeptType.Staff
+      );
     }
   },
   watch: {
     filterText(value) {
       this.$refs.tree.filter(value);
+    },
+    staffFilterText(value) {
+      this.$refs.staffTree.filter(value);
+    },
+    'newWork.projectsSelected'() {
+      if (
+        this.newWork.projectsSelected.some(
+          p => p.scope === HisStaffDeptType.HOSPITAL
+        )
+      ) {
+        this.newWork.staffMethod = HisStaffMethod.DYNAMIC;
+        this.newWork.scope = HisStaffDeptType.HOSPITAL;
+      }
     }
   },
   asyncComputed: {
@@ -254,11 +457,23 @@ export default {
     },
     workTreeData: {
       async get() {
-        return await this.$api.HisWorkItem.sources(null, null);
+        return this.addPinyin(await this.$api.HisWorkItem.sources(null, null));
       },
       default() {
         return [];
       }
+    },
+    staffTreeData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.staffTree();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
@@ -270,7 +485,18 @@ export default {
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
-            this.newWork.projectsSelected.map(it => it.id) //被选中的项目id
+            this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
+            this.newWork.staffMethod,
+            this.newWork.staffMethod === HisStaffMethod.STATIC
+              ? this.newWork.staffs.map(it => ({
+                  code: it.value,
+                  type: it.type
+                }))
+              : [],
+            this.newWork.score,
+            this.newWork.staffMethod === HisStaffMethod.DYNAMIC
+              ? this.newWork.scope
+              : null
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -297,12 +523,24 @@ export default {
           scoreMethod: row.scoreMethod,
           projectsSelected: row.mappings.map(m => ({
             name: m.name,
-            id: m.id
+            id: m.id,
+            scope: this.findItem(m.id, this.workTreeData).scope
           })),
-          projects: []
+          projects: [],
+          staffMethod: row.staffMethod,
+          staffs: row.staffIdMappings,
+          scope: row.scope || HisStaffDeptType.Staff,
+          score: row.score
         })
       );
       this.addWorkVisible = true;
+    },
+    findItem(id, arr) {
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].id === id) return arr[i];
+        const ret = this.findItem(id, arr[i]?.children ?? []);
+        if (ret) return ret;
+      }
     },
     async removeRow(row) {
       try {
@@ -335,8 +573,12 @@ export default {
         work: '',
         source: HisWorkSource.CHECK,
         scoreMethod: HisWorkMethod.SUM,
+        staffMethod: HisStaffMethod.DYNAMIC,
+        staffs: [],
         projects: [],
-        projectsSelected: []
+        projectsSelected: [],
+        score: 0,
+        scope: HisStaffDeptType.Staff
       };
       this.addWorkVisible = false;
     },
@@ -349,7 +591,11 @@ export default {
       return contentStr;
     },
     addPinyin(arr) {
-      arr = arr.map(it => ({...it, pinyin: strToPinyin(it.name)}));
+      arr = arr.map(it => ({
+        ...it,
+        name: it.name || it.label,
+        pinyin: strToPinyin(it.name || it.label)
+      }));
       for (let current of arr) {
         if (current?.children?.length > 0) {
           current.children = this.addPinyin(current.children);
@@ -370,8 +616,32 @@ export default {
         this.searchLoading = false;
       }
     },
+    disabledContent(data) {
+      if (data.scope === HisStaffDeptType.Staff) {
+        return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
+      }
+      if (data.scope === HisStaffDeptType.HOSPITAL) {
+        return `不能与${HisStaffDeptType.Staff}工分同时选`;
+      }
+    },
+    staffCheck() {
+      let checkedNodes = this.$refs.staffTree.getCheckedNodes();
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(
+            it => !c.children.some(child => it.value === child.value)
+          );
+        }
+      }
+      this.newWork.staffs = checkedNodes;
+    },
     treeCheck() {
       let checkedNodes = this.$refs.tree.getCheckedNodes();
+      //先过滤一下不需要传的节点
+      checkedNodes = checkedNodes.filter(
+        it => !['其他', '手工数据', '公卫数据'].includes(it.name)
+      );
       for (let c of checkedNodes) {
         if (c?.children?.length > 0) {
           //children内的元素一定都是选上的,所以只保留它们共同的父项
@@ -379,16 +649,6 @@ export default {
         }
       }
       this.newWork.projectsSelected = checkedNodes;
-    },
-    closeTag(tag) {
-      //如果原有的工分项有该项目,则删除
-      const index = this.newWork.projectsSelected.findIndex(
-        old => old.id === tag.id
-      );
-      if (index > -1) this.newWork.projectsSelected.splice(index, 1);
-      this.$refs.tree.setCheckedKeys(
-        this.newWork.projectsSelected.map(it => it.id)
-      );
     }
   }
 };
@@ -400,7 +660,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
-  height: 40vh;
+  max-height: 40vh;
   overflow-y: auto;
   overflow-x: hidden;
 }

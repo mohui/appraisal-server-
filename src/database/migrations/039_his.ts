@@ -44,30 +44,13 @@ export class HisMigration implements IMigration {
       comment on column staff.password is '密码';
       comment on column staff.name is '名称';
 
-      --员工医疗工分来源表
-      create table if not exists his_staff_work_source
-      (
-        id           varchar(36) primary key,
-        staff        varchar(36),
-        sources      varchar(36)[],
-        rate         double precision,
-        avg          boolean                           default false not null,
-        "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
-      );
-      comment on table his_staff_work_source is '员工医疗工分来源表';
-      comment on column his_staff_work_source.staff is '员工id';
-      comment on column his_staff_work_source."sources" is '关联员工id数组';
-      comment on column his_staff_work_source.rate is '权重系数';
-      comment on column his_staff_work_source.avg is '是否平均';
-
       --医疗手工数据表
       create table if not exists his_manual_data
       (
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        input        varchar(255),
+        input        varchar(255)             not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (hospital, name)
@@ -104,14 +87,18 @@ export class HisMigration implements IMigration {
         id           varchar(36) primary key,
         hospital     varchar(36),
         name         varchar(255),
-        method       varchar(255),
+        score        double precision,
+        method       varchar(255)             not null,
+        type         varchar(255)             not null,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table "his_work_item" is '工分项目表';
       comment on column his_work_item.hospital is '所属医院id';
       comment on column "his_work_item".name is '名称';
+      comment on column his_work_item.score is '分值';
       comment on column "his_work_item".method is '得分方式; 计数/总和';
+      comment on column "his_work_item".type is '关联员工; 动态/固定';
 
       --工分项目来源关联表
       create table if not exists "his_work_item_mapping"
@@ -128,13 +115,28 @@ export class HisMigration implements IMigration {
       comment on column "his_work_item_mapping".source is '来源id';
       comment on column "his_work_item_mapping".code is '检查项目/药品id';
 
+      -- 工分项目和员工关联表
+      create table if not exists his_work_item_staff_mapping
+      (
+        id           varchar(36) primary key,
+        item         varchar(36),
+        source       varchar(36),
+        type         varchar(36)              not null,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table his_work_item_staff_mapping is '工分项目员工关联表';
+      comment on column his_work_item_staff_mapping.item is '工分项目id';
+      comment on column his_work_item_staff_mapping."source" is '关联员工id/科室id';
+      comment on column his_work_item_staff_mapping."type" is '关联员工类型';
+
       --员工和工分项绑定表
-      create table his_staff_work_item_mapping
+      create table if not exists his_staff_work_item_mapping
       (
         id           varchar(36) primary key,
         staff        varchar(36),
         item         varchar(36),
-        score        double precision,
+        rate         double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (staff, item)
@@ -142,24 +144,7 @@ export class HisMigration implements IMigration {
       comment on table his_staff_work_item_mapping is '员工和工分项绑定表';
       comment on column his_staff_work_item_mapping.staff is '员工id';
       comment on column his_staff_work_item_mapping.item is '工分项目id';
-      comment on column his_staff_work_item_mapping.score is '分值';
-
-      --员工工分项目得分流水表
-      create table if not exists his_staff_work_score_detail
-      (
-        id           varchar(36) primary key,
-        staff        varchar(36),
-        item         varchar(36),
-        date         timestamp with time zone,
-        score        double precision,
-        "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
-      );
-      comment on table his_staff_work_score_detail is '员工工分项目得分流水表';
-      comment on column his_staff_work_score_detail.staff is '员工id';
-      comment on column his_staff_work_score_detail.item is '工分项目id';
-      comment on column his_staff_work_score_detail.date is '得分时间';
-      comment on column his_staff_work_score_detail.score is '得分';
+      comment on column his_staff_work_item_mapping.rate is '占比';
 
       --医疗考核方案表
       create table if not exists "his_check_system"

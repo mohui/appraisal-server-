@@ -1,8 +1,13 @@
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoRuntimeError, KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
-import {HisWorkMethod, HisWorkSource} from '../../../common/his';
+import {
+  HisWorkMethod,
+  HisWorkSource,
+  HisStaffMethod,
+  HisStaffDeptType
+} from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital} from './service';
 
@@ -13,26 +18,63 @@ export const HisWorkItemSources: {
   id: string;
   name: string;
   parent?: string;
+  scope: string;
   datasource?: {
     table: string;
     date: string;
     columns?: string[];
   };
 }[] = [
-  {id: '门诊', name: '门诊', parent: null},
-  {id: '门诊.检查项目', name: '检查项目', parent: '门诊'},
+  {
+    id: '门诊',
+    name: '门诊',
+    parent: null,
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '门诊.检查项目',
+    name: '检查项目',
+    parent: '门诊',
+    scope: HisStaffDeptType.Staff
+  },
   //示例
   //{id: '住院-检查项目-{id}', name: 'B超', parent: '门诊-检查项目'},
-  {id: '门诊.药品', name: '药品', parent: '门诊'},
-  {id: '住院', name: '住院', parent: null},
-  {id: '住院.检查项目', name: '检查项目', parent: '住院'},
-  {id: '住院.药品', name: '药品', parent: '住院'},
-  {id: '手工数据', name: '手工数据', parent: null},
-  {id: '公卫数据', name: '公卫数据', parent: null},
+  {
+    id: '门诊.药品',
+    name: '药品',
+    parent: '门诊',
+    scope: HisStaffDeptType.Staff
+  },
+  {id: '住院', name: '住院', parent: null, scope: HisStaffDeptType.Staff},
+  {
+    id: '住院.检查项目',
+    name: '检查项目',
+    parent: '住院',
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '住院.药品',
+    name: '药品',
+    parent: '住院',
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '手工数据',
+    name: '手工数据',
+    parent: null,
+    scope: HisStaffDeptType.Staff
+  },
+  {
+    id: '公卫数据',
+    name: '公卫数据',
+    parent: null,
+    scope: HisStaffDeptType.HOSPITAL
+  },
   {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HealthCheckTableScore',
       date: 'OperateTime'
@@ -42,6 +84,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.生活方式',
     name: '生活方式',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
@@ -52,6 +95,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.脏器功能',
     name: '脏器功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'OperateTime',
@@ -62,6 +106,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-眼底',
     name: '查体-眼底',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -72,6 +117,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-足背动脉搏动',
     name: '查体-足背动脉搏动',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -82,6 +128,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-肛门指诊',
     name: '查体-肛门指诊',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -92,6 +139,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-妇科',
     name: '查体-妇科',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -102,6 +150,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.查体-其他',
     name: '查体-其他',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -112,6 +161,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-血常规',
     name: '辅助检查-血常规',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -122,6 +172,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-尿常规',
     name: '辅助检查-尿常规',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -132,6 +183,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-空腹血糖',
     name: '辅助检查-空腹血糖',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -142,6 +194,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-心电图',
     name: '辅助检查-心电图',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -152,6 +205,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-尿微量白蛋白',
     name: '辅助检查-尿微量白蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -162,6 +216,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-大便潜血',
     name: '辅助检查-大便潜血',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -172,6 +227,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-糖化血红蛋白',
     name: '辅助检查-糖化血红蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -182,6 +238,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-乙型肝炎表面抗原',
     name: '辅助检查-乙型肝炎表面抗原',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -192,6 +249,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-肝功能',
     name: '辅助检查-肝功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -202,6 +260,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-肾功能',
     name: '辅助检查-肾功能',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -212,6 +271,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-血脂',
     name: '辅助检查-血脂',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -222,6 +282,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-胸部X光片',
     name: '辅助检查-胸部X光片',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -232,6 +293,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-B超',
     name: '辅助检查-B超',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -242,6 +304,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-宫颈涂片',
     name: '辅助检查-宫颈涂片',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -252,6 +315,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.辅助检查-其他',
     name: '辅助检查-其他',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_Healthy',
       date: 'checkupDate',
@@ -262,6 +326,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访',
     name: '高血压随访',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate'
@@ -271,6 +336,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访-辅助检查',
     name: '高血压随访-辅助检查',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_HypertensionVisit',
       date: 'FollowUpDate',
@@ -281,6 +347,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访',
     name: '2型糖尿病随访',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate'
@@ -290,6 +357,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访-糖化血红蛋白',
     name: '2型糖尿病随访-糖化血红蛋白',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
@@ -300,6 +368,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访-空腹血糖',
     name: '2型糖尿病随访-空腹血糖',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_DiabetesVisit',
       date: 'FollowUpDate',
@@ -310,6 +379,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人中医药服务',
     name: '老年人中医药服务',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_QuestionnaireMain',
       date: 'OperateTime'
@@ -319,6 +389,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.卫生计生监督协管信息报告登记',
     name: '卫生计生监督协管信息报告登记',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_SanitaryControlReport',
       date: 'ReportTime'
@@ -328,6 +399,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.卫生计生监督协管巡查登记',
     name: '卫生计生监督协管巡查登记',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'view_SanitaryControlAssist',
       date: 'checkDate'
@@ -337,6 +409,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.新生儿家庭访视表',
     name: '新生儿家庭访视表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_NewbornVisit_KN',
       date: 'VisitDate'
@@ -346,6 +419,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.12-30月龄儿童健康检查记录表',
     name: '12-30月龄儿童健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_ChildCheck_KN',
       date: 'CheckDate',
@@ -356,6 +430,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.3-6岁儿童健康检查记录表',
     name: '3-6岁儿童健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_ChildCheck_KN',
       date: 'CheckDate',
@@ -366,6 +441,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.第1次产前检查服务记录表',
     name: '第1次产前检查服务记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_NewlyDiagnosed_KN',
       date: 'NewlyDiagnosedDate'
@@ -375,6 +451,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.第2~5次产前随访服务记录表',
     name: '第2~5次产前随访服务记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_PrenatalCare_KN',
       date: 'CheckDate'
@@ -384,6 +461,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.产后访视记录表',
     name: '产后访视记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_MaternalVisits_KN',
       date: 'VisitDate'
@@ -393,14 +471,25 @@ export const HisWorkItemSources: {
     id: '公卫数据.产后42天健康检查记录表',
     name: '产后42天健康检查记录表',
     parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'V_Examine42thDay_KN',
       date: 'VisitDate'
     }
   },
-  {id: '其他', name: '其他', parent: null},
-  {id: '其他.门诊诊疗人次', name: '门诊诊疗人次', parent: '其他'},
-  {id: '其他.住院诊疗人次', name: '住院诊疗人次', parent: '其他'}
+  {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
+  {
+    id: '其他.门诊诊疗人次',
+    name: '门诊诊疗人次',
+    parent: '其他',
+    scope: HisStaffDeptType.HOSPITAL
+  },
+  {
+    id: '其他.住院诊疗人次',
+    name: '住院诊疗人次',
+    parent: '其他',
+    scope: HisStaffDeptType.HOSPITAL
+  }
 ];
 
 /**
@@ -420,6 +509,10 @@ export default class HisWorkItem {
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
    * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
+   * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
+   * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
+   * @param score 分值
+   * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    */
   @validate(
     should
@@ -433,15 +526,60 @@ export default class HisWorkItem {
     should
       .array()
       .required()
-      .description('来源id[]')
+      .description('来源id[]'),
+    should
+      .string()
+      .required()
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
+      .description('关联员工的关联方式; 固定/动态'),
+    should
+      .array()
+      .items({
+        code: should.string().description('科室id/员工id'),
+        type: should.string().description('类型: 科室/员工')
+      })
+      .description('绑定的员工或者科室'),
+    should
+      .number()
+      .required()
+      .description('分值'),
+    should
+      .string()
+      .only(
+        HisStaffDeptType.Staff,
+        HisStaffDeptType.DEPT,
+        HisStaffDeptType.HOSPITAL
+      )
+      .required()
+      .allow(null)
+      .description('固定的时候的范围, 员工/科室/机构')
   )
-  async add(name, method, mappings) {
+  async add(name, method, mappings, staffMethod, staffs, score, scope) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
       )
     )
-      throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+      throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
+    if (
+      staffMethod === HisStaffMethod.STATIC &&
+      (!staffs || staffs?.length === 0)
+    )
+      throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
+
+    if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
+      throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+    // 如果选了公卫数据,和其他, scope必须是机构
+    mappings.forEach(it => {
+      if (
+        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
+        scope !== HisStaffDeptType.HOSPITAL
+      )
+        throw new KatoRuntimeError(
+          `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
+        );
+    });
+
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
@@ -461,15 +599,45 @@ export default class HisWorkItem {
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
+              his_work_item(id, hospital, name, method, type, score, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
         method,
+        staffMethod,
+        score,
         dayjs().toDate(),
         dayjs().toDate()
       );
+      // 如果是固定时候,需要把绑定员工放到数据中
+      if (staffMethod === HisStaffMethod.STATIC) {
+        for (const it of staffs) {
+          await appDB.execute(
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+            uuid(),
+            hisWorkItemId,
+            it.code,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      } else {
+        // 如果关联员工为动态, type为员工,科室,机构, source 字段为空
+        await appDB.execute(
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          uuid(),
+          hisWorkItemId,
+          scope,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
+      }
 
       // 添加工分项目与his收费项目关联表
       for (const sourceId of newMappings) {
@@ -505,7 +673,11 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
+   * @param staffMethod 指定方式; 动态/固定
+   * @param staffs [绑定的员工]
    * @param mappings
+   * @param score 分值
+   * @param scope 固定的时候范围必传
    */
   @validate(
     should
@@ -523,15 +695,66 @@ export default class HisWorkItem {
     should
       .array()
       .required()
-      .description('来源id[]')
+      .description('来源id[]'),
+    should
+      .string()
+      .required()
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
+      .description('关联员工的关联方式; 固定/动态'),
+    should
+      .array()
+      .items({
+        code: should.string().description('科室id/员工id'),
+        type: should.string().description('类型: 科室/员工')
+      })
+      .description('绑定的员工或者科室'),
+    should
+      .number()
+      .required()
+      .description('分值'),
+    should
+      .string()
+      .only(
+        HisStaffDeptType.Staff,
+        HisStaffDeptType.DEPT,
+        HisStaffDeptType.HOSPITAL
+      )
+      .required()
+      .allow(null)
+      .description('固定的时候的范围, 员工/科室/机构')
   )
-  async update(id, name, method, mappings) {
+  async update(id, name, method, mappings, staffMethod, staffs, score, scope) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
       )
     )
-      throw new KatoRuntimeError(`不能选择手工数据和公卫数据节点`);
+      throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
+
+    if (
+      staffMethod === HisStaffMethod.STATIC &&
+      (!staffs || staffs?.length === 0)
+    )
+      throw new KatoRuntimeError(`${HisStaffMethod.STATIC}必须选员工`);
+    if (staffMethod === HisStaffMethod.DYNAMIC && !scope)
+      throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
+    // 如果选了公卫数据,和其他, scope必须是机构
+    mappings.forEach(it => {
+      if (
+        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
+        scope !== HisStaffDeptType.HOSPITAL
+      )
+        throw new KatoRuntimeError(
+          `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
+        );
+    });
+
+    // 修改之前查询公分项是否存在
+    const find = await appDB.execute(
+      ` select * from his_work_item where id = ?`,
+      id
+    );
+    if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
     const newMappings = [];
@@ -552,10 +775,14 @@ export default class HisWorkItem {
         ` update his_work_item
               set name = ?,
                 method = ?,
+                type = ?,
+                score = ?,
                 updated_at = ?
               where id = ?`,
         name,
         method,
+        staffMethod,
+        score,
         dayjs().toDate(),
         id
       );
@@ -591,6 +818,40 @@ export default class HisWorkItem {
           dayjs().toDate()
         );
       }
+
+      // 先删除
+      await appDB.execute(
+        `delete from his_work_item_staff_mapping where item = ?`,
+        id
+      );
+      // 如果是固定时候,需要把绑定员工放到数据中
+      if (staffMethod === HisStaffMethod.STATIC) {
+        for (const it of staffs) {
+          await appDB.execute(
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+            uuid(),
+            id,
+            it.code,
+            it.type,
+            dayjs().toDate(),
+            dayjs().toDate()
+          );
+        }
+      } else {
+        // 当是动态的时候, type 为 员工(本人), 科室(本人所在科室), 机构(本人所在机构)
+        await appDB.execute(
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
+          uuid(),
+          id,
+          scope,
+          dayjs().toDate(),
+          dayjs().toDate()
+        );
+      }
     });
   }
 
@@ -613,6 +874,12 @@ export default class HisWorkItem {
         `delete from his_work_item_mapping where item = ?`,
         id
       );
+
+      // 删除工分项和员工的绑定
+      await appDB.execute(
+        `delete from his_work_item_staff_mapping where item = ?`,
+        id
+      );
       // 删除工分项目
       await appDB.execute(`delete from his_work_item where id = ?`, id);
     });
@@ -625,11 +892,100 @@ export default class HisWorkItem {
     // 获取机构id
     const hospital = await getHospital();
     // 查询工分项目
-    const workItemList = await appDB.execute(
-      `select id, name, method from his_work_item where hospital = ? order by created_at`,
+    // language=PostgreSQL
+    const workItemModels = await appDB.execute(
+      `
+        select item.id,
+               item.name,
+               item.method,
+               item.type,
+               item.score,
+               mapping.source,
+               mapping.type "sourceType"
+        from his_work_item item
+        left join his_work_item_staff_mapping mapping on item.id = mapping.item
+        where hospital = ?
+        order by item.created_at
+      `,
       hospital
     );
-    if (workItemList.length === 0) return [];
+    if (workItemModels.length === 0) return [];
+    // 查询科室
+    // language=PostgreSQL
+    const deptModels = await appDB.execute(
+      `
+        select id, name
+        from his_department
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 查询员工
+    // language=PostgreSQL
+    const staffModels = await appDB.execute(
+      `
+        select id, name, department
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    const deptStaffs = deptModels.concat(staffModels);
+
+    // 汇总同一机构下的员工
+    const deptStaffList = [];
+    staffModels.forEach(it => {
+      // 只汇总有科室的员工
+      if (it.department) {
+        // 查找科室是否在数组中
+        const index = deptStaffList.find(deptId => deptId.id === it.department);
+        if (index) {
+          index.children.push(it.id);
+        } else {
+          // 如果没查找到,放到数组中
+          deptStaffList.push({
+            id: it.department,
+            children: [it.id]
+          });
+        }
+      }
+    });
+    // 以员工/科室 id为key, name为value
+    const deptStaffObj = {};
+    deptStaffs.forEach(it => {
+      deptStaffObj[it.id] = it.name;
+    });
+    const workItemList = [];
+    workItemModels.forEach(it => {
+      // 查找是否已经在数组中
+      const index = workItemList.find(item => item.id === it.id);
+      // 定义员工数组
+      let staffs = [];
+      if (it.sourceType === `${HisStaffDeptType.DEPT}`) {
+        const index = deptStaffList.find(deptIt => deptIt.id === it.source);
+        if (index) staffs = index.children;
+      } else {
+        staffs = it.source ? [it.source] : [];
+      }
+      //如果再数组中,把关联员工或科室放到子集中
+      if (index) {
+        if (it.source) {
+          index.staffMappings.push(deptStaffObj[it.source]);
+          index.staffIdMappings.push(...staffs);
+        }
+      } else {
+        workItemList.push({
+          id: it.id,
+          name: it.name,
+          method: it.method,
+          type: it.type,
+          score: it.score,
+          scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
+          staffMappings: it.source ? [deptStaffObj[it.source]] : [],
+          staffIdMappings: staffs
+        });
+      }
+    });
 
     for (const it of workItemList) {
       // 工分项id
@@ -899,133 +1255,93 @@ export default class HisWorkItem {
    */
   @validate(
     should
-      .string()
-      .required()
-      .description('工分项目id'),
-    should
       .object({
-        insert: should
-          .object({
-            staffs: should
-              .array()
-              .required()
-              .description('员工id'),
-            score: should
-              .number()
-              .required()
-              .allow(null)
-              .description('分值')
-          })
+        id: should
+          .string()
           .required()
-          .description('要添加的绑定关系'),
-        update: should
-          .object({
-            ids: should
-              .array()
-              .required()
-              .description('员工和工分项绑定id'),
-            score: should
-              .number()
-              .required()
-              .allow(null)
-              .description('分值')
-          })
+          .allow(null)
+          .description('主键id'),
+        item: should
+          .string()
           .required()
-          .description('要修改的绑定关系'),
-        delete: should
-          .array()
+          .description('公分项id'),
+        staff: should
+          .string()
           .required()
-          .description('员工和公分项绑定id')
+          .description('员工id'),
+        rate: should
+          .number()
+          .required()
+          .description('权重系数')
       })
       .required()
       .description('要增删改的公分项和员工的绑定')
   )
-  async upsertStaffWorkItemMapping(item, params) {
+  async upsertStaffWorkItemMapping(params) {
     return appDB.transaction(async () => {
       // 排查公分项是否存在
       const itemList = await appDB.execute(
         `select * from his_work_item where id = ?`,
-        item
+        params?.item
       );
       if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
-      // 排查公分项是否存在
-      const staffItemList = await appDB.execute(
-        `select id, staff, item, score from his_staff_work_item_mapping where item = ?`,
-        item
-      );
-
-      // 第一步,判断如果有需要删除的数据先执行删除
-      if (params?.delete.length > 0) {
-        await appDB.execute(
-          `delete from his_staff_work_item_mapping
-                 where id in (${params.delete.map(() => '?')})`,
-          ...params.delete
-        );
-      }
-
-      // 第二步, 如果有需要添加的数据,执行添加
-      if (params?.insert.staffs.length > 0) {
-        const staffIds = params.insert.staffs;
-        if (staffIds.length === 0)
-          throw new KatoRuntimeError(`考核员工不能为空`);
-
-        const checkStaff = await appDB.execute(
-          `select id, account, name from staff where id in (${staffIds.map(
-            () => '?'
-          )})`,
-          ...staffIds
-        );
-
-        if (checkStaff.length !== staffIds.length)
-          throw new KatoRuntimeError(`考核员工异常`);
-
-        // 校验员工是否已经绑定过公分项
-        staffItemList.forEach(it => {
-          const index = checkStaff.find(staff => it.staff === staff.id);
-          if (index)
-            throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
-        });
-        // 添加
-        for (const staffIt of staffIds) {
-          await appDB.execute(
-            ` insert into
-              his_staff_work_item_mapping(id, item, staff, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
-            uuid(),
-            item,
-            staffIt,
-            params.insert.score,
-            dayjs().toDate(),
-            dayjs().toDate()
-          );
-        }
-      }
-
-      // 第三步, 如果有需要更新的数据,执行更新
-      if (params?.update.ids.length > 0) {
+      //  如果有需要添加的数据,执行添加
+      if (params?.id) {
         // 先根据id查询到该工分项下的员工是否在其他分数中存在
         const updList = await appDB.execute(
-          `select id, staff, item, score
+          `select id, staff, item, rate
                 from his_staff_work_item_mapping
-                where id in (${params?.update.ids.map(() => '?')})`,
-          ...params.update.ids
+                where id = ?`,
+          params?.id
         );
-        // 校验员工是否已经绑定过公分项
-        staffItemList.forEach(it => {
-          const index = updList.find(
-            item => it.staff === item.staff && it.score !== item.score
-          );
-          if (index)
-            throw new KatoRuntimeError(`员工${index.name}已绑定过该工分项`);
-        });
+        if (updList.length === 0)
+          throw new KatoRuntimeError(`${params?.id}不存在`);
+
         await appDB.execute(
-          `update his_staff_work_item_mapping set score = ?, updated_at = ?
-                where id in (${params?.update.ids.map(() => '?')})
+          `update his_staff_work_item_mapping set rate = ?, updated_at = ?
+                where id = ?
           `,
-          params.update.score,
+          params?.rate,
           dayjs().toDate(),
-          ...params.update.ids
+          params?.id
+        );
+      } else {
+        // 排查员工是否存在
+        const checkStaff = await appDB.execute(
+          `select id, account, name from staff where id = ?`,
+          params?.staff
+        );
+
+        if (checkStaff.length === 0) throw new KatoRuntimeError(`考核员工异常`);
+
+        // 排查公分项是否存在
+        const staffItemList = await appDB.execute(
+          `select id, staff, item from his_staff_work_item_mapping where item = ?`,
+          params?.item
+        );
+
+        // 校验员工是否已经绑定过公分项
+        const index = staffItemList.find(
+          mapping => mapping.staff === params?.staff
+        );
+        if (index)
+          throw new KatoCommonError(
+            `员工${checkStaff[0]?.name}已绑定过该工分项`
+          );
+
+        // 执行添加语句
+        // language=PostgreSQL
+        await appDB.execute(
+          ` insert into
+              his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
+          uuid(),
+          params?.item,
+          params?.staff,
+          params?.rate,
+          dayjs().toDate(),
+          dayjs().toDate()
         );
       }
     });
@@ -1034,115 +1350,65 @@ export default class HisWorkItem {
   /**
    * 公分项和员工列表
    */
-  @validate(
-    should
-      .string()
-      .allow(null)
-      .description('工分项目id'),
-    should
-      .string()
-      .allow(null)
-      .description('公分项名称'),
-    should
-      .string()
-      .allow(null)
-      .description('员工名称')
-  )
-  async selStaffWorkItemMapping(method, name, staffName) {
+  async selStaffWorkItemMapping() {
     const hospital = await getHospital();
-    if (name) name = `%${name}%`;
-    if (staffName) staffName = `%${staffName}%`;
-
-    const [sql, params] = sqlRender(
+    // 查询员工列表
+    // language=PostgreSQL
+    const staffModes = await appDB.execute(
       `
-        select item.id
-          ,item.name
-          ,item.method
-          ,mapping.id "mappingId"
-          ,mapping.staff
-          ,mapping.score
-          ,staff.name "staffName"
-          ,staff.account
-        from his_staff_work_item_mapping mapping
-        left join his_work_item item  on mapping.item = item.id
-        left join staff on mapping.staff = staff.id
-        where item.hospital = {{? hospital}}
-        {{#if method}}
-            AND item.method = {{? method}}
-        {{/if}}
-        {{#if name}}
-            AND item.name like {{? name}}
-        {{/if}}
-        {{#if staffName}}
-            AND staff.name like {{? staffName}}
-        {{/if}}
-        order by item.created_at
+        select id, name, account
+        from staff
+        where hospital = ?
       `,
-      {
-        hospital,
-        method,
-        name,
-        staffName
-      }
+      hospital
     );
-    const itemList = await appDB.execute(sql, ...params);
-    if (itemList.length === 0) return [];
 
-    const returnList = [];
-    for (const it of itemList) {
-      const index = returnList.find(
-        item => item.id === it.id && item.score === it.score
-      );
-      if (index) {
-        if (it.staff) {
-          index.staffs.push({
-            mapping: it.mappingId,
-            id: it.staff,
-            name: it.staffName,
-            account: it.account
-          });
-        }
-      } else {
-        returnList.push({
-          id: it.id,
-          name: it.name,
-          method: it.method,
-          score: it.score,
-          staffs: it.staff
-            ? [
-                {
-                  mapping: it.mappingId,
-                  id: it.staff,
-                  name: it.staffName,
-                  account: it.account
-                }
-              ]
-            : []
-        });
-      }
-    }
-    return returnList;
+    // 查询公分项
+    // language=PostgreSQL
+    const workItemModes = await appDB.execute(
+      `
+        select id, name, method, score
+        from his_work_item
+        where hospital = ?
+      `,
+      hospital
+    );
+
+    // 查询公分项和员工的绑定
+    // language=PostgreSQL
+    const mappingModels = await appDB.execute(
+      `
+        select mapping.id
+             , mapping.staff
+             , mapping.item
+             , mapping.rate
+        from his_staff_work_item_mapping mapping
+               left join staff on mapping.staff = staff.id
+        where staff.hospital = ?
+      `,
+      hospital
+    );
+
+    return {
+      staffs: staffModes,
+      workItems: workItemModes,
+      mappings: mappingModels
+    };
   }
 
   @validate(
     should
       .string()
       .required()
-      .description('工分项目id'),
-    should
-      .array()
-      .min(1)
-      .required()
-      .description('员工id')
+      .description('工分项目和员工关联表主键')
   )
-  async delStaffWorkItemMapping(id, staffs) {
+  async delStaffWorkItemMapping(id) {
     return appDB.transaction(async () => {
       // 删除对应关系
+      // language=PostgreSQL
       await appDB.execute(
-        `delete from his_staff_work_item_mapping
-              where item = ? and staff in (${staffs.map(() => '?')})`,
-        id,
-        ...staffs
+        `delete from his_staff_work_item_mapping where id = ?`,
+        id
       );
     });
   }
@@ -1206,12 +1472,14 @@ export default class HisWorkItem {
         dictList.push({
           id: `门诊.检查项目.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `门诊.检查项目`
+          parent: `门诊.检查项目`,
+          scope: HisStaffDeptType.Staff
         });
         dictList.push({
           id: `住院.检查项目.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `住院.检查项目`
+          parent: `住院.检查项目`,
+          scope: HisStaffDeptType.Staff
         });
       }
       // 门诊/住院 药品分类
@@ -1219,12 +1487,14 @@ export default class HisWorkItem {
         dictList.push({
           id: `门诊.药品.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `门诊.药品`
+          parent: `门诊.药品`,
+          scope: HisStaffDeptType.Staff
         });
         dictList.push({
           id: `住院.药品.${dictIt.code}`,
           name: dictIt.name?.trim(),
-          parent: `住院.药品`
+          parent: `住院.药品`,
+          scope: HisStaffDeptType.Staff
         });
       }
     }
@@ -1335,7 +1605,8 @@ export default class HisWorkItem {
           : drugIndex?.name
           ? drugIndex.name
           : null,
-        parent: it.parent
+        parent: it.parent,
+        scope: HisStaffDeptType.Staff
       };
     });
 
@@ -1415,7 +1686,8 @@ export default class HisWorkItem {
           it => ({
             id: `${treeIt1.id}.${it.id}`,
             name: it.name,
-            parent: '手工数据'
+            parent: '手工数据',
+            scope: HisStaffDeptType.Staff
           })
         );
       }

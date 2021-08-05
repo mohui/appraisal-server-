@@ -176,11 +176,6 @@
         :cell-style="{textAlign: 'center'}"
       >
         <el-table-column
-          property="type"
-          label="类型"
-          min-width="150"
-        ></el-table-column>
-        <el-table-column
           property="name"
           label="名称"
           min-width="200"
@@ -190,7 +185,7 @@
             dialogScoreType === 'after' ? 'afterCorrectionScore' : 'score'
           "
           label="得分"
-          width="150"
+          min-width="150"
         ></el-table-column>
       </el-table>
     </el-dialog>

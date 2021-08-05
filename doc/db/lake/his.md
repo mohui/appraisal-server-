@@ -16,18 +16,6 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 员工医疗工分来源表(his_staff_work_source)
-
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| id | varchar(36) | 主键 |
-| staff | varchar(36) | 员工id |
-| sources | varchar(36)[] | 关联员工id数组 |
-| rate | double precision | 权重系数 |
-| avg | boolean | 是否平均分配 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
-
 #### 医疗手工数据表(his_manual_data)
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
@@ -61,6 +49,8 @@
 | hospital | varchar(36) | 所属医院id |
 | name | varchar(255) | 名称 |
 | method | varchar(255) | 得分方式; 计数/总和 |
+| type | varchar(255) | 关联员工状态; 动态/固定 |
+| score | double precision | 分值 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -74,6 +64,17 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
+#### 工分项目和员工关联表(his_work_item_staff_mapping)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | varchar(36) primary key |
+| item | varchar(36) | 工分项目id |
+| source | varchar(36) | 来源id,根据type 员工id/科室id |
+| type | varchar(36) | 关联员工类型 科室/员工 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
 
 #### 员工和工分项绑定表(his_staff_work_item_mapping)
 
@@ -82,19 +83,7 @@
 | id | varchar(36) | 主键 |
 | staff | varchar(36) | 员工id |
 | item | varchar(36) | 工分项目id |
-| score | int | 分值 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
-
-#### 员工工分项目得分流水表(his_staff_work_score_detail)
-
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| id | varchar(36) | 主键 |
-| staff | varchar(36) | 员工id |
-| item | varchar(36) | 工分项目id |
-| date | date | 得分时间 |
-| score | double | 得分 |
+| rate | double precision | 权重系数 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 

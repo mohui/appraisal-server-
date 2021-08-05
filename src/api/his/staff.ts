@@ -3,7 +3,7 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {HisWorkScoreType} from '../../../common/his';
+import {HisWorkScoreType, HisStaffDeptType} from '../../../common/his';
 import {
   dateValid,
   getEndTime,
@@ -164,7 +164,7 @@ export default class HisStaff {
     }
     return appDB.transaction(async () => {
       const staffId = uuid();
-      await appDB.execute(
+      return await appDB.execute(
         `insert into
             staff(
               id,
@@ -189,18 +189,6 @@ export default class HisStaff {
         virtual,
         remark,
         department,
-        dayjs().toDate(),
-        dayjs().toDate()
-      );
-
-      return await appDB.execute(
-        ` insert into
-              his_staff_work_source(id, staff, sources, rate, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
-        uuid(),
-        staffId,
-        `{${staffId}}`,
-        1,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -289,14 +277,6 @@ export default class HisStaff {
       id
     );
     if (itemMapping.length > 0) throw new KatoRuntimeError(`员工已绑定工分项`);
-
-    const staffWorkSource = await appDB.execute(
-      `select * from his_staff_work_source where staff = ? or ? = ANY(sources)`,
-      id,
-      id
-    );
-    if (staffWorkSource.length > 0)
-      throw new KatoRuntimeError(`员工绑定过工分来源`);
 
     // 查询员工是否绑定过方案
     const checkMapping = await appDB.execute(
@@ -387,32 +367,6 @@ export default class HisStaff {
     });
   }
 
-  /**
-   * 员工关联员工列表
-   */
-  async workSourceStaffList() {
-    const hospital = await getHospital();
-
-    const workSourceStaffs = await appDB.execute(
-      `select distinct staff from  his_staff_work_source`
-    );
-    // 获取可选择的员工列表
-    const staffList = await appDB.execute(
-      `select id, account, name, remark
-            from staff
-            where hospital = ?`,
-      hospital
-    );
-
-    return staffList.map(it => {
-      const index = workSourceStaffs.find(item => it.id === item.staff);
-      return {
-        ...it,
-        usable: !index
-      };
-    });
-  }
-
   async staffTree() {
     const hospital = await getHospital();
     // 获取可选择的员工列表
@@ -431,16 +385,19 @@ export default class HisStaff {
         if (index) {
           index.children.push({
             value: it.id,
-            label: it.name
+            label: it.name,
+            type: `${HisStaffDeptType.Staff}`
           });
         } else {
           trees.push({
             value: it.department,
             label: it.deptName ?? '',
+            type: `${HisStaffDeptType.DEPT}`,
             children: [
               {
                 value: it.id,
-                label: it.name
+                label: it.name,
+                type: `${HisStaffDeptType.Staff}`
               }
             ]
           });
@@ -448,223 +405,12 @@ export default class HisStaff {
       } else {
         trees.push({
           value: it.id,
-          label: it.name
+          label: it.name,
+          type: `${HisStaffDeptType.Staff}`
         });
       }
     });
     return trees;
-  }
-
-  // endregion
-
-  // region 员工绑定的增删改查
-  /**
-   * 员工绑定
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .array()
-      .items({
-        source: should
-          .array()
-          .required()
-          .description('关联员工id'),
-        rate: should
-          .number()
-          .required()
-          .description('权重系数'),
-        avg: should
-          .boolean()
-          .required()
-          .description('是否平均分配')
-      })
-      .required()
-      .description('关联员工[]')
-  )
-  async addHisStaffWorkSource(staff, sourceRate) {
-    return appDB.transaction(async () => {
-      // 添加员工关联
-      for (const it of sourceRate) {
-        await appDB.execute(
-          ` insert into
-              his_staff_work_source(id, staff, sources, rate, avg, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?)`,
-          uuid(),
-          staff,
-          `{${it.source.map(item => `"${item}"`).join()}}`,
-          it.rate,
-          it.avg,
-          dayjs().toDate(),
-          dayjs().toDate()
-        );
-      }
-    });
-  }
-
-  /**
-   * 根据id删除员工绑定
-   */
-  async delWorkSourceById(id) {
-    // language=PostgreSQL
-    return await appDB.execute(
-      `
-        delete
-        from his_staff_work_source
-        where id = ?
-      `,
-      id
-    );
-  }
-
-  /**
-   * 根据考核员工id删除员工绑定
-   */
-  async delWorkSources(staff) {
-    // language=PostgreSQL
-    return await appDB.execute(
-      `
-        delete
-        from his_staff_work_source
-        where staff = ?
-      `,
-      staff
-    );
-  }
-
-  /**
-   * 修改考核员工
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .array()
-      .required()
-      .description('关联员工[]'),
-    should
-      .number()
-      .required()
-      .description('权重系数'),
-    should
-      .boolean()
-      .required()
-      .description('是否平均分配')
-  )
-  async updateHisStaffWorkSource(id, sources, rate, avg) {
-    return appDB.transaction(async () => {
-      await appDB.execute(
-        ` update his_staff_work_source
-                set
-                sources = ?,
-                rate = ?,
-                avg = ?,
-                updated_at = ?
-              where id = ?`,
-        `{${sources.map(item => `"${item}"`).join()}}`,
-        rate,
-        avg,
-        dayjs().toDate(),
-        id
-      );
-    });
-  }
-
-  /**
-   * 查询员工绑定
-   */
-  async selHisStaffWorkSource() {
-    const hospital = await getHospital();
-    const list = await appDB.execute(
-      `
-        select
-          source.id
-          ,source.staff
-          ,source.sources
-          ,source.rate
-          ,source.avg
-          ,staff.name "staffName"
-        from his_staff_work_source source
-        left join staff on source.staff = staff.id
-        where staff.hospital = ?
-        order by source.created_at desc`,
-      hospital
-    );
-
-    const staffList = await appDB.execute(
-      `select id, name from staff where hospital = ?`,
-      hospital
-    );
-    const staffListObj = {};
-
-    for (const it of staffList) {
-      staffListObj[it.id] = it.name;
-    }
-
-    return list.map(it => {
-      const sourcesName = it.sources.map(item => {
-        return staffListObj[item];
-      });
-      return {
-        ...it,
-        sourcesName: sourcesName
-      };
-    });
-  }
-
-  @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id')
-  )
-  // 根据id获取员工绑定
-  async searchHisStaffWorkSource(staff) {
-    const hospital = await getHospital();
-    const list = await appDB.execute(
-      `
-        select
-          source.id
-          ,source.staff
-          ,source.sources
-          ,source.rate
-          ,source.avg
-          ,staff.name "staffName"
-        from his_staff_work_source source
-        left join staff on source.staff = staff.id
-        where staff.hospital = ? and source.staff = ?
-        `,
-      hospital,
-      staff
-    );
-
-    const staffList = await appDB.execute(
-      `select id, name from staff where hospital = ?`,
-      hospital
-    );
-    const staffListObj = {};
-
-    for (const it of staffList) {
-      staffListObj[it.id] = it.name;
-    }
-
-    return list.map(it => {
-      const sourcesName = it.sources.map(item => {
-        return {
-          id: item,
-          name: staffListObj[item]
-        };
-      });
-      return {
-        ...it,
-        sources: sourcesName
-      };
-    });
   }
 
   // endregion
@@ -692,7 +438,7 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
-    items: {id: string; name: string; score: number; type: string}[];
+    items: {id: string; name: string; score: number}[];
     rate?: number;
   }> {
     const rows: {
@@ -701,7 +447,6 @@ export default class HisStaff {
         id: string;
         name: string;
         score: number;
-        type: string;
       }[];
       rate?: number;
     }[] = await this.findWorkScoreDailyList(id, month);
@@ -763,7 +508,6 @@ export default class HisStaff {
         id: string;
         name: string;
         score: number;
-        type: string;
       }[];
       rate?: number;
     }[]
@@ -790,16 +534,7 @@ export default class HisStaff {
     );
     return rows.map(it => ({
       day: dayjs(it.day).toDate(),
-      items: [
-        ...(it?.work?.self ?? []).map(item => ({
-          ...item,
-          type: HisWorkScoreType.WORK_ITEM
-        })),
-        ...(it?.work?.staffs ?? []).map(item => ({
-          ...item,
-          type: HisWorkScoreType.STAFF
-        }))
-      ],
+      items: [...(it?.work?.self ?? [])],
       rate: it?.assess?.rate ?? null
     }));
   }
