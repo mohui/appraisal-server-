@@ -179,9 +179,6 @@
                   :default-checked-keys="
                     newWork.projectsSelected.map(it => it.id)
                   "
-                  :default-expanded-keys="
-                    newWork.projectsSelected.map(it => it.id)
-                  "
                   node-key="id"
                   :filter-node-method="filterNode"
                   show-checkbox
@@ -191,7 +188,7 @@
                     <span style="font-size: 14px; color: #606266">{{
                       `${data.name}`
                     }}</span>
-                    <span v-show="data.disabled">
+                    <span v-show="node.disabled">
                       <el-popover
                         placement="right"
                         width="200"
@@ -358,7 +355,16 @@ export default {
         key: it
       })),
       treeProps: {
-        label: 'name'
+        label: 'name',
+        disabled: data => {
+          return (
+            (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
+            (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
+            data.id === '公卫数据' ||
+            data.id === '手工数据' ||
+            data.id === '其他'
+          );
+        }
       },
       filterText: '',
       staffFilterText: ''
@@ -384,7 +390,7 @@ export default {
       }));
     },
     treeData() {
-      return this.addDisabled(this.workTreeData);
+      return this.workTreeData;
     },
     staffTree() {
       return this.addPinyin(this.staffTreeData);
@@ -569,24 +575,6 @@ export default {
       for (let current of arr) {
         if (current?.children?.length > 0) {
           current.children = this.addPinyin(current.children);
-        }
-      }
-      return arr;
-    },
-    //动态修改disabled状态
-    addDisabled(arr) {
-      arr = arr.map(data => ({
-        ...data,
-        disabled:
-          (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
-          (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
-          data.id === '公卫数据' ||
-          data.id === '手工数据' ||
-          data.id === '其他'
-      }));
-      for (let current of arr) {
-        if (current?.children?.length > 0) {
-          current.children = this.addDisabled(current.children);
         }
       }
       return arr;
