@@ -65,7 +65,9 @@
             <div
               style="display: flex;justify-content: space-between;width: 100%"
             >
-              <div>{{ data.index }} {{ data.name }}</div>
+              <div>
+                {{ data.index }} {{ data.name }} {{ `(${data.subs.length})项` }}
+              </div>
               <div style="margin-right: 30px">
                 <el-tooltip
                   v-show="!data.batchEditing"
