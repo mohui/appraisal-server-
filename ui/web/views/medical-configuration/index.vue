@@ -55,7 +55,10 @@
           </el-col>
         </el-form>
       </kn-collapse>
-      <el-collapse v-model="activeCollapse">
+      <el-collapse
+        style="flex-grow: 1;height: 1px;overflow-y: scroll"
+        v-model="activeCollapse"
+      >
         <el-collapse-item
           v-for="data of tableData"
           :key="data.id"
