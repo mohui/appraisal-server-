@@ -117,7 +117,6 @@ export default class HisStaff {
    * @param account
    * @param password
    * @param name
-   * @param virtual 是否是虚拟账户
    * @param remark 备注
    */
   @validate(
@@ -138,10 +137,6 @@ export default class HisStaff {
       .required()
       .description('名称'),
     should
-      .bool()
-      .required()
-      .description('是否是虚拟账户'),
-    should
       .string()
       .allow(null)
       .description('备注'),
@@ -150,7 +145,7 @@ export default class HisStaff {
       .allow(null)
       .description('科室')
   )
-  async add(staff, account, password, name, virtual, remark, department) {
+  async add(staff, account, password, name, remark, department) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -173,20 +168,18 @@ export default class HisStaff {
               account,
               password,
               name,
-              virtual,
               remark,
               department,
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
         account,
         password,
         name,
-        virtual,
         remark,
         department,
         dayjs().toDate(),
@@ -213,10 +206,6 @@ export default class HisStaff {
       .allow(null)
       .description('his员工'),
     should
-      .bool()
-      .required()
-      .description('是否是虚拟账户'),
-    should
       .string()
       .allow(null)
       .description('备注'),
@@ -228,7 +217,7 @@ export default class HisStaff {
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff, virtual, remark, department) {
+  async update(id, name, password, staff, remark, department) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -245,7 +234,6 @@ export default class HisStaff {
           name = ?,
           password = ?,
           staff = ?,
-          virtual = ?,
           remark = ?,
           department = ?,
           updated_at = ?
@@ -253,7 +241,6 @@ export default class HisStaff {
       name,
       password,
       staff,
-      virtual,
       remark,
       department,
       dayjs().toDate(),
@@ -320,7 +307,6 @@ export default class HisStaff {
           account,
           password,
           name,
-          virtual,
           remark,
           department,
           created_at,
