@@ -55,12 +55,96 @@
           </el-col>
         </el-form>
       </kn-collapse>
-      <el-collapse>
+      <el-collapse v-model="activeCollapse">
         <el-collapse-item
           v-for="data of tableData"
           :key="data.id"
-          :title="data.name"
+          :name="data.id"
         >
+          <template slot="title">
+            <div
+              style="display: flex;justify-content: space-between;width: 100%"
+            >
+              <div>{{ data.index }} {{ data.name }}</div>
+              <div style="margin-right: 30px">
+                <el-tooltip
+                  v-show="!data.batchEditing"
+                  content="新增"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    icon="el-icon-plus"
+                    circle
+                    size="mini"
+                    @click.native.stop="addRow(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="!data.batchEditing"
+                  content="批量编辑"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="primary"
+                    icon="el-icon-edit-outline"
+                    circle
+                    size="mini"
+                    @click.native.stop="batchEdit(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="!data.batchEditing"
+                  content="批量删除"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="danger"
+                    :icon="
+                      removeLoading
+                        ? 'el-icon-loading'
+                        : 'el-icon-document-delete'
+                    "
+                    :disabled="removeLoading"
+                    circle
+                    size="mini"
+                    @click.native.stop="batchRemove(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="data.batchEditing"
+                  content="提交批量修改"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
+                    circle
+                    size="mini"
+                    @click.native.stop="submitBatchEdit(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="data.batchEditing"
+                  content="取消修改"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="default"
+                    icon="el-icon-close"
+                    circle
+                    size="mini"
+                    @click.native.stop="cancelEdit(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+              </div>
+            </div>
+          </template>
           <el-table
             v-loading="$asyncComputed.serverData.updating"
             stripe
@@ -70,13 +154,6 @@
             current-row-key="id"
             :header-cell-style="{background: '#F3F4F7', color: '#555'}"
           >
-            <el-table-column
-              align="center"
-              :label="
-                currentTarget === HisWorkScoreType.WORK_ITEM ? '工分项' : '员工'
-              "
-              prop="name"
-            ></el-table-column>
             <el-table-column
               align="center"
               prop="staffName"
@@ -218,85 +295,6 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column align="center" prop="add" label="操作">
-              <template slot-scope="{row}">
-                <el-tooltip
-                  v-show="!row.batchEditing"
-                  content="新增"
-                  :enterable="false"
-                >
-                  <el-button
-                    type="success"
-                    icon="el-icon-plus"
-                    circle
-                    size="mini"
-                    @click="addRow(row)"
-                  >
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-show="!row.batchEditing"
-                  content="批量编辑"
-                  :enterable="false"
-                >
-                  <el-button
-                    type="primary"
-                    icon="el-icon-edit-outline"
-                    circle
-                    size="mini"
-                    @click="batchEdit(row)"
-                  >
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-show="!row.batchEditing"
-                  content="批量删除"
-                  :enterable="false"
-                >
-                  <el-button
-                    type="danger"
-                    :icon="
-                      removeLoading
-                        ? 'el-icon-loading'
-                        : 'el-icon-document-delete'
-                    "
-                    :disabled="removeLoading"
-                    circle
-                    size="mini"
-                    @click="batchRemove(row)"
-                  >
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-show="row.batchEditing"
-                  content="提交批量修改"
-                  :enterable="false"
-                >
-                  <el-button
-                    type="success"
-                    :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
-                    circle
-                    size="mini"
-                    @click="submitBatchEdit(row)"
-                  >
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-show="row.batchEditing"
-                  content="取消修改"
-                  :enterable="false"
-                >
-                  <el-button
-                    type="default"
-                    icon="el-icon-close"
-                    circle
-                    size="mini"
-                    @click="cancelEdit(row)"
-                  >
-                  </el-button>
-                </el-tooltip>
-              </template>
-            </el-table-column>
           </el-table>
         </el-collapse-item>
       </el-collapse>
@@ -329,7 +327,8 @@ export default {
       HisWorkScoreType: HisWorkScoreType,
       updateLoading: false,
       removeLoading: false,
-      currentTarget: HisWorkScoreType.WORK_ITEM //默认以工作量维度
+      currentTarget: HisWorkScoreType.WORK_ITEM, //默认以工作量维度
+      activeCollapse: []
     };
   },
   computed: {
@@ -378,7 +377,8 @@ export default {
           });
         else data.noConfig = true;
       });
-      return data.map(d => ({
+      return data.map((d, index) => ({
+        index: index + 1,
         ...d,
         isEdit: !d.mappingId && !d.noConfig,
         removeLoading: false,
@@ -472,6 +472,9 @@ export default {
         this.$message.warning('已有其他数据正在编辑');
         return;
       }
+      //添加时这一行自动展开
+      if (!this.activeCollapse.includes(row.id))
+        this.activeCollapse.push(row.id);
       //新增一项没有mappingId的数据
       let addRow = {
         id: '',
@@ -654,13 +657,5 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
-}
-
-.cell-long-span {
-  width: 100%;
-  display: block;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
 </style>
