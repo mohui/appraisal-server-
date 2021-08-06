@@ -55,244 +55,251 @@
           </el-col>
         </el-form>
       </kn-collapse>
-      <el-table
-        v-loading="$asyncComputed.serverData.updating"
-        stripe
-        border
-        size="small"
-        :data="tableData"
-        height="100%"
-        style="flex-grow: 1;"
-        current-row-key="id"
-        :span-method="spanMethod"
-        :header-cell-style="{background: '#F3F4F7', color: '#555'}"
-      >
-        <el-table-column
-          align="center"
-          :label="
-            this.currentTarget === HisWorkScoreType.WORK_ITEM
-              ? '工分项'
-              : '员工'
-          "
-          prop="name"
-        ></el-table-column>
-        <el-table-column
-          align="center"
-          prop="staffName"
-          :label="
-            this.currentTarget === HisWorkScoreType.WORK_ITEM
-              ? '员工'
-              : '工分项'
-          "
+      <el-collapse>
+        <el-collapse-item
+          v-for="data of tableData"
+          :key="data.id"
+          :title="data.name"
         >
-          <template slot-scope="{row}">
-            <div
-              v-if="
-                !row.staffId &&
-                  currentTarget === HisWorkScoreType.WORK_ITEM &&
-                  !row.noConfig
+          <el-table
+            v-loading="$asyncComputed.serverData.updating"
+            stripe
+            border
+            size="small"
+            :data="data.subs"
+            current-row-key="id"
+            :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+          >
+            <el-table-column
+              align="center"
+              :label="
+                currentTarget === HisWorkScoreType.WORK_ITEM ? '工分项' : '员工'
+              "
+              prop="name"
+            ></el-table-column>
+            <el-table-column
+              align="center"
+              prop="staffName"
+              :label="
+                currentTarget === HisWorkScoreType.WORK_ITEM ? '员工' : '工分项'
               "
             >
-              <el-select
-                v-model="tempRow.staffId"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="m in memberList"
-                  :key="m.id"
-                  :label="m.name"
-                  :value="m.id"
-                ></el-option>
-              </el-select>
-            </div>
-            <div
-              v-else-if="
-                !row.itemId &&
-                  currentTarget === HisWorkScoreType.STAFF &&
-                  !row.noConfig
-              "
-            >
-              <el-select
-                v-model="tempRow.item"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="m in workList"
-                  :key="m.id"
-                  :label="m.name"
-                  :value="m.id"
-                ></el-option>
-              </el-select>
-            </div>
-            <div v-else>{{ row.staffName || '没有配置' }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" prop="rate" label="权重">
-          <template slot-scope="{row}">
-            <div v-if="row.isEdit">
-              <el-input-number v-model="tempRow.rate" size="mini">
-              </el-input-number>
-              %
-            </div>
-            <div
-              v-else-if="
-                row.id === tempRow.id && tableData.some(d => d.batchEditing)
-              "
-            >
-              <el-input-number disabled v-model="tempRow.rate" size="mini">
-              </el-input-number>
-              %
-            </div>
-            <div v-else-if="!row.isEdit && !row.noConfig">{{ row.rate }} %</div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" prop="operation" label="操作">
-          <template slot-scope="{row}">
-            <div v-show="!row.batchEditing">
-              <el-tooltip
-                v-show="!row.isEdit && !row.noConfig"
-                content="编辑"
-                :enterable="false"
-              >
-                <el-button
-                  type="primary"
-                  icon="el-icon-edit"
-                  circle
-                  size="mini"
-                  @click="editRow(row)"
-                >
-                </el-button>
-              </el-tooltip>
-              <el-tooltip
-                v-show="row.isEdit"
-                content="提交修改"
-                :enterable="false"
-              >
-                <el-button
-                  type="success"
-                  :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
-                  circle
-                  size="mini"
-                  @click="submitEdit(row)"
-                >
-                </el-button>
-              </el-tooltip>
-              <el-tooltip
-                v-show="row.isEdit"
-                content="取消修改"
-                :enterable="false"
-              >
-                <el-button
-                  type="default"
-                  icon="el-icon-close"
-                  circle
-                  size="mini"
-                  @click="cancelEdit(row)"
-                >
-                </el-button>
-              </el-tooltip>
-              <el-tooltip
-                v-show="!row.isEdit && !row.noConfig"
-                content="删除"
-                :enterable="false"
-              >
-                <el-button
-                  type="danger"
-                  :icon="
-                    row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'
+              <template slot-scope="{row}">
+                <div
+                  v-if="
+                    !row.staffId &&
+                      currentTarget === HisWorkScoreType.WORK_ITEM &&
+                      !row.noConfig
                   "
-                  :disabled="row.removeLoading"
-                  circle
-                  size="mini"
-                  @click="removeRow(row)"
                 >
-                </el-button>
-              </el-tooltip>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" prop="add" label="操作">
-          <template slot-scope="{row}">
-            <el-tooltip
-              v-show="!row.batchEditing"
-              content="新增"
-              :enterable="false"
-            >
-              <el-button
-                type="success"
-                icon="el-icon-plus"
-                circle
-                size="mini"
-                @click="addRow(row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="!row.batchEditing"
-              content="批量编辑"
-              :enterable="false"
-            >
-              <el-button
-                type="primary"
-                icon="el-icon-edit-outline"
-                circle
-                size="mini"
-                @click="batchEdit(row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="!row.batchEditing"
-              content="批量删除"
-              :enterable="false"
-            >
-              <el-button
-                type="danger"
-                :icon="
-                  removeLoading ? 'el-icon-loading' : 'el-icon-document-delete'
-                "
-                :disabled="removeLoading"
-                circle
-                size="mini"
-                @click="batchRemove(row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.batchEditing"
-              content="提交批量修改"
-              :enterable="false"
-            >
-              <el-button
-                type="success"
-                :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
-                circle
-                size="mini"
-                @click="submitBatchEdit(row)"
-              >
-              </el-button>
-            </el-tooltip>
-            <el-tooltip
-              v-show="row.batchEditing"
-              content="取消修改"
-              :enterable="false"
-            >
-              <el-button
-                type="default"
-                icon="el-icon-close"
-                circle
-                size="mini"
-                @click="cancelEdit(row)"
-              >
-              </el-button>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-      </el-table>
+                  <el-select
+                    v-model="tempRow.staffId"
+                    clearable
+                    filterable
+                    size="mini"
+                  >
+                    <el-option
+                      v-for="m in memberList"
+                      :key="m.id"
+                      :label="m.name"
+                      :value="m.id"
+                    ></el-option>
+                  </el-select>
+                </div>
+                <div
+                  v-else-if="
+                    !row.itemId &&
+                      currentTarget === HisWorkScoreType.STAFF &&
+                      !row.noConfig
+                  "
+                >
+                  <el-select
+                    v-model="tempRow.item"
+                    clearable
+                    filterable
+                    size="mini"
+                  >
+                    <el-option
+                      v-for="m in workList"
+                      :key="m.id"
+                      :label="m.name"
+                      :value="m.id"
+                    ></el-option>
+                  </el-select>
+                </div>
+                <div v-else>{{ row.staffName || '没有配置' }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" prop="rate" label="权重">
+              <template slot-scope="{row}">
+                <div v-if="row.isEdit">
+                  <el-input-number v-model="tempRow.rate" size="mini">
+                  </el-input-number>
+                  %
+                </div>
+                <div
+                  v-else-if="
+                    row.id === tempRow.id && tableData.some(d => d.batchEditing)
+                  "
+                >
+                  <el-input-number disabled v-model="tempRow.rate" size="mini">
+                  </el-input-number>
+                  %
+                </div>
+                <div v-else-if="!row.isEdit && !row.noConfig">
+                  {{ row.rate }} %
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" prop="operation" label="操作">
+              <template slot-scope="{row}">
+                <div v-show="!row.batchEditing">
+                  <el-tooltip
+                    v-show="!row.isEdit && !row.noConfig"
+                    content="编辑"
+                    :enterable="false"
+                  >
+                    <el-button
+                      type="primary"
+                      icon="el-icon-edit"
+                      circle
+                      size="mini"
+                      @click="editRow(row)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-show="row.isEdit"
+                    content="提交修改"
+                    :enterable="false"
+                  >
+                    <el-button
+                      type="success"
+                      :icon="
+                        updateLoading ? 'el-icon-loading' : 'el-icon-check'
+                      "
+                      circle
+                      size="mini"
+                      @click="submitEdit(row)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-show="row.isEdit"
+                    content="取消修改"
+                    :enterable="false"
+                  >
+                    <el-button
+                      type="default"
+                      icon="el-icon-close"
+                      circle
+                      size="mini"
+                      @click="cancelEdit(row)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-show="!row.isEdit && !row.noConfig"
+                    content="删除"
+                    :enterable="false"
+                  >
+                    <el-button
+                      type="danger"
+                      :icon="
+                        row.removeLoading ? 'el-icon-loading' : 'el-icon-delete'
+                      "
+                      :disabled="row.removeLoading"
+                      circle
+                      size="mini"
+                      @click="removeRow(row)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" prop="add" label="操作">
+              <template slot-scope="{row}">
+                <el-tooltip
+                  v-show="!row.batchEditing"
+                  content="新增"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    icon="el-icon-plus"
+                    circle
+                    size="mini"
+                    @click="addRow(row)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="!row.batchEditing"
+                  content="批量编辑"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="primary"
+                    icon="el-icon-edit-outline"
+                    circle
+                    size="mini"
+                    @click="batchEdit(row)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="!row.batchEditing"
+                  content="批量删除"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="danger"
+                    :icon="
+                      removeLoading
+                        ? 'el-icon-loading'
+                        : 'el-icon-document-delete'
+                    "
+                    :disabled="removeLoading"
+                    circle
+                    size="mini"
+                    @click="batchRemove(row)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="row.batchEditing"
+                  content="提交批量修改"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    :icon="updateLoading ? 'el-icon-loading' : 'el-icon-check'"
+                    circle
+                    size="mini"
+                    @click="submitBatchEdit(row)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="row.batchEditing"
+                  content="取消修改"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="default"
+                    icon="el-icon-close"
+                    circle
+                    size="mini"
+                    @click="cancelEdit(row)"
+                  >
+                  </el-button>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-collapse-item>
+      </el-collapse>
     </el-card>
   </div>
 </template>
@@ -328,7 +335,6 @@ export default {
   computed: {
     tableData() {
       let data = [];
-      let targetData = [];
       //以工作量为维度
       if (this.currentTarget === HisWorkScoreType.WORK_ITEM) {
         data = this.serverData.workItems.map(it => {
@@ -359,27 +365,20 @@ export default {
           return {...it, subs: bindItems};
         });
       }
-      //平铺每条绑定的数据
+      //每条绑定的数据
       data.forEach(data => {
         if (data.subs.length > 0)
           data.subs.forEach(row => {
-            targetData.push({
-              ...data,
-              mappingId: row.id,
-              staffId: row.staff, //工分项维度时用到的员工变量
-              staffName: row.name, //工分项维度时用到的员工变量
-              itemId: row.item, //员工维度时用到的工分变量
-              itemName: row.name, //员工维度时用到的工分名变量
-              rate: row.rate * 100
-            });
+            row.mappingId = row.id;
+            row.staffId = row.staff; //工分项维度时用到的员工变量
+            row.staffName = row.name; //工分项维度时用到的员工变量
+            row.itemId = row.item; //员工维度时用到的工分变量
+            row.itemName = row.name; //员工维度时用到的工分名变量
+            row.rate = row.rate * 100;
           });
-        else
-          targetData.push({
-            ...data,
-            noConfig: true
-          });
+        else data.noConfig = true;
       });
-      return targetData.map(d => ({
+      return data.map(d => ({
         ...d,
         isEdit: !d.mappingId && !d.noConfig,
         removeLoading: false,
