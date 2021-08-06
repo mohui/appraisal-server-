@@ -65,9 +65,7 @@
             <div
               style="display: flex;justify-content: space-between;width: 100%"
             >
-              <div>
-                {{ data.index }} {{ data.name }} {{ `(${data.subs.length})项` }}
-              </div>
+              <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
                 <el-tooltip
                   v-show="!data.batchEditing"
@@ -211,17 +209,13 @@
             </el-table-column>
             <el-table-column align="center" prop="rate" label="权重">
               <template slot-scope="{row}">
-                <div v-if="row.isEdit">
-                  <el-input-number v-model="tempRow.rate" size="mini">
+                <div v-if="!row.isEdit && row.batchEditing">
+                  <el-input-number disabled v-model="tempRow.rate" size="mini">
                   </el-input-number>
                   %
                 </div>
-                <div
-                  v-else-if="
-                    row.id === tempRow.id && tableData.some(d => d.batchEditing)
-                  "
-                >
-                  <el-input-number disabled v-model="tempRow.rate" size="mini">
+                <div v-else-if="row.isEdit || row.batchEditing">
+                  <el-input-number v-model="tempRow.rate" size="mini">
                   </el-input-number>
                   %
                 </div>
@@ -376,11 +370,12 @@ export default {
             row.itemId = row.item; //员工维度时用到的工分变量
             row.itemName = row.name; //员工维度时用到的工分名变量
             row.rate = row.rate * 100;
+            row.isEdit = !row.mappingId;
+            row.batchEditing = false;
           });
         else data.noConfig = true;
       });
-      return data.map((d, index) => ({
-        index: index + 1,
+      return data.map(d => ({
         ...d,
         isEdit: !d.mappingId && !d.noConfig,
         removeLoading: false,
@@ -535,25 +530,13 @@ export default {
       }
     },
     async submitBatchEdit(row) {
-      this.updateLoading = true;
       try {
-        let editArr = [];
-        //以工分项维度
-        if (this.currentTarget === HisWorkScoreType.WORK_ITEM)
-          editArr = this.serverData.mappings.filter(
-            it => it.item === row.itemId
-          );
-
-        //以员工的维度
-        if (this.currentTarget === HisWorkScoreType.STAFF)
-          editArr = this.serverData.mappings.filter(
-            it => it.staff === row.staffId
-          );
-        if (editArr.length === 0) {
+        this.updateLoading = true;
+        if (row?.subs?.length === 0) {
           this.$message.info('没有可编辑项');
           return;
         }
-        for (const current of editArr) {
+        for (const current of row.subs) {
           await this.$api.HisWorkItem.upsertStaffWorkItemMapping({
             id: current.id || null,
             item: current.item,
@@ -563,8 +546,12 @@ export default {
         }
 
         this.$message.success('修改成功');
-        row.isEdit = !row.isEdit;
+        row.isEdit = false;
         row.batchEditing = false;
+        row.subs.forEach(it => {
+          it.isEdit = false;
+          it.batchEditing = false;
+        });
         await this.$asyncComputed.serverData.update();
         this.tempRow = '';
       } catch (e) {
@@ -596,9 +583,23 @@ export default {
         this.$message.warning('已有其他数据正在编辑');
         return;
       }
-      row.isEdit = !row.isEdit;
-      row.batchEditing = !row.batchEditing;
-      this.tempRow = JSON.parse(JSON.stringify(row));
+      if (row.subs?.length === 0) {
+        this.$message.warning('没有数据可编辑');
+        return;
+      }
+      //将这一行的第一个子元素作为临时变量
+      this.tempRow = JSON.parse(JSON.stringify(row.subs[0]));
+      row.isEdit = true;
+      row.batchEditing = true;
+      row.subs.forEach((it, index) => {
+        it.isEdit = index === 0;
+        it.batchEditing = true;
+      });
+      //这一行自动展开
+      this.activeCollapse.push(row.id);
+      //去重
+      this.activeCollapse = [...new Set(this.activeCollapse)];
+      console.log(this.activeCollapse);
     },
     async batchRemove(row) {
       try {
