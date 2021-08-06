@@ -8,7 +8,6 @@
 | hospital | varchar(36) | 所属医院 |
 | staff | varchar(64) | 绑定his员工id |
 | account | varchar(255) | 登录名 |
-| virtual | boolean | 虚拟用户标识 |
 | password | varchar(255) | 密码 |
 | name | varchar(255) | 名称 |
 | department | varchar(36) | 所属科室id |

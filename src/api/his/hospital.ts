@@ -179,7 +179,6 @@ export default class HisHospital {
             select id, name
             from staff
             where hospital = ?
-              and virtual = false
             order by created_at
           `,
           hospital
@@ -212,7 +211,6 @@ export default class HisHospital {
         select id, name
         from staff
         where hospital = ?
-          and virtual = false
       `,
       hospital
     );

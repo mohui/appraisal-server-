@@ -157,13 +157,6 @@
         <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          label="是否虚拟账户"
-          prop="virtual"
-          :label-width="formLabelWidth"
-        >
-          <el-switch v-model="userForm.virtual"></el-switch>
-        </el-form-item>
         <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
           <el-input
             v-model="userForm.remark"
@@ -248,13 +241,6 @@
         <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
           <el-input v-model="userForm.name" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          label="是否虚拟账户"
-          prop="virtual"
-          :label-width="formLabelWidth"
-        >
-          <el-switch v-model="userForm.virtual"></el-switch>
-        </el-form-item>
         <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
           <el-input
             v-model="userForm.remark"
@@ -326,7 +312,6 @@ export default {
         password: '',
         name: '',
         his: '',
-        virtual: false,
         remark: null,
         department: null
       },
@@ -444,7 +429,6 @@ export default {
         password: '',
         name: '',
         his: '',
-        virtual: false,
         remark: null
       };
     },
@@ -459,7 +443,6 @@ export default {
               this.userForm.account.trim(),
               this.userForm.password.trim(),
               this.userForm.name.trim(),
-              this.userForm.virtual || false,
               this.userForm.remark?.trim() || null,
               this.userForm.department?.trim() || null
             );
@@ -490,7 +473,6 @@ export default {
           password: row.password,
           name: row.name,
           his: row.staff,
-          virtual: row.virtual,
           remark: row.remark,
           department: row.department
         }
@@ -508,7 +490,6 @@ export default {
               this.userForm.name.trim(),
               this.userForm.password.trim(),
               this.userForm.his || null,
-              this.userForm.virtual || false,
               this.userForm.remark?.trim() || null,
               this.userForm.department?.trim() || null
             );
