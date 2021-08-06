@@ -391,27 +391,6 @@ export default {
     },
     memberList() {
       return this.serverMemberData;
-    },
-    //表格合并方法
-    spanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.tableData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.tableData[i].id === this.tableData[i - 1].id) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
     }
   },
   watch: {
@@ -631,17 +610,6 @@ export default {
         console.log(e);
       } finally {
         row.removeLoading = false;
-      }
-    },
-    spanMethod({column, rowIndex}) {
-      if (
-        column.property !== 'staffName' &&
-        column.property !== 'rate' &&
-        column.property !== 'operation'
-      ) {
-        const _row = this.spanArr[rowIndex];
-        const _col = _row > 0 ? 1 : 0;
-        return {rowspan: _row, colspan: _col};
       }
     }
   }
