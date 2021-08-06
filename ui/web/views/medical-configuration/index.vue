@@ -56,6 +56,7 @@
         </el-form>
       </kn-collapse>
       <el-collapse
+        class="work-collapse"
         style="flex-grow: 1;height: 1px;overflow-y: scroll"
         v-model="activeCollapse"
       >
@@ -646,8 +647,24 @@ export default {
   }
 };
 </script>
-
-<style scoped>
+<style lang="scss">
+.work-collapse {
+  .collapse-transition {
+    -webkit-transition: 0s height, 0s padding-top, 0s padding-bottom;
+    transition: 0s height, 0s padding-top, 0s padding-bottom;
+  }
+  .horizontal-collapse-transition {
+    -webkit-transition: 0s width, 0s padding-left, 0s padding-right;
+    transition: 0s width, 0s padding-left, 0s padding-right;
+  }
+  .horizontal-collapse-transition .el-submenu__title .el-submenu__icon-arrow {
+    -webkit-transition: 0s;
+    transition: 0s;
+    opacity: 0;
+  }
+}
+</style>
+<style lang="scss" scoped>
 .header {
   display: flex;
   justify-content: space-between;
