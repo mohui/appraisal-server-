@@ -12,7 +12,7 @@
       }"
     >
       <div slot="header" class="header">
-        <span>工作量管理</span>
+        <span>工分项管理</span>
         <div>
           <span style="font-size:14px;color:#606266">配置维度选择:</span>
           <el-button-group>
