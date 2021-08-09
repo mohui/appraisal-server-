@@ -466,13 +466,15 @@ export default {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
-          this.staffCheck(); //提交前过滤一下树节点,保证被选节点是对象数据
           this.addBtnLoading = true;
           //取值来源是"其他配置"则员工方法是"固定",否则为"动态"
           this.newWork.staffMethod =
             this.newWork.scope === HisStaffDeptType.OTHER
               ? HisStaffMethod.STATIC
               : HisStaffMethod.DYNAMIC;
+          //提交前过滤一下树节点,保证被选节点是对象数据
+          if (this.newWork.staffMethod === HisStaffMethod.STATIC)
+            this.staffCheck();
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
