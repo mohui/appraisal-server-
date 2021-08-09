@@ -203,7 +203,6 @@
                   :data="staffTree"
                   :default-checked-keys="newWork.staffs"
                   node-key="value"
-                  :filter-node-method="filterNode"
                   show-checkbox
                   @check-change="staffCheck"
                 ></el-tree>
@@ -228,7 +227,6 @@
                     newWork.projectsSelected.map(it => it.id)
                   "
                   node-key="id"
-                  :filter-node-method="filterNode"
                   show-checkbox
                   @check-change="treeCheck"
                 >
@@ -390,10 +388,15 @@ export default {
       }));
     },
     treeData() {
-      return this.workTreeData;
+      if (!this.filterText) return this.workTreeData;
+      return this.filterTree(this.filterText, this.workTreeData);
     },
     staffTree() {
-      return this.addPinyin(this.staffTreeData);
+      if (!this.staffFilterText) return this.staffTreeData;
+      return this.filterTree(
+        this.staffFilterText,
+        this.addPinyin(this.staffTreeData)
+      );
     },
     onlyHospital() {
       return this.newWork.projectsSelected.some(
@@ -407,12 +410,6 @@ export default {
     }
   },
   watch: {
-    filterText(value) {
-      this.$refs.tree.filter(value);
-    },
-    staffFilterText(value) {
-      this.$refs.staffTree.filter(value);
-    },
     'newWork.projectsSelected'() {
       if (
         this.newWork.projectsSelected.some(
@@ -462,6 +459,27 @@ export default {
     }
   },
   methods: {
+    filterTree(query, arr) {
+      let current = [];
+      for (let i = 0; i < arr.length; i++) {
+        if (this.filterNode(query, arr[i])) {
+          current.push(arr[i]); //符合条件得整个节点都保留
+          continue;
+        }
+        //不符合条件,则继续从子节点里检查是否有符合条件的节点
+        if (arr[i].children && arr[i].children.length > 0) {
+          const r = this.filterTree(query, arr[i].children);
+          if (r.length > 0)
+            current = current.concat([
+              {
+                ...arr[i],
+                children: r
+              }
+            ]);
+        }
+      }
+      return current;
+    },
     async submit() {
       try {
         const valid = await this.$refs['workForm'].validate();
