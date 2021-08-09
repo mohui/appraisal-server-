@@ -268,26 +268,24 @@ export default class SystemArea {
       .description('年份')
   )
   async faceCollect(code, year) {
+    // 根据地区id获取机构id
     const hospitals = await getHospitals(code);
     const hospitalIds = hospitals.map(it => it.code);
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
 
     let faceData = {face: 0, total: 0, rate: 0};
 
-    // 查询人脸采集
+    // TODO:(表名要改)查询人脸采集
     try {
       const sql = sqlRender(
         `
             select
               coalesce(sum("S00"),0)::integer as "total",
               coalesce(sum("S30"),0)::integer as "face"
-            from mark_organization
-            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            from mark_organization1
+            where id::varchar in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
               and year = {{? year}}`,
         {
-          hishospid: hisHospIds,
+          hospitalIds,
           year
         }
       );
@@ -327,24 +325,20 @@ export default class SystemArea {
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-
     // 如果没有传年份获取年份
     year = getYear(year);
     // 签约人数
     const signedSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.personnum) as "Number"
-            from view_SignRegiste vsr
-                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            from ph_sign_register vsr
+                   inner join ph_person vp on vp.id = vsr.PersonNum
+            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
               and vp.WriteOff = false
               and vsr.YearDegree = {{? YearDegree}}
           `,
       {
-        hisHospIds,
+        hospitalIds,
         YearDegree: year
       }
     );
@@ -352,14 +346,14 @@ export default class SystemArea {
     const exeSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
-            from view_SignRegisteCheckMain vsrcm
-                   inner join view_SignRegiste vsr on vsr.RegisterID = vsrcm.RegisterID
-            where vsrcm.ExeOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-              and vsrcm.ExeTime >= {{? startTime}}
-              and vsrcm.ExeTime < {{? endTime}}
+            from ph_sign_check_main main
+                   inner join ph_sign_register vsr on vsr.id = main.RegisterID
+            where main.ExeOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+              and main.ExeTime >= {{? startTime}}
+              and main.ExeTime < {{? endTime}}
           `,
       {
-        hisHospIds,
+        hospitalIds,
         startTime: dayjs()
           .year(year)
           .startOf('y')
@@ -375,10 +369,10 @@ export default class SystemArea {
     const renewSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
-            from view_SignRegiste vsr
-                   inner join view_SignRegiste a on a.PersonNum = vsr.PersonNum and a.YearDegree = {{? YearDegree}}
-                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            from ph_sign_register vsr
+                   inner join ph_sign_register a on a.PersonNum = vsr.PersonNum and a.YearDegree = {{? YearDegree}}
+                   inner join ph_Person vp on vp.id = vsr.PersonNum
+            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
               and vp.WriteOff = false
               and vsr.YearDegree = {{? vsrYearDegree}}
           `,
@@ -387,7 +381,7 @@ export default class SystemArea {
           .year(year)
           .add(-1, 'y')
           .year(),
-        hisHospIds,
+        hospitalIds,
         vsrYearDegree: year
       }
     );
@@ -443,11 +437,7 @@ export default class SystemArea {
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份
     year = getYear(year);
@@ -459,13 +449,13 @@ export default class SystemArea {
             address as "Address",
             Contents as "Contents",
             ReportTime as "Date"
-        from view_SanitaryControlReport
-        where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        from ph_sanitary_control_report
+        where OperateOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
         and ReportTime>={{? start}} and ReportTime<{{? end}}
         order by ReportTime desc
       `,
       {
-        hisHospIds,
+        hospitalIds,
         start: dayjs()
           .year(year)
           .startOf('y')
