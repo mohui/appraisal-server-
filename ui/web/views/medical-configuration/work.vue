@@ -129,17 +129,91 @@
         :model="newWork"
         :rules="workRules"
         label-position="right"
-        label-width="120px"
+        label-width="160px"
       >
         <el-row>
           <el-col :span="24">
-            <el-form-item label="工分项" prop="work">
+            <el-form-item label="工分项名称" prop="work">
               <el-input v-model="newWork.work" size="mini"> </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="关联项目" prop="projectsSelected">
+            <el-form-item label="工分项取值员工来源" prop="staffMethod">
+              <el-button-group>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.Staff"
+                  :type="
+                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  本人
+                </el-button>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.DEPT"
+                  :type="
+                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  本人所在科室
+                </el-button>
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
+                  :type="
+                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  机构全体员工
+                </el-button>
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.OTHER"
+                  :disabled="onlyHospital"
+                  :type="
+                    newWork.scope === HisStaffDeptType.OTHER ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  {{ HisStaffDeptType.OTHER }}
+                </el-button>
+              </el-button-group>
+              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
+                所选工分项仅适用于机构范围
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              v-if="newWork.scope === HisStaffDeptType.OTHER"
+              label="固定来源"
+              prop="staffs"
+            >
               <el-input
+                style="width: 50%"
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="staffFilterText"
+              ></el-input>
+              <div class="long-tree">
+                <el-tree
+                  ref="staffTree"
+                  :data="staffTree"
+                  :default-checked-keys="newWork.staffs"
+                  node-key="value"
+                  :filter-node-method="filterNode"
+                  show-checkbox
+                  @check-change="staffCheck"
+                ></el-tree>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="工分项取值项目来源" prop="projectsSelected">
+              <el-input
+                style="width: 50%"
                 size="mini"
                 placeholder="输入关键字进行过滤"
                 v-model="filterText"
@@ -187,97 +261,8 @@
               </div>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="关联员工" prop="staffMethod">
-              <el-button-group>
-                <el-button
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.DYNAMIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
-                >
-                  {{ HisStaffMethod.DYNAMIC }}
-                </el-button>
-                <el-button
-                  :disabled="onlyHospital"
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.STATIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
-                >
-                  {{ HisStaffMethod.STATIC }}
-                </el-button>
-              </el-button-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item
-              v-if="newWork.staffMethod === HisStaffMethod.STATIC"
-              label="员工"
-              prop="staffs"
-            >
-              <el-input
-                size="mini"
-                placeholder="输入关键字进行过滤"
-                v-model="staffFilterText"
-              ></el-input>
-              <div class="long-tree">
-                <el-tree
-                  ref="staffTree"
-                  :data="staffTree"
-                  :default-checked-keys="newWork.staffs"
-                  node-key="value"
-                  :filter-node-method="filterNode"
-                  show-checkbox
-                  @check-change="staffCheck"
-                ></el-tree>
-              </div>
-            </el-form-item>
-            <el-form-item v-else label="范围" props="scope">
-              <el-button-group>
-                <el-button
-                  :disabled="onlyHospital"
-                  @click="newWork.scope = HisStaffDeptType.Staff"
-                  :type="
-                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.Staff }}
-                </el-button>
-                <el-button
-                  :disabled="onlyHospital"
-                  @click="newWork.scope = HisStaffDeptType.DEPT"
-                  :type="
-                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.DEPT }}
-                </el-button>
-                <el-button
-                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
-                  :type="
-                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.HOSPITAL }}
-                </el-button>
-              </el-button-group>
-              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
-                所选工分项仅适用于机构范围
-              </div>
-            </el-form-item>
-          </el-col>
           <el-col :span="24">
-            <el-form-item label="打分方式" prop="scoreMethod">
+            <el-form-item label="工分项计算方式" prop="scoreMethod">
               <el-button-group>
                 <el-button
                   :class="{
@@ -303,7 +288,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="单位量得分" prop="score">
+            <el-form-item label="单个工分项标准工作量" prop="score">
               <el-input-number
                 size="mini"
                 v-model="newWork.score"
@@ -400,7 +385,7 @@ export default {
           d.staffMappings?.length > 0
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
-        scope: d.scope || HisStaffDeptType.Staff,
+        scope: d.scope || HisStaffDeptType.OTHER,
         score: d.score || 0
       }));
     },
@@ -482,6 +467,11 @@ export default {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
+          //取值来源是"其他配置"则员工方法是"固定",否则为"动态"
+          this.newWork.staffMethod =
+            this.newWork.scope === HisStaffDeptType.OTHER
+              ? HisStaffMethod.STATIC
+              : HisStaffMethod.DYNAMIC;
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
@@ -529,7 +519,7 @@ export default {
           projects: [],
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
-          scope: row.scope || HisStaffDeptType.Staff,
+          scope: row.scope || HisStaffDeptType.OTHER,
           score: row.score
         })
       );
@@ -660,6 +650,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
+  width: 50%;
   max-height: 40vh;
   overflow-y: auto;
   overflow-x: hidden;
