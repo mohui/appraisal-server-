@@ -13,6 +13,39 @@
     >
       <div slot="header" class="header">
         <span>工作量管理</span>
+        <div>
+          <span style="font-size:14px;color:#606266">配置维度选择:</span>
+          <el-button-group>
+            <el-button
+              :type="
+                currentTarget === HisWorkScoreType.WORK_ITEM
+                  ? 'primary'
+                  : 'default'
+              "
+              size="mini"
+              @click="currentTarget = HisWorkScoreType.WORK_ITEM"
+            >
+              工分项
+            </el-button>
+            <el-button
+              :type="
+                currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
+              "
+              size="mini"
+              @click="currentTarget = HisWorkScoreType.STAFF"
+            >
+              员工
+            </el-button>
+          </el-button-group>
+          <el-button
+            style="margin-left: 20px"
+            :type="expandAll ? 'warning' : 'default'"
+            size="mini"
+            @click="expandAll = !expandAll"
+          >
+            {{ expandAll ? '一键收起' : '一键展开' }}
+          </el-button>
+        </div>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -25,34 +58,7 @@
           label-width="100px"
           size="mini"
         >
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-            <el-form-item label="维度">
-              <el-button-group>
-                <el-button
-                  :type="
-                    currentTarget === HisWorkScoreType.WORK_ITEM
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="currentTarget = HisWorkScoreType.WORK_ITEM"
-                >
-                  工作
-                </el-button>
-                <el-button
-                  :type="
-                    currentTarget === HisWorkScoreType.STAFF
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="currentTarget = HisWorkScoreType.STAFF"
-                >
-                  员工
-                </el-button>
-              </el-button-group>
-            </el-form-item>
-          </el-col>
+          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6"> </el-col>
         </el-form>
       </kn-collapse>
       <el-collapse
@@ -328,7 +334,8 @@ export default {
       updateLoading: false,
       removeLoading: false,
       currentTarget: HisWorkScoreType.WORK_ITEM, //默认以工作量维度
-      activeCollapse: []
+      activeCollapse: [],
+      expandAll: false
     };
   },
   computed: {
@@ -396,6 +403,12 @@ export default {
   watch: {
     currentTarget() {
       this.tempRow = ''; //切换维度时重置临时变量
+      if (this.expandAll) this.activeCollapse = this.tableData.map(it => it.id);
+      if (!this.expandAll) this.activeCollapse = [];
+    },
+    expandAll() {
+      if (this.expandAll) this.activeCollapse = this.tableData.map(it => it.id);
+      if (!this.expandAll) this.activeCollapse = [];
     }
   },
   asyncComputed: {
