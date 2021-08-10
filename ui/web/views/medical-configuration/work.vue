@@ -664,7 +664,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
-  max-height: 40vh;
+  max-height: 20vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -677,8 +677,6 @@ export default {
 }
 .dialog-form {
   max-height: 60vh;
-  overflow-y: scroll;
-  overflow-x: hidden;
   padding: 0 30px;
 }
 </style>
