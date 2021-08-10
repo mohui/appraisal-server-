@@ -592,6 +592,9 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff
       };
+      //重置搜索关键词
+      this.filterText = '';
+      this.staffFilterText = '';
       this.addWorkVisible = false;
     },
     toBreak(content) {
