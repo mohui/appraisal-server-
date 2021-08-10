@@ -171,14 +171,12 @@
                   机构全体员工
                 </el-button>
                 <el-button
-                  @click="newWork.scope = HisStaffDeptType.OTHER"
+                  @click="newWork.scope = null"
                   :disabled="onlyHospital"
-                  :type="
-                    newWork.scope === HisStaffDeptType.OTHER ? 'primary' : ''
-                  "
+                  :type="!newWork.scope ? 'primary' : ''"
                   size="mini"
                 >
-                  {{ HisStaffDeptType.OTHER }}
+                  其他固定配置
                 </el-button>
               </el-button-group>
               <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
@@ -187,11 +185,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item
-              v-if="newWork.scope === HisStaffDeptType.OTHER"
-              label="固定来源"
-              prop="staffs"
-            >
+            <el-form-item v-if="!newWork.scope" label="固定来源" prop="staffs">
               <el-input
                 style="width: 50%"
                 size="mini"
@@ -384,7 +378,7 @@ export default {
           d.staffMappings?.length > 0
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
-        scope: d.scope || HisStaffDeptType.OTHER,
+        scope: d.scope,
         score: d.score || 0
       }));
     },
@@ -486,11 +480,10 @@ export default {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
-          //取值来源是"其他配置"则员工方法是"固定",否则为"动态"
-          this.newWork.staffMethod =
-            this.newWork.scope === HisStaffDeptType.OTHER
-              ? HisStaffMethod.STATIC
-              : HisStaffMethod.DYNAMIC;
+          //没有配置取值范围则员工方法是"固定",否则为"动态"
+          this.newWork.staffMethod = !this.newWork.scope
+            ? HisStaffMethod.STATIC
+            : HisStaffMethod.DYNAMIC;
           //提交前过滤一下树节点,保证被选节点是对象数据
           if (this.newWork.staffMethod === HisStaffMethod.STATIC)
             this.staffCheck();
@@ -506,9 +499,7 @@ export default {
                 }))
               : [],
             this.newWork.score,
-            this.newWork.staffMethod === HisStaffMethod.DYNAMIC
-              ? this.newWork.scope
-              : null
+            this.newWork.scope
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -541,7 +532,7 @@ export default {
           projects: [],
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
-          scope: row.scope || HisStaffDeptType.OTHER,
+          scope: row.scope,
           score: row.score
         })
       );
