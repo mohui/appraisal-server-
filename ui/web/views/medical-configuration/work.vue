@@ -119,7 +119,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : '60%'"
+      :width="$settings.isMobile ? '99%' : '40%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -129,7 +129,7 @@
         class="dialog-form"
         :model="newWork"
         :rules="workRules"
-        label-position="right"
+        label-position="left"
         label-width="160px"
       >
         <el-row>
@@ -680,6 +680,8 @@ export default {
 }
 .dialog-form {
   max-height: 60vh;
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 0 30px;
 }
 </style>
