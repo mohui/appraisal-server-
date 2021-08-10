@@ -666,7 +666,6 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
-  width: 50%;
   max-height: 40vh;
   overflow-y: auto;
   overflow-x: hidden;
