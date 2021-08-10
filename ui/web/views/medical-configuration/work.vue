@@ -187,7 +187,6 @@
           <el-col :span="24">
             <el-form-item v-if="!newWork.scope" label="固定来源" prop="staffs">
               <el-input
-                style="width: 50%"
                 size="mini"
                 placeholder="输入关键字进行过滤"
                 v-model="staffFilterText"
@@ -207,7 +206,6 @@
           <el-col :span="24">
             <el-form-item label="工分项取值项目来源" prop="projectsSelected">
               <el-input
-                style="width: 50%"
                 size="mini"
                 placeholder="输入关键字进行过滤"
                 v-model="filterText"
