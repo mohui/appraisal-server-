@@ -126,6 +126,7 @@
     >
       <el-form
         ref="workForm"
+        class="dialog-form"
         :model="newWork"
         :rules="workRules"
         label-position="right"
@@ -682,5 +683,9 @@ export default {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.dialog-form {
+  max-height: 60vh;
+  overflow: scroll;
 }
 </style>
