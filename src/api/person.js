@@ -16,6 +16,7 @@ async function dictionaryQuery(categoryno) {
     categoryno
   );
 }
+
 //查询档案列表的sql
 function listRender(params) {
   return sqlRender(
@@ -42,6 +43,8 @@ function listRender(params) {
             {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
             {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
             {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+            {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
+            {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
           )
           and
           (
@@ -272,6 +275,8 @@ export default class Person {
                 mp."C11",
                 mp."C13",
                 mp."C14",
+                mp."CH01",
+                mp."CO01",
                 mp."E00",
                 mp.ai_2dm,
                 mp.ai_hua,
@@ -2220,6 +2225,320 @@ export default class Person {
     //TODO 指定建议暂时无数据
     if (constitution) constitution.guide = '';
     return {name, questionnaire, constitution};
+  }
+
+  /**
+   * 慢病高危随访列表
+   *
+   * @param id 居民id
+   * return [{
+   * id: 随访主键,
+   * followDate: 随访时间,
+   * followWay: 随访方式,
+   * riskFactorsName: 高危因素,
+   * doctor: 医生,
+   * updateAt: 录入时间
+   * }]
+   */
+  async chronicDiseaseHighList(id) {
+    const followCodeNames = await originalDB.execute(
+      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      '7010104'
+    );
+    // language=PostgreSQL
+    return (
+      await originalDB.execute(
+        `
+          select vdv.ChronicDiseaseHighID as "id",
+                 vdv.FollowUpDate         as "followDate",
+                 vdv.FollowUpWay          as "followWay",
+                 vdv.RiskFactorsName      as "riskFactorsName",
+                 vdv.Doctor,
+                 vdv.OperateTime          as "updateAt"
+          from view_ChronicDiseaseHighFollowUp vdv
+                 inner join view_ChronicDiseaseHighCard vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          where vd.PersonNum = ?
+            and vd.TerminationManage = true
+            and vd.IsDelete = false
+            and vdv.IsDelete = false
+          order by vdv.OperateTime desc
+        `,
+        id
+      )
+    ).map(item => ({
+      ...item,
+      followWay: followCodeNames.find(way => way.code === item.followWay)
+        ?.codename
+    }));
+  }
+
+  /**
+   * 慢病高危随访详情
+   *
+   * @param id 随访id
+   * return {
+   * id: 随访主键,
+   * No: 随访编号,
+   * name: 姓名,
+   * followDate: 随访时间
+   * followWay: 随访方式,
+   * riskFactorsName: 高危因素,
+   * systolicPressure: 高压,
+   * assertPressure: 低压,
+   * bloodFat: 血脂,
+   * weight: 体重,
+   * waist: 腰围,
+   * kfxt: 空腹血糖,
+   * sjxt: 随机血糖,
+   * isSmoke: 是否吸烟,
+   * daySmoke: 吸烟量,
+   * isDiet: 膳食指导,
+   * dietDescription: 膳食指导描述,
+   * isPhysicalActivity: 身体活动指导,
+   * physicalActivityDesc: 身体活动指导描述,
+   * isQuitSmoking: 戒烟指导,
+   * quitSmokingDesc: 戒烟指导描述,
+   * isLimitDrink: 限酒指导,
+   * limitDrinkDesc: 限酒描述,
+   * isVisit: 是否失访,
+   * visitReason: 失访原因,
+   * nextVisitDate: 下次随访时间,
+   * updateAt: 录入时间,
+   * doctor: 医生,
+   * remark: 备注
+   * }
+   */
+  async chronicDiseaseHighVisit(id) {
+    // language=PostgreSQL
+    return (
+      await originalDB.execute(
+        `
+          select vd.ChronicDiseaseHighID as "id",
+                 vd.serialNum            as "No",
+                 vp.name                 as "name",
+                 vd.followUpDate         as "followDate",
+                 vc_follow.codename      as "followWay",
+                 vd.RiskFactorsName      as "riskFactorsName",
+                 vd.SystolicPressure     as "systolicPressure",
+                 vd.AssertPressure       as "assertPressure",
+                 vd.Blood_Fat            as "bloodFat",
+                 vd.Weight               as "weight",
+                 vd.The_Waist            as "waist",
+                 vd.Blood_Sugar          as "kfxt",
+                 vd.Blood_Random         as "sjxt",
+                 vd.IsSmoke              as "isSmoke",
+                 vd.DaySmoke             as "daySmoke",
+                 vd.IsDiet               as "isDiet",
+                 vd.DietDescription      as "dietDescription",
+                 vd.IsPhysicalActivity   as "isPhysicalActivity",
+                 vd.PhysicalActivityDesc as "physicalActivityDesc",
+                 vd.IsQuitSmoking        as "isQuitSmoking",
+                 vd.QuitSmokingDesc      as "quitSmokingDesc",
+                 vd.IsLimitDrink         as "isLimitDrink",
+                 vd.LimitDrinkDesc       as "limitDrinkDesc",
+                 vd.IsVisit              as "isVisit",
+                 vd.VisitReason          as "visitReason",
+                 vd.NextVisitDate        as "nextVisitDate",
+                 vd.OperateTime          as "updateAt",
+                 vd.Doctor               as "doctor",
+                 vd.Remark               as "remark"
+          from view_ChronicDiseaseHighFollowUp vd
+                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
+                 left join view_codedictionary vc_follow
+                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
+          where ChronicDiseaseHighID = ?
+            and vd.isdelete = false
+        `,
+        id
+      )
+    )[0];
+  }
+
+  /**
+   * 其他慢病随访列表
+   *
+   * @param id 居民id
+   * return [{
+   * id: 随访主键,
+   * followDate: 随访时间,
+   * followWay: 随访方式,
+   * presentSymptoms: 症状,
+   * doctor: 医生,
+   * updateAt: 录入时间
+   }]
+   */
+  async chronicDiseaseOtherList(id) {
+    const followCodeNames = await originalDB.execute(
+      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      '7010104'
+    );
+    // language=PostgreSQL
+    return (
+      await originalDB.execute(
+        `
+          select vdv.HighbloodID     as "id",
+                 vdv.FollowUpDate    as "followDate",
+                 vdv.FollowUpWay     as "followWay",
+                 vdv.PresentSymptoms as "presentSymptoms",
+                 vdv.Doctor,
+                 vdv.OperateTime     as "updateAt"
+          from view_ChronicDiseaseHighCardOtherFollowUp vdv
+                 inner join view_ChronicDiseaseHighCardOther vd
+                            on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          where vd.PersonNum = ?
+            and vd.TerminationManage = true
+            and vd.IsDelete = false
+            and vdv.IsDelete = false
+          order by vdv.OperateTime desc
+        `,
+        id
+      )
+    ).map(item => ({
+      ...item,
+      followWay: followCodeNames.find(way => way.code === item.followWay)
+        ?.codename
+    }));
+  }
+
+  /**
+   * 其他慢病随访详情
+   *
+   * @param id 随访id
+   * return {
+   * id: 随访主键,
+   * No: 随访编号,
+   * name: 姓名,
+   * followDate: 随访时间
+   * followWay: 随访方式,
+   * symptoms: 症状,
+   * systolicPressure: 高压,
+   * assertPressure: 低压,
+   * weight: 体重,
+   * weightSuggest: 体重建议,
+   * stature: 身高,
+   * BMI: 体质指数,
+   * BMISuggest: 推荐体质指数,
+   * HeartRate: 心率,
+   * other: 其他,
+   * daySmoke: 日吸烟量,
+   * daySmokeSuggest: 建议日吸烟量,
+   * dayDrink: 日饮酒量,
+   * dayDrinkSuggest: 推荐日饮酒量,
+   * exerciseWeek: 每周运动次数,
+   * exerciseMinute: 每次运动时长,
+   * exerciseWeekSuggest: 推荐每周运动次数,
+   * exerciseMinuteSuggest: 推荐每次运动时长,
+   * saltSituation: 摄盐情况,
+   * saltSituationSuggest: 推荐摄盐情况,
+   * mental: 心理调整,
+   * doctorStatue: 遵医行为,
+   * qtzysx: 其他注意事项,
+   * fzjc: 辅助检查,
+   * medicationAdherence: 服药依赖性,
+   * adverseReactions: 药物不良反应,
+   * adverseReactionsExplain: 药物不良反应其他,
+   * visitClass: 随访分类,
+   * drugName1: 药品1,
+   * dailyTimesDrugName1: 用法1,
+   * usageDrugName1: 用量1,
+   * drugName2: 药品2,
+   * dailyTimesDrugName2: 用法2,
+   * usageDrugName2: 用量2,
+   * drugName3: 药品3,
+   * dailyTimesDrugName3: 用法3,
+   * usageDrugName3: 用量3,
+   * otherDrugName: 其他药品,
+   * otherDailyTimesDrugName: 其他药品用法,
+   * otherUsageDrugName: 其他药品用量,
+   * remark: 备注,
+   * referral: 是否建议转诊,
+   * referralReason: 转诊原因,
+   * referralAgencies: 转诊机构科室,
+   * nextVisitDate: 下次随访时间,
+   * updateAt: 录入时间,
+   * doctor: 医生
+   * }
+   */
+  async chronicDiseaseOtherVisit(id) {
+    // language=PostgreSQL
+    return (
+      await originalDB.execute(
+        `
+          select vd.HighbloodID           as "id",
+                 vd.serialNum             as "No",
+                 vp.name                  as "name",
+                 vd.followUpDate          as "followDate",
+                 vc_follow.codename       as "followWay",
+                 vd.presentSymptoms       as "symptoms",
+                 vd.SystolicPressure      as "systolicPressure",
+                 vd.AssertPressure        as "assertPressure",
+                 vd.Weight                as "weight",
+                 vd.Weight_Suggest        as "weightSuggest",
+                 vd.Stature               as "stature",
+                 vd.BMI                   as "BMI",
+                 vd.BMI_Suggest           as "BMISuggest",
+                 vd.HeartRate             as "HeartRate",
+                 vd.Other_Tz              as "other",
+                 vd.DaySmoke              as "daySmoke",
+                 vd.DaySmoke_Suggest      as "daySmokeSuggest",
+                 vd.DayDrink              as "dayDrink",
+                 vd.DayDrink_Suggest      as "dayDrinkSuggest",
+                 vd.Sport_Week            as "exerciseWeek",
+                 vd.Sport_Minute          as "exerciseMinute",
+                 vd.Sport_Week_Suggest    as "exerciseWeekSuggest",
+                 vd.Sport_Minute_Suggest  as "exerciseMinuteSuggest",
+                 vc_salt.codename         as "saltSituation",
+                 vc_salt_suggest.codename as "saltSituationSuggest",
+                 vc_mental.codename       as "mental",
+                 vc_doctor_s.codename     as "doctorStatue",
+                 vd.Other_Sysjc           as "qtzysx",
+                 vd.Fzjc                  as "fzjc",
+                 vc_ma.codename           as "medicationAdherence",
+                 vc_effect.codename       as "adverseReactions",
+                 vd.AdverseEffectOther    as "adverseReactionsExplain",
+                 vc_vc.codename           as "visitClass",
+                 vd.DrugName1             as "drugName1",
+                 vd.Usage_Day1            as "dailyTimesDrugName1",
+                 vd.Usage_Time1           as "usageDrugName1",
+                 vd.DrugName2             as "drugName2",
+                 vd.Usage_Day2            as "dailyTimesDrugName2",
+                 vd.Usage_Time2           as "usageDrugName2",
+                 vd.DrugName3             as "drugName3",
+                 vd.Usage_Day3            as "dailyTimesDrugName3",
+                 vd.Usage_Time3           as "usageDrugName3",
+                 vd.DrugNameOther         as "otherDrugName",
+                 vd.Usage_DayOther        as "otherDailyTimesDrugName",
+                 vd.Usage_TimeOther       as "otherUsageDrugName",
+                 vd.Remark                as "remark",
+                 vd.Referral              as "referral",
+                 vd.ReferralReason        as "referralReason",
+                 vd.ReferralAgencies      as "referralAgencies",
+                 vd.NextVisitDate         as "nextVisitDate",
+                 vd.OperateTime           as "updateAt",
+                 vd.Doctor                as "doctor"
+          from view_ChronicDiseaseHighCardOtherFollowUp vd
+                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
+                 left join view_codedictionary vc_follow
+                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
+                 left join view_codedictionary vc_salt
+                           on vc_salt.categoryno = '7010112' and vc_salt.code = vd.Salt_Situation
+                 left join view_codedictionary vc_salt_suggest
+                           on vc_salt_suggest.categoryno = '7010112' and
+                              vc_salt_suggest.code = vd.Salt_Situation_Suggest
+                 left join view_codedictionary vc_mental
+                           on vc_mental.categoryno = '331' and vc_mental.code = vd.MentalSet
+                 left join view_codedictionary vc_doctor_s
+                           on vc_doctor_s.categoryno = '332' and vc_doctor_s.code = vd.DoctorStatue
+                 left join view_codedictionary vc_ma on vc_ma.categoryno = '181' and vc_ma.code = vd.MedicationAdherence
+                 left join view_codedictionary vc_effect
+                           on vc_effect.categoryno = '005' and vc_effect.code = vd.AdverseEffect
+                 left join view_codedictionary vc_vc on vc_vc.categoryno = '7010106' and vc_vc.code = vd.VisitClass
+          where HighbloodID = ?
+            and vd.isdelete = false
+        `,
+        id
+      )
+    )[0];
   }
 }
 

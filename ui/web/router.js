@@ -183,6 +183,18 @@ const router = new Router({
             import('./views/patient/development-monitoring-chart')
         },
         {
+          path: 'chronic-disease-high-visit',
+          name: 'chronic-disease-high-visit',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/chronic-disease-high-visit')
+        },
+        {
+          path: 'chronic-disease-other-visit',
+          name: 'chronic-disease-other-visit',
+          meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
+          component: () => import('./views/patient/chronic-disease-other-visit')
+        },
+        {
           path: 'person',
           name: 'person',
           meta: {activeMenu: 'person', permission: [Permission.PROFILE]},
