@@ -1120,7 +1120,7 @@ export default class HisScore {
     //endregion
     //region 计算公卫数据工分来源
     for (const param of bindings.filter(it =>
-      it.source.startsWith('手工数据')
+      it.source.startsWith('公卫数据')
     )) {
       //机构级别的数据, 直接用当前员工的机构id即可
       //查询hospital绑定关系
