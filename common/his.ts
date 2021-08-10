@@ -49,8 +49,7 @@ export enum HisStaffMethod {
 export enum HisStaffDeptType {
   Staff = '员工',
   DEPT = '科室',
-  HOSPITAL = '机构',
-  OTHER = '其他固定配置'
+  HOSPITAL = '机构'
 }
 
 /**
