@@ -129,7 +129,7 @@ export const PermissionDetail = [
   },
   {
     key: 'medical-configuration-work',
-    name: '工分项管理'
+    name: '工分项设置'
   },
   {
     key: 'medical-configuration-member',
@@ -377,7 +377,7 @@ export const PermissionTree = [
       },
       {
         key: Permission.MEDICAL_CONFIGURATION_WORK,
-        label: '工分项管理'
+        label: '工分项设置'
       },
       {
         key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,

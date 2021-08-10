@@ -12,7 +12,7 @@
       }"
     >
       <div slot="header" class="work-header">
-        <span>工分项管理</span>
+        <span>工分项设置</span>
         <div>
           <el-button size="mini" type="primary" @click="addWorkVisible = true"
             >新增工分项</el-button
@@ -126,20 +126,88 @@
     >
       <el-form
         ref="workForm"
+        class="dialog-form"
         :model="newWork"
         :rules="workRules"
         label-position="right"
-        label-width="120px"
+        label-width="160px"
       >
         <el-row>
           <el-col :span="24">
-            <el-form-item label="工分项" prop="work">
+            <el-form-item label="工分项名称" prop="work">
               <el-input v-model="newWork.work" size="mini"> </el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="关联项目" prop="projectsSelected">
+          <el-col :span="24">
+            <el-form-item label="工分项取值员工来源" prop="staffMethod">
+              <el-button-group>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.Staff"
+                  :type="
+                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  本人
+                </el-button>
+                <el-button
+                  :disabled="onlyHospital"
+                  @click="newWork.scope = HisStaffDeptType.DEPT"
+                  :type="
+                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  本人所在科室
+                </el-button>
+                <el-button
+                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
+                  :type="
+                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
+                  "
+                  size="mini"
+                >
+                  机构全体员工
+                </el-button>
+                <el-button
+                  @click="newWork.scope = null"
+                  :disabled="onlyHospital"
+                  :type="!newWork.scope ? 'primary' : ''"
+                  size="mini"
+                >
+                  其他固定配置
+                </el-button>
+              </el-button-group>
+              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
+                所选工分项仅适用于机构范围
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item v-if="!newWork.scope" label="固定来源" prop="staffs">
               <el-input
+                style="width: 50%"
+                size="mini"
+                placeholder="输入关键字进行过滤"
+                v-model="staffFilterText"
+              ></el-input>
+              <div class="long-tree">
+                <el-tree
+                  ref="staffTree"
+                  :data="staffTree"
+                  :default-checked-keys="newWork.staffs"
+                  node-key="value"
+                  show-checkbox
+                  @check-change="staffCheck"
+                ></el-tree>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="工分项取值项目来源" prop="projectsSelected">
+              <el-input
+                style="width: 50%"
                 size="mini"
                 placeholder="输入关键字进行过滤"
                 v-model="filterText"
@@ -154,7 +222,6 @@
                     newWork.projectsSelected.map(it => it.id)
                   "
                   node-key="id"
-                  :filter-node-method="filterNode"
                   show-checkbox
                   @check-change="treeCheck"
                 >
@@ -187,97 +254,8 @@
               </div>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="关联员工" prop="staffMethod">
-              <el-button-group>
-                <el-button
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.DYNAMIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="newWork.staffMethod = HisStaffMethod.DYNAMIC"
-                >
-                  {{ HisStaffMethod.DYNAMIC }}
-                </el-button>
-                <el-button
-                  :disabled="onlyHospital"
-                  :type="
-                    newWork.staffMethod === HisStaffMethod.STATIC
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="mini"
-                  @click="newWork.staffMethod = HisStaffMethod.STATIC"
-                >
-                  {{ HisStaffMethod.STATIC }}
-                </el-button>
-              </el-button-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item
-              v-if="newWork.staffMethod === HisStaffMethod.STATIC"
-              label="员工"
-              prop="staffs"
-            >
-              <el-input
-                size="mini"
-                placeholder="输入关键字进行过滤"
-                v-model="staffFilterText"
-              ></el-input>
-              <div class="long-tree">
-                <el-tree
-                  ref="staffTree"
-                  :data="staffTree"
-                  :default-checked-keys="newWork.staffs"
-                  node-key="value"
-                  :filter-node-method="filterNode"
-                  show-checkbox
-                  @check-change="staffCheck"
-                ></el-tree>
-              </div>
-            </el-form-item>
-            <el-form-item v-else label="范围" props="scope">
-              <el-button-group>
-                <el-button
-                  :disabled="onlyHospital"
-                  @click="newWork.scope = HisStaffDeptType.Staff"
-                  :type="
-                    newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.Staff }}
-                </el-button>
-                <el-button
-                  :disabled="onlyHospital"
-                  @click="newWork.scope = HisStaffDeptType.DEPT"
-                  :type="
-                    newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.DEPT }}
-                </el-button>
-                <el-button
-                  @click="newWork.scope = HisStaffDeptType.HOSPITAL"
-                  :type="
-                    newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
-                  "
-                  size="mini"
-                >
-                  {{ HisStaffDeptType.HOSPITAL }}
-                </el-button>
-              </el-button-group>
-              <div v-show="onlyHospital" style="color: #CC3300;font-size: 14px">
-                所选工分项仅适用于机构范围
-              </div>
-            </el-form-item>
-          </el-col>
           <el-col :span="24">
-            <el-form-item label="打分方式" prop="scoreMethod">
+            <el-form-item label="工分项计算方式" prop="scoreMethod">
               <el-button-group>
                 <el-button
                   :class="{
@@ -303,7 +281,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="单位量得分" prop="score">
+            <el-form-item label="单个工分项标准工作量" prop="score">
               <el-input-number
                 size="mini"
                 v-model="newWork.score"
@@ -400,15 +378,20 @@ export default {
           d.staffMappings?.length > 0
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
-        scope: d.scope || HisStaffDeptType.Staff,
+        scope: d.scope,
         score: d.score || 0
       }));
     },
     treeData() {
-      return this.workTreeData;
+      if (!this.filterText) return this.workTreeData;
+      return this.filterTree(this.filterText, this.workTreeData);
     },
     staffTree() {
-      return this.addPinyin(this.staffTreeData);
+      if (!this.staffFilterText) return this.staffTreeData;
+      return this.filterTree(
+        this.staffFilterText,
+        this.addPinyin(this.staffTreeData)
+      );
     },
     onlyHospital() {
       return this.newWork.projectsSelected.some(
@@ -422,12 +405,6 @@ export default {
     }
   },
   watch: {
-    filterText(value) {
-      this.$refs.tree.filter(value);
-    },
-    staffFilterText(value) {
-      this.$refs.staffTree.filter(value);
-    },
     'newWork.projectsSelected'() {
       if (
         this.newWork.projectsSelected.some(
@@ -477,11 +454,39 @@ export default {
     }
   },
   methods: {
+    filterTree(query, arr) {
+      let current = [];
+      for (let i = 0; i < arr.length; i++) {
+        if (this.filterNode(query, arr[i])) {
+          current.push(arr[i]); //符合条件得整个节点都保留
+          continue;
+        }
+        //不符合条件,则继续从子节点里检查是否有符合条件的节点
+        if (arr[i].children && arr[i].children.length > 0) {
+          const r = this.filterTree(query, arr[i].children);
+          if (r.length > 0)
+            current = current.concat([
+              {
+                ...arr[i],
+                children: r
+              }
+            ]);
+        }
+      }
+      return current;
+    },
     async submit() {
       try {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
+          //没有配置取值范围则员工方法是"固定",否则为"动态"
+          this.newWork.staffMethod = !this.newWork.scope
+            ? HisStaffMethod.STATIC
+            : HisStaffMethod.DYNAMIC;
+          //提交前过滤一下树节点,保证被选节点是对象数据
+          if (this.newWork.staffMethod === HisStaffMethod.STATIC)
+            this.staffCheck();
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
@@ -494,9 +499,7 @@ export default {
                 }))
               : [],
             this.newWork.score,
-            this.newWork.staffMethod === HisStaffMethod.DYNAMIC
-              ? this.newWork.scope
-              : null
+            this.newWork.scope
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -529,7 +532,7 @@ export default {
           projects: [],
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
-          scope: row.scope || HisStaffDeptType.Staff,
+          scope: row.scope,
           score: row.score
         })
       );
@@ -580,6 +583,9 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff
       };
+      //重置搜索关键词
+      this.filterText = '';
+      this.staffFilterText = '';
       this.addWorkVisible = false;
     },
     toBreak(content) {
@@ -660,6 +666,7 @@ export default {
   justify-content: space-between;
 }
 .long-tree {
+  width: 50%;
   max-height: 40vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -670,5 +677,9 @@ export default {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.dialog-form {
+  max-height: 60vh;
+  overflow: scroll;
 }
 </style>

@@ -115,13 +115,13 @@ module.exports = [
         index: 'medical-configuration',
         permission: [Permission.MEDICAL_CONFIGURATION_LIST],
         router: '/medical-configuration',
-        label: '工作量管理'
+        label: '工分项管理'
       },
       {
         index: 'medical-configuration-work',
         permission: [Permission.MEDICAL_CONFIGURATION_WORK],
         router: '/medical-configuration-work',
-        label: '工分项管理'
+        label: '工分项设置'
       },
       {
         index: 'medical-configuration-member-his',
