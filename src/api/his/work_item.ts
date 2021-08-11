@@ -906,7 +906,7 @@ export default class HisWorkItem {
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
-        left join his_work_item_staff_mapping mapping on item.id = mapping.item
+               left join his_work_item_staff_mapping mapping on item.id = mapping.item
         where hospital = ?
         order by item.created_at
       `,
@@ -1383,13 +1383,13 @@ export default class HisWorkItem {
       // language=PostgreSQL
       const hisHospitalModels = await appDB.execute(
         `
-            select mapping.hishospid hospital,
-                hospital.id,
-                hospital.name
-            from hospital_mapping mapping
-            inner join hospital on mapping.h_id = hospital.id
-            where mapping.h_id = ?
-          `,
+          select mapping.hishospid hospital,
+                 hospital.id,
+                 hospital.name
+          from hospital_mapping mapping
+                 inner join hospital on mapping.h_id = hospital.id
+          where mapping.h_id = ?
+        `,
         staffModel.hospital
       );
       const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
@@ -1663,9 +1663,8 @@ export default class HisWorkItem {
         // 执行添加语句
         // language=PostgreSQL
         await appDB.execute(
-          ` insert into
-              his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?)`,
+          ` insert into his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
+              values (?, ?, ?, ?, ?, ?)`,
           uuid(),
           params?.item,
           params?.staff,
@@ -1737,7 +1736,11 @@ export default class HisWorkItem {
       // 删除对应关系
       // language=PostgreSQL
       await appDB.execute(
-        `delete from his_staff_work_item_mapping where id = ?`,
+        `
+          delete
+          from his_staff_work_item_mapping
+          where id = ?
+        `,
         id
       );
     });
