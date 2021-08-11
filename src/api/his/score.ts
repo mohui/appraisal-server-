@@ -1051,7 +1051,6 @@ export default class HisScore {
       }
       //员工关联是 动态且员工
       if (
-        staffModel.staff &&
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.Staff
       ) {
