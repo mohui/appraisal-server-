@@ -1238,9 +1238,8 @@ export default class HisWorkItem {
         const deptStaffList = await appDB.execute(
           `
             select id from staff
-                where staff is not null and department in (${depIds.map(
-                  () => '?'
-                )})`,
+                where staff is not null
+                  and department in (${depIds.map(() => '?')})`,
           ...depIds
         );
         staffIds.push(...deptStaffList.map(it => it.id));
@@ -1254,20 +1253,27 @@ export default class HisWorkItem {
       }
       // 如果是本人所在科室
       if (scope === HisStaffDeptType.DEPT) {
+        // language=PostgreSQL
         const staffDeptModels = await appDB.execute(
           `
-            select id from staff
-                where staff is not null and department = ?`,
+            select id
+            from staff
+            where staff is not null
+              and department = ?`,
           staffModel.department
         );
         staffIds = staffDeptModels.map(it => it.id);
       }
       // 如果是本人所在机构
       if (scope === HisStaffDeptType.HOSPITAL) {
+        // language=PostgreSQL
         const staffDeptModels = await appDB.execute(
           `
-            select id from staff
-                where staff is not null and hospital = ?`,
+            select id
+            from staff
+            where staff is not null
+              and hospital = ?
+          `,
           staffModel.hospital
         );
         staffIds = staffDeptModels.map(it => it.id);
@@ -1277,10 +1283,11 @@ export default class HisWorkItem {
     // 根据员工id找到他的his的员工id
     // language=PostgreSQL
     const staffList = await appDB.execute(
-      `select staff, name
-          from staff
-          where staff is not null and id in
-          (${staffIds.map(() => '?')})`,
+      `
+            select staff, name
+                from staff
+            where staff is not null
+              and id in (${staffIds.map(() => '?')})`,
       ...staffIds
     );
     const doctorIds = staffList.map(it => it.staff);
@@ -1363,6 +1370,7 @@ export default class HisWorkItem {
             and smdd.date >= ?
             and smdd.date < ?
             and staff.id in (${staffIds.map(() => '?')})
+          order by smdd.date
         `,
         //手工数据的source转id, 默认是只能必须选id
         param.source.split('.')[1],
@@ -1457,6 +1465,7 @@ export default class HisWorkItem {
               and operate_time > ?
               and operate_time < ?
               and charge_type = ?
+            order by operate_time
           `,
           staffModel.hospital,
           start,
@@ -1484,20 +1493,6 @@ export default class HisWorkItem {
     }
     //endregion
     return workItems;
-    // return workItems.reduce((result, current) => {
-    //   const obj = result.find(it => it.id === current.id);
-    //   if (obj) {
-    //     obj.score = new Decimal(obj.score).add(current.score).toNumber();
-    //   } else {
-    //     result.push({
-    //       id: current.id,
-    //       staffName: current?.staffName,
-    //       itemName: current?.itemName,
-    //       score: current.score
-    //     });
-    //   }
-    //   return result;
-    // }, []);
   }
 
   // region 公分项目来源, 和员工绑定的增删改查
