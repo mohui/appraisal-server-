@@ -119,7 +119,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : '40%'"
+      :width="$settings.isMobile ? '99%' : isPreView ? '60%' : '40%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -132,7 +132,7 @@
         label-position="left"
         label-width="160px"
       >
-        <el-row>
+        <el-row v-show="!isPreView">
           <el-col :span="24">
             <el-form-item label="工分项名称" prop="work">
               <el-input v-model="newWork.work" size="mini"> </el-input>
@@ -287,10 +287,25 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <work-preview v-show="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="resetConfig('workForm')">取 消</el-button>
-        <el-button v-loading="addBtnLoading" type="primary" @click="submit()">
+        <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{
+          isPreView ? '取消预览' : '预览'
+        }}</el-button>
+        <el-button
+          v-show="!isPreView"
+          size="mini"
+          @click="resetConfig('workForm')"
+          >取 消</el-button
+        >
+        <el-button
+          v-show="!isPreView"
+          v-loading="addBtnLoading"
+          size="mini"
+          type="primary"
+          @click="submit()"
+        >
           确 定
         </el-button>
       </div>
@@ -307,9 +322,11 @@ import {
   HisStaffDeptType
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
+import WorkPreview from './component/work-preview';
 
 export default {
   name: 'Work',
+  components: {WorkPreview},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (value?.length < 1 && this.newWork.projectsSelected.length < 1) {
@@ -358,7 +375,8 @@ export default {
         }
       },
       filterText: '',
-      staffFilterText: ''
+      staffFilterText: '',
+      isPreView: false
     };
   },
   computed: {
@@ -585,6 +603,7 @@ export default {
       this.filterText = '';
       this.staffFilterText = '';
       this.addWorkVisible = false;
+      this.isPreView = false;
     },
     toBreak(content) {
       let contentStr = '';
