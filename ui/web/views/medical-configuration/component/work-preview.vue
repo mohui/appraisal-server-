@@ -34,11 +34,14 @@
       size="mini"
       stripe
     >
-      <el-table-column
-        align="center"
-        label="员工"
-        prop="staffName"
-      ></el-table-column>
+      <el-table-column align="center" label="员工" prop="staffName">
+        <template slot-scope="{row}">
+          {{ row.staffName }}
+          <el-tag :type="staffType(row.type)" size="mini">{{
+            row.type
+          }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column
         align="center"
         label="项目名"
@@ -69,7 +72,7 @@
 
 <script>
 import {Decimal} from 'decimal.js';
-
+import {previewType} from '../../../../../common/his.ts';
 export default {
   name: 'WorkPreview',
   props: {
@@ -138,6 +141,13 @@ export default {
         }
       },
       default: []
+    }
+  },
+  methods: {
+    staffType(type) {
+      if (type === previewType.HIS_STAFF) return 'warning';
+      if (type === previewType.STAFF) return 'primary';
+      if (type === previewType.HOSPITAL) return 'info';
     }
   }
 };
