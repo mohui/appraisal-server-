@@ -69,6 +69,16 @@ export enum HisWorkScoreType {
   STAFF = '员工'
 }
 
+/**
+ * 预览类型
+ */
+export enum previewType {
+  HIS_STAFF = 'HIS员工',
+  STAFF = '系统员工',
+  HOSPITAL = '系统机构',
+  DEPT = '科室'
+}
+
 //region 指标相关
 /**
  * 指标

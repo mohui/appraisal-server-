@@ -6,11 +6,13 @@ import {
   HisWorkMethod,
   HisWorkSource,
   HisStaffMethod,
-  HisStaffDeptType
+  HisStaffDeptType,
+  previewType
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
-import {getHospital} from './service';
+import {monthToRange, getHospital} from './service';
 
+// region 工分项目来源
 /**
  * 工分项目来源
  */
@@ -491,6 +493,7 @@ export const HisWorkItemSources: {
     scope: HisStaffDeptType.HOSPITAL
   }
 ];
+// endregion
 
 /**
  * 接口
@@ -1169,6 +1172,333 @@ export default class HisWorkItem {
   }
 
   // endregion
+
+  // 预览接口
+  async preview(
+    staff,
+    day,
+    name,
+    method,
+    mappings,
+    staffMethod,
+    staffs,
+    score,
+    scope
+  ) {
+    // const {start, end} = dayToRange(day);
+    const {start, end} = monthToRange(day);
+    //查询员工信息
+    const staffModel: {
+      id: string;
+      name: string;
+      department?: string;
+      hospital: string;
+      staff?: string;
+    } = (
+      await appDB.execute(
+        `select id, name, staff, hospital, department from staff where id = ?`,
+        staff
+      )
+    )[0];
+    //员工不存在, 直接返回
+    if (!staffModel) return;
+
+    const hospitalModels = await appDB.execute(
+      `select code, name from area where code = ?`,
+      staffModel.hospital
+    );
+
+    // 根据公分项目拼装数组
+    const bindings = [];
+    mappings.forEach(it => {
+      const item = HisWorkItemSources.find(sourceIt => sourceIt.id === it);
+      bindings.push({
+        name,
+        method,
+        score,
+        source: it,
+        sourceName: item?.name
+      });
+    });
+    let staffIds = [];
+
+    // 取出当是 固定 时候的所有员工id
+    if (staffMethod === HisStaffMethod.STATIC) {
+      // 员工id列表
+      staffIds = staffs
+        .filter(it => it.type === HisStaffDeptType.Staff)
+        .map(it => it.code);
+      const depIds = staffs
+        .filter(it => it.type === HisStaffDeptType.DEPT)
+        .map(it => it.code);
+
+      // 如果科室长度大于0, 查询科室下的所有员工
+      if (depIds.length > 0) {
+        // language=PostgreSQL
+        const deptStaffList = await appDB.execute(
+          `
+            select id from staff
+                where staff is not null and department in (${depIds.map(
+                  () => '?'
+                )})`,
+          ...depIds
+        );
+        staffIds.push(...deptStaffList.map(it => it.id));
+      }
+    }
+    // 取出当是 固定 时候的所有员工id
+    if (staffMethod === HisStaffMethod.DYNAMIC) {
+      // 如果是本人
+      if (scope === HisStaffDeptType.Staff) {
+        staffIds.push(staff);
+      }
+      // 如果是本人所在科室
+      if (scope === HisStaffDeptType.DEPT) {
+        const staffDeptModels = await appDB.execute(
+          `
+            select id from staff
+                where staff is not null and department = ?`,
+          staffModel.department
+        );
+        staffIds = staffDeptModels.map(it => it.id);
+      }
+      // 如果是本人所在机构
+      if (scope === HisStaffDeptType.HOSPITAL) {
+        const staffDeptModels = await appDB.execute(
+          `
+            select id from staff
+                where staff is not null and hospital = ?`,
+          staffModel.hospital
+        );
+        staffIds = staffDeptModels.map(it => it.id);
+      }
+    }
+
+    // 根据员工id找到他的his的员工id
+    // language=PostgreSQL
+    const staffList = await appDB.execute(
+      `select staff, name
+          from staff
+          where staff is not null and id in
+          (${staffIds.map(() => '?')})`,
+      ...staffIds
+    );
+    const doctorIds = staffList.map(it => it.staff);
+
+    // 工分流水
+    let workItems = [];
+    //计算工分
+    //region 计算CHECK和DRUG工分来源
+    for (const param of bindings.filter(
+      it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+    )) {
+      //region 处理人员条件条件
+      let doctorCondition = '1 = 0';
+      if (doctorIds.length > 0) {
+        doctorCondition = `doctor in (${doctorIds.map(() => '?').join()})`;
+      }
+      //endregion
+      //查询his的收费项目
+      const rows: {
+        value: string;
+        date: Date;
+        staffId: string;
+        staffName: string;
+        itemId: string;
+        itemName: string;
+      }[] = await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select total_price as value,
+                 operate_time as date,
+                 item "itemId",
+                 item_name "itemName",
+                 doctor "staffId",
+                 staff.name as "staffName",
+                 '${previewType.HIS_STAFF}' as type
+          from his_charge_detail detail
+          inner join his_staff staff on detail.doctor = staff.id
+          where operate_time > ?
+            and operate_time < ?
+            and (item like ? or item = ?)
+            and ${doctorCondition}
+          order by operate_time
+        `,
+        start,
+        end,
+        `${param.source}.%`,
+        param.source,
+        ...doctorIds
+      );
+      //his收费项目流水转换成工分流水
+      workItems = workItems.concat(rows);
+    }
+    //endregion
+    //region 计算MANUAL工分来源
+    for (const param of bindings.filter(it =>
+      it.source.startsWith('手工数据')
+    )) {
+      //查询手工数据流水表
+      const rows: {
+        value: number;
+        date: Date;
+        itemId: string;
+        itemName: string;
+        staffId: string;
+        staffName: string;
+      }[] = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select date,
+                 value,
+                 smdd.staff "staffId",
+                 staff.name "staffName",
+                 manual.id "itemId",
+                 manual.name "itemName",
+                 '${previewType.STAFF}' as type
+          from his_staff_manual_data_detail smdd
+                 inner join his_manual_data manual on smdd.item = manual.id
+                 inner join staff  on staff.id = smdd.staff
+          where smdd.item = ?
+            and smdd.date >= ?
+            and smdd.date < ?
+            and staff.id in (${staffIds.map(() => '?')})
+        `,
+        //手工数据的source转id, 默认是只能必须选id
+        param.source.split('.')[1],
+        start,
+        end,
+        ...staffIds
+      );
+      //手工数据流水转换成工分流水
+      workItems = workItems.concat(rows);
+    }
+    //endregion
+    //region 计算公卫数据工分来源
+    for (const param of bindings.filter(it =>
+      it.source.startsWith('公卫数据')
+    )) {
+      //机构级别的数据, 直接用当前员工的机构id即可
+      //查询hospital绑定关系
+      // language=PostgreSQL
+      const hisHospitalModels = await appDB.execute(
+        `
+            select mapping.hishospid hospital,
+                hospital.id,
+                hospital.name
+            from hospital_mapping mapping
+            inner join hospital on mapping.h_id = hospital.id
+            where mapping.h_id = ?
+          `,
+        staffModel.hospital
+      );
+      const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
+      //没有绑定关系, 直接跳过
+      if (hisHospitals.length === 0) continue;
+      const item = HisWorkItemSources.find(it => it.id === param.source);
+      //未配置数据表, 直接跳过
+      if (!item || !item?.datasource?.table) continue;
+      //渲染sql
+      const sqlRendResult = sqlRender(
+        `
+          select 1 as value, {{dateCol}} as date, OperateOrganization hospital
+          from {{table}}
+          where 1 = 1
+            and {{dateCol}} >= {{? start}}
+            and {{dateCol}} < {{? end}}
+            and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          {{#each columns}} and {{this}} {{/each}}
+          `,
+        {
+          dateCol: item.datasource.date,
+          hospitals: hisHospitals,
+          table: item.datasource.table,
+          columns: item.datasource.columns,
+          start,
+          end
+        }
+      );
+      const rows: {
+        date: Date;
+        value: number;
+        hospital: string;
+      }[] = await originalDB.execute(sqlRendResult[0], ...sqlRendResult[1]);
+      //公卫数据流水转换成工分流水
+      workItems = workItems.concat(
+        rows.map(it => {
+          const item = hisHospitalModels.find(
+            hospitalIt => hospitalIt.hospital === it.hospital
+          );
+          return {
+            value: it.value,
+            date: it.date,
+            itemId: param.source,
+            itemName: param?.sourceName,
+            staffId: item?.id,
+            staffName: item?.name,
+            type: previewType.HOSPITAL
+          };
+        })
+      );
+    }
+    //endregion
+    //region 计算其他工分来源
+    for (const param of bindings.filter(it => it.source.startsWith('其他'))) {
+      let type = '';
+      if (param.source === '其他.住院诊疗人次') type = '住院';
+      if (param.source === '其他.门诊诊疗人次') type = '门诊';
+      const rows: {date: Date; value: number}[] = (
+        await originalDB.execute(
+          // language=PostgreSQL
+          `
+            select distinct treat
+            from his_charge_master
+            where hospital = ?
+              and operate_time > ?
+              and operate_time < ?
+              and charge_type = ?
+          `,
+          staffModel.hospital,
+          start,
+          end,
+          type
+        )
+      ).map(() => ({
+        value: 1,
+        date: day
+      }));
+      //其他工分流水转换成工分流水
+      workItems = workItems.concat(
+        rows.map(it => {
+          return {
+            value: it.value,
+            date: it.date,
+            itemId: param.source,
+            itemName: param.sourceName,
+            staffId: hospitalModels[0]?.code,
+            staffName: hospitalModels[0]?.name,
+            type: previewType.HOSPITAL
+          };
+        })
+      );
+    }
+    //endregion
+    return workItems;
+    // return workItems.reduce((result, current) => {
+    //   const obj = result.find(it => it.id === current.id);
+    //   if (obj) {
+    //     obj.score = new Decimal(obj.score).add(current.score).toNumber();
+    //   } else {
+    //     result.push({
+    //       id: current.id,
+    //       staffName: current?.staffName,
+    //       itemName: current?.itemName,
+    //       score: current.score
+    //     });
+    //   }
+    //   return result;
+    // }, []);
+  }
 
   // region 公分项目来源, 和员工绑定的增删改查
   /**
