@@ -1459,7 +1459,7 @@ export default class HisWorkItem {
         await originalDB.execute(
           // language=PostgreSQL
           `
-            select distinct treat
+            select distinct treat, operate_time
             from his_charge_master
             where hospital = ?
               and operate_time > ?
