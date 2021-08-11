@@ -1175,15 +1175,15 @@ export default class HisWorkItem {
 
   // 预览接口
   async preview(
-    staff,
-    day,
     name,
     method,
     mappings,
     staffMethod,
     staffs,
     score,
-    scope
+    scope,
+    staff,
+    day
   ) {
     // const {start, end} = dayToRange(day);
     const {start, end} = monthToRange(day);
@@ -1201,7 +1201,7 @@ export default class HisWorkItem {
       )
     )[0];
     //员工不存在, 直接返回
-    if (!staffModel) return;
+    if (!staffModel) return [];
 
     const hospitalModels = await appDB.execute(
       `select code, name from area where code = ?`,
