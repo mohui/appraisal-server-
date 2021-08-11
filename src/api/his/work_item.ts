@@ -1492,7 +1492,9 @@ export default class HisWorkItem {
       );
     }
     //endregion
-    return workItems.slice(0, 10000);
+    return workItems
+      .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
+      .slice(0, 10000);
   }
 
   // region 公分项目来源, 和员工绑定的增删改查
