@@ -653,15 +653,21 @@ export default {
         //选中节点数组新增
         this.newWork.staffs.push(data.value);
       }
-      if (
-        !selected &&
-        this.newWork.staffs.some(s => (s?.value ?? s) === data.value)
-      ) {
-        //选中节点数组删除
-        this.newWork.staffs.splice(
-          this.newWork.staffs.findIndex(s => (s?.value ?? s) === data.value),
-          1
+      if (!selected) {
+        const delIndex = this.newWork.staffs.findIndex(
+          s => (s?.value ?? s) === data.value
         );
+        //选中节点数组中删除
+        delIndex > -1 && this.newWork.staffs.splice(delIndex, 1);
+        //子节点也依次删掉
+        if (data.children && data.children.length > 0) {
+          data.children.forEach(staff => {
+            const childDelIndex = this.newWork.staffs.findIndex(
+              s => (s?.value ?? s) === staff.value
+            );
+            childDelIndex > -1 && this.newWork.staffs.splice(childDelIndex, 1);
+          });
+        }
       }
     },
     //工分项满节点时向上取父节点(当某个节点的子节点全勾选时,仅返回该节点id,过滤掉其子节点)
@@ -692,15 +698,22 @@ export default {
         //选中节点数组新增
         this.newWork.projectsSelected.push(data);
       }
-      if (
-        !selected &&
-        this.newWork.projectsSelected.some(p => p.id === data.id)
-      ) {
-        //选中节点数组删除
-        this.newWork.projectsSelected.splice(
-          this.newWork.projectsSelected.findIndex(s => s.id === data.id),
-          1
+      if (!selected) {
+        const delIndex = this.newWork.projectsSelected.findIndex(
+          s => s.id === data.id
         );
+        //选中节点数组删除
+        delIndex > -1 && this.newWork.projectsSelected.splice(delIndex, 1);
+        //子节点也依次删掉
+        if (data.children && data.children.length > 0) {
+          data.children.forEach(staff => {
+            const childDelIndex = this.newWork.projectsSelected.findIndex(
+              s => s.id === staff.id
+            );
+            childDelIndex > -1 &&
+              this.newWork.projectsSelected.splice(childDelIndex, 1);
+          });
+        }
       }
     },
     //工分项满节点时向上取父节点
