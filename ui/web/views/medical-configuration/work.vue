@@ -287,7 +287,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <work-preview v-show="isPreView"></work-preview>
+        <work-preview :config="newWork" v-show="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{

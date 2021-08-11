@@ -4,7 +4,7 @@
       <el-row>
         <el-col :span="12">
           <el-form-item label="员工">
-            <el-select v-model="staff" size="mini">
+            <el-select v-model="staff" filterable size="mini">
               <el-option
                 v-for="staff of staffs"
                 :key="staff.id"
@@ -29,15 +29,25 @@
           <el-form-item label="工分详情">
             <el-table size="mini" border stripe :data="workData">
               <el-table-column
-                label="工分项"
+                label="员工"
                 align="center"
-                prop="name"
+                prop="staffName"
               ></el-table-column>
               <el-table-column
-                label="工作量"
+                label="项目名"
                 align="center"
-                prop="score"
+                prop="itemName"
               ></el-table-column>
+              <el-table-column
+                label="值"
+                align="center"
+                prop="value"
+              ></el-table-column>
+              <el-table-column label="时间" align="center" prop="date">
+                <template slot-scope="{row}">
+                  {{ row.date.toString() }}
+                </template>
+              </el-table-column>
             </el-table>
           </el-form-item>
         </el-col>
@@ -66,16 +76,17 @@
 <script>
 export default {
   name: 'WorkPreview',
-  props: {},
+  props: {
+    config: {
+      type: Object,
+      required: true
+    }
+  },
+  created() {},
   data() {
     return {
       staff: '',
-      workData: [
-        {id: 'xzxc', name: '中药', score: 10},
-        {id: 'xafas', name: '中3药', score: 10},
-        {id: 'dwdasd', name: '中2药', score: 10},
-        {id: 'asd3d', name: '中1药', score: 10}
-      ],
+
       date: ''
     };
   },
@@ -84,6 +95,33 @@ export default {
       async get() {
         try {
           return await this.$api.HisStaff.list();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
+    workData: {
+      async get() {
+        try {
+          console.log(this.config);
+
+          if (!this.staff) return [];
+          if (!this.date) return [];
+
+          return await this.$api.HisWorkItem.preview(
+            this.config.work,
+            this.config.scoreMethod,
+            this.config.projectsSelected.map(it => it.id),
+            this.config.staffMethod,
+            this.config.score,
+            this.config.staffs,
+            this.config.scope,
+            this.staff,
+            this.$dayjs(this.date).toDate()
+          );
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
