@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-loading="$asyncComputed.workData.updating" class="preview-container">
     <el-form label-position="right">
       <el-row>
         <el-col :span="12">
@@ -25,55 +25,51 @@
             </el-date-picker>
           </el-form-item>
         </el-col>
-        <el-col :span="24">
-          <el-form-item label="工分详情">
-            <el-table size="mini" border stripe :data="workData">
-              <el-table-column
-                label="员工"
-                align="center"
-                prop="staffName"
-              ></el-table-column>
-              <el-table-column
-                label="项目名"
-                align="center"
-                prop="itemName"
-              ></el-table-column>
-              <el-table-column
-                label="值"
-                align="center"
-                prop="value"
-              ></el-table-column>
-              <el-table-column label="时间" align="center" prop="date">
-                <template slot-scope="{row}">
-                  {{ row.date.toString() }}
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <div
-            style="display: flex;justify-content: space-between;align-items: center;float: right"
-          >
-            <div class="work-score">
-              <span>工作量</span><el-tag>100</el-tag>
-            </div>
-            <i class="el-icon-close"></i>
-            <div class="work-score">
-              <span>单位得分</span><el-tag>1</el-tag>
-            </div>
-            =
-            <div class="work-score">
-              <span>预计总得分</span><el-tag>100</el-tag>
-            </div>
-          </div>
-        </el-col>
       </el-row>
     </el-form>
+    <el-table
+      :data="workData"
+      border
+      class="work-config-table"
+      size="mini"
+      stripe
+    >
+      <el-table-column
+        align="center"
+        label="员工"
+        prop="staffName"
+      ></el-table-column>
+      <el-table-column
+        align="center"
+        label="项目名"
+        prop="itemName"
+      ></el-table-column>
+      <el-table-column align="center" label="值" prop="value"></el-table-column>
+      <el-table-column align="center" label="时间" prop="date">
+        <template slot-scope="{row}">
+          {{ row.date.$format() }}
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="preview-score">
+      <div class="work-score">
+        <span>工作量</span><el-tag>{{ total }}</el-tag>
+      </div>
+      <i class="el-icon-close"></i>
+      <div class="work-score">
+        <span>单位得分</span><el-tag>{{ config.score }}</el-tag>
+      </div>
+      =
+      <div class="work-score">
+        <span>预计总得分</span><el-tag>{{ previewScore }}</el-tag>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import {Decimal} from 'decimal.js';
+
 export default {
   name: 'WorkPreview',
   props: {
@@ -82,12 +78,25 @@ export default {
       required: true
     }
   },
-  created() {},
+  computed: {
+    total() {
+      return this.workData
+        .reduce((pre, next) => {
+          pre = pre.add(new Decimal(Number(next.value)));
+          return pre;
+        }, new Decimal(0))
+        .toNumber();
+    },
+    previewScore() {
+      return new Decimal(this.total)
+        .mul(new Decimal(this.config.score))
+        .toNumber();
+    }
+  },
   data() {
     return {
       staff: '',
-
-      date: ''
+      date: this.$dayjs().toDate()
     };
   },
   asyncComputed: {
@@ -134,11 +143,35 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .work-score {
   margin: 0 10px;
   span {
     margin: 0 5px;
+  }
+}
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 50vh;
+}
+.preview-score {
+  width: 60%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  float: right;
+  margin: 20px 0;
+}
+</style>
+<style lang="scss">
+.work-config-table {
+  display: flex;
+  flex-direction: column;
+
+  .el-table__body-wrapper {
+    flex: 1;
+    overflow-y: scroll;
   }
 }
 </style>
