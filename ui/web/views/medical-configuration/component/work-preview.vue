@@ -3,7 +3,7 @@
     <el-form label-position="right">
       <el-row>
         <el-col :span="12">
-          <el-form-item label="员工">
+          <el-form-item label="计算员工">
             <el-select v-model="staff" filterable size="mini">
               <el-option
                 v-for="staff of staffs"
@@ -15,7 +15,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="时间">
+          <el-form-item label="计算时间">
             <el-date-picker
               v-model="date"
               size="mini"
@@ -27,14 +27,16 @@
         </el-col>
       </el-row>
     </el-form>
-    <el-table
-      :data="workData"
-      border
-      class="work-config-table"
-      size="mini"
-      stripe
-    >
+    <el-table :data="showWorkData" border class="work-config-table" size="mini">
       <el-table-column align="center" label="员工" prop="staffName">
+        <template slot="header" slot-scope="scope">
+          {{ scope.row }}
+          <el-input
+            v-model="staffKey"
+            size="mini"
+            placeholder="员工关键字搜索"
+          />
+        </template>
         <template slot-scope="{row}">
           {{ row.staffName }}
           <el-tag :type="staffType(row.type)" size="mini">{{
@@ -42,11 +44,16 @@
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        align="center"
-        label="项目名"
-        prop="itemName"
-      ></el-table-column>
+      <el-table-column align="center" label="项目名" prop="itemName">
+        <template slot="header" slot-scope="scope">
+          {{ scope.row }}
+          <el-input
+            v-model="workKey"
+            size="mini"
+            placeholder="项目名关键字搜索"
+          />
+        </template>
+      </el-table-column>
       <el-table-column align="center" label="值" prop="value"></el-table-column>
       <el-table-column align="center" label="时间" prop="date">
         <template slot-scope="{row}">
@@ -73,6 +80,7 @@
 <script>
 import {Decimal} from 'decimal.js';
 import {previewType} from '../../../../../common/his.ts';
+import {strToPinyin} from '../../../utils/pinyin';
 export default {
   name: 'WorkPreview',
   props: {
@@ -82,6 +90,21 @@ export default {
     }
   },
   computed: {
+    showWorkData() {
+      return this.workData
+        .filter(
+          data =>
+            !this.workKey ||
+            data.itemName.indexOf(this.workKey) > -1 ||
+            data.itemPinyin.indexOf(this.workKey) > -1
+        )
+        .filter(
+          data =>
+            !this.staffKey ||
+            data.staffName.indexOf(this.staffKey) > -1 ||
+            data.staffPinyin.indexOf(this.staffKey) > -1
+        );
+    },
     total() {
       return this.workData
         .reduce((pre, next) => {
@@ -99,7 +122,9 @@ export default {
   data() {
     return {
       staff: '',
-      date: this.$dayjs().toDate()
+      date: this.$dayjs().toDate(),
+      staffKey: '',
+      workKey: ''
     };
   },
   asyncComputed: {
@@ -118,12 +143,10 @@ export default {
     workData: {
       async get() {
         try {
-          console.log(this.config);
-
           if (!this.staff) return [];
           if (!this.date) return [];
 
-          return await this.$api.HisWorkItem.preview(
+          const result = await this.$api.HisWorkItem.preview(
             this.config.work,
             this.config.scoreMethod,
             this.config.mappings.map(it => it.id),
@@ -137,6 +160,7 @@ export default {
             this.staff,
             this.$dayjs(this.date).toDate()
           );
+          return this.addPinyin(result);
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
@@ -151,6 +175,19 @@ export default {
       if (type === previewType.HIS_STAFF) return 'warning';
       if (type === previewType.STAFF) return 'primary';
       if (type === previewType.HOSPITAL) return 'info';
+    },
+    addPinyin(arr) {
+      arr = arr.map(it => ({
+        ...it,
+        itemPinyin: strToPinyin(it.itemName),
+        staffPinyin: strToPinyin(it.staffName)
+      }));
+      for (let current of arr) {
+        if (current?.children?.length > 0) {
+          current.children = this.addPinyin(current.children);
+        }
+      }
+      return arr;
     }
   }
 };
