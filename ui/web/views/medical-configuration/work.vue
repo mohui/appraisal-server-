@@ -119,7 +119,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : '40%'"
+      :width="$settings.isMobile ? '99%' : isPreView ? '60%' : '40%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -132,7 +132,7 @@
         label-position="left"
         label-width="160px"
       >
-        <el-row>
+        <el-row v-show="!isPreView">
           <el-col :span="24">
             <el-form-item label="工分项名称" prop="work">
               <el-input v-model="newWork.work" size="mini"> </el-input>
@@ -287,10 +287,25 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <work-preview :config="previewConfig" v-if="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="resetConfig('workForm')">取 消</el-button>
-        <el-button v-loading="addBtnLoading" type="primary" @click="submit()">
+        <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{
+          isPreView ? '取消预览' : '预览'
+        }}</el-button>
+        <el-button
+          v-show="!isPreView"
+          size="mini"
+          @click="resetConfig('workForm')"
+          >取 消</el-button
+        >
+        <el-button
+          v-show="!isPreView"
+          v-loading="addBtnLoading"
+          size="mini"
+          type="primary"
+          @click="submit()"
+        >
           确 定
         </el-button>
       </div>
@@ -307,9 +322,11 @@ import {
   HisStaffDeptType
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
+import WorkPreview from './component/work-preview';
 
 export default {
   name: 'Work',
+  components: {WorkPreview},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (value?.length < 1 && this.newWork.projectsSelected.length < 1) {
@@ -358,7 +375,8 @@ export default {
         }
       },
       filterText: '',
-      staffFilterText: ''
+      staffFilterText: '',
+      isPreView: false
     };
   },
   computed: {
@@ -400,6 +418,37 @@ export default {
       return this.newWork.projectsSelected.some(
         p => p.scope === HisStaffDeptType.Staff
       );
+    },
+    //预览的参数预处理
+    previewConfig() {
+      let config = {};
+      //没有配置取值范围则员工方法是"固定",否则为"动态"
+      const staffMethod = !this.newWork.scope
+        ? HisStaffMethod.STATIC
+        : HisStaffMethod.DYNAMIC;
+      let checkedStaffs = [];
+      if (staffMethod === HisStaffMethod.STATIC) {
+        //来源员工换成对象格式
+        checkedStaffs = this.$refs.staffTree.getCheckedNodes();
+        for (let c of checkedStaffs) {
+          if (c?.children?.length > 0) {
+            //children内的元素一定都是选上的,所以只保留它们共同的父项
+            checkedStaffs = checkedStaffs.filter(
+              it => !c.children.some(child => it.value === child.value)
+            );
+          }
+        }
+      }
+      config = {
+        name: this.newWork.work,
+        method: this.newWork.scoreMethod,
+        mappings: this.newWork.projectsSelected,
+        staffMethod: staffMethod,
+        staffs: checkedStaffs,
+        score: this.newWork.score,
+        scope: this.newWork.scope
+      };
+      return config;
     }
   },
   watch: {
@@ -583,6 +632,7 @@ export default {
       this.filterText = '';
       this.staffFilterText = '';
       this.addWorkVisible = false;
+      this.isPreView = false;
     },
     toBreak(content) {
       let contentStr = '';
