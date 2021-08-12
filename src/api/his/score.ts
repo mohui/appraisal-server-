@@ -962,7 +962,7 @@ export default class HisScore {
         )
       ).map(it => it.staff);
       if (doctorValue.length > 0) {
-        doctorCondition = `doctor in (${doctorValue.map(() => '?').join()})`;
+        doctorCondition = `d.doctor in (${doctorValue.map(() => '?').join()})`;
       }
       //endregion
       //查询his的收费项目
@@ -978,9 +978,9 @@ export default class HisScore {
           where m.hospital = ?
             and d.operate_time > ?
             and d.operate_time < ?
-            and (item like ? or item = ?)
+            and (d.item like ? or d.item = ?)
             and ${doctorCondition}
-          order by operate_time
+          order by d.operate_time
         `,
         staffModel.hospital,
         start,
