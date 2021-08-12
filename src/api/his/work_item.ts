@@ -1247,7 +1247,7 @@ export default class HisWorkItem {
         staffIds.push(...deptStaffList.map(it => it.id));
       }
     }
-    // 取出当是 固定 时候的所有员工id
+    // 取出当是 动态 时候的所有员工id
     if (staffMethod === HisStaffMethod.DYNAMIC) {
       // 如果是本人
       if (scope === HisStaffDeptType.Staff) {
@@ -1261,8 +1261,9 @@ export default class HisWorkItem {
             select id
             from staff
             where staff is not null
-              and department = ?`,
-          staffModel.department
+              and department = ? or id = ?`,
+          staffModel.department,
+          staffModel.id
         );
         staffIds = staffDeptModels.map(it => it.id);
       }
