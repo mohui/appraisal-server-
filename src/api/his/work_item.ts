@@ -7,7 +7,7 @@ import {
   HisWorkSource,
   HisStaffMethod,
   HisStaffDeptType,
-  previewType
+  PreviewType
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {monthToRange, getHospital} from './service';
@@ -1203,27 +1203,27 @@ export default class HisWorkItem {
     //员工不存在, 直接返回
     if (!staffModel) return [];
 
-    // 查询机构名称
+    // 查询机构信息,下面显示要用
     const hospitalModels = await originalDB.execute(
       `select code, name from area where code = ?`,
       staffModel.hospital
     );
 
-    // 根据公分项目拼装数组
-    const bindings = [];
-    mappings.forEach(it => {
+    // 根据公分项目拼装数组,计算工分
+    const bindings = mappings.map(it => {
       const item = HisWorkItemSources.find(sourceIt => sourceIt.id === it);
-      bindings.push({
+      return {
         name,
         method,
         score,
         source: it,
         sourceName: item?.name
-      });
+      };
     });
-    let staffIds = [];
-    let doctorIds = [];
 
+    // region 取出系统员工id 适用于门诊,住院,手工数据
+    // 系统员工, 不管绑定没绑定his员工,全部都要
+    let staffIds = [];
     // 取出当是 固定 时候的所有员工id
     if (staffMethod === HisStaffMethod.STATIC) {
       // 员工id列表
@@ -1240,15 +1240,13 @@ export default class HisWorkItem {
         const deptStaffList = await appDB.execute(
           `
             select id from staff
-                where staff is not null
-                  and department in (${depIds.map(() => '?')})`,
+                where department in (${depIds.map(() => '?')})`,
           ...depIds
         );
         staffIds.push(...deptStaffList.map(it => it.id));
       }
-    }
-    // 取出当是 动态 时候的所有员工id
-    if (staffMethod === HisStaffMethod.DYNAMIC) {
+    } else if (staffMethod === HisStaffMethod.DYNAMIC) {
+      // 取出当是 动态 时候的所有员工id
       // 如果是本人
       if (scope === HisStaffDeptType.Staff) {
         staffIds.push(staff);
@@ -1260,8 +1258,8 @@ export default class HisWorkItem {
           `
             select id
             from staff
-            where staff is not null
-              and department = ? or id = ?`,
+            where (department is not null and department = ?)
+               or id = ?`,
           staffModel.department,
           staffModel.id
         );
@@ -1274,44 +1272,56 @@ export default class HisWorkItem {
           `
             select id
             from staff
-            where staff is not null
-              and hospital = ?
+            where hospital = ?
           `,
           staffModel.hospital
         );
         staffIds = staffDeptModels.map(it => it.id);
       }
     }
+    // endregion
 
-    // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
+    // region 查询 门诊/住院 工分来源用到的医生id
+    // his员工id, 为了查询 计算CHECK和DRUG工分来源
+    let doctorIds;
+
+    // 当前只有 计算CHECK和DRUG工分来源 用到了
     if (
-      staffMethod === HisStaffMethod.DYNAMIC &&
-      scope === HisStaffDeptType.HOSPITAL
+      bindings.filter(
+        it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+      ).length > 0
     ) {
-      // 查询his机构id
-      // language=PostgreSQL
-      const hisStaffModels = await originalDB.execute(
-        `
-                select id, name
-                from his_staff
-                where hospital = ?
-          `,
-        staffModel.hospital
-      );
-      doctorIds = hisStaffModels.map(it => it.id);
-    } else {
-      // 根据员工id找到他的his的员工id
-      // language=PostgreSQL
-      const staffList = await appDB.execute(
-        `
+      // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
+      if (
+        staffMethod === HisStaffMethod.DYNAMIC &&
+        scope === HisStaffDeptType.HOSPITAL
+      ) {
+        // 查询his机构id
+        // language=PostgreSQL
+        const hisStaffModels = await originalDB.execute(
+          `
+          select id, name
+          from his_staff
+          where hospital = ?
+        `,
+          staffModel.hospital
+        );
+        doctorIds = hisStaffModels.map(it => it.id);
+      } else {
+        // 根据员工id找到他的his的员工id
+        // language=PostgreSQL
+        const staffList = await appDB.execute(
+          `
             select staff, name
                 from staff
             where staff is not null
               and id in (${staffIds.map(() => '?')})`,
-        ...staffIds
-      );
-      doctorIds = staffList.map(it => it.staff);
+          ...staffIds
+        );
+        doctorIds = staffList.map(it => it.staff);
+      }
     }
+    // endregion
 
     // 工分流水
     let workItems = [];
@@ -1344,7 +1354,7 @@ export default class HisWorkItem {
                  item_name "itemName",
                  doctor "staffId",
                  staff.name as "staffName",
-                 '${previewType.HIS_STAFF}' as type
+                 '${PreviewType.HIS_STAFF}' as type
           from his_charge_detail detail
           inner join his_staff staff on detail.doctor = staff.id
           where operate_time > ?
@@ -1385,7 +1395,7 @@ export default class HisWorkItem {
                  staff.name "staffName",
                  manual.id "itemId",
                  manual.name "itemName",
-                 '${previewType.STAFF}' as type
+                 '${PreviewType.STAFF}' as type
           from his_staff_manual_data_detail smdd
                  inner join his_manual_data manual on smdd.item = manual.id
                  inner join staff  on staff.id = smdd.staff
@@ -1467,7 +1477,7 @@ export default class HisWorkItem {
             staffName: item?.name,
             itemId: param.source,
             itemName: param?.sourceName,
-            type: previewType.HOSPITAL
+            type: PreviewType.HOSPITAL
           };
         })
       );
@@ -1509,7 +1519,7 @@ export default class HisWorkItem {
             staffName: hospitalModels[0]?.name,
             itemId: param.source,
             itemName: param.sourceName,
-            type: previewType.HOSPITAL
+            type: PreviewType.HOSPITAL
           };
         })
       );
