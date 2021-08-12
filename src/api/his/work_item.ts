@@ -1286,12 +1286,12 @@ export default class HisWorkItem {
     // his员工id, 为了查询 计算CHECK和DRUG工分来源
     let doctorIds;
 
-    // 检查是否有 门诊 和 住院 的公分项
-    const checkDrugList = bindings.filter(
-      it => it.source.startsWith('门诊') || it.source.startsWith('住院')
-    );
     // 当前只有 计算CHECK和DRUG工分来源 用到了
-    if (checkDrugList.length > 0) {
+    if (
+      bindings.filter(
+        it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+      ).length > 0
+    ) {
       // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
       if (
         staffMethod === HisStaffMethod.DYNAMIC &&
