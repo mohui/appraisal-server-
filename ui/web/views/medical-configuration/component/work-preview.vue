@@ -101,7 +101,7 @@
 
 <script>
 import {Decimal} from 'decimal.js';
-import {previewType} from '../../../../../common/his.ts';
+import {previewType, HisWorkMethod} from '../../../../../common/his.ts';
 import {strToPinyin} from '../../../utils/pinyin';
 export default {
   name: 'WorkPreview',
@@ -144,12 +144,16 @@ export default {
         ).length;
     },
     total() {
-      return this.workData
-        .reduce((pre, next) => {
-          pre = pre.add(new Decimal(Number(next.value)));
-          return pre;
-        }, new Decimal(0))
-        .toNumber();
+      if (this.config.method === HisWorkMethod.SUM)
+        return this.workData
+          .reduce((pre, next) => {
+            pre = pre.add(new Decimal(Number(next.value)));
+            return pre;
+          }, new Decimal(0))
+          .toNumber();
+      if (this.config.method === HisWorkMethod.AMOUNT)
+        return this.workData.length;
+      return 0;
     },
     previewScore() {
       return new Decimal(this.total)
