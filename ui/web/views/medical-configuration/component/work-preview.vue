@@ -126,11 +126,14 @@ export default {
           return await this.$api.HisWorkItem.preview(
             this.config.work,
             this.config.scoreMethod,
-            this.config.projectsSelected.map(it => it.id),
+            this.config.mappings.map(it => it.id),
             this.config.staffMethod,
+            this.config.staffs.map(it => ({
+              code: it.value,
+              type: it.type
+            })),
             this.config.score,
-            this.config.staffs,
-            this.config.scope,
+            this.config.scope || null,
             this.staff,
             this.$dayjs(this.date).toDate()
           );

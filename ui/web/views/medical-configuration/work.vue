@@ -287,7 +287,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <work-preview :config="newWork" v-show="isPreView"></work-preview>
+        <work-preview :config="previewConfig" v-if="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{
@@ -418,6 +418,37 @@ export default {
       return this.newWork.projectsSelected.some(
         p => p.scope === HisStaffDeptType.Staff
       );
+    },
+    //预览的参数预处理
+    previewConfig() {
+      let config = {};
+      //没有配置取值范围则员工方法是"固定",否则为"动态"
+      const staffMethod = !this.newWork.scope
+        ? HisStaffMethod.STATIC
+        : HisStaffMethod.DYNAMIC;
+      let checkedStaffs = [];
+      if (staffMethod === HisStaffMethod.STATIC) {
+        //来源员工换成对象格式
+        checkedStaffs = this.$refs.staffTree.getCheckedNodes();
+        for (let c of checkedStaffs) {
+          if (c?.children?.length > 0) {
+            //children内的元素一定都是选上的,所以只保留它们共同的父项
+            checkedStaffs = checkedStaffs.filter(
+              it => !c.children.some(child => it.value === child.value)
+            );
+          }
+        }
+      }
+      config = {
+        name: this.newWork.work,
+        method: this.newWork.scoreMethod,
+        mappings: this.newWork.projectsSelected,
+        staffMethod: staffMethod,
+        staffs: checkedStaffs,
+        score: this.newWork.score,
+        scope: this.newWork.scope
+      };
+      return config;
     }
   },
   watch: {
