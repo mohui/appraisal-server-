@@ -171,7 +171,9 @@ export default {
     staffs: {
       async get() {
         try {
-          return await this.$api.HisStaff.list();
+          const result = await this.$api.HisStaff.list();
+          this.staff = result[0]?.id ?? '';
+          return result;
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
