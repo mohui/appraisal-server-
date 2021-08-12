@@ -1221,7 +1221,7 @@ export default class HisWorkItem {
       };
     });
 
-    // region 取出系统员工id
+    // region 取出系统员工id 适用于门诊,住院,手工数据
     // 系统员工, 不管绑定没绑定his员工,全部都要
     let staffIds = [];
     // 取出当是 固定 时候的所有员工id
