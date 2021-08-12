@@ -319,7 +319,7 @@ export default {
         .map(it => it.score)
         .reduce((prev, curr) => prev + curr, 0);
       return {
-        beforeCorrectionScore: sumScore,
+        beforeCorrectionScore: Number(sumScore.toFixed(2)),
         rate: this.workScoreListServerData.rate,
         afterCorrectionScore: Number(
           (sumScore * (this.workScoreListServerData.rate || 1)).toFixed(2)
