@@ -101,7 +101,7 @@
 
 <script>
 import {Decimal} from 'decimal.js';
-import {previewType} from '../../../../../common/his.ts';
+import {PreviewType} from '../../../../../common/his.ts';
 import {strToPinyin} from '../../../utils/pinyin';
 export default {
   name: 'WorkPreview',
@@ -214,9 +214,9 @@ export default {
   },
   methods: {
     staffType(type) {
-      if (type === previewType.HIS_STAFF) return 'warning';
-      if (type === previewType.STAFF) return 'primary';
-      if (type === previewType.HOSPITAL) return 'info';
+      if (type === PreviewType.HIS_STAFF) return 'warning';
+      if (type === PreviewType.STAFF) return 'primary';
+      if (type === PreviewType.HOSPITAL) return 'info';
     },
     addPinyin(arr) {
       arr = arr.map(it => ({

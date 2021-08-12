@@ -7,7 +7,7 @@ import {
   HisWorkSource,
   HisStaffMethod,
   HisStaffDeptType,
-  previewType
+  PreviewType
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {monthToRange, getHospital} from './service';
@@ -1355,7 +1355,7 @@ export default class HisWorkItem {
                  item_name "itemName",
                  doctor "staffId",
                  staff.name as "staffName",
-                 '${previewType.HIS_STAFF}' as type
+                 '${PreviewType.HIS_STAFF}' as type
           from his_charge_detail detail
           inner join his_staff staff on detail.doctor = staff.id
           where operate_time > ?
@@ -1396,7 +1396,7 @@ export default class HisWorkItem {
                  staff.name "staffName",
                  manual.id "itemId",
                  manual.name "itemName",
-                 '${previewType.STAFF}' as type
+                 '${PreviewType.STAFF}' as type
           from his_staff_manual_data_detail smdd
                  inner join his_manual_data manual on smdd.item = manual.id
                  inner join staff  on staff.id = smdd.staff
@@ -1478,7 +1478,7 @@ export default class HisWorkItem {
             staffName: item?.name,
             itemId: param.source,
             itemName: param?.sourceName,
-            type: previewType.HOSPITAL
+            type: PreviewType.HOSPITAL
           };
         })
       );
@@ -1520,7 +1520,7 @@ export default class HisWorkItem {
             staffName: hospitalModels[0]?.name,
             itemId: param.source,
             itemName: param.sourceName,
-            type: previewType.HOSPITAL
+            type: PreviewType.HOSPITAL
           };
         })
       );

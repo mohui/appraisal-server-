@@ -72,7 +72,7 @@ export enum HisWorkScoreType {
 /**
  * 预览类型
  */
-export enum previewType {
+export enum PreviewType {
   HIS_STAFF = 'HIS员工',
   STAFF = '系统员工',
   HOSPITAL = '系统机构',
