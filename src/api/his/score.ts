@@ -929,14 +929,6 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 'department = ?';
       }
-      //员工关联是 固定且机构
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 'hospital = ?';
-      }
       //员工关联是 动态且员工
       if (
         staffModel.staff &&
@@ -948,30 +940,35 @@ export default class HisScore {
       }
       //员工关联是 动态且科室
       if (
-        staffModel.department &&
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.DEPT
       ) {
-        staffValue = staffModel.department;
-        staffCondition = 'department = ?';
+        //判断员工是否绑定科室
+        if (staffModel.department) {
+          staffValue = staffModel.department;
+          staffCondition = 'department = ?';
+        } else {
+          //未绑定科室, 则使用本人
+          staffValue = staffModel.id;
+          staffCondition = 'id = ?';
+        }
       }
+      let doctorCondition = '1 = 0';
       //员工关联是 动态且机构
       if (
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.HOSPITAL
       ) {
-        staffValue = staffModel.hospital;
-        staffCondition = 'hospital = ?';
+        doctorCondition = '1 = 1';
       }
-      const doctorValue = (
+      const doctorValue: string[] = (
         await appDB.execute(
           `select staff from staff where staff is not null and ${staffCondition}`,
           staffValue
         )
       ).map(it => it.staff);
-      let doctorCondition = '1 = 0';
       if (doctorValue.length > 0) {
-        doctorCondition = `doctor in (${doctorValue.map(() => '?').join()})`;
+        doctorCondition = `d.doctor in (${doctorValue.map(() => '?').join()})`;
       }
       //endregion
       //查询his的收费项目
@@ -981,14 +978,17 @@ export default class HisScore {
       }[] = await originalDB.execute(
         // language=PostgreSQL
         `
-          select total_price as value, operate_time as date
-          from his_charge_detail
-          where operate_time > ?
-            and operate_time < ?
-            and (item like ? or item = ?)
+          select d.total_price as value, d.operate_time as date
+          from his_charge_detail d
+                 inner join his_charge_master m on d.main = m.id
+          where m.hospital = ?
+            and d.operate_time > ?
+            and d.operate_time < ?
+            and (d.item like ? or d.item = ?)
             and ${doctorCondition}
-          order by operate_time
+          order by d.operate_time
         `,
+        staffModel.hospital,
         start,
         end,
         `${param.source}.%`,
@@ -1041,14 +1041,6 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 's.department = ?';
       }
-      //员工关联是 固定且机构
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 's.hospital = ?';
-      }
       //员工关联是 动态且员工
       if (
         param.staff_type === HisStaffMethod.DYNAMIC &&
@@ -1059,12 +1051,18 @@ export default class HisScore {
       }
       //员工关联是 动态且科室
       if (
-        staffModel.department &&
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.DEPT
       ) {
-        staffValue = staffModel.department;
-        staffCondition = 's.department = ?';
+        //判断员工是否绑定科室
+        if (staffModel.department) {
+          staffValue = staffModel.department;
+          staffCondition = 's.department = ?';
+        } else {
+          //未绑定科室, 则使用本人
+          staffValue = staffModel.id;
+          staffCondition = 's.id = ?';
+        }
       }
       //员工关联是 动态且机构
       if (
