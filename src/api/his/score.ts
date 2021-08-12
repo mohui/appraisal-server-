@@ -940,12 +940,18 @@ export default class HisScore {
       }
       //员工关联是 动态且科室
       if (
-        staffModel.department &&
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.DEPT
       ) {
-        staffValue = staffModel.department;
-        staffCondition = 'department = ?';
+        //判断员工是否绑定科室
+        if (staffModel.department) {
+          staffValue = staffModel.department;
+          staffCondition = 'department = ?';
+        } else {
+          //未绑定科室, 则使用本人
+          staffValue = staffModel.id;
+          staffCondition = 'id = ?';
+        }
       }
       let doctorCondition = '1 = 0';
       //员工关联是 动态且机构
@@ -1035,14 +1041,6 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 's.department = ?';
       }
-      //员工关联是 固定且机构
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 's.hospital = ?';
-      }
       //员工关联是 动态且员工
       if (
         param.staff_type === HisStaffMethod.DYNAMIC &&
@@ -1053,12 +1051,18 @@ export default class HisScore {
       }
       //员工关联是 动态且科室
       if (
-        staffModel.department &&
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.DEPT
       ) {
-        staffValue = staffModel.department;
-        staffCondition = 's.department = ?';
+        //判断员工是否绑定科室
+        if (staffModel.department) {
+          staffValue = staffModel.department;
+          staffCondition = 's.department = ?';
+        } else {
+          //未绑定科室, 则使用本人
+          staffValue = staffModel.id;
+          staffCondition = 's.id = ?';
+        }
       }
       //员工关联是 动态且机构
       if (
