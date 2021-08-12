@@ -33,8 +33,9 @@
             <el-button
               type="primary"
               size="mini"
+              :loading="reportDataLoading"
               :disabled="overviewData.settle"
-              @click="dialogStaffTableVisible = true"
+              @click="handleClickReport"
             >
               报表
             </el-button>
@@ -227,6 +228,8 @@ export default {
       },
       dialogStaffTableVisible: false,
       amount: null,
+      reportData: [],
+      reportDataLoading: false,
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -278,8 +281,74 @@ export default {
         score: Number(it.score?.toFixed(2)) || 0
       }));
     },
-    reportData() {
-      const list = this.reportSeverData;
+    spanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].name === this.reportData[i - 1].name) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
+    }
+  },
+  asyncComputed: {
+    overviewServerData: {
+      async get() {
+        return await this.$api.HisHospital.overview(this.currentDate);
+      },
+      default() {
+        return {};
+      }
+    },
+    workScoreListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    },
+    staffCheckListSeverData: {
+      async get() {
+        return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
+      },
+      default() {
+        return [];
+      }
+    }
+  },
+  watch: {
+    workScoreListData: function() {
+      this.drawProjectPerformanceBar();
+    },
+    staffCheckListData: function() {
+      this.drawDoctorPerformanceBar();
+    }
+  },
+  methods: {
+    initParams(route) {
+      if (route.query.date)
+        this.currentDate = new Date(JSON.parse(route.query.date));
+    },
+    async handleClickReport() {
+      this.reportDataLoading = true;
+      await this.reportDataRequest();
+      this.reportDataLoading = false;
+      this.dialogStaffTableVisible = true;
+    },
+    async reportDataRequest() {
+      const list = await this.$api.HisHospital.report(this.currentDate);
       const result = [];
       if (list) {
         // 机构总分
@@ -336,75 +405,7 @@ export default {
           i.amount = Number((this.amount * i.proportion).toFixed(2));
         }
       }
-      return result;
-    },
-    spanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.reportData[i].name === this.reportData[i - 1].name) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
-    }
-  },
-  asyncComputed: {
-    overviewServerData: {
-      async get() {
-        return await this.$api.HisHospital.overview(this.currentDate);
-      },
-      default() {
-        return {};
-      }
-    },
-    workScoreListSeverData: {
-      async get() {
-        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
-      },
-      default() {
-        return [];
-      }
-    },
-    staffCheckListSeverData: {
-      async get() {
-        return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
-      },
-      default() {
-        return [];
-      }
-    },
-    reportSeverData: {
-      async get() {
-        return await this.$api.HisHospital.report(this.currentDate);
-      },
-      default() {
-        return [];
-      }
-    }
-  },
-  watch: {
-    workScoreListData: function() {
-      this.drawProjectPerformanceBar();
-    },
-    staffCheckListData: function() {
-      this.drawDoctorPerformanceBar();
-    }
-  },
-  methods: {
-    initParams(route) {
-      if (route.query.date)
-        this.currentDate = new Date(JSON.parse(route.query.date));
+      this.reportData = result;
     },
     handleChangeDate() {
       this.$router.replace({
