@@ -1185,9 +1185,9 @@ export default class HisWorkItem {
     staff,
     day
   ) {
-    // const {start, end} = dayToRange(day);
+    // 时间转化为月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
-    //查询员工信息
+    // 根据员工i查询员工信息
     const staffModel: {
       id: string;
       name: string;
@@ -1203,7 +1203,8 @@ export default class HisWorkItem {
     //员工不存在, 直接返回
     if (!staffModel) return [];
 
-    const hospitalModels = await appDB.execute(
+    // 查询机构名称
+    const hospitalModels = await originalDB.execute(
       `select code, name from area where code = ?`,
       staffModel.hospital
     );
@@ -1332,6 +1333,7 @@ export default class HisWorkItem {
         staffName: string;
         itemId: string;
         itemName: string;
+        type: string;
       }[] = await originalDB.execute(
         // language=PostgreSQL
         `
@@ -1368,10 +1370,11 @@ export default class HisWorkItem {
       const rows: {
         value: number;
         date: Date;
-        itemId: string;
-        itemName: string;
         staffId: string;
         staffName: string;
+        itemId: string;
+        itemName: string;
+        type: string;
       }[] = await appDB.execute(
         // language=PostgreSQL
         `
@@ -1459,10 +1462,10 @@ export default class HisWorkItem {
           return {
             value: it.value,
             date: it.date,
-            itemId: param.source,
-            itemName: param?.sourceName,
             staffId: item?.id,
             staffName: item?.name,
+            itemId: param.source,
+            itemName: param?.sourceName,
             type: previewType.HOSPITAL
           };
         })
@@ -1501,10 +1504,10 @@ export default class HisWorkItem {
           return {
             value: it.value,
             date: it.date,
-            itemId: param.source,
-            itemName: param.sourceName,
             staffId: hospitalModels[0]?.code,
             staffName: hospitalModels[0]?.name,
+            itemId: param.source,
+            itemName: param.sourceName,
             type: previewType.HOSPITAL
           };
         })
