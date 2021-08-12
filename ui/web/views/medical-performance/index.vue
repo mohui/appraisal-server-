@@ -172,13 +172,18 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
+            property="scoreTotal"
+            label="校正前总分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
             property="rateFormat"
             label="质量系数"
             min-width="100"
           ></el-table-column>
           <el-table-column
             property="afterCorrectionScore"
-            label="校正后得分"
+            label="校正后总分"
             min-width="120"
           ></el-table-column>
           <el-table-column
@@ -304,6 +309,8 @@ export default {
               // 校正前工分（单个工分项）
               item.score = it.score;
               item.scoreFormat = Number(it.score.toFixed(2));
+              //校正前总得分
+              item.scoreTotal = Number(sumScore.toFixed(2));
               // 校正后总工分
               item.afterCorrectionScore = Number(
                 (sumScore * item.rate).toFixed(2)
@@ -441,7 +448,10 @@ export default {
         });
     },
     objectSpanMethod({column, rowIndex}) {
-      if (column.property !== 'workPointName' && column.property !== 'score') {
+      if (
+        column.property !== 'workPointName' &&
+        column.property !== 'scoreFormat'
+      ) {
         const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
