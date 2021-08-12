@@ -61,6 +61,28 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      v-reset-scroll
+      background
+      :current-page="pageNo"
+      :page-size="pageSize"
+      :page-sizes="[50, 100, 200, 500]"
+      layout="total, sizes, prev, pager, next"
+      style="margin:5px 0 5px 10px"
+      :total="dataTotal"
+      @size-change="
+        size => {
+          pageSize = size;
+          pageNo = 1;
+        }
+      "
+      @current-change="
+        no => {
+          pageNo = no;
+        }
+      "
+    >
+    </el-pagination>
     <div class="preview-score">
       <div class="work-score">
         <span>工作量</span><el-tag>{{ total }}</el-tag>
@@ -103,7 +125,23 @@ export default {
             !this.staffKey ||
             data.staffName.indexOf(this.staffKey) > -1 ||
             data.staffPinyin.indexOf(this.staffKey) > -1
-        );
+        )
+        .slice((this.pageNo - 1) * this.pageSize, this.pageSize * this.pageNo);
+    },
+    dataTotal() {
+      return this.workData
+        .filter(
+          data =>
+            !this.workKey ||
+            data.itemName.indexOf(this.workKey) > -1 ||
+            data.itemPinyin.indexOf(this.workKey) > -1
+        )
+        .filter(
+          data =>
+            !this.staffKey ||
+            data.staffName.indexOf(this.staffKey) > -1 ||
+            data.staffPinyin.indexOf(this.staffKey) > -1
+        ).length;
     },
     total() {
       return this.workData
@@ -124,7 +162,9 @@ export default {
       staff: '',
       date: this.$dayjs().toDate(),
       staffKey: '',
-      workKey: ''
+      workKey: '',
+      pageSize: 100,
+      pageNo: 1
     };
   },
   asyncComputed: {
