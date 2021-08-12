@@ -1210,16 +1210,15 @@ export default class HisWorkItem {
     );
 
     // 根据公分项目拼装数组,计算工分
-    const bindings = [];
-    mappings.forEach(it => {
+    const bindings = mappings.map(it => {
       const item = HisWorkItemSources.find(sourceIt => sourceIt.id === it);
-      bindings.push({
+      return {
         name,
         method,
         score,
         source: it,
         sourceName: item?.name
-      });
+      };
     });
 
     // region 取出系统员工id
