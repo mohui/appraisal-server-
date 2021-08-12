@@ -187,9 +187,10 @@
           <el-col :span="24">
             <el-form-item v-if="!newWork.scope" label="固定来源" prop="staffs">
               <el-input
+                v-model="staffFilterText"
+                clearable
                 size="mini"
                 placeholder="输入关键字进行过滤"
-                v-model="staffFilterText"
               ></el-input>
               <div class="long-tree">
                 <el-tree
@@ -198,6 +199,7 @@
                   :default-checked-keys="newWork.staffs"
                   node-key="value"
                   show-checkbox
+                  :filter-node-method="filterNode"
                   @check-change="staffCheck"
                 ></el-tree>
               </div>
@@ -206,9 +208,10 @@
           <el-col :span="24">
             <el-form-item label="工分项取值项目来源" prop="projectsSelected">
               <el-input
+                v-model="filterText"
+                clearable
                 size="mini"
                 placeholder="输入关键字进行过滤"
-                v-model="filterText"
               >
               </el-input>
               <div class="long-tree">
@@ -221,6 +224,7 @@
                   "
                   node-key="id"
                   show-checkbox
+                  :filter-node-method="filterNode"
                   @check-change="treeCheck"
                 >
                   <span slot-scope="{node, data}">
@@ -399,15 +403,10 @@ export default {
       }));
     },
     treeData() {
-      if (!this.filterText) return this.workTreeData;
-      return this.filterTree(this.filterText, this.workTreeData);
+      return this.workTreeData;
     },
     staffTree() {
-      if (!this.staffFilterText) return this.staffTreeData;
-      return this.filterTree(
-        this.staffFilterText,
-        this.addPinyin(this.staffTreeData)
-      );
+      return this.addPinyin(this.staffTreeData);
     },
     onlyHospital() {
       return this.newWork.projectsSelected.some(
@@ -452,6 +451,12 @@ export default {
     }
   },
   watch: {
+    filterText(value) {
+      this.$refs.tree.filter(value);
+    },
+    staffFilterText(value) {
+      this.$refs.staffTree.filter(value);
+    },
     'newWork.projectsSelected'() {
       if (
         this.newWork.projectsSelected.some(
@@ -501,21 +506,6 @@ export default {
     }
   },
   methods: {
-    filterTree(query, arr) {
-      let current = [];
-      for (let i = 0; i < arr.length; i++) {
-        if (this.filterNode(query, arr[i])) {
-          current.push(arr[i]); //符合条件得整个节点都保留
-          continue;
-        }
-        //不符合条件,则继续从子节点里检查是否有符合条件的节点
-        if (arr[i].children && arr[i].children.length > 0) {
-          const r = this.filterTree(query, arr[i].children);
-          if (r.length > 0) current = current.concat(r);
-        }
-      }
-      return current;
-    },
     async submit() {
       try {
         const valid = await this.$refs['workForm'].validate();
@@ -527,34 +517,30 @@ export default {
             : HisStaffMethod.DYNAMIC;
           //提交前过滤一下树节点,保证被选节点是对象数据
           if (this.newWork.staffMethod === HisStaffMethod.STATIC)
-            this.staffFullNode();
-          //检查下工分项满节点时向上取父节点的情况
-          this.workFullNode();
-          this.$nextTick(async () => {
-            const paramsArr = [
-              this.newWork.work,
-              this.newWork.scoreMethod,
-              this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
-              this.newWork.staffMethod,
-              this.newWork.staffMethod === HisStaffMethod.STATIC
-                ? this.newWork.staffs.map(it => ({
-                    code: it.value,
-                    type: it.type
-                  }))
-                : [],
-              this.newWork.score,
-              this.newWork.scope
-            ];
-            if (this.newWork.id) {
-              paramsArr.splice(0, 0, this.newWork.id);
-              await this.$api.HisWorkItem.update(...paramsArr);
-            } else {
-              await this.$api.HisWorkItem.add(...paramsArr);
-            }
-            this.$message.success('操作成功');
-            this.$asyncComputed.serverData.update();
-            this.resetConfig('workForm');
-          });
+            this.staffCheck();
+          const paramsArr = [
+            this.newWork.work,
+            this.newWork.scoreMethod,
+            this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
+            this.newWork.staffMethod,
+            this.newWork.staffMethod === HisStaffMethod.STATIC
+              ? this.newWork.staffs.map(it => ({
+                  code: it.value,
+                  type: it.type
+                }))
+              : [],
+            this.newWork.score,
+            this.newWork.scope
+          ];
+          if (this.newWork.id) {
+            paramsArr.splice(0, 0, this.newWork.id);
+            await this.$api.HisWorkItem.update(...paramsArr);
+          } else {
+            await this.$api.HisWorkItem.add(...paramsArr);
+          }
+          this.$message.success('操作成功');
+          this.$asyncComputed.serverData.update();
+          this.resetConfig('workForm');
         }
       } catch (e) {
         console.error(e);
@@ -658,10 +644,19 @@ export default {
     filterNode(query, data) {
       try {
         if (!query) return true;
+
         //模糊匹配字符
-        if (data.name.indexOf(query) > -1) return true;
+        if (data.name.indexOf(query) > -1 || data.label.indexOf(query) > -1)
+          return true;
         //模糊匹配拼音首字母
-        return data.pinyin.indexOf(query.toLowerCase()) > -1;
+        if (data.pinyin.indexOf(query.toLowerCase()) > -1) return true;
+        //检查当前节点的父节点是否满足条件
+        // TODO: 员工树节点没有父节点信息, 待处理
+        if (data.parent) {
+          const parent = this.findItem(data.parent, this.treeData);
+          return this.filterNode(query, parent);
+        }
+        return false;
       } catch (e) {
         console.error(e);
       } finally {
@@ -676,96 +671,31 @@ export default {
         return `不能与${HisStaffDeptType.Staff}工分同时选`;
       }
     },
-    staffCheck(data, selected) {
-      if (
-        selected &&
-        !this.newWork.staffs.some(s => (s?.value ?? s) === data.value)
-      ) {
-        //选中节点数组新增
-        this.newWork.staffs.push(data.value);
-      }
-      if (!selected) {
-        const delIndex = this.newWork.staffs.findIndex(
-          s => (s?.value ?? s) === data.value
-        );
-        //选中节点数组中删除
-        delIndex > -1 && this.newWork.staffs.splice(delIndex, 1);
-        //子节点也依次删掉
-        if (data.children && data.children.length > 0) {
-          data.children.forEach(staff => {
-            const childDelIndex = this.newWork.staffs.findIndex(
-              s => (s?.value ?? s) === staff.value
-            );
-            childDelIndex > -1 && this.newWork.staffs.splice(childDelIndex, 1);
-          });
+    staffCheck() {
+      let checkedNodes = this.$refs.staffTree.getCheckedNodes();
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(
+            it => !c.children.some(child => it.value === child.value)
+          );
         }
       }
+      this.newWork.staffs = checkedNodes;
     },
-    //工分项满节点时向上取父节点(当某个节点的子节点全勾选时,仅返回该节点id,过滤掉其子节点)
-    staffFullNode() {
-      //提交前清理关键词,以便获得完整的树节点
-      this.staffFilterText = '';
-      this.$nextTick(() => {
-        this.$refs.staffTree.setCheckedKeys(
-          this.newWork.staffs.map(it => it?.value ?? it)
-        );
-        let checkedNodes = this.$refs.staffTree.getCheckedNodes();
-        for (let c of checkedNodes) {
-          if (c?.children?.length > 0) {
-            //children内的元素一定都是选上的,所以只保留它们共同的父项
-            checkedNodes = checkedNodes.filter(
-              it => !c.children.some(child => it.value === child.value)
-            );
-          }
-        }
-        this.newWork.staffs = checkedNodes;
-      });
-    },
-    treeCheck(data, selected) {
-      if (
-        selected &&
-        !this.newWork.projectsSelected.some(p => p.id === data.id)
-      ) {
-        //选中节点数组新增
-        this.newWork.projectsSelected.push(data);
-      }
-      if (!selected) {
-        const delIndex = this.newWork.projectsSelected.findIndex(
-          s => s.id === data.id
-        );
-        //选中节点数组删除
-        delIndex > -1 && this.newWork.projectsSelected.splice(delIndex, 1);
-        //子节点也依次删掉
-        if (data.children && data.children.length > 0) {
-          data.children.forEach(staff => {
-            const childDelIndex = this.newWork.projectsSelected.findIndex(
-              s => s.id === staff.id
-            );
-            childDelIndex > -1 &&
-              this.newWork.projectsSelected.splice(childDelIndex, 1);
-          });
+    treeCheck() {
+      let checkedNodes = this.$refs.tree.getCheckedNodes();
+      //先过滤一下不需要传的节点
+      checkedNodes = checkedNodes.filter(
+        it => !['其他', '手工数据', '公卫数据'].includes(it.name)
+      );
+      for (let c of checkedNodes) {
+        if (c?.children?.length > 0) {
+          //children内的元素一定都是选上的,所以只保留它们共同的父项
+          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
         }
       }
-    },
-    //工分项满节点时向上取父节点
-    workFullNode() {
-      //提交前清理关键词,以便获得完整的树节点
-      this.filterText = '';
-      this.$nextTick(() => {
-        this.$refs.tree.setCheckedNodes(this.newWork.projectsSelected);
-        let checkedNodes = this.$refs.tree.getCheckedNodes();
-        //先过滤一下不需要传的节点
-        checkedNodes = checkedNodes.filter(
-          it => !['其他', '手工数据', '公卫数据'].includes(it.name)
-        );
-        for (let c of checkedNodes) {
-          if (c?.children?.length > 0) {
-            //children内的元素一定都是选上的,所以只保留它们共同的父项
-            checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
-          }
-        }
-        this.newWork.projectsSelected = checkedNodes;
-      });
+      this.newWork.projectsSelected = checkedNodes;
     }
   }
 };
