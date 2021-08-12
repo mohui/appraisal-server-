@@ -929,14 +929,6 @@ export default class HisScore {
         staffValue = param.staff_id;
         staffCondition = 'department = ?';
       }
-      //员工关联是 固定且机构
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 'hospital = ?';
-      }
       //员工关联是 动态且员工
       if (
         staffModel.staff &&
@@ -955,21 +947,20 @@ export default class HisScore {
         staffValue = staffModel.department;
         staffCondition = 'department = ?';
       }
+      let doctorCondition = '1 = 0';
       //员工关联是 动态且机构
       if (
         param.staff_type === HisStaffMethod.DYNAMIC &&
         param.staff_level === HisStaffDeptType.HOSPITAL
       ) {
-        staffValue = staffModel.hospital;
-        staffCondition = 'hospital = ?';
+        doctorCondition = '1 = 1';
       }
-      const doctorValue = (
+      const doctorValue: string[] = (
         await appDB.execute(
           `select staff from staff where staff is not null and ${staffCondition}`,
           staffValue
         )
       ).map(it => it.staff);
-      let doctorCondition = '1 = 0';
       if (doctorValue.length > 0) {
         doctorCondition = `doctor in (${doctorValue.map(() => '?').join()})`;
       }
@@ -981,14 +972,17 @@ export default class HisScore {
       }[] = await originalDB.execute(
         // language=PostgreSQL
         `
-          select total_price as value, operate_time as date
-          from his_charge_detail
-          where operate_time > ?
-            and operate_time < ?
+          select d.total_price as value, d.operate_time as date
+          from his_charge_detail d
+                 inner join his_charge_master m on d.main = m.id
+          where m.hospital = ?
+            and d.operate_time > ?
+            and d.operate_time < ?
             and (item like ? or item = ?)
             and ${doctorCondition}
           order by operate_time
         `,
+        staffModel.hospital,
         start,
         end,
         `${param.source}.%`,
