@@ -1221,6 +1221,7 @@ export default class HisWorkItem {
       });
     });
     let staffIds = [];
+    let doctorIds = [];
 
     // 取出当是 固定 时候的所有员工id
     if (staffMethod === HisStaffMethod.STATIC) {
@@ -1280,17 +1281,35 @@ export default class HisWorkItem {
       }
     }
 
-    // 根据员工id找到他的his的员工id
-    // language=PostgreSQL
-    const staffList = await appDB.execute(
-      `
+    // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
+    if (
+      staffMethod === HisStaffMethod.DYNAMIC &&
+      scope === HisStaffDeptType.HOSPITAL
+    ) {
+      // 查询his机构id
+      // language=PostgreSQL
+      const hisStaffModels = await originalDB.execute(
+        `
+                select id, name
+                from his_staff
+                where hospital = ?
+          `,
+        staffModel.hospital
+      );
+      doctorIds = hisStaffModels.map(it => it.id);
+    } else {
+      // 根据员工id找到他的his的员工id
+      // language=PostgreSQL
+      const staffList = await appDB.execute(
+        `
             select staff, name
                 from staff
             where staff is not null
               and id in (${staffIds.map(() => '?')})`,
-      ...staffIds
-    );
-    const doctorIds = staffList.map(it => it.staff);
+        ...staffIds
+      );
+      doctorIds = staffList.map(it => it.staff);
+    }
 
     // 工分流水
     let workItems = [];
