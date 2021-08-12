@@ -33,8 +33,9 @@
             <el-button
               type="primary"
               size="mini"
+              :loading="reportDataLoading"
               :disabled="overviewData.settle"
-              @click="dialogStaffTableVisible = true"
+              @click="handleClickReport"
             >
               报表
             </el-button>
@@ -168,7 +169,12 @@
           ></el-table-column>
           <el-table-column
             property="scoreFormat"
-            label="校正前得分"
+            label="项目得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="scoreTotal"
+            label="校正前总分"
             min-width="120"
           ></el-table-column>
           <el-table-column
@@ -178,7 +184,7 @@
           ></el-table-column>
           <el-table-column
             property="afterCorrectionScore"
-            label="校正后得分"
+            label="校正后总分"
             min-width="120"
           ></el-table-column>
           <el-table-column
@@ -222,6 +228,8 @@ export default {
       },
       dialogStaffTableVisible: false,
       amount: null,
+      reportData: [],
+      reportDataLoading: false,
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -273,64 +281,6 @@ export default {
         score: Number(it.score?.toFixed(2)) || 0
       }));
     },
-    reportData() {
-      const list = this.reportSeverData;
-      const result = [];
-      if (list) {
-        // 机构总分
-        let organizationScore = 0;
-        for (const i of list) {
-          // 累加各员工校正后工分
-          organizationScore += i.items.reduce(
-            (prev, curr) => prev + curr.score * (i.rate || 1),
-            0
-          );
-          // 累加各员工附加分
-          organizationScore += i.extra || 0;
-          if (i.items.length > 0) {
-            // 校正前总工分（所有工分项之和）
-            const sumScore = i.items.reduce(
-              (prev, curr) => prev + curr.score,
-              0
-            );
-            for (const it of i.items) {
-              const item = {};
-              item.name = i.name;
-              item.day = i.day;
-              item.rate = i.rate || 1;
-              item.rateFormat = item.rate * 100 + '%';
-              item.extra = i.extra;
-              item.workPointName = it.name;
-              // 校正前工分（单个工分项）
-              item.score = it.score;
-              item.scoreFormat = Number(it.score.toFixed(2));
-              // 校正后总工分
-              item.afterCorrectionScore = Number(
-                (sumScore * item.rate).toFixed(2)
-              );
-              // 总得分
-              item.totalScore = item.afterCorrectionScore + item.extra;
-              result.push(item);
-            }
-          } else {
-            const item = {};
-            item.name = i.name;
-            item.day = i.day;
-            item.rate = i.rate;
-            item.rateFormat = item.rate * 100 + '%';
-            item.extra = i.extra;
-            result.push(item);
-          }
-        }
-        for (const i of result) {
-          // 员工总得分在机构中所占比例
-          i.proportion = (i.totalScore || 0) / organizationScore;
-          // 所得金额
-          i.amount = Number((this.amount * i.proportion).toFixed(2));
-        }
-      }
-      return result;
-    },
     spanArr() {
       let arr = [];
       let pos = 0;
@@ -376,14 +326,6 @@ export default {
       default() {
         return [];
       }
-    },
-    reportSeverData: {
-      async get() {
-        return await this.$api.HisHospital.report(this.currentDate);
-      },
-      default() {
-        return [];
-      }
     }
   },
   watch: {
@@ -398,6 +340,72 @@ export default {
     initParams(route) {
       if (route.query.date)
         this.currentDate = new Date(JSON.parse(route.query.date));
+    },
+    async handleClickReport() {
+      this.reportDataLoading = true;
+      await this.reportDataRequest();
+      this.reportDataLoading = false;
+      this.dialogStaffTableVisible = true;
+    },
+    async reportDataRequest() {
+      const list = await this.$api.HisHospital.report(this.currentDate);
+      const result = [];
+      if (list) {
+        // 机构总分
+        let organizationScore = 0;
+        for (const i of list) {
+          // 累加各员工校正后工分
+          organizationScore += i.items.reduce(
+            (prev, curr) => prev + curr.score * (i.rate || 1),
+            0
+          );
+          // 累加各员工附加分
+          organizationScore += i.extra || 0;
+          if (i.items.length > 0) {
+            // 校正前总工分（所有工分项之和）
+            const sumScore = i.items.reduce(
+              (prev, curr) => prev + curr.score,
+              0
+            );
+            for (const it of i.items) {
+              const item = {};
+              item.name = i.name;
+              item.day = i.day;
+              item.rate = i.rate || 1;
+              item.rateFormat = item.rate * 100 + '%';
+              item.extra = i.extra;
+              item.workPointName = it.name;
+              // 校正前工分（单个工分项）
+              item.score = it.score;
+              item.scoreFormat = Number(it.score.toFixed(2));
+              //校正前总得分
+              item.scoreTotal = Number(sumScore.toFixed(2));
+              // 校正后总工分
+              item.afterCorrectionScore = Number(
+                (sumScore * item.rate).toFixed(2)
+              );
+              // 总得分
+              item.totalScore = item.afterCorrectionScore + item.extra;
+              result.push(item);
+            }
+          } else {
+            const item = {};
+            item.name = i.name;
+            item.day = i.day;
+            item.rate = i.rate;
+            item.rateFormat = item.rate * 100 + '%';
+            item.extra = i.extra;
+            result.push(item);
+          }
+        }
+        for (const i of result) {
+          // 员工总得分在机构中所占比例
+          i.proportion = (i.totalScore || 0) / organizationScore;
+          // 所得金额
+          i.amount = Number((this.amount * i.proportion).toFixed(2));
+        }
+      }
+      this.reportData = result;
     },
     handleChangeDate() {
       this.$router.replace({
@@ -441,7 +449,10 @@ export default {
         });
     },
     objectSpanMethod({column, rowIndex}) {
-      if (column.property !== 'workPointName' && column.property !== 'score') {
+      if (
+        column.property !== 'workPointName' &&
+        column.property !== 'scoreFormat'
+      ) {
         const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
