@@ -169,7 +169,7 @@
           ></el-table-column>
           <el-table-column
             property="scoreFormat"
-            label="校正前得分"
+            label="项目得分"
             min-width="120"
           ></el-table-column>
           <el-table-column
