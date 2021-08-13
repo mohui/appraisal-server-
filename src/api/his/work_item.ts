@@ -759,13 +759,15 @@ export default class HisWorkItem {
     );
     if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
+    // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+
+    // 定义一个新数组
     const newMappings = [];
+    // 排查当父类和子类都在数组中的时候, 过滤掉子类
     for (const sourceIt of mappingSorts) {
-      // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
-      const index = newMappings.find(
-        newIt => sourceIt.startsWith(newIt) && newIt.length <= sourceIt.length
-      );
+      // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+      const index = newMappings.find(newIt => sourceIt.startsWith(`${newIt}.`));
       // 如果没有, push进去
       if (!index) {
         newMappings.push(sourceIt);
