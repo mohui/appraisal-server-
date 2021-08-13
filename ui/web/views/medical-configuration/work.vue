@@ -29,7 +29,11 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column type="index" label="序号"></el-table-column>
+        <el-table-column
+          type="index"
+          align="center"
+          label="序号"
+        ></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
         </el-table-column>
         <el-table-column
