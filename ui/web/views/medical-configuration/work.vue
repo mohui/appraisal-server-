@@ -90,6 +90,8 @@
         </el-table-column>
         <el-table-column prop="score" align="center" label="单位量得分">
         </el-table-column>
+        <el-table-column prop="remark" align="center" label="备注">
+        </el-table-column>
         <el-table-column prop="" label="操作" align="center">
           <template slot-scope="{row}">
             <el-tooltip content="编辑" :enterable="false">
@@ -294,6 +296,15 @@
               ></el-input-number>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="备注" props="remark">
+              <el-input
+                v-model="newWork.remark"
+                type="textarea"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
         <work-preview :config="previewConfig" v-if="isPreView"></work-preview>
       </el-form>
@@ -354,7 +365,8 @@ export default {
         projects: [],
         projectsSelected: [],
         score: 0,
-        scope: HisStaffDeptType.Staff
+        scope: HisStaffDeptType.Staff,
+        remark: ''
       },
       addWorkVisible: false,
       workRules: {
@@ -535,7 +547,8 @@ export default {
                 }))
               : [],
             this.newWork.score,
-            this.newWork.scope
+            this.newWork.scope,
+            this.newWork.remark
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
