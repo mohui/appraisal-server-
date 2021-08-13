@@ -686,7 +686,7 @@ export default {
       let checkedNodes = this.$refs.tree.getCheckedNodes();
       //先过滤一下不需要传的节点
       checkedNodes = checkedNodes.filter(
-        it => !['其他', '手工数据', '公卫数据'].includes(it.name)
+        it => !['其他', '手工数据', '公卫数据'].includes(it.id)
       );
       for (let c of checkedNodes) {
         if (c?.children?.length > 0) {
