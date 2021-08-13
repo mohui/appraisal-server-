@@ -234,6 +234,30 @@
                 </div>
               </template>
             </el-table-column>
+            <el-table-column align="center" prop="remark" label="备注">
+              <template slot-scope="{row}">
+                <div v-if="!row.isEdit && row.batchEditing">
+                  <el-input
+                    v-model="tempRow.remark"
+                    type="textarea"
+                    disabled
+                    size="mini"
+                  >
+                  </el-input>
+                </div>
+                <div v-else-if="row.isEdit || row.batchEditing">
+                  <el-input
+                    v-model="tempRow.remark"
+                    type="textarea"
+                    size="mini"
+                  >
+                  </el-input>
+                </div>
+                <div v-else-if="!row.isEdit && !row.noConfig">
+                  {{ row.rate }} %
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column align="center" prop="operation" label="操作">
               <template slot-scope="{row}">
                 <div v-show="!row.batchEditing">
@@ -473,6 +497,7 @@ export default {
         id: '',
         item: '',
         staffId: '',
+        remark: '',
         rate: 0,
         isEdit: true
       };
@@ -512,6 +537,7 @@ export default {
           id: row.mappingId || null,
           item: row.itemId || this.tempRow.item,
           staff: row.staffId || this.tempRow.staffId,
+          remark: row.remark || this.tempRow.remark,
           rate: this.tempRow.rate / 100
         });
         this.$message.success('修改成功');
@@ -537,6 +563,7 @@ export default {
             id: current.id || null,
             item: current.item,
             staff: current.staff,
+            remark: current.remark,
             rate: this.tempRow.rate / 100
           });
         }
@@ -595,7 +622,6 @@ export default {
       this.activeCollapse.push(row.id);
       //去重
       this.activeCollapse = [...new Set(this.activeCollapse)];
-      console.log(this.activeCollapse);
     },
     async batchRemove(row) {
       try {
