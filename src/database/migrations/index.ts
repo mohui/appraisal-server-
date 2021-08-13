@@ -40,6 +40,7 @@ import {AreaBudgetMigration} from './037_area_budget';
 import {AuditMigration} from './038_audit';
 import {HisMigration} from './039_his';
 import {DropStaffVirtualMigration} from './040_drop_staff_virtual';
+import {AddWorkRemarkMigration} from './041_add_work_remark';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -83,5 +84,6 @@ export const migrations: IMigration[] = [
   new AreaBudgetMigration(),
   new AuditMigration(),
   new HisMigration(),
-  new DropStaffVirtualMigration()
+  new DropStaffVirtualMigration(),
+  new AddWorkRemarkMigration()
 ];
