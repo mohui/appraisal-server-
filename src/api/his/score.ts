@@ -1254,16 +1254,16 @@ export default class HisScore {
     // 循环遍历数组,根据公分项id分组
     bindings.forEach(it => {
       const index = list.find(item => item.id === it.id);
-      // 如果查找到, 公分项已在数组中,把工分项目push进其所在的公分项中
+      // 如果查找到, 公分项已在数组中,需要查找[工分项目]和[员工]是否在数组中
       if (index) {
-        // 先查找工分项目是否已经在数组中,如果没有,把工分项目push进去
+        // 查找[工分项目]是否在数组中,如果没有,把工分项目push进去()
         const mappingsFind = index.mappings.find(
           mappingIt => mappingIt === it.source
         );
         // 没查找到, 工分项目push进数组中
         if (!mappingsFind) index.mappings.push(it.source);
-        // 如果是动态, 查找员工/科室 是否在数组中,如果不在 push进数组
-        if (it.staff_type === HisStaffMethod.DYNAMIC) {
+        // 如果是固定, 查找员工/科室 是否在数组中,如果不在 push进数组
+        if (it.staff_type === HisStaffMethod.STATIC) {
           // 查找此员工或科室是否在数组中
           const staffsFind = index.staffs.find(
             staffIt => staffIt.code === it.staff_id
@@ -1288,20 +1288,22 @@ export default class HisScore {
           // 工分项目
           mappings: [it.source],
           staffMethod: it.staff_type,
-          // 动态的时候才有值
+          // 固定的时候才有值
           staffs:
-            it.staff_type === HisStaffMethod.DYNAMIC
+            it.staff_type === HisStaffMethod.STATIC
               ? [{code: it.staff_id, type: it.staff_level}]
               : [],
           score: it.score,
-          // 范围, 固定的时候才有值
-          scope: it.staff_type === HisStaffMethod.STATIC ? it.staff_level : null
+          // 范围, 动态的时候才有值
+          scope:
+            it.staff_type === HisStaffMethod.DYNAMIC ? it.staff_level : null
         });
       }
     });
+    let returnList = [];
     for (const it of list) {
       // 根据工分项获取工分项目的公分
-      const work = workPointCalculation(
+      const work = await workPointCalculation(
         it.staff,
         start,
         end,
@@ -1313,7 +1315,34 @@ export default class HisScore {
         it.score,
         it.scope
       );
+
+      returnList = returnList.concat(work);
+      // // 如果长度大于0
+      // if (work.length > 0) {
+      //   let works;
+      //   // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
+      //   if (it.method === HisWorkMethod.AMOUNT) {
+      //     works = work.map(workIt => ({
+      //       ...workIt,
+      //       score: it.score
+      //     }));
+      //   } else if (it.method === HisWorkMethod.SUM) {
+      //     // 如果是总和 金额 * 标准工作量
+      //     works = work.map(workIt => ({
+      //       ...workIt,
+      //       score: new Decimal(workIt.value).mul(it.score).toNumber()
+      //     }));
+      //   }
+      //   // 累加
+      //   const sum = works.reduce(
+      //     (prev, curr) => Number(prev) + Number(curr.score)
+      //   );
+      //   returnList = returnList.concat([
+      //     {id: it.id, name: it.name, score: sum}
+      //   ]);
+      // }
     }
+    return returnList;
 
     //查询得分结果
     //language=PostgreSQL
@@ -1679,6 +1708,7 @@ where 1 = 1
       }
       return result;
     }, []);
+    return resultModel;
     //补充没有得分的工分项
     for (const param of bindings) {
       const obj = resultModel.self.find(it => it.id === param.id);
