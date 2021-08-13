@@ -416,7 +416,8 @@ export default {
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
         scope: d.scope,
-        score: d.score || 0
+        score: d.score || 0,
+        remark: d.remark
       }));
     },
     treeData() {
@@ -548,7 +549,7 @@ export default {
               : [],
             this.newWork.score,
             this.newWork.scope,
-            this.newWork.remark
+            this.newWork.remark || null
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -582,7 +583,8 @@ export default {
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
           scope: row.scope,
-          score: row.score
+          score: row.score,
+          remark: row.remark
         })
       );
       this.addWorkVisible = true;
