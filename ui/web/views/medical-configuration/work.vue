@@ -338,7 +338,7 @@ export default {
   components: {WorkPreview},
   data() {
     const validaProjects = (rule, value, callback) => {
-      if (value?.length < 1 && this.newWork.projectsSelected.length < 1) {
+      if (this.newWork.projectsSelected.length < 1) {
         callback(new Error('选择关联项目!'));
       }
       callback();
@@ -359,7 +359,7 @@ export default {
       addWorkVisible: false,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
-        projectsSelected: [{validator: validaProjects, trigger: 'change'}]
+        projectsSelected: [{validator: validaProjects, trigger: 'blur'}]
       },
       tableLoading: false,
       addBtnLoading: false,
