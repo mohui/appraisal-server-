@@ -237,21 +237,11 @@
             <el-table-column align="center" prop="remark" label="备注">
               <template slot-scope="{row}">
                 <div v-if="!row.isEdit && row.batchEditing">
-                  <el-input
-                    v-model="tempRow.remark"
-                    type="textarea"
-                    disabled
-                    size="mini"
-                  >
+                  <el-input v-model="tempRow.remark" disabled size="mini">
                   </el-input>
                 </div>
                 <div v-else-if="row.isEdit || row.batchEditing">
-                  <el-input
-                    v-model="tempRow.remark"
-                    type="textarea"
-                    size="mini"
-                  >
-                  </el-input>
+                  <el-input v-model="tempRow.remark" size="mini"> </el-input>
                 </div>
                 <div v-else-if="!row.isEdit && !row.noConfig">
                   {{ row.remark }}
