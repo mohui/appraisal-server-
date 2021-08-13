@@ -310,6 +310,7 @@
         <el-button
           v-show="!isPreView"
           v-loading="addBtnLoading"
+          class="work-submit-loading"
           size="mini"
           type="primary"
           @click="submit()"
@@ -724,5 +725,18 @@ export default {
 .dialog-form {
   max-height: 60vh;
   padding: 0 30px;
+}
+</style>
+<style lang="scss">
+.work-submit-loading {
+  .el-loading-mask {
+    .el-loading-spinner {
+      margin-top: -10px;
+      .circular {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
 }
 </style>
