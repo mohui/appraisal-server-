@@ -1188,7 +1188,6 @@ export default class HisWorkItem {
     // 时间转化为月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
     const workItems = await workPointCalculation(
-      '',
       staff,
       start,
       end,
