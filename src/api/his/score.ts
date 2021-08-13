@@ -56,7 +56,6 @@ type WorkItemDetail = {
  * scope 范围 员工, 科室, 机构
  */
 export async function workPointCalculation(
-  id,
   staff,
   start,
   end,
@@ -1251,6 +1250,71 @@ export default class HisScore {
       `,
       staffModel.id
     );
+    const list = [];
+    // 循环遍历数组,根据公分项id分组
+    bindings.forEach(it => {
+      const index = list.find(item => item.id === it.id);
+      // 如果查找到, 公分项已在数组中,把工分项目push进其所在的公分项中
+      if (index) {
+        // 先查找工分项目是否已经在数组中,如果没有,把工分项目push进去
+        const mappingsFind = index.mappings.find(
+          mappingIt => mappingIt === it.source
+        );
+        // 没查找到, 工分项目push进数组中
+        if (!mappingsFind) index.mappings.push(it.source);
+        // 如果是动态, 查找员工/科室 是否在数组中,如果不在 push进数组
+        if (it.staff_type === HisStaffMethod.DYNAMIC) {
+          // 查找此员工或科室是否在数组中
+          const staffsFind = index.staffs.find(
+            staffIt => staffIt.code === it.staff_id
+          );
+          // 动态, 且数组中不存在此员工/科室, push进数组
+          if (!staffsFind) {
+            index.staffs.push({code: it.staff_id, type: it.staff_level});
+          }
+        }
+      } else {
+        /**
+         * 如果没有查找到, 把工分项放到数组找那个
+         * staffs: 根据 staffMethod(工分项目和员工绑定方式), 固定的时候为空,动态的时候有值
+         */
+        list.push({
+          id: it.id,
+          staff: id,
+          start,
+          end,
+          name: it.name,
+          method: it.method,
+          // 工分项目
+          mappings: [it.source],
+          staffMethod: it.staff_type,
+          // 动态的时候才有值
+          staffs:
+            it.staff_type === HisStaffMethod.DYNAMIC
+              ? [{code: it.staff_id, type: it.staff_level}]
+              : [],
+          score: it.score,
+          // 范围, 固定的时候才有值
+          scope: it.staff_type === HisStaffMethod.STATIC ? it.staff_level : null
+        });
+      }
+    });
+    for (const it of list) {
+      // 根据工分项获取工分项目的公分
+      const work = workPointCalculation(
+        it.staff,
+        start,
+        end,
+        it.name,
+        it.method,
+        it.mappings,
+        it.staffMethod,
+        it.staffs,
+        it.score,
+        it.scope
+      );
+    }
+
     //查询得分结果
     //language=PostgreSQL
     let resultModel: StaffWorkModel = (
