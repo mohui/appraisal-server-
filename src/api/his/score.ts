@@ -55,7 +55,7 @@ type WorkItemDetail = {
  * score 计数单位
  * scope 范围 员工, 科室, 机构
  */
-async function workPointCalculation(
+export async function workPointCalculation(
   id,
   staff,
   start,
