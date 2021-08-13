@@ -1327,10 +1327,10 @@ export default class HisWorkItem {
         // language=PostgreSQL
         const hisStaffModels = await originalDB.execute(
           `
-          select id, name
-          from his_staff
-          where hospital = ?
-        `,
+            select id, name
+            from his_staff
+            where hospital = ?
+          `,
           staffModel.hospital
         );
         doctorIds = hisStaffModels.map(it => it.id);
@@ -1638,7 +1638,7 @@ export default class HisWorkItem {
   /**
    * 工分项和员工的绑定
    * @param item 工分项id
-   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数)
+   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数, 备注)
    */
   @validate(
     should
@@ -1659,7 +1659,11 @@ export default class HisWorkItem {
         rate: should
           .number()
           .required()
-          .description('权重系数')
+          .description('权重系数'),
+        remark: should
+          .string()
+          .allow(null)
+          .description('备注')
       })
       .required()
       .description('要增删改的公分项和员工的绑定')
@@ -1677,7 +1681,7 @@ export default class HisWorkItem {
       if (params?.id) {
         // 先根据id查询到该工分项下的员工是否在其他分数中存在
         const updList = await appDB.execute(
-          `select id, staff, item, rate
+          `select id, staff, item, rate, remark
                 from his_staff_work_item_mapping
                 where id = ?`,
           params?.id
@@ -1685,11 +1689,16 @@ export default class HisWorkItem {
         if (updList.length === 0)
           throw new KatoRuntimeError(`${params?.id}不存在`);
 
+        // language=PostgreSQL
         await appDB.execute(
-          `update his_staff_work_item_mapping set rate = ?, updated_at = ?
-                where id = ?
+          `update his_staff_work_item_mapping
+             set rate       = ?,
+                 remark     = ?,
+                 updated_at = ?
+             where id = ?
           `,
           params?.rate,
+          params?.remark,
           dayjs().toDate(),
           params?.id
         );
@@ -1720,12 +1729,14 @@ export default class HisWorkItem {
         // 执行添加语句
         // language=PostgreSQL
         await appDB.execute(
-          ` insert into his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
-              values (?, ?, ?, ?, ?, ?)`,
+          `
+            insert into his_staff_work_item_mapping(id, item, staff, rate, remark, created_at, updated_at)
+            values (?, ?, ?, ?, ?, ?, ?)`,
           uuid(),
           params?.item,
           params?.staff,
           params?.rate,
+          params?.remark,
           dayjs().toDate(),
           dayjs().toDate()
         );
@@ -1768,6 +1779,7 @@ export default class HisWorkItem {
              , mapping.staff
              , mapping.item
              , mapping.rate
+             , mapping.remark
         from his_staff_work_item_mapping mapping
                left join staff on mapping.staff = staff.id
         where staff.hospital = ?
