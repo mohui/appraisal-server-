@@ -368,7 +368,7 @@ export async function workPointCalculation(
       await originalDB.execute(
         // language=PostgreSQL
         `
-            select distinct treat, operate_time
+            select distinct treat, first_value(operate_time) over ()  operate_time
             from his_charge_master
             where hospital = ?
               and operate_time > ?
