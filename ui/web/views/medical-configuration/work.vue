@@ -202,7 +202,7 @@
                   :filter-node-method="
                     (query, data) => filterNode(query, data, this.staffTree)
                   "
-                  @check-change="staffCheck"
+                  @check="staffCheck"
                 ></el-tree>
               </div>
             </el-form-item>
@@ -229,7 +229,7 @@
                   :filter-node-method="
                     (query, node) => filterNode(query, node, this.treeData)
                   "
-                  @check-change="treeCheck"
+                  @check="treeCheck"
                 >
                   <span slot-scope="{node, data}">
                     <span style="font-size: 14px; color: #606266">{{
