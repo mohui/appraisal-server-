@@ -372,18 +372,21 @@ export default class HisStaff {
           index.children.push({
             value: it.id,
             label: it.name,
-            type: `${HisStaffDeptType.Staff}`
+            type: `${HisStaffDeptType.Staff}`,
+            parent: it.department
           });
         } else {
           trees.push({
             value: it.department,
             label: it.deptName ?? '',
             type: `${HisStaffDeptType.DEPT}`,
+            parent: null,
             children: [
               {
                 value: it.id,
                 label: it.name,
-                type: `${HisStaffDeptType.Staff}`
+                type: `${HisStaffDeptType.Staff}`,
+                parent: it.department
               }
             ]
           });
@@ -392,7 +395,8 @@ export default class HisStaff {
         trees.push({
           value: it.id,
           label: it.name,
-          type: `${HisStaffDeptType.Staff}`
+          type: `${HisStaffDeptType.Staff}`,
+          parent: null
         });
       }
     });
