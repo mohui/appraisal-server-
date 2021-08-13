@@ -254,7 +254,7 @@
                   </el-input>
                 </div>
                 <div v-else-if="!row.isEdit && !row.noConfig">
-                  {{ row.rate }} %
+                  {{ row.remark }}
                 </div>
               </template>
             </el-table-column>
@@ -537,7 +537,7 @@ export default {
           id: row.mappingId || null,
           item: row.itemId || this.tempRow.item,
           staff: row.staffId || this.tempRow.staffId,
-          remark: row.remark || this.tempRow.remark,
+          remark: this.tempRow.remark || null,
           rate: this.tempRow.rate / 100
         });
         this.$message.success('修改成功');
@@ -563,7 +563,7 @@ export default {
             id: current.id || null,
             item: current.item,
             staff: current.staff,
-            remark: current.remark,
+            remark: this.tempRow.remark,
             rate: this.tempRow.rate / 100
           });
         }
