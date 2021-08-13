@@ -8,10 +8,12 @@ export class AddWorkRemarkMigration implements IMigration {
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
     await client.execute(`
-      ALTER  table his_work_item ADD COLUMN remark varchar(500) DEFAULT null;
+      ALTER table his_work_item
+        ADD COLUMN remark varchar(500) DEFAULT null;
       COMMENT ON COLUMN his_work_item."remark" IS '备注';
 
-      ALTER  table his_staff_work_item_mapping ADD COLUMN remark varchar(500) DEFAULT null;
+      ALTER table his_staff_work_item_mapping
+        ADD COLUMN remark varchar(500) DEFAULT null;
       COMMENT ON COLUMN his_staff_work_item_mapping."remark" IS '备注';
     `);
   }
