@@ -199,7 +199,9 @@
                   :default-checked-keys="newWork.staffs"
                   node-key="value"
                   show-checkbox
-                  :filter-node-method="filterNode"
+                  :filter-node-method="
+                    (query, data) => filterNode(query, data, this.staffTree)
+                  "
                   @check-change="staffCheck"
                 ></el-tree>
               </div>
@@ -224,7 +226,9 @@
                   "
                   node-key="id"
                   show-checkbox
-                  :filter-node-method="filterNode"
+                  :filter-node-method="
+                    (query, node) => filterNode(query, node, this.treeData)
+                  "
                   @check-change="treeCheck"
                 >
                   <span slot-scope="{node, data}">
@@ -571,7 +575,8 @@ export default {
     },
     findItem(id, arr) {
       for (let i = 0; i < arr.length; i++) {
-        if (arr[i].id === id) return arr[i];
+        if (arr[i].id && arr[i].id === id) return arr[i];
+        if (arr[i].value && arr[i].value === id) return arr[i];
         const ret = this.findItem(id, arr[i]?.children ?? []);
         if (ret) return ret;
       }
@@ -641,7 +646,7 @@ export default {
       }
       return arr;
     },
-    filterNode(query, data) {
+    filterNode(query, data, sourceTree) {
       try {
         if (!query) return true;
 
@@ -650,10 +655,9 @@ export default {
         //模糊匹配拼音首字母
         if (data.pinyin.indexOf(query.toLowerCase()) > -1) return true;
         //检查当前节点的父节点是否满足条件
-        // TODO: 员工树节点没有父节点信息, 待处理
         if (data.parent) {
-          const parent = this.findItem(data.parent, this.treeData);
-          return this.filterNode(query, parent);
+          const parent = this.findItem(data.parent, sourceTree);
+          return this.filterNode(query, parent, sourceTree);
         }
         return false;
       } catch (e) {
