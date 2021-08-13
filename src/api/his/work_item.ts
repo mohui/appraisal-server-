@@ -516,6 +516,7 @@ export default class HisWorkItem {
    * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
+   * @param remark 备注
    */
   @validate(
     should
@@ -555,9 +556,13 @@ export default class HisWorkItem {
       )
       .required()
       .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构')
+      .description('固定的时候的范围, 员工/科室/机构'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
-  async add(name, method, mappings, staffMethod, staffs, score, scope) {
+  async add(name, method, mappings, staffMethod, staffs, score, scope, remark) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -602,7 +607,7 @@ export default class HisWorkItem {
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, type, score, created_at, updated_at)
+              his_work_item(id, hospital, name, method, type, score, remark, created_at, updated_at)
               values(?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
@@ -610,6 +615,7 @@ export default class HisWorkItem {
         method,
         staffMethod,
         score,
+        remark,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -681,6 +687,7 @@ export default class HisWorkItem {
    * @param mappings
    * @param score 分值
    * @param scope 固定的时候范围必传
+   * @param remark 备注
    */
   @validate(
     should
@@ -724,9 +731,23 @@ export default class HisWorkItem {
       )
       .required()
       .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构')
+      .description('固定的时候的范围, 员工/科室/机构'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
-  async update(id, name, method, mappings, staffMethod, staffs, score, scope) {
+  async update(
+    id,
+    name,
+    method,
+    mappings,
+    staffMethod,
+    staffs,
+    score,
+    scope,
+    remark
+  ) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -782,12 +803,14 @@ export default class HisWorkItem {
                 method = ?,
                 type = ?,
                 score = ?,
+                remark = ?,
                 updated_at = ?
               where id = ?`,
         name,
         method,
         staffMethod,
         score,
+        remark,
         dayjs().toDate(),
         id
       );
@@ -905,6 +928,7 @@ export default class HisWorkItem {
                item.method,
                item.type,
                item.score,
+               item.remark,
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
@@ -985,6 +1009,7 @@ export default class HisWorkItem {
           method: it.method,
           type: it.type,
           score: it.score,
+          remark: it.remark,
           scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
           staffIdMappings: staffs
