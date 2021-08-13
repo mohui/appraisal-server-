@@ -646,8 +646,7 @@ export default {
         if (!query) return true;
 
         //模糊匹配字符
-        if (data.name.indexOf(query) > -1 || data.label.indexOf(query) > -1)
-          return true;
+        if (data.name.indexOf(query) > -1) return true;
         //模糊匹配拼音首字母
         if (data.pinyin.indexOf(query.toLowerCase()) > -1) return true;
         //检查当前节点的父节点是否满足条件
