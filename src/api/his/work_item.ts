@@ -608,7 +608,7 @@ export default class HisWorkItem {
       await appDB.execute(
         ` insert into
               his_work_item(id, hospital, name, method, type, score, remark, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+              values(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
