@@ -66,7 +66,17 @@ export async function workPointCalculation(
   staffs,
   score,
   scope
-) {
+): Promise<
+  {
+    value: number;
+    date: Date;
+    staffId: string;
+    staffName: string;
+    itemId: string;
+    itemName: string;
+    type: string;
+  }[]
+> {
   // 根据员工i查询员工信息
   const staffModel: {
     id: string;
