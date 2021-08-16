@@ -1271,7 +1271,7 @@ export default class HisScore {
     );
     const list = [];
     // 循环遍历数组,根据公分项id分组
-    bindings.forEach(it => {
+    for (const it of bindings) {
       const index = list.find(item => item.id === it.id);
       // 如果查找到, 公分项已在数组中,需要查找[工分项目]和[员工]是否在数组中
       if (index) {
@@ -1319,7 +1319,7 @@ export default class HisScore {
           rate: it.rate
         });
       }
-    });
+    }
     // 工分流水
     let workItems: WorkItemDetail[] = [];
     for (const it of list) {
