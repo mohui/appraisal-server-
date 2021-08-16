@@ -43,17 +43,26 @@ type WorkItemDetail = {
 
 /**
  * 工分计算
- * id 工分id,
- * staff 员工id,
- * start 开始时间
- * end 结束时间
- * name 工分名称
- * method 得分方式, 计数,总和
- * mappings 工分项目
- * staffMethod 医疗工分项目和员工绑定方式 固定, 动态
- * staffs 员工数组[{code: 员工/科室id, type: 员工/科室}]
- * score 计数单位
- * scope 范围 员工, 科室, 机构
+ *
+ * @param staff 员工id
+ * @param start 开始时间
+ * @param end 结束时间
+ * @param name 工分名称
+ * @param method 得分方式, 计数,总和
+ * @param mappings 工分项目
+ * @param staffMethod 医疗工分项目和员工绑定方式 固定, 动态
+ * @param staffs 员工数组[{code: 员工/科室id, type: 员工/科室}]
+ * @param score 计数单位
+ * @param scope 范围 员工, 科室, 机构
+ * @return [{
+ *   value: 单位量;
+ *   date: 时间;
+ *   staffId: 员工id;
+ *   staffName: 员工名称;
+ *   itemId: 工分项id;
+ *   itemName: 工分项名称;
+ *   type: 类预览类型 PreviewType;
+ * }]
  */
 export async function workPointCalculation(
   staff,
