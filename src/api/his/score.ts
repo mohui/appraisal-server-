@@ -1318,31 +1318,28 @@ export default class HisScore {
         it.scope
       );
 
-      // 如果长度大于0
-      if (work.length > 0) {
-        let works;
-        // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
-        if (it.method === HisWorkMethod.AMOUNT) {
-          works = work.map(workIt => ({
-            ...workIt,
-            score: it.score
-          }));
-        } else if (it.method === HisWorkMethod.SUM) {
-          // 如果是总和 金额 * 标准工作量
-          works = work.map(workIt => ({
-            ...workIt,
-            score: new Decimal(workIt.value).mul(it.score).toNumber()
-          }));
-        }
-        // 累加
-        const sum = works.reduce(
-          (prev, curr) => Number(prev) + Number(curr.score),
-          0
-        );
-        workItems = workItems.concat([
-          {id: it.id, name: it.name, score: sum * it.rate}
-        ]);
+      let works;
+      // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
+      if (it.method === HisWorkMethod.AMOUNT) {
+        works = work.map(workIt => ({
+          ...workIt,
+          score: it.score
+        }));
+      } else if (it.method === HisWorkMethod.SUM) {
+        // 如果是总和 金额 * 标准工作量
+        works = work.map(workIt => ({
+          ...workIt,
+          score: new Decimal(workIt.value).mul(it.score).toNumber()
+        }));
       }
+      // 累加
+      const sum = works.reduce(
+        (prev, curr) => Number(prev) + Number(curr.score),
+        0
+      );
+      workItems = workItems.concat([
+        {id: it.id, name: it.name, score: sum * it.rate}
+      ]);
     }
 
     //查询得分结果
@@ -1370,17 +1367,6 @@ export default class HisScore {
     //累加流水
     resultModel.self = workItems;
 
-    //补充没有得分的工分项
-    for (const param of list) {
-      const obj = resultModel.self.find(it => it.id === param.id);
-      if (!obj) {
-        resultModel.self.push({
-          id: param.id,
-          name: param.name,
-          score: 0
-        });
-      }
-    }
     //TODO: 兼容老设计, 等待确认完删除
     resultModel.staffs = [];
     const resultValue = JSON.stringify(resultModel);
