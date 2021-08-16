@@ -6,7 +6,8 @@ import {
   HisStaffDeptType,
   HisStaffMethod,
   HisWorkMethod,
-  MarkTagUsages
+  MarkTagUsages,
+  PreviewType
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -27,6 +28,7 @@ function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
 }
 
+// region 工分计算
 /**
  * 工分流水
  */
@@ -39,6 +41,390 @@ type WorkItemDetail = {
   score: number;
 };
 
+/**
+ * 工分计算
+ *
+ * @param staff 员工id
+ * @param start 开始时间
+ * @param end 结束时间
+ * @param name 工分名称
+ * @param method 得分方式, 计数,总和
+ * @param mappings 工分项目
+ * @param staffMethod 医疗工分项目和员工绑定方式 固定, 动态
+ * @param staffs 员工数组[{code: 员工/科室id, type: 员工/科室}]
+ * @param score 计数单位
+ * @param scope 范围 员工, 科室, 机构
+ * @return [{
+ *   value: 单位量;
+ *   date: 时间;
+ *   staffId: 员工id;
+ *   staffName: 员工名称;
+ *   itemId: 工分项id;
+ *   itemName: 工分项名称;
+ *   type: 类预览类型 PreviewType;
+ * }]
+ */
+export async function workPointCalculation(
+  staff,
+  start,
+  end,
+  name,
+  method,
+  mappings,
+  staffMethod,
+  staffs,
+  score,
+  scope
+): Promise<
+  {
+    value: number;
+    date: Date;
+    staffId: string;
+    staffName: string;
+    itemId: string;
+    itemName: string;
+    type: string;
+  }[]
+> {
+  // 根据员工i查询员工信息
+  const staffModel: {
+    id: string;
+    name: string;
+    department?: string;
+    hospital: string;
+    staff?: string;
+  } = (
+    await appDB.execute(
+      `select id, name, staff, hospital, department from staff where id = ?`,
+      staff
+    )
+  )[0];
+  //员工不存在, 直接返回
+  if (!staffModel) return [];
+
+  // 查询机构信息,下面显示要用
+  const hospitalModels = await originalDB.execute(
+    `select code, name from area where code = ?`,
+    staffModel.hospital
+  );
+
+  // 根据公分项目拼装数组,计算工分
+  const bindings = mappings.map(it => {
+    const item = HisWorkItemSources.find(sourceIt => sourceIt.id === it);
+    return {
+      name,
+      method,
+      score,
+      source: it,
+      sourceName: item?.name
+    };
+  });
+
+  // region 取出系统员工id 适用于门诊,住院,手工数据
+  // 系统员工, 不管绑定没绑定his员工,全部都要
+  let staffIds = [];
+  // 取出当是 固定 时候的所有员工id
+  if (staffMethod === HisStaffMethod.STATIC) {
+    // 员工id列表
+    staffIds = staffs
+      .filter(it => it.type === HisStaffDeptType.Staff)
+      .map(it => it.code);
+    const depIds = staffs
+      .filter(it => it.type === HisStaffDeptType.DEPT)
+      .map(it => it.code);
+
+    // 如果科室长度大于0, 查询科室下的所有员工
+    if (depIds.length > 0) {
+      // language=PostgreSQL
+      const deptStaffList = await appDB.execute(
+        `
+            select id from staff
+                where department in (${depIds.map(() => '?')})`,
+        ...depIds
+      );
+      staffIds.push(...deptStaffList.map(it => it.id));
+    }
+  } else if (staffMethod === HisStaffMethod.DYNAMIC) {
+    // 取出当是 动态 时候的所有员工id
+    // 如果是本人
+    if (scope === HisStaffDeptType.Staff) {
+      staffIds.push(staff);
+    }
+    // 如果是本人所在科室
+    if (scope === HisStaffDeptType.DEPT) {
+      // language=PostgreSQL
+      const staffDeptModels = await appDB.execute(
+        `
+            select id
+            from staff
+            where (department is not null and department = ?)
+               or id = ?`,
+        staffModel.department,
+        staffModel.id
+      );
+      staffIds = staffDeptModels.map(it => it.id);
+    }
+    // 如果是本人所在机构
+    if (scope === HisStaffDeptType.HOSPITAL) {
+      // language=PostgreSQL
+      const staffDeptModels = await appDB.execute(
+        `
+            select id
+            from staff
+            where hospital = ?
+          `,
+        staffModel.hospital
+      );
+      staffIds = staffDeptModels.map(it => it.id);
+    }
+  }
+  // endregion
+
+  // region 查询 门诊/住院 工分来源用到的医生id
+  // his员工id, 为了查询 计算CHECK和DRUG工分来源
+  let doctorIds;
+
+  // 当前只有 计算CHECK和DRUG工分来源 用到了
+  if (
+    bindings.filter(
+      it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+    ).length > 0
+  ) {
+    // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
+    if (
+      staffMethod === HisStaffMethod.DYNAMIC &&
+      scope === HisStaffDeptType.HOSPITAL
+    ) {
+      // 查询his机构id
+      // language=PostgreSQL
+      const hisStaffModels = await originalDB.execute(
+        `
+          select id, name
+          from his_staff
+          where hospital = ?
+        `,
+        staffModel.hospital
+      );
+      doctorIds = hisStaffModels.map(it => it.id);
+    } else {
+      // 根据员工id找到他的his的员工id
+      // language=PostgreSQL
+      const staffList = await appDB.execute(
+        `
+            select staff, name
+                from staff
+            where staff is not null
+              and id in (${staffIds.map(() => '?')})`,
+        ...staffIds
+      );
+      doctorIds = staffList.map(it => it.staff);
+    }
+  }
+  // endregion
+
+  // 工分流水
+  let workItems = [];
+  //计算工分
+  //region 计算CHECK和DRUG工分来源
+  for (const param of bindings.filter(
+    it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+  )) {
+    //region 处理人员条件条件
+    let doctorCondition = '1 = 0';
+    if (doctorIds.length > 0) {
+      doctorCondition = `doctor in (${doctorIds.map(() => '?').join()})`;
+    }
+    //endregion
+    //查询his的收费项目
+    const rows: {
+      value: string;
+      date: Date;
+      staffId: string;
+      staffName: string;
+      itemId: string;
+      itemName: string;
+      type: string;
+    }[] = await originalDB.execute(
+      // language=PostgreSQL
+      `
+          select total_price as value,
+                 operate_time as date,
+                 item "itemId",
+                 item_name "itemName",
+                 doctor "staffId",
+                 staff.name as "staffName",
+                 '${PreviewType.HIS_STAFF}' as type
+          from his_charge_detail detail
+          inner join his_staff staff on detail.doctor = staff.id
+          where operate_time > ?
+            and operate_time < ?
+            and (item like ? or item = ?)
+            and ${doctorCondition}
+          order by operate_time
+        `,
+      start,
+      end,
+      `${param.source}.%`,
+      param.source,
+      ...doctorIds
+    );
+    //his收费项目流水转换成工分流水
+    workItems = workItems.concat(rows);
+  }
+  //endregion
+  //region 计算MANUAL工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('手工数据'))) {
+    //查询手工数据流水表
+    const rows: {
+      value: number;
+      date: Date;
+      staffId: string;
+      staffName: string;
+      itemId: string;
+      itemName: string;
+      type: string;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+          select date,
+                 value,
+                 smdd.staff "staffId",
+                 staff.name "staffName",
+                 manual.id "itemId",
+                 manual.name "itemName",
+                 '${PreviewType.STAFF}' as type
+          from his_staff_manual_data_detail smdd
+                 inner join his_manual_data manual on smdd.item = manual.id
+                 inner join staff  on staff.id = smdd.staff
+          where smdd.item = ?
+            and smdd.date >= ?
+            and smdd.date < ?
+            and staff.id in (${staffIds.map(() => '?')})
+          order by smdd.date
+        `,
+      //手工数据的source转id, 默认是只能必须选id
+      param.source.split('.')[1],
+      start,
+      end,
+      ...staffIds
+    );
+    //手工数据流水转换成工分流水
+    workItems = workItems.concat(rows);
+  }
+  //endregion
+  //region 计算公卫数据工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('公卫数据'))) {
+    //机构级别的数据, 直接用当前员工的机构id即可
+    //查询hospital绑定关系
+    // language=PostgreSQL
+    const hisHospitalModels = await appDB.execute(
+      `
+          select mapping.hishospid hospital,
+                 hospital.id,
+                 hospital.name
+          from hospital_mapping mapping
+                 inner join hospital on mapping.h_id = hospital.id
+          where mapping.h_id = ?
+        `,
+      staffModel.hospital
+    );
+    const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
+    //没有绑定关系, 直接跳过
+    if (hisHospitals.length === 0) continue;
+    const item = HisWorkItemSources.find(it => it.id === param.source);
+    //未配置数据表, 直接跳过
+    if (!item || !item?.datasource?.table) continue;
+    //渲染sql
+    const sqlRendResult = sqlRender(
+      `
+          select 1 as value, {{dateCol}} as date, OperateOrganization hospital
+          from {{table}}
+          where 1 = 1
+            and {{dateCol}} >= {{? start}}
+            and {{dateCol}} < {{? end}}
+            and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+          {{#each columns}} and {{this}} {{/each}}
+          `,
+      {
+        dateCol: item.datasource.date,
+        hospitals: hisHospitals,
+        table: item.datasource.table,
+        columns: item.datasource.columns,
+        start,
+        end
+      }
+    );
+    const rows: {
+      date: Date;
+      value: number;
+      hospital: string;
+    }[] = await originalDB.execute(sqlRendResult[0], ...sqlRendResult[1]);
+    //公卫数据流水转换成工分流水
+    workItems = workItems.concat(
+      rows.map(it => {
+        const item = hisHospitalModels.find(
+          hospitalIt => hospitalIt.hospital === it.hospital
+        );
+        return {
+          value: it.value,
+          date: it.date,
+          staffId: item?.id,
+          staffName: item?.name,
+          itemId: param.source,
+          itemName: param?.sourceName,
+          type: PreviewType.HOSPITAL
+        };
+      })
+    );
+  }
+  //endregion
+  //region 计算其他工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('其他'))) {
+    let type = '';
+    if (param.source === '其他.住院诊疗人次') type = '住院';
+    if (param.source === '其他.门诊诊疗人次') type = '门诊';
+    const rows: {date: Date; value: number}[] = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+            select distinct treat, operate_time
+            from his_charge_master
+            where hospital = ?
+              and operate_time > ?
+              and operate_time < ?
+              and charge_type = ?
+            order by operate_time
+          `,
+        staffModel.hospital,
+        start,
+        end,
+        type
+      )
+    ).map(it => ({
+      value: 1,
+      date: it.operate_time
+    }));
+    //其他工分流水转换成工分流水
+    workItems = workItems.concat(
+      rows.map(it => {
+        return {
+          value: it.value,
+          date: it.date,
+          staffId: hospitalModels[0]?.code,
+          staffName: hospitalModels[0]?.name,
+          itemId: param.source,
+          itemName: param.sourceName,
+          type: PreviewType.HOSPITAL
+        };
+      })
+    );
+  }
+  //endregion
+  return workItems;
+}
+// endregion
+
+// region 公卫打分
 /**
  * 算出打分结果
  * @param ruleScores 要添加的数组
@@ -165,6 +551,7 @@ async function getMark(hospital, year) {
     }
   );
 }
+// endregion
 
 export default class HisScore {
   // region 自动打分
@@ -882,6 +1269,98 @@ export default class HisScore {
       `,
       staffModel.id
     );
+    const list = [];
+    // 循环遍历数组,根据公分项id分组
+    for (const it of bindings) {
+      const index = list.find(item => item.id === it.id);
+      // 如果查找到, 公分项已在数组中,需要查找[工分项目]和[员工]是否在数组中
+      if (index) {
+        // 查找[工分项目]是否在数组中,如果没有,把工分项目push进去()
+        const mappingsFind = index.mappings.find(
+          mappingIt => mappingIt === it.source
+        );
+        // 没查找到, 工分项目push进数组中
+        if (!mappingsFind) index.mappings.push(it.source);
+        // 如果是固定, 查找员工/科室 是否在数组中,如果不在 push进数组
+        if (it.staff_type === HisStaffMethod.STATIC) {
+          // 查找此员工或科室是否在数组中
+          const staffsFind = index.staffs.find(
+            staffIt => staffIt.code === it.staff_id
+          );
+          // 动态, 且数组中不存在此员工/科室, push进数组
+          if (!staffsFind) {
+            index.staffs.push({code: it.staff_id, type: it.staff_level});
+          }
+        }
+      } else {
+        /**
+         * 如果没有查找到, 把工分项放到数组找那个
+         * staffs: 根据 staffMethod(工分项目和员工绑定方式), 固定的时候为空,动态的时候有值
+         */
+        list.push({
+          id: it.id,
+          staff: id,
+          start,
+          end,
+          name: it.name,
+          method: it.method,
+          // 工分项目
+          mappings: [it.source],
+          staffMethod: it.staff_type,
+          // 固定的时候才有值
+          staffs:
+            it.staff_type === HisStaffMethod.STATIC
+              ? [{code: it.staff_id, type: it.staff_level}]
+              : [],
+          score: it.score,
+          // 范围, 动态的时候才有值
+          scope:
+            it.staff_type === HisStaffMethod.DYNAMIC ? it.staff_level : null,
+          rate: it.rate
+        });
+      }
+    }
+    // 工分流水
+    let workItems: WorkItemDetail[] = [];
+    for (const it of list) {
+      // 根据工分项获取工分项目的公分
+      const work = await workPointCalculation(
+        it.staff,
+        start,
+        end,
+        it.name,
+        it.method,
+        it.mappings,
+        it.staffMethod,
+        it.staffs,
+        it.score,
+        it.scope
+      );
+
+      let works;
+      // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
+      if (it.method === HisWorkMethod.AMOUNT) {
+        works = work.map(workIt => ({
+          ...workIt,
+          score: it.score
+        }));
+      } else if (it.method === HisWorkMethod.SUM) {
+        // 如果是总和 金额 * 标准工作量
+        works = work.map(workIt => ({
+          ...workIt,
+          score: new Decimal(workIt.value).mul(it.score).toNumber()
+        }));
+      }
+      // 累加
+      const sum = works.reduce(
+        (prev, curr) => Number(prev) + Number(curr.score),
+        0
+      );
+      workItems = workItems.concat([
+        {id: it.id, name: it.name, score: sum * it.rate}
+      ]);
+    }
+
     //查询得分结果
     //language=PostgreSQL
     let resultModel: StaffWorkModel = (
@@ -903,360 +1382,10 @@ export default class HisScore {
       };
     }
 
-    // //工分流水
-    let workItems: WorkItemDetail[] = [];
-    //计算工分
-    //region 计算CHECK和DRUG工分来源
-    for (const param of bindings.filter(
-      it => it.source.startsWith('门诊') || it.source.startsWith('住院')
-    )) {
-      //region 处理人员条件条件
-      let staffCondition = '1 = 0';
-      let staffValue = id;
-      //员工关联是 固定且员工
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.Staff
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 'id = ?';
-      }
-      //员工关联是 固定且科室
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.DEPT
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 'department = ?';
-      }
-      //员工关联是 动态且员工
-      if (
-        staffModel.staff &&
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.Staff
-      ) {
-        staffValue = staffModel.id;
-        staffCondition = 'id = ?';
-      }
-      //员工关联是 动态且科室
-      if (
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.DEPT
-      ) {
-        //判断员工是否绑定科室
-        if (staffModel.department) {
-          staffValue = staffModel.department;
-          staffCondition = 'department = ?';
-        } else {
-          //未绑定科室, 则使用本人
-          staffValue = staffModel.id;
-          staffCondition = 'id = ?';
-        }
-      }
-      let doctorCondition = '1 = 0';
-      //员工关联是 动态且机构
-      if (
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        doctorCondition = '1 = 1';
-      }
-      const doctorValue: string[] = (
-        await appDB.execute(
-          `select staff from staff where staff is not null and ${staffCondition}`,
-          staffValue
-        )
-      ).map(it => it.staff);
-      if (doctorValue.length > 0) {
-        doctorCondition = `d.doctor in (${doctorValue.map(() => '?').join()})`;
-      }
-      //endregion
-      //查询his的收费项目
-      const rows: {
-        value: string;
-        date: Date;
-      }[] = await originalDB.execute(
-        // language=PostgreSQL
-        `
-          select d.total_price as value, d.operate_time as date
-          from his_charge_detail d
-                 inner join his_charge_master m on d.main = m.id
-          where m.hospital = ?
-            and d.operate_time > ?
-            and d.operate_time < ?
-            and (d.item like ? or d.item = ?)
-            and ${doctorCondition}
-          order by d.operate_time
-        `,
-        staffModel.hospital,
-        start,
-        end,
-        `${param.source}.%`,
-        param.source,
-        ...doctorValue
-      );
-      //his收费项目流水转换成工分流水
-      workItems = workItems.concat(
-        rows.map<WorkItemDetail>(it => {
-          let score = 0;
-          //SUM得分方式
-          if (param.method === HisWorkMethod.SUM) {
-            score = new Decimal(it.value).mul(param.score).toNumber();
-          }
-          //AMOUNT得分方式
-          if (param.method === HisWorkMethod.AMOUNT) {
-            score = param.score;
-          }
-          //权重系数
-          score = new Decimal(score).mul(param.rate).toNumber();
-          return {
-            id: param.id,
-            name: param.name,
-            score: score
-          };
-        })
-      );
-    }
-    //endregion
-    //region 计算MANUAL工分来源
-    for (const param of bindings.filter(it =>
-      it.source.startsWith('手工数据')
-    )) {
-      //region 处理人员条件条件
-      let staffCondition = '1 = 0';
-      let staffValue = id;
-      //员工关联是 固定且员工
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.Staff
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 's.id = ?';
-      }
-      //员工关联是 固定且科室
-      if (
-        param.staff_type === HisStaffMethod.STATIC &&
-        param.staff_level === HisStaffDeptType.DEPT
-      ) {
-        staffValue = param.staff_id;
-        staffCondition = 's.department = ?';
-      }
-      //员工关联是 动态且员工
-      if (
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.Staff
-      ) {
-        staffValue = staffModel.id;
-        staffCondition = 's.id = ?';
-      }
-      //员工关联是 动态且科室
-      if (
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.DEPT
-      ) {
-        //判断员工是否绑定科室
-        if (staffModel.department) {
-          staffValue = staffModel.department;
-          staffCondition = 's.department = ?';
-        } else {
-          //未绑定科室, 则使用本人
-          staffValue = staffModel.id;
-          staffCondition = 's.id = ?';
-        }
-      }
-      //员工关联是 动态且机构
-      if (
-        param.staff_type === HisStaffMethod.DYNAMIC &&
-        param.staff_level === HisStaffDeptType.HOSPITAL
-      ) {
-        staffValue = staffModel.hospital;
-        staffCondition = 's.hospital = ?';
-      }
-      //endregion
-      //查询手工数据流水表
-      const rows: {date: Date; value: number}[] = await appDB.execute(
-        // language=PostgreSQL
-        `
-          select date, value
-          from his_staff_manual_data_detail smdd
-                 inner join staff s on s.id = smdd.staff
-          where smdd.item = ?
-            and smdd.date >= ?
-            and smdd.date < ?
-            and ${staffCondition}
-        `,
-        //手工数据的source转id, 默认是只能必须选id
-        param.source.split('.')[1],
-        start,
-        end,
-        staffValue
-      );
-      //手工数据流水转换成工分流水
-      workItems = workItems.concat(
-        rows.map<WorkItemDetail>(it => {
-          let score = 0;
-          //SUM得分方式
-          if (param.method === HisWorkMethod.SUM) {
-            score = new Decimal(it.value).mul(param.score).toNumber();
-          }
-          //AMOUNT得分方式
-          if (param.method === HisWorkMethod.AMOUNT) {
-            score = param.score;
-          }
-          //权重系数
-          score = new Decimal(score).mul(param.rate).toNumber();
-          return {
-            id: param.id,
-            name: param.name,
-            score: score
-          };
-        })
-      );
-      //endregion
-    }
-    //endregion
-    //region 计算公卫数据工分来源
-    for (const param of bindings.filter(it =>
-      it.source.startsWith('公卫数据')
-    )) {
-      //机构级别的数据, 直接用当前员工的机构id即可
-      //查询hospital绑定关系
-      // language=PostgreSQL
-      const hisHospitals: string[] = (
-        await appDB.execute(
-          `
-            select hishospid hospital
-            from hospital_mapping
-            where h_id = ?
-          `,
-          staffModel.hospital
-        )
-      ).map(it => it.hospital);
-      //没有绑定关系, 直接跳过
-      if (hisHospitals.length === 0) continue;
-      const item = HisWorkItemSources.find(it => it.id === param.source);
-      //未配置数据表, 直接跳过
-      if (!item || !item?.datasource?.table) continue;
-      //渲染sql
-      const sqlRendResult = sqlRender(
-        `
-select 1 as value, {{dateCol}} as date
-from {{table}}
-where 1 = 1
-  and {{dateCol}} >= {{? start}}
-  and {{dateCol}} < {{? end}}
-  and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-{{#each columns}} and {{this}} {{/each}}`,
-        {
-          dateCol: item.datasource.date,
-          hospitals: hisHospitals,
-          table: item.datasource.table,
-          columns: item.datasource.columns,
-          start,
-          end
-        }
-      );
-      const rows: {date: Date; value: number}[] = await originalDB.execute(
-        sqlRendResult[0],
-        ...sqlRendResult[1]
-      );
-      //公卫数据流水转换成工分流水
-      workItems = workItems.concat(
-        rows.map<WorkItemDetail>(it => {
-          let score = 0;
-          //SUM得分方式
-          if (param.method === HisWorkMethod.SUM) {
-            score = new Decimal(it.value).mul(param.score).toNumber();
-          }
-          //AMOUNT得分方式
-          if (param.method === HisWorkMethod.AMOUNT) {
-            score = param.score;
-          }
-          //权重系数
-          score = new Decimal(score).mul(param.rate).toNumber();
-          return {
-            id: param.id,
-            name: param.name,
-            score: score
-          };
-        })
-      );
-    }
-    //endregion
-    //region 计算其他工分来源
-    for (const param of bindings.filter(it => it.source.startsWith('其他'))) {
-      let type = '';
-      if (param.source === '其他.住院诊疗人次') type = '住院';
-      if (param.source === '其他.门诊诊疗人次') type = '门诊';
-      const rows: {date: Date; value: number}[] = (
-        await originalDB.execute(
-          // language=PostgreSQL
-          `
-            select distinct treat
-            from his_charge_master
-            where hospital = ?
-              and operate_time > ?
-              and operate_time < ?
-              and charge_type = ?
-          `,
-          staffModel.hospital,
-          start,
-          end,
-          type
-        )
-      ).map(() => ({
-        value: 1,
-        date: day
-      }));
-      //其他工分流水转换成工分流水
-      workItems = workItems.concat(
-        rows.map<WorkItemDetail>(it => {
-          let score = 0;
-          //SUM得分方式
-          if (param.method === HisWorkMethod.SUM) {
-            score = new Decimal(it.value).mul(param.score).toNumber();
-          }
-          //AMOUNT得分方式
-          if (param.method === HisWorkMethod.AMOUNT) {
-            score = param.score;
-          }
-          //权重系数
-          score = new Decimal(score).mul(param.rate).toNumber();
-          return {
-            id: param.id,
-            name: param.name,
-            score: score
-          };
-        })
-      );
-    }
-    //endregion
     //region 写入结果表
     //累加流水
-    resultModel.self = workItems.reduce((result, current) => {
-      const obj = result.find(it => it.id === current.id);
-      if (obj) {
-        obj.score = new Decimal(obj.score).add(current.score).toNumber();
-      } else {
-        result.push({
-          id: current.id,
-          name: current.name,
-          score: current.score
-        });
-      }
-      return result;
-    }, []);
-    //补充没有得分的工分项
-    for (const param of bindings) {
-      const obj = resultModel.self.find(it => it.id === param.id);
-      if (!obj) {
-        resultModel.self.push({
-          id: param.id,
-          name: param.name,
-          score: 0
-        });
-      }
-    }
+    resultModel.self = workItems;
+
     //TODO: 兼容老设计, 等待确认完删除
     resultModel.staffs = [];
     const resultValue = JSON.stringify(resultModel);
