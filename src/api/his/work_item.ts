@@ -516,6 +516,7 @@ export default class HisWorkItem {
    * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
+   * @param remark 备注
    */
   @validate(
     should
@@ -555,9 +556,13 @@ export default class HisWorkItem {
       )
       .required()
       .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构')
+      .description('固定的时候的范围, 员工/科室/机构'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
-  async add(name, method, mappings, staffMethod, staffs, score, scope) {
+  async add(name, method, mappings, staffMethod, staffs, score, scope, remark) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -602,14 +607,15 @@ export default class HisWorkItem {
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, type, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+              his_work_item(id, hospital, name, method, type, score, remark, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
         method,
         staffMethod,
         score,
+        remark,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -681,6 +687,7 @@ export default class HisWorkItem {
    * @param mappings
    * @param score 分值
    * @param scope 固定的时候范围必传
+   * @param remark 备注
    */
   @validate(
     should
@@ -724,9 +731,23 @@ export default class HisWorkItem {
       )
       .required()
       .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构')
+      .description('固定的时候的范围, 员工/科室/机构'),
+    should
+      .string()
+      .allow(null)
+      .description('备注')
   )
-  async update(id, name, method, mappings, staffMethod, staffs, score, scope) {
+  async update(
+    id,
+    name,
+    method,
+    mappings,
+    staffMethod,
+    staffs,
+    score,
+    scope,
+    remark
+  ) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -759,13 +780,15 @@ export default class HisWorkItem {
     );
     if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
+    // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
     const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+
+    // 定义一个新数组
     const newMappings = [];
+    // 排查当父类和子类都在数组中的时候, 过滤掉子类
     for (const sourceIt of mappingSorts) {
-      // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
-      const index = newMappings.find(
-        newIt => sourceIt.startsWith(newIt) && newIt.length <= sourceIt.length
-      );
+      // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+      const index = newMappings.find(newIt => sourceIt.startsWith(`${newIt}.`));
       // 如果没有, push进去
       if (!index) {
         newMappings.push(sourceIt);
@@ -780,12 +803,14 @@ export default class HisWorkItem {
                 method = ?,
                 type = ?,
                 score = ?,
+                remark = ?,
                 updated_at = ?
               where id = ?`,
         name,
         method,
         staffMethod,
         score,
+        remark,
         dayjs().toDate(),
         id
       );
@@ -903,6 +928,7 @@ export default class HisWorkItem {
                item.method,
                item.type,
                item.score,
+               item.remark,
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
@@ -983,6 +1009,7 @@ export default class HisWorkItem {
           method: it.method,
           type: it.type,
           score: it.score,
+          remark: it.remark,
           scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
           staffIdMappings: staffs
@@ -1285,7 +1312,7 @@ export default class HisWorkItem {
   /**
    * 工分项和员工的绑定
    * @param item 工分项id
-   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数)
+   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数, 备注)
    */
   @validate(
     should
@@ -1306,7 +1333,11 @@ export default class HisWorkItem {
         rate: should
           .number()
           .required()
-          .description('权重系数')
+          .description('权重系数'),
+        remark: should
+          .string()
+          .allow(null)
+          .description('备注')
       })
       .required()
       .description('要增删改的公分项和员工的绑定')
@@ -1324,7 +1355,7 @@ export default class HisWorkItem {
       if (params?.id) {
         // 先根据id查询到该工分项下的员工是否在其他分数中存在
         const updList = await appDB.execute(
-          `select id, staff, item, rate
+          `select id, staff, item, rate, remark
                 from his_staff_work_item_mapping
                 where id = ?`,
           params?.id
@@ -1332,11 +1363,16 @@ export default class HisWorkItem {
         if (updList.length === 0)
           throw new KatoRuntimeError(`${params?.id}不存在`);
 
+        // language=PostgreSQL
         await appDB.execute(
-          `update his_staff_work_item_mapping set rate = ?, updated_at = ?
-                where id = ?
+          `update his_staff_work_item_mapping
+             set rate       = ?,
+                 remark     = ?,
+                 updated_at = ?
+             where id = ?
           `,
           params?.rate,
+          params?.remark,
           dayjs().toDate(),
           params?.id
         );
@@ -1367,12 +1403,14 @@ export default class HisWorkItem {
         // 执行添加语句
         // language=PostgreSQL
         await appDB.execute(
-          ` insert into his_staff_work_item_mapping(id, item, staff, rate, created_at, updated_at)
-              values (?, ?, ?, ?, ?, ?)`,
+          `
+            insert into his_staff_work_item_mapping(id, item, staff, rate, remark, created_at, updated_at)
+            values (?, ?, ?, ?, ?, ?, ?)`,
           uuid(),
           params?.item,
           params?.staff,
           params?.rate,
+          params?.remark,
           dayjs().toDate(),
           dayjs().toDate()
         );
@@ -1415,6 +1453,7 @@ export default class HisWorkItem {
              , mapping.staff
              , mapping.item
              , mapping.rate
+             , mapping.remark
         from his_staff_work_item_mapping mapping
                left join staff on mapping.staff = staff.id
         where staff.hospital = ?

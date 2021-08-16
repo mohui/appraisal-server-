@@ -50,6 +50,7 @@
 | method | varchar(255) | 得分方式; 计数/总和 |
 | type | varchar(255) | 关联员工状态; 动态/固定 |
 | score | double precision | 分值 |
+| remark | varchar(500)  | 备注 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -83,6 +84,7 @@
 | staff | varchar(36) | 员工id |
 | item | varchar(36) | 工分项目id |
 | rate | double precision | 权重系数 |
+| remark | varchar(500)  | 备注 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
