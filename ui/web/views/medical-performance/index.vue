@@ -133,6 +133,7 @@
             style="width: 200px"
             placeholder="请输入金额"
             v-model="amount"
+            @input="handleAmountChange"
           ></el-input>
           <el-button
             type="primary"
@@ -228,6 +229,7 @@ export default {
       },
       dialogStaffTableVisible: false,
       amount: null,
+      originalReportData: [],
       reportData: [],
       reportDataLoading: false,
       chartColors: [
@@ -342,18 +344,24 @@ export default {
         this.currentDate = new Date(JSON.parse(route.query.date));
     },
     async handleClickReport() {
-      this.reportDataLoading = true;
       await this.reportDataRequest();
+      this.handleReportData();
+    },
+    async reportDataRequest() {
+      this.reportDataLoading = true;
+      this.originalReportData = await this.$api.HisHospital.report(
+        this.currentDate
+      );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
     },
-    async reportDataRequest() {
-      const list = await this.$api.HisHospital.report(this.currentDate);
+    // 报表数据处理
+    handleReportData() {
       const result = [];
-      if (list) {
+      if (this.originalReportData) {
         // 机构总分
         let organizationScore = 0;
-        for (const i of list) {
+        for (const i of this.originalReportData) {
           // 累加各员工校正后工分
           organizationScore += i.items.reduce(
             (prev, curr) => prev + curr.score * (i.rate || 1),
@@ -406,6 +414,11 @@ export default {
         }
       }
       this.reportData = result;
+    },
+    // 金额改变时
+    handleAmountChange() {
+      // 报表数据更新
+      this.handleReportData();
     },
     handleChangeDate() {
       this.$router.replace({
