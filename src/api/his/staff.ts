@@ -10,6 +10,7 @@ import {
   getHospital,
   getSettle,
   monthToRange,
+  dayToRange,
   StaffAssessModel,
   StaffWorkModel
 } from './service';
@@ -428,9 +429,37 @@ export default class HisStaff {
     id,
     month
   ): Promise<{
+    day: Date;
     items: {id: string; name: string; score: number}[];
     rate?: number;
   }> {
+    // 获取所传月份的开始时间 即所在月份的一月一号
+    const monthTime = monthToRange(month);
+    // 当天的开始时间和结束时间
+    const {start, end} = dayToRange(monthTime.start);
+
+    // 工分只存储在一号那一天,所以只查询一号
+    const staffResultModels: {
+      day: Date;
+      work: StaffWorkModel;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select day, work
+        from his_staff_result
+        where id = ?
+          and day >= ?
+          and day < ?
+        order by day
+      `,
+      id,
+      start,
+      end
+    );
+
+    // 取出工分详情
+    const workItems = staffResultModels[0]?.work?.self ?? [];
+
     const rows: {
       day: Date;
       items: {
@@ -441,7 +470,7 @@ export default class HisStaff {
       rate?: number;
     }[] = await this.findWorkScoreDailyList(id, month);
 
-    return rows.reduce(
+    const oldReturn = rows.reduce(
       (result, current) => {
         result.day = current.day;
         result.rate = current.rate;
@@ -468,6 +497,11 @@ export default class HisStaff {
         items: []
       }
     );
+    return {
+      day: start,
+      rate: oldReturn?.rate,
+      items: workItems
+    };
   }
 
   /**
