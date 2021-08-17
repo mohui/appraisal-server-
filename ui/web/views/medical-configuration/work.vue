@@ -582,7 +582,7 @@ export default {
             .map(m => ({
               name: m.name,
               id: m.id,
-              scope: this.findItem(m.id, this.workTreeData)?.scope ?? null
+              scope: this.findItem(m.id, this.workTreeData).scope
             }))
             .filter(it => it.scope), //过滤掉可能不存在的树节点
           projects: [],
