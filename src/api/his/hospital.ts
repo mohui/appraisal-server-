@@ -3,6 +3,7 @@ import {appDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {
   dateValid,
+  dayToRange,
   getHospital,
   getSettle,
   monthToRange,
@@ -107,7 +108,11 @@ export default class HisHospital {
   @validate(dateValid)
   async findWorkScoreList(month) {
     const hospital = await getHospital();
-    const {start, end} = monthToRange(month);
+
+    // 获取所传月份的开始时间 即所在月份的一月一号
+    const monthTime = monthToRange(month);
+    // 当天的开始时间和结束时间,前闭后开
+    const {start, end} = dayToRange(monthTime.start);
     //查询员工工分结果
     // language=PostgreSQL
     const rows: {work: StaffWorkModel}[] = await appDB.execute(
