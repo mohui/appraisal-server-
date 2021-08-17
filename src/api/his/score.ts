@@ -1193,12 +1193,8 @@ export default class HisScore {
     );
     // 获取所传月份的开始时间
     const {start} = monthToRange(month);
-    //计算工分
-    for (const staff of staffs) {
-      log(`开始计算 ${staff.name} 工分`);
-      await this.scoreStaff(staff.id, start);
-      log(`结束计算 ${staff.name} 工分`);
-    }
+
+    await Promise.all(staffs.map(staff => this.scoreStaff(staff.id, start)));
     log(`结束计算 ${hospital} 工分`);
   }
 
