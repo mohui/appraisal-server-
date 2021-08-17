@@ -1181,7 +1181,7 @@ export default class HisScore {
    */
   async workScoreHospital(month, hospital) {
     log(`开始计算 ${hospital} 工分`);
-    //查询员工
+    // 查询员工
     // language=PostgreSQL
     const staffs: {id: string; name: string}[] = await appDB.execute(
       `
@@ -1191,21 +1191,12 @@ export default class HisScore {
       `,
       hospital
     );
-    //整理days
+    // 获取所传月份的开始时间
     const {start} = monthToRange(month);
-    const end = getEndTime(month);
-    const days = [];
-    for (let i = 0; i <= dayjs(end).diff(start, 'd'); i++) {
-      days.push(
-        dayjs(start)
-          .add(i, 'd')
-          .toDate()
-      );
-    }
     //计算工分
     for (const staff of staffs) {
       log(`开始计算 ${staff.name} 工分`);
-      await Promise.all(days.map(day => this.scoreStaff(staff.id, day)));
+      await this.scoreStaff(staff.id, start);
       log(`结束计算 ${staff.name} 工分`);
     }
     log(`结束计算 ${hospital} 工分`);
@@ -1218,7 +1209,8 @@ export default class HisScore {
    * @param day 日期
    */
   async scoreStaff(id, day) {
-    const {start, end} = dayToRange(day);
+    // 获取月份的开始时间和结束时间
+    const {start, end} = monthToRange(day);
     //查询员工信息
     const staffModel: {
       id: string;
@@ -1372,7 +1364,7 @@ export default class HisScore {
             and day = ? for update
         `,
         id,
-        day
+        start
       )
     )[0]?.work;
     if (!resultModel) {
@@ -1399,7 +1391,7 @@ export default class HisScore {
                         updated_at = now()
       `,
       id,
-      day,
+      start,
       resultValue,
       resultValue
     );
