@@ -254,7 +254,7 @@ export async function workPointCalculation(
                  doctor "staffId",
                  staff.name as "staffName",
                  '${PreviewType.HIS_STAFF}' as type
-          from his_charge_detail1 detail
+          from his_charge_detail detail
           inner join his_staff staff on detail.doctor = staff.id
           where operate_time > ?
             and operate_time < ?

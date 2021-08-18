@@ -1096,7 +1096,7 @@ export default class HisWorkItem {
       if (checkIds.length > 0) {
         const checkModels = await originalDB.execute(
           `select id, name
-               from his_check1
+               from his_check
                where status = true and id in (${checkIds.map(() => '?')})`,
           ...checkIds.map(it => it.code)
         );
@@ -1114,7 +1114,7 @@ export default class HisWorkItem {
       if (drugsIds.length > 0) {
         const drugModels = await originalDB.execute(
           `select id, name
-             from his_drug1 where id in (${drugsIds.map(() => '?')})`,
+             from his_drug where id in (${drugsIds.map(() => '?')})`,
           ...drugsIds.map(it => it.code)
         );
         drugs = drugsIds.map(drugIt => {
@@ -1147,7 +1147,7 @@ export default class HisWorkItem {
       if (checkDictIds.length > 0) {
         const dictModels = await originalDB.execute(
           `select id as code, name
-               from his_dict1
+               from his_dict
                where category_code = '10201005'
                 and id in (${checkDictIds.map(() => '?')})`,
           ...checkDictIds.map(it => it.code)
@@ -1167,7 +1167,7 @@ export default class HisWorkItem {
       if (drugDictIds.length > 0) {
         const dictModels = await originalDB.execute(
           `select id as code, name
-               from his_dict1
+               from his_dict
                where category_code = '10301001'
                 and id in (${drugDictIds.map(() => '?')})`,
           ...drugDictIds.map(it => it.code)
@@ -1257,7 +1257,7 @@ export default class HisWorkItem {
       [sql, params] = sqlRender(
         `
         select id, name
-        from his_check1
+        from his_check
         where status = true
         {{#if keyWord}}
             AND name like {{? keyWord}}
@@ -1274,7 +1274,7 @@ export default class HisWorkItem {
       [sql, params] = sqlRender(
         `
         select id, name
-        from his_drug1
+        from his_drug
         where 1 = 1
         {{#if keyWord}}
             AND name like {{? keyWord}}
@@ -1536,14 +1536,13 @@ export default class HisWorkItem {
     )[0]?.etl_id;
     if (!etlId) return [];
     //region his项目相关
-    //TODO: 收费基础表都为临时表, 测试通过后, 改用正式表
     //region 已收费项目
     //查询已收费的id数组
     const chargeIdModels: {item: string}[] = await originalDB.execute(
       // language=PostgreSQL
       `
         select distinct item
-        from his_charge_detail1 detail
+        from his_charge_detail detail
                left join his_charge_master hcm on detail.main = hcm.id
         where hcm.hospital = ?
           and item not like '%..%'
@@ -1563,12 +1562,12 @@ export default class HisWorkItem {
           let models: {name}[] = [];
           if (type === '检查项目') {
             models = await originalDB.execute(
-              `select name from his_check1 where id = ?`,
+              `select name from his_check where id = ?`,
               id
             );
           } else if (type === '药品') {
             models = await originalDB.execute(
-              `select name from his_drug1 where id = ?`,
+              `select name from his_drug where id = ?`,
               id
             );
           }
@@ -1583,12 +1582,12 @@ export default class HisWorkItem {
     //endregion
     //检查项目分类
     const checkCategoryModels: {id; name}[] = await originalDB.execute(
-      `select id, name from his_dict1 where category_code = '10201005' and etl_id = ?`,
+      `select id, name from his_dict where category_code = '10201005' and etl_id = ?`,
       etlId
     );
     //药品分类
     const drugCategoryModels: {id; name}[] = await originalDB.execute(
-      `select id, name from his_dict1 where category_code = '10301001' and etl_id = ?`,
+      `select id, name from his_dict where category_code = '10301001' and etl_id = ?`,
       etlId
     );
     //endregion
