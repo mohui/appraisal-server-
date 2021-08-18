@@ -354,7 +354,10 @@
         </el-button>
       </div>
     </el-dialog>
-    <work-type-dialog :visible="itemTypeVisible"></work-type-dialog>
+    <work-type-dialog
+      :visible="itemTypeVisible"
+      :itemType="itemType"
+    ></work-type-dialog>
   </div>
 </template>
 
@@ -425,7 +428,12 @@ export default {
       filterText: '',
       staffFilterText: '',
       isPreView: false,
-      itemTypeVisible: false
+      itemTypeVisible: false,
+      itemType: {
+        id: '',
+        name: '',
+        sort: 1
+      }
     };
   },
   computed: {
@@ -638,9 +646,19 @@ export default {
       }
     },
     async editRow(row) {
+      //类型的修改
       if (row.itemTypeId) {
+        this.itemType = JSON.parse(
+          JSON.stringify({
+            id: row.itemTypeId,
+            name: row.work,
+            sort: row.sort
+          })
+        );
+        this.itemTypeVisible = true;
         return;
       }
+      //工分项的修改
       this.newWork = JSON.parse(
         JSON.stringify({
           id: row.id,

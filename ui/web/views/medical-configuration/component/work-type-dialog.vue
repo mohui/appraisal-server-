@@ -45,11 +45,6 @@ export default {
   name: 'WorkTypeDialog',
   data() {
     return {
-      itemType: {
-        id: '',
-        sort: 1,
-        name: ''
-      },
       btnLoading: false
     };
   },
@@ -58,6 +53,10 @@ export default {
       type: Boolean,
       required: true,
       default: false
+    },
+    itemType: {
+      type: Object,
+      required: false
     }
   },
   methods: {
@@ -73,6 +72,7 @@ export default {
           this.itemType.sort
         );
         this.$parent.$asyncComputed.itemTypeData.update();
+        this.$parent.$asyncComputed.serverData.update();
         this.$parent.resetItemType();
       } catch (e) {
         this.$message.error(e);
