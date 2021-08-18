@@ -115,34 +115,65 @@ export default class HisHospital {
     const {start, end} = dayToRange(monthTime.start);
     //查询员工工分结果
     // language=PostgreSQL
-    const rows: {work: StaffWorkModel}[] = await appDB.execute(
+    const rows: {
+      item_id: string;
+      item_name: string;
+      type_id: string;
+      type_name: string;
+      score: number;
+    }[] = await appDB.execute(
       `
-        select work
-        from his_staff_result r
-               inner join staff s on r.id = s.id and s.hospital = ?
-        where r.day >= ?
-          and r.day < ?
+        select result.item_id,
+               result.item_name,
+               result.type_id,
+               result.type_name,
+               result.score
+        from his_staff_work_result result
+               inner join staff on result.staff_id = staff.id
+          and staff.hospital = ?
+        where result.time >= ?
+          and result.time < ?
       `,
       hospital,
       start,
       end
     );
     //定义返回值
-    const result: {id: string; name: string; score: number}[] = [];
+    const result: {
+      id: string;
+      name: string;
+      typeId: string;
+      typeName: string;
+      score: number;
+    }[] = [];
     //填充得分的工分项
     for (const row of rows) {
-      for (const model of row.work.self) {
-        const obj = result.find(it => it.id === model.id);
-        if (obj) {
-          obj.score += model.score;
-        } else {
-          result.push(model);
-        }
+      const obj = result.find(it => it.id === row.item_id);
+      if (obj) {
+        obj.score += row.score;
+      } else {
+        result.push({
+          id: row.item_id,
+          name: row.item_name,
+          typeId: row.type_id,
+          typeName: row.type_name,
+          score: row.score
+        });
       }
     }
     //填充未得分的工分项
-    const workItemModels: {id: string; name: string}[] = await appDB.execute(
-      `select id, name from his_work_item where hospital = ?`,
+    // language=PostgreSQL
+    const workItemModels: {
+      id: string;
+      name: string;
+      item_type: string;
+      type_type_name: string;
+    }[] = await appDB.execute(
+      `
+      select item.id, item.name, item.item_type, type.name type_type_name
+      from his_work_item item
+      left join  his_work_item_type type on item.item_type = type.id
+      where item.hospital = ?`,
       hospital
     );
     for (const model of workItemModels) {
@@ -151,6 +182,8 @@ export default class HisHospital {
         result.push({
           id: model.id,
           name: model.name,
+          typeId: model.item_type,
+          typeName: model.type_type_name,
           score: 0
         });
     }
