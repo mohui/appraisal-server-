@@ -32,6 +32,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       create table if not exists his_staff_work_result
       (
         id           varchar(36) primary key,
+        staff_id     varchar(36),
         time         date,
         item_id      varchar(36),
         item_name    varchar(255),
@@ -39,14 +40,16 @@ export class AddWorkItemTypeMigration implements IMigration {
         type_name    varchar(255),
         score        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        unique (staff_id, time, item_id)
       );
       comment on table his_staff_work_result is '员工得分表';
+      comment on column his_staff_work_result.item_id is '员工id';
       comment on column his_staff_work_result.time is '时间';
       comment on column his_staff_work_result.item_id is '工分项id';
-      comment on column his_staff_work_result.item_name is '公分项名称';
-      comment on column his_staff_work_result.type_id is '公分项分类id';
-      comment on column his_staff_work_result.type_name is '公分项分类名称';
+      comment on column his_staff_work_result.item_name is '工分项名称';
+      comment on column his_staff_work_result.type_id is '工分项分类id';
+      comment on column his_staff_work_result.type_name is '工分项分类名称';
       comment on column his_staff_work_result.score is '得分';
     `);
   }
