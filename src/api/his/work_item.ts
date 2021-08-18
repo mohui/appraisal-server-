@@ -1251,15 +1251,40 @@ export default class HisWorkItem {
       .required()
       .description('分值')
   )
-  async workItemTypeAdd(id, name, sort) {
-    // 如果
-    if (!id) {
+  async workItemTypeUpsert(id, name, sort) {
+    // 如果id不为空,是修改
+    if (id) {
+      // 修改之前先查询id是否存在
+      // language=PostgreSQL
+      const find = await appDB.execute(
+        `
+          select * from his_work_item_type where id = ?
+        `,
+        id
+      );
+      if (find.length === 0) throw new KatoRuntimeError(`该分类不存在`);
+      // 执行修改
+      // language=PostgreSQL
+      await appDB.execute(
+        `
+          update his_work_item_type
+          set name       = ?,
+              sort       = ?,
+              updated_at = ?
+          where id = ?
+        `,
+        name,
+        sort,
+        new Date(),
+        id
+      );
+    } else {
       // 获取机构
       const hospital = await getHospital();
       // language=PostgreSQL
       await appDB.execute(
         `insert into his_work_item_type(id, name, hospital, sort, created_at, updated_at)
-         values (?, ?, ?, ?, ?, ?)`,
+           values (?, ?, ?, ?, ?, ?)`,
         uuid(),
         name,
         hospital,
