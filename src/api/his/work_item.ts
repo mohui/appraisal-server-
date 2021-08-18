@@ -930,7 +930,7 @@ export default class HisWorkItem {
                item.score,
                item.remark,
                item.item_type,
-               type.name item_type_name,
+               type.name    item_type_name,
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
@@ -1234,6 +1234,40 @@ export default class HisWorkItem {
     return workItems
       .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
       .slice(0, 10000);
+  }
+
+  // 工分项目分类添加
+  @validate(
+    should
+      .string()
+      .allow(null)
+      .description('主键'),
+    should
+      .string()
+      .required()
+      .description('分类名称'),
+    should
+      .number()
+      .required()
+      .description('分值')
+  )
+  async workItemTypeAdd(id, name, sort) {
+    // 如果
+    if (!id) {
+      // 获取机构
+      const hospital = await getHospital();
+      // language=PostgreSQL
+      await appDB.execute(
+        `insert into his_work_item_type(id, name, hospital, sort, created_at, updated_at)
+         values (?, ?, ?, ?, ?, ?)`,
+        uuid(),
+        name,
+        hospital,
+        sort,
+        new Date(),
+        new Date()
+      );
+    }
   }
 
   // region 公分项目来源, 和员工绑定的增删改查
