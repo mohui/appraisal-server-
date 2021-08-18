@@ -1,15 +1,15 @@
-import {KatoRuntimeError, KatoCommonError, should, validate} from 'kato-server';
-import {appDB, originalDB} from '../../app';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {appDB, mappingDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {
-  HisWorkMethod,
-  HisWorkSource,
+  HisStaffDeptType,
   HisStaffMethod,
-  HisStaffDeptType
+  HisWorkMethod,
+  HisWorkSource
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
-import {monthToRange, getHospital} from './service';
+import {getHospital, monthToRange} from './service';
 import {workPointCalculation} from './score';
 
 // region 工分项目来源
@@ -1146,10 +1146,10 @@ export default class HisWorkItem {
       // 检查项目分类
       if (checkDictIds.length > 0) {
         const dictModels = await originalDB.execute(
-          `select code, name
+          `select id as code, name
                from his_dict
                where category_code = '10201005'
-                and code in (${checkDictIds.map(() => '?')})`,
+                and id in (${checkDictIds.map(() => '?')})`,
           ...checkDictIds.map(it => it.code)
         );
 
@@ -1166,10 +1166,10 @@ export default class HisWorkItem {
       // 药品分类
       if (drugDictIds.length > 0) {
         const dictModels = await originalDB.execute(
-          `select code, name
+          `select id as code, name
                from his_dict
                where category_code = '10301001'
-                and code in (${drugDictIds.map(() => '?')})`,
+                and id in (${drugDictIds.map(() => '?')})`,
           ...drugDictIds.map(it => it.code)
         );
 
@@ -1524,182 +1524,75 @@ export default class HisWorkItem {
 
   /**
    * 工分项目来源
-   * @param item
    */
-  @validate(
-    should
-      .string()
-      .allow(null)
-      .description('工分项目id')
-  )
-  async sources(item) {
+  async sources() {
     const hospital = await getHospital();
-    let sql, params;
-    // 查询分类
-    const dictModels = await originalDB.execute(
-      `select code, name, category_code from his_dict where category_code in ('10201005', '10301001')`
-    );
-    // 门诊/住院 检查项目/药品
-    let dictList = [];
-    // 筛选门诊,住院检查项目, 门诊,住院药品
-    for (const dictIt of dictModels) {
-      // 门诊/住院 检查项目分类
-      if (dictIt.category_code === '10201005') {
-        dictList.push({
-          id: `门诊.检查项目.${dictIt.code}`,
-          name: dictIt.name?.trim(),
-          parent: `门诊.检查项目`,
-          scope: HisStaffDeptType.Staff
-        });
-        dictList.push({
-          id: `住院.检查项目.${dictIt.code}`,
-          name: dictIt.name?.trim(),
-          parent: `住院.检查项目`,
-          scope: HisStaffDeptType.Staff
-        });
-      }
-      // 门诊/住院 药品分类
-      if (dictIt.category_code === '10301001') {
-        dictList.push({
-          id: `门诊.药品.${dictIt.code}`,
-          name: dictIt.name?.trim(),
-          parent: `门诊.药品`,
-          scope: HisStaffDeptType.Staff
-        });
-        dictList.push({
-          id: `住院.药品.${dictIt.code}`,
-          name: dictIt.name?.trim(),
-          parent: `住院.药品`,
-          scope: HisStaffDeptType.Staff
-        });
-      }
-    }
-
-    // 查询药品和检查项目叶子节点
-    const chargeModels = await originalDB.execute(
+    //查询etl_id, 用于查询全部的检查项目和药品分类数据
+    const etlId = (
+      await mappingDB.execute(
+        `select * from area_hospital_mapping where area = ? and etl_id like '%HIS%'`,
+        hospital
+      )
+    )[0]?.etl_id;
+    if (!etlId) return [];
+    //region his项目相关
+    //region 已收费项目
+    //查询已收费的id数组
+    const chargeIdModels: {item: string}[] = await originalDB.execute(
       // language=PostgreSQL
       `
         select distinct item
         from his_charge_detail detail
                left join his_charge_master hcm on detail.main = hcm.id
         where hcm.hospital = ?
-          and item not like ?
+          and item not like '%..%'
       `,
-      hospital,
-      `%..%`
+      hospital
     );
-
-    // 查询已经选中过的所有项目
-    if (item) {
-      // 查询绑定过的关联项目
-      const mappingModels = await appDB.execute(
-        `select source from his_work_item_mapping where item = ?`,
-        item
-      );
-      const mappingItems = mappingModels.filter(
-        it => it.source?.split('.').length === 4
-      );
-
-      mappingItems.forEach(it => {
-        // 查找关联过的项目是否在关联项目列表中,如果不在,需要push进去
-        const index = chargeModels.find(
-          chargeIt => chargeIt.item === it.source
-        );
-        // 如果么有查找到, 说明存在关联项目不在列表中
-        if (!index) {
-          chargeModels.push({
-            item: it.source
-          });
-        }
-      });
-    }
-
-    const chargeMaps = chargeModels.map(it => {
-      const items = it.item.split('.');
-      return {
-        id: it.item,
-        parent: items.slice(0, 3).join('.'),
-        code: items[3],
-        category: items[2]
-      };
-    });
-    const hisCheckParams = chargeMaps
-      .filter(it => it.id?.includes('检查项目'))
-      .map(it => ({code: it.code, category: it.category}));
-    const hisDrugParams = chargeMaps
-      .filter(it => it.id?.includes('药品'))
-      .map(it => ({code: it.code, category: it.category}));
-
-    // 匹配检查项目名称列表
-    let hisCheckModels = [];
-    // 匹配药品名称列表
-    let hisDrugModels = [];
-    if (hisCheckParams.length > 0) {
-      // 检查项目
-      [sql, params] = sqlRender(
-        `
-       select id, name, category
-       from his_check
-       where concat(category,id) in ({{#each categoryId}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
-       `,
-        {
-          categoryId: hisCheckParams.map(it => `${it.category}${it.code}`)
-        }
-      );
-      // 查询检查项目
-      hisCheckModels = await originalDB.execute(sql, ...params);
-    }
-
-    if (hisDrugParams.length > 0) {
-      // 药品
-      [sql, params] = sqlRender(
-        `
-       select id, name, category
-       from his_drug
-       where concat(category,id) in ({{#each categoryId}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
-       `,
-        {
-          categoryId: hisDrugParams.map(it => `${it.category}${it.code}`)
-        }
-      );
-      // 执行药品查询语句
-      hisDrugModels = await originalDB.execute(sql, ...params);
-    }
-
-    // 给his药品和检查项目赋名称
-    const hisList = chargeMaps.map(it => {
-      const checkIndex = hisCheckModels.find(
-        checkIt => checkIt.id === it.code && checkIt.category === it.category
-      );
-      const drugIndex = hisDrugModels.find(
-        checkIt => checkIt.id === it.code && checkIt.category === it.category
-      );
-      return {
-        id: it.id,
-        name: checkIndex?.name
-          ? checkIndex.name
-          : drugIndex?.name
-          ? drugIndex.name
-          : null,
-        parent: it.parent,
-        scope: HisStaffDeptType.Staff
-      };
-    });
-
-    // 给药品分类,和检查项目分类添加子集元素
-    dictList = dictList.map(it => ({
-      ...it,
-      children: []
-    }));
-
-    for (const hisIt of hisList) {
-      const index = dictList.find(dictIt => hisIt.parent === dictIt.id);
-      if (index) index.children.push(hisIt);
-    }
-
-    // 第一层
+    // 已收费his项目数组
+    const chargeModels: {id; name; parent}[] = (
+      await Promise.all(
+        chargeIdModels.map(async it => {
+          //切分id字符串, item格式: (住院|门诊).(检查项目|药品).(分类id).(检查项目id|药品id)
+          const ids = it.item.split('.');
+          //检查项目|药品
+          const type = ids[1];
+          //检查项目id|药品id
+          const id = ids[3];
+          let models: {name}[] = [];
+          if (type === '检查项目') {
+            models = await originalDB.execute(
+              `select name from his_check where id = ?`,
+              id
+            );
+          } else if (type === '药品') {
+            models = await originalDB.execute(
+              `select name from his_drug where id = ?`,
+              id
+            );
+          }
+          return models.map<{id; name; parent}>(m => ({
+            ...m,
+            id: it.item,
+            parent: ids.slice(0, 3).join('.')
+          }))[0];
+        })
+      )
+    ).filter(it => !!it);
+    //endregion
+    //检查项目分类
+    const checkCategoryModels: {id; name}[] = await originalDB.execute(
+      `select id, name from his_dict where category_code = '10201005' and etl_id = ?`,
+      etlId
+    );
+    //药品分类
+    const drugCategoryModels: {id; name}[] = await originalDB.execute(
+      `select id, name from his_dict where category_code = '10301001' and etl_id = ?`,
+      etlId
+    );
+    //endregion
+    //返回值数组
     const list = HisWorkItemSources.filter(it => !it.parent);
-    // 第二层
     for (const treeIt1 of list) {
       if (treeIt1.id === '门诊') {
         treeIt1['children'] = HisWorkItemSources.filter(
@@ -1708,14 +1601,30 @@ export default class HisWorkItem {
         // 第三层
         for (const deptIt of treeIt1['children']) {
           if (deptIt.id === '门诊.检查项目') {
-            deptIt['children'] = dictList.filter(
-              it => it.parent === '门诊.检查项目'
-            );
+            deptIt['children'] = checkCategoryModels.map(c => {
+              const id = `门诊.检查项目.${c.id}`;
+              return {
+                ...c,
+                id,
+                scope: deptIt.scope,
+                children: chargeModels
+                  .filter(d => d.parent === id)
+                  .map(d => ({...d, scope: deptIt.scope}))
+              };
+            });
           }
           if (deptIt.id === '门诊.药品') {
-            deptIt['children'] = dictList.filter(
-              it => it.parent === '门诊.药品'
-            );
+            deptIt['children'] = drugCategoryModels.map(c => {
+              const id = `门诊.药品.${c.id}`;
+              return {
+                ...c,
+                id,
+                scope: deptIt.scope,
+                children: chargeModels
+                  .filter(d => d.parent === id)
+                  .map(d => ({...d, scope: deptIt.scope}))
+              };
+            });
           }
         }
       }
@@ -1726,14 +1635,30 @@ export default class HisWorkItem {
         // 第三层
         for (const deptIt of treeIt1['children']) {
           if (deptIt.id === '住院.检查项目') {
-            deptIt['children'] = dictList.filter(
-              it => it.parent === '住院.检查项目'
-            );
+            deptIt['children'] = checkCategoryModels.map(c => {
+              const id = `住院.检查项目.${c.id}`;
+              return {
+                ...c,
+                id,
+                scope: deptIt.scope,
+                children: chargeModels
+                  .filter(d => d.parent === id)
+                  .map(d => ({...d, scope: deptIt.scope}))
+              };
+            });
           }
           if (deptIt.id === '住院.药品') {
-            deptIt['children'] = dictList.filter(
-              it => it.parent === '住院.药品'
-            );
+            deptIt['children'] = drugCategoryModels.map(c => {
+              const id = `住院.药品.${c.id}`;
+              return {
+                ...c,
+                id,
+                scope: deptIt.scope,
+                children: chargeModels
+                  .filter(d => d.parent === id)
+                  .map(d => ({...d, scope: deptIt.scope}))
+              };
+            });
           }
         }
       }
@@ -1748,7 +1673,7 @@ export default class HisWorkItem {
         );
       }
       if (treeIt1.id === '手工数据') {
-        [sql, params] = sqlRender(
+        const [sql, params] = sqlRender(
           `
             select id, name
             from his_manual_data
