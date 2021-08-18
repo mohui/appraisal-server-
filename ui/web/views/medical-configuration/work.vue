@@ -14,6 +14,9 @@
       <div slot="header" class="work-header">
         <span>工分项设置</span>
         <div>
+          <el-button size="mini" type="warning" @click="itemTypeVisible = true"
+            >新增分类</el-button
+          >
           <el-button size="mini" type="primary" @click="addWorkVisible = true"
             >新增工分项</el-button
           >
@@ -351,6 +354,7 @@
         </el-button>
       </div>
     </el-dialog>
+    <work-type-dialog :visible="itemTypeVisible"></work-type-dialog>
   </div>
 </template>
 
@@ -364,10 +368,11 @@ import {
 } from '../../../../common/his.ts';
 import {strToPinyin} from '../../utils/pinyin';
 import WorkPreview from './component/work-preview';
+import WorkTypeDialog from './component/work-type-dialog';
 
 export default {
   name: 'Work',
-  components: {WorkPreview},
+  components: {WorkPreview, WorkTypeDialog},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (this.newWork.projectsSelected.length < 1) {
@@ -419,7 +424,8 @@ export default {
       },
       filterText: '',
       staffFilterText: '',
-      isPreView: false
+      isPreView: false,
+      itemTypeVisible: false
     };
   },
   computed: {
@@ -789,6 +795,9 @@ export default {
     //列表树load方法
     loadTree(tree, treeNode, resolve) {
       resolve(tree.children);
+    },
+    resetItemType() {
+      this.itemTypeVisible = false;
     }
   }
 };
