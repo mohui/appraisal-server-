@@ -24,6 +24,7 @@
       </div>
       <el-table
         v-loading="tableLoading"
+        :key="symbolKey"
         border
         class="work-table-expand"
         size="small"
@@ -473,7 +474,8 @@ export default {
         name: '',
         sort: 1
       },
-      moveRowVisible: false
+      moveRowVisible: false,
+      symbolKey: Symbol(new Date().toString())
     };
   },
   computed: {
@@ -926,6 +928,7 @@ export default {
       ];
       await this.$api.HisWorkItem.update(...paramsArr);
       this.$message.success('操作成功');
+      this.symbolKey = Symbol(new Date().toString());
       this.$asyncComputed.serverData.update();
       this.resetConfig('workForm');
     }
