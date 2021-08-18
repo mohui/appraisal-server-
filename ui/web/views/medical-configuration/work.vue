@@ -99,8 +99,22 @@
         </el-table-column>
         <el-table-column prop="remark" align="center" label="备注">
         </el-table-column>
-        <el-table-column prop="" label="操作" align="center">
+        <el-table-column prop="operation" label="操作" align="center">
           <template slot-scope="{row}">
+            <el-tooltip
+              v-if="!row.itemTypeId"
+              content="移动到"
+              :enterable="false"
+            >
+              <el-button
+                type="warning"
+                icon="el-icon-folder-add"
+                circle
+                size="mini"
+                @click="moveRow(row)"
+              >
+              </el-button>
+            </el-tooltip>
             <el-tooltip content="编辑" :enterable="false">
               <el-button
                 type="primary"
@@ -358,6 +372,31 @@
       :visible="itemTypeVisible"
       :itemType="itemType"
     ></work-type-dialog>
+    <el-dialog title="选择分类" :visible.sync="moveRowVisible" width="30%">
+      <el-select v-model="newWork.itemType" clearable filterable size="mini">
+        <el-option
+          v-for="data of itemTypeData"
+          :label="data.name"
+          :key="data.id"
+          :value="data.id"
+        ></el-option>
+      </el-select>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="resetConfig('workForm')"
+          >取 消</el-button
+        >
+        <el-button
+          v-loading="addBtnLoading"
+          class="work-submit-loading"
+          size="mini"
+          type="primary"
+          @click="submitMove()"
+        >
+          确 定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -433,7 +472,8 @@ export default {
         id: '',
         name: '',
         sort: 1
-      }
+      },
+      moveRowVisible: false
     };
   },
   computed: {
@@ -671,7 +711,7 @@ export default {
         this.itemType = JSON.parse(
           JSON.stringify({
             id: row.itemTypeId,
-            name: row.work,
+            name: row.name,
             sort: row.sort
           })
         );
@@ -728,13 +768,15 @@ export default {
       }
     },
     resetConfig(ref) {
-      this.$refs[ref].resetFields();
-      this.$refs.tree.setCheckedKeys([]);
-      //将树形结构全部折叠
-      for (let i = 0; i < this.workTreeData.length; i++) {
-        this.$refs.tree.store.nodesMap[
-          this.workTreeData[i].id
-        ].expanded = false;
+      this.$refs[ref] && this.$refs[ref].resetFields();
+      if (this.$refs.tree) {
+        this.$refs.tree.setCheckedKeys([]);
+        //将树形结构全部折叠
+        for (let i = 0; i < this.workTreeData.length; i++) {
+          this.$refs.tree.store.nodesMap[
+            this.workTreeData[i].id
+          ].expanded = false;
+        }
       }
       //重置默认选中项
       this.newWork = {
@@ -754,6 +796,7 @@ export default {
       this.staffFilterText = '';
       this.addWorkVisible = false;
       this.isPreView = false;
+      this.moveRowVisible = false;
     },
     toBreak(content) {
       let contentStr = '';
@@ -836,6 +879,55 @@ export default {
     },
     resetItemType() {
       this.itemTypeVisible = false;
+    },
+    //移动工分项类型
+    moveRow(row) {
+      this.newWork = JSON.parse(
+        JSON.stringify({
+          id: row.id,
+          work: row.work,
+          scoreMethod: row.scoreMethod,
+          projectsSelected: row.mappings
+            .map(m => ({
+              name: m.name,
+              id: m.id,
+              scope: this.findItem(m.id, this.workTreeData)?.scope
+            }))
+            .filter(it => it.scope), //过滤掉可能不存在的树节点
+          projects: [],
+          staffMethod: row.staffMethod,
+          staffs: row.staffIdMappings,
+          scope: row.scope,
+          score: row.score,
+          remark: row.remark,
+          itemType: row.itemType
+        })
+      );
+      this.moveRowVisible = true;
+    },
+    //提交移动
+    async submitMove() {
+      const paramsArr = [
+        this.newWork.id,
+        this.newWork.work,
+        this.newWork.scoreMethod,
+        this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
+        this.newWork.staffMethod,
+        this.newWork.staffMethod === HisStaffMethod.STATIC
+          ? this.newWork.staffs.map(it => ({
+              code: it.value,
+              type: it.type
+            }))
+          : [],
+        this.newWork.score,
+        this.newWork.scope,
+        this.newWork.remark || null,
+        this.newWork.itemType || null
+      ];
+      await this.$api.HisWorkItem.update(...paramsArr);
+      this.$message.success('操作成功');
+      this.$asyncComputed.serverData.update();
+      this.resetConfig('workForm');
     }
   }
 };
