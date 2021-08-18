@@ -1205,7 +1205,7 @@ export default class HisWorkItem {
 
   // endregion
 
-  // 预览接口
+  //region 预览接口
   async preview(
     name,
     method,
@@ -1236,6 +1236,9 @@ export default class HisWorkItem {
       .slice(0, 10000);
   }
 
+  // endregion
+
+  // region 工分项分类相关接口
   // 工分项目分类添加
   @validate(
     should
@@ -1258,7 +1261,9 @@ export default class HisWorkItem {
       // language=PostgreSQL
       const find = await appDB.execute(
         `
-          select * from his_work_item_type where id = ?
+          select *
+          from his_work_item_type
+          where id = ?
         `,
         id
       );
@@ -1294,6 +1299,24 @@ export default class HisWorkItem {
       );
     }
   }
+
+  // 工分项分类列表
+  async workItemTypeList() {
+    const hospital = await getHospital();
+    // language=PostgreSQL
+    const list = await appDB.execute(
+      `
+        select id, name, hospital, sort
+        from his_work_item_type
+        where hospital = ?
+        order by sort
+      `,
+      hospital
+    );
+    return list;
+  }
+
+  // endregion
 
   // region 公分项目来源, 和员工绑定的增删改查
   /**
