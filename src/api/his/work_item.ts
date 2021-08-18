@@ -517,6 +517,7 @@ export default class HisWorkItem {
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
+   * @param itemType 公分项分类
    */
   @validate(
     should
@@ -560,9 +561,23 @@ export default class HisWorkItem {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('分类')
   )
-  async add(name, method, mappings, staffMethod, staffs, score, scope, remark) {
+  async add(
+    name,
+    method,
+    mappings,
+    staffMethod,
+    staffs,
+    score,
+    scope,
+    remark,
+    itemType
+  ) {
     if (
       mappings.find(
         it => it === '手工数据' || it === '公卫数据' || it === '其他'
@@ -602,13 +617,30 @@ export default class HisWorkItem {
     }
     const hospital = await getHospital();
 
+    // 如果公分项类型传了, 查询类型是否合法
+    if (itemType) {
+      // language=PostgreSQL
+      const workItemTypeModels = await appDB.execute(
+        `
+          select *
+          from his_work_item_type
+          where id = ?
+            and hospital = ?
+        `,
+        itemType,
+        hospital
+      );
+      if (workItemTypeModels.length === 0)
+        throw new KatoRuntimeError(`该分类不存在`);
+    }
+
     return appDB.transaction(async () => {
       const hisWorkItemId = uuid();
       // 添加工分项目
       await appDB.execute(
         ` insert into
-              his_work_item(id, hospital, name, method, type, score, remark, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              his_work_item(id, hospital, name, method, type, score, remark, item_type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         hisWorkItemId,
         hospital,
         name,
@@ -616,6 +648,7 @@ export default class HisWorkItem {
         staffMethod,
         score,
         remark,
+        itemType,
         dayjs().toDate(),
         dayjs().toDate()
       );
@@ -688,6 +721,7 @@ export default class HisWorkItem {
    * @param score 分值
    * @param scope 固定的时候范围必传
    * @param remark 备注
+   * @param itemType 公分项分类
    */
   @validate(
     should
@@ -735,7 +769,11 @@ export default class HisWorkItem {
     should
       .string()
       .allow(null)
-      .description('备注')
+      .description('备注'),
+    should
+      .string()
+      .allow(null)
+      .description('公分项分类')
   )
   async update(
     id,
@@ -746,7 +784,8 @@ export default class HisWorkItem {
     staffs,
     score,
     scope,
-    remark
+    remark,
+    itemType
   ) {
     if (
       mappings.find(
@@ -795,6 +834,24 @@ export default class HisWorkItem {
       }
     }
 
+    // 如果公分项类型传了, 查询类型是否合法
+    if (itemType) {
+      const hospital = await getHospital();
+      // language=PostgreSQL
+      const workItemTypeModels = await appDB.execute(
+        `
+          select *
+          from his_work_item_type
+          where id = ?
+            and hospital = ?
+        `,
+        itemType,
+        hospital
+      );
+      if (workItemTypeModels.length === 0)
+        throw new KatoRuntimeError(`该分类不存在`);
+    }
+
     return appDB.transaction(async () => {
       // 添加工分项目
       await appDB.execute(
@@ -804,6 +861,7 @@ export default class HisWorkItem {
                 type = ?,
                 score = ?,
                 remark = ?,
+                item_type = ?,
                 updated_at = ?
               where id = ?`,
         name,
@@ -811,6 +869,7 @@ export default class HisWorkItem {
         staffMethod,
         score,
         remark,
+        itemType,
         dayjs().toDate(),
         id
       );
