@@ -1316,6 +1316,22 @@ export default class HisWorkItem {
     return list;
   }
 
+  // 工分项分类列表
+  async workItemTypeDelete(id) {
+    return appDB.transaction(async () => {
+      // 查询分类有没有工分项使用
+      const staffWork = await appDB.execute(
+        `select * from his_work_item where item_type = ?`,
+        id
+      );
+      if (staffWork.length > 0)
+        throw new KatoRuntimeError(`分类在使用,不能删除`);
+
+      // 删除工分项分类
+      await appDB.execute(`delete from his_work_item_type where id = ?`, id);
+    });
+  }
+
   // endregion
 
   // region 公分项目来源, 和员工绑定的增删改查
