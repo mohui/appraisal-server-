@@ -929,11 +929,14 @@ export default class HisWorkItem {
                item.type,
                item.score,
                item.remark,
+               item.item_type,
+               type.name item_type_name,
                mapping.source,
                mapping.type "sourceType"
         from his_work_item item
                left join his_work_item_staff_mapping mapping on item.id = mapping.item
-        where hospital = ?
+               left join his_work_item_type type on item.item_type = type.id
+        where item.hospital = ?
         order by item.created_at
       `,
       hospital
@@ -1010,6 +1013,8 @@ export default class HisWorkItem {
           type: it.type,
           score: it.score,
           remark: it.remark,
+          itemType: it.item_type,
+          typeName: it.item_type_name,
           scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
           staffIdMappings: staffs
