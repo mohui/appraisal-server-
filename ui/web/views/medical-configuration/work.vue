@@ -145,6 +145,23 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
+            <el-form-item label="工分项类型">
+              <el-select
+                v-model="newWork.itemType"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="data of itemTypeData"
+                  :label="data.name"
+                  :key="data.id"
+                  :value="data.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
             <el-form-item label="工分项取值员工来源" prop="staffMethod">
               <el-button-group>
                 <el-button
@@ -370,7 +387,8 @@ export default {
         projectsSelected: [],
         score: 0,
         scope: HisStaffDeptType.Staff,
-        remark: ''
+        remark: '',
+        itemType: ''
       },
       addWorkVisible: false,
       workRules: {
@@ -593,7 +611,8 @@ export default {
               : [],
             this.newWork.score,
             this.newWork.scope,
-            this.newWork.remark || null
+            this.newWork.remark || null,
+            this.newWork.itemType || null
           ];
           if (this.newWork.id) {
             paramsArr.splice(0, 0, this.newWork.id);
@@ -613,6 +632,9 @@ export default {
       }
     },
     async editRow(row) {
+      if (row.itemTypeId) {
+        return;
+      }
       this.newWork = JSON.parse(
         JSON.stringify({
           id: row.id,
@@ -630,7 +652,8 @@ export default {
           staffs: row.staffIdMappings,
           scope: row.scope,
           score: row.score,
-          remark: row.remark
+          remark: row.remark,
+          itemType: row.itemType
         })
       );
       this.addWorkVisible = true;
@@ -679,7 +702,8 @@ export default {
         projects: [],
         projectsSelected: [],
         score: 0,
-        scope: HisStaffDeptType.Staff
+        scope: HisStaffDeptType.Staff,
+        itemType: ''
       };
       //重置搜索关键词
       this.filterText = '';
