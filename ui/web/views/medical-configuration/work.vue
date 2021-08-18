@@ -21,19 +21,17 @@
       </div>
       <el-table
         v-loading="tableLoading"
-        stripe
         border
+        class="work-table-expand"
         size="small"
-        :data="tableData"
+        :data="reduceTableData"
         height="100%"
+        row-key="id"
         style="flex-grow: 1;"
-        :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        lazy
+        :load="loadTree"
+        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       >
-        <el-table-column
-          type="index"
-          align="center"
-          label="序号"
-        ></el-table-column>
         <el-table-column prop="work" align="center" label="工分项">
         </el-table-column>
         <el-table-column
@@ -43,8 +41,9 @@
           width="300"
         >
           <template slot-scope="{row}">
+            <div v-if="!row.projects"></div>
             <el-tooltip
-              v-if="$widthCompute([row.projects.join(',')]) >= 300"
+              v-else-if="$widthCompute([row.projects.join(',')]) >= 300"
               effect="dark"
               placement="top"
               :content="row.projects.join(',')"
@@ -65,8 +64,9 @@
           width="300"
         >
           <template slot-scope="{row}">
+            <div v-if="!row.staffMappings"></div>
             <el-tooltip
-              v-if="$widthCompute([row.staffMappings.join(',')]) >= 300"
+              v-else-if="$widthCompute([row.staffMappings.join(',')]) >= 300"
               effect="dark"
               placement="top"
               :content="row.projects.join(',')"
@@ -405,6 +405,32 @@ export default {
     };
   },
   computed: {
+    reduceTableData() {
+      const result = this.tableData
+        .reduce((pre, next) => {
+          const itemType = this.itemTypeData.find(i => i.id === next.itemType);
+          if (itemType) {
+            const items = pre.find(p => p.id === itemType.id);
+            if (items) items.children.push(next);
+            if (!items)
+              pre.push({
+                id: itemType.id,
+                itemTypeId: itemType.id,
+                work: itemType.name,
+                sort: itemType.sort,
+                children: [next],
+                hasChildren: true
+              });
+          } else {
+            pre.push({...next, hasChildren: false});
+          }
+          return pre;
+        }, [])
+        .sort((a, b) => {
+          return a.sort ? (b.sort ? b.sort - a.sort : -1) : 1;
+        });
+      return result;
+    },
     tableData() {
       return this.serverData.map(d => ({
         id: d.id,
@@ -421,7 +447,9 @@ export default {
             : [HisStaffMethod.DYNAMIC],
         scope: d.scope,
         score: d.score || 0,
-        remark: d.remark
+        remark: d.remark,
+        itemType: d.itemType,
+        itemTypeName: d.itemTypeName
       }));
     },
     treeData() {
@@ -518,6 +546,18 @@ export default {
       async get() {
         try {
           return await this.$api.HisStaff.staffTree();
+        } catch (e) {
+          this.$message.error(e.message);
+          console.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
+    itemTypeData: {
+      async get() {
+        try {
+          return await this.$api.HisWorkItem.workItemTypeList();
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
@@ -721,6 +761,10 @@ export default {
         }
       }
       this.newWork.projectsSelected = checkedNodes;
+    },
+    //列表树load方法
+    loadTree(tree, treeNode, resolve) {
+      resolve(tree.children);
     }
   }
 };
@@ -758,6 +802,11 @@ export default {
         height: 20px;
       }
     }
+  }
+}
+.work-table-expand {
+  .el-table__row--level-1 {
+    background: #f8f8ff;
   }
 }
 </style>
