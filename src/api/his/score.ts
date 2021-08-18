@@ -12,17 +12,16 @@ import {
 import Decimal from 'decimal.js';
 import {
   dateValid,
-  dayToRange,
   getEndTime,
   getHospital,
   getSettle,
   monthToRange,
-  StaffAssessModel,
-  StaffWorkModel
+  StaffAssessModel
 } from './service';
 import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
+import * as uuid from 'uuid';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -37,6 +36,10 @@ type WorkItemDetail = {
   id: string;
   //工分项名称
   name: string;
+  // 工分项分类id
+  typeId: string;
+  // 公分项分类名称
+  typeName: string;
   //工分项得分
   score: number;
 };
@@ -155,10 +158,10 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-            select id
-            from staff
-            where (department is not null and department = ?)
-               or id = ?`,
+          select id
+          from staff
+          where (department is not null and department = ?)
+             or id = ?`,
         staffModel.department,
         staffModel.id
       );
@@ -169,10 +172,10 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-            select id
-            from staff
-            where hospital = ?
-          `,
+          select id
+          from staff
+          where hospital = ?
+        `,
         staffModel.hospital
       );
       staffIds = staffDeptModels.map(it => it.id);
@@ -319,13 +322,13 @@ export async function workPointCalculation(
     // language=PostgreSQL
     const hisHospitalModels = await appDB.execute(
       `
-          select mapping.hishospid hospital,
-                 hospital.id,
-                 hospital.name
-          from hospital_mapping mapping
-                 inner join hospital on mapping.h_id = hospital.id
-          where mapping.h_id = ?
-        `,
+        select mapping.hishospid hospital,
+               hospital.id,
+               hospital.name
+        from hospital_mapping mapping
+               inner join hospital on mapping.h_id = hospital.id
+        where mapping.h_id = ?
+      `,
       staffModel.hospital
     );
     const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
@@ -387,14 +390,14 @@ export async function workPointCalculation(
       await originalDB.execute(
         // language=PostgreSQL
         `
-            select distinct treat, operate_time
-            from his_charge_master
-            where hospital = ?
-              and operate_time > ?
-              and operate_time < ?
-              and charge_type = ?
-            order by operate_time
-          `,
+          select distinct treat, operate_time
+          from his_charge_master
+          where hospital = ?
+            and operate_time > ?
+            and operate_time < ?
+            and charge_type = ?
+          order by operate_time
+        `,
         staffModel.hospital,
         start,
         end,
@@ -422,6 +425,7 @@ export async function workPointCalculation(
   //endregion
   return workItems;
 }
+
 // endregion
 
 // region 公卫打分
@@ -551,6 +555,7 @@ async function getMark(hospital, year) {
     }
   );
 }
+
 // endregion
 
 export default class HisScore {
@@ -1238,6 +1243,8 @@ export default class HisScore {
       staff_level: string; //关联人员层级
       //绑定关系
       rate: string; //权重
+      item_type: string; //工分项分类id
+      item_type_name: string; //工分项分类名称
     }[] = await appDB.execute(
       `
         select wi.id,
@@ -1246,6 +1253,8 @@ export default class HisScore {
                wi.score,
                wim.source,
                wi.type                   as staff_type,
+               wi.item_type,
+               type.name                 as item_type_name,
                wism.source               as staff_id,
                coalesce(wism.type, '员工') as staff_level,
                swim.rate
@@ -1253,6 +1262,7 @@ export default class HisScore {
                inner join his_work_item wi on swim.item = wi.id
                inner join his_work_item_mapping wim on swim.item = wim.item
                left join his_work_item_staff_mapping wism on swim.item = wism.item
+               left join his_work_item_type type on wi.item_type = type.id
         where swim.staff = ?
       `,
       staffModel.id
@@ -1292,6 +1302,8 @@ export default class HisScore {
           end,
           name: it.name,
           method: it.method,
+          typeId: it.item_type,
+          typeName: it.item_type_name,
           // 工分项目
           mappings: [it.source],
           staffMethod: it.staff_type,
@@ -1345,53 +1357,60 @@ export default class HisScore {
         0
       );
       workItems = workItems.concat([
-        {id: it.id, name: it.name, score: sum * it.rate}
+        {
+          id: it.id,
+          name: it.name,
+          typeId: it.typeId,
+          typeName: it.typeName,
+          score: sum * it.rate
+        }
       ]);
     }
-
-    //查询得分结果
-    //language=PostgreSQL
-    let resultModel: StaffWorkModel = (
+    // region 写入结果表
+    await appDB.transaction(async () => {
+      // 写入之前先清除掉老数据
+      // language=PostgreSQL
       await appDB.execute(
         `
-          select work
-          from his_staff_result
-          where id = ?
-            and day = ? for update
+          delete
+          from his_staff_work_result
+          where staff_id = ?
+            and time = ?
         `,
         id,
         start
-      )
-    )[0]?.work;
-    if (!resultModel) {
-      resultModel = {
-        self: [],
-        staffs: []
-      };
-    }
-
-    //region 写入结果表
-    //累加流水
-    resultModel.self = workItems;
-
-    //TODO: 兼容老设计, 等待确认完删除
-    resultModel.staffs = [];
-    const resultValue = JSON.stringify(resultModel);
-    await appDB.execute(
-      //language=PostgreSQL
-      `
-        insert into his_staff_result(id, day, work)
-        values (?, ?, ?)
-        on conflict (id, day)
-          do update set work       = ?,
-                        updated_at = now()
-      `,
-      id,
-      start,
-      resultValue,
-      resultValue
-    );
-    //endregion
+      );
+      for (const result of workItems) {
+        // 添加拼装好的数据
+        await appDB.execute(
+          //language=PostgreSQL
+          `
+            insert into his_staff_work_result(id,
+                                              staff_id,
+                                              time,
+                                              item_id,
+                                              item_name,
+                                              type_id,
+                                              type_name,
+                                              score,
+                                              created_at,
+                                              updated_at)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          uuid.v4(),
+          id,
+          start,
+          result?.id ?? null,
+          result?.name ?? null,
+          result?.typeId ?? null,
+          result?.typeName ?? null,
+          result?.score ?? null,
+          new Date(),
+          new Date()
+        );
+      }
+    });
+    // endregion
   }
 
   /**
