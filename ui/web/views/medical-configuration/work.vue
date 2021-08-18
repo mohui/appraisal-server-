@@ -439,25 +439,45 @@ export default {
   computed: {
     reduceTableData() {
       const result = this.tableData
-        .reduce((pre, next) => {
-          const itemType = this.itemTypeData.find(i => i.id === next.itemType);
-          if (itemType) {
-            const items = pre.find(p => p.id === itemType.id);
-            if (items) items.children.push(next);
-            if (!items)
-              pre.push({
-                id: itemType.id,
-                itemTypeId: itemType.id,
-                work: itemType.name,
-                sort: itemType.sort,
-                children: [next],
-                hasChildren: true
-              });
-          } else {
-            pre.push({...next, hasChildren: false});
-          }
-          return pre;
-        }, [])
+        .reduce(
+          (pre, next) => {
+            //将已有绑定类型的工分项聚合起来
+            const itemType = this.itemTypeData.find(
+              i => i.id === next.itemType
+            );
+            if (itemType) {
+              const items = pre.find(p => p.id === itemType.id);
+              if (items) items.children.push(next);
+              if (!items)
+                pre.push({
+                  id: itemType.id,
+                  itemTypeId: itemType.id,
+                  name: itemType.name,
+                  work: itemType.name,
+                  sort: itemType.sort,
+                  children: [next],
+                  hasChildren: true
+                });
+            } else {
+              //没有类型的工分项单独一列
+              pre.push({...next, hasChildren: false});
+            }
+            return pre;
+          },
+          //起始数组
+          this.itemTypeData.map(it => ({
+            ...it,
+            itemTypeId: it.id,
+            work: it.name,
+            sort: it.sort,
+            children: [],
+            hasChildren: true
+          }))
+        )
+        .map(it => ({
+          ...it,
+          work: it.children ? `${it.work} (${it.children.length})项` : it.work
+        }))
         .sort((a, b) => {
           return a.sort ? (b.sort ? b.sort - a.sort : -1) : 1;
         });
