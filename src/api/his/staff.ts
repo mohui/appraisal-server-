@@ -78,7 +78,7 @@ export default class HisStaff {
           select d.name as sex, phone, birth
           from his_staff s
                  left join his_dict d on s.sex = d.code and d.category_code = '10101001'
-          where id = ?
+          where s.id = ?
         `,
         staffModel.staff
       )
@@ -439,26 +439,29 @@ export default class HisStaff {
     const {start, end} = dayToRange(monthTime.start);
 
     // 工分只存储在一号那一天,所以只查询一号
-    const staffResultModels: {
-      day: Date;
-      work: StaffWorkModel;
+    // language=PostgreSQL
+    const workItems: {
+      id: string;
+      name: string;
+      typeId: string;
+      typeName: string;
+      score: number;
     }[] = await appDB.execute(
-      // language=PostgreSQL
       `
-        select day, work
-        from his_staff_result
-        where id = ?
-          and day >= ?
-          and day < ?
-        order by day
+        select result.item_id "id",
+               result.item_name "name",
+               result.type_id "typeId",
+               result.type_name "typeName",
+               result.score
+        from his_staff_work_result result
+        where result.staff_id = ?
+            and result.time >= ?
+            and result.time < ?
       `,
       id,
       start,
       end
     );
-
-    // 取出工分详情
-    const workItems = staffResultModels[0]?.work?.self ?? [];
 
     const rows: {
       day: Date;
