@@ -985,14 +985,14 @@ export default class HisWorkItem {
       deptStaffObj[it.id] = it.name;
     });
     const workItemList = [];
-    workItemModels.forEach(it => {
+    for (const it of workItemModels) {
       // 查找是否已经在数组中
       const index = workItemList.find(item => item.id === it.id);
       // 定义员工数组
       let staffs = [];
       if (it.sourceType === `${HisStaffDeptType.DEPT}`) {
-        const index = deptStaffList.find(deptIt => deptIt.id === it.source);
-        if (index) staffs = index.children;
+        const deptIndex = deptStaffList.find(deptIt => deptIt.id === it.source);
+        if (deptIndex) staffs = deptIndex.children;
       } else {
         staffs = it.source ? [it.source] : [];
       }
@@ -1012,10 +1012,11 @@ export default class HisWorkItem {
           remark: it.remark,
           scope: it.type === HisStaffMethod.DYNAMIC ? it.sourceType : null,
           staffMappings: it.source ? [deptStaffObj[it.source]] : [],
-          staffIdMappings: staffs
+          // 不能直接赋值,直接赋值是引用
+          staffIdMappings: [].concat(staffs)
         });
       }
-    });
+    }
 
     for (const it of workItemList) {
       // 工分项id
