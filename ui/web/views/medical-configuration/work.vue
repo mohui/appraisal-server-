@@ -40,7 +40,7 @@
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column prop="work" align="center" label="工分项">
+        <el-table-column prop="work" label="工分项">
           <template slot-scope="{row}">
             {{ row.work }}
             <i
