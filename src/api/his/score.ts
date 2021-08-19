@@ -612,9 +612,6 @@ export default class HisScore {
     }
   }
 
-  // endregion
-
-  // region 打分代码
   /**
    * 机构自动打分
    * @param day 月份
@@ -640,6 +637,9 @@ export default class HisScore {
     }
   }
 
+  // endregion
+
+  // region 质量系数打分代码
   /**
    * 员工自动打分
    * @param day 月份
@@ -1053,7 +1053,8 @@ export default class HisScore {
     // 时间转换为本月的当前时间或者之前学的最后一天
     const scoreDate = getEndTime(month);
 
-    // 根据员工id查询出改员工是否有考核
+    // region 校验合法性
+    // 根据员工id查询出该员工是否有考核
     const staffSystem = await appDB.execute(
       `select staff, "check" from his_staff_check_mapping where staff = ?`,
       staff
@@ -1062,7 +1063,7 @@ export default class HisScore {
 
     // 查询方案
     const checkSystemModels = await appDB.execute(
-      `select  id, name, hospital from his_check_system where id = ?`,
+      `select id, name, hospital from his_check_system where id = ?`,
       staffSystem[0].check
     );
 
@@ -1070,11 +1071,19 @@ export default class HisScore {
       throw new KatoRuntimeError(`考核方案不存在`);
 
     // 查询考核细则
+    // language=PostgreSQL
     const ruleModels = await appDB.execute(
-      `select id, name, detail, auto, "check",
-            metric, operator, value, score
-           from his_check_rule
-           where "check" = ?`,
+      `select id,
+                name,
+                detail,
+                auto,
+                "check",
+                metric,
+                operator,
+                value,
+                score
+         from his_check_rule
+         where "check" = ?`,
       staffSystem[0].check
     );
 
@@ -1090,6 +1099,7 @@ export default class HisScore {
 
     if (ruleOneModels.score < score)
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
+    // endregion
 
     // 查询今天是否有分值
     let todayScore: {
