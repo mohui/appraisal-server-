@@ -24,6 +24,8 @@
       </div>
       <el-table
         v-loading="tableLoading"
+        ref="workTable"
+        :row-class-name="rowClassName"
         :key="symbolKey"
         border
         class="work-table-expand"
@@ -35,8 +37,17 @@
         lazy
         :load="loadTree"
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+        @cell-mouse-enter="mouseEnter"
+        @cell-mouse-leave="mouseLeave"
       >
         <el-table-column prop="work" align="center" label="工分项">
+          <template slot-scope="{row}">
+            {{ row.work }}
+            <i
+              v-show="row.itemTypeId && showDragIcon(row.itemTypeId)"
+              class="el-icon-sort"
+            ></i>
+          </template>
         </el-table-column>
         <el-table-column
           prop="project"
@@ -412,6 +423,7 @@ import {
 import {strToPinyin} from '../../utils/pinyin';
 import WorkPreview from './component/work-preview';
 import WorkTypeDialog from './component/work-type-dialog';
+import Sortable from 'sortablejs';
 
 export default {
   name: 'Work',
@@ -475,7 +487,8 @@ export default {
         sort: 1
       },
       moveRowVisible: false,
-      symbolKey: Symbol(new Date().toString())
+      symbolKey: Symbol(this.$dayjs().toString()),
+      mouseEnterId: ''
     };
   },
   computed: {
@@ -521,7 +534,7 @@ export default {
           work: it.children ? `${it.work} (${it.children.length})项` : it.work
         }))
         .sort((a, b) => {
-          return a.sort ? (b.sort ? b.sort - a.sort : -1) : 1;
+          return a.sort ? (b.sort ? a.sort - b.sort : -1) : 1;
         });
       return result;
     },
@@ -593,6 +606,9 @@ export default {
       };
       return config;
     }
+  },
+  mounted() {
+    this.setSort();
   },
   watch: {
     filterText(value) {
@@ -928,9 +944,67 @@ export default {
       ];
       await this.$api.HisWorkItem.update(...paramsArr);
       this.$message.success('操作成功');
-      this.symbolKey = Symbol(new Date().toString());
+      this.symbolKey = Symbol(this.$dayjs().toString());
       this.$asyncComputed.serverData.update();
       this.resetConfig('workForm');
+    },
+    rowClassName({row}) {
+      return row.itemTypeId ? 'drag-row' : '';
+    },
+    //拖拽方法
+    setSort() {
+      const el = this.$refs.workTable.$el.querySelectorAll(
+        '.el-table__body-wrapper > table > tbody'
+      )[0];
+      this.sortable = Sortable.create(el, {
+        ghostClass: 'sortable-ghost',
+        animation: 200,
+        draggable: '.drag-row',
+        setData: function(dataTransfer) {
+          dataTransfer.setData('Text', '');
+        },
+        onEnd: async evt => {
+          const newIndex = evt.newIndex;
+          const oldIndex = evt.oldIndex;
+          if (newIndex !== oldIndex) {
+            //最新的分类排序元素
+            const newSortData = [...el.getElementsByClassName('drag-row')].map(
+              (it, index) => {
+                //抽出分类的名字
+                const typeName = it.textContent.split('(')[0].trim();
+                //根据名字找他们的分类信息
+                const type = this.itemTypeData.find(it => it.name === typeName);
+                return {...type, sort: index + 1};
+              }
+            );
+            //批量更新一下排序
+            for (let it of newSortData) {
+              await this.$api.HisWorkItem.workItemTypeUpsert(
+                it.id,
+                it.name,
+                it.sort
+              );
+            }
+            this.$asyncComputed.itemTypeData.update();
+            this.symbolKey = Symbol(this.$dayjs().toString());
+            this.$nextTick(() => {
+              this.setSort();
+            });
+            this.$message.success('排序成功');
+          }
+        }
+      });
+    },
+    //是否显示拖拽icon
+    showDragIcon(id) {
+      return id === this.mouseEnterId;
+    },
+    //鼠标进出单元格
+    mouseEnter(row) {
+      this.mouseEnterId = row.id;
+    },
+    mouseLeave() {
+      this.mouseEnterId = null;
     }
   }
 };
@@ -974,5 +1048,13 @@ export default {
   .el-table__row--level-1 {
     background: #f8f8ff;
   }
+}
+.sortable-ghost {
+  opacity: 0.8;
+  color: #fff !important;
+  background: #42b983 !important;
+}
+.drag-row:hover {
+  cursor: move;
 }
 </style>
