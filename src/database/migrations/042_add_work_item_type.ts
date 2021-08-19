@@ -51,6 +51,29 @@ export class AddWorkItemTypeMigration implements IMigration {
       comment on column his_staff_work_result.type_id is '工分项分类id';
       comment on column his_staff_work_result.type_name is '工分项分类名称';
       comment on column his_staff_work_result.score is '得分';
+
+      --员工质量系数得分表
+      create table if not exists his_staff_assess_result
+      (
+        id           varchar(36) primary key,
+        time         date,
+        system_id    varchar(36),
+        system_name    varchar(255),
+        rule_id      varchar(36),
+        rule_name    varchar(255),
+        score        double precision,
+        rate        double precision,
+        "created_at" timestamp with time zone not null default current_timestamp,
+        "updated_at" timestamp with time zone not null default current_timestamp
+      );
+      comment on table his_staff_assess_result is '员工得分表';
+      comment on column his_staff_assess_result.time is '时间';
+      comment on column his_staff_assess_result.system_id is '考核方案id';
+      comment on column his_staff_assess_result.system_name is '考核方案名称';
+      comment on column his_staff_assess_result.rule_id is '规则id';
+      comment on column his_staff_assess_result.rule_name is '规则名称';
+      comment on column his_staff_assess_result.score is '得分';
+      comment on column his_staff_assess_result.rate is '占比';
     `);
   }
 
