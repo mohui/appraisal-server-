@@ -32,6 +32,7 @@ export class HisMigration implements IMigration {
         virtual      boolean                           default false not null,
         password     varchar(255),
         name         varchar(255),
+        remark       varchar(500),
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -43,6 +44,7 @@ export class HisMigration implements IMigration {
       comment on column staff.virtual is '虚拟用户标识';
       comment on column staff.password is '密码';
       comment on column staff.name is '名称';
+      comment on column staff.remark is '备注';
 
       --医疗手工数据表
       create table if not exists his_manual_data
@@ -199,12 +201,13 @@ export class HisMigration implements IMigration {
       --员工得分表
       create table if not exists his_staff_result
       (
-        id           varchar(36) primary key,
+        id           varchar(36),
         day          date,
         work         jsonb,
         assess       jsonb,
         "created_at" timestamp with time zone not null default current_timestamp,
-        "updated_at" timestamp with time zone not null default current_timestamp
+        "updated_at" timestamp with time zone not null default current_timestamp,
+        primary key (id, day)
       );
       comment on table his_staff_result is '员工得分表';
       comment on column his_staff_result.day is '日期';
