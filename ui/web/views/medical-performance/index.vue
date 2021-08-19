@@ -164,6 +164,11 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
+            property="typeName"
+            label="工分项分类"
+            min-width="120"
+          />
+          <el-table-column
             property="workPointName"
             label="工分项"
             min-width="150"
@@ -302,6 +307,29 @@ export default {
         }
       }
       return arr;
+    },
+    categorySpanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (
+            this.reportData[i].name === this.reportData[i - 1].name &&
+            this.reportData[i].typeName === this.reportData[i - 1].typeName
+          ) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     }
   },
   asyncComputed: {
@@ -357,6 +385,14 @@ export default {
     },
     // 报表数据处理
     handleReportData() {
+      this.originalReportData = this.originalReportData.map(it => {
+        it.items.sort((a, b) => {
+          if (a['typeName'] != b['typeName']) {
+            return a['typeName']?.localeCompare(b['typeName']);
+          }
+        });
+        return it;
+      });
       const result = [];
       if (this.originalReportData) {
         // 机构总分
@@ -394,6 +430,8 @@ export default {
               );
               // 总得分
               item.totalScore = item.afterCorrectionScore + item.extra;
+              item.typeId = it.typeId;
+              item.typeName = it.typeName || '-';
               result.push(item);
             }
           } else {
@@ -462,6 +500,11 @@ export default {
         });
     },
     objectSpanMethod({column, rowIndex}) {
+      if (column.property === 'typeName') {
+        const _row = this.categorySpanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
       if (
         column.property !== 'workPointName' &&
         column.property !== 'scoreFormat'
