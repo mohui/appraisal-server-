@@ -319,7 +319,7 @@ export default {
           // 判断当前元素与上一个元素是否相同
           if (
             this.reportData[i].name === this.reportData[i - 1].name &&
-            this.reportData[i].typeName === this.reportData[i - 1].typeName
+            this.reportData[i].typeId === this.reportData[i - 1].typeId
           ) {
             arr[pos] += 1;
             arr.push(0);
@@ -387,8 +387,8 @@ export default {
     handleReportData() {
       this.originalReportData = this.originalReportData.map(it => {
         it.items.sort((a, b) => {
-          if (a['typeName'] != b['typeName']) {
-            return a['typeName']?.localeCompare(b['typeName']);
+          if (a['typeId'] != b['typeId']) {
+            return a['typeId']?.localeCompare(b['typeId']);
           }
         });
         return it;
