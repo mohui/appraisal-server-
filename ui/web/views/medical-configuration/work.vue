@@ -978,8 +978,14 @@ export default {
                 return {...type, sort: index + 1};
               }
             );
+            //排序被修改的数据
+            const needSort = newSortData.filter(
+              it =>
+                this.itemTypeData.find(item => item.id === it.id)?.sort !==
+                it.sort
+            );
             //批量更新一下排序
-            for (let it of newSortData) {
+            for (let it of needSort) {
               await this.$api.HisWorkItem.workItemTypeUpsert(
                 it.id,
                 it.name,
