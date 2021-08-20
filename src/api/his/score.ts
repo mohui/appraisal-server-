@@ -430,26 +430,6 @@ export async function workPointCalculation(
 // endregion
 
 // region 公卫打分
-/**
- * 算出打分结果
- * @param ruleScores 要添加的数组
- */
-async function staffScoreRate(ruleScores) {
-  if (!ruleScores) return null;
-  // 获取总分(分母)
-  const scoreDenominator = ruleScores.reduce(
-    (prev, curr) => Number(prev) + Number(curr?.total),
-    0
-  );
-
-  // 获取得分(分子)
-  const scoreNumerator = ruleScores.reduce(
-    (prev, curr) => Number(prev) + Number(curr?.score),
-    0
-  );
-  return Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
-}
-
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
@@ -466,7 +446,6 @@ async function getMark(hospital, year) {
     }
   );
 }
-
 // endregion
 
 // region 质量系数公共方法
