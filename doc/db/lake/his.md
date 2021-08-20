@@ -135,7 +135,7 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 员工工分得分表(his_staff_assess_result)
+#### 员工工分得分表(his_staff_work_result)
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
@@ -162,7 +162,7 @@
 | rule_id | varchar(36) | 规则id |
 | rule_name | varchar(255) | 规则名称 |
 | score | double precision | 得分 |
-| total | double precision | 细则分 |
+| total | double precision | 分值 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 

@@ -76,7 +76,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       comment on column his_staff_assess_result.rule_id is '规则id';
       comment on column his_staff_assess_result.rule_name is '规则名称';
       comment on column his_staff_assess_result.score is '得分';
-      comment on column his_staff_assess_result.total is '满分';
+      comment on column his_staff_assess_result.total is '分值';
 
       -- 删除旧的得分表
       DROP TABLE IF EXISTS "his_staff_result";
