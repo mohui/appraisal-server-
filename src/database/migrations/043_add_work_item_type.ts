@@ -2,7 +2,7 @@ import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
 
 export class AddWorkItemTypeMigration implements IMigration {
-  name = '工分项类型表,工分项表添加分类字段';
+  name = '工分项类型表,工分项表添加分类字段,工分/质量系数得分表';
   version = 43;
 
   async up(client: ExtendedSequelize): Promise<void> {
