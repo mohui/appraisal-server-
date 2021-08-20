@@ -170,10 +170,10 @@ export default class HisHospital {
       type_type_name: string;
     }[] = await appDB.execute(
       `
-      select item.id, item.name, item.item_type, type.name type_type_name
-      from his_work_item item
-      left join  his_work_item_type type on item.item_type = type.id
-      where item.hospital = ?`,
+        select item.id, item.name, item.item_type, type.name type_type_name
+        from his_work_item item
+               left join his_work_item_type type on item.item_type = type.id
+        where item.hospital = ?`,
       hospital
     );
     for (const model of workItemModels) {
