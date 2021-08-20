@@ -12,6 +12,7 @@ import {
 import Decimal from 'decimal.js';
 import {
   dateValid,
+  dayToRange,
   getEndTime,
   getHospital,
   getSettle,
@@ -558,6 +559,40 @@ async function getMark(hospital, year) {
 
 // endregion
 
+// region 质量系数公共方法
+// 考核细则
+type CheckRuleModel = {
+  // 细则id
+  id: string;
+  // 细则名称
+  name: string;
+  // 所属考核方案
+  check: string;
+  // 是否自动考核
+  auto: boolean;
+  // 考核要求
+  detail: string;
+  // 指标
+  metric: string;
+  // 计算方式
+  operator: string;
+  // 参考值(大于小于的参考值)
+  value: number;
+  // 分值
+  score: number;
+};
+type AssessModel = {
+  id: string;
+  staffId: string;
+  time: Date;
+  systemId: string;
+  systemName: string;
+  ruleId: string;
+  ruleName: string;
+  score: number;
+};
+// endregion
+
 export default class HisScore {
   // region 自动打分
   /**
@@ -1050,8 +1085,10 @@ export default class HisScore {
     const settle = await getSettle(hospital, month);
     if (settle) throw new KatoRuntimeError(`已结算,不能打分`);
 
-    // 时间转换为本月的当前时间或者之前学的最后一天
-    const scoreDate = getEndTime(month);
+    // 获取所传月份的开始时间 即所在月份的一月一号零点零分零秒
+    const monthTime = monthToRange(month);
+    // 当天的开始时间和结束时间
+    const {start, end} = dayToRange(monthTime.start);
 
     // region 校验合法性
     // 根据员工id查询出该员工是否有考核
@@ -1072,7 +1109,7 @@ export default class HisScore {
 
     // 查询考核细则
     // language=PostgreSQL
-    const ruleModels = await appDB.execute(
+    const ruleModels: CheckRuleModel[] = await appDB.execute(
       `select id,
                 name,
                 detail,
@@ -1101,86 +1138,75 @@ export default class HisScore {
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
     // endregion
 
-    // 查询今天是否有分值
-    let todayScore: {
-      id: string;
-      day: Date;
-      assess: StaffAssessModel;
-    } = (
-      await appDB.execute(
-        `select id, day, assess
-           from his_staff_result
-           where id = ? and day = ?`,
-        staff,
-        scoreDate
-      )
-    )[0];
+    // 查询该细则本月是否有分值
+    // language=PostgreSQL
+    const assessResultModel: AssessModel[] = await appDB.execute(
+      `select id,
+                staff_id    "staffId",
+                time,
+                system_id   "systemId",
+                system_name "systemName",
+                rule_id     "ruleId",
+                rule_name   "ruleName",
+                score
+         from his_staff_assess_result
+         where staff_id = ?
+           and rule_id = ?
+           and time >= ?
+           and time < ?`,
+      staff,
+      ruleId,
+      start,
+      end
+    );
+
     const nowDate = new Date();
-
-    // 如果查到, 会过滤一遍分数表的细则, 如果没查到,会把细则表的细则添加进来
-    const assessModelObj = await autoStaffAssess(
-      ruleModels,
-      'manual',
-      todayScore?.assess
-    );
-
-    // 查找需要改分的细则, 因为上面补过,所以一定找的到
-    const assessOneModel = assessModelObj?.ruleScores.find(
-      scoreIt => scoreIt.id === ruleId
-    );
-    // 把分数赋值过去
-    assessOneModel.score = score;
-    // 算出占比
-    const rate = await staffScoreRate(assessModelObj?.ruleScores);
-
-    // 如果没有查询到, 说明还没有打过分,需要添加
-    if (!todayScore) {
-      todayScore = {
-        // 员工id
-        id: staff,
-        day: scoreDate,
-        assess: {
-          id: checkSystemModels[0].id,
-          name: checkSystemModels[0].name,
-          scores: assessModelObj?.ruleScores,
-          //质量系数
-          rate: rate
-        }
-      };
-      // 执行添加语句
+    // 如果有分值, 执行修改, 如果没有分值, 执行添加
+    if (assessResultModel.length > 0) {
+      // 该手工细则本月打过分,执行修改语句
+      // language=PostgreSQL
       return await appDB.execute(
-        `insert into
-              his_staff_result(id, day, assess, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
+        `
+          update his_staff_assess_result
+          set system_name = ?,
+              rule_name   = ?,
+              score       = ?,
+              updated_at  = ?
+          where id = ?
+        `,
+        checkSystemModels[0]?.name,
+        ruleOneModels?.name,
+        score,
+        nowDate,
+        assessResultModel[0]?.id
+      );
+    } else {
+      // 该手工细则本月没有打过分, 执行添加语句
+      // language=PostgreSQL
+      return await appDB.execute(
+        `insert into his_staff_assess_result(id,
+                                               staff_id,
+                                               time,
+                                               system_id,
+                                               system_name,
+                                               rule_id,
+                                               rule_name,
+                                               score,
+                                               created_at,
+                                               updated_at)
+           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         ...[
-          todayScore.id,
-          todayScore.day,
-          JSON.stringify(todayScore.assess),
+          uuid.v4(),
+          staff,
+          start,
+          checkSystemModels[0]?.id,
+          checkSystemModels[0]?.name,
+          ruleId,
+          ruleOneModels?.name,
+          score,
           nowDate,
           nowDate
         ]
-      );
-    } else {
-      // 如果查询到,执行修改, 有两种情况, 1: 考核方案的没有数据(工分有数据), 2: 考核方案有数据
-      todayScore.assess = {
-        id: checkSystemModels[0].id,
-        name: checkSystemModels[0].name,
-        scores: assessModelObj?.ruleScores,
-        //质量系数
-        rate: rate
-      };
-
-      // 执行修改语句
-      return await appDB.execute(
-        `
-            update his_staff_result
-              set assess = ?,
-                updated_at = ?
-            where id = ? and day = ?`,
-        JSON.stringify(todayScore.assess),
-        nowDate,
-        staff,
-        scoreDate
       );
     }
   }
