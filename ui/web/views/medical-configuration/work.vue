@@ -777,9 +777,12 @@ export default {
           type: 'warning'
         });
         row.removeLoading = true;
-        await this.$api.HisWorkItem.delete(row.id);
+        if (row.itemTypeId)
+          await this.$api.HisWorkItem.workItemTypeDelete(row.id);
+        if (!row.itemTypeId) await this.$api.HisWorkItem.delete(row.id);
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
+        this.$asyncComputed.itemTypeData.update();
       } catch (e) {
         e !== 'cancel' ? this.$message.error(e?.message) : '';
       } finally {
