@@ -901,6 +901,8 @@ export default {
     },
     resetItemType() {
       this.itemTypeVisible = false;
+      //重置分类数据
+      this.itemType = {id: '', name: '', sort: 1};
     },
     //移动工分项类型
     moveRow(row) {

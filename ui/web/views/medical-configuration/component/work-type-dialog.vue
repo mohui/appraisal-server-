@@ -17,7 +17,6 @@
           <el-form-item label="排序" props="remark">
             <el-input-number
               v-model="itemType.sort"
-              :max="4"
               :min="0"
               size="mini"
             ></el-input-number>
@@ -32,6 +31,7 @@
         class="work-submit-loading"
         size="mini"
         type="primary"
+        :disabled="!itemType.name"
         @click="submit()"
       >
         确 定
@@ -75,7 +75,7 @@ export default {
         this.$parent.$asyncComputed.serverData.update();
         this.$parent.resetItemType();
       } catch (e) {
-        this.$message.error(e);
+        this.$message.error(e.message);
       } finally {
         this.btnLoading = false;
       }
