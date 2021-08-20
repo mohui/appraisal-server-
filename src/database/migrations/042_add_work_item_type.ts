@@ -56,6 +56,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       create table if not exists his_staff_assess_result
       (
         id           varchar(36) primary key,
+        staff_id    varchar(36),
         time         date,
         system_id    varchar(36),
         system_name    varchar(255),
@@ -67,6 +68,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       );
       comment on table his_staff_assess_result is '员工得分表';
       comment on column his_staff_assess_result.time is '时间';
+      comment on column his_staff_assess_result.staff_id is '员工id';
       comment on column his_staff_assess_result.system_id is '考核方案id';
       comment on column his_staff_assess_result.system_name is '考核方案名称';
       comment on column his_staff_assess_result.rule_id is '规则id';
