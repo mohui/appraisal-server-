@@ -63,6 +63,7 @@ export class AddWorkItemTypeMigration implements IMigration {
         rule_id      varchar(36),
         rule_name    varchar(255),
         score        double precision,
+        total        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
@@ -74,6 +75,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       comment on column his_staff_assess_result.rule_id is '规则id';
       comment on column his_staff_assess_result.rule_name is '规则名称';
       comment on column his_staff_assess_result.score is '得分';
+      comment on column his_staff_assess_result.total is '满分';
     `);
   }
 
