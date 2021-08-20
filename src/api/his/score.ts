@@ -590,6 +590,8 @@ type AssessModel = {
   ruleId: string;
   ruleName: string;
   score: number;
+  // 满分
+  total: number;
 };
 // endregion
 
@@ -975,7 +977,8 @@ export default class HisScore {
                 system_name "systemName",
                 rule_id     "ruleId",
                 rule_name   "ruleName",
-                score
+                score,
+                total
          from his_staff_assess_result
          where staff_id = ?
            and rule_id = ?
@@ -986,8 +989,6 @@ export default class HisScore {
       start,
       end
     );
-
-    const nowDate = new Date();
     // 如果有分值, 执行修改, 如果没有分值, 执行添加
     if (assessResultModel.length > 0) {
       // 该手工细则本月打过分,执行修改语句
@@ -998,13 +999,15 @@ export default class HisScore {
           set system_name = ?,
               rule_name   = ?,
               score       = ?,
+              total       = ?,
               updated_at  = ?
           where id = ?
         `,
         checkSystemModels[0]?.name,
         ruleOneModels?.name,
         score,
-        nowDate,
+        ruleOneModels?.score,
+        new Date(),
         assessResultModel[0]?.id
       );
     } else {
@@ -1019,6 +1022,7 @@ export default class HisScore {
                                                rule_id,
                                                rule_name,
                                                score,
+                                               total,
                                                created_at,
                                                updated_at)
            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1031,8 +1035,9 @@ export default class HisScore {
           ruleId,
           ruleOneModels?.name,
           score,
-          nowDate,
-          nowDate
+          ruleOneModels?.score,
+          new Date(),
+          new Date()
         ]
       );
     }
