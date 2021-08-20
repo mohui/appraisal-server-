@@ -39,6 +39,7 @@
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
+        :span-method="spanMethod"
       >
         <el-table-column prop="work" label="工分项">
           <template slot-scope="{row}">
@@ -1005,6 +1006,19 @@ export default {
     },
     mouseLeave() {
       this.mouseEnterId = null;
+    },
+    //spanMethod
+    spanMethod({row, column}) {
+      if (row.itemTypeId) {
+        if (column.property === 'work' || column.property === 'operation') {
+          return [1, 1];
+        }
+        if (column.property === 'remark') {
+          return [1, 5];
+        }
+        return [1, 0];
+      }
+      return [1, 1];
     }
   }
 };
