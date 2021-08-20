@@ -51,6 +51,18 @@
 | type | varchar(255) | 关联员工状态; 动态/固定 |
 | score | double precision | 分值 |
 | remark | varchar(500)  | 备注 |
+| item_type | varchar(36)  | 分类id |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 工分项目表分类表(his_work_item_type)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键,分类id |
+| hospital | varchar(36) | 所属医院id |
+| name | varchar(255) | 分类名称 |
+| sort | INTEGER | 排序 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
@@ -123,14 +135,34 @@
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
-#### 员工得分表(his_staff_result)
+#### 员工工分得分表(his_staff_assess_result)
 
 | 字段名 | 字段类型 | 注释 |
 | --- | --- | --- |
 | id | varchar(36) | 主键 |
-| day | date | 日期 |
-| work | jsonb | 工分结果 |
-| assess | jsonb | 考核结果 |
+| time | date | 日期, 每月的1号 |
+| staff_id | varchar(36) | 员工id |
+| item_id | varchar(36) | 工分项id |
+| item_name | varchar(255) | 工分项名称 |
+| type_id | varchar(36) | 工分项分类id |
+| type_name | varchar(255) | 工分项分类名称 |
+| score | double precision | 得分 |
+| created_at | timestamp | 创建时间 |
+| updated_at | timestamp | 修改时间 |
+
+#### 员工质量系数得分表(his_staff_assess_result)
+
+| 字段名 | 字段类型 | 注释 |
+| --- | --- | --- |
+| id | varchar(36) | 主键 |
+| time | date | 日期, 每月的1号 |
+| staff_id | varchar(36) | 员工id |
+| system_id | varchar(36) | 考核方案id |
+| system_name | varchar(255) | 考核方案名称 |
+| rule_id | varchar(36) | 规则id |
+| rule_name | varchar(255) | 规则名称 |
+| score | double precision | 得分 |
+| total | double precision | 细则分 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 
