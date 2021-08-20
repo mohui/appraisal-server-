@@ -629,16 +629,13 @@ export default class HisScore {
         log(`考核${check}无细则`);
         return;
       }
+      // endregion
 
+      // region 自动打分根据规则得分
       // 取出所有的自动打分的细则
       const autoRules = ruleModels.filter(it => it.auto);
-
-      if (autoRules.length === 0) {
-        log(`考核${check}无自动打分的细则`);
-        return;
-      }
-      // endregion
-      // region 开始打分
+      // 取出所有的手动打分的细则
+      const manualRules = ruleModels.filter(it => !it.auto);
       // 获取所传月份的开始时间 即所在月份的一月一号零点零分零秒
       const monthTime = monthToRange(day);
       // 当天的开始时间和结束时间
@@ -663,46 +660,8 @@ export default class HisScore {
         start,
         end
       );
-      // region 删除自动打分细则和已经删除的细则的打分结果
-      /**
-       * 如果查询出数据, 需要做以下几个操作
-       * 1: 先找是否存在已经删除的细则,删除它的打分结果
-       * 2: 找到所有的自动打分细则,执行删除,为了后面的添加
-       */
-      if (assessResultModel.length > 0) {
-        // 过滤已经删除的细则 和 自动打分的细则, 先删除,后添加
-        const delRuleScore = assessResultModel.filter(score => {
-          // 过滤出已经删除的细则
-          const index = ruleModels.find(rule => rule.id === score.ruleId);
-          // 如果没找到这个细则id,说明此细则已经被删除了
-          if (!index) {
-            return score;
-          }
 
-          //过滤出所有的自动打分细则
-          const autoIndex = autoRules.find(rule => rule.id === score.ruleId);
-          // 这是从自动细则中查找的,如果找到,说明这个是自动细则,需要删除掉
-          if (autoIndex) {
-            return score;
-          }
-        });
-        // 如果过滤出数据, 说明有已经删除的细则 和 自动打分细则,需要删除掉多余的细则打分, 自动细则
-        if (delRuleScore.length > 0) {
-          const delRuleScoreId = delRuleScore.map(delIt => delIt.id);
-          // 删除已经不存在的细则打分
-          // language=PostgreSQL
-          await appDB.execute(
-            `
-              delete from his_staff_assess_result
-              where id in (${delRuleScoreId.map(() => '?')})
-            `,
-            ...delRuleScoreId
-          );
-        }
-      }
-      // endregion
-      // region 添加自动打分结果
-      // 自动打分
+      // 自动打分的赋值上分数
       const addRuleScore: AssessModel[] = [];
       // 算出打分结果
       for (const ruleIt of autoRules) {
@@ -737,29 +696,41 @@ export default class HisScore {
           total: ruleIt.score
         });
       }
-      // 填充没有打过分的手工打分, 默认给0分
-      for (const ruleIt of ruleModels) {
-        // 在要添加的自动打分中查找
-        const item1 = addRuleScore.find(
-          scoreIt => scoreIt.ruleId === ruleIt.id
-        );
+
+      // 填充手动打分的细则,如果有,赋值上分, 没有给0分
+      for (const ruleIt of manualRules) {
         // 在打分表里查找
-        const item2 = assessResultModel.find(
+        const item = assessResultModel.find(
           scoreIt => scoreIt.ruleId === ruleIt.id
         );
         // 如果都没有找到,存在还没有打过分的细则id
-        if (!item1 && !item2) {
-          addRuleScore.push({
-            staffId: staff,
-            time: start,
-            systemId: checkSystemModels[0]?.id,
-            systemName: checkSystemModels[0]?.name,
-            ruleId: ruleIt.id,
-            ruleName: ruleIt.name,
-            score: 0,
-            total: ruleIt.score
-          });
-        }
+        addRuleScore.push({
+          staffId: staff,
+          time: start,
+          systemId: checkSystemModels[0]?.id,
+          systemName: checkSystemModels[0]?.name,
+          ruleId: ruleIt.id,
+          ruleName: ruleIt.name,
+          score: item?.score ?? 0,
+          total: ruleIt.score
+        });
+      }
+      // endregion
+
+      // region 添加自动打分结果
+      // 插入之前先删除
+      if (assessResultModel.length > 0) {
+        // 过滤已经删除的细则 和 自动打分的细则, 先删除,后添加
+        const delRuleScoreId = assessResultModel.map(delIt => delIt.id);
+        // 删除已经不存在的细则打分
+        // language=PostgreSQL
+        await appDB.execute(
+          `
+              delete from his_staff_assess_result
+              where id in (${delRuleScoreId.map(() => '?')})
+            `,
+          ...delRuleScoreId
+        );
       }
       // 插入打分结果
       for (const insertIt of addRuleScore) {
@@ -792,7 +763,6 @@ export default class HisScore {
           ]
         );
       }
-      // endregion
       // endregion
     });
   }
