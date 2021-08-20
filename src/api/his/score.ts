@@ -446,6 +446,7 @@ async function getMark(hospital, year) {
     }
   );
 }
+
 // endregion
 
 // region 质量系数公共方法
@@ -737,17 +738,17 @@ export default class HisScore {
         // language=PostgreSQL
         await appDB.execute(
           `insert into his_staff_assess_result(id,
-                                               staff_id,
-                                               time,
-                                               system_id,
-                                               system_name,
-                                               rule_id,
-                                               rule_name,
-                                               score,
-                                               total,
-                                               created_at,
-                                               updated_at)
-           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                                 staff_id,
+                                                 time,
+                                                 system_id,
+                                                 system_name,
+                                                 rule_id,
+                                                 rule_name,
+                                                 score,
+                                                 total,
+                                                 created_at,
+                                                 updated_at)
+             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           ...[
             uuid.v4(),
             insertIt.staffId,
