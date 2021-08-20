@@ -25,7 +25,8 @@ export class AddWorkItemTypeMigration implements IMigration {
 
 
       -- 公分项表添加分类字段
-      ALTER table his_work_item ADD COLUMN item_type varchar(36) DEFAULT null;
+      ALTER table his_work_item
+        ADD COLUMN item_type varchar(36) DEFAULT null;
       COMMENT ON COLUMN his_work_item."item_type" IS '分类id';
 
       --员工工分得分表
@@ -56,10 +57,10 @@ export class AddWorkItemTypeMigration implements IMigration {
       create table if not exists his_staff_assess_result
       (
         id           varchar(36) primary key,
-        staff_id    varchar(36),
+        staff_id     varchar(36),
         time         date,
         system_id    varchar(36),
-        system_name    varchar(255),
+        system_name  varchar(255),
         rule_id      varchar(36),
         rule_name    varchar(255),
         score        double precision,
@@ -76,6 +77,9 @@ export class AddWorkItemTypeMigration implements IMigration {
       comment on column his_staff_assess_result.rule_name is '规则名称';
       comment on column his_staff_assess_result.score is '得分';
       comment on column his_staff_assess_result.total is '满分';
+
+      -- 删除旧的得分表
+      DROP TABLE IF EXISTS "his_staff_result";
     `);
   }
 
