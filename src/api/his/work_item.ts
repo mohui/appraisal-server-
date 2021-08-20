@@ -1312,7 +1312,7 @@ export default class HisWorkItem {
     should
       .number()
       .required()
-      .description('分值')
+      .description('排序')
   )
   async workItemTypeUpsert(id, name, sort) {
     // 如果id不为空,是修改
