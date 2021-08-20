@@ -450,96 +450,6 @@ async function staffScoreRate(ruleScores) {
   return Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
 }
 
-/**
- * 自动打分细则
- *
- * @param ruleModels 所有的细则
- * @param type 自动手动
- * @param assess, 打分表里的细则
- */
-async function autoStaffAssess(ruleModels, type, assess: StaffAssessModel) {
-  // 如果没有数据,说明是没有打过分,需要把细则都放到里面,然后打分
-  if (!assess) {
-    assess = {
-      id: '',
-      name: '',
-      scores: ruleModels.map(ruleIt => {
-        return {
-          id: ruleIt.id,
-          auto: ruleIt.auto,
-          name: ruleIt.name,
-          detail: ruleIt.detail,
-          metric: ruleIt.metric,
-          operator: ruleIt.operator,
-          value: ruleIt.value,
-          score: null,
-          total: ruleIt.score
-        };
-      })
-    };
-  } else {
-    // 如果有数据, 分为自动和手动两种情况
-    if (type === 'automations') {
-      // 自动的
-      assess.scores = ruleModels.map(ruleIt => {
-        //把手动的分放到数组中
-        const index = assess.scores.find(
-          scoreIt => ruleIt.id === scoreIt.id && scoreIt.auto === false
-        );
-        return {
-          id: ruleIt.id,
-          auto: ruleIt.auto,
-          name: ruleIt.name,
-          detail: ruleIt.detail,
-          metric: ruleIt.metric,
-          operator: ruleIt.operator,
-          value: ruleIt.value,
-          score: index
-            ? index.score > index.total
-              ? index.total
-              : index.score
-            : null,
-          total: ruleIt.score
-        };
-      });
-    }
-    // 手动的情况,如果有数据, 只需要把可能存在的需要添加的细则加上, 不需要其他操作(不改变原分)
-    if (type === 'manual') {
-      assess.scores = ruleModels.map(ruleIt => {
-        const index = assess.scores.find(scoreIt => ruleIt.id === scoreIt.id);
-        return {
-          id: ruleIt.id,
-          auto: ruleIt.auto,
-          name: ruleIt.name,
-          detail: ruleIt.detail,
-          metric: ruleIt.metric,
-          operator: ruleIt.operator,
-          value: ruleIt.value,
-          score: index
-            ? index.score > index.total
-              ? index.total
-              : index.score
-            : null,
-          total: ruleIt.score
-        };
-      });
-    }
-  }
-
-  // 排查一波数字字段是否是纯数字和null
-  assess.scores = assess.scores.map(it => {
-    return {
-      ...it,
-      value: isNaN(Number(it.value)) ? null : it.value,
-      total: isNaN(Number(it.total)) ? null : it.total,
-      score: isNaN(Number(it.score)) ? null : it.score
-    };
-  });
-  return {
-    ruleScores: assess.scores
-  };
-}
-
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
@@ -582,7 +492,7 @@ type CheckRuleModel = {
   score: number;
 };
 type AssessModel = {
-  id: string;
+  id?: string;
   staffId: string;
   time: Date;
   systemId: string;
@@ -691,51 +601,49 @@ export default class HisScore {
   async autoScoreStaff(day, staff, hospital) {
     const mark = await getMark(hospital, dayjs(day).year());
     return await appDB.joinTx(async () => {
+      // region 打分前的校验
       // 先根据员工查询考核
+      // language=PostgreSQL
       const mapping = await appDB.execute(
-        `select staff, "check" from his_staff_check_mapping
-        where staff = ?`,
+        `select staff, "check"
+           from his_staff_check_mapping
+           where staff = ?`,
         staff
       );
       if (mapping.length === 0) {
         log(`员工${staff}无考核`);
-        const resultOne = await appDB.execute(
-          `
-              select * from his_staff_result
-              where id = ? and day = ?
-          `,
-          staff,
-          day
-        );
-        if (resultOne.length > 0) {
-          await appDB.execute(
-            `
-          update his_staff_result set assess = null
-           where id = ? and day = ?
-        `,
-            staff,
-            day
-          );
-        }
+        return;
+      }
+      // 取出考核方案id
+      const check = mapping[0]?.check;
+
+      // 查询方案
+      // language=PostgreSQL
+      const checkSystemModels = await appDB.execute(
+        `select id, name, hospital
+           from his_check_system
+           where id = ?`,
+        check
+      );
+      if (checkSystemModels.length === 0) {
+        log(`考核方案${check}不存在`);
         return;
       }
 
-      // 查询方案
-      const checkSystemModels = await appDB.execute(
-        `select  id, name, hospital from his_check_system where id = ?`,
-        mapping[0].check
-      );
-
-      // 取出考核id
-      const check = mapping[0]?.check;
-
-      // 根据考核id查询考核细则
-      const ruleModels = await appDB.execute(
-        `select id, auto,  name, detail,
-            metric, operator,
-            value, score
-          from his_check_rule
-          where "check" = ?`,
+      // 根据考核方案id查询考核细则
+      // language=PostgreSQL
+      const ruleModels: CheckRuleModel[] = await appDB.execute(
+        `select id,
+                  "check",
+                  auto,
+                  name,
+                  detail,
+                  metric,
+                  operator,
+                  value,
+                  score
+           from his_check_rule
+           where "check" = ?`,
         check
       );
       if (ruleModels.length === 0) {
@@ -750,133 +658,163 @@ export default class HisScore {
         log(`考核${check}无自动打分的细则`);
         return;
       }
-
-      // 查询考核得分  只查询这个人这一天的细则得分, 过滤掉手动的
-      let staffScores: {
-        id: string;
-        day: Date;
-        assess: StaffAssessModel;
-      } = (
-        await appDB.execute(
-          `
-          select id, day, assess from his_staff_result
-           where id = ? and day = ?
-        `,
-          staff,
-          day
-        )
-      )[0];
-      // 是添加还是修改
-      let upsert = '';
-
-      // 如果没有查到数据,或者查到数据了但是打分的字段为空,说明当天没有被打过分,需要先添加;
-      if (!staffScores) {
-        // 如果当天没有打过分, 先填充数据
-        const assessModelObj = await autoStaffAssess(
-          ruleModels,
-          'automations',
-          staffScores?.assess
-        );
-
-        staffScores = {
-          // 员工id
-          id: staff,
-          day: day,
-          assess: {
-            id: checkSystemModels[0].id,
-            name: checkSystemModels[0].name,
-            scores: assessModelObj?.ruleScores,
-            //质量系数
-            rate: null
+      // endregion
+      // region 开始打分
+      // 获取所传月份的开始时间 即所在月份的一月一号零点零分零秒
+      const monthTime = monthToRange(day);
+      // 当天的开始时间和结束时间
+      const {start, end} = dayToRange(monthTime.start);
+      // 开始之前先查询此员工本月是否打过分
+      // language=PostgreSQL
+      const assessResultModel: AssessModel[] = await appDB.execute(
+        `select id,
+                  staff_id    "staffId",
+                  time,
+                  system_id   "systemId",
+                  system_name "systemName",
+                  rule_id     "ruleId",
+                  rule_name   "ruleName",
+                  score,
+                  total
+           from his_staff_assess_result
+           where staff_id = ?
+             and time >= ?
+             and time < ?`,
+        staff,
+        start,
+        end
+      );
+      // region 删除自动打分细则和已经删除的细则的打分结果
+      /**
+       * 如果查询出数据, 需要做以下几个操作
+       * 1: 先找是否存在已经删除的细则,删除它的打分结果
+       * 2: 找到所有的自动打分细则,执行删除,为了后面的添加
+       */
+      if (assessResultModel.length > 0) {
+        // 过滤已经删除的细则 和 自动打分的细则, 先删除,后添加
+        const delRuleScore = assessResultModel.filter(score => {
+          // 过滤出已经删除的细则
+          const index = ruleModels.find(rule => rule.id === score.ruleId);
+          // 如果没找到这个细则id,说明此细则已经被删除了
+          if (!index) {
+            return score;
           }
-        };
-        // 是添加
-        upsert = 'add';
-      } else {
-        upsert = 'update';
-        // 如果查到数据,是重新打分,分为两种情况, 1: 打分字段有数据, 2: 打分字段无数据
-        const assessModelObj = await autoStaffAssess(
-          ruleModels,
-          'automations',
-          staffScores?.assess
-        );
 
-        staffScores = {
-          // 员工id
-          id: staff,
-          day: day,
-          assess: {
-            id: checkSystemModels[0].id,
-            name: checkSystemModels[0].name,
-            scores: assessModelObj?.ruleScores,
-            //质量系数
-            rate: null
+          //过滤出所有的自动打分细则
+          const autoIndex = autoRules.find(rule => rule.id === score.ruleId);
+          // 这是从自动细则中查找的,如果找到,说明这个是自动细则,需要删除掉
+          if (autoIndex) {
+            return score;
           }
-        };
+        });
+        // 如果过滤出数据, 说明有已经删除的细则 和 自动打分细则,需要删除掉多余的细则打分, 自动细则
+        if (delRuleScore.length > 0) {
+          const delRuleScoreId = delRuleScore.map(delIt => delIt.id);
+          // 删除已经不存在的细则打分
+          // language=PostgreSQL
+          await appDB.execute(
+            `
+              delete from his_staff_assess_result
+              where id in (${delRuleScoreId.map(() => '?')})
+            `,
+            ...delRuleScoreId
+          );
+        }
       }
-
+      // endregion
+      // region 添加自动打分结果
+      // 自动打分
+      const addRuleScore: AssessModel[] = [];
+      // 算出打分结果
       for (const ruleIt of autoRules) {
-        // 如果查找到,是需要新增的数据
-        const scoreIndex = staffScores?.assess?.scores.find(
-          scoreIt => scoreIt.id === ruleIt.id
-        );
-
+        let score = 0;
         // 根据指标获取指标数据
         if (ruleIt.metric === MarkTagUsages.HIS00.code) {
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
             // 指标分数
-            scoreIndex.score = ruleIt.score;
+            score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
           if (ruleIt.operator === TagAlgorithmUsages.N01.code && !mark?.HIS00) {
             // 指标分数
-            scoreIndex.score = ruleIt.score;
+            score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
             // 指标分数
-            scoreIndex.score = ruleIt.score * (rate > 1 ? 1 : rate);
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
         }
+        addRuleScore.push({
+          staffId: staff,
+          time: start,
+          systemId: checkSystemModels[0]?.id,
+          systemName: checkSystemModels[0]?.name,
+          ruleId: ruleIt.id,
+          ruleName: ruleIt.name,
+          score,
+          total: ruleIt.score
+        });
       }
-
-      // 算出占比
-      staffScores.assess.rate = await staffScoreRate(
-        staffScores?.assess?.scores
-      );
-
-      const nowDate = new Date();
-      // 是添加
-      if (upsert === 'add') {
-        // 执行添加语句
-        return await appDB.execute(
-          `insert into
-              his_staff_result(id, day, assess, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
+      // 填充没有打过分的手工打分, 默认给0分
+      for (const ruleIt of ruleModels) {
+        // 在要添加的自动打分中查找
+        const item1 = addRuleScore.find(
+          scoreIt => scoreIt.ruleId === ruleIt.id
+        );
+        // 在打分表里查找
+        const item2 = assessResultModel.find(
+          scoreIt => scoreIt.ruleId === ruleIt.id
+        );
+        // 如果都没有找到,存在还没有打过分的细则id
+        if (!item1 && !item2) {
+          addRuleScore.push({
+            staffId: staff,
+            time: start,
+            systemId: checkSystemModels[0]?.id,
+            systemName: checkSystemModels[0]?.name,
+            ruleId: ruleIt.id,
+            ruleName: ruleIt.name,
+            score: 0,
+            total: ruleIt.score
+          });
+        }
+      }
+      // 插入打分结果
+      for (const insertIt of addRuleScore) {
+        // language=PostgreSQL
+        await appDB.execute(
+          `insert into his_staff_assess_result(id,
+                                               staff_id,
+                                               time,
+                                               system_id,
+                                               system_name,
+                                               rule_id,
+                                               rule_name,
+                                               score,
+                                               total,
+                                               created_at,
+                                               updated_at)
+           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           ...[
-            staffScores.id,
-            staffScores.day,
-            JSON.stringify(staffScores.assess),
-            nowDate,
-            nowDate
+            uuid.v4(),
+            insertIt.staffId,
+            insertIt.time,
+            insertIt.systemId,
+            insertIt.systemName,
+            insertIt.ruleId,
+            insertIt.ruleName,
+            insertIt.score,
+            insertIt.total,
+            new Date(),
+            new Date()
           ]
         );
-      } else {
-        // 执行修改语句
-        return await appDB.execute(
-          `
-            update his_staff_result
-              set assess = ?,
-                updated_at = ?
-            where id = ? and day = ?`,
-          JSON.stringify(staffScores.assess),
-          nowDate,
-          staffScores.id,
-          staffScores.day
-        );
       }
+      // endregion
+      // endregion
     });
   }
 
@@ -1025,7 +963,7 @@ export default class HisScore {
                                                total,
                                                created_at,
                                                updated_at)
-           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         ...[
           uuid.v4(),
           staff,
