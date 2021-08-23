@@ -839,7 +839,7 @@ export default {
 <style lang="scss">
 .el-table-medical-performance-report {
   .custom-row {
-    background: #f0f9eb;
+    background: #f5f7fa;
   }
 }
 </style>
