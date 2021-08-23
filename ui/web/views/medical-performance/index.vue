@@ -152,6 +152,8 @@
           id="reportTable"
           :data="reportData"
           :span-method="objectSpanMethod"
+          class="el-table-medical-performance-report"
+          :row-class-name="tableRowClassName"
           height="70vh"
           size="mini"
           border
@@ -237,6 +239,8 @@ export default {
       originalReportData: [],
       reportData: [],
       reportDataLoading: false,
+      spanArr: [],
+      categorySpanArr: [],
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -287,49 +291,6 @@ export default {
         ...it,
         score: Number(it.score?.toFixed(2)) || 0
       }));
-    },
-    spanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.reportData[i].name === this.reportData[i - 1].name) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
-    },
-    categorySpanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (
-            this.reportData[i].name === this.reportData[i - 1].name &&
-            this.reportData[i].typeId === this.reportData[i - 1].typeId
-          ) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
     }
   },
   asyncComputed: {
@@ -374,6 +335,9 @@ export default {
     async handleClickReport() {
       await this.reportDataRequest();
       this.handleReportData();
+      // 获取需要合并的数据
+      this.spanArr = this.getSpanArr();
+      this.categorySpanArr = this.getCategorySpanArr();
     },
     async reportDataRequest() {
       this.reportDataLoading = true;
@@ -457,6 +421,54 @@ export default {
     handleAmountChange() {
       // 报表数据更新
       this.handleReportData();
+    },
+    getSpanArr() {
+      let arr = [];
+      let pos = 0;
+      let index = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+          this.reportData[i].nameIndex = index;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].name === this.reportData[i - 1].name) {
+            arr[pos] += 1;
+            arr.push(0);
+            this.reportData[i].nameIndex = index;
+          } else {
+            arr.push(1);
+            pos = i;
+            index++;
+            this.reportData[i].nameIndex = index;
+          }
+        }
+      }
+      return arr;
+    },
+    getCategorySpanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (
+            this.reportData[i].name === this.reportData[i - 1].name &&
+            this.reportData[i].typeId === this.reportData[i - 1].typeId
+          ) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
     },
     handleChangeDate() {
       this.$router.replace({
@@ -811,13 +823,30 @@ export default {
         ]
       };
       myChart.setOption(option);
+    },
+
+    tableRowClassName({row, rowIndex}) {
+      console.log('tableRowClassName:', row, rowIndex);
+      if (row.nameIndex % 2 === 1) {
+        return 'custom-row';
+      }
+      return '';
     }
   }
 };
 </script>
 
+<style lang="scss">
+.el-table-medical-performance-report {
+  .custom-row {
+    background: #f0f9eb;
+  }
+}
+</style>
+
 <style scoped lang="scss">
 @import '../../styles/vars';
+
 .wrapper {
   height: 100%;
   position: relative;
