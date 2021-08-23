@@ -783,6 +783,8 @@ export default {
         this.$message.success('删除成功');
         this.$asyncComputed.serverData.update();
         this.$asyncComputed.itemTypeData.update();
+        //更新列表渲染
+        this.symbolKey = Symbol(this.$dayjs().toString());
       } catch (e) {
         e !== 'cancel' ? this.$message.error(e?.message) : '';
       } finally {
