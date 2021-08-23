@@ -841,6 +841,9 @@ export default {
   .custom-row {
     background: #f5f7fa;
   }
+  tr {
+    pointer-events: none;
+  }
 }
 </style>
 
