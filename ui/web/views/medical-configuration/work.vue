@@ -98,7 +98,7 @@
             <div v-else>
               {{
                 `${row.staffMappings.join(',')}${
-                  row.staffMethod === HisStaffMethod.DYNAMIC
+                  row.staffMethod === HisStaffMethod.DYNAMIC && row.scope
                     ? `-${row.scope}`
                     : ''
                 }`
@@ -224,9 +224,19 @@
                   机构全体员工
                 </el-button>
                 <el-button
-                  @click="newWork.scope = null"
+                  @click="
+                    () => {
+                      newWork.scope = null;
+                      newWork.staffMethod = HisStaffMethod.STATIC;
+                    }
+                  "
                   :disabled="onlyHospital"
-                  :type="!newWork.scope ? 'primary' : ''"
+                  :type="
+                    newWork.staffMethod === HisStaffMethod.STATIC &&
+                    !newWork.scope
+                      ? 'primary'
+                      : ''
+                  "
                   size="mini"
                 >
                   其他固定配置
@@ -238,7 +248,13 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item v-if="!newWork.scope" label="固定来源" prop="staffs">
+            <el-form-item
+              v-if="
+                newWork.staffMethod === HisStaffMethod.STATIC && !newWork.scope
+              "
+              label="固定来源"
+              prop="staffs"
+            >
               <el-input
                 v-model="staffFilterText"
                 clearable
