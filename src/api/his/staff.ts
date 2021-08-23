@@ -462,15 +462,15 @@ export default class HisStaff {
       score: number;
     }[] = await appDB.execute(
       `
-        select result.item_id "id",
+        select result.item_id   "id",
                result.item_name "name",
-               result.type_id "typeId",
+               result.type_id   "typeId",
                result.type_name "typeName",
                result.score
         from his_staff_work_result result
         where result.staff_id = ?
-            and result.time >= ?
-            and result.time < ?
+          and result.time >= ?
+          and result.time < ?
       `,
       id,
       start,
@@ -481,18 +481,18 @@ export default class HisStaff {
     // language=PostgreSQL
     const assessResultModel: AssessModel[] = await appDB.execute(
       `select id,
-                  staff_id    "staffId",
-                  time,
-                  system_id   "systemId",
-                  system_name "systemName",
-                  rule_id     "ruleId",
-                  rule_name   "ruleName",
-                  score,
-                  total
-           from his_staff_assess_result
-           where staff_id = ?
-             and time >= ?
-             and time < ?`,
+                staff_id    "staffId",
+                time,
+                system_id   "systemId",
+                system_name "systemName",
+                rule_id     "ruleId",
+                rule_name   "ruleName",
+                score,
+                total
+         from his_staff_assess_result
+         where staff_id = ?
+           and time >= ?
+           and time < ?`,
       id,
       start,
       end
@@ -518,6 +518,7 @@ export default class HisStaff {
       items: workItems
     };
   }
+
   // endregion
 
   // region 员工考核详情之质量系数详情
@@ -572,18 +573,18 @@ export default class HisStaff {
     // language=PostgreSQL
     const assessResultModel: AssessModel[] = await appDB.execute(
       `select id,
-                  staff_id    "staffId",
-                  time,
-                  system_id   "systemId",
-                  system_name "systemName",
-                  rule_id     "ruleId",
-                  rule_name   "ruleName",
-                  score,
-                  total
-           from his_staff_assess_result
-           where staff_id = ?
-             and time >= ?
-             and time < ?`,
+                staff_id    "staffId",
+                time,
+                system_id   "systemId",
+                system_name "systemName",
+                rule_id     "ruleId",
+                rule_name   "ruleName",
+                score,
+                total
+         from his_staff_assess_result
+         where staff_id = ?
+           and time >= ?
+           and time < ?`,
       staff,
       start,
       end
@@ -609,5 +610,6 @@ export default class HisStaff {
       manuals
     };
   }
+
   // endregion
 }
