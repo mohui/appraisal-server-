@@ -335,9 +335,6 @@ export default {
     async handleClickReport() {
       await this.reportDataRequest();
       this.handleReportData();
-      // 获取需要合并的数据
-      this.spanArr = this.getSpanArr();
-      this.categorySpanArr = this.getCategorySpanArr();
     },
     async reportDataRequest() {
       this.reportDataLoading = true;
@@ -416,6 +413,10 @@ export default {
         }
       }
       this.reportData = result;
+
+      // 获取需要合并的数据
+      this.spanArr = this.getSpanArr();
+      this.categorySpanArr = this.getCategorySpanArr();
     },
     // 金额改变时
     handleAmountChange() {
