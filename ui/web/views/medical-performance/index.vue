@@ -425,6 +425,8 @@ export default {
             item.rate = i.rate;
             item.rateFormat = item.rate * 100 + '%';
             item.extra = i.extra;
+            // 总得分
+            item.totalScore = item.extra;
             result.push(item);
           }
         }
