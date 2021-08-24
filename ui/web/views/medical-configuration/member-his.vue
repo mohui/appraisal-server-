@@ -538,7 +538,7 @@ export default {
         this.departmentForm = JSON.parse(
           JSON.stringify({
             id: row.id,
-            name: row.name
+            name: row.depName
           })
         );
         this.addDepartmentVisible = true;
