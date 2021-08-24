@@ -62,7 +62,7 @@
 | id | varchar(36) | 主键,分类id |
 | hospital | varchar(36) | 所属医院id |
 | name | varchar(255) | 分类名称 |
-| sort | INTEGER | 排序 |
+| order | INTEGER | 排序 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 

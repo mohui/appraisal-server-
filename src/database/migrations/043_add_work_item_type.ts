@@ -14,14 +14,14 @@ export class AddWorkItemTypeMigration implements IMigration {
         id           varchar(36) primary key,
         name         varchar(255),
         hospital     varchar(36),
-        sort         INTEGER,
+        "order"      INTEGER,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp
       );
       comment on table his_work_item_type is '分类';
       comment on column his_work_item_type.hospital is '所属医院';
       comment on column his_work_item_type.name is '名称';
-      comment on column his_work_item_type.sort is '排序';
+      comment on column his_work_item_type."order" is '排序';
 
 
       -- 公分项表添加分类字段
@@ -40,7 +40,7 @@ export class AddWorkItemTypeMigration implements IMigration {
         type_id      varchar(36),
         type_name    varchar(255),
         score        double precision,
-        "order"        double precision,
+        "order"      double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (staff_id, time, item_id)
