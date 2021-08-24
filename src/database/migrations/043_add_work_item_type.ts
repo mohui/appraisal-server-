@@ -40,6 +40,7 @@ export class AddWorkItemTypeMigration implements IMigration {
         type_id      varchar(36),
         type_name    varchar(255),
         score        double precision,
+        "order"        double precision,
         "created_at" timestamp with time zone not null default current_timestamp,
         "updated_at" timestamp with time zone not null default current_timestamp,
         unique (staff_id, time, item_id)
@@ -52,6 +53,7 @@ export class AddWorkItemTypeMigration implements IMigration {
       comment on column his_staff_work_result.type_id is '工分项分类id';
       comment on column his_staff_work_result.type_name is '工分项分类名称';
       comment on column his_staff_work_result.score is '得分';
+      comment on column his_staff_work_result.order is '排序';
 
       --员工质量系数得分表
       create table if not exists his_staff_assess_result

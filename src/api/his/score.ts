@@ -43,6 +43,8 @@ type WorkItemDetail = {
   typeName: string;
   //工分项得分
   score: number;
+  // 排序
+  order: number;
 };
 
 /**
@@ -1001,6 +1003,7 @@ export default class HisScore {
       rate: string; //权重
       item_type: string; //工分项分类id
       item_type_name: string; //工分项分类名称
+      order: number; //排序
     }[] = await appDB.execute(
       `
         select wi.id,
@@ -1011,6 +1014,7 @@ export default class HisScore {
                wi.type                   as staff_type,
                wi.item_type,
                type.name                 as item_type_name,
+               type.sort                 as "order",
                wism.source               as staff_id,
                coalesce(wism.type, '员工') as staff_level,
                swim.rate
@@ -1072,7 +1076,8 @@ export default class HisScore {
           // 范围, 动态的时候才有值
           scope:
             it.staff_type === HisStaffMethod.DYNAMIC ? it.staff_level : null,
-          rate: it.rate
+          rate: it.rate,
+          order: it.order
         });
       }
     }
@@ -1118,7 +1123,8 @@ export default class HisScore {
           name: it.name,
           typeId: it.typeId,
           typeName: it.typeName,
-          score: sum * it.rate
+          score: sum * it.rate,
+          order: it.order
         }
       ]);
     }
@@ -1149,9 +1155,10 @@ export default class HisScore {
                                               type_id,
                                               type_name,
                                               score,
+                                              "order",
                                               created_at,
                                               updated_at)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
           uuid.v4(),
           id,
@@ -1161,6 +1168,7 @@ export default class HisScore {
           result?.typeId ?? null,
           result?.typeName ?? null,
           result?.score ?? null,
+          result?.order ?? null,
           new Date(),
           new Date()
         );
