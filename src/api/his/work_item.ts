@@ -1334,7 +1334,7 @@ export default class HisWorkItem {
         `
           update his_work_item_type
           set name       = ?,
-              sort       = ?,
+              "order"       = ?,
               updated_at = ?
           where id = ?
         `,
@@ -1348,7 +1348,7 @@ export default class HisWorkItem {
       const hospital = await getHospital();
       // language=PostgreSQL
       await appDB.execute(
-        `insert into his_work_item_type(id, name, hospital, sort, created_at, updated_at)
+        `insert into his_work_item_type(id, name, hospital, "order", created_at, updated_at)
            values (?, ?, ?, ?, ?, ?)`,
         uuid(),
         name,
@@ -1366,7 +1366,7 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const list = await appDB.execute(
       `
-        select id, name, hospital, sort
+        select id, name, hospital, "order" sort
         from his_work_item_type
         where hospital = ?
         order by sort
