@@ -459,6 +459,7 @@ export default class HisStaff {
       name: string;
       typeId: string;
       typeName: string;
+      order: number;
       score: number;
     }[] = await appDB.execute(
       `
@@ -466,6 +467,7 @@ export default class HisStaff {
                result.item_name "name",
                result.type_id   "typeId",
                result.type_name "typeName",
+               result."order",
                result.score
         from his_staff_work_result result
         where result.staff_id = ?
