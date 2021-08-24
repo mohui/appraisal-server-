@@ -352,11 +352,14 @@ export default {
     // 报表数据处理
     handleReportData() {
       this.originalReportData = this.originalReportData.map(it => {
-        it.items.sort((a, b) => {
-          if (a['typeId'] != b['typeId']) {
-            return a['typeId']?.localeCompare(b['typeId']);
-          }
-        });
+        it.items
+          .sort((a, b) => {
+            if (a['typeId'] != b['typeId']) {
+              return a['typeId']?.localeCompare(b['typeId']);
+            }
+          })
+          //根据order排序
+          .sort((a, b) => a.order - b.order);
         return it;
       });
       const result = [];
