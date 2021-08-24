@@ -1014,7 +1014,7 @@ export default class HisScore {
                wi.type                   as staff_type,
                wi.item_type,
                type.name                 as item_type_name,
-               type.sort                 as "order",
+               type."order",
                wism.source               as staff_id,
                coalesce(wism.type, '员工') as staff_level,
                swim.rate
