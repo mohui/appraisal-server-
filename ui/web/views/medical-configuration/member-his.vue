@@ -85,12 +85,28 @@
         :load="loadTree"
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        @cell-mouse-enter="mouseEnter"
+        @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column
-          prop="departmentText"
-          label="科室"
-          min-width="80"
-        ></el-table-column>
+        <el-table-column prop="departmentText" label="科室" min-width="100">
+          <template slot-scope="{row}">
+            <span>{{ row.departmentText }}</span>
+            <el-link
+              style="padding: 0 0 0 10px"
+              class="el-icon-edit"
+              v-show="row.departmentId && showEditIcon(row.departmentId)"
+              @click="editUser(row)"
+              type="primary"
+            ></el-link>
+            <el-link
+              style="padding: 0"
+              class="el-icon-close"
+              v-show="row.departmentId && showEditIcon(row.departmentId)"
+              @click="delUser(row)"
+              type="danger"
+            ></el-link>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="account"
           label="登录名"
@@ -123,18 +139,20 @@
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
           <template slot-scope="{row}">
-            <el-button type="primary" size="mini" @click="editUser(row)">
-              修改
-            </el-button>
-            <el-button
-              :disabled="row.removeLoading"
-              :icon="row.removeLoading ? 'el-icon-loading' : ''"
-              size="mini"
-              type="danger"
-              @click="delUser(row)"
-            >
-              删除
-            </el-button>
+            <div v-if="!row.departmentId">
+              <el-button type="primary" size="mini" @click="editUser(row)">
+                修改
+              </el-button>
+              <el-button
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : ''"
+                size="mini"
+                type="danger"
+                @click="delUser(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -374,6 +392,7 @@ export default {
         id: null,
         name: null
       },
+      mouseEnterId: '',
       symbolKey: Symbol(this.$dayjs().toString())
     };
   },
@@ -642,6 +661,17 @@ export default {
       } finally {
         this.addDepartmentVisible = false;
       }
+    },
+    //是否显示icon
+    showEditIcon(id) {
+      return id === this.mouseEnterId;
+    },
+    //鼠标进出单元格
+    mouseEnter(row) {
+      this.mouseEnterId = row.id;
+    },
+    mouseLeave() {
+      this.mouseEnterId = null;
     }
   }
 };
