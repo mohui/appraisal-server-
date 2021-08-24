@@ -68,19 +68,20 @@
         </el-form>
       </kn-collapse>
       <el-table
+        :key="symbolKey"
         v-loading="tableLoading"
         stripe
+        border
         size="small"
         :data="userList"
         height="100%"
         style="flex-grow: 1;"
+        row-key="id"
+        lazy
+        :load="loadTree"
+        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column align="center" min-width="50" label="序号">
-          <template slot-scope="scope">
-            {{ scope.$index + 1 }}
-          </template>
-        </el-table-column>
         <el-table-column
           prop="account"
           label="登录名"
@@ -331,17 +332,38 @@ export default {
       },
       tableLoading: false,
       addBtnLoading: false,
-      updateLoading: false
+      updateLoading: false,
+      symbolKey: Symbol(this.$dayjs().toString())
     };
   },
   computed: {
     userList() {
-      return this.listMember.map(it => ({
-        ...it,
-        removeLoading: false,
-        created_at: it.created_at?.$format() || '',
-        updated_at: it.updated_at?.$format() || ''
-      }));
+      return this.listMember
+        .map(it => ({
+          ...it,
+          removeLoading: false,
+          created_at: it.created_at?.$format() || '',
+          updated_at: it.updated_at?.$format() || ''
+        }))
+        .reduce(
+          (pre, next) => {
+            const department = pre.find(
+              p => p.departmentId === next.department
+            );
+            if (department) department.children.push(next);
+            if (!department) pre.push(next);
+            return pre;
+          },
+          //起始的科室分类数据
+          this.serverDepartment.map(it => ({
+            id: it.id,
+            account: it.name,
+            departmentId: it.id,
+            children: [],
+            created_at: it.created_at?.$format() || '',
+            hasChildren: true
+          }))
+        );
     },
     hisList() {
       return this.serverHisData;
@@ -529,6 +551,10 @@ export default {
       } finally {
         row.removeLoading = false;
       }
+    },
+    //列表树load方法
+    loadTree(tree, treeNode, resolve) {
+      resolve(tree.children);
     }
   }
 };
