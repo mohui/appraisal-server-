@@ -13,13 +13,17 @@
     >
       <div slot="header" class="clearfix">
         <span>His员工绑定列表</span>
-        <el-button
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          @click="openAddUserDialog"
-          >新建用户
-        </el-button>
+        <div>
+          <el-button size="mini" type="primary" @click="openAddUserDialog"
+            >新建用户
+          </el-button>
+          <el-button
+            size="mini"
+            type="warning"
+            @click="addDepartmentVisible = true"
+            >新增科室
+          </el-button>
+        </div>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -272,6 +276,7 @@
           <el-select
             v-model="userForm.his"
             style="width: 100%"
+            size="mini"
             clearable
             filterable
           >
@@ -286,8 +291,39 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
-        <el-button v-loading="updateLoading" type="primary" @click="updateUser"
+        <el-button size="mini" @click="dialogFormEditUsersVisible = false"
+          >取 消</el-button
+        >
+        <el-button
+          v-loading="updateLoading"
+          size="mini"
+          type="primary"
+          @click="updateUser"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
+    <el-dialog title="科室弹窗" :visible.sync="addDepartmentVisible">
+      <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
+        <el-form-item
+          label="科室名称"
+          prop="name"
+          :label-width="formLabelWidth"
+        >
+          <el-input
+            v-model="departmentForm.name"
+            size="mini"
+            autocomplete="off"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="resetDepartmentForm()">取 消</el-button>
+        <el-button
+          size="mini"
+          type="primary"
+          :disabled="!departmentForm.name"
+          @click="submitDepartment()"
           >确 定</el-button
         >
       </div>
@@ -333,6 +369,11 @@ export default {
       tableLoading: false,
       addBtnLoading: false,
       updateLoading: false,
+      addDepartmentVisible: false,
+      departmentForm: {
+        id: null,
+        name: null
+      },
       symbolKey: Symbol(this.$dayjs().toString())
     };
   },
@@ -555,9 +596,40 @@ export default {
     //列表树load方法
     loadTree(tree, treeNode, resolve) {
       resolve(tree.children);
+    },
+    resetDepartmentForm() {
+      this.departmentForm.id = null;
+      this.departmentForm.name = null;
+      this.addDepartmentVisible = false;
+    },
+    async submitDepartment() {
+      try {
+        if (this.departmentForm.id) {
+          await this.$api.HisDepartment.update(
+            this.departmentForm.id,
+            this.departmentForm.name
+          );
+        } else {
+          await this.$api.HisDepartment.add(this.departmentForm.name);
+        }
+        this.$message.success('操作成功');
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
+        this.resetDepartmentForm();
+      } catch (e) {
+        console.error(e);
+        if (e) this.$message.error(e.message);
+      } finally {
+        this.addDepartmentVisible = false;
+      }
     }
   }
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.clearfix {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
