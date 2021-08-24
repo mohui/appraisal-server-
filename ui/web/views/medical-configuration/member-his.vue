@@ -308,7 +308,7 @@
         >
       </div>
     </el-dialog>
-    <el-dialog title="科室" :visible.sync="addDepartmentVisible">
+    <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
       <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
         <el-form-item
           label="科室名称"
@@ -403,7 +403,7 @@ export default {
           //起始的科室分类数据
           this.serverDepartment.map(it => ({
             id: it.id,
-            name: it.name,
+            depName: it.name,
             departmentId: it.id,
             children: [],
             created_at: it.created_at?.$format() || '',
@@ -413,7 +413,7 @@ export default {
         .map(it => ({
           ...it,
           departmentText: it.children
-            ? `${it.name}(${it.children.length}人)`
+            ? `${it.depName}(${it.children.length}人)`
             : ''
         }));
     },
@@ -539,6 +539,16 @@ export default {
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
+      if (row.departmentId) {
+        this.departmentForm = JSON.parse(
+          JSON.stringify({
+            id: row.id,
+            name: row.name
+          })
+        );
+        this.addDepartmentVisible = true;
+        return;
+      }
       this.userForm = Object.assign(
         {},
         {
@@ -586,18 +596,22 @@ export default {
     //删除用户
     async delUser(row) {
       try {
-        await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        await this.$confirm('此操作将永久删除, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         });
         row.removeLoading = true;
-        await this.$api.HisStaff.delete(row.id);
+        if (row.departmentId)
+          await this.$api.HisDepartment.delete(row.departmentId);
+        if (!row.departmentId) await this.$api.HisStaff.delete(row.id);
         this.$message({
           type: 'success',
           message: '删除成功!'
         });
         this.$asyncComputed.listMember.update();
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
       } catch (e) {
         e !== 'cancel' ? this.$message.error(e?.message) : '';
       } finally {
