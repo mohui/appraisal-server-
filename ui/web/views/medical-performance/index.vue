@@ -153,13 +153,18 @@
           :data="reportData"
           :span-method="objectSpanMethod"
           class="el-table-medical-performance-report"
-          :row-class-name="tableRowClassName"
+          :cell-class-name="tableCellClassName"
           height="70vh"
           size="mini"
           border
           :header-cell-style="{textAlign: 'center'}"
           :cell-style="{textAlign: 'center'}"
         >
+          <el-table-column
+            property="deptName"
+            label="科室"
+            min-width="120"
+          ></el-table-column>
           <el-table-column
             property="name"
             label="姓名"
@@ -241,6 +246,7 @@ export default {
       reportDataLoading: false,
       spanArr: [],
       categorySpanArr: [],
+      deptNameSpanArr: [],
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -330,6 +336,7 @@ export default {
       // 获取需要合并的数据
       this.spanArr = this.getSpanArr();
       this.categorySpanArr = this.getCategorySpanArr();
+      this.deptNameSpanArr = this.getDeptNameSpanArr();
     }
   },
   methods: {
@@ -351,17 +358,23 @@ export default {
     },
     // 报表数据处理
     handleReportData() {
-      this.originalReportData = this.originalReportData.map(it => {
-        it.items
-          .sort((a, b) => {
-            if (a['typeId'] != b['typeId']) {
-              return a['typeId']?.localeCompare(b['typeId']);
-            }
-          })
-          //根据order排序
-          .sort((a, b) => a.order - b.order);
-        return it;
-      });
+      this.originalReportData = this.originalReportData
+        .map(it => {
+          it.items
+            .sort((a, b) => {
+              if (a['typeId'] != b['typeId']) {
+                return a['typeId']?.localeCompare(b['typeId']);
+              }
+            })
+            //根据order排序
+            .sort((a, b) => a.order - b.order);
+          return it;
+        })
+        .sort((a, b) => {
+          if (a['deptName'] != b['deptName']) {
+            return a['deptName']?.localeCompare(b['deptName']);
+          }
+        });
       const result = [];
       if (this.originalReportData) {
         // 机构总分
@@ -383,6 +396,7 @@ export default {
             for (const it of i.items) {
               const item = {};
               item.name = i.name;
+              item.deptName = i.deptName;
               item.day = i.day;
               item.rate = i.rate || 1;
               item.rateFormat = item.rate * 100 + '%';
@@ -406,6 +420,7 @@ export default {
           } else {
             const item = {};
             item.name = i.name;
+            item.deptName = i.deptName;
             item.day = i.day;
             item.rate = i.rate;
             item.rateFormat = item.rate * 100 + '%';
@@ -475,6 +490,31 @@ export default {
       }
       return arr;
     },
+    getDeptNameSpanArr() {
+      let arr = [];
+      let pos = 0;
+      let index = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+          this.reportData[i].deptNameIndex = index;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].deptName === this.reportData[i - 1].deptName) {
+            arr[pos] += 1;
+            arr.push(0);
+            this.reportData[i].deptNameIndex = index;
+          } else {
+            arr.push(1);
+            pos = i;
+            index++;
+            this.reportData[i].deptNameIndex = index;
+          }
+        }
+      }
+      return arr;
+    },
     handleChangeDate() {
       this.$router.replace({
         query: {
@@ -519,6 +559,11 @@ export default {
     objectSpanMethod({column, rowIndex}) {
       if (column.property === 'typeName') {
         const _row = this.categorySpanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
+      if (column.property === 'deptName') {
+        const _row = this.deptNameSpanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
       }
@@ -830,12 +875,11 @@ export default {
       myChart.setOption(option);
     },
 
-    tableRowClassName({row, rowIndex}) {
-      console.log('tableRowClassName:', row, rowIndex);
-      if (row.nameIndex % 2 === 1) {
-        return 'custom-row';
+    tableCellClassName({row, columnIndex}) {
+      // 非第一列（科室），以员工为单位，单元格进行斑马线颜色区分
+      if (columnIndex !== 0 && row.nameIndex % 2 === 1) {
+        return 'custom-cell';
       }
-      return '';
     }
   }
 };
@@ -843,7 +887,7 @@ export default {
 
 <style lang="scss">
 .el-table-medical-performance-report {
-  .custom-row {
+  .custom-cell {
     background: #f5f7fa;
   }
   tr {
