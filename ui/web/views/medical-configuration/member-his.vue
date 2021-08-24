@@ -107,11 +107,6 @@
           min-width="80"
         ></el-table-column>
         <el-table-column
-          prop="departmentName"
-          label="科室"
-          min-width="100"
-        ></el-table-column>
-        <el-table-column
           prop="remark"
           label="备注"
           min-width="100"
