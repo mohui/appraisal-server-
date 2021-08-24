@@ -246,9 +246,10 @@ export default class HisHospital {
     // language=PostgreSQL
     const staffs = await appDB.execute(
       `
-        select id, name
+        select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
-        where hospital = ?
+        left join his_department dept on staff.department = dept.id
+        where staff.hospital = ?
       `,
       hospital
     );
@@ -258,10 +259,12 @@ export default class HisHospital {
       const workScoreList = await staffApi.findWorkScoreList(staffIt.id, month);
       const gets = await staffApi.get(staffIt.id, month);
       staffList.push({
-        ...workScoreList,
         extra: gets?.extra,
         id: staffIt.id,
-        name: staffIt.name
+        name: staffIt.name,
+        deptId: staffIt.deptId,
+        deptName: staffIt.deptName,
+        ...workScoreList
       });
     }
     return staffList;
