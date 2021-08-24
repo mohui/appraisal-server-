@@ -399,7 +399,7 @@ export default {
               item.deptName = i.deptName;
               item.day = i.day;
               item.rate = i.rate || 1;
-              item.rateFormat = item.rate * 100 + '%';
+              item.rateFormat = Number((item.rate * 100).toFixed(2)) + '%';
               item.extra = i.extra;
               item.workPointName = it.name;
               // 校正前工分（单个工分项）
