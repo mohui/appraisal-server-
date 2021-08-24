@@ -74,7 +74,7 @@
       <el-table
         :key="symbolKey"
         v-loading="tableLoading"
-        stripe
+        class="table-staff-department"
         border
         size="small"
         :data="userList"
@@ -90,18 +90,24 @@
       >
         <el-table-column prop="departmentText" label="科室" min-width="100">
           <template slot-scope="{row}">
-            <span>{{ row.departmentText }}</span>
+            <span v-if="row.departmentId">{{ row.departmentText }}</span>
+            <div
+              v-if="!row.departmentId && !row.department"
+              class="no-department-cell"
+            >
+              ---
+            </div>
             <el-link
+              v-if="row.departmentId && showEditIcon(row.departmentId)"
               style="padding: 0 0 0 10px"
               class="el-icon-edit"
-              v-show="row.departmentId && showEditIcon(row.departmentId)"
               @click="editUser(row)"
               type="primary"
             ></el-link>
             <el-link
+              v-if="row.departmentId && showEditIcon(row.departmentId)"
               style="padding: 0"
               class="el-icon-close"
-              v-show="row.departmentId && showEditIcon(row.departmentId)"
               @click="delUser(row)"
               type="danger"
             ></el-link>
@@ -596,6 +602,7 @@ export default {
               message: '保存成功!'
             });
             this.$asyncComputed.listMember.update();
+            this.symbolKey = Symbol(this.$dayjs().toString());
           } catch (e) {
             this.$message.error(e.message);
           } finally {
@@ -676,8 +683,18 @@ export default {
   }
 };
 </script>
-
+<style lang="scss">
+.table-staff-department {
+  .el-table__row--level-1 {
+    background: #f8f8ff;
+  }
+}
+</style>
 <style scoped>
+.no-department-cell {
+  text-align: center;
+  width: 100%;
+}
 .clearfix {
   display: flex;
   justify-content: space-between;
