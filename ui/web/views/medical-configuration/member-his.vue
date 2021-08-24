@@ -87,6 +87,11 @@
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
         <el-table-column
+          prop="departmentText"
+          label="科室"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
           prop="account"
           label="登录名"
           min-width="80"
@@ -303,7 +308,7 @@
         >
       </div>
     </el-dialog>
-    <el-dialog title="科室弹窗" :visible.sync="addDepartmentVisible">
+    <el-dialog title="科室" :visible.sync="addDepartmentVisible">
       <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
         <el-form-item
           label="科室名称"
@@ -398,13 +403,19 @@ export default {
           //起始的科室分类数据
           this.serverDepartment.map(it => ({
             id: it.id,
-            account: it.name,
+            name: it.name,
             departmentId: it.id,
             children: [],
             created_at: it.created_at?.$format() || '',
             hasChildren: true
           }))
-        );
+        )
+        .map(it => ({
+          ...it,
+          departmentText: it.children
+            ? `${it.name}(${it.children.length}人)`
+            : ''
+        }));
     },
     hisList() {
       return this.serverHisData;
