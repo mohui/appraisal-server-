@@ -1112,7 +1112,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.CH01.name
-                  } = 规范管理的慢病高危人群数 / 慢病高危人群档案数 = ${
+                  } = 规范管理的高危人群数 / 高危人群档案数 = ${
                     mark?.CH01
                   } / ${basicData} = ${percentString(mark?.CH01, basicData)}`
                 );
