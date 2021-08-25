@@ -1100,7 +1100,7 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
-              // 慢病高危人群规范管理率
+              // 高危人群规范管理率
               if (tagModel.tag === MarkTagUsages.CH01.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
@@ -1112,7 +1112,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.CH01.name
-                  } = 规范管理的慢病高危人群数 / 慢病高危人群档案数 = ${
+                  } = 规范管理的高危人群数 / 高危人群档案数 = ${
                     mark?.CH01
                   } / ${basicData} = ${percentString(mark?.CH01, basicData)}`
                 );
