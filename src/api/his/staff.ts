@@ -15,6 +15,20 @@ import {
   StaffWorkModel
 } from './service';
 
+// 质量系数
+type AssessModel = {
+  id?: string;
+  staffId: string;
+  time: Date;
+  systemId: string;
+  systemName: string;
+  ruleId: string;
+  ruleName: string;
+  score: number;
+  // 满分
+  total: number;
+};
+
 export default class HisStaff {
   // region 员工的增删改查
   /**
@@ -439,135 +453,79 @@ export default class HisStaff {
     const {start, end} = dayToRange(monthTime.start);
 
     // 工分只存储在一号那一天,所以只查询一号
-    const staffResultModels: {
-      day: Date;
-      work: StaffWorkModel;
+    // language=PostgreSQL
+    const workItems: {
+      id: string;
+      name: string;
+      typeId: string;
+      typeName: string;
+      order: number;
+      score: number;
     }[] = await appDB.execute(
-      // language=PostgreSQL
       `
-        select day, work
-        from his_staff_result
-        where id = ?
-          and day >= ?
-          and day < ?
-        order by day
+        select result.item_id   "id",
+               result.item_name "name",
+               result.type_id   "typeId",
+               result.type_name "typeName",
+               result."order",
+               result.score
+        from his_staff_work_result result
+        where result.staff_id = ?
+          and result.time >= ?
+          and result.time < ?
       `,
       id,
       start,
       end
     );
 
-    // 取出工分详情
-    const workItems = staffResultModels[0]?.work?.self ?? [];
-
-    const rows: {
-      day: Date;
-      items: {
-        id: string;
-        name: string;
-        score: number;
-      }[];
-      rate?: number;
-    }[] = await this.findWorkScoreDailyList(id, month);
-
-    const oldReturn = rows.reduce(
-      (result, current) => {
-        result.day = current.day;
-        result.rate = current.rate;
-
-        //累加items
-        for (const item of result.items) {
-          const currentItem = current.items.find(it => it.id === item.id);
-          if (currentItem) {
-            item.score += currentItem.score;
-          }
-        }
-        for (const item of current.items) {
-          const currentItem = result.items.find(it => it.id === item.id);
-          if (!currentItem) {
-            result.items.push(item);
-          }
-        }
-
-        return result;
-      },
-      {
-        day: month,
-        rate: null,
-        items: []
-      }
+    // 查询质量系数
+    // language=PostgreSQL
+    const assessResultModel: AssessModel[] = await appDB.execute(
+      `select id,
+                staff_id    "staffId",
+                time,
+                system_id   "systemId",
+                system_name "systemName",
+                rule_id     "ruleId",
+                rule_name   "ruleName",
+                score,
+                total
+         from his_staff_assess_result
+         where staff_id = ?
+           and time >= ?
+           and time < ?`,
+      id,
+      start,
+      end
     );
+
+    // 获取总分(分母)
+    const scoreDenominator = assessResultModel.reduce(
+      (prev, curr) => Number(prev) + Number(curr?.total),
+      0
+    );
+
+    // 获取得分(分子)
+    const scoreNumerator = assessResultModel.reduce(
+      (prev, curr) => Number(prev) + Number(curr?.score),
+      0
+    );
+    const rate =
+      Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
+
     return {
       day: start,
-      rate: oldReturn?.rate,
+      rate: rate,
       items: workItems
     };
   }
 
-  /**
-   * 获取指定月份员工工分项目的每日得分列表
-   *
-   * @param id 员工id
-   * @param month 月份
-   * @return [
-   *   day: 日期,
-   *   items: 工分项目列表 [
-   *     {
-   *       id: 工分项目id
-   *       name: 工分项目名称
-   *       score: 得分
-   *     }
-   *   ],
-   *   rate?: 质量系数
-   * ]
-   */
-  @validate(should.string().required(), should.date().required())
-  async findWorkScoreDailyList(
-    id,
-    month
-  ): Promise<
-    {
-      day: Date;
-      items: {
-        id: string;
-        name: string;
-        score: number;
-      }[];
-      rate?: number;
-    }[]
-  > {
-    const {start} = monthToRange(month);
-    const end = getEndTime(month);
-    const rows: {
-      day: Date;
-      work: StaffWorkModel;
-      assess: StaffAssessModel;
-    }[] = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select work, assess, day
-        from his_staff_result
-        where id = ?
-          and day >= ?
-          and day <= ?
-        order by day
-      `,
-      id,
-      start,
-      end
-    );
-    return rows.map(it => ({
-      day: dayjs(it.day).toDate(),
-      items: [...(it?.work?.self ?? [])],
-      rate: it?.assess?.rate ?? null
-    }));
-  }
-
   // endregion
 
-  // region 员工考核详情
+  // region 员工考核详情之质量系数详情
   /**
-   * 员工考核详情
+   * 员工考核详情之质量系数详情
    * @param staff 考核员工
    * @param month 时间
    */
@@ -600,31 +558,45 @@ export default class HisStaff {
     if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
 
     // 根据方案查询细则
-    const hisRules = await appDB.execute(
+    const checkRuleModels = await appDB.execute(
       `select * from his_check_rule
               where "check" = ?
         `,
       checkId
     );
-    if (hisRules.length === 0) throw new KatoRuntimeError(`方案细则不存在`);
-    // const ruleIds = hisRules.map(it => it.id);
+    if (checkRuleModels.length === 0)
+      throw new KatoRuntimeError(`方案细则不存在`);
 
-    // 根据时间,员工,细则查询得分
-    const scoreDate = getEndTime(month);
-    const staffResults = await appDB.execute(
-      `select id, day, assess
-            from his_staff_result
-            where id = ?
-             and day = ?
-        `,
+    // 获取所传月份的开始时间 即所在月份的一月一号零点零分零秒
+    const monthTime = monthToRange(month);
+    // 当天的开始时间和结束时间
+    const {start, end} = dayToRange(monthTime.start);
+    // 开始之前先查询此员工本月是否打过分
+    // language=PostgreSQL
+    const assessResultModel: AssessModel[] = await appDB.execute(
+      `select id,
+                staff_id    "staffId",
+                time,
+                system_id   "systemId",
+                system_name "systemName",
+                rule_id     "ruleId",
+                rule_name   "ruleName",
+                score,
+                total
+         from his_staff_assess_result
+         where staff_id = ?
+           and time >= ?
+           and time < ?`,
       staff,
-      scoreDate
+      start,
+      end
     );
-    const ruleScores = staffResults[0]?.assess?.scores ?? [];
 
     // 把分值放到细则中
-    const newHisRules = hisRules.map(it => {
-      const scoreIndex = ruleScores.find(item => it.id === item.id);
+    const newHisRules = checkRuleModels.map(it => {
+      const scoreIndex = assessResultModel.find(
+        scoreIt => it.id === scoreIt.ruleId
+      );
       return {
         ...it,
         staffScore: scoreIndex ? scoreIndex.score : null
@@ -640,5 +612,6 @@ export default class HisStaff {
       manuals
     };
   }
+
   // endregion
 }

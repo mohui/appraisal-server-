@@ -152,6 +152,8 @@
           id="reportTable"
           :data="reportData"
           :span-method="objectSpanMethod"
+          class="el-table-medical-performance-report"
+          :cell-class-name="tableCellClassName"
           height="70vh"
           size="mini"
           border
@@ -159,10 +161,20 @@
           :cell-style="{textAlign: 'center'}"
         >
           <el-table-column
+            property="deptName"
+            label="科室"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
             property="name"
             label="姓名"
             min-width="120"
           ></el-table-column>
+          <el-table-column
+            property="typeName"
+            label="工分项分类"
+            min-width="120"
+          />
           <el-table-column
             property="workPointName"
             label="工分项"
@@ -232,6 +244,9 @@ export default {
       originalReportData: [],
       reportData: [],
       reportDataLoading: false,
+      spanArr: [],
+      categorySpanArr: [],
+      deptNameSpanArr: [],
       chartColors: [
         '#409eff',
         '#ea9d42',
@@ -282,26 +297,6 @@ export default {
         ...it,
         score: Number(it.score?.toFixed(2)) || 0
       }));
-    },
-    spanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.reportData[i].name === this.reportData[i - 1].name) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
     }
   },
   asyncComputed: {
@@ -336,6 +331,12 @@ export default {
     },
     staffCheckListData: function() {
       this.drawDoctorPerformanceBar();
+    },
+    reportData: function() {
+      // 获取需要合并的数据
+      this.spanArr = this.getSpanArr();
+      this.categorySpanArr = this.getCategorySpanArr();
+      this.deptNameSpanArr = this.getDeptNameSpanArr();
     }
   },
   methods: {
@@ -357,6 +358,23 @@ export default {
     },
     // 报表数据处理
     handleReportData() {
+      this.originalReportData = this.originalReportData
+        .map(it => {
+          it.items
+            .sort((a, b) => {
+              if (a['typeId'] != b['typeId']) {
+                return a['typeId']?.localeCompare(b['typeId']);
+              }
+            })
+            //根据order排序
+            .sort((a, b) => a.order - b.order);
+          return it;
+        })
+        .sort((a, b) => {
+          if (a['deptName'] != b['deptName']) {
+            return a['deptName']?.localeCompare(b['deptName']);
+          }
+        });
       const result = [];
       if (this.originalReportData) {
         // 机构总分
@@ -378,9 +396,10 @@ export default {
             for (const it of i.items) {
               const item = {};
               item.name = i.name;
+              item.deptName = i.deptName;
               item.day = i.day;
               item.rate = i.rate || 1;
-              item.rateFormat = item.rate * 100 + '%';
+              item.rateFormat = Number((item.rate * 100).toFixed(2)) + '%';
               item.extra = i.extra;
               item.workPointName = it.name;
               // 校正前工分（单个工分项）
@@ -394,15 +413,20 @@ export default {
               );
               // 总得分
               item.totalScore = item.afterCorrectionScore + item.extra;
+              item.typeId = it.typeId;
+              item.typeName = it.typeName || '-';
               result.push(item);
             }
           } else {
             const item = {};
             item.name = i.name;
+            item.deptName = i.deptName;
             item.day = i.day;
             item.rate = i.rate;
             item.rateFormat = item.rate * 100 + '%';
             item.extra = i.extra;
+            // 总得分
+            item.totalScore = item.extra;
             result.push(item);
           }
         }
@@ -419,6 +443,79 @@ export default {
     handleAmountChange() {
       // 报表数据更新
       this.handleReportData();
+    },
+    getSpanArr() {
+      let arr = [];
+      let pos = 0;
+      let index = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+          this.reportData[i].nameIndex = index;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].name === this.reportData[i - 1].name) {
+            arr[pos] += 1;
+            arr.push(0);
+            this.reportData[i].nameIndex = index;
+          } else {
+            arr.push(1);
+            pos = i;
+            index++;
+            this.reportData[i].nameIndex = index;
+          }
+        }
+      }
+      return arr;
+    },
+    getCategorySpanArr() {
+      let arr = [];
+      let pos = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (
+            this.reportData[i].name === this.reportData[i - 1].name &&
+            this.reportData[i].typeId === this.reportData[i - 1].typeId
+          ) {
+            arr[pos] += 1;
+            arr.push(0);
+          } else {
+            arr.push(1);
+            pos = i;
+          }
+        }
+      }
+      return arr;
+    },
+    getDeptNameSpanArr() {
+      let arr = [];
+      let pos = 0;
+      let index = 0;
+      for (let i = 0; i < this.reportData.length; i++) {
+        if (i === 0) {
+          arr.push(1);
+          pos = 0;
+          this.reportData[i].deptNameIndex = index;
+        } else {
+          // 判断当前元素与上一个元素是否相同
+          if (this.reportData[i].deptName === this.reportData[i - 1].deptName) {
+            arr[pos] += 1;
+            arr.push(0);
+            this.reportData[i].deptNameIndex = index;
+          } else {
+            arr.push(1);
+            pos = i;
+            index++;
+            this.reportData[i].deptNameIndex = index;
+          }
+        }
+      }
+      return arr;
     },
     handleChangeDate() {
       this.$router.replace({
@@ -462,6 +559,16 @@ export default {
         });
     },
     objectSpanMethod({column, rowIndex}) {
+      if (column.property === 'typeName') {
+        const _row = this.categorySpanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
+      if (column.property === 'deptName') {
+        const _row = this.deptNameSpanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {rowspan: _row, colspan: _col};
+      }
       if (
         column.property !== 'workPointName' &&
         column.property !== 'scoreFormat'
@@ -768,13 +875,32 @@ export default {
         ]
       };
       myChart.setOption(option);
+    },
+
+    tableCellClassName({row, columnIndex}) {
+      // 非第一列（科室），以员工为单位，单元格进行斑马线颜色区分
+      if (columnIndex !== 0 && row.nameIndex % 2 === 1) {
+        return 'custom-cell';
+      }
     }
   }
 };
 </script>
 
+<style lang="scss">
+.el-table-medical-performance-report {
+  .custom-cell {
+    background: #f5f7fa;
+  }
+  tr {
+    pointer-events: none;
+  }
+}
+</style>
+
 <style scoped lang="scss">
 @import '../../styles/vars';
+
 .wrapper {
   height: 100%;
   position: relative;
