@@ -1100,7 +1100,7 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
-              // 慢病高危人群规范管理率
+              // 高危人群规范管理率
               if (tagModel.tag === MarkTagUsages.CH01.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(

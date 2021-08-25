@@ -774,7 +774,7 @@ export default {
     childrenHealthCheckData() {
       return this.childrenHealthCheckServerData;
     },
-    // 慢病高危规范管理列表数据
+    // 高危人群规范管理列表数据
     chronicDiseaseHighData() {
       return this.chronicDiseaseHighServerData.map(it => ({
         ...it,
@@ -936,7 +936,7 @@ export default {
         return [];
       }
     },
-    // 慢病高危规范管理列表数据
+    // 高危人群规范管理列表数据
     chronicDiseaseHighServerData: {
       async get() {
         return await this.$api.Person.chronicDiseaseHighList(this.id);

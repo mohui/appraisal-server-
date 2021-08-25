@@ -774,7 +774,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 慢病高危人群规范管理率 CH01
+      // 高危人群规范管理率 CH01
       if (MarkTagUsages[markItem].code === 'CH01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
