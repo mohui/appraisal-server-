@@ -13,13 +13,17 @@
     >
       <div slot="header" class="clearfix">
         <span>His员工绑定列表</span>
-        <el-button
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          @click="openAddUserDialog"
-          >新建用户
-        </el-button>
+        <div>
+          <el-button size="mini" type="primary" @click="openAddUserDialog"
+            >新建用户
+          </el-button>
+          <el-button
+            size="mini"
+            type="warning"
+            @click="addDepartmentVisible = true"
+            >新增科室
+          </el-button>
+        </div>
       </div>
       <kn-collapse
         :is-show="$settings.isMobile"
@@ -68,17 +72,45 @@
         </el-form>
       </kn-collapse>
       <el-table
+        :key="symbolKey"
         v-loading="tableLoading"
-        stripe
+        class="table-staff-department"
+        border
         size="small"
         :data="userList"
         height="100%"
         style="flex-grow: 1;"
+        row-key="id"
+        lazy
+        :load="loadTree"
+        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        @cell-mouse-enter="mouseEnter"
+        @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column align="center" min-width="50" label="序号">
-          <template slot-scope="scope">
-            {{ scope.$index + 1 }}
+        <el-table-column prop="departmentText" label="科室" min-width="100">
+          <template slot-scope="{row}">
+            <span v-if="row.departmentId">{{ row.departmentText }}</span>
+            <div
+              v-if="!row.departmentId && !row.department"
+              class="no-department-cell"
+            >
+              ---
+            </div>
+            <el-link
+              v-if="row.departmentId && showEditIcon(row.departmentId)"
+              style="padding: 0 0 0 10px"
+              class="el-icon-edit"
+              @click="editUser(row)"
+              type="primary"
+            ></el-link>
+            <el-link
+              v-if="row.departmentId && showEditIcon(row.departmentId)"
+              style="padding: 0"
+              class="el-icon-close"
+              @click="delUser(row)"
+              type="danger"
+            ></el-link>
           </template>
         </el-table-column>
         <el-table-column
@@ -97,11 +129,6 @@
           min-width="80"
         ></el-table-column>
         <el-table-column
-          prop="departmentName"
-          label="科室"
-          min-width="100"
-        ></el-table-column>
-        <el-table-column
           prop="remark"
           label="备注"
           min-width="100"
@@ -118,18 +145,20 @@
         ></el-table-column>
         <el-table-column label="操作" min-width="160">
           <template slot-scope="{row}">
-            <el-button type="primary" size="mini" @click="editUser(row)">
-              修改
-            </el-button>
-            <el-button
-              :disabled="row.removeLoading"
-              :icon="row.removeLoading ? 'el-icon-loading' : ''"
-              size="mini"
-              type="danger"
-              @click="delUser(row)"
-            >
-              删除
-            </el-button>
+            <div v-if="!row.departmentId">
+              <el-button type="primary" size="mini" @click="editUser(row)">
+                修改
+              </el-button>
+              <el-button
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : ''"
+                size="mini"
+                type="danger"
+                @click="delUser(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -271,6 +300,7 @@
           <el-select
             v-model="userForm.his"
             style="width: 100%"
+            size="mini"
             clearable
             filterable
           >
@@ -285,8 +315,39 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
-        <el-button v-loading="updateLoading" type="primary" @click="updateUser"
+        <el-button size="mini" @click="dialogFormEditUsersVisible = false"
+          >取 消</el-button
+        >
+        <el-button
+          v-loading="updateLoading"
+          size="mini"
+          type="primary"
+          @click="updateUser"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
+    <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
+      <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
+        <el-form-item
+          label="科室名称"
+          prop="name"
+          :label-width="formLabelWidth"
+        >
+          <el-input
+            v-model="departmentForm.name"
+            size="mini"
+            autocomplete="off"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="resetDepartmentForm()">取 消</el-button>
+        <el-button
+          size="mini"
+          type="primary"
+          :disabled="!departmentForm.name"
+          @click="submitDepartment()"
           >确 定</el-button
         >
       </div>
@@ -331,17 +392,50 @@ export default {
       },
       tableLoading: false,
       addBtnLoading: false,
-      updateLoading: false
+      updateLoading: false,
+      addDepartmentVisible: false,
+      departmentForm: {
+        id: null,
+        name: null
+      },
+      mouseEnterId: '',
+      symbolKey: Symbol(this.$dayjs().toString())
     };
   },
   computed: {
     userList() {
-      return this.listMember.map(it => ({
-        ...it,
-        removeLoading: false,
-        created_at: it.created_at?.$format() || '',
-        updated_at: it.updated_at?.$format() || ''
-      }));
+      return this.listMember
+        .map(it => ({
+          ...it,
+          removeLoading: false,
+          created_at: it.created_at?.$format() || '',
+          updated_at: it.updated_at?.$format() || ''
+        }))
+        .reduce(
+          (pre, next) => {
+            const department = pre.find(
+              p => p.departmentId === next.department
+            );
+            if (department) department.children.push(next);
+            if (!department) pre.push(next);
+            return pre;
+          },
+          //起始的科室分类数据
+          this.serverDepartment.map(it => ({
+            id: it.id,
+            depName: it.name,
+            departmentId: it.id,
+            children: [],
+            created_at: it.created_at?.$format() || '',
+            hasChildren: true
+          }))
+        )
+        .map(it => ({
+          ...it,
+          departmentText: it.children
+            ? `${it.depName}(${it.children.length}人)`
+            : ''
+        }));
     },
     hisList() {
       return this.serverHisData;
@@ -465,6 +559,16 @@ export default {
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
+      if (row.departmentId) {
+        this.departmentForm = JSON.parse(
+          JSON.stringify({
+            id: row.id,
+            name: row.depName
+          })
+        );
+        this.addDepartmentVisible = true;
+        return;
+      }
       this.userForm = Object.assign(
         {},
         {
@@ -498,6 +602,7 @@ export default {
               message: '保存成功!'
             });
             this.$asyncComputed.listMember.update();
+            this.symbolKey = Symbol(this.$dayjs().toString());
           } catch (e) {
             this.$message.error(e.message);
           } finally {
@@ -512,26 +617,86 @@ export default {
     //删除用户
     async delUser(row) {
       try {
-        await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        await this.$confirm('此操作将永久删除, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         });
         row.removeLoading = true;
-        await this.$api.HisStaff.delete(row.id);
+        if (row.departmentId)
+          await this.$api.HisDepartment.delete(row.departmentId);
+        if (!row.departmentId) await this.$api.HisStaff.delete(row.id);
         this.$message({
           type: 'success',
           message: '删除成功!'
         });
         this.$asyncComputed.listMember.update();
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
       } catch (e) {
         e !== 'cancel' ? this.$message.error(e?.message) : '';
       } finally {
         row.removeLoading = false;
       }
+    },
+    //列表树load方法
+    loadTree(tree, treeNode, resolve) {
+      resolve(tree.children);
+    },
+    resetDepartmentForm() {
+      this.departmentForm.id = null;
+      this.departmentForm.name = null;
+      this.addDepartmentVisible = false;
+    },
+    async submitDepartment() {
+      try {
+        if (this.departmentForm.id) {
+          await this.$api.HisDepartment.update(
+            this.departmentForm.id,
+            this.departmentForm.name
+          );
+        } else {
+          await this.$api.HisDepartment.add(this.departmentForm.name);
+        }
+        this.$message.success('操作成功');
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
+        this.resetDepartmentForm();
+      } catch (e) {
+        console.error(e);
+        if (e) this.$message.error(e.message);
+      } finally {
+        this.addDepartmentVisible = false;
+      }
+    },
+    //是否显示icon
+    showEditIcon(id) {
+      return id === this.mouseEnterId;
+    },
+    //鼠标进出单元格
+    mouseEnter(row) {
+      this.mouseEnterId = row.id;
+    },
+    mouseLeave() {
+      this.mouseEnterId = null;
     }
   }
 };
 </script>
-
-<style scoped></style>
+<style lang="scss">
+.table-staff-department {
+  .el-table__row--level-1 {
+    background: #f8f8ff;
+  }
+}
+</style>
+<style scoped>
+.no-department-cell {
+  text-align: center;
+  width: 100%;
+}
+.clearfix {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
