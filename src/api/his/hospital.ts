@@ -248,7 +248,7 @@ export default class HisHospital {
       `
         select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
-        left join his_department dept on staff.department = dept.id
+               left join his_department dept on staff.department = dept.id
         where staff.hospital = ?
       `,
       hospital

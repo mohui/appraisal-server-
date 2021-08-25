@@ -1334,7 +1334,7 @@ export default class HisWorkItem {
         `
           update his_work_item_type
           set name       = ?,
-              "order"       = ?,
+              "order"    = ?,
               updated_at = ?
           where id = ?
         `,
