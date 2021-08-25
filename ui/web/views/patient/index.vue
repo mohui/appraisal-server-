@@ -819,7 +819,7 @@ export default {
         },
         {
           code: 'chronicDiseaseHigh',
-          label: '慢病高危管理记录',
+          label: '高危人群管理记录',
           disabled: this.chronicDiseaseHighData.length < 1,
           updating: this.$asyncComputed.chronicDiseaseHighServerData.updating
         },
