@@ -17,22 +17,6 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
-  etl: {
-    dialect: 'mssql',
-    host: 'localhost',
-    port: '123456',
-    username: 'root',
-    password: 'root',
-    database: 'appraisal-etl',
-    dialectOptions: {
-      options: {
-        useUTC: false,
-        requestTimeout: 300000
-      }
-    },
-    logging: false,
-    timezone: '+8:00'
-  },
   original: {
     dialect: 'postgres',
     host: 'localhost',

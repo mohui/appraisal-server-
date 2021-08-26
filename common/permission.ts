@@ -96,10 +96,6 @@ export const PermissionDetail = [
     name: '管理所有考核'
   },
   {
-    key: 'etl-hospital',
-    name: '机构同步'
-  },
-  {
     key: 'super-admin',
     name: '超级管理'
   },
@@ -186,7 +182,6 @@ export const Permission = {
   RULE_REMOVE: 'rule-remove',
   PROFILE: 'profile',
   ALL_CHECK: 'all-check',
-  ETL_HOSPITAL: 'etl-hospital',
   SUPER_ADMIN: 'super-admin',
   TAGS_DETAIL: 'tags-detail',
   PERSON_EXCEL: 'person-excel',
@@ -346,10 +341,6 @@ export const PermissionTree = [
         label: '档案表格导出'
       }
     ]
-  },
-  {
-    key: Permission.ETL_HOSPITAL,
-    label: '机构同步'
   },
   {
     key: Permission.AUDIT_LOG,
