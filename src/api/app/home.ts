@@ -3,7 +3,7 @@ import {monthToRange} from '../his/service';
 import * as dayjs from 'dayjs';
 import * as dayOfYear from 'dayjs/plugin/dayOfYear';
 import * as isLeapYear from 'dayjs/plugin/isLeapYear';
-import {getLeaves, getOriginalArray} from '../group';
+import {getOriginalArray} from '../group';
 import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
@@ -17,10 +17,10 @@ export default class AppHome {
   // 获取医疗人员数量
   async staff() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
 
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 医疗人员数量
     const doctor = await originalDB.execute(
@@ -37,10 +37,9 @@ export default class AppHome {
   // 获取本月医疗收入
   async money() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 获取月份的时间范围
     const {start, end} = monthToRange(dayjs().toDate());
@@ -64,10 +63,9 @@ export default class AppHome {
   // 获取本月诊疗人次
   async visits() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 获取月份的时间范围
     const {start, end} = monthToRange(dayjs().toDate());
@@ -92,9 +90,11 @@ export default class AppHome {
   // 居民档案数量
   async person() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
+    const hisHospitals = await getOriginalArray(hospitals);
     const hospitalIds = hisHospitals.map(it => it.id);
 
     //获取当前月
@@ -119,9 +119,11 @@ export default class AppHome {
   // 慢病管理人数
   async chronic() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
+    const hisHospitals = await getOriginalArray(hospitals);
     const hospitalIds = hisHospitals.map(it => it.id);
 
     //获取当前年
