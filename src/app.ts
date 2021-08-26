@@ -159,16 +159,6 @@ export class Application {
         console.log(`定时任务失败: ${e}`);
       }
     });
-    // 数据同步和数据标记的邮件报警
-    cron.schedule(config.get('checkETL.cron'), async () => {
-      try {
-        const api = new (require('./api/report').default)();
-        await api.checkTimming();
-        console.log('数据同步检查任务完成');
-      } catch (e) {
-        console.log(`数据同步检查任务失败: ${e}`);
-      }
-    });
 
     // 只需要生成一份,正式版才有值
     if (config.get('generate.cron')) {

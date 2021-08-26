@@ -135,21 +135,6 @@ module.exports = {
     //   }
     // }
   ],
-  // etl检查任务的配置
-  checkETL: {
-    cron: '00 00 07 * * *',
-    email: {
-      // 发件人配置
-      sender: {
-        host: '',
-        port: '',
-        email: '',
-        password: ''
-      },
-      // 收件人配置
-      receivers: ['']
-    }
-  },
   // 生成公卫报告定时任务
   generate: {
     cron: ''
