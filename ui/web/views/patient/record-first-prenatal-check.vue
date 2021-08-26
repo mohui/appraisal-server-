@@ -5,9 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 60px)' : 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -21,15 +22,13 @@
         </el-button>
       </div>
       <div style="flex-grow: 1;height: 0; overflow-y: auto;">
-        <el-row type="flex" class="record-head" justify="space-between">
-          <el-col :span="6">
-            姓名：<strong>{{ firstPrenatalCheckDate.name }}</strong>
-          </el-col>
-          <el-col :span="6"
-            >编号：{{ firstPrenatalCheckDate.pre_newlydiagnosedcode }}</el-col
-          >
-        </el-row>
-        <table class="record-first-prenatal-check-table">
+        <div class="record-head">
+          <div style="float: right;">
+            编号：{{ firstPrenatalCheckDate.pre_newlydiagnosedcode }}
+          </div>
+          姓名：<strong>{{ firstPrenatalCheckDate.name }}</strong>
+        </div>
+        <table class="record-table">
           <tbody>
             <tr>
               <td colspan="4">填表日期</td>
@@ -135,7 +134,7 @@
             <tr>
               <td colspan="4">体质指数（BMI)</td>
               <td colspan="8">
-                <em>{{ firstPrenatalCheckDate.height }}</em> kg/m2
+                <em>{{ firstPrenatalCheckDate.bmi }}</em> kg/m2
               </td>
               <td colspan="4">血压</td>
               <td colspan="8">
@@ -362,11 +361,12 @@ export default {
   },
   computed: {
     firstPrenatalCheckDate() {
-      const date = this.firstPrenatalCheckServerDate;
-      date.newlydiagnoseddate = date.newlydiagnoseddate?.$format('YYYY-MM-DD');
-      date.birth = date.birth?.$format('YYYY-MM-DD');
-      date.lastmenstrual = date.lastmenstrual?.$format('YYYY-MM-DD');
-      return date;
+      const data = this.firstPrenatalCheckServerDate;
+      data.newlydiagnoseddate = data.newlydiagnoseddate?.$format('YYYY-MM-DD');
+      data.birth = data.birth?.$format('YYYY-MM-DD');
+      data.lastmenstrual = data.lastmenstrual?.$format('YYYY-MM-DD');
+      data.bmi = Number(data.bmi)?.toFixed(4);
+      return data;
     }
   },
   asyncComputed: {
@@ -383,51 +383,6 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.record-head {
-  width: 100%;
-  max-width: 1200px;
-  margin-bottom: 10px;
-}
-.record-first-prenatal-check-table {
-  width: 100%;
-  max-width: 1200px;
-  background-color: #fff;
-  border-collapse: collapse;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  line-height: 2;
-  tr {
-    td {
-      padding: 3px 10px;
-      border-top: 1px solid #ccc;
-      border-left: 1px solid #ccc;
-      em {
-        color: #409eff;
-      }
-      sub {
-        vertical-align: bottom;
-      }
-      &[rowspan] + td {
-        text-align: center;
-      }
-    }
-    :first-child {
-      text-align: center;
-      line-height: normal;
-    }
-    :last-child {
-      text-align: left;
-    }
-  }
-}
-.explain {
-  width: 100%;
-  max-width: 1200px;
-  font-size: 12px;
-  .title {
-    font-weight: bold;
-    font-size: 16px;
-  }
-}
+<style lang="scss" scoped>
+@import './detail.scss';
 </style>

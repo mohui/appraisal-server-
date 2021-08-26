@@ -34,6 +34,8 @@ export class Application {
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
+  //TODO: 临时需要, 等待公卫etl完成后即可弃用
+  mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
 
   constructor() {
@@ -100,7 +102,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(37);
+      await migrate.migrate(43);
     }
   }
 
@@ -182,6 +184,20 @@ export class Application {
         }
       });
     }
+    //医疗绩效的每日打分
+    const hisConfig = config.get<string>('queue.his');
+    if (hisConfig) {
+      cron.schedule(hisConfig, async () => {
+        try {
+          console.log('医疗绩效打分开始');
+          const api = new (require('./api/his/score').default)();
+          await api.autoScoreAll();
+          console.log('医疗绩效打分完成');
+        } catch (e) {
+          console.log(`医疗绩效打分失败: ${e}`);
+        }
+      });
+    }
   }
 
   async initBackJob(app) {
@@ -221,5 +237,6 @@ export const app = new Application();
 export const appDB = app.appDB;
 export const etlDB = app.etlDB;
 export const originalDB = app.originalDB;
+export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;

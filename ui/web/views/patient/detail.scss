@@ -1,0 +1,69 @@
+@media screen and (max-width: 414px) {
+  .record-table {
+    border-right: none !important;
+    colgroup {
+      display: none;
+    }
+    td {
+      display: block;
+      margin-left: 4px;
+      width: calc(100% - 36px);
+      border-left: none !important;
+      font-size: 14px;
+    }
+  }
+}
+.record-head {
+  padding: 5px;
+  max-width: 1200px;
+}
+.record-table {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #fff;
+  border-collapse: collapse;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  line-height: 2;
+  tr {
+    th,
+    td {
+      padding: 3px 10px;
+      border-top: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+      em {
+        color: #409eff;
+      }
+      sub {
+        vertical-align: bottom;
+      }
+      &.selected,
+      .selected {
+        color: #409eff;
+      }
+      &[rowspan] + td {
+        text-align: center;
+      }
+    }
+    :first-child {
+      text-align: center;
+      line-height: normal;
+    }
+    :last-child {
+      text-align: left;
+    }
+  }
+}
+.explain {
+  width: 100%;
+  max-width: 1200px;
+  font-size: 12px;
+  .title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+  p {
+    padding: 0 5px;
+    text-indent: 24px;
+  }
+}

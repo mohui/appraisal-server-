@@ -181,7 +181,21 @@ export const documentTags = {
       code: 'D00'
     };
   },
-  E00: {label: '人群标记错误', type: false, code: 'E00'}
+  E00: {label: '人群标记错误', type: false, code: 'E00'},
+  CH01(value) {
+    return {
+      label: `慢病高危管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'CH01'
+    };
+  },
+  CO01(value) {
+    return {
+      label: `其他慢病管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'CO01'
+    };
+  }
 };
 
 /**
@@ -231,6 +245,14 @@ export const documentTagList = [
   {
     id: 'E00',
     name: documentTags.E00.label
+  },
+  {
+    id: 'CH01',
+    name: '慢病高危管理不规范'
+  },
+  {
+    id: 'CO01',
+    name: '其他慢病管理不规范'
   }
 ];
 
@@ -273,5 +295,9 @@ export function getTagsList(it) {
   if (it.D00 != undefined) it.tags.push(documentTags.D00(it.D00));
   if (it.D01 != undefined) it.tags.push(documentTags.D01(it.D01));
   if (it.D02 != undefined) it.tags.push(documentTags.D02(it.D02));
+  // 慢病高危规范管理标记
+  if (it.CH01 != undefined) it.tags.push(documentTags.CH01(it.CH01));
+  // 其它慢病规范管理标记
+  if (it.CO01 != undefined) it.tags.push(documentTags.CO01(it.CO01));
   return it;
 }

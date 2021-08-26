@@ -9,12 +9,14 @@ module.exports = [
       Permission.APPRAISAL_BASIC_DATA
     ],
     label: '绩效考核',
+    sign: 'show',
     icon: 'el-icon-data-analysis',
     children: [
       {
         index: 'appraisal-result',
         permission: [Permission.APPRAISAL_RESULT],
         router: '/appraisal-result',
+        sign: 'show',
         label: '考核结果'
       },
       {
@@ -47,6 +49,7 @@ module.exports = [
     index: 'person',
     permission: [Permission.PROFILE],
     label: '个人档案',
+    sign: 'show',
     icon: 'el-icon-edit',
     router: '/person'
   },
@@ -90,5 +93,63 @@ module.exports = [
     label: '医学指南',
     icon: 'el-icon-guide',
     router: '/guidelines'
+  },
+  {
+    index: 'medical-performance',
+    permission: [Permission.MEDICAL_PERFORMANCE],
+    label: '医疗绩效',
+    sign: 'show',
+    icon: 'el-icon-s-data',
+    router: '/medical-performance'
+  },
+  {
+    index: 'medical-configuration',
+    permission: [
+      Permission.MEDICAL_CONFIGURATION_LIST,
+      Permission.MEDICAL_CONFIGURATION_WORK
+    ],
+    label: '医疗绩效配置',
+    icon: 'el-icon-data-line',
+    children: [
+      {
+        index: 'medical-configuration',
+        permission: [Permission.MEDICAL_CONFIGURATION_LIST],
+        router: '/medical-configuration',
+        label: '工分项管理'
+      },
+      {
+        index: 'medical-configuration-work',
+        permission: [Permission.MEDICAL_CONFIGURATION_WORK],
+        router: '/medical-configuration-work',
+        label: '工分项设置'
+      },
+      {
+        index: 'medical-configuration-member-his',
+        permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS],
+        router: '/medical-configuration-member-his',
+        label: '员工管理'
+      }
+    ]
+  },
+  {
+    index: 'manual',
+    permission: [Permission.MEDICAL_MANUAL],
+    label: '手工数据维护',
+    icon: 'el-icon-notebook-1',
+    router: '/manual'
+  },
+  {
+    index: 'plan',
+    permission: [Permission.MEDICAL_PLAN],
+    label: '医疗考核方案',
+    icon: 'el-icon-setting',
+    router: '/plan'
+  },
+  {
+    index: 'work',
+    permission: [Permission.MEDICAL_WORK],
+    label: '医疗工作列表',
+    icon: 'el-icon-notebook-2',
+    router: '/work'
   }
 ];

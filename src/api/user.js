@@ -10,6 +10,7 @@ import {
 import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
+import {imageSync} from 'qr-image';
 
 function countUserRender(params) {
   return sqlRender(
@@ -657,5 +658,20 @@ export default class User {
       user.password = '666666';
       await user.save();
     });
+  }
+
+  // 获取二维码
+  async getQRCode() {
+    const token = Context.req.headers.token;
+    // 生成微信二维码
+    const imageBuffer = imageSync(
+      JSON.stringify({
+        code: token
+      }),
+      {type: 'png'}
+    );
+    return {
+      image: `data:image/png;base64,${imageBuffer.toString('base64')}`
+    };
   }
 }

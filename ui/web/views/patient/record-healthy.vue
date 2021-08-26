@@ -5,9 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 60px)' : 'calc(100% - 110px)',
         display: 'flex',
-        'flex-direction': 'column'
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -25,13 +26,11 @@
         v-loading="isLoading"
         v-show="!isError"
       >
-        <el-row type="flex" class="record-head" justify="space-between">
-          <el-col :span="6">
-            姓名：<strong>{{ person.name }}</strong>
-          </el-col>
-          <el-col :span="6">编号：{{ person.checkupNo }}</el-col>
-        </el-row>
-        <table class="record-he-table">
+        <div class="record-head">
+          <div style="float: right;">编号：{{ person.checkupNo }}</div>
+          姓名：<strong>{{ person.name }}</strong>
+        </div>
+        <table class="record-table">
           <tbody>
             <tr>
               <td colspan="2">体检日期</td>
@@ -1684,51 +1683,6 @@ export default {
 };
 </script>
 
-<style lang="scss">
-.record-head {
-  width: 100%;
-  max-width: 1200px;
-  margin-bottom: 10px;
-}
-.record-he-table {
-  width: 100%;
-  max-width: 1200px;
-  background-color: #fff;
-  border-collapse: collapse;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  line-height: 2;
-  tr {
-    td {
-      padding: 3px 10px;
-      border-top: 1px solid #ccc;
-      border-left: 1px solid #ccc;
-      em {
-        color: #409eff;
-      }
-      sub {
-        vertical-align: bottom;
-      }
-      &[rowspan] + td {
-        text-align: center;
-      }
-    }
-    :first-child {
-      text-align: center;
-      line-height: normal;
-    }
-    :last-child {
-      text-align: left;
-    }
-  }
-}
-.explain {
-  width: 100%;
-  max-width: 1200px;
-  font-size: 12px;
-  .title {
-    font-weight: bold;
-    font-size: 16px;
-  }
-}
+<style lang="scss" scoped>
+@import './detail.scss';
 </style>

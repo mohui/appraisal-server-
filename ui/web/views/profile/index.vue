@@ -13,10 +13,10 @@
       <div slot="header" class="clearfix">
         <span>个人中心</span>
       </div>
-      <el-tabs tab-position="left">
+      <el-tabs :tab-position="$settings.isMobile ? 'top' : 'left'">
         <el-tab-pane label="基本设置">
           <el-row :gutter="20">
-            <el-col :span="16" style="padding-left: 40px;">
+            <el-col :span="16" :xs="24" style="padding-left: 40px;">
               <div class="title">基本信息</div>
               <el-form :model="userForm">
                 <el-form-item label="用户名" :label-width="formLabelWidth">
@@ -56,7 +56,7 @@
         </el-tab-pane>
         <el-tab-pane label="安全设置">
           <el-row :gutter="20">
-            <el-col :span="16" style="padding-left: 40px;">
+            <el-col :span="16" :xs="24" style="padding-left: 40px;">
               <div class="title">安全设置</div>
               <el-form :model="userForm">
                 <el-form-item label="密码" :label-width="formLabelWidth">

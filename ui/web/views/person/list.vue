@@ -5,10 +5,10 @@
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 70px)' : 'calc(100% - 110px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '5px 0 0' : '20px'
       }"
     >
       <div slot="header" class="clearfix">
@@ -458,7 +458,9 @@ export default {
             .concat(this.queryForm.personTags)
             .reduce((res, next) => {
               res[`${next}`] =
-                next.includes('C') ||
+                (next.includes('C') &&
+                  !next.includes('CH01') &&
+                  !next.includes('CO01')) ||
                 next.includes('E') ||
                 next === 'ai_hua' ||
                 next === 'ai_2dm';
