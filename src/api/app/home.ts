@@ -7,6 +7,7 @@ import {getLeaves, getOriginalArray} from '../group';
 import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
+import {getHospitals} from '../group/common';
 
 //dayjs 加载插件
 dayjs.extend(dayOfYear);
@@ -171,10 +172,13 @@ export default class AppHome {
     if (!markModel.O00) {
       return 0;
     }
-    //获取基础数据
-    const leaves = await getLeaves(areaCode);
+
+    const hospitals = await getHospitals(areaCode);
+    // 获取机构id
+    const hospitalIds = hospitals.map(it => it.code);
+
     const basicData = await getBasicData(
-      leaves,
+      hospitalIds,
       BasicTagUsages.OldPeople,
       year
     );
