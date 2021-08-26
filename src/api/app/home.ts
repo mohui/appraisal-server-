@@ -34,6 +34,7 @@ export default class AppHome {
     );
     return Number(doctor[0]?.count);
   }
+
   // 获取本月医疗收入
   async money() {
     const group = Context.current.user.areaCode;
@@ -60,6 +61,7 @@ export default class AppHome {
     );
     return Number(moneys[0]?.price);
   }
+
   // 获取本月诊疗人次
   async visits() {
     const group = Context.current.user.areaCode;
@@ -87,6 +89,7 @@ export default class AppHome {
     );
     return Number(rows[0]?.count);
   }
+
   // 居民档案数量
   async person() {
     const group = Context.current.user.areaCode;
@@ -116,6 +119,7 @@ export default class AppHome {
     // 获取月份的时间范围
     return Number(mark[0]?.S00);
   }
+
   // 慢病管理人数
   async chronic() {
     const group = Context.current.user.areaCode;
