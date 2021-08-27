@@ -1392,6 +1392,54 @@ export default class HisWorkItem {
     });
   }
 
+  @validate(
+    should
+      .string()
+      .required()
+      .description('公分项id'),
+    should
+      .number()
+      .required()
+      .description('分类id')
+  )
+  async updateItemType(item, itemType) {
+    // 修改之前先查询分类id是否存在
+    // language=PostgreSQL
+    const find = await appDB.execute(
+      `
+        select *
+        from his_work_item_type
+        where id = ?
+      `,
+      itemType
+    );
+    if (find.length === 0) throw new KatoRuntimeError(`该分类不存在`);
+
+    // 查询工分项id是否存在
+    const workItemModels = await appDB.execute(
+      `
+          select *
+          from his_work_item
+          where id = ?
+        `,
+      item
+    );
+    if (workItemModels.length === 0) throw new KatoRuntimeError(`该分类不存在`);
+    // 执行修改
+    // language=PostgreSQL
+    await appDB.execute(
+      `
+        update his_work_item
+        set item_type  = ?,
+            updated_at = ?
+        where id = ?
+      `,
+      itemType,
+      new Date(),
+      item
+    );
+  }
+
   // endregion
 
   // region 公分项目来源, 和员工绑定的增删改查
