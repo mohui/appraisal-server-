@@ -278,7 +278,7 @@ export default class SystemArea {
 
     let faceData = {face: 0, total: 0, rate: 0};
 
-    // TODO:(表名要改)查询人脸采集
+    // 查询人脸采集
     try {
       const sql = sqlRender(
         `
