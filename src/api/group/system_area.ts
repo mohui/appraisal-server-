@@ -58,6 +58,7 @@ export function getYear(year) {
 }
 
 export default class SystemArea {
+  // region 考核结果汇总, 排行, 历史记录
   /**
    * 质量系数,公分值
    *
@@ -251,6 +252,8 @@ export default class SystemArea {
     });
   }
 
+  // endregion
+
   /**
    * 人脸采集信息
    *
@@ -281,7 +284,7 @@ export default class SystemArea {
             select
               coalesce(sum("S00"),0)::integer as "total",
               coalesce(sum("S30"),0)::integer as "face"
-            from mark_organization1
+            from mark_organization
             where id::varchar in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
               and year = {{? year}}`,
         {
@@ -1017,6 +1020,7 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
+
   @validate(
     should
       .string()
