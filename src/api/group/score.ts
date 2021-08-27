@@ -94,26 +94,23 @@ export async function getMarks(
   CO00: number;
   CO01: number;
 }> {
-  // 获取所有机构信息
-  const hospitals = await getHospitals(group);
-  // 获取机构id
-  const hospitalIds = hospitals.map(it => it.code);
-  const viewHospitals = await getOriginalArray(hospitalIds);
-  const result = [];
-  for (const id of viewHospitals.map(it => it.id)) {
-    // language=PostgreSQL
-    const marks = await originalDB.execute(
-      `
-        select *
-        from mark_organization
-        where id = ?
-          and year = ?
-      `,
-      id,
-      year
-    );
-    if (marks[0]) result.push(marks[0]);
-  }
+  // language=PostgreSQL
+  const result = await originalDB.execute(
+    `
+      select *
+      from mark_organization
+      where id in (
+        select code
+        from area
+        where label in ('hospital.center', 'hospital.station')
+          and (code = ? or path like ?))
+        and year = ?
+    `,
+    group,
+    `%${group}%`,
+    year
+  );
+
   const obj = result.reduce(
     (prev, current) => {
       for (const key of Object.keys(prev)) {
