@@ -1399,7 +1399,7 @@ export default class HisWorkItem {
       .description('工分项id'),
     should
       .string()
-      .required()
+      .allow(null)
       .description('分类id')
   )
   async updateItemType(item, itemType) {
@@ -1415,17 +1415,6 @@ export default class HisWorkItem {
     if (workItemModels.length === 0)
       throw new KatoRuntimeError(`该工分项不存在`);
 
-    // 查询分类id是否存在
-    // language=PostgreSQL
-    const find = await appDB.execute(
-      `
-        select *
-        from his_work_item_type
-        where id = ?
-      `,
-      itemType
-    );
-    if (find.length === 0) throw new KatoRuntimeError(`该分类不存在`);
     // 执行修改
     // language=PostgreSQL
     await appDB.execute(
