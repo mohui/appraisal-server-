@@ -3,7 +3,6 @@ import {monthToRange} from '../his/service';
 import * as dayjs from 'dayjs';
 import * as dayOfYear from 'dayjs/plugin/dayOfYear';
 import * as isLeapYear from 'dayjs/plugin/isLeapYear';
-import {getOriginalArray} from '../group';
 import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
@@ -95,10 +94,7 @@ export default class AppHome {
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
     // 获取机构id
-    const hospitals = areaModels.map(it => it.code);
-
-    const hisHospitals = await getOriginalArray(hospitals);
-    const hospitalIds = hisHospitals.map(it => it.id);
+    const hospitalIds = areaModels.map(it => it.code);
 
     //获取当前月
     const year = dayjs().year();
@@ -125,10 +121,7 @@ export default class AppHome {
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
     // 获取机构id
-    const hospitals = areaModels.map(it => it.code);
-
-    const hisHospitals = await getOriginalArray(hospitals);
-    const hospitalIds = hisHospitals.map(it => it.id);
+    const hospitalIds = areaModels.map(it => it.code);
 
     //获取当前年
     const year = dayjs().year();
