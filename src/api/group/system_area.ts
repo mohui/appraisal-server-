@@ -643,10 +643,8 @@ export default class SystemArea {
     };
   }
 
-  // endregion
-
   /**
-   * 公分列表[地区工分]
+   * 工分列表[地区工分]
    *
    * @param code
    * @param year
@@ -668,24 +666,10 @@ export default class SystemArea {
     if (hospitals.length === 0)
       throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
 
-    const newHospitals = hospitals.map(it => ({
-      ...it,
-      path: it?.path?.split('.')
-    }));
-
-    // 获取下级菜单
-    const childrenTree = await getChildrenArea(code);
-
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-
-    const hisHospIds = hisHospIdObjs.map(it => it['id']);
-
-    // 根据地区id获取机构id列表
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    // 获取下级菜单
+    const childrenTree = await getChildrenArea(code);
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -693,26 +677,27 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
             select
-                cast(sum(score) as int) as score,
-                operateorganization,
-                operatorid as "doctorId",
+                cast(sum("Score") as int) as score,
+                "OperateOrganization",
+                "OperatorId" as "doctorId",
                 doctor as "doctorName"
             from mark_workpoint
-            where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            where "OperateOrganization" in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and year = {{? year}}
-             group by operatorid, doctor, operateorganization
+             group by "OperatorId", doctor, "OperateOrganization"
              `,
       {
-        hisHospIds,
+        hospitalIds,
         year
       }
     );
 
     // 执行SQL语句
-    const workPoint = await originalDB.execute(sql, ...params);
-    // 如果是机构级节点, 返回查询结果
+    const workPointModels = await originalDB.execute(sql, ...params);
+
+    // 如果是机构级节点(根据id查子集, 查不到代表是机构节点), 返回查询结果
     if (childrenTree.length === 0) {
-      return workPoint.map(it => {
+      return workPointModels.map(it => {
         return {
           code: it.doctorId,
           name: it.doctorName,
@@ -720,29 +705,11 @@ export default class SystemArea {
           isDoctor: true
         };
       });
-    }
-
-    // 如果是机构节点之前, 把机构id赋值给查询结果
-    const hospitalWorkPoint = workPoint
-      .map(it => {
-        const hospitalIdObj = hisHospIdObjs.find(
-          item => item.id === it.operateorganization
-        );
-        return {
-          ...it,
-          hospitalId: hospitalIdObj.code
-        };
-      })
-      .map(it => {
-        const index = newHospitals.find(item => item.code === it.hospitalId);
-        return {
-          ...it,
-          path: index.path
-        };
-      })
-      .map(it => {
-        const index = childrenTree.find(item =>
-          it.path.find(p => p === item.code)
+    } else {
+      // 先把所有的上级放到机构数组中
+      const newHospitals = hospitals.map(it => {
+        const index = childrenTree.find(child =>
+          it.path.includes(`.${child.code}.`)
         );
         return {
           ...it,
@@ -751,21 +718,35 @@ export default class SystemArea {
         };
       });
 
-    const returnPoint = [];
-    for (const it of hospitalWorkPoint) {
-      const index = returnPoint.find(item => item.code === it.parentCode);
-      if (index) {
-        index.score += it.score;
-      } else {
-        returnPoint.push({
-          code: it.parentCode,
-          name: it.parentName,
-          score: it.score
-        });
-      }
-    }
+      // 如果是机构节点之前的节点, 把机构节点的上级路径放到公分项数组中
+      const workPoints = workPointModels.map(it => {
+        const index = newHospitals.find(
+          hospital => hospital.code === it.OperateOrganization
+        );
+        if (index) {
+          return {
+            ...it,
+            parentCode: index?.parentCode ?? 'null',
+            parentName: index?.parentName ?? '你妹'
+          };
+        }
+      });
 
-    return returnPoint;
+      const returnPoint = [];
+      for (const it of workPoints) {
+        const index = returnPoint.find(item => item.code === it.parentCode);
+        if (index) {
+          index.score += it.score;
+        } else {
+          returnPoint.push({
+            code: it.parentCode,
+            name: it.parentName,
+            score: it.score
+          });
+        }
+      }
+      return returnPoint;
+    }
   }
 
   // 工分列表[医生工分, 工分项目]
@@ -810,6 +791,8 @@ export default class SystemArea {
 
     return originalDB.execute(sql, ...params);
   }
+
+  // endregion
 
   /**
    * 各个工分项的详情
