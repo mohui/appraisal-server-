@@ -15,7 +15,7 @@ import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB, unifs} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
-import {getAreaTree, getOriginalArray} from '../group';
+import {getAreaTree} from '../group';
 import {RuleAreaBudget} from '../../database/model/group/rule-area-budget';
 import {getWorkPoints} from './score';
 import {Workbook} from 'exceljs';
