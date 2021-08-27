@@ -170,7 +170,13 @@ export async function getMarks(
  * @param year 考核年份
  */
 export async function getWorkPoints(
-  organization: {id: string; code: string; region: string}[],
+  organization: {
+    code: string;
+    path: string;
+    name: string;
+    parent: string;
+    label: string;
+  }[],
   projects: string[],
   year: number
 ) {
@@ -184,7 +190,9 @@ export async function getWorkPoints(
     await Promise.all(
       organization.map(async o => {
         // 查询his数据
-        const his: string = o.region.startsWith('340222') ? '340222' : '340203';
+        const his: string = o.path.startsWith('34.3402.340222')
+          ? '340222'
+          : '340203';
         // 当前机构对应的原始工分项
         const originalProjectIds: string[] = ProjectMapping.filter(it =>
           projects.find(p => p === it.id)
@@ -197,7 +205,7 @@ export async function getWorkPoints(
           const ret = sqlRender(
             `
 select cast(sum(score) as float) as score
-from view_workScoreTotal
+from ph_work_score_total
 where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
   and OperateOrganization = {{? id}}
   and MissionTime >= {{? start}}
@@ -206,7 +214,7 @@ where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
             {
               start,
               end,
-              id: o.id,
+              id: o.code,
               projects: originalProjectIds
             }
           );
@@ -222,7 +230,7 @@ where OperateOrganization = {{? id}}
   and MissionTime >= {{? start}}
   and MissionTime < {{? end}}
           `,
-            {start, end, id: o.id}
+            {start, end, id: o.code}
           );
           sql = ret[0];
           params = ret[1];
@@ -436,8 +444,6 @@ export default class Score {
       const hospitals = await getHospitals(group);
       // 获取机构id
       const hospitalIds = hospitals.map(it => it.code);
-      // 获取原始机构id数组
-      const viewHospitals = await getOriginalArray(hospitalIds);
       // 查询考核对象对应的考核体系的考核小项
       // language=PostgreSQL
       const parentRules: {id: string}[] = await appDB.execute(
@@ -1164,7 +1170,7 @@ export default class Score {
           debug('考核小项获取参与校正工分开始');
           // 获取工分数组
           const scoreArray: {score: number}[] = await getWorkPoints(
-            viewHospitals,
+            hospitals,
             projects,
             year
           );
@@ -1237,7 +1243,7 @@ export default class Score {
       debug('考核地区获取总工分开始');
       // 获取总工分数组
       const scoreArray: {score: number}[] = await getWorkPoints(
-        viewHospitals,
+        hospitals,
         [],
         year
       );

@@ -842,12 +842,6 @@ export default class SystemArea {
 
     // 根据code获取所有机构信息
     const hospitals = await getHospitals(code);
-    // 获取所有机构id
-    const hospitalIds = hospitals.map(it => it.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-
     // 取出考核id
     const checkId = checkSystem[0]?.checkId;
 
@@ -890,8 +884,8 @@ export default class SystemArea {
     const returnList = [];
     // 循环工分项
     for (const it of workTypes) {
-      // 获取此工分项下的所有公分
-      const hospitalPoints = await getWorkPoints(hisHospIdObjs, [it], year);
+      // 获取此工分项下的所有工分
+      const hospitalPoints = await getWorkPoints(hospitals, [it], year);
 
       // 把工分值累加一起
       const workPoint = hospitalPoints.reduce(
