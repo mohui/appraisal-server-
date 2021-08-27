@@ -951,25 +951,11 @@ export default {
     },
     //提交移动
     async submitMove() {
-      const paramsArr = [
-        this.newWork.id,
-        this.newWork.work,
-        this.newWork.scoreMethod,
-        this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
-        this.newWork.staffMethod,
-        this.newWork.staffMethod === HisStaffMethod.STATIC
-          ? this.newWork.staffs.map(it => ({
-              code: it.value,
-              type: it.type
-            }))
-          : [],
-        this.newWork.score,
-        this.newWork.scope,
-        this.newWork.remark || null,
-        this.newWork.itemType || null
-      ];
       try {
-        await this.$api.HisWorkItem.update(...paramsArr);
+        await this.$api.HisWorkItem.updateItemType(
+          this.newWork.id,
+          this.newWork.itemType || null
+        );
         this.$message.success('操作成功');
         this.symbolKey = Symbol(this.$dayjs().toString());
         this.$asyncComputed.serverData.update();
