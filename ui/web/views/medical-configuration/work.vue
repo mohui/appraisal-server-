@@ -731,6 +731,8 @@ export default {
           }
           this.$message.success('操作成功');
           this.$asyncComputed.serverData.update();
+          //更新列表渲染
+          this.symbolKey = Symbol(this.$dayjs().toString());
           this.resetConfig('workForm');
         }
       } catch (e) {
