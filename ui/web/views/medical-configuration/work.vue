@@ -966,11 +966,16 @@ export default {
         this.newWork.remark || null,
         this.newWork.itemType || null
       ];
-      await this.$api.HisWorkItem.update(...paramsArr);
-      this.$message.success('操作成功');
-      this.symbolKey = Symbol(this.$dayjs().toString());
-      this.$asyncComputed.serverData.update();
-      this.resetConfig('workForm');
+      try {
+        await this.$api.HisWorkItem.update(...paramsArr);
+        this.$message.success('操作成功');
+        this.symbolKey = Symbol(this.$dayjs().toString());
+        this.$asyncComputed.serverData.update();
+        this.resetConfig('workForm');
+      } catch (e) {
+        this.$message.error(e.message);
+        console.log(e.message);
+      }
     },
     rowClassName({row}) {
       return row.itemTypeId ? 'drag-row' : '';
