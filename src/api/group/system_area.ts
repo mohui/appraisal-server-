@@ -254,6 +254,7 @@ export default class SystemArea {
 
   // endregion
 
+  // region lake库
   /**
    * 人脸采集信息
    *
@@ -541,6 +542,8 @@ export default class SystemArea {
     return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
 
+  // endregion
+
   /**
    * 健康教育
    *
@@ -606,7 +609,7 @@ export default class SystemArea {
                vhe.ActivityName     as "ActivityName",
                vhe.VideotapeName    as "VideotapeName",
                vhe.ActivityTime     as "ActivityTime"
-        FROM view_HealthEducation vhe
+        FROM ph_health_education vhe
         where  vhe.ActivityTime >= {{? startTime}}
           and vhe.ActivityTime < {{? endTime}}
           and vhe.ActivityFormCode = {{? activityFormCode}}
