@@ -541,9 +541,6 @@ export default class SystemArea {
     );
     return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
-
-  // endregion
-
   /**
    * 健康教育
    *
@@ -645,6 +642,8 @@ export default class SystemArea {
       })
     };
   }
+
+  // endregion
 
   /**
    * 公分列表[地区工分]
@@ -769,7 +768,7 @@ export default class SystemArea {
     return returnPoint;
   }
 
-  // 公分列表[医生工分, 工分项目]
+  // 工分列表[医生工分, 工分项目]
   @validate(
     should
       .string()
@@ -786,13 +785,8 @@ export default class SystemArea {
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-
-    const hisHospIds = hisHospIdObjs.map(it => it['id']);
-
     // 根据地区id获取机构id列表
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -804,12 +798,12 @@ export default class SystemArea {
             projectname as "name",
             projecttype as "code"
         from mark_workpoint
-        where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
          and year = {{? year}}
          group by projecttype, projectname
          `,
       {
-        hisHospIds,
+        hospitalIds,
         year
       }
     );
