@@ -509,10 +509,7 @@ export default class SystemArea {
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -523,13 +520,13 @@ export default class SystemArea {
         institutionname as "InstitutionName",
         address as "Address",
         checkDate as "Date"
-    from view_SanitaryControlAssist
-    where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-    and checkDate>={{? start}} and checkDate<{{? end}}
+    from ph_sanitary_control_assist
+    where OperateOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+    and checkDate >= {{? start}} and checkDate < {{? end}}
     order by checkDate desc
     `,
       {
-        hisHospIds,
+        hospitalIds,
         start: dayjs()
           .year(year)
           .startOf('y')
