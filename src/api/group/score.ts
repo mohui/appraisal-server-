@@ -2,7 +2,6 @@ import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
 import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
-import {getOriginalArray} from '../group';
 import {
   BasicTagUsages,
   MarkTagUsages,
