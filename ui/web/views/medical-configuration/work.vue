@@ -731,6 +731,8 @@ export default {
           }
           this.$message.success('操作成功');
           this.$asyncComputed.serverData.update();
+          //更新列表渲染
+          this.symbolKey = Symbol(this.$dayjs().toString());
           this.resetConfig('workForm');
         }
       } catch (e) {
@@ -949,28 +951,19 @@ export default {
     },
     //提交移动
     async submitMove() {
-      const paramsArr = [
-        this.newWork.id,
-        this.newWork.work,
-        this.newWork.scoreMethod,
-        this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
-        this.newWork.staffMethod,
-        this.newWork.staffMethod === HisStaffMethod.STATIC
-          ? this.newWork.staffs.map(it => ({
-              code: it.value,
-              type: it.type
-            }))
-          : [],
-        this.newWork.score,
-        this.newWork.scope,
-        this.newWork.remark || null,
-        this.newWork.itemType || null
-      ];
-      await this.$api.HisWorkItem.update(...paramsArr);
-      this.$message.success('操作成功');
-      this.symbolKey = Symbol(this.$dayjs().toString());
-      this.$asyncComputed.serverData.update();
-      this.resetConfig('workForm');
+      try {
+        await this.$api.HisWorkItem.updateItemType(
+          this.newWork.id,
+          this.newWork.itemType || null
+        );
+        this.$message.success('操作成功');
+        this.symbolKey = Symbol(this.$dayjs().toString());
+        this.$asyncComputed.serverData.update();
+        this.resetConfig('workForm');
+      } catch (e) {
+        this.$message.error(e.message);
+        console.log(e.message);
+      }
     },
     rowClassName({row}) {
       return row.itemTypeId ? 'drag-row' : '';
