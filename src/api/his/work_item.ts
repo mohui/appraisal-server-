@@ -1396,14 +1396,26 @@ export default class HisWorkItem {
     should
       .string()
       .required()
-      .description('公分项id'),
+      .description('工分项id'),
     should
-      .number()
+      .string()
       .required()
       .description('分类id')
   )
   async updateItemType(item, itemType) {
-    // 修改之前先查询分类id是否存在
+    // 查询工分项id是否存在
+    const workItemModels = await appDB.execute(
+      `
+          select *
+          from his_work_item
+          where id = ?
+        `,
+      item
+    );
+    if (workItemModels.length === 0)
+      throw new KatoRuntimeError(`该工分项不存在`);
+
+    // 查询分类id是否存在
     // language=PostgreSQL
     const find = await appDB.execute(
       `
@@ -1414,17 +1426,6 @@ export default class HisWorkItem {
       itemType
     );
     if (find.length === 0) throw new KatoRuntimeError(`该分类不存在`);
-
-    // 查询工分项id是否存在
-    const workItemModels = await appDB.execute(
-      `
-          select *
-          from his_work_item
-          where id = ?
-        `,
-      item
-    );
-    if (workItemModels.length === 0) throw new KatoRuntimeError(`该分类不存在`);
     // 执行修改
     // language=PostgreSQL
     await appDB.execute(
