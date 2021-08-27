@@ -726,8 +726,8 @@ export default class SystemArea {
         if (index) {
           return {
             ...it,
-            parentCode: index?.parentCode ?? 'null',
-            parentName: index?.parentName ?? '你妹'
+            parentCode: index?.parentCode ?? null,
+            parentName: index?.parentName ?? null
           };
         }
       });
