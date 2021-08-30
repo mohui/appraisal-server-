@@ -288,6 +288,8 @@ export default class Person {
     }
   }
 
+  // region 详情
+
   async detail(id) {
     // language=PostgreSQL
     const person = (
@@ -297,7 +299,7 @@ export default class Person {
                  name,
                  sex,
                  birth,
-                 idcardno  as "idCard",
+                 idcardno as "idCard",
                  phone
           from ph_person
           where id = ?
@@ -423,6 +425,9 @@ export default class Person {
     return person;
   }
 
+  // endregion
+
+  // region 高血压
   /**
    * 获取高血压随访
    *
