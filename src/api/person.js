@@ -293,14 +293,14 @@ export default class Person {
     const person = (
       await originalDB.execute(
         `
-          select personnum as id,
+          select id,
                  name,
                  sex,
                  birth,
                  idcardno  as "idCard",
                  phone
-          from view_personinfo
-          where personnum = ?
+          from ph_person
+          where id = ?
           limit 1
         `,
         id
@@ -311,7 +311,7 @@ export default class Person {
     const hypertensionRows = await originalDB.execute(
       `
         select *
-        from view_hypertension
+        from ph_hypertension
         where personnum = ?
       `,
       id
