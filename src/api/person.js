@@ -1602,34 +1602,34 @@ export default class Person {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `select id as visitno
-            ,newbornchildno
-            ,mothervisitno
-            ,newbornname
-            ,newbornbirthday
-            ,feedingpatterns
-            ,temperaturedegrees
-            ,jaundice
-            ,doorbrine
-            ,eyes
-            ,eyesinfection
-            ,limbs
-            ,ear
-            ,earinfection
-            ,nose
-            ,noseinfection
-            ,skin
-            ,oral
-            ,hip
-            ,cardiopulmonary
-            ,umbilicalcord
-            ,treatmentviews
-            ,visitdate
-            ,doctor
-            ,operatetime
-            ,operatorid
-            ,operateorganization
-            ,created_at
-            ,updated_at
+              , newbornchildno
+              , mothervisitno
+              , newbornname
+              , newbornbirthday
+              , feedingpatterns
+              , temperaturedegrees
+              , jaundice
+              , doorbrine
+              , eyes
+              , eyesinfection
+              , limbs
+              , ear
+              , earinfection
+              , nose
+              , noseinfection
+              , skin
+              , oral
+              , hip
+              , cardiopulmonary
+              , umbilicalcord
+              , treatmentviews
+              , visitdate
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , created_at
+              , updated_at
          from mch_new_born_visit
          where id = ?`,
       code
