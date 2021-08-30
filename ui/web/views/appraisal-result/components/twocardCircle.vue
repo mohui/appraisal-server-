@@ -59,7 +59,7 @@ export default {
             axisTick: {show: false},
             axisLabel: {
               show: true,
-              distance: 5,
+              distance: 15,
               textStyle: {color: '#000'},
               formatter: function(e) {
                 switch (e + '') {

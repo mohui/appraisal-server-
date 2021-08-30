@@ -459,9 +459,6 @@ export default {
                 }
               }
             },
-            itemStyle: {
-              borderRadius: 8
-            },
             data: this.workScorePieData
           }
         ]
