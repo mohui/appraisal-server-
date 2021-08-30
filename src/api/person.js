@@ -3,7 +3,7 @@ import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
-import {HospitalModel, RegionModel} from '../database/model';
+import {HospitalModel} from '../database/model';
 import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
@@ -263,7 +263,7 @@ export default class Person {
       let code = '';
       //code默认为hospital,否则为region
       code = hospital ? hospital : region;
-      //当前用户级别是否是地区
+      // 当前用户级别是否是地区
       const isRegion = Context.current.user.isRegion;
       //两者都没有,则用用户默认code
       if (!code) {
@@ -271,28 +271,17 @@ export default class Person {
         if (isRegion) params.region = code; //补充默认的地区code
         if (!isRegion) params.hospital = code; //补充默认的机构code
       }
-      let fileName = '';
-      if (hospital)
-        fileName =
-          (await HospitalModel.findOne({where: {id: code}}))?.name +
-          '人员档案表格';
 
-      if (!hospital && code) {
-        if (isRegion) {
-          //可能是个地址
-          fileName =
-            (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
-        }
-        if (!isRegion) {
-          //可能是机构
-          fileName =
-            (
-              await HospitalModel.findOne({
-                where: {id: code}
-              })
-            )?.name + '人员档案表格';
-        }
-      }
+      // 获取名称
+      // language=PostgreSQL
+      const areaModel = await originalDB.execute(
+        `select name
+           from area
+           where code = ?`,
+        code
+      );
+      const fileName = `${areaModel[0]?.name}人员档案表格`;
+
       return createBackJob('personExcel', fileName, {params, fileName});
     } catch (e) {
       throw new KatoCommonError(e.message);
