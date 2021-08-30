@@ -16,6 +16,7 @@ async function dictionaryQuery(categoryno) {
   );
 }
 
+// region 拼接SQL
 //查询档案列表的sql
 function listRender(params) {
   return sqlRender(
@@ -120,6 +121,7 @@ function listRenderForExcel(params) {
   );
 }
 
+// endregion
 export default class Person {
   @validate(
     should.object({
@@ -168,9 +170,9 @@ export default class Person {
         // language=PostgreSQL
         `select code id,
                   name
-             from area
-             where label in ('hospital.center', 'hospital.station')
-               and (code = ? or path like ?)`,
+           from area
+           where label in ('hospital.center', 'hospital.station')
+             and (code = ? or path like ?)`,
         region,
         `%${region}%`
       );
@@ -359,7 +361,7 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select vp.personnum as id,
+          select vp.personnum       as id,
                  vp.name,
                  vp.address,
                  vp.Residencestring as "census",
@@ -392,9 +394,9 @@ export default class Person {
                  mp."C13",
                  mp."C14",
                  mp."E00",
-                 vp.operatetime as "updateAt"
+                 vp.operatetime     as "updateAt"
           from view_personinfo vp
-             left join mark_person mp on mp.personnum = vp.personnum and year = ?
+                 left join mark_person mp on mp.personnum = vp.personnum and year = ?
           where vp.personnum = ?
             and vp.WriteOff = false
           limit 1
@@ -421,10 +423,10 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-            select hospid as id, hospname as name
-            from view_hospital
-            where hospid = ?
-          `,
+          select hospid as id, hospname as name
+          from view_hospital
+          where hospid = ?
+        `,
         person.adminorganization
       )
     )[0];
@@ -455,20 +457,20 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-        select vhv.highbloodid as id,
-               vhv.followupdate as "followDate",
-               vhv.followupway as "followWay",
-               vhv.systolicpressure as "systolicPressure",
-               vhv.assertpressure as "assertPressure",
-               vhv.doctor,
-               vhv.operatetime as "updateAt"
-        from view_hypertensionvisit vhv
-               inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
-        where vh.personnum = ?
-          and vh.isdelete = false
-          and vhv.isdelete = false
-        order by vhv.followupdate desc
-      `,
+          select vhv.highbloodid      as id,
+                 vhv.followupdate     as "followDate",
+                 vhv.followupway      as "followWay",
+                 vhv.systolicpressure as "systolicPressure",
+                 vhv.assertpressure   as "assertPressure",
+                 vhv.doctor,
+                 vhv.operatetime      as "updateAt"
+          from view_hypertensionvisit vhv
+                 inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
+          where vh.personnum = ?
+            and vh.isdelete = false
+            and vhv.isdelete = false
+          order by vhv.followupdate desc
+        `,
         id
       )
     ).map(item => ({
@@ -646,21 +648,20 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-        select
-          vdv.DiabetesFollowUpID as "id",
-          vdv.followupdate as "followDate",
-          vdv.followupway as "followWay",
-          vdv.FastingGlucose as "fastingGlucose",
-          vdv.PostprandialGlucose as "postprandialGlucose",
-          vdv.doctor,
-          vdv.operatetime as "updateAt"
-        from view_diabetesvisit vdv
-               inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
-        where vd.personnum = ?
-          and vd.isdelete = false
-          and vdv.isdelete = false
-        order by vdv.operatetime desc
-      `,
+          select vdv.DiabetesFollowUpID  as "id",
+                 vdv.followupdate        as "followDate",
+                 vdv.followupway         as "followWay",
+                 vdv.FastingGlucose      as "fastingGlucose",
+                 vdv.PostprandialGlucose as "postprandialGlucose",
+                 vdv.doctor,
+                 vdv.operatetime         as "updateAt"
+          from view_diabetesvisit vdv
+                 inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
+          where vd.personnum = ?
+            and vd.isdelete = false
+            and vdv.isdelete = false
+          order by vdv.operatetime desc
+        `,
         id
       )
     ).map(item => ({
@@ -1494,7 +1495,9 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno from view_personinfo where personnum=?`,
+        `select idcardno
+           from view_personinfo
+           where personnum = ?`,
         id
       )
     )[0]?.idcardno;
@@ -1503,7 +1506,10 @@ export default class Person {
     // 通过身份证号查找产后访视记录表，拿到产后访视code（visitCode）
     // language=PostgreSQL
     const maternalVisits = await originalDB.execute(
-      `select visitcode from v_maternalvisits_kn where maternalidcardno=? order by visitdate`,
+      `select visitcode
+         from v_maternalvisits_kn
+         where maternalidcardno = ?
+         order by visitdate`,
       idCardNo
     );
 
@@ -1512,7 +1518,9 @@ export default class Person {
     let newbornVisits = [];
     for (const i of maternalVisits) {
       const newbornVisit = await originalDB.execute(
-        `select * from v_newbornvisit_kn where mothervisitno=?`,
+        `select *
+           from v_newbornvisit_kn
+           where mothervisitno = ?`,
         i.visitcode
       );
       newbornVisits.push(newbornVisit);
@@ -1564,7 +1572,9 @@ export default class Person {
   async newbornVisitDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_newbornvisit_kn where visitno=?`,
+      `select *
+         from v_newbornvisit_kn
+         where visitno = ?`,
       code
     );
     return result[0];
@@ -1578,7 +1588,10 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where medicalcode=?`,
+      `select cc.*, cb.name childname
+         from v_childcheck_kn cc
+                inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno
+         where medicalcode = ?`,
       code
     );
     return result[0];
@@ -1612,7 +1625,9 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno from view_personinfo where personnum=?`,
+        `select idcardno
+           from view_personinfo
+           where personnum = ?`,
         id
       )
     )[0]?.idcardno;
@@ -1623,7 +1638,9 @@ export default class Person {
     // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
-      `select * from v_pregnancybooks_kn where idcardno=?`,
+      `select *
+         from v_pregnancybooks_kn
+         where idcardno = ?`,
       idCardNo
     );
     const result = [];
@@ -1635,7 +1652,9 @@ export default class Person {
       // 第一次产前检查信息表
       // language=PostgreSQL
       const newlyDiagnosedRecords = await originalDB.execute(
-        `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
+        `select *
+           from v_newlydiagnosed_kn
+           where pre_newlydiagnosedcode = ?`,
         pregnancyBook.newlydiagnosedcode
       );
       const newlyDiagnosed = {};
@@ -1647,7 +1666,9 @@ export default class Person {
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
       const prenatalCareRecords = await originalDB.execute(
-        `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
+        `select *
+           from v_prenatalcare_kn
+           where newlydiagnosedcode = ?`,
         pregnancyBook.newlydiagnosedcode
       );
       const prenatalCare = {};
@@ -1658,7 +1679,9 @@ export default class Person {
       // 产后访视记录表
       // language=PostgreSQL
       const maternalVisitRecords = await originalDB.execute(
-        `select * from v_maternalvisits_kn where newlydiagnosedcode=?`,
+        `select *
+           from v_maternalvisits_kn
+           where newlydiagnosedcode = ?`,
         pregnancyBook.newlydiagnosedcode
       );
       const maternalVisits = {};
@@ -1670,7 +1693,9 @@ export default class Person {
       // 产后42天健康检查记录表
       // language=PostgreSQL
       const examine42thDayRecords = await originalDB.execute(
-        `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
+        `select *
+           from v_examine42thday_kn
+           where newlydiagnosedcode = ?`,
         pregnancyBook.newlydiagnosedcode
       );
       const examine42thDay = {};
@@ -1712,7 +1737,8 @@ export default class Person {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `select b.name, p.*
-         from v_prenatalcare_kn p inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
+         from v_prenatalcare_kn p
+                inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
          where prenatalcarecode = ?`,
       code
     );
@@ -1726,7 +1752,9 @@ export default class Person {
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_maternalvisits_kn where visitcode=?`,
+      `select *
+         from v_maternalvisits_kn
+         where visitcode = ?`,
       code
     );
     return result[0];
@@ -1740,7 +1768,9 @@ export default class Person {
     // 产后42天健康检查记录表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_examine42thday_kn where examineno=?`,
+      `select *
+         from v_examine42thday_kn
+         where examineno = ?`,
       code
     );
     return result[0];
@@ -2533,7 +2563,9 @@ export async function getPersonExcelBuffer(params) {
     await Promise.all(
       hospitals.map(it =>
         appDB.execute(
-          `select hishospid as id from hospital_mapping where h_id = ?`,
+          `select hishospid as id
+             from hospital_mapping
+             where h_id = ?`,
           it
         )
       )
