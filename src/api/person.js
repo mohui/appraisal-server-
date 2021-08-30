@@ -123,6 +123,8 @@ function listRenderForExcel(params) {
 
 // endregion
 export default class Person {
+  // region 列表
+
   @validate(
     should.object({
       pageSize: should.number().required(),
@@ -251,6 +253,10 @@ export default class Person {
     };
   }
 
+  // endregion
+
+  // region 导出人员档案表格
+
   /***
    * 导出人员档案表格
    * @param params
@@ -287,6 +293,8 @@ export default class Person {
       throw new KatoCommonError(e.message);
     }
   }
+
+  // endregion
 
   // region 详情
 
