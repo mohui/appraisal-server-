@@ -32,7 +32,6 @@ export class Application {
   express = express();
   server = http.createServer(this.express);
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
-  etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
   //TODO: 临时需要, 等待公卫etl完成后即可弃用
   mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
@@ -160,16 +159,6 @@ export class Application {
         console.log(`定时任务失败: ${e}`);
       }
     });
-    // 数据同步和数据标记的邮件报警
-    cron.schedule(config.get('checkETL.cron'), async () => {
-      try {
-        const api = new (require('./api/report').default)();
-        await api.checkTimming();
-        console.log('数据同步检查任务完成');
-      } catch (e) {
-        console.log(`数据同步检查任务失败: ${e}`);
-      }
-    });
 
     // 只需要生成一份,正式版才有值
     if (config.get('generate.cron')) {
@@ -235,7 +224,6 @@ export const app = new Application();
 
 //导出各种便捷属性
 export const appDB = app.appDB;
-export const etlDB = app.etlDB;
 export const originalDB = app.originalDB;
 export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;

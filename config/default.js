@@ -17,22 +17,6 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
-  etl: {
-    dialect: 'mssql',
-    host: 'localhost',
-    port: '123456',
-    username: 'root',
-    password: 'root',
-    database: 'appraisal-etl',
-    dialectOptions: {
-      options: {
-        useUTC: false,
-        requestTimeout: 300000
-      }
-    },
-    logging: false,
-    timezone: '+8:00'
-  },
   original: {
     dialect: 'postgres',
     host: 'localhost',
@@ -151,21 +135,6 @@ module.exports = {
     //   }
     // }
   ],
-  // etl检查任务的配置
-  checkETL: {
-    cron: '00 00 07 * * *',
-    email: {
-      // 发件人配置
-      sender: {
-        host: '',
-        port: '',
-        email: '',
-        password: ''
-      },
-      // 收件人配置
-      receivers: ['']
-    }
-  },
   // 生成公卫报告定时任务
   generate: {
     cron: ''

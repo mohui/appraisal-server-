@@ -74,13 +74,6 @@ module.exports = [
     ]
   },
   {
-    index: 'etl-hospital',
-    permission: [Permission.ETL_HOSPITAL],
-    label: '机构同步',
-    icon: 'el-icon-refresh',
-    router: '/etl'
-  },
-  {
     index: 'audit-log',
     permission: [Permission.AUDIT_LOG],
     label: '操作日志',

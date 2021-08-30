@@ -606,7 +606,7 @@ export const MarkTags = [
         code: 'HighRisk',
         children: [
           {
-            name: '慢病高危人群规范管理率',
+            name: '高危人群规范管理率',
             code: 'CH01',
             enabled: true
           }
@@ -828,7 +828,7 @@ export const MarkTagUsages = {
     code: 'SC01'
   },
   CH01: {
-    name: '慢病高危人群规范管理率',
+    name: '高危人群规范管理率',
     code: 'CH01'
   },
   CO01: {

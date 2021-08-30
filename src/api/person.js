@@ -2194,7 +2194,7 @@ export default class Person {
   }
 
   /**
-   * 慢病高危随访列表
+   * 高危人群随访列表
    *
    * @param id 居民id
    * return [{
@@ -2239,7 +2239,7 @@ export default class Person {
   }
 
   /**
-   * 慢病高危随访详情
+   * 高危人群随访详情
    *
    * @param id 随访id
    * return {

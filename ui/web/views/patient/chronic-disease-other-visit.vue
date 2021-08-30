@@ -14,7 +14,7 @@
       }"
     >
       <div slot="header">
-        <span>慢病高危规范记录表</span>
+        <span>高危人群规范记录表</span>
         <el-button
           style="float: right; margin: -4px 0 0 20px;"
           size="small"
