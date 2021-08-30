@@ -533,7 +533,10 @@ export default class Person {
   async hypertensionsDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select * from view_codedictionary vc where categoryno=?;`,
+        // language=PostgreSQL
+        `select code, name
+           from ph_dict vc
+           where category = ?;`,
         '331'
       )
     ).map(item => ({
@@ -542,16 +545,17 @@ export default class Person {
     }));
 
     const result = await originalDB.execute(
+      // language=PostgreSQL
       `select
-        vh.highbloodid as "id",
+        vh.id,
         vh.hypertensioncardid as "cardId",
         vh.Name as "name",
-        vc_sex.codeName as "gender",
+        vc_sex.name as "gender",
         vh.age as "age",
         vh.ContactPhone as "phone",
         vh.SerialNum as "No",
         vh.FollowUpDate as "followDate",
-        vc_follow.codename as "followWay",
+        vc_follow.name as "followWay",
         vh.PresentSymptoms as "symptoms",
         vh.SystolicPressure as "systolicPressure",
         vh.AssertPressure as "assertPressure",
@@ -570,15 +574,15 @@ export default class Person {
         vh.Sport_Minute as "exerciseMinute",
         vh.Sport_Week_Suggest as "exerciseWeekSuggest",
         vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-        vc_salt.codename as "saltInTake",
-        vc_salt_suggest.codename as "saltInTakeSuggest",
+        vc_salt.name as "saltInTake",
+        vc_salt_suggest.name as "saltInTakeSuggest",
         vh.MentalSet as "mental",
-        vc_doctor_s.codename as "doctorStatue",
+        vc_doctor_s.name as "doctorStatue",
         vh.Fzjc as "assistExam",
-        vc_ma.codename as "medicationAdherence",
+        vc_ma.name as "medicationAdherence",
         vh.AdverseEffect as "adverseReactions",
         vh.AdverseEffectOther as "adverseReactionsExplain",
-        vc_vc.codename as "visitClass",
+        vc_vc.name as "visitClass",
         vh.DrugName1 as "drugName1",
         vh.Usage_Day1 as "dailyTimesDrugName1",
         vh.Usage_Time1 as "usageDrugName1",
@@ -599,23 +603,25 @@ export default class Person {
         vh.OperateOrganization as "hospital",
         vh.OperateTime as "updateAt",
         vh.Doctor as "doctor"
-       from view_hypertensionvisit vh
-       left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vh.sex
-       left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vh.FollowUpWay
-       left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
-       left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
-       left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vh.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
-       left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vh.DoctorStatue
-       left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
-       left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
-       where vh.highbloodid=? and vh.isdelete=false`,
+       from ph_hypertension_visit vh
+       left join ph_dict vc_sex on vc_sex.category='001' and vc_sex.code = vh.sex
+       left join ph_dict vc_follow on vc_follow.category='7010104' and vc_follow.code = vh.FollowUpWay
+       left join ph_dict vc_salt on vc_salt.category='7010112' and vc_salt.code = vh.Salt_Situation
+       left join ph_dict vc_salt_suggest on vc_salt_suggest.category='7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+       left join ph_dict vc_mental on vc_mental.category='331' and vc_mental.code = vh.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
+       left join ph_dict vc_doctor_s on vc_doctor_s.category='332' and vc_doctor_s.code = vh.DoctorStatue
+       left join ph_dict vc_ma on vc_ma.category='181' and vc_ma.code = vh.MedicationAdherence
+       left join ph_dict vc_vc on vc_vc.category='7010106' and vc_vc.code = vh.VisitClass
+       where vh.id=? and vh.isdelete=false`,
       id
     );
     return result.map(r => ({
       ...r,
-      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.name
     }));
   }
+
+  // endregion
 
   /**
    * 获取糖尿病随访
