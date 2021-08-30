@@ -644,7 +644,7 @@ export default class Person {
 
   // endregion
 
-  // region
+  // region 糖尿病
   /**
    * 获取糖尿病随访
    * followDate: 随访时间
@@ -756,23 +756,25 @@ export default class Person {
   async diabetesDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select * from view_codedictionary vc where categoryno=?;`,
+        `select code, name from ph_dict vc where category = ?;`,
         '331'
       )
     ).map(item => ({
       ...item,
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
+
+    // language=PostgreSQL
     const result = await originalDB.execute(
       `select
-        vd.DiabetesFollowUpID as "id",
+        vd.id,
         vd.name as "name",
-        vc_sex.codeName as "gender",
+        vc_sex.name as "gender",
         vd.age as "age",
         vd.idCardNo as "idCard",
         vd.serialNum as "No",
         vd.followUpDate as "followDate",
-        vc_follow.codename as "followWay",
+        vc_follow.name as "followWay",
         vd.presentSymptoms as "symptoms",
         vd.SystolicPressure as "systolicPressure",
         vd.AssertPressure as "assertPressure",
@@ -781,7 +783,7 @@ export default class Person {
         vd.Stature as "stature",
         vd.BMI as "BMI",
         vd.BMI_Suggest as "BMISuggest",
-        vc_arterial.codename as "arterial",
+        vc_arterial.name as "arterial",
         vd.Other_Tz as "other",
         vd.DaySmoke as "daySmoke",
         vd.DaySmoke_Suggest as "daySmokeSuggest",
@@ -794,16 +796,16 @@ export default class Person {
         vd.Principal_Food as "principalFood",
         vd.Principal_Food_Suggest as "principalFoodSuggest",
         vd.MentalSet as "mental",
-        vc_doctor_s.codename as "doctorStatue",
+        vc_doctor_s.name as "doctorStatue",
         vd.FastingGlucose as "fastingGlucose",
         vd.PostprandialGlucose as "postprandialGlucose",
         vd.Hemoglobin as "hemoglobin",
-        vc_lb.codename as "lowBloodReaction",
+        vc_lb.name as "lowBloodReaction",
         vd.CheckTime as "checkTime",
         vd.MedicationAdherence as "medicationAdherence",
         vd.Blfy as "adverseReactions",
         vd.BlfyOther as "adverseReactionsExplain",
-        vc_vc.codename as "visitClass",
+        vc_vc.name as "visitClass",
         vd.DrugName1 as "drugName1",
         vd.Usage_Day1 as "dailyTimesDrugName1",
         vd.Usage_Time1 as "usageDrugName1",
@@ -828,21 +830,21 @@ export default class Person {
         vd.OperateOrganization as "hospital",
         vd.OperateTime as "updateAt",
         vd.Doctor as "doctor"
-        from view_diabetesvisit vd
-        left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vd.sex
-        left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet
-        left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
-        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
-        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
-        left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
-        left join view_codedictionary vc_lb on vc_lb.categoryno='7020101' and vc_lb.code = vd.LowBlood
-        where DiabetesFollowUpID=? and vd.isdelete=false`,
+        from ph_diabetes_visit vd
+        left join ph_dict vc_sex on vc_sex.category='001' and vc_sex.code = vd.sex
+        left join ph_dict vc_follow on vc_follow.category='7010104' and vc_follow.code = vd.FollowUpWay
+        left join ph_dict vc_mental on vc_mental.category='331' and vc_mental.code = vd.MentalSet
+        left join ph_dict vc_doctor_s on vc_doctor_s.category='332' and vc_doctor_s.code = vd.DoctorStatue
+        left join ph_dict vc_ma on vc_ma.category='181' and vc_ma.code = vd.MedicationAdherence
+        left join ph_dict vc_vc on vc_vc.category='7010106' and vc_vc.code = vd.VisitClass
+        left join ph_dict vc_arterial on vc_arterial.category='7152' and vc_arterial.code = vd.arterial
+        left join ph_dict vc_lb on vc_lb.category='7020101' and vc_lb.code = vd.LowBlood
+        where id = ? and vd.isdelete = false`,
       id
     );
     return result.map(r => ({
       ...r,
-      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.name
     }));
   }
 
