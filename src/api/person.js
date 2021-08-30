@@ -1510,6 +1510,8 @@ export default class Person {
 
   // endregion
 
+  // region 新生儿
+
   /**
    * 获取新生儿访视记录及儿童检查记录列表
    * @param id
@@ -1637,6 +1639,9 @@ export default class Person {
     return result[0];
   }
 
+  // endregion
+
+  // region 未完成
   /**
    * 儿童健康检查记录表详情
    * @param code
@@ -2393,6 +2398,10 @@ export default class Person {
     )[0];
   }
 
+  // endregion
+
+  // region 其他慢病
+
   /**
    * 其他慢病随访列表
    *
@@ -2407,23 +2416,20 @@ export default class Person {
    }]
    */
   async chronicDiseaseOtherList(id) {
-    const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      '7010104'
-    );
+    const followCodeNames = await dictionaryQuery('7010104');
     // language=PostgreSQL
     return (
       await originalDB.execute(
         `
-          select vdv.HighbloodID     as "id",
+          select vdv.id,
                  vdv.FollowUpDate    as "followDate",
                  vdv.FollowUpWay     as "followWay",
                  vdv.PresentSymptoms as "presentSymptoms",
                  vdv.Doctor,
                  vdv.OperateTime     as "updateAt"
-          from view_ChronicDiseaseHighCardOtherFollowUp vdv
-                 inner join view_ChronicDiseaseHighCardOther vd
-                            on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          from ph_chronic_disease_other_visit vdv
+                 inner join ph_chronic_disease_other_card vd
+                            on vdv.ChronicDiseaseHighCardID = vd.id
           where vd.PersonNum = ?
             and vd.TerminationManage = true
             and vd.IsDelete = false
@@ -2434,8 +2440,7 @@ export default class Person {
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
@@ -2503,11 +2508,11 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-          select vd.HighbloodID           as "id",
+          select vd.id,
                  vd.serialNum             as "No",
                  vp.name                  as "name",
                  vd.followUpDate          as "followDate",
-                 vc_follow.codename       as "followWay",
+                 vc_follow.name       as "followWay",
                  vd.presentSymptoms       as "symptoms",
                  vd.SystolicPressure      as "systolicPressure",
                  vd.AssertPressure        as "assertPressure",
@@ -2526,16 +2531,16 @@ export default class Person {
                  vd.Sport_Minute          as "exerciseMinute",
                  vd.Sport_Week_Suggest    as "exerciseWeekSuggest",
                  vd.Sport_Minute_Suggest  as "exerciseMinuteSuggest",
-                 vc_salt.codename         as "saltSituation",
-                 vc_salt_suggest.codename as "saltSituationSuggest",
-                 vc_mental.codename       as "mental",
-                 vc_doctor_s.codename     as "doctorStatue",
+                 vc_salt.name         as "saltSituation",
+                 vc_salt_suggest.name as "saltSituationSuggest",
+                 vc_mental.name       as "mental",
+                 vc_doctor_s.name     as "doctorStatue",
                  vd.Other_Sysjc           as "qtzysx",
                  vd.Fzjc                  as "fzjc",
-                 vc_ma.codename           as "medicationAdherence",
-                 vc_effect.codename       as "adverseReactions",
+                 vc_ma.name           as "medicationAdherence",
+                 vc_effect.name       as "adverseReactions",
                  vd.AdverseEffectOther    as "adverseReactionsExplain",
-                 vc_vc.codename           as "visitClass",
+                 vc_vc.name           as "visitClass",
                  vd.DrugName1             as "drugName1",
                  vd.Usage_Day1            as "dailyTimesDrugName1",
                  vd.Usage_Time1           as "usageDrugName1",
@@ -2555,30 +2560,32 @@ export default class Person {
                  vd.NextVisitDate         as "nextVisitDate",
                  vd.OperateTime           as "updateAt",
                  vd.Doctor                as "doctor"
-          from view_ChronicDiseaseHighCardOtherFollowUp vd
-                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
-                 left join view_codedictionary vc_follow
-                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
-                 left join view_codedictionary vc_salt
-                           on vc_salt.categoryno = '7010112' and vc_salt.code = vd.Salt_Situation
-                 left join view_codedictionary vc_salt_suggest
-                           on vc_salt_suggest.categoryno = '7010112' and
+          from ph_chronic_disease_other_visit vd
+                 inner join ph_person vp on vd.personnum = vp.id
+                 left join ph_dict vc_follow
+                           on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+                 left join ph_dict vc_salt
+                           on vc_salt.category = '7010112' and vc_salt.code = vd.Salt_Situation
+                 left join ph_dict vc_salt_suggest
+                           on vc_salt_suggest.category = '7010112' and
                               vc_salt_suggest.code = vd.Salt_Situation_Suggest
-                 left join view_codedictionary vc_mental
-                           on vc_mental.categoryno = '331' and vc_mental.code = vd.MentalSet
-                 left join view_codedictionary vc_doctor_s
-                           on vc_doctor_s.categoryno = '332' and vc_doctor_s.code = vd.DoctorStatue
-                 left join view_codedictionary vc_ma on vc_ma.categoryno = '181' and vc_ma.code = vd.MedicationAdherence
-                 left join view_codedictionary vc_effect
-                           on vc_effect.categoryno = '005' and vc_effect.code = vd.AdverseEffect
-                 left join view_codedictionary vc_vc on vc_vc.categoryno = '7010106' and vc_vc.code = vd.VisitClass
-          where HighbloodID = ?
+                 left join ph_dict vc_mental
+                           on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
+                 left join ph_dict vc_doctor_s
+                           on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
+                 left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
+                 left join ph_dict vc_effect
+                           on vc_effect.category = '005' and vc_effect.code = vd.AdverseEffect
+                 left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
+          where vd.id = ?
             and vd.isdelete = false
         `,
         id
       )
     )[0];
   }
+
+  // endregion
 }
 
 /***
