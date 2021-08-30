@@ -20,9 +20,9 @@ async function dictionaryQuery(categoryno) {
 function listRender(params) {
   return sqlRender(
     `
-      from view_personinfo vp
-             left join mark_person mp on mp.personnum = vp.personnum and mp.year = {{? year}}
-             inner join view_hospital vh on vp.adminorganization = vh.hospid
+      from ph_person vp
+             left join mark_person mp on mp.id = vp.id and mp.year = {{? year}}
+             inner join area on vp.adminorganization = area.code
       where 1 = 1
         and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
@@ -161,38 +161,24 @@ export default class Person {
     if (name) name = `%${name}%`;
     let hospitals = [];
     //没有选地区,则默认查询当前用户所拥有的机构
-    if (!region) hospitals = Context.current.user.hospitals.map(it => it.id);
-
-    const areaModels = await originalDB.execute(
-      // language=PostgreSQL
-      `select code id,
+    if (!region || region === '')
+      hospitals = Context.current.user.hospitals.map(it => it.id);
+    else {
+      const areaModels = await originalDB.execute(
+        // language=PostgreSQL
+        `select code id,
                   name
              from area
              where label in ('hospital.center', 'hospital.station')
                and (code = ? or path like ?)`,
-      region,
-      `%${region}%`
-    );
-    hospitals = areaModels.map(it => it.id);
+        region,
+        `%${region}%`
+      );
+      hospitals = areaModels.map(it => it.id);
+    }
 
     //如果查询出来的机构列表为空,则数据都为空
     if (hospitals.length === 0) return {count: 0, rows: []};
-    // language=PostgreSQL
-    hospitals = (
-      await Promise.all(
-        hospitals.map(it =>
-          appDB.execute(
-            `select hishospid as id from hospital_mapping where h_id = ?`,
-            it
-          )
-        )
-      )
-    )
-      .filter(it => it.length > 0)
-      .reduce(
-        (result, current) => [...result, ...current.map(it => it.id)],
-        []
-      );
 
     const sqlRenderResult = listRender({
       his,
@@ -211,7 +197,7 @@ export default class Person {
       )
     )[0].count;
     const person = await originalDB.execute(
-      `select vp.personnum   as id,
+      `select vp.id,
                 vp.name,
                 vp.idcardno    as "idCard",
                 vp.address     as "address",
@@ -247,10 +233,10 @@ export default class Person {
                 mp.ai_2dm,
                 mp.ai_hua,
                 mp.year,
-                vh.hospname    as "hospitalName",
+                area.name    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.personnum desc
+         order by vp.operatetime desc, vp.id desc
          limit ? offset ?`,
       ...sqlRenderResult[1],
       limit,
