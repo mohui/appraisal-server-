@@ -350,7 +350,7 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select vp.personnum       as id,
+          select vp.id,
                  vp.name,
                  vp.address,
                  vp.Residencestring as "census",
@@ -384,9 +384,9 @@ export default class Person {
                  mp."C14",
                  mp."E00",
                  vp.operatetime     as "updateAt"
-          from view_personinfo vp
-                 left join mark_person mp on mp.personnum = vp.personnum and year = ?
-          where vp.personnum = ?
+          from ph_person vp
+                 left join mark_person mp on mp.id = vp.id and year = ?
+          where vp.id = ?
             and vp.WriteOff = false
           limit 1
         `,
@@ -400,9 +400,9 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select hospid as id, hospname as name
-          from view_hospital
-          where hospid = ?
+          select code as id, name as name
+          from area
+          where code = ?
         `,
         person.operateorganization
       )
@@ -412,9 +412,9 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select hospid as id, hospname as name
-          from view_hospital
-          where hospid = ?
+          select code as id, name as name
+          from area
+          where code = ?
         `,
         person.adminorganization
       )
