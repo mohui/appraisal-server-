@@ -861,17 +861,18 @@ export default class Person {
    * @param id 个人id
    */
   async healthy(id) {
+    // language=PostgreSQL
     return originalDB.execute(
       `
         select
-          vh.incrementno as "id",
+          vh.id,
           vh.stature as "stature",
           vh.weight as "weight",
           vh.temperature as "temperature",
           vh.symptom as "symptom",
           vh.bc_abnormal as "bc_abnormal",
           vh.operatetime as "updateAt"
-        from view_healthy vh
+        from ph_healthy vh
         where vh.personnum = ?
         and vh.isdelete = false
         order by vh.operatetime desc
