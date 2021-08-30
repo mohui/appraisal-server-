@@ -12,7 +12,7 @@ import {createBackJob} from '../utils/back-job';
 async function dictionaryQuery(category) {
   // language=PostgreSQL
   return await originalDB.execute(
-    `select category categoryno, code, name codename
+    `select category, code, name
        from ph_dict vc
        where category = ?`,
     category
@@ -850,6 +850,8 @@ export default class Person {
 
   // endregion
 
+  // region 体检
+
   /**
    * 获取体检表
    * stature: 身高
@@ -1172,10 +1174,11 @@ export default class Person {
       dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
       dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
     ]);
+    // language=PostgreSQL
     const result = await originalDB.execute(
       `
         select
-          vh.incrementno as "id",
+          vh.id,
           vh.name as "name",
           vh.checkupNo as "checkupNo",
           vh.IDCardNo as "IDCard",
@@ -1413,11 +1416,11 @@ export default class Person {
           vh.yichang4 as "abnormal4",
           vh.jkzd_dqsf as "healthyGuide",
           vh.jkzd_wxyskz as "healthyRisk",
-          vc_hos.hospname as "hospital",
+          area.name as "hospital",
           vh.operatetime as "updateAt"
-        from view_healthy vh
-        left join view_hospital vc_hos on vc_hos.hospid=vh.OperateOrganization
-        where vh.incrementno = ? and vh.isdelete=false
+        from ph_healthy vh
+        left join area on area.code = vh.OperateOrganization
+        where vh.id = ? and vh.isdelete=false
         order by vh.operatetime desc
        `,
       id
@@ -1425,85 +1428,85 @@ export default class Person {
     return result.map(item => ({
       ...item,
       checkDate: dayjs(item.checkDate).toDate(),
-      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
-      marrage: marrageCode.find(it => it.code === item.marrage)?.codename ?? '',
+      gender: genderCode.find(it => it.code === item.gender)?.name ?? '',
+      marrage: marrageCode.find(it => it.code === item.marrage)?.name ?? '',
       professionType:
-        jobTypeCode.find(it => `0${it.code}` === item.professionType)
-          ?.codename ?? '',
+        jobTypeCode.find(it => `0${it.code}` === item.professionType)?.name ??
+        '',
       // oldManHealthSelf:
       //   oldManHealthSelfCode.find(it => it.code === item.professionType)
-      //     ?.codename || '',
+      //     ?.name || '',
       // oldManLifeSelf:
       //   oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
-      //     ?.codename || '',
+      //     ?.name || '',
       // eyeGround:
-      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
-      // skin: skinCode.find(it => it.code === item.skin)?.codename || '',
-      // sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
-      // lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
+      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.name || '',
+      // skin: skinCode.find(it => it.code === item.skin)?.name || '',
+      // sclera: scleraCode.find(it => it.code === item.sclera)?.name || '',
+      // lymph: lymphCode.find(it => it.code === item.lymph)?.name || '',
       // barrelChest:
-      //   barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
+      //   barrelChestCode.find(it => it.code === item.barrelChest)?.name ||
       //   '',
       // breathSound:
-      //   breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+      //   breathSoundCode.find(it => it.code === item.breathSound)?.name ||
       //   '',
       // lungSound:
-      //   lungSoundCode.find(it => it.code === item.lungSound)?.codename || '',
+      //   lungSoundCode.find(it => it.code === item.lungSound)?.name || '',
       // exerciseFrequency:
       //   exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
-      //     ?.codename || '',
+      //     ?.name || '',
       // drinkFrequency:
       //   drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
-      //     ?.codename || '',
+      //     ?.name || '',
       // professionExpose:
       //   professionExposeCode.find(it => it.code === item.professionExpose)
-      //     ?.codename || '',
+      //     ?.name || '',
       dustProtection:
         professionExposeCode.find(it => it.code === item.dustProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       physicalProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       chemicalsProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       radiationProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       otherProtection:
         professionExposeCode.find(it => it.code === item.otherProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       // abdominalBag:
-      //   abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
+      //   abdominalCode.find(it => it.code === item.abdominalBag)?.name || '',
       // abdominalLiver:
-      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.name ||
       //   '',
       // abdominalSpleen:
-      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.name ||
       //   '',
       // abdominalNoise:
-      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.name ||
       //   '',
       // arterial:
-      //   arterialCode.find(it => it.code === item.arterial)?.codename || '',
-      // vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
-      // vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
+      //   arterialCode.find(it => it.code === item.arterial)?.name || '',
+      // vulva: vaginaCode.find(it => it.code === item.vulva)?.name || '',
+      // vagina: vaginaCode.find(it => it.code === item.vagina)?.name || '',
       // cervical:
-      //   vaginaCode.find(it => it.code === item.cervical)?.codename || '',
-      // uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
-      // attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
+      //   vaginaCode.find(it => it.code === item.cervical)?.name || '',
+      // uterus: vaginaCode.find(it => it.code === item.uterus)?.name || '',
+      // attach: vaginaCode.find(it => it.code === item.attach)?.name || '',
       urineProtein:
-        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ??
-        '',
+        urineProteinCode.find(it => it.code === item.urineProtein)?.name ?? '',
       urineSugar:
-        urineSugarCode.find(it => it.code === item.urineSugar)?.codename ?? '',
+        urineSugarCode.find(it => it.code === item.urineSugar)?.name ?? '',
       urineKetone:
-        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ??
-        '',
+        urineKetoneCode.find(it => it.code === item.urineKetone)?.name ?? '',
       urineBlood:
-        urineBloodCode.find(it => it.code === item.urineBlood)?.codename ?? ''
+        urineBloodCode.find(it => it.code === item.urineBlood)?.name ?? ''
     }));
   }
+
+  // endregion
 
   /**
    * 获取新生儿访视记录及儿童检查记录列表
