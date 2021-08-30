@@ -439,22 +439,22 @@ export default class Person {
    */
   async hypertensions(id) {
     const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      `select dict.name,dict.code from ph_dict dict where dict.category = ?`,
       '7010104'
     );
     return (
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select vhv.highbloodid      as id,
+          select vhv.id,
                  vhv.followupdate     as "followDate",
                  vhv.followupway      as "followWay",
                  vhv.systolicpressure as "systolicPressure",
                  vhv.assertpressure   as "assertPressure",
                  vhv.doctor,
                  vhv.operatetime      as "updateAt"
-          from view_hypertensionvisit vhv
-                 inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
+          from ph_hypertension_visit vhv
+                 inner join ph_hypertension vh on vhv.hypertensionCardID = vh.id
           where vh.personnum = ?
             and vh.isdelete = false
             and vhv.isdelete = false
@@ -464,8 +464,7 @@ export default class Person {
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
