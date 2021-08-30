@@ -9,10 +9,13 @@ import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
 
-async function dictionaryQuery(categoryno) {
+async function dictionaryQuery(category) {
+  // language=PostgreSQL
   return await originalDB.execute(
-    `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
-    categoryno
+    `select category categoryno, code, name codename
+       from ph_dict vc
+       where category = ?`,
+    category
   );
 }
 
