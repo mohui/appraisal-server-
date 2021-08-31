@@ -1958,10 +1958,8 @@ export default class Person {
       `
         select b.fathername
              , b.fatherage
-             , n.id
-             , n.etl_id
-             , n.original_id
-             , n.pregnancybooksid
+             , n.id                            as newlydiagnosedcode
+             , n.pregnancybooksid              as pre_newlydiagnosedcode
              , n.name
              , n.newlydiagnoseddate
              , n.gestationalweeks
