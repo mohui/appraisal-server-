@@ -1,13 +1,12 @@
-import {appDB, originalDB} from '../app';
+import {originalDB} from '../app';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
-import {HospitalModel} from '../database/model';
-import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
+import {getHospitals} from './group/common';
 
 async function dictionaryQuery(category) {
   // language=PostgreSQL
@@ -79,9 +78,9 @@ function listRenderForExcel(params) {
   return sqlRender(
     `
       from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.year = {{? year}}
-             inner join view_hospital vh on vp.adminorganization = vh.hospid
-             left join mark_content mc on mc.id = vp.personnum
+             inner join ph_person vp on mp.id = vp.id and mp.year = {{? year}}
+             inner join area on vp.adminorganization = area.code
+             left join mark_content mc on mc.id = vp.id
       where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
@@ -267,18 +266,10 @@ export default class Person {
    */
   async personExcel(params) {
     try {
-      const {hospital, region} = params;
-      //需要查询的机构或者地区code
-      let code = '';
-      //code默认为hospital,否则为region
-      code = hospital ? hospital : region;
-      // 当前用户级别是否是地区
-      const isRegion = Context.current.user.isRegion;
-      //两者都没有,则用用户默认code
-      if (!code) {
-        code = Context.current.user.code;
-        if (isRegion) params.region = code; //补充默认的地区code
-        if (!isRegion) params.hospital = code; //补充默认的机构code
+      // 如果region没有值
+      if (!params.region) {
+        //补充默认的地区code
+        params.region = Context.current.user.code;
       }
 
       // 获取名称
@@ -287,7 +278,7 @@ export default class Person {
         `select name
            from area
            where code = ?`,
-        code
+        params.region
       );
       const fileName = `${areaModel[0]?.name}人员档案表格`;
 
@@ -2615,11 +2606,9 @@ export default class Person {
  */
 export async function getPersonExcelBuffer(params) {
   const {
-    hospital,
     region,
     idCard,
     tags,
-    include,
     personOr = false,
     documentOr = false,
     year
@@ -2629,49 +2618,13 @@ export async function getPersonExcelBuffer(params) {
   if (name) name = `%${name}%`;
   let hospitals = [];
   //没有选机构和地区,则默认查询当前用户所拥有的机构
-  if (!region && !hospital) throw new KatoCommonError('未传机构id或者地区code');
-  //仅有地区,则查询该地区下的所有机构
-  if (region && !hospital) {
-    hospitals = (
-      await HospitalModel.findAll({
-        where: {region: {[Op.like]: `${region}%`}}
-      })
-    ).map(it => it.id);
-  }
-  if (hospital) hospitals = [hospital];
+  if (!region) throw new KatoCommonError('未传机构id或者地区code');
+  // 获取所有的机构
+  const areaModels = await getHospitals(region);
+  hospitals = areaModels.map(it => it.code);
 
   //如果查询出来的机构列表为空,则数据都为空
   if (hospitals.length === 0) return {count: 0, rows: []};
-  // language=PostgreSQL
-  hospitals = (
-    await Promise.all(
-      hospitals.map(it =>
-        appDB.execute(
-          `select hishospid as id
-             from hospital_mapping
-             where h_id = ?`,
-          it
-        )
-      )
-    )
-  )
-    .filter(it => it.length > 0)
-    .reduce((result, current) => [...result, ...current.map(it => it.id)], []);
-  if (include && hospital)
-    hospitals = (
-      await Promise.all(
-        hospitals.map(item =>
-          //查询机构的下属机构
-          originalDB.execute(
-            `select hospid as id from view_hospital where hos_hospid = ?`,
-            item
-          )
-        )
-      )
-    )
-      .filter(it => it.length > 0)
-      .reduce((result, current) => [...result, ...current.map(it => it.id)], [])
-      .concat(hospitals);
 
   const sqlRenderResult = listRenderForExcel({
     his,
@@ -2684,7 +2637,7 @@ export async function getPersonExcelBuffer(params) {
     year
   });
   let person = await originalDB.execute(
-    `select vp.personnum   as id,
+    `select vp.id,
                 vp.name,
                 vp.idcardno    as "idCard",
                 vp.address     as "address",
@@ -2717,10 +2670,10 @@ export async function getPersonExcelBuffer(params) {
                 mp."E00",
                 mc.name as "markName",
                 mc.content as "markContent",
-                vh.hospname    as "hospitalName",
+                area.name    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.personnum desc
+         order by vp.operatetime desc, vp.id desc
          `,
     ...sqlRenderResult[1]
   );
