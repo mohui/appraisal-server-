@@ -49,8 +49,8 @@ export default {
             min: 0,
             max: 100,
             splitNumber: 2,
-            radius: '70%',
-            center: ['50%', '65%'],
+            radius: '60%',
+            center: ['50%', '55%'],
             itemStyle: {
               color: this.color
             },
@@ -75,7 +75,7 @@ export default {
             splitLine: {show: false},
             pointer: {show: false},
             title: {
-              offsetCenter: [0, '30%'],
+              offsetCenter: [0, '40%'],
               textStyle: {color: this.color, fontSize: '15'}
             },
             detail: {

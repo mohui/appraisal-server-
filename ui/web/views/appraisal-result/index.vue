@@ -166,20 +166,26 @@
                     <div class="second-title" style="text-align:left">
                       工分值
                     </div>
-                    <p style="color: #6C7177; font-size:16px; margin:10px 0;">
+                    <div style="color: #6C7177; font-size:16px; margin:10px 0;">
                       校正后
-                    </p>
-                    <h3 style="font-size: 30px; margin:0; display:inline-block">
+                    </div>
+                    <div
+                      style="font-size: 30px; margin:0; display:inline-block; font-weight: bold"
+                    >
                       {{ totalData.correctWorkPoint | fixedDecimal }}
-                    </h3>
+                    </div>
                     <span>分</span>
-                    <p style="font-size:13px;">{{ totalData.name }}</p>
-                    <div style="padding-top: 40px">
+                    <div style="font-size:16px; margin: 10px 0">
+                      {{ totalData.name }}
+                    </div>
+                    <div style="padding-top: 10px; font-size:14px">
                       <div>
-                        <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
+                        <div>
+                          校正前总工分： {{ totalData.totalWorkPoint }}分
+                        </div>
                       </div>
                       <div>
-                        <p>参与校正工分： {{ totalData.workPoint }}分</p>
+                        <div>参与校正工分： {{ totalData.workPoint }}分</div>
                       </div>
                     </div>
                   </div>
@@ -280,7 +286,7 @@
             </el-row>
             <el-row :gutter="10" style="margin: 10px 0">
               <el-card shadow="hover">
-                <div style="height: 300px; text-align: center">
+                <div style="height: 250px; text-align: center">
                   <p class="second-title" style="margin:0; text-align:left;">
                     健康教育
                   </p>
@@ -1152,7 +1158,7 @@ export default {
 
 .score-detail {
   position: relative;
-  height: 300px;
+  height: 250px;
   text-align: center;
   box-sizing: border-box;
   color: $color-primary;
