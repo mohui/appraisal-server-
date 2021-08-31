@@ -80,3 +80,25 @@ h1, h2, h3, h4, h5, h6, p, a {
 .el-button {
   border-radius: 100px;
 }
+//头部标题栏样式
+.jx-header {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  background-color: #fff;
+  padding: 12px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  box-sizing: border-box;
+
+  .header-title {
+    font: bold 16px/1.8 Arial;
+    color: #40415a;
+  }
+}
+//竖向流式布局
+.flex-column-layout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
