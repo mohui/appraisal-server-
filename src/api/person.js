@@ -282,7 +282,10 @@ export default class Person {
       );
       const fileName = `${areaModel[0]?.name}人员档案表格`;
 
-      return createBackJob('personExcel', fileName, {params, fileName});
+      return createBackJob('personExcel', fileName, {
+        params,
+        fileName
+      });
     } catch (e) {
       throw new KatoCommonError(e.message);
     }
@@ -1501,6 +1504,8 @@ export default class Person {
 
   // endregion
 
+  // region 妇幼
+
   // region 新生儿
 
   /**
@@ -1764,17 +1769,83 @@ export default class Person {
 
   /**
    * 第 1 次产前检查服务记录表详情
-   * @param 主键id
+   * @param code 主键id
    */
   async firstPrenatalCheck(code) {
     // 第一次产前检查信息表
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
       `
-        select b.fathername, b.fatherage, n.*, n.weight / (n.height / 100) ^ 2 as bmi
-        from v_newlydiagnosed_kn n
-               inner join v_pregnancybooks_kn b on n.pre_newlydiagnosedcode = b.newlydiagnosedcode
-        where n.newlydiagnosedcode = ?
+        select b.fathername
+               ,b.fatherage
+               ,n.id
+               ,n.etl_id
+               ,n.original_id
+               ,n.pregnancybooksid
+               ,n.name
+               ,n.newlydiagnoseddate
+               ,n.gestationalweeks
+               ,n.gestationalageday
+               ,n.age
+               ,n.parity
+               ,n.productionmeeting
+               ,n.vaginaldelivery
+               ,n.cesareansection
+               ,n.lastmenstrual
+               ,n.birth
+               ,n.pasthistory
+               ,n.familyhistory
+               ,n.womansurgeryhistory
+               ,n.spontaneousabortiontimes
+               ,n.abortiontimes
+               ,n.stillfetaltimes
+               ,n.stillbirthtimes
+               ,n.height
+               ,n.weight
+               ,n.bodymassindex
+               ,n.systolicpressure
+               ,n.assertpressure
+               ,n.heart
+               ,n.lung
+               ,n.deputymilkgenital
+               ,n.vagina
+               ,n.cervical
+               ,n.attachment
+               ,n.hemoglobin
+               ,n.interleukin
+               ,n.plateletcount
+               ,n.urinaryprotein
+               ,n.urine
+               ,n.ketone
+               ,n.urineoccultblood
+               ,n.bloodtype
+               ,n.sgpt_fastingplasmaglucose
+               ,n.sgpt_alt
+               ,n.sgpt_ast
+               ,n.sgpt_alb
+               ,n.sgpt_tbili
+               ,n.intoxicated
+               ,n.urea
+               ,n.vaginasecrete
+               ,n.hbsagin
+               ,n.hbsab
+               ,n.hbeag
+               ,n.kanghbe
+               ,n.kanghbc
+               ,n.rprscreen
+               ,n.hivscreening
+               ,n.bultrasonography
+               ,n.nextcaredate
+               ,n.doctor
+               ,n.operatetime
+               ,n.operatorid
+               ,n.operateorganization
+               ,n.created_at
+               ,n.updated_at
+               ,n.weight / (n.height / 100) ^ 2 as bmi
+        from mch_newly_diagnosed n
+               inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
+        where n.id = ?
       `,
       code
     );
@@ -1790,7 +1861,7 @@ export default class Person {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `select b.name
-              , card.id as prenatalcarecode
+              , card.id               as prenatalcarecode
               , card.pregnancybooksid as newlydiagnosedcode
               , card.checkdate
               , card.diseasehistory
@@ -1821,6 +1892,10 @@ export default class Person {
     );
     return result[0];
   }
+
+  // endregion
+
+  // region 产后
 
   /**
    * 产后访视记录表详情
@@ -1887,6 +1962,8 @@ export default class Person {
     );
     return result[0];
   }
+
+  // endregion
 
   // endregion
 
