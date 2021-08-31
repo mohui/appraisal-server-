@@ -1646,10 +1646,44 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select cc.*, cb.name childname
-         from v_childcheck_kn cc
-                inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno
-         where medicalcode = ?`,
+      `select cc.id as medicalcode
+              , cc.childhealthbooksno
+              , cc.chronologicalage
+              , cc.checkdate
+              , cc.weight
+              , cc.weightage
+              , cc.height
+              , cc.heightage
+              , cc.headcircumference
+              , cc.face
+              , cc.skin
+              , cc.fontanelle
+              , cc.backfontanelle
+              , cc.eyes
+              , cc.ear
+              , cc.lefthearing
+              , cc.righthearing
+              , cc.oral
+              , cc.ricketsseems
+              , cc.genitaliainfo
+              , cc.genitalia
+              , cc.hemoglobin
+              , cc.fewteeth
+              , cc.signsrickets
+              , cc.outdoortime
+              , cc.guidancetreatment
+              , cc.reservationsdate
+              , cc.checkdoctor
+              , cc.doctor
+              , cc.operatetime
+              , cc.operatorid
+              , cc.operateorganization
+              , cc.created_at
+              , cc.updated_at
+              , cb.name  childname
+         from mch_child_check cc
+                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+         where cc.id = ?`,
       code
     );
     return result[0];
@@ -1684,8 +1718,8 @@ export default class Person {
     const idCardNo = (
       await originalDB.execute(
         `select idcardno
-           from view_personinfo
-           where personnum = ?`,
+           from ph_person
+           where id = ?`,
         id
       )
     )[0]?.idcardno;
@@ -1767,6 +1801,8 @@ export default class Person {
     return result;
   }
 
+  // endregion
+
   /**
    * 第 1 次产前检查服务记录表详情
    * @param code 主键id
@@ -1777,72 +1813,72 @@ export default class Person {
     const newlyDiagnosed = await originalDB.execute(
       `
         select b.fathername
-               ,b.fatherage
-               ,n.id
-               ,n.etl_id
-               ,n.original_id
-               ,n.pregnancybooksid
-               ,n.name
-               ,n.newlydiagnoseddate
-               ,n.gestationalweeks
-               ,n.gestationalageday
-               ,n.age
-               ,n.parity
-               ,n.productionmeeting
-               ,n.vaginaldelivery
-               ,n.cesareansection
-               ,n.lastmenstrual
-               ,n.birth
-               ,n.pasthistory
-               ,n.familyhistory
-               ,n.womansurgeryhistory
-               ,n.spontaneousabortiontimes
-               ,n.abortiontimes
-               ,n.stillfetaltimes
-               ,n.stillbirthtimes
-               ,n.height
-               ,n.weight
-               ,n.bodymassindex
-               ,n.systolicpressure
-               ,n.assertpressure
-               ,n.heart
-               ,n.lung
-               ,n.deputymilkgenital
-               ,n.vagina
-               ,n.cervical
-               ,n.attachment
-               ,n.hemoglobin
-               ,n.interleukin
-               ,n.plateletcount
-               ,n.urinaryprotein
-               ,n.urine
-               ,n.ketone
-               ,n.urineoccultblood
-               ,n.bloodtype
-               ,n.sgpt_fastingplasmaglucose
-               ,n.sgpt_alt
-               ,n.sgpt_ast
-               ,n.sgpt_alb
-               ,n.sgpt_tbili
-               ,n.intoxicated
-               ,n.urea
-               ,n.vaginasecrete
-               ,n.hbsagin
-               ,n.hbsab
-               ,n.hbeag
-               ,n.kanghbe
-               ,n.kanghbc
-               ,n.rprscreen
-               ,n.hivscreening
-               ,n.bultrasonography
-               ,n.nextcaredate
-               ,n.doctor
-               ,n.operatetime
-               ,n.operatorid
-               ,n.operateorganization
-               ,n.created_at
-               ,n.updated_at
-               ,n.weight / (n.height / 100) ^ 2 as bmi
+             , b.fatherage
+             , n.id
+             , n.etl_id
+             , n.original_id
+             , n.pregnancybooksid
+             , n.name
+             , n.newlydiagnoseddate
+             , n.gestationalweeks
+             , n.gestationalageday
+             , n.age
+             , n.parity
+             , n.productionmeeting
+             , n.vaginaldelivery
+             , n.cesareansection
+             , n.lastmenstrual
+             , n.birth
+             , n.pasthistory
+             , n.familyhistory
+             , n.womansurgeryhistory
+             , n.spontaneousabortiontimes
+             , n.abortiontimes
+             , n.stillfetaltimes
+             , n.stillbirthtimes
+             , n.height
+             , n.weight
+             , n.bodymassindex
+             , n.systolicpressure
+             , n.assertpressure
+             , n.heart
+             , n.lung
+             , n.deputymilkgenital
+             , n.vagina
+             , n.cervical
+             , n.attachment
+             , n.hemoglobin
+             , n.interleukin
+             , n.plateletcount
+             , n.urinaryprotein
+             , n.urine
+             , n.ketone
+             , n.urineoccultblood
+             , n.bloodtype
+             , n.sgpt_fastingplasmaglucose
+             , n.sgpt_alt
+             , n.sgpt_ast
+             , n.sgpt_alb
+             , n.sgpt_tbili
+             , n.intoxicated
+             , n.urea
+             , n.vaginasecrete
+             , n.hbsagin
+             , n.hbsab
+             , n.hbeag
+             , n.kanghbe
+             , n.kanghbc
+             , n.rprscreen
+             , n.hivscreening
+             , n.bultrasonography
+             , n.nextcaredate
+             , n.doctor
+             , n.operatetime
+             , n.operatorid
+             , n.operateorganization
+             , n.created_at
+             , n.updated_at
+             , n.weight / (n.height / 100) ^ 2 as bmi
         from mch_newly_diagnosed n
                inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
@@ -1892,8 +1928,6 @@ export default class Person {
     );
     return result[0];
   }
-
-  // endregion
 
   // region 产后
 
