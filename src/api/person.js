@@ -2009,19 +2009,20 @@ export default class Person {
   async oldManSelfCare(id) {
     return (
       await originalDB.execute(
-        `select
-            vhc.scoreID as "id",
-            vhc.IncrementNo as "healthyID",
-            vh.checkupDate as "checkDate",
-            vhc.jcScore as "mealScore",
-            vhc.sxScore as "washScore",
-            vhc.cyScore as "dressScore",
-            vhc.rcScore as "toiletScore",
-            vhc.hdScore as "activityScore",
-            vhc.AllScore as "total"
-        from view_healthchecktablescore vhc
-        left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vh.personnum=? and vh.isdelete=false`,
+        // language=PostgreSQL
+        `select vhc.id,
+                  vhc.IncrementNo as "healthyID",
+                  vh.checkupDate  as "checkDate",
+                  vhc.jcScore     as "mealScore",
+                  vhc.sxScore     as "washScore",
+                  vhc.cyScore     as "dressScore",
+                  vhc.rcScore     as "toiletScore",
+                  vhc.hdScore     as "activityScore",
+                  vhc.AllScore    as "total"
+           from ph_old_health_check vhc
+                  left join ph_healthy vh on vh.id = vhc.incrementno
+           where vh.personnum = ?
+             and vh.isdelete = false`,
         id
       )
     ).map(it => ({
