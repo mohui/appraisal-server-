@@ -147,7 +147,7 @@
                 </div>
               </el-card>
             </el-col>
-            <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -186,7 +186,7 @@
                 </el-tooltip>
               </el-card>
             </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.faceCollectSeverData.updating"
                 shadow="hover"
