@@ -2067,38 +2067,39 @@ export default class Person {
   async oldManSelfCareDetail(id) {
     return (
       await originalDB.execute(
-        `select
-            vhc.scoreID as "id",
-            vhc.IncrementNo as "healthyID",
-            vh.checkupDate as "checkDate",
-            vh.name as "name",
-            vhc.jckzl as "mealNormal",
-            vhc.jczdyl as "mealModerate",
-            vhc.jcbnzl as "mealDisable",
-            vhc.jcScore as "mealScore",
-            vhc.sxkzl as "washNormal",
-            vhc.sxqdyl as "washMild",
-            vhc.sxzdyl as "washModerate",
-            vhc.sxbnzl as "washDisable",
-            vhc.sxScore as "washScore",
-            vhc.cykzl as "dressNormal",
-            vhc.cyzdyl as "dressModerate",
-            vhc.cybnzl as "dressDisable",
-            vhc.cyScore as "dressScore",
-            vhc.rckzl as "toiletNormal",
-            vhc.rcqdyl as "toiletMild",
-            vhc.rczdyl as "toiletModerate",
-            vhc.rcbnzl as "toiletDisable",
-            vhc.rcScore as "toiletScore",
-            vhc.hdkzl as "activityNormal",
-            vhc.hdqdyl as "activityMild",
-            vhc.hdzdyl as "activityModerate",
-            vhc.hdbnzl as "activityDisable",
-            vhc.hdScore as "activityScore",
-            vhc.AllScore as "total"
-        from view_healthchecktablescore vhc
-        left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vhc.scoreID=? and vh.isdelete=false`,
+        // language=PostgreSQL
+        `select vhc.id,
+                  vhc.IncrementNo as "healthyID",
+                  vh.checkupDate  as "checkDate",
+                  vh.name         as "name",
+                  vhc.jckzl       as "mealNormal",
+                  vhc.jczdyl      as "mealModerate",
+                  vhc.jcbnzl      as "mealDisable",
+                  vhc.jcScore     as "mealScore",
+                  vhc.sxkzl       as "washNormal",
+                  vhc.sxqdyl      as "washMild",
+                  vhc.sxzdyl      as "washModerate",
+                  vhc.sxbnzl      as "washDisable",
+                  vhc.sxScore     as "washScore",
+                  vhc.cykzl       as "dressNormal",
+                  vhc.cyzdyl      as "dressModerate",
+                  vhc.cybnzl      as "dressDisable",
+                  vhc.cyScore     as "dressScore",
+                  vhc.rckzl       as "toiletNormal",
+                  vhc.rcqdyl      as "toiletMild",
+                  vhc.rczdyl      as "toiletModerate",
+                  vhc.rcbnzl      as "toiletDisable",
+                  vhc.rcScore     as "toiletScore",
+                  vhc.hdkzl       as "activityNormal",
+                  vhc.hdqdyl      as "activityMild",
+                  vhc.hdzdyl      as "activityModerate",
+                  vhc.hdbnzl      as "activityDisable",
+                  vhc.hdScore     as "activityScore",
+                  vhc.AllScore    as "total"
+           from ph_old_health_check vhc
+                  left join ph_healthy vh on vh.id = vhc.incrementno
+           where vhc.id = ?
+             and vh.isdelete = false`,
         id
       )
     ).map(it => ({
