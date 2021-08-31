@@ -226,35 +226,33 @@ export default {
 }
 ::v-deep .el-menu {
   & > li {
+    border-radius: 30px;
+
     &.el-menu-item,
     > .el-submenu__title {
       height: 46px !important;
       line-height: 46px !important;
-      &:hover {
-        background-color: #ecf5ff;
-      }
+    }
+    &.is-active.parent-menu.el-menu-item {
+      background-color: $color-primary;
+      color: #fff;
+      border-radius: 30px;
     }
     &.is-active > .el-submenu__title {
-      box-shadow: inset 3px 0 0 #2198f3;
-      background-color: #ecf5ff;
-    }
-    > ul {
-      background-color: rgba(0, 0, 0, 0.02);
-      &:before {
-        border-left: 1px dotted rgba(0, 0, 0, 0.2);
-        content: '';
-        display: block;
-        position: absolute;
-        z-index: 1;
-        left: 2rem;
-        top: 0;
-        bottom: 0;
+      i {
+        color: inherit;
       }
+      background-color: $color-primary;
+      color: #fff;
+      border-radius: 30px;
+    }
+
+    > ul {
       > li {
         padding-left: 54px !important;
-        &:hover {
-          color: #409eff;
-          background-color: rgba(255, 255, 255, 0.1);
+
+        &.is-active {
+          color: $color-primary;
         }
         &:after {
           content: '';
