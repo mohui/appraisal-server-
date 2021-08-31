@@ -50,16 +50,25 @@ export default {
             endAngle: 0,
             radius: '100%',
             center: ['50%', '70%'],
+            itemStyle: {
+              color: this.color
+            },
+            progress: {
+              show: true,
+              roundCap: true,
+              width: 20
+            },
             axisLine: {
+              roundCap: true,
               lineStyle: {
-                width: 30,
-                color: []
+                width: 20,
+                color: [[1, '#f6f7fa']]
               }
             },
             axisTick: {show: false},
             axisLabel: {
               show: true,
-              distance: 15,
+              distance: 5,
               textStyle: {color: '#000'},
               formatter: function(e) {
                 switch (e + '') {
@@ -115,15 +124,6 @@ export default {
   },
   methods: {
     circleChart() {
-      this.chart.series[0].axisLine.lineStyle.color = this.coefficient
-        ? [
-            [this.coefficient / 100, this.color],
-            [1, '#f6f7fa']
-          ]
-        : [
-            [0, this.color],
-            [1, '#f6f7fa']
-          ];
       this.chart.series[0].data[0].value = this.coefficient
         ? this.coefficient
         : 0;
