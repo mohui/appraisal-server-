@@ -49,8 +49,8 @@ export default {
             min: 0,
             max: 100,
             splitNumber: 2,
-            radius: '100%',
-            center: ['50%', '70%'],
+            radius: '70%',
+            center: ['50%', '65%'],
             itemStyle: {
               color: this.color
             },
