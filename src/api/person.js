@@ -1697,7 +1697,7 @@ export default class Person {
     // 儿童保健卡主键 -> 儿童体检表
     const childCheck = await originalDB.execute(
       // language=PostgreSQL
-      `select cc.id as medicalcode
+      `select cc.id   as medicalcode
               , cc.chronologicalage
               , cc.weight
               , cc.height
@@ -1739,8 +1739,24 @@ export default class Person {
     // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
-      `select *
-         from v_pregnancybooks_kn
+      `select id
+              , etl_id
+              , original_id
+              , visitsdate
+              , vouchertype
+              , idcardno
+              , name
+              , age
+              , fathername
+              , fatherage
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , managehospid
+              , created_at
+              , updated_at
+         from mch_pregnancy_books
          where idcardno = ?`,
       idCardNo
     );
@@ -1748,15 +1764,76 @@ export default class Person {
     for (const pregnancyBook of pregnancyBooks) {
       const maternalDate = [];
 
-      // 通过母子健康手册表中的主键（newlydiagnosedcode）查询以下表
+      // 通过母子健康手册表中的主键（id）查询以下表
 
       // 第一次产前检查信息表
       // language=PostgreSQL
       const newlyDiagnosedRecords = await originalDB.execute(
-        `select *
-           from v_newlydiagnosed_kn
-           where pre_newlydiagnosedcode = ?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as newlydiagnosedcode
+                , pregnancybooksid as pre_newlydiagnosedcode
+                , name
+                , newlydiagnoseddate
+                , gestationalweeks
+                , gestationalageday
+                , age
+                , parity
+                , productionmeeting
+                , vaginaldelivery
+                , cesareansection
+                , lastmenstrual
+                , birth
+                , pasthistory
+                , familyhistory
+                , womansurgeryhistory
+                , spontaneousabortiontimes
+                , abortiontimes
+                , stillfetaltimes
+                , stillbirthtimes
+                , height
+                , weight
+                , bodymassindex
+                , systolicpressure
+                , assertpressure
+                , heart
+                , lung
+                , deputymilkgenital
+                , vagina
+                , cervical
+                , attachment
+                , hemoglobin
+                , interleukin
+                , plateletcount
+                , urinaryprotein
+                , urine
+                , ketone
+                , urineoccultblood
+                , bloodtype
+                , sgpt_fastingplasmaglucose
+                , sgpt_alt
+                , sgpt_ast
+                , sgpt_alb
+                , sgpt_tbili
+                , intoxicated
+                , urea
+                , vaginasecrete
+                , hbsagin
+                , hbsab
+                , hbeag
+                , kanghbe
+                , kanghbc
+                , rprscreen
+                , hivscreening
+                , bultrasonography
+                , nextcaredate
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_newly_diagnosed
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const newlyDiagnosed = {};
       newlyDiagnosed.name = '第一次产前检查信息表';
@@ -1767,10 +1844,33 @@ export default class Person {
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
       const prenatalCareRecords = await originalDB.execute(
-        `select *
-           from v_prenatalcare_kn
-           where newlydiagnosedcode = ?`,
-        pregnancyBook.newlydiagnosedcode
+        `select card.id               as prenatalcarecode
+                , card.pregnancybooksid as newlydiagnosedcode
+                , card.checkdate
+                , card.diseasehistory
+                , card.chiefcomplaint
+                , card.weight
+                , card.uterinehigh
+                , card.abdominalcircumference
+                , card.fetalposition
+                , card.fetalheartrate
+                , card.fetalheartrate2
+                , card.fetalheartrate3
+                , card.assertpressure
+                , card.systolicpressure
+                , card.hemoglobin
+                , card.urinaryprotein
+                , card.guide
+                , card.nextappointmentdate
+                , card.doctor
+                , card.operatetime
+                , card.operatorid
+                , card.operateorganization
+                , card.created_at
+                , card.updated_at
+           from mch_prenatal_care card
+           where card.pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const prenatalCare = {};
       prenatalCare.name = '第2~5次产前随访服务信息表';
@@ -1780,10 +1880,28 @@ export default class Person {
       // 产后访视记录表
       // language=PostgreSQL
       const maternalVisitRecords = await originalDB.execute(
-        `select *
-           from v_maternalvisits_kn
-           where newlydiagnosedcode = ?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as visitcode
+                , pregnancybooksid as newlydiagnosedcode
+                , maternitycode
+                , maternalname
+                , maternalidcardno
+                , visitdate
+                , temperaturedegrees
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochiatype
+                , lochiavolume
+                , perinealincision
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_maternal_visit
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const maternalVisits = {};
       maternalVisits.name = '产后访视记录表';
@@ -1794,10 +1912,27 @@ export default class Person {
       // 产后42天健康检查记录表
       // language=PostgreSQL
       const examine42thDayRecords = await originalDB.execute(
-        `select *
-           from v_examine42thday_kn
-           where newlydiagnosedcode = ?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as examineno
+                , pregnancybooksid as newlydiagnosedcode
+                , pregnantwomenname
+                , visitdate
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochia
+                , lochiacolor
+                , lochiasmell
+                , perinealincision
+                , other
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_examine_42th_day
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const examine42thDay = {};
       examine42thDay.name = '产后42天健康检查记录表';
