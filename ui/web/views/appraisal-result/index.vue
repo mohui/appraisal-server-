@@ -125,17 +125,9 @@
       </div>
       <!--自身考核结果-->
       <div>
-        <el-row :gutter="10" style="margin: 10px -5px 0">
+        <el-row :gutter="10" style="margin: 10px -5px">
           <div v-if="params.listFlag === 'quality'">
-            <el-col
-              :span="8"
-              :xs="24"
-              :sm="12"
-              :md="8"
-              :lg="8"
-              :xl="8"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -157,15 +149,7 @@
                 </div>
               </el-card>
             </el-col>
-            <el-col
-              :span="10"
-              :xs="24"
-              :sm="12"
-              :md="10"
-              :lg="10"
-              :xl="10"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="10" :xs="24" :sm="12" :md="10" :lg="10" :xl="10">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -204,15 +188,7 @@
                 </el-tooltip>
               </el-card>
             </el-col>
-            <el-col
-              :span="6"
-              :xs="24"
-              :sm="12"
-              :md="6"
-              :lg="6"
-              :xl="6"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
               <el-card
                 v-loading="$asyncComputed.faceCollectSeverData.updating"
                 shadow="hover"
@@ -282,120 +258,102 @@
             </el-col>
           </div>
         </el-row>
-        <el-row
-          v-if="params.listFlag === 'quality'"
-          :gutter="10"
-          style="margin: 0 -5px"
-        >
+        <el-row v-if="params.listFlag === 'quality'" :gutter="10">
+          <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
+            <el-row>
+              <el-card shadow="hover">
+                <div class="score-detail">
+                  <p class="second-title" style="margin:0; text-align:left;">
+                    家庭医生签约
+                  </p>
+                  <div
+                    v-loading="
+                      $asyncComputed.familyDoctorContractServerData.updating
+                    "
+                    style="height: 100%"
+                  >
+                    <doctor-bar
+                      style="padding-top: 20px;"
+                      :bar-data="familyDoctorContractData"
+                    ></doctor-bar>
+                  </div>
+                </div>
+              </el-card>
+            </el-row>
+            <el-row :gutter="10" style="margin: 10px 0">
+              <el-card shadow="hover">
+                <div style="height: 300px; text-align: center">
+                  <p class="second-title" style="margin:0; text-align:left;">
+                    健康教育
+                  </p>
+                  <el-tabs v-model="healthEducationType">
+                    <el-tab-pane
+                      v-for="tag in healthEducationTags"
+                      :key="tag.type"
+                      :label="tag.name"
+                      :name="tag.type"
+                    >
+                      <el-table
+                        :ref="tag.type"
+                        v-loading="
+                          $asyncComputed.healthEducationServerData.updating
+                        "
+                        :data="healthEducationData"
+                        height="210px"
+                        class="appraisal-result-health-education-table"
+                        style="width: 100%"
+                        size="mini"
+                      >
+                        <el-table-column
+                          prop="time"
+                          header-align="center"
+                          align="center"
+                          min-width="20px"
+                          label="活动时间"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                          prop="name"
+                          header-align="center"
+                          align="center"
+                          min-width="40px"
+                          label="活动名称"
+                        >
+                        </el-table-column>
+                      </el-table>
+                      <div style="margin-top: 3px">
+                        <el-pagination
+                          v-reset-scroll="tag.type"
+                          small
+                          background
+                          :page-size="healthEducationPageSize"
+                          :current-page="healthEducationPageNo"
+                          layout="total, prev, pager, next"
+                          :total="healthEducationServerData.rows"
+                          @current-change="
+                            no => {
+                              healthEducationPageNo = no;
+                            }
+                          "
+                        ></el-pagination>
+                      </div>
+                    </el-tab-pane>
+                  </el-tabs>
+                </div>
+              </el-card>
+            </el-row>
+          </el-col>
           <el-col
             :span="8"
             :xs="24"
-            :sm="8"
-            :md="8"
+            :sm="24"
+            :md="24"
             :lg="8"
             :xl="8"
             style="margin-bottom: 10px;"
           >
             <el-card shadow="hover">
-              <div class="score-detail">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  家庭医生签约
-                </p>
-                <div
-                  v-loading="
-                    $asyncComputed.familyDoctorContractServerData.updating
-                  "
-                  style="height: 100%"
-                >
-                  <doctor-bar
-                    style="padding-top: 20px;"
-                    :bar-data="familyDoctorContractData"
-                  ></doctor-bar>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="10"
-            :xs="24"
-            :sm="12"
-            :md="10"
-            :lg="10"
-            :xl="10"
-            style="margin-bottom: 10px;"
-          >
-            <el-card shadow="hover">
-              <div style="height: 300px; text-align: center">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  健康教育
-                </p>
-                <el-tabs v-model="healthEducationType">
-                  <el-tab-pane
-                    v-for="tag in healthEducationTags"
-                    :key="tag.type"
-                    :label="tag.name"
-                    :name="tag.type"
-                  >
-                    <el-table
-                      :ref="tag.type"
-                      v-loading="
-                        $asyncComputed.healthEducationServerData.updating
-                      "
-                      :data="healthEducationData"
-                      height="210px"
-                      class="appraisal-result-health-education-table"
-                      style="width: 100%"
-                      size="mini"
-                    >
-                      <el-table-column
-                        prop="time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
-                        label="活动时间"
-                      >
-                      </el-table-column>
-                      <el-table-column
-                        prop="name"
-                        header-align="center"
-                        align="center"
-                        min-width="40px"
-                        label="活动名称"
-                      >
-                      </el-table-column>
-                    </el-table>
-                    <div style="margin-top: 3px">
-                      <el-pagination
-                        v-reset-scroll="tag.type"
-                        small
-                        background
-                        :page-size="healthEducationPageSize"
-                        :current-page="healthEducationPageNo"
-                        layout="total, prev, pager, next"
-                        :total="healthEducationServerData.rows"
-                        @current-change="
-                          no => {
-                            healthEducationPageNo = no;
-                          }
-                        "
-                      ></el-pagination>
-                    </div>
-                  </el-tab-pane>
-                </el-tabs>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="6"
-            :xs="24"
-            :sm="12"
-            :md="6"
-            :lg="6"
-            :xl="6"
-            style="margin-bottom: 10px;"
-          >
-            <el-card shadow="hover">
-              <div style="height: 300px; text-align: center">
+              <div style="height: 650px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
@@ -410,7 +368,7 @@
                         $asyncComputed.supervisionReportServerData.updating
                       "
                       :data="supervisionReportData"
-                      height="210px"
+                      height="560px"
                       style="width: 100%;flex:1"
                       size="mini"
                     >
@@ -456,7 +414,7 @@
                         $asyncComputed.supervisionAssistServerData.updating
                       "
                       :data="supervisionAssistData"
-                      height="210px"
+                      height="560px"
                       style="width: 100%; flex:1"
                       size="mini"
                     >
