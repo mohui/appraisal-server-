@@ -29,12 +29,9 @@ export default {
         grid: [
           {
             top: 40,
-            left: 40,
+            left: 80,
             right: 20,
-            bottom: 140
-          },
-          {
-            bottom: 50
+            bottom: 100
           }
         ],
         legend: {
@@ -56,7 +53,7 @@ export default {
             type: 'shadow'
           }
         },
-        xAxis: [
+        yAxis: [
           {
             position: 'bottom',
             type: 'category',
@@ -71,7 +68,6 @@ export default {
             },
             axisLabel: {
               show: true,
-              rotate: 45,
               fontSize: 12,
               color: '#3A3A3C'
             },
@@ -92,7 +88,7 @@ export default {
             show: false
           }
         ],
-        yAxis: [
+        xAxis: [
           {
             type: 'value',
             position: 'left',
@@ -159,7 +155,7 @@ export default {
   },
   methods: {
     updataChart() {
-      this.option.xAxis[0].data = this.barData.map(it => it.name);
+      this.option.yAxis[0].data = this.barData.map(it => it.name);
       this.option.series[0].data = this.barData.map(it => it.value);
       if (this.color.length > 0) {
         this.option.color = this.color;
