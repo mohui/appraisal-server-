@@ -1,6 +1,6 @@
 <template>
-  <div style="height: 100%;display: flex;flex-direction: column">
-    <div class="header">
+  <div class="flex-column-layout">
+    <div class="jx-header">
       <span class="header-title">工分项管理</span>
       <div>
         <span style="font-size:14px;color:#606266">配置维度选择:</span>
@@ -662,23 +662,6 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
-@import '../../styles/vars';
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
-  background-color: #fff;
-  padding: 12px 20px;
-  border-radius: 5px;
-  border: 1px solid #ebeef5;
-  box-sizing: border-box;
-
-  .header-title {
-    font: bold 16px/1.8 Arial;
-    color: #40415a;
-  }
-}
 ::v-deep .el-card {
   > .el-card__body {
     padding: 0 20px 20px 20px !important;
