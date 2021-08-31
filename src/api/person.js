@@ -1838,6 +1838,10 @@ export default class Person {
     return result[0];
   }
 
+  // endregion
+
+  // region 个人档案详情
+
   /***
    * 个人档案详情
    * @param id
@@ -1914,82 +1918,84 @@ export default class Person {
       dictionaryQuery('002') //contractStaff
     ]);
     const result = await originalDB.execute(
-      `select
-        vp.PersonNum as "id",
-        vp.name as "name",
-        vp.Sex as "gender",
-        vp.VoucherType as "voucher",
-        vp.IdCardNo as "idCard",
-        vp.Birth as "birth",
-        vp.Phone as "phone",
-        vp.RegionCode as "regionCode",
-        vp.Address as "address",
-        vp.Residencestring as "census",
-        vp.WorkUnit as "workUnit",
-        vp.RHeadHousehold as "houseHold",
-        vp.ContactName as "contactName",
-        vp.ContactPhone as "contactPhone",
-        vp.Relationship as "contactRelationship",
-        vp.LivingConditions as "livingConditions",
-        vp.AccountType as "accountType",
-        vp.BloodABO as blood,
-        vp.national as "national",
-        vp.RH as "RH",
-        vp.Education as "education",
-        vp.Occupation as "profession",
-        vp.MaritalStatus as "marrage",
-        vp.Responsibility as "doctor",
-        vp.FileDate as "createdAt",
-        vp.XNHCardNo as "XNHCard",
-        vp.YBCardNo as "medicareCard",
-        vp.MedicalExpensesPayKind as "medicalPayType",
-        vp.PaymentCard as "medicalCard",
-        vp.IsLowWarranty as "isLowWarranty",
-        vp.LowWarrantyCardNo as "lowWarrantyCard",
-        vp.DrugAllergy as "drugAllergy",
-        vp.AncestralHistory as "ancestralHistory",
-        vp.FatherHistory as "fatherHistory",
-        vp.MotherHistory as "motherHistory",
-        vp.SiblingHistory as "siblingHistory",
-        vp.ChildrenHistory as "childrenHistory",
-        vp.IsGeneticHistory as "isGeneticHistory",
-        vp.GeneticDisease as "geneticDisease",
-        vp.WhetherDisability as "isDisability",
-        vp.ExposureHistory as "exposureHistory",
-        vp.PastHistory as "diseaseHistory",
-        vp.IsSurgicalHistory as "isSurgeryHistory",
-        vp.IsTraumaticHistory as "isTraumaticHistory",
-        vp.IsTransfusionHistory as "isTransfusionHistory",
-        vp.shhjcf as "kitchenVentilation",
-        vp.shhjrl as "fuelType",
-        vp.shhjys as "water",
-        vp.shhjcs as "toilet",
-        vp.shhjscl as "livestock",
-        vp.ContractStaff as "contractStaff",
-        vp.AdminOrganization as "managementHospital",
-        vp.OperateOrganization as "hospital",
-        vc_hos.hospname as "hospital",
-        vp.OperatorId as "hospitalId",
-        vp.OperateTime as "updatedAt"
-        from view_personinfo vp
-        left join view_hospital vc_hos on vc_hos.hospid=vp.OperateOrganization
-        where personnum=?`,
+      // language=PostgreSQL
+      `select vp.id,
+                vp.name                   as "name",
+                vp.Sex                    as "gender",
+                vp.VoucherType            as "voucher",
+                vp.IdCardNo               as "idCard",
+                vp.Birth                  as "birth",
+                vp.Phone                  as "phone",
+                vp.RegionCode             as "regionCode",
+                vp.Address                as "address",
+                vp.Residencestring        as "census",
+                vp.WorkUnit               as "workUnit",
+                vp.RHeadHousehold         as "houseHold",
+                vp.ContactName            as "contactName",
+                vp.ContactPhone           as "contactPhone",
+                vp.Relationship           as "contactRelationship",
+                vp.LivingConditions       as "livingConditions",
+                vp.AccountType            as "accountType",
+                vp.BloodABO               as blood,
+                vp.national               as "national",
+                vp.RH                     as "RH",
+                vp.Education              as "education",
+                vp.Occupation             as "profession",
+                vp.MaritalStatus          as "marrage",
+                vp.Responsibility         as "doctor",
+                vp.FileDate               as "createdAt",
+                vp.XNHCardNo              as "XNHCard",
+                vp.YBCardNo               as "medicareCard",
+                vp.MedicalExpensesPayKind as "medicalPayType",
+                vp.PaymentCard            as "medicalCard",
+                vp.IsLowWarranty          as "isLowWarranty",
+                vp.LowWarrantyCardNo      as "lowWarrantyCard",
+                vp.DrugAllergy            as "drugAllergy",
+                vp.AncestralHistory       as "ancestralHistory",
+                vp.FatherHistory          as "fatherHistory",
+                vp.MotherHistory          as "motherHistory",
+                vp.SiblingHistory         as "siblingHistory",
+                vp.ChildrenHistory        as "childrenHistory",
+                vp.IsGeneticHistory       as "isGeneticHistory",
+                vp.GeneticDisease         as "geneticDisease",
+                vp.WhetherDisability      as "isDisability",
+                vp.ExposureHistory        as "exposureHistory",
+                vp.PastHistory            as "diseaseHistory",
+                vp.IsSurgicalHistory      as "isSurgeryHistory",
+                vp.IsTraumaticHistory     as "isTraumaticHistory",
+                vp.IsTransfusionHistory   as "isTransfusionHistory",
+                vp.shhjcf                 as "kitchenVentilation",
+                vp.shhjrl                 as "fuelType",
+                vp.shhjys                 as "water",
+                vp.shhjcs                 as "toilet",
+                vp.shhjscl                as "livestock",
+                vp.ContractStaff          as "contractStaff",
+                vp.AdminOrganization      as "managementHospital",
+                vp.OperateOrganization    as "hospital",
+                area.name                 as "hospital",
+                vp.OperatorId             as "hospitalId",
+                vp.OperateTime            as "updatedAt"
+         from ph_person vp
+                left join area on area.code = vp.OperateOrganization
+         where id = ?`,
       id
     );
 
     return result.map(item => ({
       ...item,
-      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
-      voucher: voucherCode.find(it => it.code === item.voucher)?.codename ?? '',
-      national:
-        nationalCode.find(it => it.code === item.national)?.codename ?? '',
+      gender: genderCode.find(it => it.code === item.gender)?.name ?? '',
+      voucher: voucherCode.find(it => it.code === item.voucher)?.name ?? '',
+      national: nationalCode.find(it => it.code === item.national)?.name ?? '',
       houseHold:
-        houseHoldCode.find(it => it.code === item.houseHold)?.codename ?? '',
+        houseHoldCode.find(it => it.code === item.houseHold)?.name ?? '',
       contractStaff:
-        contractStaffCode.find(it => it.code === item.contractStaff)
-          ?.codename ?? ''
+        contractStaffCode.find(it => it.code === item.contractStaff)?.name ?? ''
     }));
   }
+
+  // endregion
+
+  // region 老年人
 
   /***
    * 老年人生活自理评分
