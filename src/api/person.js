@@ -2198,9 +2198,9 @@ export default class Person {
       .description('问卷表id')
   )
   async questionnaireDetail(id) {
-    const questionnaire = (
-      await originalDB.execute(
-        `select
+    const questionnaireModels = await originalDB.execute(
+      // language=PostgreSQL
+      `select
             cast(vb.questioncode as int) as "questionCode",
             vb.questioncode as "questionCode",
             vqd.questionnairemainsn as "detailId",
@@ -2208,16 +2208,16 @@ export default class Person {
             vq.optioncontent as "option",
             vq.optioncode as "optionCode",
             vq.score
-            from view_questionnairedetail vqd
-            inner join view_questionoptionslib vq on
+            from ph_questionnaire_detail vqd
+            inner join ph_question_options vq on
             cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-            inner join view_questionlib vb on
+            inner join ph_question_lib vb on
                 vb.questionsn = vq.questionsn
             where vqd.QuestionnaireMainSN = ?
         order by cast(vb.questioncode as int)`,
-        id
-      )
-    ).reduce((res, next) => {
+      id
+    );
+    const questionnaire = questionnaireModels.reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
       // 如果查找到, 说明这个答案得分有两次
       if (current) {
@@ -2241,11 +2241,12 @@ export default class Person {
     const name =
       (
         await originalDB.execute(
+          // language=PostgreSQL
           `
-        select vp.name from view_questionnairedetail vqd
-            left join view_questionnairemain vm on
-            cast(vm.questionnairemainsn as varchar) = cast(vqd.questionnairemainsn as varchar)
-            right join view_personinfo vp on vm.personnum = vp.personnum
+        select vp.name from ph_questionnaire_detail vqd
+            left join ph_old_questionnaire_main vm on
+            cast(vm.id as varchar) = cast(vqd.questionnairemainsn as varchar)
+            right join ph_person vp on vm.personnum = vp.id
         where vqd.questionnairemainsn = ? limit 1;`,
           id
         )
@@ -2254,17 +2255,18 @@ export default class Person {
     const constitution =
       (
         await originalDB.execute(
+          // language=PostgreSQL
           `select
             vp.name,
             vq.constitutiontype,
             vq.constitutiontypepossible,
             vq.OperateTime as "date",
-            vh.hospname as "hospitalName",
+            area.name as "hospitalName",
             vq.doctor
-            from view_questionnaireguide  vq
-            left join view_personinfo vp on vq.personnum = vp.personnum
-            left join view_hospital vh on vp.operateorganization = vh.hospid
-            where vq.questionnairemainsn = ?`,
+            from ph_questionnaire_guide  vq
+            left join ph_person vp on vq.personnum = vp.id
+            left join area on vp.operateorganization = area.code
+            where vq.id = ?`,
           questionnaire[0]?.detailId
         )
       )[0] ?? null;
