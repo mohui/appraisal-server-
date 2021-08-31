@@ -1506,8 +1506,6 @@ export default class Person {
 
   // region 妇幼
 
-  // region 新生儿
-
   /**
    * 获取新生儿访视记录及儿童检查记录列表
    * @param id
@@ -1635,8 +1633,6 @@ export default class Person {
     return result[0];
   }
 
-  // endregion
-
   /**
    * 儿童健康检查记录表详情
    * @param code
@@ -1710,8 +1706,6 @@ export default class Person {
     );
     return childCheck;
   }
-
-  // region 未完成
 
   /**
    *获取孕产妇健康检查表数据
@@ -1945,8 +1939,6 @@ export default class Person {
     return result;
   }
 
-  // endregion
-
   /**
    * 第 1 次产前检查服务记录表详情
    * @param code 主键id
@@ -2071,8 +2063,6 @@ export default class Person {
     return result[0];
   }
 
-  // region 产后
-
   /**
    * 产后访视记录表详情
    * @param 主键 code
@@ -2138,8 +2128,6 @@ export default class Person {
     );
     return result[0];
   }
-
-  // endregion
 
   // endregion
 
