@@ -42,7 +42,7 @@
       :style="{'flex-direction': $settings.isMobile ? 'column' : 'row'}"
     >
       <el-aside
-        :width="$settings.isMobile ? '100%' : '270px'"
+        :width="$settings.isMobile ? '100%' : '250px'"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -255,6 +255,7 @@ export default {
           color: $color-primary;
         }
         &:after {
+          margin-left: 10px !important;
           content: '';
           display: block;
           position: absolute;
@@ -262,7 +263,7 @@ export default {
           height: 0.3rem;
           background-color: rgba(91, 91, 91, 0.2);
           left: 1.8rem;
-          top: calc(50% - 0.2rem);
+          top: calc(50% - 0.1rem);
           border: 1px solid rgba(91, 91, 91, 0.7);
           border-radius: 50%;
           z-index: 1;
@@ -272,7 +273,7 @@ export default {
           width: 0.4rem;
           height: 0.4rem;
           left: 1.75rem;
-          top: calc(50% - 0.25rem);
+          top: calc(50% - 0.2rem);
         }
       }
     }
