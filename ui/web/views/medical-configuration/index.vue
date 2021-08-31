@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%;">
+  <div style="height: 100%;display: flex;flex-direction: column">
     <div class="header">
       <span class="header-title">工分项管理</span>
       <div>
@@ -38,10 +38,10 @@
     </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;flex: 1"
       shadow="never"
       :body-style="{
-        height: $settings.isMobile ? 'calc(100% - 80px)' : 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 80px)' : '100%',
         display: 'flex',
         'flex-direction': 'column',
         padding: $settings.isMobile ? '10px 0 0' : '20px'
@@ -677,6 +677,11 @@ export default {
   .header-title {
     font: bold 16px/1.8 Arial;
     color: #40415a;
+  }
+}
+::v-deep .el-card {
+  > .el-card__body {
+    padding: 0 20px 20px 20px !important;
   }
 }
 </style>
