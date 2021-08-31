@@ -18,6 +18,151 @@ async function dictionaryQuery(category) {
   );
 }
 
+/***
+ * 获取表格的buffer数据
+ * @param params
+ * @returns {Promise<{count: number, rows: []}|Buffer>}
+ */
+export async function getPersonExcelBuffer(params) {
+  const {
+    region,
+    idCard,
+    tags,
+    personOr = false,
+    documentOr = false,
+    year
+  } = params;
+  const his = '340203';
+  let {name} = params;
+  if (name) name = `%${name}%`;
+  let hospitals = [];
+  //没有选机构和地区,则默认查询当前用户所拥有的机构
+  if (!region) throw new KatoCommonError('未传机构id或者地区code');
+  // 获取所有的机构
+  const areaModels = await getHospitals(region);
+  hospitals = areaModels.map(it => it.code);
+
+  //如果查询出来的机构列表为空,则数据都为空
+  if (hospitals.length === 0) return {count: 0, rows: []};
+
+  const sqlRenderResult = listRenderForExcel({
+    his,
+    name,
+    hospitals,
+    idCard,
+    ...tags,
+    personOr,
+    documentOr,
+    year
+  });
+  let person = await originalDB.execute(
+    `select vp.id,
+                vp.name,
+                vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
+                mp."S03",
+                mp."S23",
+                mp."O00",
+                mp."O02",
+                mp."H00",
+                mp."H01",
+                mp."H02",
+                mp."D00",
+                mp."D01",
+                mp."D02",
+                mp."C01",
+                mp."C02",
+                mp."C03",
+                mp."C04",
+                mp."C05",
+                mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
+                mc.name as "markName",
+                mc.content as "markContent",
+                area.name    as "hospitalName",
+                vp.operatetime as date
+         ${sqlRenderResult[0]}
+         order by vp.operatetime desc, vp.id desc
+         `,
+    ...sqlRenderResult[1]
+  );
+  person.forEach(p => {
+    for (let i in p) {
+      //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
+      if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
+    }
+  });
+  person = person
+    .map(it => getTagsList(it))
+    .reduce((pre, next) => {
+      const current = pre.find(p => p.id === next.id);
+      if (current) {
+        let tag = current.tags.find(t => t.code === next.markName);
+        if (tag) {
+          if (tag.content.indexOf(next.markContent) < 0)
+            tag.content.push(next.markContent);
+        } else
+          current.tags.push({
+            label: current.label,
+            code: current.markName,
+            content: [current.markContent]
+          });
+      } else {
+        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
+        pre.push({
+          ...next,
+          tags: tags
+        });
+      }
+      return pre;
+    }, [])
+    .map(it => ({
+      name: it.name,
+      idCard: it.idCard,
+      address: it.address,
+      gender: it.gender === '1' ? '男' : '女',
+      phone: it.phone,
+      personTags: it.personTags.map(tag => tag.label).join(','),
+      tags: it.tags
+        .map(item => item.label + ':[' + item.content + ']')
+        .join(',')
+    }));
+  //开始创建Excel表格
+  const workBook = new Excel.Workbook();
+  const workSheet = workBook.addWorksheet(`人员档案表格...`);
+  //添加标题
+  workSheet.addRow([
+    '序号',
+    '姓名',
+    '身份证号',
+    '住址',
+    '性别',
+    '电话',
+    '人群分类',
+    '档案问题'
+  ]);
+  const rows = person.map((it, index) => {
+    let current = [index + 1];
+    for (let k in it) {
+      current.push(it[k]);
+    }
+    return current;
+  });
+
+  workSheet.addRows(rows);
+  return workBook.xlsx.writeBuffer();
+}
+
 // region 拼接SQL
 //查询档案列表的sql
 function listRender(params) {
@@ -2897,149 +3042,4 @@ export default class Person {
   }
 
   // endregion
-}
-
-/***
- * 获取表格的buffer数据
- * @param params
- * @returns {Promise<{count: number, rows: []}|Buffer>}
- */
-export async function getPersonExcelBuffer(params) {
-  const {
-    region,
-    idCard,
-    tags,
-    personOr = false,
-    documentOr = false,
-    year
-  } = params;
-  const his = '340203';
-  let {name} = params;
-  if (name) name = `%${name}%`;
-  let hospitals = [];
-  //没有选机构和地区,则默认查询当前用户所拥有的机构
-  if (!region) throw new KatoCommonError('未传机构id或者地区code');
-  // 获取所有的机构
-  const areaModels = await getHospitals(region);
-  hospitals = areaModels.map(it => it.code);
-
-  //如果查询出来的机构列表为空,则数据都为空
-  if (hospitals.length === 0) return {count: 0, rows: []};
-
-  const sqlRenderResult = listRenderForExcel({
-    his,
-    name,
-    hospitals,
-    idCard,
-    ...tags,
-    personOr,
-    documentOr,
-    year
-  });
-  let person = await originalDB.execute(
-    `select vp.id,
-                vp.name,
-                vp.idcardno    as "idCard",
-                vp.address     as "address",
-                vp.sex         as "gender",
-                vp.phone       as "phone",
-                mp."S03",
-                mp."S23",
-                mp."O00",
-                mp."O02",
-                mp."H00",
-                mp."H01",
-                mp."H02",
-                mp."D00",
-                mp."D01",
-                mp."D02",
-                mp."C01",
-                mp."C02",
-                mp."C03",
-                mp."C04",
-                mp."C05",
-                mp."C00",
-                mp."C06",
-                mp."C07",
-                mp."C08",
-                mp."C09",
-                mp."C10",
-                mp."C11",
-                mp."C13",
-                mp."C14",
-                mp."E00",
-                mc.name as "markName",
-                mc.content as "markContent",
-                area.name    as "hospitalName",
-                vp.operatetime as date
-         ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.id desc
-         `,
-    ...sqlRenderResult[1]
-  );
-  person.forEach(p => {
-    for (let i in p) {
-      //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
-      if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
-    }
-  });
-  person = person
-    .map(it => getTagsList(it))
-    .reduce((pre, next) => {
-      const current = pre.find(p => p.id === next.id);
-      if (current) {
-        let tag = current.tags.find(t => t.code === next.markName);
-        if (tag) {
-          if (tag.content.indexOf(next.markContent) < 0)
-            tag.content.push(next.markContent);
-        } else
-          current.tags.push({
-            label: current.label,
-            code: current.markName,
-            content: [current.markContent]
-          });
-      } else {
-        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
-        pre.push({
-          ...next,
-          tags: tags
-        });
-      }
-      return pre;
-    }, [])
-    .map(it => ({
-      name: it.name,
-      idCard: it.idCard,
-      address: it.address,
-      gender: it.gender === '1' ? '男' : '女',
-      phone: it.phone,
-      personTags: it.personTags.map(tag => tag.label).join(','),
-      tags: it.tags
-        .map(item => item.label + ':[' + item.content + ']')
-        .join(',')
-    }));
-  //开始创建Excel表格
-  const workBook = new Excel.Workbook();
-  const workSheet = workBook.addWorksheet(`人员档案表格...`);
-  //添加标题
-  workSheet.addRow([
-    '序号',
-    '姓名',
-    '身份证号',
-    '住址',
-    '性别',
-    '电话',
-    '人群分类',
-    '档案问题'
-  ]);
-  const rows = person.map((it, index) => {
-    let current = [index + 1];
-    for (let k in it) {
-      current.push(it[k]);
-    }
-    return current;
-  });
-
-  workSheet.addRows(rows);
-  return workBook.xlsx.writeBuffer();
 }
