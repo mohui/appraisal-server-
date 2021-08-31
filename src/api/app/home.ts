@@ -149,7 +149,7 @@ export default class AppHome {
   async htn() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.H00 ? 0 : markModel.H01 / markModel.H00;
+    return markModel.H00 ? markModel.H01 / markModel.H00 : 0;
   }
 
   /**
@@ -158,7 +158,7 @@ export default class AppHome {
   async t2dm() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.D00 ? 0 : markModel.D01 / markModel.D00;
+    return markModel.D00 ? markModel.D01 / markModel.D00 : 0;
   }
 
   /**
