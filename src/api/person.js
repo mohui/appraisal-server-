@@ -2285,22 +2285,19 @@ export default class Person {
    * }]
    */
   async chronicDiseaseHighList(id) {
-    const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      '7010104'
-    );
+    const followCodeNames = await dictionaryQuery('7010104');
     // language=PostgreSQL
     return (
       await originalDB.execute(
         `
-          select vdv.ChronicDiseaseHighID as "id",
-                 vdv.FollowUpDate         as "followDate",
-                 vdv.FollowUpWay          as "followWay",
-                 vdv.RiskFactorsName      as "riskFactorsName",
+          select vdv.id,
+                 vdv.FollowUpDate    as "followDate",
+                 vdv.FollowUpWay     as "followWay",
+                 vdv.RiskFactorsName as "riskFactorsName",
                  vdv.Doctor,
-                 vdv.OperateTime          as "updateAt"
-          from view_ChronicDiseaseHighFollowUp vdv
-                 inner join view_ChronicDiseaseHighCard vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+                 vdv.OperateTime     as "updateAt"
+          from ph_chronic_disease_high_visit vdv
+                 inner join ph_chronic_disease_high_card vd on vdv.ChronicDiseaseHighCardID = vd.id
           where vd.PersonNum = ?
             and vd.TerminationManage = true
             and vd.IsDelete = false
@@ -2311,8 +2308,7 @@ export default class Person {
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
