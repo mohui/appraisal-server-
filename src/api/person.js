@@ -2111,6 +2111,7 @@ export default class Person {
    * 标签的具体内容
    * @param id
    * @param code
+   * @param year
    */
   @validate(
     should
@@ -2149,18 +2150,19 @@ export default class Person {
       .description('个人id')
   )
   async questionnaire(id) {
+    // language=PostgreSQL
     return originalDB.execute(
       `
        select
-     vq.QuestionnaireMainSN as "id",
+     vq.id,
      vp.name,
      vq.questionnairemaindate as "date",
      vq.doctorname as "doctor",
-     vh.hospname as "hospitalName"
-     from view_questionnairemain vq
-     left join view_personinfo vp on vq.personnum = vp.personnum
-     left join view_hospital vh on vp.operateorganization = vh.hospid
-     where vp.personnum=?;`,
+     area.name as "hospitalName"
+     from ph_old_questionnaire_main vq
+     left join ph_person vp on vq.personnum = vp.id
+     left join area on vp.operateorganization = area.code
+     where vp.id = ?;`,
       id
     );
   }
