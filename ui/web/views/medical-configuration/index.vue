@@ -669,7 +669,7 @@ export default {
   justify-content: space-between;
   margin: 10px 0;
   background-color: #fff;
-  padding: 19px 20px;
+  padding: 12px 20px;
   border-radius: 5px;
   border: 1px solid #ebeef5;
   box-sizing: border-box;
