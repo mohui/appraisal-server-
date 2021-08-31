@@ -1,52 +1,52 @@
 <template>
-  <div style="height: 100%;">
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">工分项管理</span>
+      <div>
+        <span style="font-size:14px;color:#606266">配置维度选择:</span>
+        <el-button-group>
+          <el-button
+            :type="
+              currentTarget === HisWorkScoreType.WORK_ITEM
+                ? 'primary'
+                : 'default'
+            "
+            size="mini"
+            @click="currentTarget = HisWorkScoreType.WORK_ITEM"
+          >
+            工分项
+          </el-button>
+          <el-button
+            :type="
+              currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
+            "
+            size="mini"
+            @click="currentTarget = HisWorkScoreType.STAFF"
+          >
+            员工
+          </el-button>
+        </el-button-group>
+        <el-button
+          style="margin-left: 20px"
+          :type="expandAll ? 'warning' : 'default'"
+          size="mini"
+          @click="expandAll = !expandAll"
+        >
+          {{ expandAll ? '一键收起' : '一键展开' }}
+        </el-button>
+      </div>
+    </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;flex: 1"
       shadow="never"
       :body-style="{
-        height: $settings.isMobile ? 'calc(100% - 80px)' : 'calc(100% - 110px)',
+        height: $settings.isMobile ? 'calc(100% - 80px)' : '100%',
         display: 'flex',
         'flex-direction': 'column',
         padding: $settings.isMobile ? '10px 0 0' : '20px'
       }"
     >
-      <div slot="header" class="header">
-        <span>工分项管理</span>
-        <div>
-          <span style="font-size:14px;color:#606266">配置维度选择:</span>
-          <el-button-group>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.WORK_ITEM
-                  ? 'primary'
-                  : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.WORK_ITEM"
-            >
-              工分项
-            </el-button>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.STAFF"
-            >
-              员工
-            </el-button>
-          </el-button-group>
-          <el-button
-            style="margin-left: 20px"
-            :type="expandAll ? 'warning' : 'default'"
-            size="mini"
-            @click="expandAll = !expandAll"
-          >
-            {{ expandAll ? '一键收起' : '一键展开' }}
-          </el-button>
-        </div>
-      </div>
       <kn-collapse
         :is-show="$settings.isMobile"
         :is-collapsed="isCollapsed"
@@ -662,8 +662,9 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
+::v-deep .el-card {
+  > .el-card__body {
+    padding: 0 20px 20px 20px !important;
+  }
 }
 </style>
