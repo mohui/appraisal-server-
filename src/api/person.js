@@ -2271,6 +2271,10 @@ export default class Person {
     return {name, questionnaire, constitution};
   }
 
+  // endregion
+
+  // region 高危人群
+
   /**
    * 高危人群随访列表
    *
@@ -2353,11 +2357,11 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-          select vd.ChronicDiseaseHighID as "id",
+          select vd.id,
                  vd.serialNum            as "No",
                  vp.name                 as "name",
                  vd.followUpDate         as "followDate",
-                 vc_follow.codename      as "followWay",
+                 vc_follow.name      as "followWay",
                  vd.RiskFactorsName      as "riskFactorsName",
                  vd.SystolicPressure     as "systolicPressure",
                  vd.AssertPressure       as "assertPressure",
@@ -2382,11 +2386,11 @@ export default class Person {
                  vd.OperateTime          as "updateAt",
                  vd.Doctor               as "doctor",
                  vd.Remark               as "remark"
-          from view_ChronicDiseaseHighFollowUp vd
-                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
-                 left join view_codedictionary vc_follow
-                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
-          where ChronicDiseaseHighID = ?
+          from ph_chronic_disease_high_visit vd
+                 inner join ph_person vp on vd.personnum = vp.id
+                 left join ph_dict vc_follow
+                           on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+          where vd.id = ?
             and vd.isdelete = false
         `,
         id
