@@ -2107,6 +2107,10 @@ export default class Person {
     }));
   }
 
+  // endregion
+
+  // region 问卷
+
   /***
    * 标签的具体内容
    * @param id
@@ -2126,7 +2130,12 @@ export default class Person {
   async markContent(id, code, year) {
     if (!year) year = dayjs().year();
     return originalDB.execute(
-      `select * from mark_content where year = ? and id=? and name=?`,
+      // language=PostgreSQL
+      `select *
+         from mark_content
+         where year = ?
+           and id = ?
+           and name = ?`,
       year,
       id,
       code
@@ -2153,16 +2162,15 @@ export default class Person {
     // language=PostgreSQL
     return originalDB.execute(
       `
-       select
-     vq.id,
-     vp.name,
-     vq.questionnairemaindate as "date",
-     vq.doctorname as "doctor",
-     area.name as "hospitalName"
-     from ph_old_questionnaire_main vq
-     left join ph_person vp on vq.personnum = vp.id
-     left join area on vp.operateorganization = area.code
-     where vp.id = ?;`,
+        select vq.id,
+               vp.name,
+               vq.questionnairemaindate as "date",
+               vq.doctorname            as "doctor",
+               area.name                as "hospitalName"
+        from ph_old_questionnaire_main vq
+               left join ph_person vp on vq.personnum = vp.id
+               left join area on vp.operateorganization = area.code
+        where vp.id = ?;`,
       id
     );
   }
@@ -2200,21 +2208,20 @@ export default class Person {
   async questionnaireDetail(id) {
     const questionnaireModels = await originalDB.execute(
       // language=PostgreSQL
-      `select
-            cast(vb.questioncode as int) as "questionCode",
-            vb.questioncode as "questionCode",
-            vqd.questionnairemainsn as "detailId",
-            vqd.questionnairedetailcontent as "question",
-            vq.optioncontent as "option",
-            vq.optioncode as "optionCode",
-            vq.score
-            from ph_questionnaire_detail vqd
-            inner join ph_question_options vq on
-            cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-            inner join ph_question_lib vb on
-                vb.questionsn = vq.questionsn
-            where vqd.QuestionnaireMainSN = ?
-        order by cast(vb.questioncode as int)`,
+      `select cast(vb.questioncode as int)   as "questionCode",
+                vb.questioncode                as "questionCode",
+                vqd.questionnairemainsn        as "detailId",
+                vqd.questionnairedetailcontent as "question",
+                vq.optioncontent               as "option",
+                vq.optioncode                  as "optionCode",
+                vq.score
+         from ph_questionnaire_detail vqd
+                inner join ph_question_options vq on
+           cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+                inner join ph_question_lib vb on
+           vb.questionsn = vq.questionsn
+         where vqd.QuestionnaireMainSN = ?
+         order by cast(vb.questioncode as int)`,
       id
     );
     const questionnaire = questionnaireModels.reduce((res, next) => {
@@ -2243,11 +2250,13 @@ export default class Person {
         await originalDB.execute(
           // language=PostgreSQL
           `
-        select vp.name from ph_questionnaire_detail vqd
-            left join ph_old_questionnaire_main vm on
-            cast(vm.id as varchar) = cast(vqd.questionnairemainsn as varchar)
-            right join ph_person vp on vm.personnum = vp.id
-        where vqd.questionnairemainsn = ? limit 1;`,
+            select vp.name
+            from ph_questionnaire_detail vqd
+                   left join ph_old_questionnaire_main vm on
+              cast(vm.id as varchar) = cast(vqd.questionnairemainsn as varchar)
+                   right join ph_person vp on vm.personnum = vp.id
+            where vqd.questionnairemainsn = ?
+            limit 1;`,
           id
         )
       )[0]?.name ?? null;
@@ -2256,17 +2265,16 @@ export default class Person {
       (
         await originalDB.execute(
           // language=PostgreSQL
-          `select
-            vp.name,
-            vq.constitutiontype,
-            vq.constitutiontypepossible,
-            vq.OperateTime as "date",
-            area.name as "hospitalName",
-            vq.doctor
-            from ph_questionnaire_guide  vq
-            left join ph_person vp on vq.personnum = vp.id
-            left join area on vp.operateorganization = area.code
-            where vq.id = ?`,
+          `select vp.name,
+                    vq.constitutiontype,
+                    vq.constitutiontypepossible,
+                    vq.OperateTime as "date",
+                    area.name      as "hospitalName",
+                    vq.doctor
+             from ph_questionnaire_guide vq
+                    left join ph_person vp on vq.personnum = vp.id
+                    left join area on vp.operateorganization = area.code
+             where vq.id = ?`,
           questionnaire[0]?.detailId
         )
       )[0] ?? null;
@@ -2365,7 +2373,7 @@ export default class Person {
                  vd.serialNum            as "No",
                  vp.name                 as "name",
                  vd.followUpDate         as "followDate",
-                 vc_follow.name      as "followWay",
+                 vc_follow.name          as "followWay",
                  vd.RiskFactorsName      as "riskFactorsName",
                  vd.SystolicPressure     as "systolicPressure",
                  vd.AssertPressure       as "assertPressure",
