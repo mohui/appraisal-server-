@@ -1,5 +1,41 @@
 <template>
   <div style="height: 100%;">
+    <div class="header">
+      <span class="header-title">工分项管理</span>
+      <div>
+        <span style="font-size:14px;color:#606266">配置维度选择:</span>
+        <el-button-group>
+          <el-button
+            :type="
+              currentTarget === HisWorkScoreType.WORK_ITEM
+                ? 'primary'
+                : 'default'
+            "
+            size="mini"
+            @click="currentTarget = HisWorkScoreType.WORK_ITEM"
+          >
+            工分项
+          </el-button>
+          <el-button
+            :type="
+              currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
+            "
+            size="mini"
+            @click="currentTarget = HisWorkScoreType.STAFF"
+          >
+            员工
+          </el-button>
+        </el-button-group>
+        <el-button
+          style="margin-left: 20px"
+          :type="expandAll ? 'warning' : 'default'"
+          size="mini"
+          @click="expandAll = !expandAll"
+        >
+          {{ expandAll ? '一键收起' : '一键展开' }}
+        </el-button>
+      </div>
+    </div>
     <el-card
       class="box-card"
       style="height: 100%;"
@@ -11,42 +47,6 @@
         padding: $settings.isMobile ? '10px 0 0' : '20px'
       }"
     >
-      <div slot="header" class="header">
-        <span>工分项管理</span>
-        <div>
-          <span style="font-size:14px;color:#606266">配置维度选择:</span>
-          <el-button-group>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.WORK_ITEM
-                  ? 'primary'
-                  : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.WORK_ITEM"
-            >
-              工分项
-            </el-button>
-            <el-button
-              :type="
-                currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
-              "
-              size="mini"
-              @click="currentTarget = HisWorkScoreType.STAFF"
-            >
-              员工
-            </el-button>
-          </el-button-group>
-          <el-button
-            style="margin-left: 20px"
-            :type="expandAll ? 'warning' : 'default'"
-            size="mini"
-            @click="expandAll = !expandAll"
-          >
-            {{ expandAll ? '一键收起' : '一键展开' }}
-          </el-button>
-        </div>
-      </div>
       <kn-collapse
         :is-show="$settings.isMobile"
         :is-collapsed="isCollapsed"
@@ -662,8 +662,21 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
+@import '../../styles/vars';
+
 .header {
   display: flex;
   justify-content: space-between;
+  margin: 10px 0;
+  background-color: #fff;
+  padding: 19px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  box-sizing: border-box;
+
+  .header-title {
+    font: bold 16px/1.8 Arial;
+    color: #40415a;
+  }
 }
 </style>
