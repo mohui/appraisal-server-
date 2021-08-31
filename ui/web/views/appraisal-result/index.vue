@@ -140,12 +140,10 @@
                   >
                     <two-card-circle
                       :coefficient="totalData.fixedDecimalRate"
+                      text="计算时校正系数"
                       :on-click="handleCheckDetailClick"
                     ></two-card-circle>
                   </el-tooltip>
-                  <span style="position: absolute; bottom: 20px; left: 31%;">
-                    (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
-                  </span>
                 </div>
               </el-card>
             </el-col>

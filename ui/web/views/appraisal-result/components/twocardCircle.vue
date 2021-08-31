@@ -37,9 +37,7 @@ export default {
             fontSize: 18,
             fontWeight: 'bolder',
             color: this.color
-          },
-          top: 0,
-          left: '5px'
+          }
         },
         tooltip: {formatter: '{a} <br/>{b} : {c}%'},
         series: [
@@ -48,6 +46,9 @@ export default {
             type: 'gauge',
             startAngle: 180,
             endAngle: 0,
+            min: 0,
+            max: 100,
+            splitNumber: 2,
             radius: '100%',
             center: ['50%', '70%'],
             itemStyle: {
@@ -68,29 +69,14 @@ export default {
             axisTick: {show: false},
             axisLabel: {
               show: true,
-              distance: 5,
-              textStyle: {color: '#000'},
-              formatter: function(e) {
-                switch (e + '') {
-                  case '10':
-                  case '20':
-                  case '30':
-                  case '40':
-                  case '60':
-                  case '70':
-                  case '80':
-                  case '90':
-                    return '';
-                  default:
-                    return e;
-                }
-              }
+              distance: -45,
+              textStyle: {color: '#000'}
             },
             splitLine: {show: false},
             pointer: {show: false},
             title: {
-              offsetCenter: [0, '-3%'],
-              textStyle: {color: this.color, fontSize: '14'}
+              offsetCenter: [0, '30%'],
+              textStyle: {color: this.color, fontSize: '15'}
             },
             detail: {
               show: true,
@@ -127,9 +113,7 @@ export default {
       this.chart.series[0].data[0].value = this.coefficient
         ? this.coefficient
         : 0;
-      this.chart.series[0].data[0].name = this.pointDate
-        ? this.pointDate + '\n' + this.text
-        : '';
+      this.chart.series[0].data[0].name = this.text;
       this.chartId.setOption(this.chart);
       this.chartId.getZr().off('click');
       this.chartId.getZr().on('click', () => this.onClick?.());
