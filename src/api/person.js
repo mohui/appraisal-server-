@@ -1815,15 +1815,32 @@ export default class Person {
 
   /**
    * 产后42天健康检查记录表详情
-   * @param 主键id
+   * @param 主键 code
    */
   async recordPostpartum42DaysCheck(code) {
     // 产后42天健康检查记录表
-    // language=PostgreSQL
     const result = await originalDB.execute(
-      `select *
-         from v_examine42thday_kn
-         where examineno = ?`,
+      // language=PostgreSQL
+      `select id               as examineno
+              , pregnancybooksid as newlydiagnosedcode
+              , pregnantwomenname
+              , visitdate
+              , diastolicpressure
+              , systolicpressure
+              , breast
+              , lochia
+              , lochiacolor
+              , lochiasmell
+              , perinealincision
+              , other
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , created_at
+              , updated_at
+         from mch_examine_42th_day
+         where id = ?`,
       code
     );
     return result[0];
