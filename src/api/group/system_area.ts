@@ -326,6 +326,7 @@ export default class SystemArea {
   async signRegister(code, year) {
     // 根据code获取所有机构信息
     const hospitals = await getHospitals(code);
+    if (hospitals.length === 0) throw new KatoCommonError('机构id不合法');
     // 获取所有机构id
     const hospitalIds = hospitals.map(it => it.code);
 
@@ -541,6 +542,7 @@ export default class SystemArea {
     );
     return await originalDB.page(sql, pageNo, pageSize, ...params);
   }
+
   /**
    * 健康教育
    *
