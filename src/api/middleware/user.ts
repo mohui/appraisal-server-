@@ -33,10 +33,12 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         // language=PostgreSQL
         `select code id,
                   name,
-                  parent
-             from area
-             where label in ('hospital.center', 'hospital.station')
-               and (code = ? or path like ?)`,
+                  parent,
+                  created_at,
+                  updated_at
+           from area
+           where label in ('hospital.center', 'hospital.station')
+             and (code = ? or path like ?)`,
         user.areaCode,
         `%${user.areaCode}%`
       );
