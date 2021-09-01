@@ -98,7 +98,7 @@ h1, h2, h3, h4, h5, h6, p, a {
 }
 //竖向流式布局
 .flex-column-layout {
-  height: 100%;
+  height: calc(100% - 1px);
   display: flex;
   flex-direction: column;
 }
