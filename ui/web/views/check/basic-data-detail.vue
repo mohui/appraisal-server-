@@ -125,15 +125,17 @@
                 >
                   取消
                 </el-button>
-                <el-button
-                  plain
-                  v-else
-                  type="primary"
-                  size="mini"
-                  @click="edit(scope.row)"
-                >
-                  编辑
-                </el-button>
+                <span v-else>
+                  <el-button
+                    v-if="scope.row.id !== 'total'"
+                    plain
+                    type="primary"
+                    size="mini"
+                    @click="edit(scope.row)"
+                  >
+                    编辑
+                  </el-button>
+                </span>
               </template>
             </el-table-column>
           </el-table>
@@ -392,7 +394,23 @@ export default {
       if (other.child.length) {
         arr.push(other);
       }
-      this.listData = arr;
+      //增加数据合计
+      this.listData = arr.map(it => ({
+        ...it,
+        child: (() => {
+          let item = JSON.parse(JSON.stringify(it.child[0]));
+          item.name = '合计';
+          item.id = 'total';
+          item.updated_at = '';
+          item.editor = '';
+          this.curTag.forEach(i => {
+            item[i.code].value = it.child.reduce((acc, cur) => {
+              return acc + cur[i.code].value;
+            }, 0);
+          });
+          return [...it.child, item];
+        })()
+      }));
     },
     //修改数据
     async edit(row) {
