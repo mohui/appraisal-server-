@@ -232,11 +232,17 @@ export default {
     > .el-submenu__title {
       height: 46px !important;
       line-height: 46px !important;
+      &:hover {
+        background-color: #fff;
+      }
     }
     &.is-active.parent-menu.el-menu-item {
       background-color: $color-primary;
       color: #fff;
       border-radius: 30px;
+    }
+    &.is-active.el-menu-item {
+      background-color: #fff;
     }
     &.is-active > .el-submenu__title {
       i {
