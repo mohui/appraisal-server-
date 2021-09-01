@@ -50,76 +50,37 @@
           </div>
         </div>
       </el-card>
-      <div>
-        <el-row :gutter="10" style="margin: 10px -5px 0;">
-          <el-col
-            :span="10"
-            :xs="24"
-            :sm="10"
-            :md="10"
-            :lg="10"
-            :xl="10"
-            style="margin-bottom: 10px;"
-          >
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.overviewServerData.updating"
-            >
-              <el-col :span="12" :xs="24">
-                <div
-                  class="score-detail"
-                  :style="{height: $settings.isMobile ? '200px' : '300px'}"
-                >
-                  <div class="total-score-title">总分</div>
-                  <div class="total-score">
-                    {{ overviewData.correctScore }}
-                  </div>
-                  <div>校正后</div>
-                  <div class="before-correction">
-                    校正前工分: {{ overviewData.originalScore }}
-                  </div>
-                </div>
-              </el-col>
-              <el-col :span="12" :xs="24">
-                <div>
-                  <div
-                    id="rateGauge"
-                    :style="{width: '100%', height: '300px'}"
-                  ></div>
-                </div>
-              </el-col>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="14"
-            :xs="24"
-            :sm="14"
-            :md="14"
-            :lg="14"
-            :xl="14"
-            style="margin-bottom: 10px;"
-          >
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.staffCheckListSeverData.updating"
-            >
-              <div
-                id="doctorPerformanceBar"
-                :style="{width: '100%', height: '300px'}"
-              ></div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-      <el-card
-        shadow="hover"
-        v-loading="$asyncComputed.workScoreListSeverData.updating"
-      >
+      <el-row style="margin: 10px 0">
         <div
-          id="projectPerformanceBar"
-          :style="{width: '100%', height: '400px'}"
-        ></div>
-      </el-card>
+          v-for="(item, index) of ['医疗指标', '公卫指标']"
+          :key="index"
+          style="margin-bottom: 10px"
+          class="card"
+        >
+          <div class="indicators-container">
+            <div class="indicators-title-card title-box">
+              <div class="title">{{ item }}</div>
+            </div>
+            <div
+              v-for="(i, index) of medicalIndicatorsData"
+              :key="index"
+              class="item-content indicators-card"
+            >
+              <div class="indicators-name">
+                {{ i.name }}
+              </div>
+              <div class="indicators-content">
+                <div class="number">
+                  {{ i.number }}
+                </div>
+                <div class="icon-box">
+                  <i class="el-icon-circle-plus-outline icon" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-row>
       <el-dialog
         title="报表"
         :visible.sync="dialogStaffTableVisible"
@@ -234,6 +195,12 @@ export default {
       currentDate: dayjs()
         .startOf('M')
         .toDate(),
+      medicalIndicatorsData: [
+        {name: '服务人口数', number: 5566},
+        {name: '员工人数', number: 235},
+        {name: '诊疗人次数', number: 6863},
+        {name: '出院人次数', number: 758}
+      ],
       disabledDate: {
         disabledDate(time) {
           return time.getTime() > dayjs().toDate();
@@ -246,28 +213,11 @@ export default {
       reportDataLoading: false,
       spanArr: [],
       categorySpanArr: [],
-      deptNameSpanArr: [],
-      chartColors: [
-        '#409eff',
-        '#ea9d42',
-        '#9e68f5',
-        '#5470c6',
-        '#91cc75',
-        '#fac858',
-        '#ee6666',
-        '#73c0de',
-        '#3ba272',
-        '#fc8452',
-        '#9a60b4',
-        '#ea7ccc'
-      ]
+      deptNameSpanArr: []
     };
   },
   directives: {
     sticky: VueSticky
-  },
-  mounted() {
-    this.drawChart();
   },
   created() {
     this.initParams(this.$route);
@@ -286,12 +236,6 @@ export default {
           : 0
       };
     },
-    workScoreListData() {
-      return this.workScoreListSeverData?.map(it => ({
-        ...it,
-        score: Number(it.score?.toFixed(2)) || 0
-      }));
-    },
     staffCheckListData() {
       return this.staffCheckListSeverData?.map(it => ({
         ...it,
@@ -308,14 +252,6 @@ export default {
         return {};
       }
     },
-    workScoreListSeverData: {
-      async get() {
-        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
-      },
-      default() {
-        return [];
-      }
-    },
     staffCheckListSeverData: {
       async get() {
         return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
@@ -326,12 +262,6 @@ export default {
     }
   },
   watch: {
-    workScoreListData: function() {
-      this.drawProjectPerformanceBar();
-    },
-    staffCheckListData: function() {
-      this.drawDoctorPerformanceBar();
-    },
     reportData: function() {
       // 获取需要合并的数据
       this.spanArr = this.getSpanArr();
@@ -608,275 +538,6 @@ export default {
         if (typeof console !== 'undefined') console.log(e, wbOut);
       }
     },
-    // 绘制图表
-    drawChart() {
-      this.drawRateGauge();
-      this.drawDoctorPerformanceBar();
-      this.drawProjectPerformanceBar();
-    },
-    // 质量系数仪表盘图
-    drawRateGauge() {
-      // 基于准备好的dom，初始化echarts实例
-      const myChart = this.$echarts.init(document.getElementById('rateGauge'));
-      let option;
-      const color = '#409EFF';
-      const value = this.overviewData.rate;
-      option = {
-        series: [
-          {
-            type: 'gauge',
-            radius: '90%',
-            center: ['50%', '65%'],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            splitNumber: 2,
-            itemStyle: {
-              color: color
-            },
-            progress: {
-              show: true,
-              width: 30
-            },
-
-            axisTick: {show: false},
-
-            pointer: {
-              show: false
-            },
-            axisLine: {
-              lineStyle: {
-                width: 30,
-                color: [
-                  [value / 100, color],
-                  [1, '#f6f7fa']
-                ]
-              }
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              distance: 10,
-              color: '#999',
-              fontSize: 15
-            },
-            anchor: {
-              show: false
-            },
-            title: {
-              show: false
-            },
-            detail: {
-              show: true,
-              valueAnimation: true,
-              offsetCenter: [0, '-15%'],
-              fontSize: 25,
-              fontWeight: 'bolder',
-              formatter: '{value}%',
-              color: 'auto'
-            },
-            data: [
-              {
-                value: value
-              }
-            ]
-          }
-        ]
-      };
-      // 绘制图表
-      myChart.setOption(option);
-    },
-    // 医生绩效柱状图
-    drawDoctorPerformanceBar() {
-      const doctorData = this.staffCheckListData;
-      // 基于准备好的dom，初始化echarts实例
-      const myChart = this.$echarts.init(
-        document.getElementById('doctorPerformanceBar')
-      );
-      let option;
-      const colors = this.chartColors;
-      option = {
-        color: colors,
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'cross'
-          }
-        },
-        grid: {
-          right: '20%'
-        },
-        legend: {
-          data: ['人员得分', '质量系数']
-        },
-        dataZoom: [
-          {
-            show: true
-          },
-          {
-            type: 'inside',
-            zoomOnMouseWheel: 'ctrl'
-          }
-        ],
-        xAxis: [
-          {
-            type: 'category',
-            triggerEvent: true,
-            axisTick: {
-              alignWithLabel: true
-            },
-            data: doctorData.map(it => it.name)
-          }
-        ],
-        yAxis: [
-          {
-            type: 'value',
-            name: '人员得分',
-            min: 0,
-            position: 'right',
-            axisLine: {
-              show: true,
-              lineStyle: {
-                color: colors[0]
-              }
-            },
-            axisLabel: {
-              formatter: '{value} 分'
-            }
-          },
-          {
-            type: 'value',
-            name: '质量系数（%）',
-            min: 0,
-            max: 100,
-            axisLine: {
-              show: true,
-              lineStyle: {
-                color: colors[1]
-              }
-            },
-            axisLabel: {
-              formatter: '{value}'
-            }
-          }
-        ],
-        series: [
-          {
-            name: '人员得分',
-            type: 'bar',
-            yAxisIndex: 0,
-            data: doctorData.map(it => it.score)
-          },
-          {
-            name: '质量系数',
-            type: 'bar',
-            yAxisIndex: 1,
-            data: doctorData.map(it => Number((it.rate * 100).toFixed(2)))
-          }
-        ]
-      };
-
-      // 绘制图表
-      myChart.setOption(option);
-
-      // 表格的点击事件添加路由跳转
-      myChart.on('click', params => {
-        let id = '';
-        if (params.componentType === 'series') {
-          id = this.staffCheckListData[params.dataIndex].id;
-        } else if (params.componentType === 'xAxis') {
-          const anId = params.event.target.anid;
-          let strArr = anId.split('_');
-          const index = strArr[strArr.length - 1];
-          id = this.staffCheckListData[index].id;
-          console.log('id:', id);
-        }
-        if (id) {
-          this.$router.push({
-            name: 'personal-appraisal-results',
-            query: {
-              id: id,
-              date: JSON.stringify(this.currentDate)
-            }
-          });
-        }
-      });
-    },
-    // 项目绩效柱状图
-    drawProjectPerformanceBar() {
-      const myChart = this.$echarts.init(
-        document.getElementById('projectPerformanceBar')
-      );
-      let option;
-      option = {
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'shadow'
-          }
-        },
-        legend: {
-          data: ['项目实际得分', '项目应得分']
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        dataZoom: [
-          {
-            show: true,
-            yAxisIndex: 0,
-            left: '0%'
-          },
-          {
-            type: 'inside',
-            yAxisIndex: 0,
-            zoomOnMouseWheel: 'ctrl'
-          }
-        ],
-        xAxis: {
-          type: 'value',
-          boundaryGap: [0, 0.01],
-          axisLine: {
-            show: true
-          }
-        },
-        yAxis: {
-          type: 'category',
-          data: this.workScoreListData.map(it => it.name),
-          axisTick: {
-            alignWithLabel: true
-          }
-        },
-        series: [
-          {
-            name: '项目应得分',
-            type: 'bar',
-            data: this.workScoreListData.map(it => it.score),
-            itemStyle: {
-              color: 'rgba(64, 158, 255, 0.3)'
-            }
-          },
-          {
-            name: '项目实际得分',
-            type: 'bar',
-            data: this.workScoreListData.map(it =>
-              Number((it.score * this.overviewData.rate).toFixed(2))
-            ),
-            itemStyle: {
-              color: this.chartColors[0]
-            },
-            barGap: '-100%'
-          }
-        ]
-      };
-      myChart.setOption(option);
-    },
-
     tableCellClassName({row, columnIndex}) {
       // 非第一列（科室），以员工为单位，单元格进行斑马线颜色区分
       if (columnIndex !== 0 && row.nameIndex % 2 === 1) {
@@ -917,9 +578,8 @@ export default {
 }
 
 .header {
-  margin-bottom: -10px;
   & > div {
-    margin: 0 20px 10px 0;
+    margin: 0 20px 15px 0;
     float: left;
   }
   .right {
@@ -932,25 +592,61 @@ export default {
   }
 }
 
-.score-detail {
-  height: 300px;
-  font-size: 15px;
-  text-align: center;
-  .total-score-title {
-    font-size: 22px;
-    margin: 20px 10px;
-    padding-top: 50px;
+.indicators-card {
+  border-left: 1px solid #ebeef5;
+  background-color: #ffffff;
+  color: #303133;
+  padding: 10px;
+}
+.card {
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #303133;
+}
+.indicators-title-card {
+  background-color: #ffffff;
+  color: #303133;
+  padding: 10px;
+}
+
+.indicators-container {
+  display: flex;
+  flex-direction: row;
+  .title-box {
+    display: flex;
+    flex-direction: row;
+    .title {
+      writing-mode: vertical-lr;
+      letter-spacing: 0.1em;
+      font-size: 15px;
+    }
   }
-  .total-score {
-    font-size: 26px;
-    color: $color-primary;
-    margin: 10px;
-    font-weight: bold;
-  }
-  .before-correction {
-    color: darkgray;
-    font-size: 15px;
-    margin: 10px;
+  .item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    color: #3a3f62;
+    .indicators-name {
+      font-size: 14px;
+    }
+    .indicators-content {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      .number {
+        text-align: center;
+        flex: 1;
+        font-size: 26px;
+      }
+      .icon-box {
+        margin: 0 10px;
+        .icon {
+          font-size: 36px;
+          color: #409eff;
+        }
+      }
+    }
   }
 }
 
