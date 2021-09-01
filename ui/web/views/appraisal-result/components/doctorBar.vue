@@ -134,11 +134,11 @@ export default {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: {
-              color: '#43A7FF'
+              color: '#43A7FF',
+              borderRadius: 2
             },
             type: 'bar',
             data: [],
-            // barMaxWidth: '20%',
             barWidth: '15',
             z: 3
           }
