@@ -9,17 +9,17 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       // language=PostgreSQL
       const userModels = await appDB.execute(
         `select "user".id,
-                    "user".account,
-                    "user".name,
-                    "user".password,
-                    "user".area "areaCode",
-                    "user".region "regionId",
-                    "user".creator "creatorId",
-                    "user".editor "editorId",
-                    "user".created_at,
-                    "user".updated_at
-             from "user"
-             where id = ?`,
+                  "user".account,
+                  "user".name,
+                  "user".password,
+                  "user".area    "areaCode",
+                  "user".region  "regionId",
+                  "user".creator "creatorId",
+                  "user".editor  "editorId",
+                  "user".created_at,
+                  "user".updated_at
+           from "user"
+           where id = ?`,
         token
       );
       if (userModels.length === 0) {
@@ -49,19 +49,20 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         (
           await originalDB.execute(
             `
-                  select code,
-                         name,
-                         parent,
-                         case label when 'province' then 1
-                             when 'city' then 2
-                             when 'district' then 3
-                             when 'centre' then 4
-                             else 5
-                             end as level,
-                         label
-                  from area
-                  where code = ?
-                `,
+              select code,
+                     name,
+                     parent,
+                     case label
+                       when 'province' then 1
+                       when 'city' then 2
+                       when 'district' then 3
+                       when 'centre' then 4
+                       else 5
+                       end as level,
+                     label
+              from area
+              where code = ?
+            `,
             user.areaCode
           )
         )[0] ?? null;
@@ -79,14 +80,14 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       // language=PostgreSQL
       user.roles = await appDB.execute(
         `
-            select role.id,
-                   role.name,
-                   role.creator,
-                   role.permissions
-            from user_role_mapping mapping
-                   left join role on mapping.role_id = role.id
-            where mapping.user_id = ?
-          `,
+          select role.id,
+                 role.name,
+                 role.creator,
+                 role.permissions
+          from user_role_mapping mapping
+                 left join role on mapping.role_id = role.id
+          where mapping.user_id = ?
+        `,
         token
       );
       user.permissions = [
