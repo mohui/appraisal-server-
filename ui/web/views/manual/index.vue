@@ -1,107 +1,71 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>手工数据维护</span>
-        <el-button
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          plain
-          @click="addManual"
-          >添加项目
-        </el-button>
-      </div>
-      <el-table
-        v-loading="$asyncComputed.serverData.updating"
-        :data="manual"
-        empty-text="没有筛选到符合条件的数据"
-        stripe
-        border
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">手工数据维护</span>
+      <el-button
+        style="float: right;margin: -4px 0 0 20px;"
         size="small"
-        height="100%"
-        style="flex-grow: 1;"
-        :cell-class-name="cellClassHover"
-        @row-click="handleCellClick"
-      >
-        <el-table-column
-          type="index"
-          align="center"
-          label="序号"
-        ></el-table-column>
-        <el-table-column prop="name" label="手工工分项名称">
-          <template slot-scope="scope">
-            <div v-if="!scope.row.EDIT">
-              {{ scope.row.name }}
-            </div>
-            <el-input
-              v-if="scope.row.EDIT"
-              v-model="scope.row.name"
-              size="mini"
-              placeholder="请输入手工工分项名称"
-            ></el-input>
-          </template>
-        </el-table-column>
-        <el-table-column prop="input" label="数据类型" align="center">
-          <template slot-scope="scope">
-            {{ scope.row.input }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="createdAt"
-          label="时间"
-          align="center"
-        ></el-table-column>
-        <el-table-column label="操作" align="center">
-          <template slot-scope="scope">
+        type="primary"
+        plain
+        @click="addManual"
+        >添加项目
+      </el-button>
+    </div>
+    <el-table
+      v-loading="$asyncComputed.serverData.updating"
+      :data="manual"
+      empty-text="没有筛选到符合条件的数据"
+      height="100%"
+      style="flex-grow: 1;"
+      :cell-class-name="cellClassHover"
+      @row-click="handleCellClick"
+    >
+      <el-table-column
+        type="index"
+        align="center"
+        label="序号"
+      ></el-table-column>
+      <el-table-column prop="name" label="手工工分项名称"> </el-table-column>
+      <el-table-column prop="input" label="数据类型" align="center">
+      </el-table-column>
+      <el-table-column
+        prop="createdAt"
+        label="时间"
+        align="center"
+      ></el-table-column>
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <el-tooltip
+            v-if="scope.row.id && !scope.row.EDIT"
+            content="修改"
+            :enterable="false"
+          >
             <el-button
-              v-if="!scope.row.id"
               type="primary"
-              size="mini"
-              :disabled="!scope.row.name"
-              @click="addManual(scope)"
-            >
-              添加
-            </el-button>
-            <el-button
-              v-if="scope.row.id && scope.row.EDIT"
-              type="primary"
-              size="mini"
-              :disabled="!scope.row.name"
-              @click="saveManual(scope)"
-            >
-              保存
-            </el-button>
-            <el-button
-              v-if="scope.row.id && !scope.row.EDIT"
-              type="primary"
+              icon="el-icon-edit"
+              circle
               size="mini"
               @click="editManual(scope)"
             >
-              修改
             </el-button>
+          </el-tooltip>
+          <el-tooltip
+            v-if="scope.row.id && !scope.row.EDIT"
+            content="删除"
+            :enterable="false"
+          >
             <el-button
-              v-if="scope.row.id && !scope.row.EDIT"
               type="danger"
+              icon="el-icon-delete"
+              circle
               size="mini"
               @click="delManual(scope)"
             >
-              删除
             </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
     <el-dialog
       :title="newManual.id ? '修改项目' : '添加项目'"
       :visible.sync="addManualVisible"
