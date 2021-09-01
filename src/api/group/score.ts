@@ -200,12 +200,12 @@ export async function getWorkPoints(
         if (originalProjectIds?.length > 0) {
           const ret = sqlRender(
             `
-select cast(sum(score) as float) as score
-from ph_work_score_total
-where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
-  and OperateOrganization = {{? id}}
-  and MissionTime >= {{? start}}
-  and MissionTime < {{? end}}
+              select cast(sum(score) as float) as score
+              from ph_work_score_total
+              where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
+                and OperateOrganization = {{? id}}
+                and MissionTime >= {{? start}}
+                and MissionTime < {{? end}}
           `,
             {
               start,
@@ -219,12 +219,12 @@ where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
         } else {
           const ret = sqlRender(
             `
-select
-  cast(sum(score) as float) as score
-from view_workScoreTotal
-where OperateOrganization = {{? id}}
-  and MissionTime >= {{? start}}
-  and MissionTime < {{? end}}
+              select
+                cast(sum(score) as float) as score
+              from ph_work_score_total
+              where OperateOrganization = {{? id}}
+                and MissionTime >= {{? start}}
+                and MissionTime < {{? end}}
           `,
             {start, end, id: o.code}
           );
