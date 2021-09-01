@@ -16,8 +16,7 @@ import {
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange,
-  StaffAssessModel
+  monthToRange
 } from './service';
 import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
@@ -99,9 +98,19 @@ export async function workPointCalculation(
     department?: string;
     hospital: string;
     staff?: string;
+    hospitalName?: string;
   } = (
     await appDB.execute(
-      `select id, name, staff, hospital, department from staff where id = ?`,
+      // language=PostgreSQL
+      `select staff.id,
+                staff.name,
+                staff.staff,
+                staff.hospital,
+                staff.department,
+                area.name as "hospitalName"
+         from staff
+                left join area on staff.hospital = area.code
+         where staff.id = ?`,
       staff
     )
   )[0];
@@ -321,22 +330,6 @@ export async function workPointCalculation(
   //region 计算公卫数据工分来源
   for (const param of bindings.filter(it => it.source.startsWith('公卫数据'))) {
     //机构级别的数据, 直接用当前员工的机构id即可
-    //查询hospital绑定关系
-    // language=PostgreSQL
-    const hisHospitalModels = await appDB.execute(
-      `
-        select mapping.hishospid hospital,
-               hospital.id,
-               hospital.name
-        from hospital_mapping mapping
-               inner join hospital on mapping.h_id = hospital.id
-        where mapping.h_id = ?
-      `,
-      staffModel.hospital
-    );
-    const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
-    //没有绑定关系, 直接跳过
-    if (hisHospitals.length === 0) continue;
     const item = HisWorkItemSources.find(it => it.id === param.source);
     //未配置数据表, 直接跳过
     if (!item || !item?.datasource?.table) continue;
@@ -348,12 +341,12 @@ export async function workPointCalculation(
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
-            and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            and OperateOrganization = {{? hospital}}
           {{#each columns}} and {{this}} {{/each}}
           `,
       {
         dateCol: item.datasource.date,
-        hospitals: hisHospitals,
+        hospital: staffModel.hospital,
         table: item.datasource.table,
         columns: item.datasource.columns,
         start,
@@ -368,14 +361,11 @@ export async function workPointCalculation(
     //公卫数据流水转换成工分流水
     workItems = workItems.concat(
       rows.map(it => {
-        const item = hisHospitalModels.find(
-          hospitalIt => hospitalIt.hospital === it.hospital
-        );
         return {
           value: it.value,
           date: it.date,
-          staffId: item?.id,
-          staffName: item?.name,
+          staffId: staffModel?.hospital,
+          staffName: staffModel?.hospitalName,
           itemId: param.source,
           itemName: param?.sourceName,
           type: PreviewType.HOSPITAL
