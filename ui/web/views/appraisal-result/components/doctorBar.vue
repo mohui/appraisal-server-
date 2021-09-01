@@ -28,10 +28,10 @@ export default {
       option: {
         grid: [
           {
-            top: 40,
+            top: 20,
             left: 80,
             right: 20,
-            bottom: 100
+            bottom: 80
           }
         ],
         legend: {
@@ -138,7 +138,8 @@ export default {
             },
             type: 'bar',
             data: [],
-            barMaxWidth: '20%',
+            // barMaxWidth: '20%',
+            barWidth: '15',
             z: 3
           }
         ]
