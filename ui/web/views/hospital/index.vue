@@ -7,6 +7,7 @@
           v-model="params.year"
           size="small"
           placeholder="请选择考核年度"
+          style="margin: 0 20px;"
           @change="handleYearChange(params.year)"
         >
           <el-option
