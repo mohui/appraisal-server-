@@ -125,17 +125,15 @@
                 >
                   取消
                 </el-button>
-                <span v-else>
-                  <el-button
-                    v-if="scope.row.id !== 'total'"
-                    plain
-                    type="primary"
-                    size="mini"
-                    @click="edit(scope.row)"
-                  >
-                    编辑
-                  </el-button>
-                </span>
+                <el-button
+                  v-else-if="scope.row.id !== 'total'"
+                  plain
+                  type="primary"
+                  size="mini"
+                  @click="edit(scope.row)"
+                >
+                  编辑
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
