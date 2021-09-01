@@ -1266,7 +1266,6 @@ export default class Score {
     } catch (e) {
       await t.rollback();
       debug(`${check} ${group} 系统打分异常: ${e}`);
-      throw new KatoRuntimeError(e);
     }
   }
 
