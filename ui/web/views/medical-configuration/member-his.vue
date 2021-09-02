@@ -1,8 +1,22 @@
 <template>
-  <div style="height: 100%;">
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">His员工绑定列表</span>
+      <div>
+        <el-button size="mini" type="primary" @click="openAddUserDialog"
+          >新建用户
+        </el-button>
+        <el-button
+          size="mini"
+          type="warning"
+          @click="addDepartmentVisible = true"
+          >新增科室
+        </el-button>
+      </div>
+    </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;felx:1"
       shadow="never"
       :body-style="{
         height: 'calc(100% - 110px)',
@@ -11,20 +25,6 @@
         padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
-      <div slot="header" class="clearfix">
-        <span>His员工绑定列表</span>
-        <div>
-          <el-button size="mini" type="primary" @click="openAddUserDialog"
-            >新建用户
-          </el-button>
-          <el-button
-            size="mini"
-            type="warning"
-            @click="addDepartmentVisible = true"
-            >新增科室
-          </el-button>
-        </div>
-      </div>
       <kn-collapse
         :is-show="$settings.isMobile"
         :is-collapsed="isCollapsed"
@@ -694,9 +694,5 @@ export default {
 .no-department-cell {
   text-align: center;
   width: 100%;
-}
-.clearfix {
-  display: flex;
-  justify-content: space-between;
 }
 </style>

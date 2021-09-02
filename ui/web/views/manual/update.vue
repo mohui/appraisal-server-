@@ -1,21 +1,11 @@
 <template>
-  <div v-loading="isLoading" style="height: 100%;">
-    <el-card
-      class="manual-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>{{ query.name }}</span>
+  <div v-loading="isLoading" class="flex-column-layout">
+    <div class="jx-header">
+      <div>
+        <span class="header-title">{{ query.name }}</span>
         <el-date-picker
           v-model="query.month"
-          style="margin-left: 20px"
+          style="margin: 0 20px"
           size="mini"
           type="month"
           placeholder="选择月"
@@ -26,7 +16,6 @@
         <el-select
           v-if="query.input === MD.LOG"
           v-model="searchForm.member"
-          style="margin-left: 10px"
           size="mini"
           clearable
           filterable
@@ -41,8 +30,25 @@
           >
           </el-option>
         </el-select>
+      </div>
+      <div>
         <el-button
-          style="float: right;margin: -4px 0 0 20px;"
+          style="margin: -4px 0 0 20px;"
+          size="small"
+          type="primary"
+          @click="$message.warning('此功能正在开发中。。。')"
+          >导入
+        </el-button>
+        <el-button
+          v-if="query.input === MD.LOG"
+          style="margin: -4px 0 0 20px;"
+          size="small"
+          type="primary"
+          @click="dialogFormVisible = true"
+          >添加
+        </el-button>
+        <el-button
+          style="margin: -4px 0 0 20px;"
           size="small"
           type="primary"
           plain
@@ -53,161 +59,163 @@
           "
           >返回
         </el-button>
-        <el-button
-          v-if="query.input === MD.LOG"
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          @click="dialogFormVisible = true"
-          >添加
-        </el-button>
-        <el-button
-          style="float: right;margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          @click="$message.warning('此功能正在开发中。。。')"
-          >导入
-        </el-button>
       </div>
-      <el-table
-        v-if="query.input === MD.PROP"
-        :data="list"
-        empty-text="没有筛选到符合条件的数据"
-        stripe
-        border
-        size="small"
-        height="100%"
-        style="flex-grow: 1;"
-        :row-class-name="getRowClass"
-      >
-        <el-table-column type="expand">
-          <template slot-scope="scope">
-            <el-tabs v-model="activeName">
-              <el-tab-pane
-                :label="scope.row.staff.name + ' 的修改记录：'"
-                name="first"
-              ></el-tab-pane>
-            </el-tabs>
-            <el-table
-              :data="scope.row.children"
-              stripe
-              border
-              size="small"
-              height="100%"
-            >
-              <el-table-column type="index" width="50" label="序号">
-              </el-table-column>
-              <el-table-column prop="value" label="数值"> </el-table-column>
-              <el-table-column prop="files" label="附件">
-                <template slot-scope="scope">
-                  <el-image
-                    v-if="scope.row.hasFile"
-                    style="width: 20px; height: 20px"
-                    :src="scope.row.files[0]"
-                    :preview-src-list="scope.row.files"
-                  >
-                  </el-image>
-                </template>
-              </el-table-column>
-              <el-table-column prop="remark" label="备注"> </el-table-column>
-              <el-table-column prop="date" label="时间"> </el-table-column>
-              <el-table-column label="操作">
-                <template slot-scope="scope">
+    </div>
+    <el-table
+      v-if="query.input === MD.PROP"
+      :data="list"
+      empty-text="没有筛选到符合条件的数据"
+      height="100%"
+      style="flex-grow: 1;"
+      :row-class-name="getRowClass"
+    >
+      <el-table-column type="expand">
+        <template slot-scope="scope">
+          <el-tabs v-model="activeName">
+            <el-tab-pane
+              :label="scope.row.staff.name + ' 的修改记录：'"
+              name="first"
+            ></el-tab-pane>
+          </el-tabs>
+          <el-table
+            :data="scope.row.children"
+            stripe
+            border
+            size="small"
+            height="100%"
+          >
+            <el-table-column type="index" width="50" label="序号">
+            </el-table-column>
+            <el-table-column prop="value" label="数值"> </el-table-column>
+            <el-table-column prop="files" label="附件">
+              <template slot-scope="scope">
+                <el-image
+                  v-if="scope.row.hasFile"
+                  style="width: 20px; height: 20px"
+                  :src="scope.row.files[0]"
+                  :preview-src-list="scope.row.files"
+                >
+                </el-image>
+              </template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注"> </el-table-column>
+            <el-table-column prop="date" label="时间"> </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-tooltip content="清除" :enterable="false">
                   <el-button
                     type="danger"
+                    icon="el-icon-delete"
+                    circle
                     size="mini"
                     @click="delManual(scope)"
                   >
-                    清除
                   </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" width="50" label="序号">
-          <template slot-scope="scope">
-            {{ scope.$index + 1 }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="members" label="考核员工">
-          <template slot-scope="scope">
-            {{ scope.row.staff.name }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="value" label="数值" align="center">
-        </el-table-column>
-        <el-table-column
-          prop="size"
-          label="次数"
-          align="center"
-        ></el-table-column>
-        <el-table-column label="操作" align="center">
-          <template slot-scope="scope">
-            <div v-if="!editable">
-              <el-button type="primary" size="mini" @click="editManual(scope)">
-                修改
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" width="50" label="序号">
+        <template slot-scope="scope">
+          {{ scope.$index + 1 }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="members" label="考核员工">
+        <template slot-scope="scope">
+          {{ scope.row.staff.name }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="value" label="数值" align="center">
+      </el-table-column>
+      <el-table-column
+        prop="size"
+        label="次数"
+        align="center"
+      ></el-table-column>
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <div v-if="!editable">
+            <el-tooltip content="修改" :enterable="false">
+              <el-button
+                type="primary"
+                icon="el-icon-edit"
+                circle
+                size="mini"
+                @click="editManual(scope)"
+              >
               </el-button>
-              <el-button type="danger" size="mini" @click="delManual(scope)">
-                清除
+            </el-tooltip>
+            <el-tooltip content="清除" :enterable="false">
+              <el-button
+                type="danger"
+                icon="el-icon-delete"
+                circle
+                size="mini"
+                @click="delManual(scope)"
+              >
               </el-button>
-            </div>
-            <div v-else>
-              已结算
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-table
-        v-if="query.input === MD.LOG"
-        :data="list"
-        empty-text="没有筛选到符合条件的数据"
-        stripe
-        border
-        size="small"
-        height="100%"
-        style="flex-grow: 1;"
-      >
-        <el-table-column type="index" width="50" label="序号">
-        </el-table-column>
-        <el-table-column prop="members" label="考核员工">
-          <template slot-scope="scope">
-            {{ scope.row.staff.name }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="value" label="数值" align="center">
-        </el-table-column>
-        <el-table-column prop="files" label="附件" align="center">
-          <template slot-scope="scope">
-            <el-image
-              v-if="scope.row.hasFile"
-              style="width: 20px; height: 20px"
-              :src="scope.row.files[0]"
-              :preview-src-list="scope.row.files"
-            >
-            </el-image>
-          </template>
-        </el-table-column>
-        <el-table-column prop="remark" label="备注"></el-table-column>
-        <el-table-column
-          prop="createdAt"
-          label="时间"
-          align="center"
-        ></el-table-column>
-        <el-table-column label="操作" align="center">
-          <template slot-scope="scope">
-            <div v-if="!editable">
-              <el-button type="danger" size="mini" @click="delManual(scope)">
-                清除
+            </el-tooltip>
+          </div>
+          <div v-else>
+            已结算
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-table
+      v-if="query.input === MD.LOG"
+      :data="list"
+      empty-text="没有筛选到符合条件的数据"
+      height="100%"
+      style="flex-grow: 1;"
+    >
+      <el-table-column type="index" width="50" label="序号"> </el-table-column>
+      <el-table-column prop="members" label="考核员工">
+        <template slot-scope="scope">
+          {{ scope.row.staff.name }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="value" label="数值" align="center">
+      </el-table-column>
+      <el-table-column prop="files" label="附件" align="center">
+        <template slot-scope="scope">
+          <el-image
+            v-if="scope.row.hasFile"
+            style="width: 20px; height: 20px"
+            :src="scope.row.files[0]"
+            :preview-src-list="scope.row.files"
+          >
+          </el-image>
+        </template>
+      </el-table-column>
+      <el-table-column prop="remark" label="备注"></el-table-column>
+      <el-table-column
+        prop="createdAt"
+        label="时间"
+        align="center"
+      ></el-table-column>
+      <el-table-column label="操作" align="center">
+        <template slot-scope="scope">
+          <div v-if="!editable">
+            <el-tooltip content="清除" :enterable="false">
+              <el-button
+                type="danger"
+                icon="el-icon-delete"
+                circle
+                size="mini"
+                @click="delManual(scope)"
+              >
               </el-button>
-            </div>
-            <div v-else>
-              已结算
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+            </el-tooltip>
+          </div>
+          <div v-else>
+            已结算
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
     <el-dialog
       :title="query.input === MD.LOG ? '新增信息' : '修改信息'"
       :visible.sync="dialogFormVisible"

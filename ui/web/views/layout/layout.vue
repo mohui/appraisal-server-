@@ -198,7 +198,7 @@ export default {
   padding: 0;
   border-bottom: solid 1px #e6e6e6;
   display: flex;
-  background: $color-primary;
+  background: $color-header;
   box-sizing: content-box;
   align-items: center;
   justify-content: space-between;
@@ -232,17 +232,23 @@ export default {
     > .el-submenu__title {
       height: 46px !important;
       line-height: 46px !important;
+      &:hover {
+        background-color: #fff;
+      }
     }
     &.is-active.parent-menu.el-menu-item {
-      background-color: $color-primary;
+      background-image: linear-gradient(to right, $color-left, $color-right);
       color: #fff;
       border-radius: 30px;
+    }
+    &.is-active.el-menu-item {
+      background-color: #fff;
     }
     &.is-active > .el-submenu__title {
       i {
         color: inherit;
       }
-      background-color: $color-primary;
+      background-image: linear-gradient(to right, $color-left, $color-right);
       color: #fff;
       border-radius: 30px;
     }

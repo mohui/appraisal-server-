@@ -1,154 +1,122 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: $settings.isMobile
-          ? 'calc(100% - 115px)'
-          : 'calc(100% - 130px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>金额列表</span>
-        <!--年度选择-->
-        <span style="margin: 0 10px 10px;display: inline-block;">
-          <el-select
-            v-model="params.year"
-            size="small"
-            placeholder="请选择考核年度"
-            @change="handleYearChange(params.year)"
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <div>
+        <span class="header-title">金额列表</span>
+        <el-select
+          v-model="params.year"
+          size="small"
+          placeholder="请选择考核年度"
+          style="margin: 0 20px;"
+          @change="handleYearChange(params.year)"
+        >
+          <el-option
+            v-for="item in yearList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           >
-            <el-option
-              v-for="item in yearList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
-            </el-option>
-          </el-select>
-        </span>
-        <!--年度结算-->
-        <span style="margin-right: 10px">
-          <el-button-group>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': params.flag === 'real'}"
-              @click="tagTypeChanged('real')"
-            >
-              实时金额
-            </el-button>
-            <el-button
-              size="small"
-              :class="{'el-button--primary': params.flag === 'total'}"
-              @click="tagTypeChanged('total')"
-            >
-              年度结算
-            </el-button>
-          </el-button-group>
-        </span>
-        <span v-show="params.flag === 'real'" style="float:right;">
+          </el-option>
+        </el-select>
+        <el-button-group>
           <el-button
-            v-loading="loadingAreaBudget"
-            :disabled="loadingAreaBudget"
             size="small"
-            type="primary"
-            @click="openAreaBudgetVoucherDialog()"
+            :class="{'el-button--primary': params.flag === 'real'}"
+            @click="tagTypeChanged('real')"
           >
-            结算
+            实时金额
           </el-button>
-        </span>
+          <el-button
+            size="small"
+            :class="{'el-button--primary': params.flag === 'total'}"
+            @click="tagTypeChanged('total')"
+          >
+            年度结算
+          </el-button>
+        </el-button-group>
       </div>
-      <el-table
-        v-show="params.flag === 'real'"
-        v-loading="$asyncComputed.hospitalListServerData.updating"
-        size="mini"
-        border
-        :data="hospitalListData"
-        height="100%"
-        style="flex-grow: 1;"
-        row-key="uuid"
-        lazy
-        :load="load"
-        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-        :header-cell-style="{
-          background: '#F3F4F7',
-          color: '#555',
-          textAlign: 'center'
-        }"
-        :cell-class-name="cellClassHover"
-        @row-click="handleCellClick"
-      >
-        <el-table-column align="center" label="序号" width="160px" prop="uuid">
-        </el-table-column>
-        <el-table-column align="center" label="名称" prop="name">
-        </el-table-column>
-        <el-table-column
-          align="center"
-          label="校正后总工分值"
-          prop="correctWorkPointFormat"
+      <span v-show="params.flag === 'real'">
+        <el-button
+          v-loading="loadingAreaBudget"
+          :disabled="loadingAreaBudget"
+          size="small"
+          type="primary"
+          @click="openAreaBudgetVoucherDialog()"
         >
-        </el-table-column>
-        <el-table-column align="center" label="质量系数" prop="rateFormat">
-        </el-table-column>
-        <el-table-column align="center" label="金额" prop="budgetFormat">
-        </el-table-column>
-      </el-table>
-      <el-table
-        v-show="params.flag === 'total'"
-        v-loading="$asyncComputed.areaBudgetService.updating"
-        size="mini"
-        border
-        :data="areaBudgetData"
-        height="100%"
-        style="flex-grow: 1;"
-        row-key="uuid"
-        lazy
-        :load="loadAreaBudget"
-        :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-        :header-cell-style="{
-          background: '#F3F4F7',
-          color: '#555',
-          textAlign: 'center'
-        }"
-        :cell-class-name="cellClassHover"
-        @row-click="handleCellClick"
+          结算
+        </el-button>
+      </span>
+    </div>
+    <el-table
+      v-show="params.flag === 'real'"
+      v-loading="$asyncComputed.hospitalListServerData.updating"
+      :data="hospitalListData"
+      height="100%"
+      style="flex-grow: 1;"
+      row-key="uuid"
+      lazy
+      :load="load"
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      :cell-class-name="cellClassHover"
+      @row-click="handleCellClick"
+    >
+      <el-table-column align="center" label="序号" width="160px" prop="uuid">
+      </el-table-column>
+      <el-table-column align="center" label="名称" prop="name">
+      </el-table-column>
+      <el-table-column
+        align="center"
+        label="校正后总工分值"
+        prop="correctWorkPointFormat"
       >
-        <el-table-column align="center" label="序号" width="160px" prop="uuid">
-        </el-table-column>
-        <el-table-column align="center" label="名称" prop="name">
-        </el-table-column>
-        <el-table-column
-          align="center"
-          label="校正后总工分值"
-          prop="correctWorkPointFormat"
-        >
-        </el-table-column>
-        <el-table-column align="center" label="质量系数" prop="rateFormat">
-        </el-table-column>
-        <el-table-column align="center" label="结算金额" prop="budgetFormat">
-        </el-table-column>
-        <el-table-column align="center" label="结算时间" prop="dateFormat">
-        </el-table-column>
-        <el-table-column align="center" label="付款金额" prop="moneyFormat">
-        </el-table-column>
-        <el-table-column align="center" label="操作" prop="">
-          <template slot-scope="{row}">
-            <el-button
-              size="mini"
-              :type="row.vouchers.length > 0 ? 'success' : 'primary'"
-              @click="openVoucherDialog(row)"
-              >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
-
+      </el-table-column>
+      <el-table-column align="center" label="质量系数" prop="rateFormat">
+      </el-table-column>
+      <el-table-column align="center" label="金额" prop="budgetFormat">
+      </el-table-column>
+    </el-table>
+    <el-table
+      v-show="params.flag === 'total'"
+      v-loading="$asyncComputed.areaBudgetService.updating"
+      :data="areaBudgetData"
+      height="100%"
+      style="flex-grow: 1;"
+      row-key="uuid"
+      lazy
+      :load="loadAreaBudget"
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      :cell-class-name="cellClassHover"
+      @row-click="handleCellClick"
+    >
+      <el-table-column align="center" label="序号" width="160px" prop="uuid">
+      </el-table-column>
+      <el-table-column align="center" label="名称" prop="name">
+      </el-table-column>
+      <el-table-column
+        align="center"
+        label="校正后总工分值"
+        prop="correctWorkPointFormat"
+      >
+      </el-table-column>
+      <el-table-column align="center" label="质量系数" prop="rateFormat">
+      </el-table-column>
+      <el-table-column align="center" label="结算金额" prop="budgetFormat">
+      </el-table-column>
+      <el-table-column align="center" label="结算时间" prop="dateFormat">
+      </el-table-column>
+      <el-table-column align="center" label="付款金额" prop="moneyFormat">
+      </el-table-column>
+      <el-table-column align="center" label="操作" prop="">
+        <template slot-scope="{row}">
+          <el-button
+            size="mini"
+            :type="row.vouchers.length > 0 ? 'success' : 'primary'"
+            @click="openVoucherDialog(row)"
+            >{{ row.vouchers.length > 0 ? '修改凭证' : '上传凭证' }}
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
     <!--上传凭证窗口-->
     <el-dialog
       title="上传考核资料"

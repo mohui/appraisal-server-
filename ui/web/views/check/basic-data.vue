@@ -1,36 +1,22 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column'
-      }"
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">基础数据</span>
+    </div>
+    <el-table
+      :cell-class-name="cellClassHover"
+      :data="tagList"
+      height="100%"
+      style="flex-grow: 1;"
+      @row-click="handleCellClick"
     >
-      <div slot="header" class="clearfix">
-        <span>基础数据</span>
-      </div>
-      <el-table
-        stripe
-        size="medium"
-        @row-click="handleCellClick"
-        :cell-class-name="cellClassHover"
-        :data="tagList"
-        border
-        height="100%"
-        style="flex-grow: 1;"
-      >
-        <el-table-column align="center" width="50" label="序号">
-          <template slot-scope="scope">
-            {{ scope.$index + 1 }}
-          </template>
-        </el-table-column>
-        <el-table-column label="公共卫生服务" prop="name"> </el-table-column>
-      </el-table>
-    </el-card>
+      <el-table-column align="center" width="50" label="序号">
+        <template slot-scope="scope">
+          {{ scope.$index + 1 }}
+        </template>
+      </el-table-column>
+      <el-table-column label="公共卫生服务" prop="name"> </el-table-column>
+    </el-table>
   </div>
 </template>
 

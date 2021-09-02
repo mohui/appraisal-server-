@@ -1,8 +1,19 @@
 <template>
-  <div style="height: 100%;">
+  <div class="flex-column-layout">
+    <div slot="header" class="jx-header">
+      <span class="header-title">工分项设置</span>
+      <div>
+        <el-button size="mini" type="warning" @click="itemTypeVisible = true"
+          >新增分类</el-button
+        >
+        <el-button size="mini" type="primary" @click="addWorkVisible = true"
+          >新增工分项</el-button
+        >
+      </div>
+    </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;flex: 1"
       shadow="never"
       :body-style="{
         height: 'calc(100% - 110px)',
@@ -11,17 +22,6 @@
         padding: $settings.isMobile ? '10px 0' : '20px'
       }"
     >
-      <div slot="header" class="work-header">
-        <span>工分项设置</span>
-        <div>
-          <el-button size="mini" type="warning" @click="itemTypeVisible = true"
-            >新增分类</el-button
-          >
-          <el-button size="mini" type="primary" @click="addWorkVisible = true"
-            >新增工分项</el-button
-          >
-        </div>
-      </div>
       <el-table
         v-loading="tableLoading"
         ref="workTable"
@@ -1047,10 +1047,6 @@ export default {
 </script>
 
 <style scoped>
-.work-header {
-  display: flex;
-  justify-content: space-between;
-}
 .long-tree {
   max-height: 20vh;
   overflow-y: auto;
