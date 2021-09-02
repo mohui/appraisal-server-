@@ -92,7 +92,11 @@
             <div class="content">
               <div class="square">
                 <div class="square-inner grid">
-                  <div v-for="i of 8" :key="i">{{ i }}</div>
+                  <div v-for="i of 8" :key="i">
+                    <div class="item">
+                      <div class="el-icon-s-tools icon"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -700,18 +704,32 @@ export default {
       display: grid;
       grid-template-columns: repeat(4, 1fr); /* 相当于 1fr 1fr 1fr */
       grid-template-rows: repeat(4, 1fr); /* fr单位可以将容器分为几等份 */
-      grid-gap: 1%; /* grid-column-gap 和 grid-row-gap的简写 */
+      grid-gap: 1px; /* grid-column-gap 和 grid-row-gap的简写 */
       grid-auto-flow: row;
     }
     .grid > div {
       color: #fff;
-      font-size: 50px;
       line-height: 2;
       text-align: center;
-      background: orange;
       display: flex;
       align-items: center;
       justify-content: center;
+      .item {
+        background: #dae0f2;
+        width: 80%;
+        height: 80%;
+        min-width: 80px;
+        min-height: 80px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        .icon {
+          color: #848dbd;
+          font-size: 3.2vw;
+        }
+      }
     }
   }
 }
