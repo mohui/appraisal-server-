@@ -2272,7 +2272,7 @@ export default class Person {
 
   /**
    * 产后访视记录表详情
-   * @param 主键 code
+   * @param code 主键
    */
   async maternalVisits(code) {
     // language=PostgreSQL
@@ -2305,7 +2305,7 @@ export default class Person {
 
   /**
    * 产后42天健康检查记录表详情
-   * @param 主键 code
+   * @param code 主键
    */
   async recordPostpartum42DaysCheck(code) {
     // 产后42天健康检查记录表
