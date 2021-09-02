@@ -13,7 +13,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #f5faff;
+  background: #f5f5fa;
 }
 
 hr {
@@ -115,4 +115,9 @@ h1, h2, h3, h4, h5, h6, p, a {
       color: #fff;
     }
   }
+}
+
+//从左到右渐变色
+.linear-gradient-to-right {
+  background-image: linear-gradient(to right, $color-left, $color-right);
 }
