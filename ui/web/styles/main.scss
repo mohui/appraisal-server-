@@ -82,6 +82,9 @@ h1, h2, h3, h4, h5, h6, p, a {
   &.el-button--primary {
     background-image: linear-gradient(to right, $color-left, $color-right);
   }
+  &.is-plain {
+    background-image: inherit;
+  }
 }
 //头部标题栏样式
 .jx-header {
