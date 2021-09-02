@@ -117,15 +117,21 @@
                     <div class="container">
                       <div class="describe">
                         <div>{{ i.name }}</div>
-                        <div>{{ i.score * i.rate }} / {{ i.score }}</div>
+                        <div>{{ i.correctionScore }}/{{ i.score }}</div>
                       </div>
-                      <el-progress
-                        class="progress"
-                        v-if="i.score > 0"
-                        stroke-width="8"
-                        :percentage="i.rate * 100"
-                        :show-text="false"
-                      ></el-progress>
+                      <div
+                        :style="{
+                          width: `${i.proportion * 100}%`
+                        }"
+                      >
+                        <el-progress
+                          class="progress"
+                          v-if="i.score > 0"
+                          stroke-width="8"
+                          :percentage="(i.correctionScore / i.score) * 100"
+                          :show-text="false"
+                        ></el-progress>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -297,10 +303,11 @@ export default {
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
       staffData: [
-        {name: '张一', score: 3000, rate: 0.6},
-        {name: '张二', score: 5000, rate: 0.3},
-        {name: '张三', score: 7000, rate: 0.5},
-        {name: '张四', score: 0, rate: 0.5}
+        {name: '张一', score: 3000, correctionScore: 1500, rate: 0.6},
+        {name: '张二', score: 4780, correctionScore: 1650, rate: 0.3},
+        {name: '张三', score: 5020, correctionScore: 1500, rate: 0.3},
+        {name: '张四', score: 4020, correctionScore: 3536, rate: 0.9},
+        {name: '张五', score: 0, correctionScore: 0, rate: 0.5}
       ]
     };
   },
@@ -309,6 +316,13 @@ export default {
   },
   created() {
     this.initParams(this.$route);
+    this.staffData = this.staffData
+      .sort((a, b) => b.score - a.score)
+      .map(it => ({
+        ...it,
+        proportion: it.score / this.staffData[0].score
+      }))
+      .sort((a, b) => b.correctionScore - a.correctionScore);
   },
   computed: {
     overviewData() {
