@@ -91,7 +91,7 @@
           style="margin-bottom: 10px"
         >
           <div class="card staff-container">
-            <div class="staff-header">
+            <div class="staff-tabs">
               <div
                 :class="staffFlag === 'workPoint' ? 'tab-select' : 'tab'"
                 @click="staffFlag = 'workPoint'"
@@ -104,6 +104,10 @@
               >
                 员工质量系数排名
               </div>
+            </div>
+            <div class="content">
+              <div v-if="staffFlag === 'workPoint'">员工工作量排名内容</div>
+              <div v-if="staffFlag === 'rate'">员工质量系数排名内容</div>
             </div>
           </div>
         </el-col>
@@ -706,13 +710,14 @@ export default {
 }
 .staff-container {
   height: 60vh;
-  .staff-header {
+  color: #3a3f62;
+  font-size: 14px;
+  .staff-tabs {
     height: 40px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    color: #3a3f62;
-    font-size: 14px;
+    font-size: 16px;
     background: #dae0f2;
     .tab,
     .tab-select {
@@ -724,6 +729,9 @@ export default {
     .tab-select {
       background: #ffffff;
     }
+  }
+  .content {
+    padding: 10px;
   }
 }
 .workbench-container {
