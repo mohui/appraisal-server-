@@ -50,13 +50,12 @@
           </div>
         </div>
       </el-card>
-      <el-row style="margin: 10px 0">
-        <div
-          v-for="(item, index) of ['医疗指标', '公卫指标']"
-          :key="index"
-          style="margin-bottom: 10px"
-          class="card"
-        >
+      <el-row
+        style="margin: 10px 0"
+        v-for="(item, index) of ['医疗指标', '公卫指标']"
+        :key="index"
+      >
+        <div class="card">
           <div class="indicators-container">
             <div class="indicators-title-card title-box">
               <div class="title">{{ item }}</div>
@@ -80,6 +79,14 @@
             </div>
           </div>
         </div>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="16">
+          <div class="card staff-container">员工排行</div>
+        </el-col>
+        <el-col :span="8">
+          <div class="card workbench-container">工作台</div>
+        </el-col>
       </el-row>
       <el-dialog
         title="报表"
@@ -648,6 +655,14 @@ export default {
       }
     }
   }
+}
+
+.staff-container {
+  height: 600px;
+}
+
+.workbench-container {
+  height: 600px;
 }
 
 .dialog-header {
