@@ -1,141 +1,116 @@
 <template>
   <div
-    style="height: 100%;"
     v-loading="isLoading"
+    class="flex-column-layout"
     :element-loading-text="loadingText"
   >
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>{{ id ? '修改' : '新建' }}方案</span>
-        <el-button
-          style="float: right; margin: -4px 0 0 20px;"
-          size="small"
-          type="primary"
-          plain
-          @click="
-            $router.push({
-              name: 'plan'
-            })
-          "
-          >返回
-        </el-button>
-      </div>
-      <el-form
-        ref="form"
-        :rules="rules"
+    <div class="jx-header">
+      <span class="header-title">{{ id ? '修改' : '新建' }}方案</span>
+      <el-button
         size="small"
-        :model="form"
-        label-width="80px"
+        type="primary"
+        plain
+        @click="
+          $router.push({
+            name: 'plan'
+          })
+        "
+        >返回
+      </el-button>
+    </div>
+    <el-form
+      ref="form"
+      :rules="rules"
+      size="small"
+      :model="form"
+      label-width="80px"
+      label-position="top"
+      style="padding: 20px; background-color: #fff;"
+    >
+      <el-form-item
+        label="方案名称"
+        prop="name"
+        style="width: 30%;display: inline-block;padding-right: 10%;"
       >
-        <el-form-item label="方案名称" prop="name">
-          <el-input v-model="form.name" style="width: 30%;"></el-input>
-        </el-form-item>
-        <el-form-item label="考核员工" prop="doctor">
-          <el-select
-            v-model="form.doctor"
-            multiple
-            filterable
-            placeholder="请选择"
-            style="width: 30%"
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+      <el-form-item
+        label="考核员工"
+        prop="doctor"
+        style="width: 30%;display: inline-block;"
+      >
+        <el-select
+          v-model="form.doctor"
+          multiple
+          filterable
+          placeholder="请选择"
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in members"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+            :disabled="item.disabled"
           >
-            <el-option
-              v-for="item in members"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-              :disabled="item.disabled"
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="考核指标">
+        <div class="total-info">
+          总分：<span> {{ totalScore }} </span>； 自动打分（分）：<span>
+            {{ targetScore }} </span
+          >； 手动打分（分）：<span> {{ manualScore }} </span>
+        </div>
+        <el-tabs v-model="activeName" type="card">
+          <el-tab-pane label="自动打分" name="first">
+            <el-table
+              :data="form.target"
+              size="mini"
+              border
+              style="width: 100%;height: 100%;"
+              :max-height="fullHeight"
             >
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="考核指标">
-          <div class="total-info">
-            总分：<span> {{ totalScore }} </span>； 自动打分（分）：<span>
-              {{ targetScore }} </span
-            >； 手动打分（分）：<span> {{ manualScore }} </span>
-          </div>
-          <el-tabs v-model="activeName" type="border-card">
-            <el-tab-pane label="自动打分" name="first">
-              <el-table
-                :data="form.target"
-                size="mini"
-                border
-                style="width: 100%;"
-                :max-height="fullHeight"
-              >
-                <el-table-column prop="name" label="指标">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ targetName(scope.row.metric) }}
-                    </div>
-                    <el-cascader
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.metric"
-                      :options="TagList"
-                      :show-all-levels="false"
-                    ></el-cascader>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="mode" label="计算方式">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ targetMode(scope.row.mode) }}
-                    </div>
-                    <el-select
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.mode"
-                      placeholder="请选择"
+              <el-table-column prop="name" label="指标">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ targetName(scope.row.metric) }}
+                  </div>
+                  <el-cascader
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.metric"
+                    :options="TagList"
+                    :show-all-levels="false"
+                  ></el-cascader>
+                </template>
+              </el-table-column>
+              <el-table-column prop="mode" label="计算方式">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ targetMode(scope.row.mode) }}
+                  </div>
+                  <el-select
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.mode"
+                    placeholder="请选择"
+                  >
+                    <el-option
+                      v-for="item in TagModeList"
+                      :key="item.code"
+                      :label="item.name"
+                      :value="item.code"
                     >
-                      <el-option
-                        v-for="item in TagModeList"
-                        :key="item.code"
-                        :label="item.name"
-                        :value="item.code"
-                      >
-                      </el-option>
-                    </el-select>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="value" label="指标值">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ scope.row.value }}
-                      <span
-                        v-if="
-                          scope.row.name &&
-                            (targetName(scope.row.metric).includes('率') ||
-                              targetName(scope.row.metric).includes('占比') ||
-                              targetName(scope.row.metric).includes('比例')) &&
-                            (scope.row.mode === 'egt' ||
-                              scope.row.mode === 'elt')
-                        "
-                        style="margin: 0 -15px 0 5px;"
-                      >
-                        %
-                      </span>
-                    </div>
-                    <el-input-number
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.value"
-                      :min="0"
-                      :disabled="
-                        scope.row.mode !== 'egt' && scope.row.mode !== 'elt'
-                      "
-                    ></el-input-number>
+                    </el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column prop="value" label="指标值">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ scope.row.value }}
                     <span
                       v-if="
-                        scope.row.EDIT &&
-                          scope.row.name &&
+                        scope.row.name &&
                           (targetName(scope.row.metric).includes('率') ||
                             targetName(scope.row.metric).includes('占比') ||
                             targetName(scope.row.metric).includes('比例')) &&
@@ -145,156 +120,182 @@
                     >
                       %
                     </span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="score" label="分数">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">{{ scope.row.score }}</div>
-                    <el-input-number
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.score"
-                      :min="0"
-                    ></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column align="center" label="操作">
-                  <template slot-scope="scope">
-                    <el-button
-                      v-if="!scope.row.id"
-                      type="primary"
-                      size="mini"
-                      :disabled="!scope.row.metric || !scope.row.mode"
-                      @click="addTarget(scope)"
-                    >
-                      添加
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && scope.row.EDIT"
-                      type="primary"
-                      size="mini"
-                      :disabled="!scope.row.metric || !scope.row.mode"
-                      @click="saveTarget(scope)"
-                    >
-                      保存
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && !scope.row.EDIT"
-                      type="primary"
-                      size="mini"
-                      @click="editTarget(scope)"
-                    >
-                      修改
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && !scope.row.EDIT"
-                      type="danger"
-                      size="mini"
-                      @click="delTarget(scope)"
-                    >
-                      删除
-                    </el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-tab-pane>
-            <el-tab-pane label="手动打分" name="second">
-              <el-table
-                :data="form.manual"
-                size="mini"
-                border
-                style="width: 100%;"
-                :max-height="fullHeight"
-              >
-                <el-table-column prop="name" label="指标">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ scope.row.name }}
-                    </div>
-                    <el-input
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.name"
-                      placeholder="请输入指标名称"
-                    ></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="requirement" label="考核要求">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ scope.row.requirement }}
-                    </div>
-                    <el-input
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.requirement"
-                      placeholder="请输入考核要求"
-                    ></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="score" label="分数">
-                  <template slot-scope="scope">
-                    <div v-if="!scope.row.EDIT">
-                      {{ scope.row.score }}
-                    </div>
-                    <el-input-number
-                      v-if="scope.row.EDIT"
-                      v-model="scope.row.score"
-                      :min="0"
-                    ></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column align="center" label="操作">
-                  <template slot-scope="scope">
-                    <el-button
-                      v-if="!scope.row.id"
-                      type="primary"
-                      size="mini"
-                      :disabled="!scope.row.name || !scope.row.requirement"
-                      @click="addManual(scope)"
-                    >
-                      添加
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && scope.row.EDIT"
-                      type="primary"
-                      size="mini"
-                      :disabled="
-                        !scope.row.name ||
-                          !scope.row.requirement ||
-                          !scope.row.score
-                      "
-                      @click="saveManual(scope)"
-                    >
-                      保存
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && !scope.row.EDIT"
-                      type="primary"
-                      size="mini"
-                      @click="editManual(scope)"
-                    >
-                      修改
-                    </el-button>
-                    <el-button
-                      v-if="scope.row.id && !scope.row.EDIT"
-                      type="danger"
-                      size="mini"
-                      @click="delManual(scope)"
-                    >
-                      删除
-                    </el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-tab-pane>
-          </el-tabs>
-        </el-form-item>
-        <el-form-item> </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSubmit('form')">
-            {{ id ? '保存' : '立即创建' }}
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+                  </div>
+                  <el-input-number
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.value"
+                    :min="0"
+                    :disabled="
+                      scope.row.mode !== 'egt' && scope.row.mode !== 'elt'
+                    "
+                  ></el-input-number>
+                  <span
+                    v-if="
+                      scope.row.EDIT &&
+                        scope.row.name &&
+                        (targetName(scope.row.metric).includes('率') ||
+                          targetName(scope.row.metric).includes('占比') ||
+                          targetName(scope.row.metric).includes('比例')) &&
+                        (scope.row.mode === 'egt' || scope.row.mode === 'elt')
+                    "
+                    style="margin: 0 -15px 0 5px;"
+                  >
+                    %
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="score" label="分数">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">{{ scope.row.score }}</div>
+                  <el-input-number
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.score"
+                    :min="0"
+                  ></el-input-number>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="操作">
+                <template slot-scope="scope">
+                  <el-button
+                    v-if="!scope.row.id"
+                    type="primary"
+                    size="mini"
+                    :disabled="!scope.row.metric || !scope.row.mode"
+                    @click="addTarget(scope)"
+                  >
+                    添加
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && scope.row.EDIT"
+                    type="primary"
+                    size="mini"
+                    :disabled="!scope.row.metric || !scope.row.mode"
+                    @click="saveTarget(scope)"
+                  >
+                    保存
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && !scope.row.EDIT"
+                    type="primary"
+                    size="mini"
+                    @click="editTarget(scope)"
+                  >
+                    修改
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && !scope.row.EDIT"
+                    type="danger"
+                    size="mini"
+                    @click="delTarget(scope)"
+                  >
+                    删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="手动打分" name="second">
+            <el-table
+              :data="form.manual"
+              size="mini"
+              border
+              style="width: 100%;height: 100%;"
+              :max-height="fullHeight"
+            >
+              <el-table-column prop="name" label="指标">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ scope.row.name }}
+                  </div>
+                  <el-input
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.name"
+                    placeholder="请输入指标名称"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="requirement" label="考核要求">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ scope.row.requirement }}
+                  </div>
+                  <el-input
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.requirement"
+                    placeholder="请输入考核要求"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column prop="score" label="分数">
+                <template slot-scope="scope">
+                  <div v-if="!scope.row.EDIT">
+                    {{ scope.row.score }}
+                  </div>
+                  <el-input-number
+                    v-if="scope.row.EDIT"
+                    v-model="scope.row.score"
+                    :min="0"
+                  ></el-input-number>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" label="操作">
+                <template slot-scope="scope">
+                  <el-button
+                    v-if="!scope.row.id"
+                    type="primary"
+                    size="mini"
+                    :disabled="!scope.row.name || !scope.row.requirement"
+                    @click="addManual(scope)"
+                  >
+                    添加
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && scope.row.EDIT"
+                    type="primary"
+                    size="mini"
+                    :disabled="
+                      !scope.row.name ||
+                        !scope.row.requirement ||
+                        !scope.row.score
+                    "
+                    @click="saveManual(scope)"
+                  >
+                    保存
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && !scope.row.EDIT"
+                    type="primary"
+                    size="mini"
+                    @click="editManual(scope)"
+                  >
+                    修改
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.id && !scope.row.EDIT"
+                    type="danger"
+                    size="mini"
+                    @click="delManual(scope)"
+                  >
+                    删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+        </el-tabs>
+      </el-form-item>
+      <el-form-item> </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-check"
+          @click="onSubmit('form')"
+        >
+          {{ id ? '保存' : '立即创建' }}
+        </el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
@@ -660,6 +661,16 @@ export default {
 <style scoped lang="scss">
 ::v-deep .el-tab-pane {
   height: calc(100vh - 450px);
+}
+::v-deep .el-form-item__label {
+  padding: 0;
+}
+::v-deep .el-tabs__header {
+  margin: 0;
+}
+::v-deep .el-tabs__item.is-active {
+  background-color: #f5f5fa;
+  border-bottom-color: #f5f5fa !important;
 }
 .total-info {
   float: right;
