@@ -81,10 +81,26 @@
         </div>
       </el-row>
       <el-row :gutter="10">
-        <el-col :span="16">
+        <el-col
+          :span="17"
+          :xs="24"
+          :sm="12"
+          :md="12"
+          :lg="16"
+          :xl="17"
+          style="margin-bottom: 10px"
+        >
           <div class="card staff-container">员工排行</div>
         </el-col>
-        <el-col :span="8">
+        <el-col
+          :span="7"
+          :xs="24"
+          :sm="12"
+          :md="12"
+          :lg="8"
+          :xl="7"
+          style="margin-bottom: 10px"
+        >
           <div class="card workbench-container">
             <div class="header">
               工作台
