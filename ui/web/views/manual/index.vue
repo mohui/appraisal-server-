@@ -6,7 +6,6 @@
         style="float: right;margin: -4px 0 0 20px;"
         size="small"
         type="primary"
-        plain
         @click="addManual"
         >添加项目
       </el-button>
