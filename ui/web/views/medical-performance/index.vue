@@ -106,7 +106,30 @@
               </div>
             </div>
             <div class="content">
-              <div v-if="staffFlag === 'workPoint'">员工工作量排名内容</div>
+              <div v-if="staffFlag === 'workPoint'">
+                <div class="rank-box">
+                  <div
+                    v-for="(i, index) of staffData"
+                    :key="index"
+                    class="cell"
+                  >
+                    <div class="ranking">{{ index + 1 }}</div>
+                    <div class="container">
+                      <div class="describe">
+                        <div>{{ i.name }}</div>
+                        <div>{{ i.score * i.rate }} / {{ i.score }}</div>
+                      </div>
+                      <el-progress
+                        class="progress"
+                        v-if="i.score > 0"
+                        stroke-width="8"
+                        :percentage="i.rate * 100"
+                        :show-text="false"
+                      ></el-progress>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div v-if="staffFlag === 'rate'">员工质量系数排名内容</div>
             </div>
           </div>
@@ -272,7 +295,13 @@ export default {
       categorySpanArr: [],
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
-      staffFlag: 'workPoint'
+      staffFlag: 'workPoint',
+      staffData: [
+        {name: '张一', score: 3000, rate: 0.6},
+        {name: '张二', score: 5000, rate: 0.3},
+        {name: '张三', score: 7000, rate: 0.5},
+        {name: '张四', score: 0, rate: 0.5}
+      ]
     };
   },
   directives: {
@@ -730,6 +759,35 @@ export default {
   }
   .content {
     padding: 10px;
+    .rank-box {
+      .cell {
+        margin: 20px 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .ranking {
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #dae0f2;
+          border-radius: 50%;
+          margin-right: 10px;
+        }
+        .container {
+          width: 100%;
+          .describe {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+          }
+          .progress {
+            margin-top: 10px;
+          }
+        }
+      }
+    }
   }
 }
 .workbench-container {
