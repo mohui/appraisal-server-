@@ -347,6 +347,7 @@ export default class Person {
         ...sqlRenderResult[1]
       )
     )[0].count;
+    // 0-6 岁为true 查看详情不一定有数据 国卫和妇幼的数据是两套数据
     const person = await originalDB.execute(
       `select vp.id,
                 vp.name,
