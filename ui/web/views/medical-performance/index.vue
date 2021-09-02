@@ -102,7 +102,7 @@
           style="margin-bottom: 10px"
         >
           <div class="card workbench-container">
-            <div class="header">
+            <div class="workbench-header">
               工作台
             </div>
             <div class="content">
@@ -692,7 +692,7 @@ export default {
 }
 .workbench-container {
   height: 60vh;
-  .header {
+  .workbench-header {
     height: 20px;
     border-bottom: 1px solid #ebeef5;
     padding: 10px;
