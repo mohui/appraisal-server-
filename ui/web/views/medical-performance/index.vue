@@ -89,6 +89,13 @@
             <div class="header">
               工作台
             </div>
+            <div class="content">
+              <div class="square">
+                <div class="square-inner grid">
+                  <div v-for="i of 8" :key="i">{{ i }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </el-col>
       </el-row>
@@ -660,17 +667,52 @@ export default {
     }
   }
 }
-
 .staff-container {
-  height: 600px;
+  height: 60vh;
 }
-
 .workbench-container {
-  height: 600px;
+  height: 60vh;
   .header {
+    height: 20px;
     border-bottom: 1px solid #ebeef5;
     padding: 10px;
     color: #3a3f62;
+    //background: #91cc75;
+  }
+  .content {
+    height: calc(60vh - 40px);
+    overflow-y: scroll;
+    .square {
+      position: relative;
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%; /* padding百分比是相对父元素宽度计算的 */
+    }
+    .square-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%; /* 铺满父元素容器，这时候宽高就始终相等了 */
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 相当于 1fr 1fr 1fr */
+      grid-template-rows: repeat(4, 1fr); /* fr单位可以将容器分为几等份 */
+      grid-gap: 1%; /* grid-column-gap 和 grid-row-gap的简写 */
+      grid-auto-flow: row;
+    }
+    .grid > div {
+      color: #fff;
+      font-size: 50px;
+      line-height: 2;
+      text-align: center;
+      background: orange;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 
