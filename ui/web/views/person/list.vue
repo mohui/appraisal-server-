@@ -296,7 +296,7 @@
     <el-pagination
       v-else
       v-reset-scroll="'personTable'"
-      class="pagination"
+      class="person-pagination"
       background
       :page-size="pageSize"
       :current-page="pageNo"
@@ -585,9 +585,12 @@ export default {
     color: #1a95d7;
   }
 }
-.pagination {
+.person-pagination {
   background-color: #fff;
   text-align: center;
   padding: 10px 0;
+  .el-pagination__total {
+    float: right;
+  }
 }
 </style>
