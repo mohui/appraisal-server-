@@ -646,25 +646,23 @@ export default {
     margin-right: 0;
   }
   .header-title {
-    font: bold 20px/1.4 Arial;
-    color: $color-primary;
+    font: 18px/1.4 Arial;
+    color: #3a3f62;
   }
 }
 
 .indicators-card {
   border-left: 1px solid #ebeef5;
   background-color: #ffffff;
-  color: #303133;
   padding: 10px;
 }
 .card {
   border-radius: 4px;
   background-color: #ffffff;
-  color: #303133;
 }
 .indicators-title-card {
   background-color: #ffffff;
-  color: #303133;
+  color: #3a3f62;
   padding: 10px;
 }
 
