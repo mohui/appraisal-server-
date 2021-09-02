@@ -198,7 +198,7 @@ export default {
   padding: 0;
   border-bottom: solid 1px #e6e6e6;
   display: flex;
-  background: $color-primary;
+  background: $color-header;
   box-sizing: content-box;
   align-items: center;
   justify-content: space-between;
@@ -237,7 +237,7 @@ export default {
       }
     }
     &.is-active.parent-menu.el-menu-item {
-      background-color: $color-primary;
+      background-image: linear-gradient(to right, $color-left, $color-right);
       color: #fff;
       border-radius: 30px;
     }
@@ -248,7 +248,7 @@ export default {
       i {
         color: inherit;
       }
-      background-color: $color-primary;
+      background-image: linear-gradient(to right, $color-left, $color-right);
       color: #fff;
       border-radius: 30px;
     }
