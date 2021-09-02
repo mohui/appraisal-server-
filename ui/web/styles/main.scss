@@ -102,3 +102,17 @@ h1, h2, h3, h4, h5, h6, p, a {
   display: flex;
   flex-direction: column;
 }
+//圆形按钮统一样式
+.el-button.is-circle {
+  background-color: #f4f7fe;
+  border-color: #f4f7fe;
+  i {
+    color: #aeb2c4;
+  }
+  &:hover {
+    background-color: $color-primary;
+    i {
+      color: #fff;
+    }
+  }
+}
