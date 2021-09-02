@@ -90,7 +90,22 @@
           :xl="17"
           style="margin-bottom: 10px"
         >
-          <div class="card staff-container">员工排行</div>
+          <div class="card staff-container">
+            <div class="staff-header">
+              <div
+                :class="staffFlag === 'workPoint' ? 'tab-select' : 'tab'"
+                @click="staffFlag = 'workPoint'"
+              >
+                员工工作量排名
+              </div>
+              <div
+                :class="staffFlag === 'rate' ? 'tab-select' : 'tab'"
+                @click="staffFlag = 'rate'"
+              >
+                员工质量系数排名
+              </div>
+            </div>
+          </div>
         </el-col>
         <el-col
           :span="7"
@@ -251,7 +266,9 @@ export default {
       reportDataLoading: false,
       spanArr: [],
       categorySpanArr: [],
-      deptNameSpanArr: []
+      deptNameSpanArr: [],
+      //员工工作量：workPoint， 质量系数：rate
+      staffFlag: 'workPoint'
     };
   },
   directives: {
@@ -689,6 +706,25 @@ export default {
 }
 .staff-container {
   height: 60vh;
+  .staff-header {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    color: #3a3f62;
+    font-size: 14px;
+    background: #dae0f2;
+    .tab,
+    .tab-select {
+      width: 50%;
+      height: 100%;
+      text-align: center;
+      line-height: 40px;
+    }
+    .tab-select {
+      background: #ffffff;
+    }
+  }
 }
 .workbench-container {
   height: 60vh;
