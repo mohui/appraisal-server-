@@ -156,40 +156,64 @@
               </el-table-column>
               <el-table-column align="center" label="操作">
                 <template slot-scope="scope">
-                  <el-button
+                  <el-tooltip
                     v-if="!scope.row.id"
-                    type="primary"
-                    size="mini"
-                    :disabled="!scope.row.metric || !scope.row.mode"
-                    @click="addTarget(scope)"
+                    content="添加"
+                    :enterable="false"
                   >
-                    添加
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-plus"
+                      circle
+                      size="mini"
+                      :disabled="!scope.row.metric || !scope.row.mode"
+                      @click="addTarget(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && scope.row.EDIT"
-                    type="primary"
-                    size="mini"
-                    :disabled="!scope.row.metric || !scope.row.mode"
-                    @click="saveTarget(scope)"
+                    content="保存"
+                    :enterable="false"
                   >
-                    保存
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-check"
+                      circle
+                      size="mini"
+                      :disabled="!scope.row.metric || !scope.row.mode"
+                      @click="saveTarget(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && !scope.row.EDIT"
-                    type="primary"
-                    size="mini"
-                    @click="editTarget(scope)"
+                    content="修改"
+                    :enterable="false"
                   >
-                    修改
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-edit"
+                      circle
+                      size="mini"
+                      @click="editTarget(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && !scope.row.EDIT"
-                    type="danger"
-                    size="mini"
-                    @click="delTarget(scope)"
+                    content="删除"
+                    :enterable="false"
                   >
-                    删除
-                  </el-button>
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      circle
+                      size="mini"
+                      @click="delTarget(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
                 </template>
               </el-table-column>
             </el-table>
@@ -240,44 +264,68 @@
               </el-table-column>
               <el-table-column align="center" label="操作">
                 <template slot-scope="scope">
-                  <el-button
+                  <el-tooltip
                     v-if="!scope.row.id"
-                    type="primary"
-                    size="mini"
-                    :disabled="!scope.row.name || !scope.row.requirement"
-                    @click="addManual(scope)"
+                    content="添加"
+                    :enterable="false"
                   >
-                    添加
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-plus"
+                      circle
+                      size="mini"
+                      :disabled="!scope.row.name || !scope.row.requirement"
+                      @click="addManual(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && scope.row.EDIT"
-                    type="primary"
-                    size="mini"
-                    :disabled="
-                      !scope.row.name ||
-                        !scope.row.requirement ||
-                        !scope.row.score
-                    "
-                    @click="saveManual(scope)"
+                    content="保存"
+                    :enterable="false"
                   >
-                    保存
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-check"
+                      circle
+                      size="mini"
+                      :disabled="
+                        !scope.row.name ||
+                          !scope.row.requirement ||
+                          !scope.row.score
+                      "
+                      @click="saveManual(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && !scope.row.EDIT"
-                    type="primary"
-                    size="mini"
-                    @click="editManual(scope)"
+                    content="修改"
+                    :enterable="false"
                   >
-                    修改
-                  </el-button>
-                  <el-button
+                    <el-button
+                      type="primary"
+                      icon="el-icon-edit"
+                      circle
+                      size="mini"
+                      @click="editManual(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
                     v-if="scope.row.id && !scope.row.EDIT"
-                    type="danger"
-                    size="mini"
-                    @click="delManual(scope)"
+                    content="删除"
+                    :enterable="false"
                   >
-                    删除
-                  </el-button>
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      circle
+                      size="mini"
+                      @click="delManual(scope)"
+                    >
+                    </el-button>
+                  </el-tooltip>
                 </template>
               </el-table-column>
             </el-table>
