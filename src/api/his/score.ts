@@ -421,7 +421,7 @@ export async function workPointCalculation(
 
 // endregion
 
-// region 公卫打分
+// region 医疗绩效公卫数据打分
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
