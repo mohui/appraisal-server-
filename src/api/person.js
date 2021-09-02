@@ -1737,7 +1737,41 @@ export default class Person {
       // 儿童保健卡主键 -> 儿童体检表
       const childCheck = await originalDB.execute(
         // language=PostgreSQL
-        `select cc.*, cb.name childname
+        `select cc.id as medicalcode
+                , cc.childhealthbooksno
+                , cc.chronologicalage
+                , cc.checkdate
+                , cc.weight
+                , cc.weightage
+                , cc.height
+                , cc.heightage
+                , cc.headcircumference
+                , cc.face
+                , cc.skin
+                , cc.fontanelle
+                , cc.backfontanelle
+                , cc.eyes
+                , cc.ear
+                , cc.lefthearing
+                , cc.righthearing
+                , cc.oral
+                , cc.ricketsseems
+                , cc.genitaliainfo
+                , cc.genitalia
+                , cc.hemoglobin
+                , cc.fewteeth
+                , cc.signsrickets
+                , cc.outdoortime
+                , cc.guidancetreatment
+                , cc.reservationsdate
+                , cc.checkdoctor
+                , cc.doctor
+                , cc.operatetime
+                , cc.operatorid
+                , cc.operateorganization
+                , cc.created_at
+                , cc.updated_at
+                , cb.name  childname
            from mch_child_check cc
                   inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
            where cc.childhealthbooksno = ?
