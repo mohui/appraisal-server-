@@ -85,7 +85,11 @@
           <div class="card staff-container">员工排行</div>
         </el-col>
         <el-col :span="8">
-          <div class="card workbench-container">工作台</div>
+          <div class="card workbench-container">
+            <div class="header">
+              工作台
+            </div>
+          </div>
         </el-col>
       </el-row>
       <el-dialog
@@ -663,6 +667,11 @@ export default {
 
 .workbench-container {
   height: 600px;
+  .header {
+    border-bottom: 1px solid #ebeef5;
+    padding: 10px;
+    color: #3a3f62;
+  }
 }
 
 .dialog-header {
