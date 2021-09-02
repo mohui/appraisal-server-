@@ -79,6 +79,9 @@ h1, h2, h3, h4, h5, h6, p, a {
 //按钮半圆角样式
 .el-button {
   border-radius: 100px;
+  &.el-button--primary {
+    background-image: linear-gradient(to right, $color-left, $color-right);
+  }
 }
 //头部标题栏样式
 .jx-header {
@@ -104,6 +107,7 @@ h1, h2, h3, h4, h5, h6, p, a {
 }
 //圆形按钮统一样式
 .el-button.is-circle {
+  background-image: inherit;
   background-color: #f4f7fe;
   border-color: #f4f7fe;
   i {
@@ -115,9 +119,4 @@ h1, h2, h3, h4, h5, h6, p, a {
       color: #fff;
     }
   }
-}
-
-//从左到右渐变色
-.linear-gradient-to-right {
-  background-image: linear-gradient(to right, $color-left, $color-right);
 }
