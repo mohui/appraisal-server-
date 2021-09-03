@@ -266,7 +266,7 @@
           <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
             <el-row>
               <el-card shadow="hover">
-                <div class="score-detail">
+                <div style="height: 280px">
                   <p class="second-title" style="margin:0; text-align:left;">
                     家庭医生签约
                   </p>
@@ -277,7 +277,7 @@
                     style="height: 100%"
                   >
                     <doctor-bar
-                      style="padding-top: 20px;"
+                      style="padding-top: 30px;"
                       :bar-data="familyDoctorContractData"
                     ></doctor-bar>
                   </div>
@@ -286,7 +286,7 @@
             </el-row>
             <el-row :gutter="10" style="margin: 10px 0">
               <el-card shadow="hover">
-                <div style="height: 250px; text-align: center">
+                <div style="height: 280px; text-align: center">
                   <p class="second-title" style="margin:0; text-align:left;">
                     健康教育
                   </p>
@@ -303,7 +303,7 @@
                           $asyncComputed.healthEducationServerData.updating
                         "
                         :data="healthEducationData"
-                        height="210px"
+                        height="190px"
                         class="appraisal-result-health-education-table"
                         style="width: 100%"
                         size="mini"
@@ -357,7 +357,7 @@
             style="margin-bottom: 10px;"
           >
             <el-card shadow="hover">
-              <div style="height: 560px; text-align: center">
+              <div style="height: 610px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
@@ -372,7 +372,7 @@
                         $asyncComputed.supervisionReportServerData.updating
                       "
                       :data="supervisionReportData"
-                      height="560px"
+                      height="520px"
                       style="width: 100%;flex:1"
                       size="mini"
                     >
