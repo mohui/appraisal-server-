@@ -109,7 +109,7 @@
               <div v-if="staffFlag === 'workPoint'">
                 <div class="rank-box">
                   <div
-                    v-for="(i, index) of staffData"
+                    v-for="(i, index) of staffCheckListData"
                     :key="index"
                     class="cell"
                   >
@@ -128,7 +128,7 @@
                           v-if="i.score > 0"
                           class="progress"
                           :stroke-width="8"
-                          :percentage="(i.correctionScore / i.score) * 100"
+                          :percentage="i.rate * 100"
                           :show-text="false"
                           :color="
                             index === 0
@@ -310,14 +310,7 @@ export default {
       categorySpanArr: [],
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
-      staffFlag: 'workPoint',
-      staffData: [
-        {name: '张一', score: 3000, correctionScore: 1500, rate: 0.6},
-        {name: '张二', score: 4780, correctionScore: 1650, rate: 0.3},
-        {name: '张三', score: 5020, correctionScore: 1500, rate: 0.3},
-        {name: '张四', score: 4020, correctionScore: 3536, rate: 0.9},
-        {name: '张五', score: 0, correctionScore: 0, rate: 0.5}
-      ]
+      staffFlag: 'workPoint'
     };
   },
   directives: {
@@ -325,13 +318,6 @@ export default {
   },
   created() {
     this.initParams(this.$route);
-    this.staffData = this.staffData
-      .sort((a, b) => b.score - a.score)
-      .map(it => ({
-        ...it,
-        proportion: it.score / this.staffData[0].score
-      }))
-      .sort((a, b) => b.correctionScore - a.correctionScore);
   },
   computed: {
     overviewData() {
@@ -348,10 +334,16 @@ export default {
       };
     },
     staffCheckListData() {
-      return this.staffCheckListSeverData?.map(it => ({
-        ...it,
-        score: Number(it.score?.toFixed(2)) || 0
-      }));
+      return this.staffCheckListSeverData
+        ?.sort((a, b) => b.score - a.score)
+        .map(it => ({
+          ...it,
+          rate: it.rate || 1,
+          score: Number(it.score?.toFixed(2)) || 0,
+          correctionScore: Number((it.score * (it.rate || 1)).toFixed(2)),
+          proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
+        }))
+        .sort((a, b) => b.correctionScore - a.correctionScore);
     }
   },
   asyncComputed: {
