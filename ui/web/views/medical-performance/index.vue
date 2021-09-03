@@ -760,6 +760,7 @@ export default {
     justify-content: space-around;
     font-size: 16px;
     background: #dae0f2;
+    border-bottom: 1px solid #ebeef5;
     .tab,
     .tab-select {
       width: 50%;
