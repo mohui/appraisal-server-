@@ -46,7 +46,7 @@ export default {
               rich: {
                 b: {fontSize: 14, color: '#aaa'},
                 c: {fontSize: 22, lineHeight: 30},
-                d: {fontSize: 14, color: '#96c9ff'}
+                d: {fontSize: 14, color: '#5168f6'}
               }
             },
             emphasis: {

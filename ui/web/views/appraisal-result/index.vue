@@ -203,7 +203,7 @@
                   </p>
                   <twoCardPie
                     :pie-data="faceCollectData"
-                    :color="['#409EFF', '#96c9ff']"
+                    :color="['#5168f6', '#5168f6cc']"
                   ></twoCardPie>
                 </div>
               </el-card>

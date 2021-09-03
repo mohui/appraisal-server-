@@ -134,7 +134,7 @@ export default {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: {
-              color: '#43A7FF',
+              color: '#5168f6',
               borderRadius: 2
             },
             type: 'bar',

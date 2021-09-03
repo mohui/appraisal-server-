@@ -765,7 +765,7 @@ export default {
         margin: 0 10px;
         .icon {
           font-size: 36px;
-          color: #409eff;
+          color: #71a0fd;
         }
       }
     }
