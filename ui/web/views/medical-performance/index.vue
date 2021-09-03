@@ -106,6 +106,9 @@
               </div>
             </div>
             <div class="content">
+              <div class="top-container">
+                <div>当前月工作总量：{{ overviewData.originalScore }}分</div>
+              </div>
               <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
                 <div class="rank-box">
                   <div
@@ -792,6 +795,12 @@ export default {
     padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
+    .top-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 10px;
+    }
     .rank-box {
       .cell {
         padding: 10px;
