@@ -754,7 +754,7 @@ export default {
   color: #3a3f62;
   font-size: 14px;
   .staff-tabs {
-    height: 40px;
+    height: 60px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -765,7 +765,7 @@ export default {
       width: 50%;
       height: 100%;
       text-align: center;
-      line-height: 40px;
+      line-height: 60px;
     }
     .tab-select {
       background: #ffffff;
@@ -773,7 +773,7 @@ export default {
   }
   .content {
     padding: 10px;
-    height: calc(60vh - 60px);
+    height: calc(60vh - 80px);
     overflow-y: scroll;
     .rank-box {
       .cell {
@@ -809,14 +809,15 @@ export default {
 .workbench-container {
   height: 60vh;
   .workbench-header {
-    height: 20px;
+    height: 40px;
+    line-height: 40px;
     border-bottom: 1px solid #ebeef5;
     padding: 10px;
     color: #3a3f62;
   }
   .content {
     padding: 10px;
-    height: calc(60vh - 60px);
+    height: calc(60vh - 80px);
     overflow-y: scroll;
     .square {
       position: relative;
