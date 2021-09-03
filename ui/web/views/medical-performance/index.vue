@@ -121,7 +121,7 @@
                           :style="{
                             width: `${i.proportion * 100}%`
                           }"
-                          :stroke-width="8"
+                          :stroke-width="16"
                           :percentage="i.rate * 100"
                           :show-text="false"
                           :color="
