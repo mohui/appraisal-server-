@@ -116,7 +116,7 @@
                     <div class="ranking">{{ index + 1 }}</div>
                     <div class="container">
                       <div class="name">{{ i.name }}</div>
-                      <div class="progress">
+                      <div class="progress el-progress-staff-cell">
                         <el-progress
                           :style="{
                             width: `${i.proportion * 100}%`
@@ -666,6 +666,13 @@ export default {
   }
   tr {
     pointer-events: none;
+  }
+}
+.el-progress-staff-cell {
+  .el-progress-bar__outer,
+  .el-progress-bar__inner {
+    /*圆角*/
+    border-radius: 2px;
   }
 }
 </style>
