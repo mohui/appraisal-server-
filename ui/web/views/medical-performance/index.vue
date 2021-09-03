@@ -127,7 +127,7 @@
                         <el-progress
                           v-if="i.score > 0"
                           class="progress"
-                          stroke-width="8"
+                          :stroke-width="8"
                           :percentage="(i.correctionScore / i.score) * 100"
                           :show-text="false"
                           :color="
