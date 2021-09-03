@@ -773,12 +773,12 @@ export default {
     }
   }
   .content {
-    padding: 0 10px;
-    height: calc(60vh - 40px);
+    padding: 10px;
+    height: calc(60vh - 60px);
     overflow-y: scroll;
     .rank-box {
       .cell {
-        margin: 20px 0;
+        padding: 10px;
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -814,10 +814,10 @@ export default {
     border-bottom: 1px solid #ebeef5;
     padding: 10px;
     color: #3a3f62;
-    //background: #91cc75;
   }
   .content {
-    height: calc(60vh - 40px);
+    padding: 10px;
+    height: calc(60vh - 60px);
     overflow-y: scroll;
     .square {
       position: relative;
