@@ -357,7 +357,7 @@
             style="margin-bottom: 10px;"
           >
             <el-card shadow="hover">
-              <div style="height: 650px; text-align: center">
+              <div style="height: 560px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
@@ -1158,7 +1158,7 @@ export default {
 
 .score-detail {
   position: relative;
-  height: 250px;
+  height: 260px;
   text-align: center;
   box-sizing: border-box;
   color: $color-primary;
