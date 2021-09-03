@@ -734,10 +734,11 @@ export default {
   .title-box {
     display: flex;
     flex-direction: row;
+    align-items: center;
     .title {
       writing-mode: vertical-lr;
-      letter-spacing: 0.1em;
-      font-size: 15px;
+      letter-spacing: 0.3em;
+      font-size: 17px;
     }
   }
   .item-content {
@@ -746,17 +747,19 @@ export default {
     flex-direction: column;
     color: #3a3f62;
     .indicators-name {
-      font-size: 14px;
+      font-size: 15px;
+      padding: 10px;
     }
     .indicators-content {
       flex: 1;
       display: flex;
       flex-direction: row;
       align-items: center;
+      padding: 10px 0 20px 0;
       .number {
         text-align: center;
         flex: 1;
-        font-size: 26px;
+        font-size: 28px;
       }
       .icon-box {
         margin: 0 10px;
@@ -771,7 +774,7 @@ export default {
 .staff-container {
   height: 60vh;
   color: #3a3f62;
-  font-size: 14px;
+  font-size: 15px;
   .staff-tabs {
     height: 60px;
     display: flex;
@@ -846,6 +849,7 @@ export default {
     border-bottom: 1px solid #ebeef5;
     padding: 10px;
     color: #3a3f62;
+    font-size: 18px;
   }
   .content {
     padding: 10px;
