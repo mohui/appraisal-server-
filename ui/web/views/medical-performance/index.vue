@@ -773,7 +773,9 @@ export default {
     }
   }
   .content {
-    padding: 10px;
+    padding: 0 10px;
+    height: calc(60vh - 40px);
+    overflow-y: scroll;
     .rank-box {
       .cell {
         margin: 20px 0;
