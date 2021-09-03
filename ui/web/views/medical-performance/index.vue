@@ -125,11 +125,20 @@
                         }"
                       >
                         <el-progress
-                          class="progress"
                           v-if="i.score > 0"
+                          class="progress"
                           stroke-width="8"
                           :percentage="(i.correctionScore / i.score) * 100"
                           :show-text="false"
+                          :color="
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                          "
                         ></el-progress>
                       </div>
                     </div>
