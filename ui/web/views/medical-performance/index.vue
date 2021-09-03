@@ -135,7 +135,19 @@
                           "
                         ></el-progress>
                       </div>
-                      <div class="text">
+                      <div
+                        class="text"
+                        :style="{
+                          color:
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                        }"
+                      >
                         {{ i.correctionScore }}/{{ i.score }}
                       </div>
                     </div>
