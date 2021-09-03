@@ -277,7 +277,7 @@
                     style="height: 100%"
                   >
                     <doctor-bar
-                      style="padding-top: 30px;"
+                      style="padding-top: 20px;"
                       :bar-data="familyDoctorContractData"
                     ></doctor-bar>
                   </div>
