@@ -106,7 +106,7 @@
               </div>
             </div>
             <div class="content">
-              <div v-if="staffFlag === 'workPoint'">
+              <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
                 <div class="rank-box">
                   <div
                     v-for="(i, index) of staffCheckListData"
@@ -145,7 +145,6 @@
                   </div>
                 </div>
               </div>
-              <div v-if="staffFlag === 'rate'">员工质量系数排名内容</div>
             </div>
           </div>
         </el-col>
