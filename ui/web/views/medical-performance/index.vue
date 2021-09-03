@@ -115,18 +115,12 @@
                   >
                     <div class="ranking">{{ index + 1 }}</div>
                     <div class="container">
-                      <div class="describe">
-                        <div>{{ i.name }}</div>
-                        <div>{{ i.correctionScore }}/{{ i.score }}</div>
-                      </div>
-                      <div
-                        :style="{
-                          width: `${i.proportion * 100}%`
-                        }"
-                      >
+                      <div class="name">{{ i.name }}</div>
+                      <div class="progress">
                         <el-progress
-                          v-if="i.score > 0"
-                          class="progress"
+                          :style="{
+                            width: `${i.proportion * 100}%`
+                          }"
                           :stroke-width="8"
                           :percentage="i.rate * 100"
                           :show-text="false"
@@ -140,6 +134,9 @@
                               : '#ff56a9'
                           "
                         ></el-progress>
+                      </div>
+                      <div class="text">
+                        {{ i.correctionScore }}/{{ i.score }}
                       </div>
                     </div>
                   </div>
@@ -794,13 +791,19 @@ export default {
         }
         .container {
           width: 100%;
-          .describe {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          .name {
+            width: 45px;
           }
           .progress {
-            margin-top: 10px;
+            flex: 1;
+            margin: 0 10px;
+          }
+          .text {
+            width: 100px;
+            text-align: right;
           }
         }
       }
