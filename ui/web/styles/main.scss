@@ -13,7 +13,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #f5faff;
+  background: #f5f5fa;
 }
 
 hr {
@@ -79,6 +79,12 @@ h1, h2, h3, h4, h5, h6, p, a {
 //按钮半圆角样式
 .el-button {
   border-radius: 100px;
+  &.el-button--primary {
+    background-image: linear-gradient(to right, $color-left, $color-right);
+  }
+  &.is-plain {
+    background-image: inherit;
+  }
 }
 //头部标题栏样式
 .jx-header {
@@ -104,6 +110,7 @@ h1, h2, h3, h4, h5, h6, p, a {
 }
 //圆形按钮统一样式
 .el-button.is-circle {
+  background-image: inherit;
   background-color: #f4f7fe;
   border-color: #f4f7fe;
   i {
