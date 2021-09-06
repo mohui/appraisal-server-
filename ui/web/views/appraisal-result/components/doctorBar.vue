@@ -134,7 +134,10 @@ export default {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: {
-              color: '#5168f6',
+              color: this.$echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                {offset: 0, color: '#4e89ff'},
+                {offset: 1, color: '#5168f6'}
+              ]),
               borderRadius: 2
             },
             type: 'bar',

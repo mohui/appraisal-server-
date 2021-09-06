@@ -52,7 +52,10 @@ export default {
             radius: '60%',
             center: ['50%', '55%'],
             itemStyle: {
-              color: this.color
+              color: this.$echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                {offset: 0, color: '#4e89ff'},
+                {offset: 1, color: '#5168f6'}
+              ])
             },
             progress: {
               show: true,
