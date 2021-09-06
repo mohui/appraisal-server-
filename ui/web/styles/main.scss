@@ -123,3 +123,14 @@ h1, h2, h3, h4, h5, h6, p, a {
     }
   }
 }
+//按钮的阴影+点击效果
+.el-button {
+  &:not(.is-circle):not(.el-button--text) {
+    box-shadow: 2px 2px 2px #dfdfdf;
+    &:active:focus {
+      box-shadow: 0 0 0;
+      transition: all 0.2s;
+      transform: translate(2px, 2px);
+    }
+  }
+}
