@@ -1,21 +1,12 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      v-loading="isLoading"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>{{ standardName }}</span>
+  <div v-loading="isLoading" class="flex-column-layout">
+    <div class="jx-header">
+      <div>
+        <span class="header-title">{{ standardName }}</span>
         <el-select
+          v-model="year"
           style="margin:0 20px"
           size="mini"
-          v-model="year"
           placeholder="请选择考核年度"
           @change="handleYearChange()"
         >
@@ -28,118 +19,117 @@
           </el-option>
         </el-select>
         <el-button
-          plain
-          style="margin: -9px 20px;"
+          style="margin: 0 20px;"
           type="primary"
           size="mini"
           @click="dataDownload"
           >导出数据
         </el-button>
         <el-button
-          plain
-          style="margin: -9px 20px;"
+          style="margin: 0 20px;"
           type="primary"
           size="mini"
           @click="dialogImportVisible = true"
           >批量导入数据
         </el-button>
-        <el-button
-          style="float: right;margin: -9px;"
-          type="primary"
-          @click="
-            $router.push({
-              name: 'basic-data'
-            })
-          "
-          >返回
-        </el-button>
       </div>
-      <div
-        v-if="isImportTable"
-        style="height: 100%; display: flex; justify-content: center; align-items: center"
-      >
-        <el-button plain type="primary" @click="handleImportData"
-          >导入上年度数据
-        </el-button>
-      </div>
-      <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0px;">
-        <div v-for="(item, i) of listData" :key="i" style="">
-          <p>{{ i + 1 }} {{ item.name }}</p>
-          <el-table
-            stripe
-            size="mini"
-            :data="item.child"
-            border
-            highlight-current-row
+      <el-button
+        type="primary"
+        size="mini"
+        plain
+        @click="
+          $router.push({
+            name: 'basic-data'
+          })
+        "
+        >返回
+      </el-button>
+    </div>
+    <div
+      v-if="isImportTable"
+      style="height: 100%; display: flex; justify-content: center; align-items: center"
+    >
+      <el-button plain type="primary" @click="handleImportData"
+        >导入上年度数据
+      </el-button>
+    </div>
+    <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0;">
+      <div v-for="(item, i) of listData" :key="i" style="">
+        <p>{{ i + 1 }} {{ item.name }}</p>
+        <el-table
+          stripe
+          size="mini"
+          :data="item.child"
+          border
+          highlight-current-row
+        >
+          <el-table-column
+            label="序号"
+            type="index"
+            width="50"
+            align="center"
+            fixed="left"
+          ></el-table-column>
+          <el-table-column prop="name" align="center" label="机构名称">
+          </el-table-column>
+          <el-table-column
+            v-for="(field, index) of curTag"
+            :key="index"
+            :label="field.name"
+            align="center"
           >
-            <el-table-column
-              label="序号"
-              type="index"
-              width="50"
-              align="center"
-              fixed="left"
-            ></el-table-column>
-            <el-table-column prop="name" align="center" label="机构名称">
-            </el-table-column>
-            <el-table-column
-              v-for="(field, index) of curTag"
-              :key="index"
-              :label="field.name"
-              align="center"
-            >
-              <template slot-scope="scope">
-                <el-input
-                  v-if="scope.row.active"
-                  size="small"
-                  @focus="scope.row[field.code].active = true"
-                  v-model="scope.row[field.code].value"
-                  placeholder="请输入"
-                ></el-input>
-                <span v-else>{{ scope.row[field.code].value }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" align="center" label="编辑时间">
-              <template slot-scope="scope">
-                {{ scope.row.updated_at }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="editor" align="center" label="编辑人">
-            </el-table-column>
-            <el-table-column width="180" label="操作" align="center">
-              <template slot-scope="scope">
-                <el-button
-                  plain
-                  v-if="scope.row.active"
-                  type="success"
-                  size="mini"
-                  @click="updateTaskCount(scope.row)"
-                >
-                  保存
-                </el-button>
-                <el-button
-                  plain
-                  v-if="scope.row.active"
-                  type="primary"
-                  size="mini"
-                  @click="cancelData(scope.row)"
-                >
-                  取消
-                </el-button>
-                <el-button
-                  plain
-                  v-else
-                  type="primary"
-                  size="mini"
-                  @click="edit(scope.row)"
-                >
-                  编辑
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
+            <template slot-scope="scope">
+              <el-input
+                v-if="scope.row.active"
+                size="small"
+                @focus="scope.row[field.code].active = true"
+                v-model="scope.row[field.code].value"
+                placeholder="请输入"
+              ></el-input>
+              <span v-else>{{ scope.row[field.code].value }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" align="center" label="编辑时间">
+            <template slot-scope="scope">
+              {{ scope.row.updated_at }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="editor" align="center" label="编辑人">
+          </el-table-column>
+          <el-table-column width="180" label="操作" align="center">
+            <template slot-scope="scope">
+              <el-button
+                plain
+                v-if="scope.row.active"
+                type="success"
+                size="mini"
+                @click="updateTaskCount(scope.row)"
+              >
+                保存
+              </el-button>
+              <el-button
+                plain
+                v-if="scope.row.active"
+                type="primary"
+                size="mini"
+                @click="cancelData(scope.row)"
+              >
+                取消
+              </el-button>
+              <el-button
+                plain
+                v-else
+                type="primary"
+                size="mini"
+                @click="edit(scope.row)"
+              >
+                编辑
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
-    </el-card>
+    </div>
     <el-dialog
       title="批量导入数据"
       :visible.sync="dialogImportVisible"
