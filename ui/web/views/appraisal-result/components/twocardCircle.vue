@@ -55,7 +55,9 @@ export default {
               color: this.$echarts.graphic.LinearGradient(1, 0, 0, 0, [
                 {offset: 0, color: '#4e89ff'},
                 {offset: 1, color: '#5168f6'}
-              ])
+              ]),
+              shadowColor: '#5168f6',
+              shadowBlur: 10
             },
             progress: {
               show: true,
