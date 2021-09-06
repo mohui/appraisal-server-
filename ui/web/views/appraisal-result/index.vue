@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card
+      <div
         v-if="params.listFlag === 'quality'"
         v-sticky
         v-loading="
@@ -11,49 +11,44 @@
         "
         class="header-box-card"
         shadow="never"
+        style="align-items: center"
       >
-        <el-col :span="8" :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
-          <span class="header-title">
-            {{ totalData.name }}
-          </span>
-        </el-col>
-        <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
+        <div class="header-title">
+          {{ totalData.name }}
+        </div>
+        <div style="display: flex; align-items: center">
           <!--年度选择-->
-          <span style="margin:0 20px 10px 0;display: inline-block;">
-            <el-select
-              v-if="!$settings.isMobile"
-              v-model="params.year"
-              size="small"
-              placeholder="请选择考核年度"
-              @change="handleYearChange(params.year)"
-            >
-              <el-option
-                v-for="item in yearList"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
-            <select
-              v-if="$settings.isMobile"
-              v-model="params.year"
-              style="height: 32px; line-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; padding: 0 15px;"
-              @change="handleYearChange(params.year)"
-            >
-              <option
-                v-for="item in yearList"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
-          </span>
-          <span
+          <el-select
             v-if="!$settings.isMobile"
-            style="margin:0 50px 10px 0;display: inline-block;"
+            v-model="params.year"
+            size="small"
+            placeholder="请选择考核年度"
+            @change="handleYearChange(params.year)"
+            style="margin: 0 10px"
           >
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+          <select
+            v-if="$settings.isMobile"
+            v-model="params.year"
+            style="height: 32px; line-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; padding: 0 15px;"
+            @change="handleYearChange(params.year)"
+          >
+            <option
+              v-for="item in yearList"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.label }}
+            </option>
+          </select>
+          <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               plain
               size="small"
@@ -65,11 +60,8 @@
               "
               >考核共识下载</el-button
             >
-          </span>
-          <span
-            v-if="!$settings.isMobile"
-            style="margin:0 20px 10px 0;display: inline-block;"
-          >
+          </div>
+          <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               size="small"
               type="primary"
@@ -102,7 +94,7 @@
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-          </span>
+          </div>
           <el-button
             v-if="showBackButton()"
             style="float:right; margin: 4px 0 10px 30px"
@@ -111,17 +103,18 @@
             @click="handleBack"
             >返回上级
           </el-button>
-        </el-col>
-      </el-card>
+        </div>
+      </div>
       <div v-if="params.listFlag === 'score'">
-        <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
-        <el-button
-          size="small"
-          style="float:right; margin: 5px 0 10px 0;"
-          type="primary"
-          @click="latTypeChanged('quality')"
-          >关闭
-        </el-button>
+        <div class="jx-header" style="align-items: center">
+          <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
+          <el-button
+            size="small"
+            type="primary"
+            @click="latTypeChanged('quality')"
+            >关闭
+          </el-button>
+        </div>
       </div>
       <!--自身考核结果-->
       <div>
@@ -1154,6 +1147,13 @@ export default {
 .header-box-card {
   width: auto;
   z-index: 2001 !important;
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 12px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  box-sizing: border-box;
 }
 
 .score-detail {
