@@ -1,11 +1,10 @@
 <template>
-  <div style="height: 100%;">
-    <el-card style="margin-bottom: 10px" shadow="never">
+  <div class="flex-column-layout">
+    <div class="jx-header" style="align-items: center">
+      <span>规则列表</span>
       <div>
-        <span>规则列表</span>
         <el-button
           :disabled="copyFromButtonDisabled"
-          style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
           @click="openCloneCheckDialog(copyFormData)"
@@ -14,20 +13,19 @@
         </el-button>
         <el-button
           v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
-          style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
           @click="openAddCheckDialog"
           >新建规则
         </el-button>
       </div>
-    </el-card>
+    </div>
     <el-card
       class="box-card"
       style="height: 100%;"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 60px)',
         display: 'flex',
         'flex-direction': 'column',
         padding: $settings.isMobile ? '10px 0' : '20px'
