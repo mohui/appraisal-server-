@@ -1,17 +1,7 @@
 <template>
   <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
+    <el-card style="margin-bottom: 10px" shadow="never">
+      <div>
         <span>规则列表</span>
         <el-button
           :disabled="copyFromButtonDisabled"
@@ -31,16 +21,25 @@
           >新建规则
         </el-button>
       </div>
+    </el-card>
+    <el-card
+      class="box-card"
+      style="height: 100%;"
+      shadow="never"
+      :body-style="{
+        height: 'calc(100% - 110px)',
+        display: 'flex',
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
+      }"
+    >
       <el-table
-        stripe
-        border
         size="mini"
         :data="checkList"
         :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{
-          background: '#F3F4F7',
           color: '#555',
           textAlign: 'center'
         }"
@@ -60,7 +59,7 @@
         <el-table-column
           align="center"
           prop="checkYear"
-          :min-width="50"
+          :min-width="100"
           label="考核年度"
         ></el-table-column>
         <el-table-column
