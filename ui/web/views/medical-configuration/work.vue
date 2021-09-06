@@ -16,10 +16,10 @@
       style="height: 100%;flex: 1"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 1px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '0'
       }"
     >
       <el-table
@@ -27,7 +27,6 @@
         ref="workTable"
         :row-class-name="rowClassName"
         :key="symbolKey"
-        border
         class="work-table-expand"
         size="small"
         :data="reduceTableData"

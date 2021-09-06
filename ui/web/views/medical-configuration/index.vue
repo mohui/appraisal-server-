@@ -158,7 +158,6 @@
           <el-table
             v-loading="$asyncComputed.serverData.updating"
             stripe
-            border
             size="small"
             :data="data.subs"
             current-row-key="id"

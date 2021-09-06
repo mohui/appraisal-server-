@@ -16,13 +16,13 @@
     </div>
     <el-card
       class="box-card"
-      style="height: 100%;felx:1"
+      style="height: 100%;flex:1"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 10px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '10px 0 0 0'
       }"
     >
       <kn-collapse
@@ -75,7 +75,6 @@
         :key="symbolKey"
         v-loading="tableLoading"
         class="table-staff-department"
-        border
         size="small"
         :data="userList"
         height="100%"
