@@ -44,9 +44,9 @@ export default {
               position: 'center',
               formatter: ['{b|{b}}', '{c|{c}}', '{d|({d}%)}'].join('\n'),
               rich: {
-                b: {fontSize: 14, color: '#aaa'},
-                c: {fontSize: 22, lineHeight: 30},
-                d: {fontSize: 14, color: '#5168f6'}
+                b: {fontSize: 14, color: '#7a7d95'},
+                c: {fontSize: 22, lineHeight: 30, color: '#40415a'},
+                d: {fontSize: 14, color: '#7a7d95'}
               }
             },
             emphasis: {

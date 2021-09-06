@@ -54,9 +54,9 @@ export default {
             itemStyle: {
               color: this.$echarts.graphic.LinearGradient(1, 0, 0, 0, [
                 {offset: 0, color: '#4e89ff'},
-                {offset: 1, color: '#5168f6'}
+                {offset: 1, color: this.color}
               ]),
-              shadowColor: '#5168f6',
+              shadowColor: this.color,
               shadowBlur: 10
             },
             progress: {
@@ -81,13 +81,13 @@ export default {
             pointer: {show: false},
             title: {
               offsetCenter: [0, '40%'],
-              textStyle: {color: this.color, fontSize: '15'}
+              textStyle: {color: '#7a7d95', fontSize: '13'}
             },
             detail: {
               show: true,
               formatter: '{value}',
-              offsetCenter: [0, '-30%'],
-              textStyle: {color: this.color, fontSize: '30', fontWeight: '600'}
+              offsetCenter: [0, '-22%'],
+              textStyle: {color: '#40415a', fontSize: '26'}
             },
             data: [
               {
