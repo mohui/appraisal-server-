@@ -32,6 +32,7 @@
       }"
     >
       <el-table
+        class="check-table"
         size="mini"
         :data="checkList"
         :cell-class-name="cellClassHover"
@@ -901,10 +902,12 @@ export default {
 <style lang="scss">
 .check-title {
   cursor: pointer;
-
   :hover {
     color: #5168f6;
   }
+}
+.check-table.el-table--enable-row-hover .el-table__body tr:hover > td {
+  background-color: #eef2fe !important;
 }
 </style>
 <style scoped lang="scss">
