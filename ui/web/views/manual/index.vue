@@ -146,7 +146,6 @@ export default {
   },
   methods: {
     resetForm() {
-      this.$refs['manualForm'].resetFields();
       this.addManualVisible = false;
       this.newManual = {id: '', name: '', input: MD.PROP};
     },
