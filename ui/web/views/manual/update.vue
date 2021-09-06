@@ -281,14 +281,10 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="small" plain @click="dialogFormVisible = false">
+        <el-button plain @click="dialogFormVisible = false">
           取 消
         </el-button>
-        <el-button
-          size="small"
-          type="primary"
-          :loading="saveLoading"
-          @click="saveManual"
+        <el-button type="primary" :loading="saveLoading" @click="saveManual"
           >保存
         </el-button>
       </div>

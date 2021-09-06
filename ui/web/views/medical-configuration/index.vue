@@ -11,7 +11,7 @@
                 ? 'primary'
                 : 'default'
             "
-            size="mini"
+            size="small"
             @click="currentTarget = HisWorkScoreType.WORK_ITEM"
           >
             工分项
@@ -20,7 +20,7 @@
             :type="
               currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
             "
-            size="mini"
+            size="small"
             @click="currentTarget = HisWorkScoreType.STAFF"
           >
             员工
@@ -29,7 +29,7 @@
         <el-button
           style="margin-left: 20px"
           :type="expandAll ? 'warning' : 'default'"
-          size="mini"
+          size="small"
           @click="expandAll = !expandAll"
         >
           {{ expandAll ? '一键收起' : '一键展开' }}
@@ -73,7 +73,7 @@
         >
           <template slot="title">
             <div
-              style="display: flex;justify-content: space-between;width: 100%"
+              style="padding:20px;display: flex;justify-content: space-between;width: 100%"
             >
               <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
@@ -157,8 +157,6 @@
           </template>
           <el-table
             v-loading="$asyncComputed.serverData.updating"
-            stripe
-            border
             size="small"
             :data="data.subs"
             current-row-key="id"
@@ -664,7 +662,7 @@ export default {
 <style lang="scss" scoped>
 ::v-deep .el-card {
   > .el-card__body {
-    padding: 0 20px 20px 20px !important;
+    padding: 0 !important;
   }
 }
 </style>

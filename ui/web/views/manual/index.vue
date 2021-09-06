@@ -2,11 +2,7 @@
   <div class="flex-column-layout">
     <div class="jx-header">
       <span class="header-title">手工数据维护</span>
-      <el-button
-        style="float: right;margin: -4px 0 0 20px;"
-        size="small"
-        type="primary"
-        @click="addManual"
+      <el-button size="small" type="primary" @click="addManual"
         >添加项目
       </el-button>
     </div>
@@ -146,7 +142,6 @@ export default {
   },
   methods: {
     resetForm() {
-      this.$refs['manualForm'].resetFields();
       this.addManualVisible = false;
       this.newManual = {id: '', name: '', input: MD.PROP};
     },
@@ -221,11 +216,12 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../styles/vars';
 .manual-name {
   cursor: pointer;
 
   :hover {
-    color: #1a95d7;
+    color: $color-primary;
   }
 }
 </style>

@@ -3,11 +3,11 @@
     <div class="jx-header">
       <span class="header-title">His员工绑定列表</span>
       <div>
-        <el-button size="mini" type="primary" @click="openAddUserDialog"
+        <el-button size="small" type="primary" @click="openAddUserDialog"
           >新建用户
         </el-button>
         <el-button
-          size="mini"
+          size="small"
           type="warning"
           @click="addDepartmentVisible = true"
           >新增科室
@@ -16,13 +16,13 @@
     </div>
     <el-card
       class="box-card"
-      style="height: 100%;felx:1"
+      style="height: 100%;flex:1"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 10px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '10px 0 0 0'
       }"
     >
       <kn-collapse
@@ -59,11 +59,11 @@
               <el-form-item label="">
                 <el-button
                   type="primary"
-                  size="mini"
+                  size="small"
                   @click="$asyncComputed.listMember.update()"
                   >查询</el-button
                 >
-                <el-button type="primary" size="mini" @click="reset">
+                <el-button type="primary" size="small" @click="reset">
                   重置
                 </el-button>
               </el-form-item>
@@ -75,7 +75,6 @@
         :key="symbolKey"
         v-loading="tableLoading"
         class="table-staff-department"
-        border
         size="small"
         :data="userList"
         height="100%"
@@ -146,13 +145,13 @@
         <el-table-column label="操作" min-width="160">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
-              <el-button type="primary" size="mini" @click="editUser(row)">
+              <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
               <el-button
                 :disabled="row.removeLoading"
                 :icon="row.removeLoading ? 'el-icon-loading' : ''"
-                size="mini"
+                size="small"
                 type="danger"
                 @click="delUser(row)"
               >
@@ -315,12 +314,12 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="dialogFormEditUsersVisible = false"
+        <el-button size="small" @click="dialogFormEditUsersVisible = false"
           >取 消</el-button
         >
         <el-button
           v-loading="updateLoading"
-          size="mini"
+          size="small"
           type="primary"
           @click="updateUser"
           >确 定</el-button
@@ -342,9 +341,9 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="resetDepartmentForm()">取 消</el-button>
+        <el-button size="small" @click="resetDepartmentForm()">取 消</el-button>
         <el-button
-          size="mini"
+          size="small"
           type="primary"
           :disabled="!departmentForm.name"
           @click="submitDepartment()"

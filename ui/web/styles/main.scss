@@ -90,9 +90,10 @@ h1, h2, h3, h4, h5, h6, p, a {
 .jx-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: 10px 0;
   background-color: #fff;
-  padding: 12px 20px;
+  padding: 18px 20px;
   border-radius: 5px;
   border: 1px solid #ebeef5;
   box-sizing: border-box;
@@ -120,6 +121,46 @@ h1, h2, h3, h4, h5, h6, p, a {
     background-color: $color-primary;
     i {
       color: #fff;
+    }
+  }
+}
+//按钮的阴影+点击效果
+.el-button {
+  &:not(.is-circle):not(.el-button--text) {
+    box-shadow: 2px 2px 2px #dfdfdf;
+    &:active:focus {
+      box-shadow: 0 0 0;
+      transition: all 0.2s;
+      transform: translate(2px, 2px);
+    }
+  }
+}
+//调整$confirm提示样式
+.el-message-box {
+  text-align: center;
+  .el-message-box__title {
+    margin-top: 2rem;
+  }
+  .el-message-box__status {
+    display: none;
+  }
+  .el-message-box__message {
+    padding-left: 12px;
+  }
+  .el-message-box__btns {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    padding-bottom: 15px;
+    .el-button {
+      display: block;
+      margin: 5px auto;
+      min-width: 80px;
+      &:first-child {
+        border: 0;
+        box-shadow: none;
+        color: $color-primary;
+      }
     }
   }
 }
