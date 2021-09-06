@@ -334,8 +334,10 @@
                 <el-button
                   :class="{
                     'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.SUM
+                      newWork.scoreMethod === HisWorkMethod.SUM,
+                    'work-method-btn': true
                   }"
+                  plain
                   size="mini"
                   @click="newWork.scoreMethod = HisWorkMethod.SUM"
                 >
@@ -344,8 +346,10 @@
                 <el-button
                   :class="{
                     'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT,
+                    'work-method-btn': true
                   }"
+                  plain
                   size="mini"
                   @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
                 >
@@ -1061,6 +1065,9 @@ export default {
 .dialog-form {
   max-height: 60vh;
   padding: 0 30px;
+}
+.work-method-btn {
+  border-radius: 4px;
 }
 </style>
 <style lang="scss">
