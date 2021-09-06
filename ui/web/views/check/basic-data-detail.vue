@@ -173,12 +173,7 @@
         <el-button plain @click="dialogImportVisible = false">
           取 消
         </el-button>
-        <el-button
-          plain
-          type="primary"
-          @click="dataImport"
-          :loading="importLoading"
-        >
+        <el-button :loading="importLoading" type="primary" @click="dataImport">
           确 定
         </el-button>
       </div>
