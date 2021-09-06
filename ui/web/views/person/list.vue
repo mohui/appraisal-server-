@@ -572,6 +572,7 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../styles/vars';
 .scrollbar {
   height: 52px;
   .el-scrollbar__wrap {
@@ -582,7 +583,7 @@ export default {
   cursor: pointer;
 
   :hover {
-    color: #1a95d7;
+    color: $color-primary;
   }
 }
 .person-pagination {

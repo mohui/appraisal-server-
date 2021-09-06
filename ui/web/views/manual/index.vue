@@ -221,11 +221,12 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../styles/vars';
 .manual-name {
   cursor: pointer;
 
   :hover {
-    color: #1a95d7;
+    color: $color-primary;
   }
 }
 </style>
