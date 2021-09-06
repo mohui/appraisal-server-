@@ -159,27 +159,26 @@
                     <div class="second-title" style="text-align:left">
                       工分值
                     </div>
-                    <div style="color: #6C7177; font-size:16px; margin:10px 0;">
+                    <div style="margin:20px 0 10px 0;">
                       校正后
                     </div>
                     <div
-                      style="font-size: 30px; margin:0; display:inline-block; font-weight: bold"
+                      style="color: #40415a; font-size: 28px; margin:10px; display:inline-block; font-weight: bold"
                     >
-                      {{ totalData.correctWorkPoint | fixedDecimal }}
+                      {{ totalData.correctWorkPoint | fixedDecimal }}分
                     </div>
-                    <span>分</span>
-                    <div style="font-size:16px; margin: 10px 0">
+                    <div style="margin: 10px">
                       {{ totalData.name }}
                     </div>
-                    <div style="padding-top: 10px; font-size:14px">
-                      <div>
-                        <div>
-                          校正前总工分： {{ totalData.totalWorkPoint }}分
-                        </div>
-                      </div>
-                      <div>
-                        <div>参与校正工分： {{ totalData.workPoint }}分</div>
-                      </div>
+                    <div
+                      style="margin: 40px 0 10px 0; display: flex; flex-direction: row; justify-content: center; align-items: center; font-size: 12px;"
+                    >
+                      <div>校正前总工分： {{ totalData.totalWorkPoint }}分</div>
+                      <div
+                        style="padding: 0 20px; font-size: 16px"
+                        class="el-icon-close"
+                      ></div>
+                      <div>参与校正工分： {{ totalData.workPoint }}分</div>
                     </div>
                   </div>
                 </el-tooltip>
@@ -1160,7 +1159,8 @@ export default {
   height: 260px;
   text-align: center;
   box-sizing: border-box;
-  color: $color-primary;
+  color: #7a7d95;
+  font-size: 14px;
 }
 
 .family-doctor {
