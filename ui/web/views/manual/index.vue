@@ -2,11 +2,7 @@
   <div class="flex-column-layout">
     <div class="jx-header">
       <span class="header-title">手工数据维护</span>
-      <el-button
-        style="float: right;margin: -4px 0 0 20px;"
-        size="small"
-        type="primary"
-        @click="addManual"
+      <el-button size="small" type="primary" @click="addManual"
         >添加项目
       </el-button>
     </div>
