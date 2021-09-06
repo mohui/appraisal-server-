@@ -1,7 +1,7 @@
 <template>
   <div class="flex-column-layout">
     <div class="jx-header" style="align-items: center">
-      <span>规则列表</span>
+      <div class="header-title">规则列表</div>
       <div>
         <el-button
           :disabled="copyFromButtonDisabled"
@@ -38,8 +38,11 @@
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{
-          color: '#555',
+          color: '#40415a',
           textAlign: 'center'
+        }"
+        :cell-style="{
+          color: '#40415a'
         }"
         @row-click="handleCellClick"
       >
@@ -900,7 +903,7 @@ export default {
   cursor: pointer;
 
   :hover {
-    color: #1a95d7;
+    color: #5168f6;
   }
 }
 </style>
