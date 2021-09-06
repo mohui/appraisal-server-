@@ -105,9 +105,14 @@
                 员工质量系数排名
               </div>
             </div>
-            <div class="content">
+            <div
+              class="content"
+              v-loading="$asyncComputed.staffCheckListSeverData.updating"
+            >
               <div class="top-container">
-                <div>当前月工作总量：{{ overviewData.originalScore }}分</div>
+                <div v-loading="$asyncComputed.overviewServerData.updating">
+                  当前月工作总量：{{ overviewData.originalScore }}分
+                </div>
               </div>
               <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
                 <div class="rank-box">
