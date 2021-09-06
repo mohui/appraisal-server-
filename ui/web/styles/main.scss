@@ -134,3 +134,32 @@ h1, h2, h3, h4, h5, h6, p, a {
     }
   }
 }
+//调整$confirm提示样式
+.el-message-box {
+  text-align: center;
+  .el-message-box__title {
+    margin-top: 2rem;
+  }
+  .el-message-box__status {
+    display: none;
+  }
+  .el-message-box__message {
+    padding-left: 12px;
+  }
+  .el-message-box__btns {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    padding-bottom: 15px;
+    .el-button {
+      display: block;
+      margin: 5px auto;
+      min-width: 80px;
+      &:first-child {
+        border: 0;
+        box-shadow: none;
+        color: $color-primary;
+      }
+    }
+  }
+}
