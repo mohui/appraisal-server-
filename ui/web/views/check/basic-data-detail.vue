@@ -98,33 +98,44 @@
           </el-table-column>
           <el-table-column width="180" label="操作" align="center">
             <template slot-scope="scope">
-              <el-button
-                plain
+              <el-tooltip
                 v-if="scope.row.active"
-                type="success"
-                size="mini"
-                @click="updateTaskCount(scope.row)"
+                content="保存"
+                :enterable="false"
               >
-                保存
-              </el-button>
-              <el-button
-                plain
+                <el-button
+                  type="success"
+                  icon="el-icon-check"
+                  circle
+                  size="mini"
+                  @click="updateTaskCount(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
                 v-if="scope.row.active"
-                type="primary"
-                size="mini"
-                @click="cancelData(scope.row)"
+                content="取消编辑"
+                :enterable="false"
               >
-                取消
-              </el-button>
-              <el-button
-                plain
-                v-else
-                type="primary"
-                size="mini"
-                @click="edit(scope.row)"
-              >
-                编辑
-              </el-button>
+                <el-button
+                  type="default"
+                  icon="el-icon-close"
+                  circle
+                  size="mini"
+                  @click="cancelData(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
+              <el-tooltip v-else content="编辑" :enterable="false">
+                <el-button
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
+                  size="mini"
+                  @click="edit(scope.row)"
+                >
+                </el-button>
+              </el-tooltip>
             </template>
           </el-table-column>
         </el-table>
