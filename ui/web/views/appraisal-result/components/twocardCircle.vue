@@ -34,9 +34,9 @@ export default {
           show: true,
           text: '质量系数(%)',
           textStyle: {
-            fontSize: 18,
-            fontWeight: 'bolder',
-            color: this.color
+            fontSize: 16,
+            fontWeight: 'normal',
+            color: '#40415a'
           }
         },
         tooltip: {formatter: '{a} <br/>{b} : {c}%'},

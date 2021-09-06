@@ -1133,9 +1133,8 @@ export default {
 }
 
 .second-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: $color-primary;
+  font-size: 16px;
+  color: #40415a;
 }
 
 .header-title {
