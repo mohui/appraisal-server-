@@ -73,7 +73,7 @@
         >
           <template slot="title">
             <div
-              style="display: flex;justify-content: space-between;width: 100%"
+              style="padding:20px;display: flex;justify-content: space-between;width: 100%"
             >
               <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
@@ -157,7 +157,6 @@
           </template>
           <el-table
             v-loading="$asyncComputed.serverData.updating"
-            stripe
             size="small"
             :data="data.subs"
             current-row-key="id"
@@ -663,7 +662,7 @@ export default {
 <style lang="scss" scoped>
 ::v-deep .el-card {
   > .el-card__body {
-    padding: 0 20px 20px 20px !important;
+    padding: 0 !important;
   }
 }
 </style>
