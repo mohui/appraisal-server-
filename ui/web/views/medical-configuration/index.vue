@@ -11,7 +11,7 @@
                 ? 'primary'
                 : 'default'
             "
-            size="mini"
+            size="small"
             @click="currentTarget = HisWorkScoreType.WORK_ITEM"
           >
             工分项
@@ -20,7 +20,7 @@
             :type="
               currentTarget === HisWorkScoreType.STAFF ? 'primary' : 'default'
             "
-            size="mini"
+            size="small"
             @click="currentTarget = HisWorkScoreType.STAFF"
           >
             员工
@@ -29,7 +29,7 @@
         <el-button
           style="margin-left: 20px"
           :type="expandAll ? 'warning' : 'default'"
-          size="mini"
+          size="small"
           @click="expandAll = !expandAll"
         >
           {{ expandAll ? '一键收起' : '一键展开' }}

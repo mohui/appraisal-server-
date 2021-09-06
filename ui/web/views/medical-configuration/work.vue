@@ -3,10 +3,10 @@
     <div slot="header" class="jx-header">
       <span class="header-title">工分项设置</span>
       <div>
-        <el-button size="mini" type="warning" @click="itemTypeVisible = true"
+        <el-button size="small" type="warning" @click="itemTypeVisible = true"
           >新增分类</el-button
         >
-        <el-button size="mini" type="primary" @click="addWorkVisible = true"
+        <el-button size="small" type="primary" @click="addWorkVisible = true"
           >新增工分项</el-button
         >
       </div>
@@ -199,7 +199,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   本人
                 </el-button>
@@ -209,7 +209,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   本人所在科室
                 </el-button>
@@ -218,7 +218,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   机构全体员工
                 </el-button>
@@ -236,7 +236,7 @@
                       ? 'primary'
                       : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   其他固定配置
                 </el-button>
@@ -338,7 +338,7 @@
                     'work-method-btn': true
                   }"
                   plain
-                  size="mini"
+                  size="small"
                   @click="newWork.scoreMethod = HisWorkMethod.SUM"
                 >
                   {{ HisWorkMethod.SUM }}
@@ -350,7 +350,7 @@
                     'work-method-btn': true
                   }"
                   plain
-                  size="mini"
+                  size="small"
                   @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
                 >
                   {{ HisWorkMethod.AMOUNT }}
@@ -379,12 +379,15 @@
         <work-preview :config="previewConfig" v-if="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{
-          isPreView ? '取消预览' : '预览'
-        }}</el-button>
+        <el-button
+          size="small"
+          type="warning"
+          @click="isPreView = !isPreView"
+          >{{ isPreView ? '取消预览' : '预览' }}</el-button
+        >
         <el-button
           v-show="!isPreView"
-          size="mini"
+          size="small"
           @click="resetConfig('workForm')"
           >取 消</el-button
         >
@@ -392,7 +395,7 @@
           v-show="!isPreView"
           v-loading="addBtnLoading"
           class="work-submit-loading"
-          size="mini"
+          size="small"
           type="primary"
           @click="submit()"
         >
@@ -415,13 +418,13 @@
       </el-select>
 
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="resetConfig('workForm')"
+        <el-button size="small" @click="resetConfig('workForm')"
           >取 消</el-button
         >
         <el-button
           v-loading="addBtnLoading"
           class="work-submit-loading"
-          size="mini"
+          size="small"
           type="primary"
           @click="submitMove()"
         >
