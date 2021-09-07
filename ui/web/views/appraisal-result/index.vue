@@ -299,20 +299,17 @@
                         class="appraisal-result-health-education-table"
                         style="width: 100%"
                         size="mini"
+                        :cell-style="{color: '#9198bb'}"
                       >
                         <el-table-column
                           prop="time"
-                          header-align="center"
-                          align="center"
-                          min-width="20px"
+                          width="110px"
                           label="活动时间"
                         >
                         </el-table-column>
                         <el-table-column
                           prop="name"
-                          header-align="center"
-                          align="center"
-                          min-width="40px"
+                          min-width="110px"
                           label="活动名称"
                         >
                         </el-table-column>
@@ -365,21 +362,18 @@
                       "
                       :data="supervisionReportData"
                       height="520px"
-                      style="width: 100%;flex:1"
+                      style="width: 100%; flex:1"
                       size="mini"
+                      :cell-style="{color: '#9198bb'}"
                     >
                       <el-table-column
                         prop="Contents"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        min-width="110px"
                         label="报告内容"
                       ></el-table-column>
                       <el-table-column
                         prop="Time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        width="100px"
                         label="报告时间"
                       ></el-table-column>
                     </el-table>
