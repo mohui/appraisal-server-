@@ -373,7 +373,7 @@
                       ></el-table-column>
                       <el-table-column
                         prop="Time"
-                        width="100px"
+                        width="110px"
                         label="报告时间"
                       ></el-table-column>
                     </el-table>
@@ -404,22 +404,19 @@
                         $asyncComputed.supervisionAssistServerData.updating
                       "
                       :data="supervisionAssistData"
-                      height="560px"
+                      height="520px"
                       style="width: 100%; flex:1"
                       size="mini"
+                      :cell-style="{color: '#9198bb'}"
                     >
                       <el-table-column
                         prop="Address"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        min-width="110px"
                         label="巡查地点"
                       ></el-table-column>
                       <el-table-column
                         prop="Time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        width="110px"
                         label="巡查时间"
                       ></el-table-column>
                     </el-table>
