@@ -312,6 +312,11 @@
                           min-width="110px"
                           label="活动名称"
                         >
+                          <template slot-scope="scope">
+                            <div class="single-text">
+                              {{ scope.row.name }}
+                            </div>
+                          </template>
                         </el-table-column>
                       </el-table>
                       <div style="margin-top: 3px">
@@ -370,7 +375,13 @@
                         prop="Contents"
                         min-width="110px"
                         label="报告内容"
-                      ></el-table-column>
+                      >
+                        <template slot-scope="scope">
+                          <div class="single-text">
+                            {{ scope.row.Contents }}
+                          </div>
+                        </template>
+                      </el-table-column>
                       <el-table-column
                         prop="Time"
                         width="110px"
@@ -413,7 +424,13 @@
                         prop="Address"
                         min-width="110px"
                         label="巡查地点"
-                      ></el-table-column>
+                      >
+                        <template slot-scope="scope">
+                          <div class="single-text">
+                            {{ scope.row.Address }}
+                          </div>
+                        </template>
+                      </el-table-column>
                       <el-table-column
                         prop="Time"
                         width="110px"
@@ -1214,6 +1231,13 @@ export default {
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
+}
+
+.single-text {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
 
