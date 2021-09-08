@@ -123,8 +123,7 @@ export async function workPointCalculation(
       method,
       score,
       source: it,
-      sourceName: item?.name,
-      scope: item?.scope
+      sourceName: item?.name
     };
   });
 
@@ -359,8 +358,8 @@ export async function workPointCalculation(
     //未配置数据表, 直接跳过
     if (!item || !item?.datasource?.table) continue;
 
-    // 如果是 取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
-    if (phStaff.length === 0) continue;
+    // 如果取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
+    if (scope === HisStaffDeptType.Staff && phStaff.length === 0) continue;
     //渲染sql
     const sqlRendResult = sqlRender(
       `
@@ -380,7 +379,7 @@ export async function workPointCalculation(
         hospitals: hisHospitals,
         table: item.datasource.table,
         columns: item.datasource.columns,
-        scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
+        scope: scope === HisStaffDeptType.Staff ? scope : null,
         phStaff: phStaff,
         start,
         end
