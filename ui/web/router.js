@@ -40,7 +40,10 @@ const router = new Router({
         {
           path: 'check-detail',
           name: 'check-detail',
-          meta: {permission: [Permission.APPRAISAL_RESULT]},
+          meta: {
+            activeMenu: 'appraisal-result',
+            permission: [Permission.APPRAISAL_RESULT]
+          },
           component: () => import('./views/appraisal-result/check-detail')
         },
         {
