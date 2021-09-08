@@ -906,7 +906,7 @@ export default {
     },
     handleCheckDetailClick() {
       this.$router.push({
-        name: 'checkDetail',
+        name: 'check-detail',
         query: {
           id: this.params.id,
           year: this.params.year
