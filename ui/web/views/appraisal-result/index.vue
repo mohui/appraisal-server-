@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div>
       <!--顶部表头-->
-      <el-card
+      <div
         v-if="params.listFlag === 'quality'"
         v-sticky
         v-loading="
@@ -11,49 +11,44 @@
         "
         class="header-box-card"
         shadow="never"
+        style="align-items: center"
       >
-        <el-col :span="8" :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
-          <span class="header-title">
-            {{ totalData.name }}
-          </span>
-        </el-col>
-        <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
+        <div class="header-title">
+          {{ totalData.name }}
+        </div>
+        <div style="display: flex; align-items: center">
           <!--年度选择-->
-          <span style="margin:0 20px 10px 0;display: inline-block;">
-            <el-select
-              v-if="!$settings.isMobile"
-              v-model="params.year"
-              size="small"
-              placeholder="请选择考核年度"
-              @change="handleYearChange(params.year)"
-            >
-              <el-option
-                v-for="item in yearList"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
-            <select
-              v-if="$settings.isMobile"
-              v-model="params.year"
-              style="height: 32px; line-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; padding: 0 15px;"
-              @change="handleYearChange(params.year)"
-            >
-              <option
-                v-for="item in yearList"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
-          </span>
-          <span
+          <el-select
             v-if="!$settings.isMobile"
-            style="margin:0 50px 10px 0;display: inline-block;"
+            v-model="params.year"
+            size="small"
+            placeholder="请选择考核年度"
+            @change="handleYearChange(params.year)"
+            style="margin: 0 10px"
           >
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+          <select
+            v-if="$settings.isMobile"
+            v-model="params.year"
+            style="height: 32px; line-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; padding: 0 15px;"
+            @change="handleYearChange(params.year)"
+          >
+            <option
+              v-for="item in yearList"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.label }}
+            </option>
+          </select>
+          <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               plain
               size="small"
@@ -65,11 +60,8 @@
               "
               >考核共识下载</el-button
             >
-          </span>
-          <span
-            v-if="!$settings.isMobile"
-            style="margin:0 20px 10px 0;display: inline-block;"
-          >
+          </div>
+          <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               size="small"
               type="primary"
@@ -102,7 +94,7 @@
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-          </span>
+          </div>
           <el-button
             v-if="showBackButton()"
             style="float:right; margin: 4px 0 10px 30px"
@@ -111,31 +103,24 @@
             @click="handleBack"
             >返回上级
           </el-button>
-        </el-col>
-      </el-card>
+        </div>
+      </div>
       <div v-if="params.listFlag === 'score'">
-        <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
-        <el-button
-          size="small"
-          style="float:right; margin: 5px 0 10px 0;"
-          type="primary"
-          @click="latTypeChanged('quality')"
-          >关闭
-        </el-button>
+        <div class="jx-header" style="align-items: center">
+          <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
+          <el-button
+            size="small"
+            type="primary"
+            @click="latTypeChanged('quality')"
+            >关闭
+          </el-button>
+        </div>
       </div>
       <!--自身考核结果-->
       <div>
-        <el-row :gutter="10" style="margin: 10px -5px 0">
+        <el-row :gutter="10" style="margin: 10px -5px">
           <div v-if="params.listFlag === 'quality'">
-            <el-col
-              :span="8"
-              :xs="24"
-              :sm="12"
-              :md="8"
-              :lg="8"
-              :xl="8"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -148,24 +133,14 @@
                   >
                     <two-card-circle
                       :coefficient="totalData.fixedDecimalRate"
+                      text="计算时校正系数"
                       :on-click="handleCheckDetailClick"
                     ></two-card-circle>
                   </el-tooltip>
-                  <span style="position: absolute; bottom: 20px; left: 31%;">
-                    (计算时校正系数：{{ totalData.fixedDecimalRate }}%)
-                  </span>
                 </div>
               </el-card>
             </el-col>
-            <el-col
-              :span="10"
-              :xs="24"
-              :sm="12"
-              :md="10"
-              :lg="10"
-              :xl="10"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.totalServerData.updating"
                 shadow="hover"
@@ -184,47 +159,44 @@
                     <div class="second-title" style="text-align:left">
                       工分值
                     </div>
-                    <p style="color: #6C7177; font-size:16px; margin:10px 0;">
+                    <div style="margin:20px 0 10px 0;">
                       校正后
-                    </p>
-                    <h3 style="font-size: 30px; margin:0; display:inline-block">
-                      {{ totalData.correctWorkPoint | fixedDecimal }}
-                    </h3>
-                    <span>分</span>
-                    <p style="font-size:13px;">{{ totalData.name }}</p>
-                    <div style="padding-top: 40px">
-                      <div>
-                        <p>校正前总工分： {{ totalData.totalWorkPoint }}分</p>
-                      </div>
-                      <div>
-                        <p>参与校正工分： {{ totalData.workPoint }}分</p>
-                      </div>
+                    </div>
+                    <div
+                      style="color: #40415a; font-size: 28px; margin:10px; display:inline-block; font-weight: bold"
+                    >
+                      {{ totalData.correctWorkPoint | fixedDecimal }}分
+                    </div>
+                    <div style="margin: 10px">
+                      {{ totalData.name }}
+                    </div>
+                    <div
+                      style="margin: 40px 0 10px 0; display: flex; flex-direction: row; justify-content: center; align-items: center; font-size: 12px;"
+                    >
+                      <div>校正前总工分： {{ totalData.totalWorkPoint }}分</div>
+                      <div
+                        style="padding: 0 20px; font-size: 16px"
+                        class="el-icon-close"
+                      ></div>
+                      <div>参与校正工分： {{ totalData.workPoint }}分</div>
                     </div>
                   </div>
                 </el-tooltip>
               </el-card>
             </el-col>
-            <el-col
-              :span="6"
-              :xs="24"
-              :sm="12"
-              :md="6"
-              :lg="6"
-              :xl="6"
-              style="margin-bottom: 10px;"
-            >
+            <el-col :span="8" :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
               <el-card
                 v-loading="$asyncComputed.faceCollectSeverData.updating"
                 shadow="hover"
               >
                 <div class="score-detail">
-                  <p class="second-title" style="margin:0; text-align:left;">
-                    人脸采集信息
-                  </p>
-                  <twoCardPie
-                    :pie-data="faceCollectData"
-                    :color="['#409EFF', '#96c9ff']"
-                  ></twoCardPie>
+                  <face-collection-info-gauge
+                    :rate="faceCollectData.rateFormat"
+                    :face-number="faceCollectData.face"
+                    :face-total="faceCollectData.total"
+                    title="人脸采集信息"
+                    text="人脸采集数"
+                  ></face-collection-info-gauge>
                 </div>
               </el-card>
             </el-col>
@@ -282,120 +254,104 @@
             </el-col>
           </div>
         </el-row>
-        <el-row
-          v-if="params.listFlag === 'quality'"
-          :gutter="10"
-          style="margin: 0 -5px"
-        >
+        <el-row v-if="params.listFlag === 'quality'" :gutter="10">
+          <el-col :span="16" :xs="24" :sm="24" :md="24" :lg="16" :xl="16">
+            <el-row>
+              <el-card shadow="hover">
+                <div style="height: 280px">
+                  <p class="second-title" style="margin:0; text-align:left;">
+                    家庭医生签约
+                  </p>
+                  <div
+                    v-loading="
+                      $asyncComputed.familyDoctorContractServerData.updating
+                    "
+                    style="height: 100%"
+                  >
+                    <doctor-bar
+                      style="padding-top: 20px;"
+                      :bar-data="familyDoctorContractData"
+                    ></doctor-bar>
+                  </div>
+                </div>
+              </el-card>
+            </el-row>
+            <el-row :gutter="10" style="margin: 10px 0">
+              <el-card shadow="hover">
+                <div style="height: 280px; text-align: center">
+                  <p class="second-title" style="margin:0; text-align:left;">
+                    健康教育
+                  </p>
+                  <el-tabs v-model="healthEducationType">
+                    <el-tab-pane
+                      v-for="tag in healthEducationTags"
+                      :key="tag.type"
+                      :label="tag.name"
+                      :name="tag.type"
+                    >
+                      <el-table
+                        :ref="tag.type"
+                        v-loading="
+                          $asyncComputed.healthEducationServerData.updating
+                        "
+                        :data="healthEducationData"
+                        height="190px"
+                        class="appraisal-result-health-education-table"
+                        style="width: 100%"
+                        size="mini"
+                        :cell-style="{color: '#9198bb'}"
+                      >
+                        <el-table-column
+                          prop="time"
+                          width="110px"
+                          label="活动时间"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                          prop="name"
+                          min-width="110px"
+                          label="活动名称"
+                        >
+                          <template slot-scope="scope">
+                            <div class="single-text">
+                              {{ scope.row.name }}
+                            </div>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                      <div style="margin-top: 3px">
+                        <el-pagination
+                          v-reset-scroll="tag.type"
+                          small
+                          background
+                          :page-size="healthEducationPageSize"
+                          :current-page="healthEducationPageNo"
+                          layout="total, prev, pager, next"
+                          :total="healthEducationServerData.rows"
+                          @current-change="
+                            no => {
+                              healthEducationPageNo = no;
+                            }
+                          "
+                        ></el-pagination>
+                      </div>
+                    </el-tab-pane>
+                  </el-tabs>
+                </div>
+              </el-card>
+            </el-row>
+          </el-col>
           <el-col
             :span="8"
             :xs="24"
-            :sm="8"
-            :md="8"
+            :sm="24"
+            :md="24"
             :lg="8"
             :xl="8"
             style="margin-bottom: 10px;"
           >
             <el-card shadow="hover">
-              <div class="score-detail">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  家庭医生签约
-                </p>
-                <div
-                  v-loading="
-                    $asyncComputed.familyDoctorContractServerData.updating
-                  "
-                  style="height: 100%"
-                >
-                  <doctor-bar
-                    style="padding-top: 20px;"
-                    :bar-data="familyDoctorContractData"
-                  ></doctor-bar>
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="10"
-            :xs="24"
-            :sm="12"
-            :md="10"
-            :lg="10"
-            :xl="10"
-            style="margin-bottom: 10px;"
-          >
-            <el-card shadow="hover">
-              <div style="height: 300px; text-align: center">
-                <p class="second-title" style="margin:0; text-align:left;">
-                  健康教育
-                </p>
-                <el-tabs v-model="healthEducationType">
-                  <el-tab-pane
-                    v-for="tag in healthEducationTags"
-                    :key="tag.type"
-                    :label="tag.name"
-                    :name="tag.type"
-                  >
-                    <el-table
-                      :ref="tag.type"
-                      v-loading="
-                        $asyncComputed.healthEducationServerData.updating
-                      "
-                      :data="healthEducationData"
-                      height="210px"
-                      class="appraisal-result-health-education-table"
-                      style="width: 100%"
-                      size="mini"
-                    >
-                      <el-table-column
-                        prop="time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
-                        label="活动时间"
-                      >
-                      </el-table-column>
-                      <el-table-column
-                        prop="name"
-                        header-align="center"
-                        align="center"
-                        min-width="40px"
-                        label="活动名称"
-                      >
-                      </el-table-column>
-                    </el-table>
-                    <div style="margin-top: 3px">
-                      <el-pagination
-                        v-reset-scroll="tag.type"
-                        small
-                        background
-                        :page-size="healthEducationPageSize"
-                        :current-page="healthEducationPageNo"
-                        layout="total, prev, pager, next"
-                        :total="healthEducationServerData.rows"
-                        @current-change="
-                          no => {
-                            healthEducationPageNo = no;
-                          }
-                        "
-                      ></el-pagination>
-                    </div>
-                  </el-tab-pane>
-                </el-tabs>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="6"
-            :xs="24"
-            :sm="12"
-            :md="6"
-            :lg="6"
-            :xl="6"
-            style="margin-bottom: 10px;"
-          >
-            <el-card shadow="hover">
-              <div style="height: 300px; text-align: center">
+              <div style="height: 610px; text-align: center">
                 <p class="second-title" style="margin:0; text-align:left;">
                   监督协管
                 </p>
@@ -410,22 +366,25 @@
                         $asyncComputed.supervisionReportServerData.updating
                       "
                       :data="supervisionReportData"
-                      height="210px"
-                      style="width: 100%;flex:1"
+                      height="520px"
+                      style="width: 100%; flex:1"
                       size="mini"
+                      :cell-style="{color: '#9198bb'}"
                     >
                       <el-table-column
                         prop="Contents"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        min-width="110px"
                         label="报告内容"
-                      ></el-table-column>
+                      >
+                        <template slot-scope="scope">
+                          <div class="single-text">
+                            {{ scope.row.Contents }}
+                          </div>
+                        </template>
+                      </el-table-column>
                       <el-table-column
                         prop="Time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        width="110px"
                         label="报告时间"
                       ></el-table-column>
                     </el-table>
@@ -456,22 +415,25 @@
                         $asyncComputed.supervisionAssistServerData.updating
                       "
                       :data="supervisionAssistData"
-                      height="210px"
+                      height="520px"
                       style="width: 100%; flex:1"
                       size="mini"
+                      :cell-style="{color: '#9198bb'}"
                     >
                       <el-table-column
                         prop="Address"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        min-width="110px"
                         label="巡查地点"
-                      ></el-table-column>
+                      >
+                        <template slot-scope="scope">
+                          <div class="single-text">
+                            {{ scope.row.Address }}
+                          </div>
+                        </template>
+                      </el-table-column>
                       <el-table-column
                         prop="Time"
-                        header-align="center"
-                        align="center"
-                        min-width="20px"
+                        width="110px"
                         label="巡查时间"
                       ></el-table-column>
                     </el-table>
@@ -638,17 +600,17 @@
   </div>
 </template>
 <script>
-import twoCardPie from './components/twocardPie';
 import doctorBar from './components/doctorBar';
 import twoCardCircle from './components/twocardCircle';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
+import faceCollectionInfoGauge from './components/faceCollectionInfoGauge';
 
 export default {
   name: 'Index',
   components: {
-    twoCardPie,
+    faceCollectionInfoGauge,
     doctorBar,
     twoCardCircle
   },
@@ -783,18 +745,10 @@ export default {
     },
     //人脸采集信息
     faceCollectData() {
-      let arr = [
-        {
-          value: this.faceCollectSeverData.face,
-          name: '人脸采集数'
-        },
-        {
-          value:
-            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
-          name: '人脸未采集数'
-        }
-      ];
-      return arr;
+      return {
+        ...this.faceCollectSeverData,
+        rateFormat: Number((this.faceCollectSeverData.rate * 100).toFixed(2))
+      };
     },
     //工分值校正明细
     projectDetailData() {
@@ -952,7 +906,7 @@ export default {
     },
     handleCheckDetailClick() {
       this.$router.push({
-        name: 'checkDetail',
+        name: 'check-detail',
         query: {
           id: this.params.id,
           year: this.params.year
@@ -1178,9 +1132,8 @@ export default {
 }
 
 .second-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: $color-primary;
+  font-size: 16px;
+  color: #40415a;
 }
 
 .header-title {
@@ -1192,14 +1145,22 @@ export default {
 .header-box-card {
   width: auto;
   z-index: 2001 !important;
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 12px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  box-sizing: border-box;
 }
 
 .score-detail {
   position: relative;
-  height: 300px;
+  height: 260px;
   text-align: center;
   box-sizing: border-box;
-  color: $color-primary;
+  color: #7a7d95;
+  font-size: 14px;
 }
 
 .family-doctor {
@@ -1262,6 +1223,13 @@ export default {
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
+}
+
+.single-text {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
 

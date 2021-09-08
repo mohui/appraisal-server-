@@ -38,10 +38,13 @@ const router = new Router({
           component: () => import('./views/appraisal-result/index')
         },
         {
-          path: 'checkDetail',
-          name: 'checkDetail',
-          meta: {permission: [Permission.APPRAISAL_RESULT]},
-          component: () => import('./views/appraisal-result/checkDetail')
+          path: 'check-detail',
+          name: 'check-detail',
+          meta: {
+            activeMenu: 'appraisal-result',
+            permission: [Permission.APPRAISAL_RESULT]
+          },
+          component: () => import('./views/appraisal-result/check-detail')
         },
         {
           path: 'check',
