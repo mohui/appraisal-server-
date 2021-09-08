@@ -190,13 +190,13 @@
                 shadow="hover"
               >
                 <div class="score-detail">
-                  <p class="second-title" style="margin:0; text-align:left;">
-                    人脸采集信息
-                  </p>
-                  <twoCardPie
-                    :pie-data="faceCollectData"
-                    :color="['#5168f6', '#5168f6cc']"
-                  ></twoCardPie>
+                  <face-collection-info-gauge
+                    :rate="faceCollectData.rateFormat"
+                    :face-number="faceCollectData.face"
+                    :face-total="faceCollectData.total"
+                    title="人脸采集信息"
+                    text="人脸采集数"
+                  ></face-collection-info-gauge>
                 </div>
               </el-card>
             </el-col>
@@ -600,17 +600,17 @@
   </div>
 </template>
 <script>
-import twoCardPie from './components/twocardPie';
 import doctorBar from './components/doctorBar';
 import twoCardCircle from './components/twocardCircle';
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
+import faceCollectionInfoGauge from './components/faceCollectionInfoGauge';
 
 export default {
   name: 'Index',
   components: {
-    twoCardPie,
+    faceCollectionInfoGauge,
     doctorBar,
     twoCardCircle
   },
@@ -745,18 +745,10 @@ export default {
     },
     //人脸采集信息
     faceCollectData() {
-      let arr = [
-        {
-          value: this.faceCollectSeverData.face,
-          name: '人脸采集数'
-        },
-        {
-          value:
-            this.faceCollectSeverData.total - this.faceCollectSeverData.face,
-          name: '人脸未采集数'
-        }
-      ];
-      return arr;
+      return {
+        ...this.faceCollectSeverData,
+        rateFormat: Number((this.faceCollectSeverData.rate * 100).toFixed(2))
+      };
     },
     //工分值校正明细
     projectDetailData() {
