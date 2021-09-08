@@ -1,11 +1,9 @@
 <template>
   <div>
-    <div class="grid-content bg-fff">
-      <div
-        ref="faceCollectionInfoGauge"
-        :style="{width: '100%', height: '300px'}"
-      ></div>
-    </div>
+    <div
+      ref="faceCollectionInfoGauge"
+      :style="{width: '100%', height: '300px'}"
+    ></div>
   </div>
 </template>
 
