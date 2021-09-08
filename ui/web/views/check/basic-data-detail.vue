@@ -126,7 +126,11 @@
                 >
                 </el-button>
               </el-tooltip>
-              <el-tooltip v-else content="编辑" :enterable="false">
+              <el-tooltip
+                v-else-if="scope.row.id !== 'total'"
+                content="编辑"
+                :enterable="false"
+              >
                 <el-button
                   type="primary"
                   icon="el-icon-edit"
@@ -388,7 +392,23 @@ export default {
       if (other.child.length) {
         arr.push(other);
       }
-      this.listData = arr;
+      //增加数据合计
+      this.listData = arr.map(it => ({
+        ...it,
+        child: (() => {
+          let item = JSON.parse(JSON.stringify(it.child[0]));
+          item.name = '合计';
+          item.id = 'total';
+          item.updated_at = '';
+          item.editor = '';
+          this.curTag.forEach(i => {
+            item[i.code].value = it.child.reduce((acc, cur) => {
+              return acc + cur[i.code].value;
+            }, 0);
+          });
+          return [...it.child, item];
+        })()
+      }));
     },
     //修改数据
     async edit(row) {
