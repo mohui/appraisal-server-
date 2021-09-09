@@ -125,7 +125,8 @@ export default {
   },
   methods: {
     circleChart() {
-      this.chart.series[0].max = this.faceTotal;
+      // max不能为0
+      this.chart.series[0].max = this.faceTotal || 1;
       this.chart.series[0].data[0].value = this.faceNumber || 0;
       this.chart.series[0].data[0].name =
         this.text + '\n' + '(' + this.rate + '%' + ')';
