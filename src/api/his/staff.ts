@@ -214,14 +214,15 @@ export default class HisStaff {
     // 校验公卫员工
     if (phStaff) {
       // 查询his员工是否已经被绑定
-      const phStaffOne = await originalDB.execute(
+      const phStaffOne = await appDB.execute(
         `select * from staff where ph_staff = ?`,
         phStaff
       );
       if (phStaffOne.length > 0) throw new KatoRuntimeError(`his员工已经存在`);
     } else {
-      staff = null;
+      phStaff = null;
     }
+
     return appDB.transaction(async () => {
       const staffId = uuid();
       return await appDB.execute(
