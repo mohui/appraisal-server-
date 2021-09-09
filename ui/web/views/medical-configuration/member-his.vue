@@ -228,6 +228,26 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
@@ -373,6 +393,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null,
         department: null
       },
@@ -443,6 +464,10 @@ export default {
     // 科室列表
     departmentList() {
       return this.serverDepartment;
+    },
+    // 公卫医生列表
+    phStaffList() {
+      return this.serverPhStaffData;
     }
   },
   watch: {
@@ -499,6 +524,17 @@ export default {
         }
       },
       default: []
+    },
+    serverPhStaffData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listPhStaffs();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
@@ -523,6 +559,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null
       };
     },
@@ -538,7 +575,8 @@ export default {
               this.userForm.password.trim(),
               this.userForm.name.trim(),
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
