@@ -123,7 +123,8 @@ export async function workPointCalculation(
       method,
       score,
       source: it,
-      sourceName: item?.name
+      sourceName: item?.name,
+      scope: item?.scope
     };
   });
 
@@ -231,6 +232,7 @@ export async function workPointCalculation(
 
   // region 公卫数据工分来源(动态:个人, 固定)会用到
   let phStaff;
+  let phUserList;
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
     // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
     const phStaffModels = await appDB.execute(
@@ -242,6 +244,14 @@ export async function workPointCalculation(
       ...staffIds
     );
     phStaff = phStaffModels.map(it => it.ph_staff);
+    if (phStaff.length > 0) {
+      // 查询这些公卫员工的名称
+      phUserList = await originalDB.execute(
+        `select useracc id, username from view_sysuser
+             where useracc in (${phStaff.map(() => '?')})`,
+        ...phStaff
+      );
+    }
   }
   // endregion
 
@@ -363,7 +373,13 @@ export async function workPointCalculation(
     //渲染sql
     const sqlRendResult = sqlRender(
       `
-          select 1 as value, {{dateCol}} as date, OperateOrganization hospital
+          select 1 as value
+            , {{dateCol}} as date
+            {{#if scope}}
+            , operatorid as hospital
+            {{else}}
+            , OperateOrganization as hospital
+            {{/if}}
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
@@ -379,7 +395,7 @@ export async function workPointCalculation(
         hospitals: hisHospitals,
         table: item.datasource.table,
         columns: item.datasource.columns,
-        scope: scope === HisStaffDeptType.Staff ? scope : null,
+        scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
         phStaff: phStaff,
         start,
         end
@@ -396,14 +412,22 @@ export async function workPointCalculation(
         const item = hisHospitalModels.find(
           hospitalIt => hospitalIt.hospital === it.hospital
         );
+        const phStaffItem = phUserList.find(phIt => phIt.id === it.hospital);
         return {
           value: it.value,
           date: it.date,
-          staffId: item?.id,
-          staffName: item?.name,
+          staffId:
+            param.scope === HisStaffDeptType.Staff ? phStaffItem?.id : item?.id,
+          staffName:
+            param.scope === HisStaffDeptType.Staff
+              ? phStaffItem?.username
+              : item?.name,
           itemId: param.source,
           itemName: param?.sourceName,
-          type: PreviewType.HOSPITAL
+          type:
+            param.scope === HisStaffDeptType.Staff
+              ? PreviewType.PH_STAFF
+              : PreviewType.HOSPITAL
         };
       })
     );
