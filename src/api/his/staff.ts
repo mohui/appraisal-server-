@@ -74,7 +74,7 @@ export default class HisStaff {
 
     // 根据绑定关系查询公卫机构下的所有员工
     const sysUserList = await originalDB.execute(
-      `select useracc id, username from view_sysuser where hospid = ?`,
+      `select useracc id, username, states from view_sysuser where hospid = ?`,
       hisHospitalModels[0]?.hishospid
     );
 

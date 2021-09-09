@@ -493,7 +493,10 @@ export default {
     },
     // 公卫医生列表
     phStaffList() {
-      return this.serverPhStaffData;
+      return this.serverPhStaffData.map(it => ({
+        ...it,
+        username: `${it.username}${it.states ? '' : ' (禁用)'}`
+      }));
     }
   },
   watch: {
