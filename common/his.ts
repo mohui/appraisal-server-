@@ -75,6 +75,7 @@ export enum HisWorkScoreType {
 export enum PreviewType {
   HIS_STAFF = 'HIS员工',
   STAFF = '系统员工',
+  PH_STAFF = '公卫员工',
   HOSPITAL = '系统机构'
 }
 
