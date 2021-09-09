@@ -76,7 +76,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'view_HealthCheckTableScore',
       date: 'OperateTime'
