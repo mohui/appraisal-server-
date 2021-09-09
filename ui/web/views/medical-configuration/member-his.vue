@@ -333,6 +333,27 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            size="mini"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="mini" @click="dialogFormEditUsersVisible = false"
@@ -584,6 +605,7 @@ export default {
             });
             this.$asyncComputed.listMember.update(); //刷新系统员工列表
             this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.dialogFormAddUsersVisible = false;
           } catch (e) {
             this.$message.error(e.message);
@@ -615,6 +637,7 @@ export default {
           password: row.password,
           name: row.name,
           his: row.staff,
+          phStaff: row.phStaff,
           remark: row.remark,
           department: row.department
         }
@@ -633,13 +656,16 @@ export default {
               this.userForm.password.trim(),
               this.userForm.his || null,
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
               message: '保存成功!'
             });
             this.$asyncComputed.listMember.update();
+            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.symbolKey = Symbol(this.$dayjs().toString());
           } catch (e) {
             this.$message.error(e.message);
