@@ -79,7 +79,7 @@ export default class HisStaff {
     );
 
     const staffs = await appDB.execute(
-      `select staff from staff where hospital = ?`,
+      `select ph_staff "phStaff" from staff where hospital = ?`,
       hospital
     );
     return sysUserList.map(it => {
