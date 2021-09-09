@@ -129,6 +129,11 @@
           min-width="80"
         ></el-table-column>
         <el-table-column
+          prop="phStaffName"
+          label="公卫用户"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
           prop="remark"
           label="备注"
           min-width="100"
