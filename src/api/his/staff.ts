@@ -55,6 +55,43 @@ export default class HisStaff {
   }
 
   /**
+   * 查询公卫员工
+   */
+  async listPhStaffs() {
+    const hospital = await getHospital();
+
+    //查询hospital绑定关系
+    // language=PostgreSQL
+    const hisHospitalModels = await appDB.execute(
+      `
+        select hishospid,
+               h_id hospital
+        from hospital_mapping
+        where h_id = ?
+      `,
+      hospital
+    );
+
+    // 根据绑定关系查询公卫机构下的所有员工
+    const sysUserList = await originalDB.execute(
+      `select useracc id, username from view_sysuser where hospid = ?`,
+      hisHospitalModels[0]?.hishospid
+    );
+
+    const staffs = await appDB.execute(
+      `select staff from staff where hospital = ?`,
+      hospital
+    );
+    return sysUserList.map(it => {
+      const index = staffs.find(item => it.id === item.phStaff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
+  }
+
+  /**
    * 获取员工基本信息
    *
    * @param id 员工id
@@ -133,6 +170,8 @@ export default class HisStaff {
    * @param password
    * @param name
    * @param remark 备注
+   * @param department 科室
+   * @param phStaff 公卫员工
    */
   @validate(
     should
@@ -160,7 +199,7 @@ export default class HisStaff {
       .allow(null)
       .description('科室')
   )
-  async add(staff, account, password, name, remark, department) {
+  async add(staff, account, password, name, remark, department, phStaff) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -172,6 +211,17 @@ export default class HisStaff {
     } else {
       staff = null;
     }
+    // 校验公卫员工
+    if (phStaff) {
+      // 查询his员工是否已经被绑定
+      const phStaffOne = await originalDB.execute(
+        `select * from staff where ph_staff = ?`,
+        phStaff
+      );
+      if (phStaffOne.length > 0) throw new KatoRuntimeError(`his员工已经存在`);
+    } else {
+      staff = null;
+    }
     return appDB.transaction(async () => {
       const staffId = uuid();
       return await appDB.execute(
@@ -180,6 +230,7 @@ export default class HisStaff {
               id,
               hospital,
               staff,
+              ph_staff,
               account,
               password,
               name,
@@ -188,10 +239,11 @@ export default class HisStaff {
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
+        phStaff,
         account,
         password,
         name,
@@ -227,12 +279,16 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('科室')
+      .description('科室'),
+    should
+      .string()
+      .allow(null)
+      .description('公卫员工')
   )
   /**
    * 修改员工信息
    */
-  async update(id, name, password, staff, remark, department) {
+  async update(id, name, password, staff, remark, department, phStaff) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -249,6 +305,7 @@ export default class HisStaff {
           name = ?,
           password = ?,
           staff = ?,
+          ph_staff = ?,
           remark = ?,
           department = ?,
           updated_at = ?
@@ -256,6 +313,7 @@ export default class HisStaff {
       name,
       password,
       staff,
+      phStaff,
       remark,
       department,
       dayjs().toDate(),
@@ -319,6 +377,7 @@ export default class HisStaff {
           id,
           hospital,
           staff,
+          ph_staff "phStaff",
           account,
           password,
           name,
@@ -348,6 +407,24 @@ export default class HisStaff {
       hospital
     );
 
+    //查询hospital绑定关系
+    // language=PostgreSQL
+    const hisHospitalModels = await appDB.execute(
+      `
+        select hishospid,
+               h_id hospital
+        from hospital_mapping
+        where h_id = ?
+      `,
+      hospital
+    );
+
+    // 根据绑定关系查询公卫机构下的所有员工
+    const sysUserList = await originalDB.execute(
+      `select useracc id, username from view_sysuser where hospid = ?`,
+      hisHospitalModels[0]?.hishospid
+    );
+
     const dept = await appDB.execute(
       `
         select id, hospital, name, created_at
@@ -360,10 +437,13 @@ export default class HisStaff {
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
       const deptIndex = dept.find(item => item.id === it.department);
+      // 公卫员工
+      const phStaffIndex = sysUserList.find(item => it.phStaff === item.id);
       return {
         ...it,
         staffName: index?.name ?? '',
-        departmentName: deptIndex?.name ?? ''
+        departmentName: deptIndex?.name ?? '',
+        phStaffName: phStaffIndex?.username ?? ''
       };
     });
   }
