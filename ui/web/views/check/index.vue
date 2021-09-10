@@ -1,21 +1,10 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>规则列表</span>
+  <div class="flex-column-layout">
+    <div class="jx-header" style="align-items: center">
+      <div class="header-title">规则列表</div>
+      <div>
         <el-button
           :disabled="copyFromButtonDisabled"
-          style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
           @click="openCloneCheckDialog(copyFormData)"
@@ -24,25 +13,37 @@
         </el-button>
         <el-button
           v-permission="{permission: permission.CHECK_ADD, type: 'disabled'}"
-          style="float: right;margin: -4px 0 0 20px;"
           size="small"
           type="primary"
           @click="openAddCheckDialog"
           >新建规则
         </el-button>
       </div>
+    </div>
+    <el-card
+      class="box-card"
+      style="height: 100%;"
+      shadow="never"
+      :body-style="{
+        height: 'calc(100% - 60px)',
+        display: 'flex',
+        'flex-direction': 'column',
+        padding: $settings.isMobile ? '10px 0' : '20px'
+      }"
+    >
       <el-table
-        stripe
-        border
+        class="check-table"
         size="mini"
         :data="checkList"
         :cell-class-name="cellClassHover"
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{
-          background: '#F3F4F7',
-          color: '#555',
+          color: '#40415a',
           textAlign: 'center'
+        }"
+        :cell-style="{
+          color: '#40415a'
         }"
         @row-click="handleCellClick"
       >
@@ -60,7 +61,7 @@
         <el-table-column
           align="center"
           prop="checkYear"
-          :min-width="50"
+          :min-width="100"
           label="考核年度"
         ></el-table-column>
         <el-table-column
@@ -901,10 +902,12 @@ export default {
 <style lang="scss">
 .check-title {
   cursor: pointer;
-
   :hover {
-    color: #1a95d7;
+    color: #5168f6;
   }
+}
+.check-table.el-table--enable-row-hover .el-table__body tr:hover > td {
+  background-color: #eef2fe !important;
 }
 </style>
 <style scoped lang="scss">

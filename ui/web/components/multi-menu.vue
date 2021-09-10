@@ -25,6 +25,7 @@
     v-else-if="!menu.permission || findPermission(menu.permission)"
     :route="menu.router"
     :index="menu.index"
+    :class="menu.icon ? 'parent-menu' : ''"
     :style="{
       display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
     }"
