@@ -154,7 +154,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : isPreView ? '60%' : '40%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -1067,7 +1067,7 @@ export default {
 }
 .dialog-form {
   max-height: 60vh;
-  padding: 0 30px;
+  padding: 0 10px;
 }
 .work-method-btn {
   border-radius: 4px;
