@@ -615,10 +615,30 @@ export default {
           }
         }
       }
+      let checkedNodes = this.$refs.tree
+        .getCheckedNodes()
+        .filter(it => !['其他', '手工数据', '公卫数据'].includes(it.id));
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
+        }
+      }
       config = {
         name: this.newWork.work,
         method: this.newWork.scoreMethod,
-        mappings: this.newWork.projectsSelected,
+        mappings: newMappings,
         staffMethod: staffMethod,
         staffs: checkedStaffs,
         score: this.newWork.score,
@@ -907,13 +927,24 @@ export default {
       checkedNodes = checkedNodes.filter(
         it => !['其他', '手工数据', '公卫数据'].includes(it.id)
       );
-      for (let c of checkedNodes) {
-        if (c?.children?.length > 0) {
-          //children内的元素一定都是选上的,所以只保留它们共同的父项
-          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
         }
       }
-      this.newWork.projectsSelected = checkedNodes;
+      this.newWork.projectsSelected = newMappings;
     },
     //列表树load方法
     loadTree(tree, treeNode, resolve) {
