@@ -232,7 +232,7 @@ export async function workPointCalculation(
 
   // region 公卫数据工分来源(动态:个人, 固定)会用到
   let phStaff;
-  let phUserList;
+  let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
     // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
     const phStaffModels = await appDB.execute(
@@ -369,7 +369,8 @@ export async function workPointCalculation(
     if (!item || !item?.datasource?.table) continue;
 
     // 如果取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
-    if (scope === HisStaffDeptType.Staff && phStaff.length === 0) continue;
+    if (param.scope === HisStaffDeptType.Staff && phStaff.length === 0)
+      continue;
     //渲染sql
     const sqlRendResult = sqlRender(
       `
