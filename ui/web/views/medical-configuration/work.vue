@@ -492,8 +492,7 @@ export default {
         label: 'name',
         disabled: data => {
           return (
-            (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
-            (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
+            (data.scope === HisStaffDeptType.HOSPITAL && this.isStaffSource) || //不能选机构类型的工分
             data.id === '公卫数据' ||
             data.id === '手工数据' ||
             data.id === '其他'
@@ -593,10 +592,8 @@ export default {
         p => p.scope === HisStaffDeptType.HOSPITAL
       );
     },
-    onlyPerson() {
-      return this.newWork.projectsSelected.some(
-        p => p.scope === HisStaffDeptType.Staff
-      );
+    isStaffSource() {
+      return this.newWork.scope !== this.HisStaffDeptType.HOSPITAL;
     },
     //预览的参数预处理
     previewConfig() {
@@ -888,11 +885,8 @@ export default {
       }
     },
     disabledContent(data) {
-      if (data.scope === HisStaffDeptType.Staff) {
-        return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
-      }
       if (data.scope === HisStaffDeptType.HOSPITAL) {
-        return `不能与${HisStaffDeptType.Staff}工分同时选`;
+        return `工分项取值来源非"机构全体员工"时不可选`;
       }
     },
     staffCheck() {
