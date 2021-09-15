@@ -7,10 +7,34 @@ import {
 } from '../../database/model';
 import {getLeaves} from '../group';
 import {Op} from 'sequelize';
+import {appDB} from '../../app';
+
+/**
+ * 用户类型枚举
+ */
+enum UserType {
+  //员工
+  STAFF = 'STAFF'
+}
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   try {
     const token = ctx.req.header('token');
+    const type = ctx.req.header('login');
+    //加入staff逻辑
+    if (token && type == UserType.STAFF) {
+      const staffModel = (
+        await appDB.execute(`select * from staff where id = ?`, token)
+      )[0];
+      if (staffModel) {
+        ctx.user = {
+          ...staffModel,
+          type: UserType.STAFF
+        };
+      }
+      await next();
+      return;
+    }
     if (token) {
       const user =
         (
