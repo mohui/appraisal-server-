@@ -87,7 +87,7 @@
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column prop="departmentText" label="科室" min-width="100">
+        <el-table-column prop="departmentText" label="科室" min-width="180">
           <template slot-scope="{row}">
             <span v-if="row.departmentId">{{ row.departmentText }}</span>
             <div

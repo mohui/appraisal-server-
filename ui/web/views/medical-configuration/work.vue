@@ -76,12 +76,12 @@
           prop="project"
           label="关联员工"
           align="center"
-          width="300"
+          width="100"
         >
           <template slot-scope="{row}">
             <div v-if="!row.staffMappings"></div>
             <el-tooltip
-              v-else-if="$widthCompute([row.staffMappings.join(',')]) >= 300"
+              v-else-if="$widthCompute([row.staffMappings.join(',')]) >= 100"
               effect="dark"
               placement="top"
               :content="row.projects.join(',')"
@@ -105,13 +105,40 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="scoreMethod" label="打分方式" align="center">
+        <el-table-column
+          prop="scoreMethod"
+          label="打分方式"
+          align="center"
+          width="80"
+        >
         </el-table-column>
-        <el-table-column prop="score" align="center" label="单位量得分">
+        <el-table-column
+          prop="score"
+          align="center"
+          label="单位量得分"
+          width="90"
+        >
         </el-table-column>
-        <el-table-column prop="remark" align="center" label="备注">
+        <el-table-column prop="remark" align="center" label="备注" width="100">
+          <template slot-scope="{row}">
+            <el-tooltip
+              v-if="$widthCompute([row.remark]) >= 100"
+              effect="dark"
+              placement="top"
+              :content="row.remark"
+            >
+              <div slot="content" v-html="toBreak(row.remark)"></div>
+              <span class="cell-long-span">{{ row.remark }}</span>
+            </el-tooltip>
+            <div v-else>{{ row.remark }}</div>
+          </template>
         </el-table-column>
-        <el-table-column prop="operation" label="操作" align="center">
+        <el-table-column
+          prop="operation"
+          label="操作"
+          align="center"
+          min-width="150"
+        >
           <template slot-scope="{row}">
             <el-tooltip
               v-if="!row.itemTypeId"
@@ -154,7 +181,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : isPreView ? '60%' : '40%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -1067,7 +1094,7 @@ export default {
 }
 .dialog-form {
   max-height: 60vh;
-  padding: 0 30px;
+  padding: 0 10px;
 }
 .work-method-btn {
   border-radius: 4px;
