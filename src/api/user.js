@@ -1,4 +1,10 @@
-import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
+import {
+  KatoCommonError,
+  KatoLogicError,
+  KatoRuntimeError,
+  should,
+  validate
+} from 'kato-server';
 import {appDB} from '../app';
 import {
   HospitalModel,
@@ -673,6 +679,7 @@ export default class User {
     if (id) {
       token = (await appDB.execute(`select id from staff where id = ?`, id))[0]
         ?.id;
+      if (!token) throw new KatoRuntimeError(`员工不存在`);
     }
     // 生成微信二维码
     const imageBuffer = imageSync(
