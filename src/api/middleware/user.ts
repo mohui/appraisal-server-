@@ -12,7 +12,7 @@ import {appDB} from '../../app';
 /**
  * 用户类型枚举
  */
-enum UserType {
+export enum UserType {
   //员工
   STAFF = 'STAFF'
 }
@@ -20,7 +20,7 @@ enum UserType {
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   try {
     const token = ctx.req.header('token');
-    const type = ctx.req.header('login');
+    const type = ctx.req.header('type');
     //加入staff逻辑
     if (token && type == UserType.STAFF) {
       const staffModel = (
