@@ -70,13 +70,22 @@
                 :data="item.children"
                 show-summary
                 :summary-method="handleSummaries"
-                style="width: 100%"
-                :header-cell-style="{color: '#40415a', fontSize: '14px'}"
+                :header-cell-style="{
+                  color: '#40415a',
+                  fontSize: '14px',
+                  fontWeight: 'normal'
+                }"
+                :cell-style="{
+                  color: '#7a7d95',
+                  fontSize: '12px',
+                  fontWeight: 'normal'
+                }"
               >
                 <el-table-column
                   type="index"
                   align="center"
                   label="序号"
+                  width="70px"
                 ></el-table-column>
                 <el-table-column
                   prop="ruleName"
