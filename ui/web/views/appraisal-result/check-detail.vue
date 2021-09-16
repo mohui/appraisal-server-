@@ -1,52 +1,24 @@
 <template>
   <div class="wrapper">
     <div>
-      <el-row
-        v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
-        class="appraisal-indicators-rule"
-      >
-        <el-col :span="24">
-          <el-card
-            v-if="!appraisalIndicatorsData.checkId"
-            style="min-height: 300px"
-          >
-            <div class="second-title">
-              绩效考核评价细则
-              <el-button
-                size="small"
-                style="float:right; margin: 4px 0 10px 30px"
-                type="primary"
-                @click="handleBack"
-                >返回
-              </el-button>
+      <div v-sticky>
+        <div>
+          <div v-if="appraisalIndicatorsData.checkId" class="header-box-card">
+            <div class="header-title">
+              {{ appraisalIndicatorsData.checkName }}
+              <span style="color: #40415a;font-size: 14px;"
+                >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
+                  appraisalIndicatorsData.ruleScore
+                }}分</span
+              >
             </div>
             <div
-              style="color: #909399; font-size: 12px; text-align: center; line-height: 250px"
+              style="display: flex; flex-direction: row; align-items: center"
             >
-              暂无考核
-            </div>
-          </el-card>
-          <div v-else>
-            <div style="width: 100%; height:40px;">
-              <div class="appraisal-indicators-rule-title" style="float:left">
-                {{ appraisalIndicatorsData.checkName }}
-                <span style="color: #666;font-size: 14px;"
-                  >{{ appraisalIndicatorsData.score | fixedDecimal }}分/{{
-                    appraisalIndicatorsData.ruleScore
-                  }}分</span
+              <div v-if="totalData.parent">
+                <span style="font-size: 14px; color: #40415a"
+                  >系统自动打分：</span
                 >
-              </div>
-              <div style="float: right">
-                <el-button
-                  size="small"
-                  style="float:right; margin: -5px 85px 20px 30px;"
-                  type="primary"
-                  @click="handleBack"
-                  >关闭
-                </el-button>
-              </div>
-              <div v-if="totalData.parent" style="float: right">
-                <span style="font-size: 14px">系统自动打分：</span>
                 <el-switch
                   v-model="appraisalIndicatorsData.auto"
                   style="padding-right: 40px;"
@@ -56,7 +28,35 @@
                 >
                 </el-switch>
               </div>
+              <el-button size="mini" type="primary" @click="handleBack"
+                >返回
+              </el-button>
             </div>
+          </div>
+          <div v-else class="header-box-card">
+            <div class="header-title">绩效考核评价细则</div>
+            <el-button size="mini" type="primary" @click="handleBack"
+              >返回
+            </el-button>
+          </div>
+        </div>
+      </div>
+      <div
+        v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
+        class="appraisal-indicators-rule"
+      >
+        <div>
+          <el-card
+            v-if="!appraisalIndicatorsData.checkId"
+            style="min-height: 300px"
+          >
+            <div
+              style="color: #909399; font-size: 12px; text-align: center; line-height: 250px"
+            >
+              暂无考核
+            </div>
+          </el-card>
+          <div v-else>
             <div
               v-for="(item, index) in appraisalIndicatorsData.children"
               :key="index"
@@ -300,8 +300,8 @@
               </el-table>
             </div>
           </div>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
     </div>
     <el-dialog
       title="上传考核资料"
@@ -399,6 +399,7 @@
 
 <script>
 import decimal from 'decimal.js';
+import VueSticky from 'vue-sticky';
 
 export default {
   filters: {
@@ -427,6 +428,9 @@ export default {
       },
       fileList: [] //考核评价细则上传的文件列表
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   computed: {
     //绩效考核指标的规则和评分数据
@@ -787,16 +791,23 @@ export default {
   }
 }
 
+.header-box-card {
+  z-index: 2001 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 15px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  .header-title {
+    color: #40415a;
+    font-size: 18px;
+  }
+}
+
 .appraisal-indicators-rule {
   padding-top: 20px;
-
-  .appraisal-indicators-rule-title {
-    color: $color-primary;
-    font-size: 20px;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-
   .check-table-title {
     background: #e8ecf8;
     width: 100%;
