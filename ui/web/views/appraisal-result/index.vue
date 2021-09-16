@@ -10,8 +10,6 @@
             $asyncComputed.totalServerData.updating
         "
         class="header-box-card"
-        shadow="never"
-        style="align-items: center"
       >
         <div class="header-title">
           {{ totalData.name }}
@@ -21,7 +19,7 @@
           <el-select
             v-if="!$settings.isMobile"
             v-model="params.year"
-            size="small"
+            size="mini"
             placeholder="请选择考核年度"
             @change="handleYearChange(params.year)"
             style="margin: 0 10px"
@@ -51,7 +49,7 @@
           <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               plain
-              size="small"
+              size="mini"
               type="primary"
               @click="
                 handleFileDownload(
@@ -63,7 +61,7 @@
           </div>
           <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
-              size="small"
+              size="mini"
               type="primary"
               @click="handleAppraisalResultsDownload()"
               >考核结果下载
@@ -109,7 +107,7 @@
         <div class="header-box-card" style="align-items: center">
           <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
           <el-button
-            size="small"
+            size="mini"
             type="primary"
             @click="latTypeChanged('quality')"
             >关闭
@@ -1136,22 +1134,22 @@ export default {
   color: #40415a;
 }
 
-.header-title {
-  font: bold 20px/2 Arial;
-  color: $color-primary;
-  margin-right: 10px;
-}
-
 .header-box-card {
   width: auto;
   z-index: 2001 !important;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background-color: #fff;
-  padding: 12px 20px;
+  padding: 15px 20px;
   border-radius: 5px;
   border: 1px solid #ebeef5;
   box-sizing: border-box;
+  .header-title {
+    font-size: 18px;
+    color: #40415a;
+    margin-right: 10px;
+  }
 }
 
 .score-detail {
