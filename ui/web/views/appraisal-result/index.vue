@@ -1122,13 +1122,13 @@ export default {
 
 <style lang="scss">
 .appraisal-result-table-header {
-  color: #40415a;
+  color: #3a3f62;
   font-weight: normal;
   font-size: 15px;
 }
 
 .appraisal-result-table-cell {
-  color: #3a3f62;
+  color: #3e4260;
   font-size: 14px;
 }
 </style>
@@ -1168,7 +1168,7 @@ export default {
 .second-title,
 .table-title {
   font-size: 16px;
-  color: #40415a;
+  color: #444c63;
 }
 
 .header-box-card {
