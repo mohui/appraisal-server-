@@ -31,102 +31,84 @@
       </div>
       <div>
         <el-row :gutter="20" style="margin: 20px -10px">
-          <el-col :span="10" :xs="24" :sm="24" :md="24" :lg="10" :xl="10">
-            <div
-              class="card"
-              v-loading="$asyncComputed.workScoreListServerData.updating"
-            >
+          <el-col :span="7" :xs="24" :sm="8" :md="8" :lg="7" :xl="7">
+            <div class="card" :style="{height: '800px'}">
               <div
-                id="projectWorkPointPie"
-                :style="{width: '100%', height: '420px'}"
-              ></div>
-            </div>
-          </el-col>
-          <el-col :span="14" :xs="24" :sm="24" :md="24" :lg="14" :xl="14">
-            <div
-              class="card person-info"
-              v-loading="$asyncComputed.personInfoServerData.updating"
-            >
-              <div class="title">个人信息</div>
-              <el-row :gutter="10" style="height: 100%">
-                <el-col
-                  v-for="(value, key) in personInfo"
-                  :key="key"
-                  :span="12"
-                  style="padding:  0 8%"
-                >
-                  <el-row style="margin: 5px; padding: 5px; font-size: 15px">
-                    <el-col :span="10">
-                      <div class="name">{{ value }}：</div>
-                    </el-col>
-                    <el-col :span="14">
-                      <div class="value">
-                        {{ personInfoData[key] | dateFormat }}
-                      </div>
-                    </el-col>
-                  </el-row>
-                </el-col>
-              </el-row>
-            </div>
-            <div
-              class="card score-rules"
-              v-loading="
-                $asyncComputed.personInfoServerData.updating ||
-                  $asyncComputed.workScoreListServerData.updating
-              "
-            >
-              <div class="title">得分细则</div>
-              <div style="text-align: center;">
-                <el-row>
-                  <el-col :span="6" class="item">
-                    <div>校正前工分</div>
-                    <div class="content">
+                class="person-info"
+                v-loading="$asyncComputed.personInfoServerData.updating"
+              >
+                <div class="title">个人信息</div>
+                <div class="content">
+                  <div
+                    v-for="(value, key) in personInfo"
+                    :key="key"
+                    class="cell"
+                  >
+                    <div class="name">{{ value }}:</div>
+                    <div class="value">
+                      {{ personInfoData[key] | dateFormat }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="score-rules"
+                v-loading="
+                  $asyncComputed.personInfoServerData.updating ||
+                    $asyncComputed.workScoreListServerData.updating
+                "
+              >
+                <div class="title">得分细则</div>
+                <div class="content">
+                  <div class="cell">
+                    <div class="name">校正前工分:</div>
+                    <div class="value">
                       {{ workScore.beforeCorrectionScore }}
                     </div>
                     <el-button
-                      class="more"
+                      class="operation"
                       type="text"
                       @click="
                         dialogWorkScoreTableVisible = true;
                         dialogScoreType = 'before';
                       "
                     >
-                      点击查看
+                      查看
                     </el-button>
-                  </el-col>
-                  <el-col :span="6" class="item">
-                    <div>质量系数</div>
-                    <div class="content">
+                  </div>
+                  <div class="cell">
+                    <div class="name">质量系数:</div>
+                    <div class="value">
                       {{ workScore.rateFormat
                       }}{{ workScore.rate ? '%' : null }}
                     </div>
                     <el-button
-                      class="more"
+                      class="operation"
                       type="text"
                       @click="dialogRateTableVisible = true"
                     >
-                      点击查看
+                      查看
                     </el-button>
-                  </el-col>
-                  <el-col :span="6" class="item">
-                    <div>校正后工分</div>
-                    <div class="content">
+                  </div>
+                  <div class="cell">
+                    <div class="name">校正后工分:</div>
+                    <div class="value">
                       {{ workScore.afterCorrectionScore }}
                     </div>
                     <el-button
-                      class="more"
+                      class="operation"
                       type="text"
                       @click="
                         dialogWorkScoreTableVisible = true;
                         dialogScoreType = 'after';
                       "
                     >
-                      点击查看
+                      查看
                     </el-button>
-                  </el-col>
-                  <el-col :span="6" class="item">
-                    <div>附加分</div>
-                    <div class="content">
+                  </div>
+                  <div class="cell">
+                    <div class="name">附加分:</div>
+                    <div class="value">
                       <div v-if="!isEditor">{{ personInfoData.extra }}</div>
                       <el-input-number
                         v-else
@@ -135,10 +117,9 @@
                         label="附加分"
                       ></el-input-number>
                     </div>
-                    <div>
+                    <div class="operation">
                       <el-button
                         v-if="isEditor"
-                        class="more"
                         style="color: #91cc75"
                         type="text"
                         @click="
@@ -149,7 +130,7 @@
                         取消
                       </el-button>
                       <el-button
-                        class="more"
+                        class="operation"
                         type="text"
                         :disabled="personInfoData.settle"
                         @click="saveEditorAdditionalPoints"
@@ -157,9 +138,20 @@
                         {{ isEditor ? '完成' : '编辑' }}
                       </el-button>
                     </div>
-                  </el-col>
-                </el-row>
+                  </div>
+                </div>
               </div>
+            </div>
+          </el-col>
+          <el-col :span="17" :xs="24" :sm="16" :md="16" :lg="17" :xl="17">
+            <div
+              class="card"
+              v-loading="$asyncComputed.workScoreListServerData.updating"
+            >
+              <div
+                id="projectWorkPointPie"
+                :style="{width: '100%', height: '800px'}"
+              ></div>
             </div>
           </el-col>
         </el-row>
@@ -497,9 +489,6 @@ export default {
   color: #303133;
   transition: 0.3s;
   padding: 20px;
-  .title {
-    font-weight: 500;
-  }
 }
 
 .header {
@@ -507,57 +496,47 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  font-weight: 500;
+  color: #3a3f62;
+  font-size: 18px;
   .content {
     display: flex;
     flex-direction: row;
-
     .item {
       margin-right: 20px;
     }
   }
 }
 
-.person-info {
-  height: 180px;
-  display: flex;
-  flex-direction: column;
-
-  .name,
-  .value {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .name {
-    color: #323233;
-  }
-
-  .value {
-    color: darkgray;
-    text-align: right;
-  }
-}
-
+.person-info,
 .score-rules {
-  height: 180px;
-  margin-top: 20px;
-
-  .item {
-    height: 160px;
-    display: flex;
-    flex-direction: column;
-
-    .content {
-      flex-grow: 1;
+  padding: 10px 0;
+  margin: 0 0 20px 0;
+  color: #3a3f62;
+  .title {
+    font-size: 16px;
+  }
+  .content {
+    margin: 20px 0;
+    .cell {
+      padding: 12px 0;
       display: flex;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-    }
-
-    .more {
-      padding: 10px 0;
+      .name {
+        color: #7a7d95;
+        font-size: 14px;
+      }
+      .value {
+        flex: 1;
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 10px;
+      }
+      .operation {
+        padding: 0 !important;
+      }
     }
   }
 }
