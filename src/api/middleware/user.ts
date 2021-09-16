@@ -46,7 +46,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           type: UserType.STAFF,
           id: staffModel.id,
           name: staffModel.name,
-          hospital: staffModel.hospital,
+          hospitals: [{id: staffModel.hospital}],
           department: staffModel.department_id
             ? {
                 id: staffModel.department_id,

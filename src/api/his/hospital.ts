@@ -210,12 +210,7 @@ export default class HisHospital {
     month
   ): Promise<{id: string; name: string; score: number; rate: number}[]> {
     const staffApi = new HisStaff();
-    let hospital;
-    if (Context.req.headers?.type === UserType.STAFF) {
-      hospital = Context.current.user?.hospital;
-    } else {
-      hospital = await getHospital();
-    }
+    const hospital = await getHospital();
     return Promise.all(
       (
         await appDB.execute(
