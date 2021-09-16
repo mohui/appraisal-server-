@@ -6,12 +6,9 @@ import {
   dayToRange,
   getHospital,
   getSettle,
-  monthToRange,
-  StaffWorkModel
+  monthToRange
 } from './service';
 import Decimal from 'decimal.js';
-import {Context} from '../context';
-import {UserType} from '../middleware/user';
 
 /**
  * 机构模块
