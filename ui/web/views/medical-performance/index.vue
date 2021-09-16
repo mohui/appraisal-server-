@@ -120,6 +120,7 @@
                     v-for="(i, index) of staffCheckListData"
                     :key="index"
                     class="cell"
+                    @click="onGotoStaffDetail(i.id)"
                   >
                     <div class="ranking">{{ index + 1 }}</div>
                     <div class="container">
@@ -404,6 +405,16 @@ export default {
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
+    },
+    // 跳转到员工详情页
+    onGotoStaffDetail(id) {
+      this.$router.push({
+        name: 'personal-appraisal-results',
+        query: {
+          id: id,
+          date: JSON.stringify(this.currentDate)
+        }
+      });
     },
     // 报表数据处理
     handleReportData() {
