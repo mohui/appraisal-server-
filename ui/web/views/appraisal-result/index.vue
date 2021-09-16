@@ -212,7 +212,12 @@
                 shadow="hover"
               >
                 <div class="score-detail">
-                  <el-table :data="projectDetailData" height="99%">
+                  <el-table
+                    :data="projectDetailData"
+                    height="99%"
+                    :header-cell-class-name="tableHeaderClass"
+                    :cell-class-name="tableCellClass"
+                  >
                     <el-table-column
                       prop="projectName"
                       label="工分项"
@@ -545,6 +550,7 @@
                 :data="workpointRankData"
                 height="600"
                 :cell-class-name="cellClassHover"
+                :header-cell-class-name="tableHeaderClass"
                 @row-click="handleCellClick"
               >
                 <el-table-column label="序号" align="center">
@@ -575,6 +581,8 @@
                 ref="refTable"
                 :data="workPointsProjectData"
                 height="600"
+                :header-cell-class-name="tableHeaderClass"
+                :cell-class-name="tableCellClass"
               >
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
@@ -829,6 +837,12 @@ export default {
     this.initParams(this.$route);
   },
   methods: {
+    tableCellClass() {
+      return 'appraisal-result-table-cell';
+    },
+    tableHeaderClass() {
+      return 'appraisal-result-table-header';
+    },
     computedColWidth(field) {
       if (this.projectDetailData?.length > 0) {
         return this.$widthCompute(
@@ -897,6 +911,7 @@ export default {
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
       if (columnIndex === 1) return 'appraisal-result-subordinate-name';
+      return 'appraisal-result-table-cell';
     },
     //点击标题跳转详情
     handleCellClick(row, column) {
@@ -1105,6 +1120,19 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.appraisal-result-table-header {
+  color: #40415a;
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.appraisal-result-table-cell {
+  color: #3a3f62;
+  font-size: 14px;
+}
+</style>
+
 <style scoped lang="scss">
 @import '../../styles/vars';
 
@@ -1156,7 +1184,7 @@ export default {
   box-sizing: border-box;
   .header-title {
     font-size: 18px;
-    color: #40415a;
+    color: #3a3f62;
     margin-right: 10px;
   }
 }
@@ -1243,7 +1271,7 @@ export default {
 <style lang="scss">
 .appraisal-result-subordinate-name {
   cursor: pointer;
-
+  color: #3a3f62;
   :hover {
     color: #1a95d7;
   }
