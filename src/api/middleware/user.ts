@@ -24,6 +24,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
     //加入staff逻辑
     if (token && type == UserType.STAFF) {
       const staffModel: {
+        hospital: string;
         id: string;
         name: string;
         department_id: string | null;
@@ -32,7 +33,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         await appDB.execute(
           //language=PostgreSQL
           `
-            select s.id, s.name, d.id as department_id, d.name as department_name
+            select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
             from staff s
                    left join his_department d on s.department = d.id
             where s.id = ?
@@ -45,6 +46,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           type: UserType.STAFF,
           id: staffModel.id,
           name: staffModel.name,
+          hospital: staffModel.hospital,
           department: staffModel.department_id
             ? {
                 id: staffModel.department_id,
