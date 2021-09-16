@@ -105,8 +105,8 @@
           </el-button>
         </div>
       </div>
-      <div v-if="params.listFlag === 'score'">
-        <div class="jx-header" style="align-items: center">
+      <div v-if="params.listFlag === 'score'" v-sticky>
+        <div class="header-box-card" style="align-items: center">
           <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
           <el-button
             size="small"
