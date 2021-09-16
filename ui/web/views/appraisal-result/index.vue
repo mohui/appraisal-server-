@@ -59,7 +59,7 @@
               >考核共识下载</el-button
             >
           </div>
-          <div v-if="!$settings.isMobile" style="margin:0 10px">
+          <div v-if="!$settings.isMobile">
             <el-button
               size="mini"
               type="primary"
@@ -71,6 +71,7 @@
               plain
               size="small"
               type="primary"
+              style="margin:0 10px"
               @click="handleFileDownload(reportListData[0].url)"
               >公卫报告下载</el-button
             >
@@ -79,6 +80,7 @@
               split-button
               size="small"
               type="primary"
+              style="margin:0 10px"
               @command="handleFileDownload"
             >
               公卫报告下载
@@ -95,7 +97,7 @@
           </div>
           <el-button
             v-if="showBackButton()"
-            style="float:right; margin: 4px 0 10px 30px"
+            style="margin-left: 20px"
             size="small"
             type="primary"
             @click="handleBack"
