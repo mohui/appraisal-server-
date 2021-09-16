@@ -23,13 +23,34 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
     const type = ctx.req.header('type');
     //加入staff逻辑
     if (token && type == UserType.STAFF) {
-      const staffModel = (
-        await appDB.execute(`select * from staff where id = ?`, token)
+      const staffModel: {
+        id: string;
+        name: string;
+        department_id: string | null;
+        department_name: string | null;
+      } = (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
+            select s.id, s.name, d.id as department_id, d.name as department_name
+            from staff s
+                   left join his_department d on s.department = d.id
+            where s.id = ?
+          `,
+          token
+        )
       )[0];
       if (staffModel) {
         ctx.user = {
-          ...staffModel,
-          type: UserType.STAFF
+          type: UserType.STAFF,
+          id: staffModel.id,
+          name: staffModel.name,
+          department: staffModel.department_id
+            ? {
+                id: staffModel.department_id,
+                name: staffModel.department_name
+              }
+            : null
         };
       }
       await next();
