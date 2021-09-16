@@ -204,14 +204,14 @@
           <div v-else>
             <!--工分值校正明细-->
             <el-col :span="24">
-              <el-card
+              <div class="table-title">
+                工分值校正明细
+              </div>
+              <div
                 v-loading="$asyncComputed.projectDetailServerData.updating"
                 shadow="hover"
               >
                 <div class="score-detail">
-                  <div class="second-title" style="text-align: left;">
-                    工分值校正明细
-                  </div>
                   <el-table :data="projectDetailData" height="99%">
                     <el-table-column
                       prop="projectName"
@@ -250,7 +250,7 @@
                     </el-table-column>
                   </el-table>
                 </div>
-              </el-card>
+              </div>
             </el-col>
           </div>
         </el-row>
@@ -536,11 +536,11 @@
             :xl="12"
             style="margin-bottom: 10px;"
           >
-            <el-card
+            <div class="table-title">下级工分</div>
+            <div
               v-loading="$asyncComputed.workpointRankServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">下级工分</div>
               <el-table
                 :data="workpointRankData"
                 height="600"
@@ -563,14 +563,14 @@
                   </template>
                 </el-table-column>
               </el-table>
-            </el-card>
+            </div>
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-card
+            <div class="table-title">工分项目</div>
+            <div
               v-loading="$asyncComputed.workPointsProjectServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">工分项目</div>
               <el-table
                 ref="refTable"
                 :data="workPointsProjectData"
@@ -592,7 +592,7 @@
                   </template>
                 </el-table-column>
               </el-table>
-            </el-card>
+            </div>
           </el-col>
         </el-row>
       </div>
@@ -1131,7 +1131,14 @@ export default {
   }
 }
 
-.second-title {
+.table-title {
+  text-align: left;
+  background: #eef2fe;
+  padding: 20px;
+}
+
+.second-title,
+.table-title {
   font-size: 16px;
   color: #40415a;
 }
