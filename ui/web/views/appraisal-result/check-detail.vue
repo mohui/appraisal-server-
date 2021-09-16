@@ -71,6 +71,7 @@
                 show-summary
                 :summary-method="handleSummaries"
                 style="width: 100%"
+                :header-cell-style="{color: '#40415a', fontSize: '14px'}"
               >
                 <el-table-column
                   type="index"
@@ -797,12 +798,15 @@ export default {
   }
 
   .check-table-title {
-    background: #ccc;
+    background: #e8ecf8;
     width: 100%;
-    line-height: 40px;
+    height: 60px;
+    line-height: 60px;
     padding-left: 20px;
     float: left;
     box-sizing: border-box;
+    font-size: 15px;
+    color: #40415a;
   }
 }
 </style>
