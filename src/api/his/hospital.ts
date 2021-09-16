@@ -10,6 +10,8 @@ import {
   StaffWorkModel
 } from './service';
 import Decimal from 'decimal.js';
+import {Context} from '../context';
+import {UserType} from '../middleware/user';
 
 /**
  * 机构模块
@@ -208,7 +210,12 @@ export default class HisHospital {
     month
   ): Promise<{id: string; name: string; score: number; rate: number}[]> {
     const staffApi = new HisStaff();
-    const hospital = await getHospital();
+    let hospital;
+    if (Context.req.headers?.type === UserType.STAFF) {
+      hospital = Context.current.user?.hospital;
+    } else {
+      hospital = await getHospital();
+    }
     return Promise.all(
       (
         await appDB.execute(
