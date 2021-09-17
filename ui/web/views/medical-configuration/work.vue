@@ -24,6 +24,7 @@
     >
       <el-table
         v-loading="tableLoading"
+        v-hidden-scroll
         ref="workTable"
         :row-class-name="rowClassName"
         :key="symbolKey"
