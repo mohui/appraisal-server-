@@ -27,7 +27,13 @@
         </el-col>
       </el-row>
     </el-form>
-    <el-table :data="showWorkData" border class="work-config-table" size="mini">
+    <el-table
+      v-hidden-scroll
+      :data="showWorkData"
+      border
+      class="work-config-table"
+      size="mini"
+    >
       <el-table-column align="center" label="员工" prop="staffName">
         <template slot="header" slot-scope="scope">
           {{ scope.row }}

@@ -288,7 +288,7 @@
                 size="mini"
                 placeholder="输入关键字进行过滤"
               ></el-input>
-              <div class="long-tree">
+              <div v-hidden-scroll class="long-tree">
                 <el-tree
                   ref="staffTree"
                   :data="staffTree"
@@ -312,7 +312,7 @@
                 placeholder="输入关键字进行过滤"
               >
               </el-input>
-              <div class="long-tree">
+              <div v-hidden-scroll class="long-tree">
                 <el-tree
                   ref="tree"
                   :data="treeData"
