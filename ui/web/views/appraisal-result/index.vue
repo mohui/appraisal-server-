@@ -478,23 +478,48 @@
               shadow="hover"
             >
               <div class="second-title">下级质量系数排行</div>
-              <div v-for="(item, index) of rankData" :key="item.code">
+              <div class="rank-box">
                 <div
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.code)"
+                  v-for="(i, index) of rankData"
+                  :key="index"
+                  class="cell"
+                  @click="handleClickSubordinateArea(i.code)"
                 >
-                  <p>
-                    {{ index + 1 }}、{{ item.name }}
-                    <span style="float:right"
-                      >{{ Math.round(item.rate * 100) }}%</span
+                  <div class="ranking">{{ index + 1 }}</div>
+                  <div class="container">
+                    <div class="name single-text">{{ i.name }}</div>
+                    <div class="progress el-progress-staff-cell">
+                      <el-progress
+                        :stroke-width="16"
+                        :percentage="i.rate * 100"
+                        :show-text="false"
+                        :color="
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                        "
+                      ></el-progress>
+                    </div>
+                    <div
+                      class="text"
+                      :style="{
+                        color:
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                      }"
                     >
-                  </p>
-                  <el-progress
-                    :text-inside="true"
-                    :stroke-width="18"
-                    :percentage="Math.round(item.rate * 100)"
-                  >
-                  </el-progress>
+                      {{ Number((i.rate * 100).toFixed(2)) }}%
+                    </div>
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -505,22 +530,51 @@
               shadow="hover"
             >
               <div class="second-title">下级校正前工分排行</div>
-              <div v-for="(item, index) of rankTotalData" :key="item.code">
+              <div class="rank-box">
                 <div
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.code)"
+                  v-for="(i, index) of rankTotalData"
+                  :key="index"
+                  class="cell"
+                  @click="handleClickSubordinateArea(i.code)"
                 >
-                  <p>
-                    {{ index + 1 }}、{{ item.name }}
-                    <span style="float:right">{{ item.totalWorkPoint }}</span>
-                  </p>
-                  <el-progress
-                    :text-inside="true"
-                    :stroke-width="18"
-                    :percentage="Math.round(item.totalWorkPointRate * 100)"
-                    :format="setProgress(item.totalWorkPoint)"
-                  >
-                  </el-progress>
+                  <div class="ranking">{{ index + 1 }}</div>
+                  <div class="container">
+                    <div class="name single-text">{{ i.name }}</div>
+                    <div class="progress el-progress-staff-cell">
+                      <el-progress
+                        :style="{
+                          width: `${i.proportion * 100}%`
+                        }"
+                        :stroke-width="16"
+                        :percentage="100"
+                        :show-text="false"
+                        :color="
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                        "
+                      ></el-progress>
+                    </div>
+                    <div
+                      class="text"
+                      :style="{
+                        color:
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                      }"
+                    >
+                      {{ Number(i.totalWorkPoint.toFixed(2)) }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -816,11 +870,12 @@ export default {
       const maxTotalWorkPoint = ranks
         .sort((a, b) => b.totalWorkPoint - a.totalWorkPoint)
         .map(item => item.totalWorkPoint)[0];
-      // return maxTotalWorkPoint;
+
       return ranks.map(item => {
         return {
           ...item,
-          totalWorkPointRate: maxTotalWorkPoint
+          // 较最大工分的比例
+          proportion: maxTotalWorkPoint
             ? item?.totalWorkPoint / maxTotalWorkPoint
             : 0
         };
@@ -1131,6 +1186,14 @@ export default {
   color: #3e4260;
   font-size: 14px;
 }
+
+.el-progress-staff-cell {
+  .el-progress-bar__outer,
+  .el-progress-bar__inner {
+    /*圆角*/
+    border-radius: 2px;
+  }
+}
 </style>
 
 <style scoped lang="scss">
@@ -1252,6 +1315,42 @@ export default {
     padding-left: 20px;
     float: left;
     box-sizing: border-box;
+  }
+}
+
+.rank-box {
+  .cell {
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    .ranking {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #dae0f2;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .container {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      .name {
+        max-width: 120px;
+      }
+      .progress {
+        flex: 1;
+        margin: 0 10px;
+      }
+      .text {
+        width: 100px;
+        text-align: right;
+      }
+    }
   }
 }
 
