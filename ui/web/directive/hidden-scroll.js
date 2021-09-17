@@ -3,23 +3,14 @@ const tableBodyClass = 'el-table__body-wrapper';
 
 Vue.directive('hidden-scroll', {
   inserted(el, binding, vnode) {
-    const refId = binding.value;
     let targetComp = null;
-    if (refId) {
-      //指定了ref,则只获取该ref
-      targetComp = vnode.context.$refs[refId];
+    //如果是el-table,则要获取下面一层的table-body
+    if (vnode.elm.classList.contains('el-table')) {
+      targetComp = vnode.elm.getElementsByClassName(tableBodyClass)[0];
     }
-    //没有指定ref,默认获取element-table的body元素,因为项目中table滚动条居多
-    if (!refId) {
-      targetComp = vnode.elm.parentElement.getElementsByClassName(
-        tableBodyClass
-      )[0];
-    }
-    //如果也不是table,就取组件本身的dom
-    if (!targetComp) targetComp = el;
+    if (!targetComp) targetComp = vnode.elm;
     //开始监听滚动
     if (targetComp) {
-      targetComp = targetComp?.$el ?? targetComp;
       //没滚动时也监测一下滚动条
       scrollHandler(targetComp);
       targetComp.addEventListener('scroll', () => scrollHandler(targetComp));
