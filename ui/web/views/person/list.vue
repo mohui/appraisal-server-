@@ -163,6 +163,7 @@
     </kn-collapse>
     <el-table
       ref="personTable"
+      v-hidden-scroll
       v-loading="$asyncComputed.serverData.updating"
       :data="tableData"
       empty-text="没有筛选到符合条件的数据"
