@@ -57,7 +57,7 @@
           <el-table-column
             label="序号"
             type="index"
-            width="100"
+            width="70"
             align="center"
             fixed="left"
           ></el-table-column>
