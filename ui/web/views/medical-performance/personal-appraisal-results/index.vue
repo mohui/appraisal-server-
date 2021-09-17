@@ -445,14 +445,22 @@ export default {
               borderColor: '#7a7d95',
               borderWidth: 1,
               borderRadius: 4,
-              padding: [2, 5],
+              padding: [10, 10],
+              position: 'outer',
               alignTo: 'labelLine',
               color: '#3a3f62',
+              fontSize: 12,
               rich: {
                 b: {
-                  fontSize: 14,
                   lineHeight: 20
                 }
+              }
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 13,
+                fontWeight: 'bold'
               }
             },
             data: this.workScorePieData
