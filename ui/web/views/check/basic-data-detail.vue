@@ -52,7 +52,7 @@
     </div>
     <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0;">
       <div v-for="(item, i) of listData" :key="i" class="centre-name">
-        <p>{{ i + 1 }} {{ item.name }}</p>
+        <p>{{ item.name }}</p>
         <el-table :data="item.child" highlight-current-row>
           <el-table-column
             label="序号"
