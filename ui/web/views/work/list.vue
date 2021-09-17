@@ -48,6 +48,7 @@
     </el-form>
     <el-table
       v-loading="$asyncComputed.serverData.updating"
+      v-hidden-scroll
       :data="tableData"
       empty-text="没有筛选到符合条件的数据"
       height="100%"
