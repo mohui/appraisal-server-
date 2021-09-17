@@ -430,7 +430,8 @@ export default {
         color: this.chartColors,
         legend: {
           top: 'bottom',
-          type: 'scroll'
+          type: 'scroll',
+          icon: 'circle'
         },
         series: [
           {
