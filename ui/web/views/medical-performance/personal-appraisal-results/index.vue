@@ -438,16 +438,17 @@ export default {
             center: ['50%', '48%'],
             label: {
               formatter: '{b|}校正前工分：{c}\n{b|}工分项占比：{d}%',
-              backgroundColor: '#F6F8FC',
-              borderColor: '#8C8D8E',
+              backgroundColor: '#FFFFFF',
+              borderColor: '#7a7d95',
               borderWidth: 1,
               borderRadius: 4,
-              padding: [0, 5],
+              padding: [2, 5],
               alignTo: 'labelLine',
+              color: '#3a3f62',
               rich: {
                 b: {
                   fontSize: 14,
-                  lineHeight: 23
+                  lineHeight: 20
                 }
               }
             },
