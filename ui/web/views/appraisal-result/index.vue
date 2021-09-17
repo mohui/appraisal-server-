@@ -1319,14 +1319,17 @@ export default {
 }
 
 .rank-box {
+  padding-top: 20px;
   .cell {
     padding: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
+    font-size: 12px;
+    color: #3a3f62;
     .ranking {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1340,14 +1343,14 @@ export default {
       flex-direction: row;
       align-items: center;
       .name {
-        max-width: 120px;
+        width: 80px;
       }
       .progress {
         flex: 1;
-        margin: 0 10px;
+        margin: 5px 2px;
       }
       .text {
-        width: 100px;
+        width: 80px;
         text-align: right;
       }
     }
