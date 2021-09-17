@@ -25,7 +25,9 @@
             </div>
           </div>
           <div>
-            <el-button size="small" @click="$router.go(-1)">返回</el-button>
+            <el-button size="small" type="primary" @click="$router.go(-1)"
+              >返回</el-button
+            >
           </div>
         </div>
       </div>
