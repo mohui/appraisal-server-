@@ -39,7 +39,10 @@
                 class="person-info"
                 v-loading="$asyncComputed.personInfoServerData.updating"
               >
-                <div class="title">个人信息</div>
+                <div class="title-box">
+                  <div class="el-icon-user-solid icon"></div>
+                  <div class="title">个人信息</div>
+                </div>
                 <div class="content">
                   <div
                     v-for="(value, key) in personInfo"
@@ -60,7 +63,10 @@
                     $asyncComputed.workScoreListServerData.updating
                 "
               >
-                <div class="title">得分细则</div>
+                <div class="title-box">
+                  <div class="el-icon-s-help icon"></div>
+                  <div class="title">得分细则</div>
+                </div>
                 <div class="content">
                   <div class="cell">
                     <div class="name">校正前工分:</div>
@@ -524,11 +530,20 @@ export default {
   padding: 10px 0;
   margin: 0 0 20px 0;
   color: #3a3f62;
-  .title {
-    font-size: 16px;
+  .title-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    .icon {
+      font-size: 25px;
+    }
+    .title {
+      padding: 0 10px;
+      font-size: 16px;
+    }
   }
   .content {
-    margin: 20px 0;
+    margin: 20px 35px;
     .cell {
       padding: 12px 0;
       display: flex;
