@@ -8,6 +8,7 @@
     </div>
     <el-table
       v-loading="$asyncComputed.serverData.updating"
+      v-hidden-scroll
       :data="manual"
       empty-text="没有筛选到符合条件的数据"
       height="100%"
