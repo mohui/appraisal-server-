@@ -1,33 +1,32 @@
 <template>
-  <div style="height: 100%;">
+  <div class="flex-column-layout">
+    <div slot="header" class="jx-header">
+      <span class="header-title">工分项设置</span>
+      <div>
+        <el-button size="small" type="warning" @click="itemTypeVisible = true"
+          >新增分类</el-button
+        >
+        <el-button size="small" type="primary" @click="addWorkVisible = true"
+          >新增工分项</el-button
+        >
+      </div>
+    </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;flex: 1"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 1px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '0'
       }"
     >
-      <div slot="header" class="work-header">
-        <span>工分项设置</span>
-        <div>
-          <el-button size="mini" type="warning" @click="itemTypeVisible = true"
-            >新增分类</el-button
-          >
-          <el-button size="mini" type="primary" @click="addWorkVisible = true"
-            >新增工分项</el-button
-          >
-        </div>
-      </div>
       <el-table
         v-loading="tableLoading"
         ref="workTable"
         :row-class-name="rowClassName"
         :key="symbolKey"
-        border
         class="work-table-expand"
         size="small"
         :data="reduceTableData"
@@ -155,7 +154,7 @@
     </el-card>
     <el-dialog
       :visible.sync="addWorkVisible"
-      :width="$settings.isMobile ? '99%' : isPreView ? '60%' : '40%'"
+      :width="$settings.isMobile ? '99%' : '60%'"
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
@@ -200,7 +199,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.Staff ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   本人
                 </el-button>
@@ -210,7 +209,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.DEPT ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   本人所在科室
                 </el-button>
@@ -219,7 +218,7 @@
                   :type="
                     newWork.scope === HisStaffDeptType.HOSPITAL ? 'primary' : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   机构全体员工
                 </el-button>
@@ -237,7 +236,7 @@
                       ? 'primary'
                       : ''
                   "
-                  size="mini"
+                  size="small"
                 >
                   其他固定配置
                 </el-button>
@@ -335,9 +334,11 @@
                 <el-button
                   :class="{
                     'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.SUM
+                      newWork.scoreMethod === HisWorkMethod.SUM,
+                    'work-method-btn': true
                   }"
-                  size="mini"
+                  plain
+                  size="small"
                   @click="newWork.scoreMethod = HisWorkMethod.SUM"
                 >
                   {{ HisWorkMethod.SUM }}
@@ -345,9 +346,11 @@
                 <el-button
                   :class="{
                     'el-button--primary':
-                      newWork.scoreMethod === HisWorkMethod.AMOUNT
+                      newWork.scoreMethod === HisWorkMethod.AMOUNT,
+                    'work-method-btn': true
                   }"
-                  size="mini"
+                  plain
+                  size="small"
                   @click="newWork.scoreMethod = HisWorkMethod.AMOUNT"
                 >
                   {{ HisWorkMethod.AMOUNT }}
@@ -376,12 +379,15 @@
         <work-preview :config="previewConfig" v-if="isPreView"></work-preview>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" type="warning" @click="isPreView = !isPreView">{{
-          isPreView ? '取消预览' : '预览'
-        }}</el-button>
+        <el-button
+          size="small"
+          type="warning"
+          @click="isPreView = !isPreView"
+          >{{ isPreView ? '取消预览' : '预览' }}</el-button
+        >
         <el-button
           v-show="!isPreView"
-          size="mini"
+          size="small"
           @click="resetConfig('workForm')"
           >取 消</el-button
         >
@@ -389,7 +395,7 @@
           v-show="!isPreView"
           v-loading="addBtnLoading"
           class="work-submit-loading"
-          size="mini"
+          size="small"
           type="primary"
           @click="submit()"
         >
@@ -412,13 +418,13 @@
       </el-select>
 
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="resetConfig('workForm')"
+        <el-button size="small" @click="resetConfig('workForm')"
           >取 消</el-button
         >
         <el-button
           v-loading="addBtnLoading"
           class="work-submit-loading"
-          size="mini"
+          size="small"
           type="primary"
           @click="submitMove()"
         >
@@ -486,8 +492,7 @@ export default {
         label: 'name',
         disabled: data => {
           return (
-            (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
-            (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
+            (data.scope === HisStaffDeptType.HOSPITAL && this.isStaffSource) || //不能选机构类型的工分
             data.id === '公卫数据' ||
             data.id === '手工数据' ||
             data.id === '其他'
@@ -587,10 +592,8 @@ export default {
         p => p.scope === HisStaffDeptType.HOSPITAL
       );
     },
-    onlyPerson() {
-      return this.newWork.projectsSelected.some(
-        p => p.scope === HisStaffDeptType.Staff
-      );
+    isStaffSource() {
+      return this.newWork.scope !== this.HisStaffDeptType.HOSPITAL;
     },
     //预览的参数预处理
     previewConfig() {
@@ -612,10 +615,30 @@ export default {
           }
         }
       }
+      let checkedNodes = this.$refs.tree
+        .getCheckedNodes()
+        .filter(it => !['其他', '手工数据', '公卫数据'].includes(it.id));
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
+        }
+      }
       config = {
         name: this.newWork.work,
         method: this.newWork.scoreMethod,
-        mappings: this.newWork.projectsSelected,
+        mappings: newMappings,
         staffMethod: staffMethod,
         staffs: checkedStaffs,
         score: this.newWork.score,
@@ -882,11 +905,8 @@ export default {
       }
     },
     disabledContent(data) {
-      if (data.scope === HisStaffDeptType.Staff) {
-        return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
-      }
       if (data.scope === HisStaffDeptType.HOSPITAL) {
-        return `不能与${HisStaffDeptType.Staff}工分同时选`;
+        return `工分项取值来源非"机构全体员工"时不可选`;
       }
     },
     staffCheck() {
@@ -907,13 +927,24 @@ export default {
       checkedNodes = checkedNodes.filter(
         it => !['其他', '手工数据', '公卫数据'].includes(it.id)
       );
-      for (let c of checkedNodes) {
-        if (c?.children?.length > 0) {
-          //children内的元素一定都是选上的,所以只保留它们共同的父项
-          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
         }
       }
-      this.newWork.projectsSelected = checkedNodes;
+      this.newWork.projectsSelected = newMappings;
     },
     //列表树load方法
     loadTree(tree, treeNode, resolve) {
@@ -1047,10 +1078,6 @@ export default {
 </script>
 
 <style scoped>
-.work-header {
-  display: flex;
-  justify-content: space-between;
-}
 .long-tree {
   max-height: 20vh;
   overflow-y: auto;
@@ -1065,7 +1092,10 @@ export default {
 }
 .dialog-form {
   max-height: 60vh;
-  padding: 0 30px;
+  padding: 0 10px;
+}
+.work-method-btn {
+  border-radius: 4px;
 }
 </style>
 <style lang="scss">

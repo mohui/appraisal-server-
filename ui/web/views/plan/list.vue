@@ -1,76 +1,74 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 110px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>医疗考核方案</span>
-        <el-button
-          style="float: right;margin:0 -9px;"
-          type="primary"
-          size="small"
-          @click="
-            $router.push({
-              name: 'plan-add'
-            })
-          "
-          >新建方案
-        </el-button>
-      </div>
-      <el-table
-        v-loading="$asyncComputed.serverData.updating"
-        :data="tableData"
-        empty-text="没有筛选到符合条件的数据"
-        stripe
-        border
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">医疗考核方案</span>
+      <el-button
+        type="primary"
         size="small"
-        height="100%"
-        style="flex-grow: 1;"
-      >
-        <el-table-column
-          width="50px"
-          type="index"
-          align="center"
-          label="序号"
-        ></el-table-column>
-        <el-table-column prop="name" label="方案名称" align="center">
-        </el-table-column>
-        <el-table-column
-          prop="staff"
-          label="考核员工"
-          align="center"
-        ></el-table-column>
-        <el-table-column
-          prop="items"
-          label="负责项目"
-          align="center"
-        ></el-table-column
-        ><el-table-column
-          prop="score"
-          label="分值"
-          min-width="40"
-          align="center"
-        ></el-table-column
-        ><el-table-column label="操作" min-width="60" align="center">
-          <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="editPlan(scope)">
-              修改
+        @click="
+          $router.push({
+            name: 'plan-add'
+          })
+        "
+        >新建方案
+      </el-button>
+    </div>
+    <el-table
+      v-loading="$asyncComputed.serverData.updating"
+      :data="tableData"
+      empty-text="没有筛选到符合条件的数据"
+      height="100%"
+      style="flex-grow: 1;"
+    >
+      <el-table-column
+        width="50px"
+        type="index"
+        align="center"
+        label="序号"
+      ></el-table-column>
+      <el-table-column prop="name" label="方案名称" align="center">
+      </el-table-column>
+      <el-table-column
+        prop="staff"
+        label="考核员工"
+        align="center"
+      ></el-table-column>
+      <el-table-column
+        prop="items"
+        label="负责项目"
+        align="center"
+      ></el-table-column
+      ><el-table-column
+        prop="score"
+        label="分值"
+        min-width="40"
+        align="center"
+      ></el-table-column
+      ><el-table-column label="操作" min-width="60" align="center">
+        <template slot-scope="scope">
+          <el-tooltip content="修改" :enterable="false">
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              circle
+              size="mini"
+              @click="editPlan(scope)"
+            >
             </el-button>
-            <el-button type="danger" size="mini" @click="delPlan(scope)">
-              删除
+          </el-tooltip>
+          <el-tooltip content="删除" :enterable="false">
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              circle
+              size="mini"
+              @click="delPlan(scope)"
+            >
             </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 

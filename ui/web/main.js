@@ -9,7 +9,7 @@ import {getApiClient} from './plugins/api';
 import WidthCompute from './plugins/width-compute';
 import dayjs from './plugins/dayjs';
 import {settingPlugin} from './plugins/setting';
-import echarts from 'echarts';
+import * as echarts from 'echarts';
 import './directive';
 import KnDebounceInputComponent from './components/kn-debounce-input';
 import KnCollapse from './components/kn-collapse';

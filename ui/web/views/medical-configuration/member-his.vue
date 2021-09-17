@@ -1,30 +1,30 @@
 <template>
-  <div style="height: 100%;">
+  <div class="flex-column-layout">
+    <div class="jx-header">
+      <span class="header-title">His员工绑定列表</span>
+      <div>
+        <el-button size="small" type="primary" @click="openAddUserDialog"
+          >新建用户
+        </el-button>
+        <el-button
+          size="small"
+          type="warning"
+          @click="addDepartmentVisible = true"
+          >新增科室
+        </el-button>
+      </div>
+    </div>
     <el-card
       class="box-card"
-      style="height: 100%;"
+      style="height: 100%;flex:1"
       shadow="never"
       :body-style="{
-        height: 'calc(100% - 110px)',
+        height: 'calc(100% - 10px)',
         display: 'flex',
         'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px'
+        padding: $settings.isMobile ? '10px 0' : '10px 0 0 0'
       }"
     >
-      <div slot="header" class="clearfix">
-        <span>His员工绑定列表</span>
-        <div>
-          <el-button size="mini" type="primary" @click="openAddUserDialog"
-            >新建用户
-          </el-button>
-          <el-button
-            size="mini"
-            type="warning"
-            @click="addDepartmentVisible = true"
-            >新增科室
-          </el-button>
-        </div>
-      </div>
       <kn-collapse
         :is-show="$settings.isMobile"
         :is-collapsed="isCollapsed"
@@ -59,11 +59,11 @@
               <el-form-item label="">
                 <el-button
                   type="primary"
-                  size="mini"
+                  size="small"
                   @click="$asyncComputed.listMember.update()"
                   >查询</el-button
                 >
-                <el-button type="primary" size="mini" @click="reset">
+                <el-button type="primary" size="small" @click="reset">
                   重置
                 </el-button>
               </el-form-item>
@@ -75,7 +75,6 @@
         :key="symbolKey"
         v-loading="tableLoading"
         class="table-staff-department"
-        border
         size="small"
         :data="userList"
         height="100%"
@@ -88,7 +87,7 @@
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column prop="departmentText" label="科室" min-width="100">
+        <el-table-column prop="departmentText" label="科室" min-width="180">
           <template slot-scope="{row}">
             <span v-if="row.departmentId">{{ row.departmentText }}</span>
             <div
@@ -129,6 +128,11 @@
           min-width="80"
         ></el-table-column>
         <el-table-column
+          prop="phStaffName"
+          label="公卫用户"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
           prop="remark"
           label="备注"
           min-width="100"
@@ -146,13 +150,13 @@
         <el-table-column label="操作" min-width="160">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
-              <el-button type="primary" size="mini" @click="editUser(row)">
+              <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
               <el-button
                 :disabled="row.removeLoading"
                 :icon="row.removeLoading ? 'el-icon-loading' : ''"
-                size="mini"
+                size="small"
                 type="danger"
                 @click="delUser(row)"
               >
@@ -223,6 +227,26 @@
               v-for="h in hisList"
               :key="h.id"
               :label="h.name"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
               :value="h.id"
               :disabled="!h.usable"
             ></el-option>
@@ -313,14 +337,35 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            size="mini"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="dialogFormEditUsersVisible = false"
+        <el-button size="small" @click="dialogFormEditUsersVisible = false"
           >取 消</el-button
         >
         <el-button
           v-loading="updateLoading"
-          size="mini"
+          size="small"
           type="primary"
           @click="updateUser"
           >确 定</el-button
@@ -342,9 +387,9 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="resetDepartmentForm()">取 消</el-button>
+        <el-button size="small" @click="resetDepartmentForm()">取 消</el-button>
         <el-button
-          size="mini"
+          size="small"
           type="primary"
           :disabled="!departmentForm.name"
           @click="submitDepartment()"
@@ -373,6 +418,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null,
         department: null
       },
@@ -443,6 +489,13 @@ export default {
     // 科室列表
     departmentList() {
       return this.serverDepartment;
+    },
+    // 公卫医生列表
+    phStaffList() {
+      return this.serverPhStaffData.map(it => ({
+        ...it,
+        username: `${it.username}${it.states ? '' : ' (禁用)'}`
+      }));
     }
   },
   watch: {
@@ -499,6 +552,17 @@ export default {
         }
       },
       default: []
+    },
+    serverPhStaffData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listPhStaffs();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
@@ -523,6 +587,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null
       };
     },
@@ -538,7 +603,8 @@ export default {
               this.userForm.password.trim(),
               this.userForm.name.trim(),
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
@@ -546,6 +612,7 @@ export default {
             });
             this.$asyncComputed.listMember.update(); //刷新系统员工列表
             this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.dialogFormAddUsersVisible = false;
           } catch (e) {
             this.$message.error(e.message);
@@ -577,6 +644,7 @@ export default {
           password: row.password,
           name: row.name,
           his: row.staff,
+          phStaff: row.phStaff,
           remark: row.remark,
           department: row.department
         }
@@ -595,13 +663,16 @@ export default {
               this.userForm.password.trim(),
               this.userForm.his || null,
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
               message: '保存成功!'
             });
             this.$asyncComputed.listMember.update();
+            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.symbolKey = Symbol(this.$dayjs().toString());
           } catch (e) {
             this.$message.error(e.message);
@@ -694,9 +765,5 @@ export default {
 .no-department-cell {
   text-align: center;
   width: 100%;
-}
-.clearfix {
-  display: flex;
-  justify-content: space-between;
 }
 </style>

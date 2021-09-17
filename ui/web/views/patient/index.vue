@@ -1063,6 +1063,8 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
+@import '../../styles/vars';
+
 .notes {
   cursor: pointer;
   border-bottom: 1px solid #eee;
@@ -1100,7 +1102,7 @@ export default {
       border-top: 1px solid #ccc;
       border-left: 1px solid #ccc;
       em {
-        color: #409eff;
+        color: $color-primary;
       }
       sub {
         vertical-align: bottom;

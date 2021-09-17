@@ -451,6 +451,7 @@ export default {
           this.person = Object.assign({}, result[0], {
             followDate: result[0]?.followDate?.$format('YYYY-MM-DD'),
             nextVisitDate: result[0]?.nextVisitDate?.$format('YYYY-MM-DD'),
+            checkTime: result[0]?.checkTime?.$format('YYYY-MM-DD'),
             updateAt: result[0]?.updateAt?.$format()
           });
         }

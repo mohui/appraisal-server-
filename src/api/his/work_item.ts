@@ -76,7 +76,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_old_health_check',
       date: 'OperateTime'
@@ -328,7 +328,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访',
     name: '高血压随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_hypertension_visit',
       date: 'FollowUpDate'
@@ -349,7 +349,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访',
     name: '2型糖尿病随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_diabetes_visit',
       date: 'FollowUpDate'
@@ -381,7 +381,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人中医药服务',
     name: '老年人中医药服务',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_old_questionnaire_main',
       date: 'OperateTime'
