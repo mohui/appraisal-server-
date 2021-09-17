@@ -434,8 +434,8 @@ export default {
           {
             name: '项目工分值',
             type: 'pie',
-            radius: '40%',
-            center: ['50%', '40%'],
+            radius: ['15%', '50%'],
+            center: ['50%', '48%'],
             label: {
               formatter: '{b|}校正前工分：{c}\n{b|}工分项占比：{d}%',
               backgroundColor: '#F6F8FC',
