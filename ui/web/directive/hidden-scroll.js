@@ -18,6 +18,8 @@ Vue.directive('hidden-scroll', {
     //开始监听滚动
     if (targetComp) {
       const targetDom = targetComp.$el || targetComp;
+      //没滚动时也监测一下滚动条
+      scrollHandler(targetDom);
       targetDom.addEventListener('scroll', () => scrollHandler(targetDom));
     }
   }
