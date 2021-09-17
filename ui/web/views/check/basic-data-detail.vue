@@ -19,15 +19,13 @@
           </el-option>
         </el-select>
         <el-button
-          style="margin: 0 20px;"
-          type="primary"
+          style="margin: 0 20px; border-radius: 4px;"
           size="mini"
           @click="dataDownload"
           >导出数据
         </el-button>
         <el-button
-          style="margin: 0 20px;"
-          type="primary"
+          style="margin: 0 20px; border-radius: 4px;"
           size="mini"
           @click="dialogImportVisible = true"
           >批量导入数据
@@ -36,7 +34,6 @@
       <el-button
         type="primary"
         size="mini"
-        plain
         @click="
           $router.push({
             name: 'basic-data'
@@ -54,24 +51,17 @@
       </el-button>
     </div>
     <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0;">
-      <div v-for="(item, i) of listData" :key="i" style="">
-        <p>{{ i + 1 }} {{ item.name }}</p>
-        <el-table
-          stripe
-          size="mini"
-          :data="item.child"
-          border
-          highlight-current-row
-        >
+      <div v-for="(item, i) of listData" :key="i" class="centre-name">
+        <p>{{ item.name }}</p>
+        <el-table :data="item.child" highlight-current-row>
           <el-table-column
             label="序号"
             type="index"
-            width="50"
+            width="70"
             align="center"
             fixed="left"
           ></el-table-column>
-          <el-table-column prop="name" align="center" label="机构名称">
-          </el-table-column>
+          <el-table-column prop="name" label="机构名称"> </el-table-column>
           <el-table-column
             v-for="(field, index) of curTag"
             :key="index"
@@ -464,4 +454,12 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.centre-name p {
+  background-color: #e8ecf8;
+  margin: 0;
+  line-height: 60px;
+  padding-left: 20px;
+  border-radius: 6px 6px 0 0;
+}
+</style>
