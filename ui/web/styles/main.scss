@@ -167,11 +167,11 @@ h1, h2, h3, h4, h5, h6, p, a {
 
 //自定义滚动条
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #8a8a8a;
+  background-color: $--color-primary;
   border-radius: 30px;
   opacity: 0.8;
 }
@@ -186,6 +186,9 @@ h1, h2, h3, h4, h5, h6, p, a {
   overflow: -moz-scrollbars-none; /* firefox */
   -ms-overflow-style: none; /* IE 10+ */
   &::-webkit-scrollbar {
+    opacity: 0;
+  }
+  &::-webkit-scrollbar-thumb {
     display: none;
   }
 }
