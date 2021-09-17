@@ -826,9 +826,11 @@ export default {
         display: flex;
         flex-direction: row;
         align-items: center;
+        font-size: 13px;
+        color: #3a3f62;
         .ranking {
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -842,11 +844,14 @@ export default {
           flex-direction: row;
           align-items: center;
           .name {
-            width: 45px;
+            width: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
           .progress {
             flex: 1;
-            margin: 0 10px;
+            margin: 5px 3px;
           }
           .text {
             width: 100px;
