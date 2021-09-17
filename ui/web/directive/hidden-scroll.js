@@ -15,6 +15,8 @@ Vue.directive('hidden-scroll', {
         tableBodyClass
       )[0];
     }
+    //如果也不是table,就取组件本身的dom
+    if (!targetComp) targetComp = el;
     //开始监听滚动
     if (targetComp) {
       targetComp = targetComp?.$el ?? targetComp;
