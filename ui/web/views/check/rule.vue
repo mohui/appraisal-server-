@@ -441,6 +441,7 @@ import {
 } from '../../../../common/rule-score.ts';
 import {Permission} from '../../../../common/permission.ts';
 import {Projects} from '../../../../common/project.ts';
+import VueSticky from 'vue-sticky';
 
 export default {
   name: 'rule',
@@ -466,6 +467,9 @@ export default {
       standardList: [],
       standardTab: []
     };
+  },
+  directives: {
+    sticky: VueSticky
   },
   created() {
     this.checkId = this.$route.query.checkId;
