@@ -195,6 +195,13 @@ export const documentTags = {
       type: !!value,
       code: 'CO01'
     };
+  },
+  MCH00(value) {
+    return {
+      label: `孕产妇产前管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'MCH00'
+    };
   }
 };
 
@@ -253,6 +260,10 @@ export const documentTagList = [
   {
     id: 'CO01',
     name: '其他慢病管理不规范'
+  },
+  {
+    id: 'MCH00',
+    name: '孕产妇产前管理不规范'
   }
 ];
 
@@ -299,5 +310,7 @@ export function getTagsList(it) {
   if (it.CH01 != undefined) it.tags.push(documentTags.CH01(it.CH01));
   // 其它慢病规范管理标记
   if (it.CO01 != undefined) it.tags.push(documentTags.CO01(it.CO01));
+  // 孕产妇管理标记
+  if (it.MCH00 != undefined) it.tags.push(documentTags.MCH00(it.MCH00));
   return it;
 }

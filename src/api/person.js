@@ -45,6 +45,7 @@ function listRender(params) {
             {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
             {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
             {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
+            {{#compare MCH00}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH00"={{? MCH00}} {{/compare}}
           )
           and
           (
@@ -97,6 +98,9 @@ function listRenderForExcel(params) {
             {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
             {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
             {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+            {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
+            {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
+            {{#compare MCH00}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH00"={{? MCH00}} {{/compare}}
           )
           and
           (
@@ -115,6 +119,8 @@ function listRenderForExcel(params) {
             {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
             {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
             {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
+            {{#compare ai_2dm}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_2dm"={{? ai_2dm}} {{/compare}}
+            {{#compare ai_hua}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_hua"={{? ai_hua}} {{/compare}}
           )
     `,
     params
@@ -261,6 +267,7 @@ export default class Person {
                 mp."D00",
                 mp."D01",
                 mp."D02",
+                mp."MCH00",
                 mp."C01",
                 mp."C02",
                 mp."C03",
