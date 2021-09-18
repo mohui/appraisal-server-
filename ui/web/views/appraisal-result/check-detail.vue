@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div v-hidden-scroll>
       <div v-sticky>
         <div>
           <div v-if="appraisalIndicatorsData.checkId" class="header-box-card">

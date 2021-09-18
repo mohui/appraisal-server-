@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div class="container">
+    <div class="container" v-hidden-scroll>
       <!--顶部表头-->
       <div class="card" v-sticky>
         <div
