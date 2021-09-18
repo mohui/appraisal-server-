@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div v-hidden-scroll>
       <el-row
         v-loading="$asyncComputed.appraisalIndicatorsServerData.updating"
         class="appraisal-indicators-rule"

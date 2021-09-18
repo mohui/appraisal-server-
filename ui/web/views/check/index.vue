@@ -32,6 +32,7 @@
       }"
     >
       <el-table
+        v-hidden-scroll
         class="check-table"
         size="mini"
         :data="checkList"
