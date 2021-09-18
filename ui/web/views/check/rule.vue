@@ -1,34 +1,23 @@
 <template>
-  <div style="height: 100%;">
-    <el-card
-      class="box-card"
-      style="height: 100%;"
-      shadow="never"
-      :body-style="{
-        height: 'calc(100% - 80px)',
-        display: 'flex',
-        'flex-direction': 'column',
-        padding: $settings.isMobile ? '10px 0' : '20px 0 0 10px'
-      }"
-    >
-      <div slot="header" class="clearfix">
-        <span>《{{ checkName }}》 规则详情</span>
-        <el-button
-          style="float: right;margin:0 -9px;"
-          type="primary"
-          size="small"
-          @click="
-            $router.push({
-              name: 'check'
-            })
-          "
-          >返回
-        </el-button>
+  <div class="wrapper">
+    <div v-hidden-scroll>
+      <div v-sticky>
+        <div class="header-box-card">
+          <div class="header-title">《{{ checkName }}》 规则详情</div>
+          <el-button
+            style="float: right;margin:0 -9px;"
+            type="primary"
+            size="small"
+            @click="
+              $router.push({
+                name: 'check'
+              })
+            "
+            >返回
+          </el-button>
+        </div>
       </div>
-      <div
-        v-hidden-scroll
-        style="flex-grow: 1;height: 0; overflow-y: auto; overflow-x: hidden;"
-      >
+      <el-card class="check-rule-content" shadow="never">
         <div v-for="(item, index) in ruleList" :key="item.ruleId">
           <div class="check-class-title">
             <span v-if="!!item.isEdit">
@@ -122,9 +111,21 @@
               </el-button>
             </div>
           </div>
-          <el-table :data="item.group">
+          <el-table
+            :data="item.group"
+            :header-cell-style="{
+              color: '#40415a',
+              fontSize: '14px',
+              fontWeight: 'normal'
+            }"
+            :cell-style="{
+              color: '#7a7d95',
+              fontSize: '12px',
+              fontWeight: 'normal'
+            }"
+          >
             <el-table-column
-              width="50px"
+              width="70px"
               type="index"
               align="center"
               label="序号"
@@ -278,8 +279,8 @@
             </div>
           </el-col>
         </div>
-      </div>
-    </el-card>
+      </el-card>
+    </div>
     <el-dialog title="指标库" :visible.sync="dialogStandardVisible">
       <el-tabs type="card" @tab-click="handleClick" v-model="curTag">
         <el-tab-pane
@@ -1022,50 +1023,93 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.check-class-title {
-  display: flex;
-  justify-content: space-between;
-  background-color: #dee2e6;
-  line-height: 26px;
-  padding: 5px 0;
-
-  & > span {
-    padding: 0 20px;
-    display: flex;
-
-    .sub-attr {
-      padding-left: 10px;
-      font-size: 14px;
-    }
-
-    .sub-tip {
-      padding-left: 20px;
-    }
-
-    em {
-      color: #409eff;
-    }
-
-    & > div {
-      margin: 0 10px;
-    }
-  }
+.wrapper {
+  height: 100%;
+  position: relative;
 
   & > div {
-    padding: 0 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .empty-data {
+    font-size: 12px;
+    position: relative;
+    margin: 0 auto;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 
-.add-rule {
-  margin: 10px 0 30px;
-  width: 100%;
-  height: 34px;
-  border: 1px dashed #c1c1cd;
-  border-radius: 3px;
-  cursor: pointer;
-  justify-content: center;
+.header-box-card {
+  z-index: 2001 !important;
   display: flex;
-  line-height: 34px;
-  color: green;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 15px 20px;
+  border-radius: 5px;
+  border: 1px solid #ebeef5;
+  .header-title {
+    color: #40415a;
+    font-size: 18px;
+  }
+}
+
+.check-rule-content {
+  margin-top: 20px;
+  min-height: 300px;
+  .check-class-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e8ecf8;
+    color: #40415a;
+    font-size: 15px;
+    height: 60px;
+
+    & > span {
+      padding: 0 20px;
+      display: flex;
+
+      .sub-attr {
+        padding-left: 10px;
+        font-size: 14px;
+      }
+
+      .sub-tip {
+        padding-left: 20px;
+      }
+
+      em {
+        color: #409eff;
+      }
+
+      & > div {
+        margin: 0 10px;
+      }
+    }
+
+    & > div {
+      padding: 0 20px;
+    }
+  }
+  .add-rule {
+    margin: 10px 0 30px;
+    width: 100%;
+    height: 34px;
+    border: 1px dashed #c1c1cd;
+    border-radius: 3px;
+    cursor: pointer;
+    justify-content: center;
+    display: flex;
+    line-height: 34px;
+    color: green;
+  }
 }
 </style>
