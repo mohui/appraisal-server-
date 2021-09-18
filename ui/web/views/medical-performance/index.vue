@@ -828,6 +828,7 @@ export default {
         align-items: center;
         font-size: 13px;
         color: #3a3f62;
+        cursor: pointer;
         .ranking {
           width: 20px;
           height: 20px;
