@@ -91,7 +91,7 @@ export async function workPointCalculation(
     type: string;
   }[]
 > {
-  // 根据员工i查询员工信息
+  // 根据员工id查询员工信息
   const staffModel: {
     id: string;
     name: string;
@@ -256,9 +256,10 @@ export async function workPointCalculation(
     phStaff = phStaffModels.map(it => it.ph_staff);
     if (phStaff.length > 0) {
       // 查询这些公卫员工的名称
+      // language=PostgreSQL
       phUserList = await originalDB.execute(
-        `select useracc id, username from view_sysuser
-             where useracc in (${phStaff.map(() => '?')})`,
+        `select id, name username from ph_user
+             where id in (${phStaff.map(() => '?')})`,
         ...phStaff
       );
     }
