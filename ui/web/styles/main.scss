@@ -164,3 +164,31 @@ h1, h2, h3, h4, h5, h6, p, a {
     }
   }
 }
+
+//自定义滚动条
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: $--color-primary;
+  border-radius: 30px;
+  opacity: 0.8;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #c1c1c1;
+  cursor: pointer;
+}
+
+//滚动条隐藏类
+.hidden-scroll-bar {
+  scrollbar-width: none; /* firefox */
+  overflow: -moz-scrollbars-none; /* firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  &::-webkit-scrollbar {
+    opacity: 0;
+  }
+  &::-webkit-scrollbar-thumb {
+    display: none;
+  }
+}
