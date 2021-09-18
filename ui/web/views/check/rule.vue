@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper" v-loading="isLoading">
     <div v-hidden-scroll>
       <div v-sticky>
         <div class="header-box-card">
@@ -454,6 +454,7 @@ export default {
       checkId: '',
       checkName: '',
       ruleList: [],
+      isLoading: false,
       dialogStandardVisible: false,
       localStandardVisible: false,
       formulaList: [],
@@ -536,6 +537,7 @@ export default {
     },
     //获取细则列表
     async getRuleList() {
+      this.isLoading = true;
       try {
         let result = await this.$api.CheckSystem.detail(this.checkId);
         this.checkName = result.check_name;
@@ -597,6 +599,8 @@ export default {
         }
       } catch (e) {
         this.$message.error(e.message);
+      } finally {
+        this.isLoading = false;
       }
     },
     //打开指标库对话框
@@ -1063,7 +1067,6 @@ export default {
 
 .check-rule-content {
   margin-top: 20px;
-  min-height: 300px;
   .check-class-title {
     display: flex;
     justify-content: space-between;
