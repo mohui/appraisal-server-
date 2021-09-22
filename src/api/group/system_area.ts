@@ -679,14 +679,14 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
             select
-                cast(sum("Score") as int) as score,
-                "OperateOrganization",
-                "OperatorId" as "doctorId",
+                cast(sum(score) as int) as score,
+                operateorganization,
+                operatorid as "doctorId",
                 doctor as "doctorName"
             from mark_workpoint
-            where "OperateOrganization" in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and year = {{? year}}
-             group by "OperatorId", doctor, "OperateOrganization"
+             group by operatorid, doctor, operateorganization
              `,
       {
         hospitalIds,
@@ -723,7 +723,7 @@ export default class SystemArea {
       // 如果是机构节点之前的节点, 把机构节点的上级路径放到公分项数组中
       const workPoints = workPointModels.map(it => {
         const index = newHospitals.find(
-          hospital => hospital.code === it.OperateOrganization
+          hospital => hospital.code === it.operateorganization
         );
         if (index) {
           return {
@@ -777,13 +777,13 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
         select
-            cast(sum("Score") as int) as score,
-            "ProjectName" as "name",
-            "projectType" as "code"
+            cast(sum(score) as int) as score,
+            projectname as "name",
+            projecttype as "code"
         from mark_workpoint
-        where "OperateOrganization" in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
          and year = {{? year}}
-         group by "projectType", "ProjectName"
+         group by projecttype, projectname
          `,
       {
         hospitalIds,
