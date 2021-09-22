@@ -777,13 +777,13 @@ export default class SystemArea {
     const [sql, params] = sqlRender(
       `
         select
-            cast(sum(score) as int) as score,
-            projectname as "name",
-            projecttype as "code"
+            cast(sum("Score") as int) as score,
+            "ProjectName" as "name",
+            "projectType" as "code"
         from mark_workpoint
-        where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        where "OperateOrganization" in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
          and year = {{? year}}
-         group by projecttype, projectname
+         group by "projectType", "ProjectName"
          `,
       {
         hospitalIds,
