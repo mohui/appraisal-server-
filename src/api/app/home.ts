@@ -105,12 +105,10 @@ export default class AppHome {
   async chronic() {
     //获取当前年
     const year = dayjs().year();
-    //查询原始机构id
-    const viewHospitals = (
-      await getOriginalArray(
-        (await getLeaves(Context.current.user.code)).map(it => it.code)
-      )
-    ).map(it => it.id);
+    //查询机构id
+    const viewHospitals = (await getHospitals(Context.current.user.code)).map(
+      it => it.code
+    );
     if (viewHospitals.length === 0) {
       return 0;
     }
@@ -120,7 +118,7 @@ export default class AppHome {
         `
           select count(1) as amount
           from mark_person mp
-                 inner join view_personinfo vp on mp.personnum = vp.personnum
+                 inner join ph_person vp on mp.id = vp.id
             and vp.adminorganization in (${viewHospitals.map(() => '?').join()})
           where mp.year = ?
             and (
