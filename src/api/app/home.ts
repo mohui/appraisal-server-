@@ -90,57 +90,15 @@ export default class AppHome {
   }
   // 居民档案数量
   async person() {
-    const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitalIds = hisHospitals.map(it => it.id);
-
-    //获取当前月
     const year = dayjs().year();
-
-    // 获取 居民档案数量(S00)
-    const mark = await originalDB.execute(
-      // language=PostgreSQL
-      `
-            select "S00"
-            from mark_organization
-            where id in (${hospitalIds.map(() => '?')})
-              and year = ?
-          `,
-      ...hospitalIds,
-      year
-    );
-
-    // 获取月份的时间范围
-    return Number(mark[0]?.S00);
+    const markModel = await getMarks(Context.current.user.code, year);
+    return markModel?.S00 ?? 0;
   }
   // 慢病管理人数
   async chronic() {
-    const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitalIds = hisHospitals.map(it => it.id);
-
-    //获取当前年
     const year = dayjs().year();
-
-    // 获取 高血压数(H00), 糖尿病数(D00)
-    const mark = await originalDB.execute(
-      // language=PostgreSQL
-      `
-            select "H00", "D00"
-            from mark_organization
-            where id in (${hospitalIds.map(() => '?')})
-              and year = ?
-          `,
-      ...hospitalIds,
-      year
-    );
-
-    // 获取月份的时间范围
-    return Number(mark[0]?.H00) + Number(mark[0]?.D00);
+    const markModel = await getMarks(Context.current.user.code, year);
+    return (markModel?.H00 ?? 0) + (markModel?.D00 ?? 0);
   }
 
   /**
@@ -149,7 +107,7 @@ export default class AppHome {
   async htn() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.H00 ? 0 : markModel.H01 / markModel.H00;
+    return markModel.H00 ? markModel.H01 / markModel.H00 : 0;
   }
 
   /**
@@ -158,7 +116,7 @@ export default class AppHome {
   async t2dm() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.D00 ? 0 : markModel.D01 / markModel.D00;
+    return markModel.D00 ? markModel.D01 / markModel.D00 : 0;
   }
 
   /**

@@ -520,8 +520,7 @@ export default {
         label: 'name',
         disabled: data => {
           return (
-            (data.scope === HisStaffDeptType.Staff && this.onlyHospital) || //机构工分选中后禁用个人工分
-            (data.scope === HisStaffDeptType.HOSPITAL && this.onlyPerson) || //个人工分项选中后禁用机构工分
+            (data.scope === HisStaffDeptType.HOSPITAL && this.isStaffSource) || //不能选机构类型的工分
             data.id === '公卫数据' ||
             data.id === '手工数据' ||
             data.id === '其他'
@@ -621,10 +620,8 @@ export default {
         p => p.scope === HisStaffDeptType.HOSPITAL
       );
     },
-    onlyPerson() {
-      return this.newWork.projectsSelected.some(
-        p => p.scope === HisStaffDeptType.Staff
-      );
+    isStaffSource() {
+      return this.newWork.scope !== this.HisStaffDeptType.HOSPITAL;
     },
     //预览的参数预处理
     previewConfig() {
@@ -646,10 +643,30 @@ export default {
           }
         }
       }
+      let checkedNodes = this.$refs.tree
+        .getCheckedNodes()
+        .filter(it => !['其他', '手工数据', '公卫数据'].includes(it.id));
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
+        }
+      }
       config = {
         name: this.newWork.work,
         method: this.newWork.scoreMethod,
-        mappings: this.newWork.projectsSelected,
+        mappings: newMappings,
         staffMethod: staffMethod,
         staffs: checkedStaffs,
         score: this.newWork.score,
@@ -916,11 +933,8 @@ export default {
       }
     },
     disabledContent(data) {
-      if (data.scope === HisStaffDeptType.Staff) {
-        return `不能与${HisStaffDeptType.HOSPITAL}工分同时选`;
-      }
       if (data.scope === HisStaffDeptType.HOSPITAL) {
-        return `不能与${HisStaffDeptType.Staff}工分同时选`;
+        return `工分项取值来源非"机构全体员工"时不可选`;
       }
     },
     staffCheck() {
@@ -941,13 +955,24 @@ export default {
       checkedNodes = checkedNodes.filter(
         it => !['其他', '手工数据', '公卫数据'].includes(it.id)
       );
-      for (let c of checkedNodes) {
-        if (c?.children?.length > 0) {
-          //children内的元素一定都是选上的,所以只保留它们共同的父项
-          checkedNodes = checkedNodes.filter(it => it.parent !== c.id);
+      // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
+      const mappingSorts = checkedNodes.sort(
+        (a, b) => a.id.length - b.id.length
+      );
+      // 定义一个新数组
+      const newMappings = [];
+      // 排查当父类和子类都在数组中的时候, 过滤掉子类
+      for (const sourceIt of mappingSorts) {
+        // 是否以(新数组中的元素 + . )开头, 说明其父级已经在新数组中
+        const index = newMappings.find(newIt =>
+          sourceIt.id.startsWith(`${newIt.id}.`)
+        );
+        // 如果没有, push进去
+        if (!index) {
+          newMappings.push(sourceIt);
         }
       }
-      this.newWork.projectsSelected = checkedNodes;
+      this.newWork.projectsSelected = newMappings;
     },
     //列表树load方法
     loadTree(tree, treeNode, resolve) {

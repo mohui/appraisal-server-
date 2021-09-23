@@ -133,12 +133,18 @@ export default class HisManualData {
     )[0].counts;
     if (Number(counts)) throw new KatoRuntimeError(`${data.name} 存在结算历史`);
     //查询是否关联工分项
+    //language=PostgreSQL
     const mappings = await appDB.execute(
-      `select 1 from his_work_item_mapping where source = ? limit 1`,
+      `select item.name
+         from his_work_item_mapping mapping
+                left join his_work_item item on mapping.item = item.id
+         where mapping.source = ?`,
       `手工数据.${id}`
     );
     if (mappings.length) {
-      throw new KatoRuntimeError(`${data.name} 存在关联工分项`);
+      throw new KatoRuntimeError(
+        `${data.name} 存在关联工分项 ${mappings.map(it => it.name).join(',')}`
+      );
     }
     //开启事务
     await appDB.transaction(async () => {

@@ -99,9 +99,10 @@ export async function workPointCalculation(
     department?: string;
     hospital: string;
     staff?: string;
+    ph_staff?: string;
   } = (
     await appDB.execute(
-      `select id, name, staff, hospital, department from staff where id = ?`,
+      `select id, name, staff, hospital, department, ph_staff from staff where id = ?`,
       staff
     )
   )[0];
@@ -122,11 +123,12 @@ export async function workPointCalculation(
       method,
       score,
       source: it,
-      sourceName: item?.name
+      sourceName: item?.name,
+      scope: item?.scope
     };
   });
 
-  // region 取出系统员工id 适用于门诊,住院,手工数据
+  // region 取出系统员工id 适用于门诊,住院,手工数据,部分公卫数据
   // 系统员工, 不管绑定没绑定his员工,全部都要
   let staffIds = [];
   // 取出当是 固定 时候的所有员工id
@@ -228,6 +230,31 @@ export async function workPointCalculation(
   }
   // endregion
 
+  // region 公卫数据工分来源(动态:个人, 固定)会用到
+  let phStaff;
+  let phUserList = [];
+  if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
+    // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
+    const phStaffModels = await appDB.execute(
+      `
+            select ph_staff
+                from staff
+            where ph_staff is not null
+              and id in (${staffIds.map(() => '?')})`,
+      ...staffIds
+    );
+    phStaff = phStaffModels.map(it => it.ph_staff);
+    if (phStaff.length > 0) {
+      // 查询这些公卫员工的名称
+      phUserList = await originalDB.execute(
+        `select useracc id, username from view_sysuser
+             where useracc in (${phStaff.map(() => '?')})`,
+        ...phStaff
+      );
+    }
+  }
+  // endregion
+
   // 工分流水
   let workItems = [];
   //计算工分
@@ -320,7 +347,7 @@ export async function workPointCalculation(
   //endregion
   //region 计算公卫数据工分来源
   for (const param of bindings.filter(it => it.source.startsWith('公卫数据'))) {
-    //机构级别的数据, 直接用当前员工的机构id即可
+    // 公卫数据分为两种情况, 1:机构级别, 直接用当前员工的机构id, 2: 个人级别, 用公卫的员工id
     //查询hospital绑定关系
     // language=PostgreSQL
     const hisHospitalModels = await appDB.execute(
@@ -340,22 +367,37 @@ export async function workPointCalculation(
     const item = HisWorkItemSources.find(it => it.id === param.source);
     //未配置数据表, 直接跳过
     if (!item || !item?.datasource?.table) continue;
+
+    // 如果取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
+    if (param.scope === HisStaffDeptType.Staff && phStaff.length === 0)
+      continue;
     //渲染sql
     const sqlRendResult = sqlRender(
       `
-          select 1 as value, {{dateCol}} as date, OperateOrganization hospital
+          select 1 as value
+            , {{dateCol}} as date
+            {{#if scope}}
+            , operatorid as hospital
+            {{else}}
+            , OperateOrganization as hospital
+            {{/if}}
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
             and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-          {{#each columns}} and {{this}} {{/each}}
+            {{#if scope}}
+              and operatorid in ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+           {{/if}}
+           {{#each columns}} and {{this}} {{/each}}
           `,
       {
         dateCol: item.datasource.date,
         hospitals: hisHospitals,
         table: item.datasource.table,
         columns: item.datasource.columns,
+        scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
+        phStaff: phStaff,
         start,
         end
       }
@@ -371,14 +413,22 @@ export async function workPointCalculation(
         const item = hisHospitalModels.find(
           hospitalIt => hospitalIt.hospital === it.hospital
         );
+        const phStaffItem = phUserList.find(phIt => phIt.id === it.hospital);
         return {
           value: it.value,
           date: it.date,
-          staffId: item?.id,
-          staffName: item?.name,
+          staffId:
+            param.scope === HisStaffDeptType.Staff ? phStaffItem?.id : item?.id,
+          staffName:
+            param.scope === HisStaffDeptType.Staff
+              ? phStaffItem?.username
+              : item?.name,
           itemId: param.source,
           itemName: param?.sourceName,
-          type: PreviewType.HOSPITAL
+          type:
+            param.scope === HisStaffDeptType.Staff
+              ? PreviewType.PH_STAFF
+              : PreviewType.HOSPITAL
         };
       })
     );
