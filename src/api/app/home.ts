@@ -94,11 +94,42 @@ export default class AppHome {
     const markModel = await getMarks(Context.current.user.code, year);
     return markModel?.S00 ?? 0;
   }
-  // 慢病管理人数
+
+  /**
+   * 慢病管理人数
+   *
+   * 包括高血压, 糖尿病, 脑卒中 严重精神病, 肺结核, 其他慢病
+   */
   async chronic() {
     const year = dayjs().year();
-    const markModel = await getMarks(Context.current.user.code, year);
-    return (markModel?.H00 ?? 0) + (markModel?.D00 ?? 0);
+    //查询原始机构id
+    const viewHospitals = (
+      await getOriginalArray(
+        (await getLeaves(Context.current.user.code)).map(it => it.code)
+      )
+    ).map(it => it.id);
+    if (viewHospitals.length === 0) {
+      return 0;
+    }
+    //language=PostgreSQL
+    const amount = (
+      await originalDB.execute(
+        `
+          select count(1) as amount
+          from mark_person mp
+                 inner join view_personinfo vp on mp.personnum = vp.personnum
+            and vp.adminorganization in (${viewHospitals.map(() => '?').join()})
+          where mp.year = ?
+            and (
+                mp."C02" = true or mp."C03" = true or mp."C06" = true
+              or mp."C08" = true or mp."C09" = true or mp."C11" = true
+            )
+        `,
+        ...viewHospitals,
+        year
+      )
+    )[0].amount;
+    return Number(amount);
   }
 
   /**
