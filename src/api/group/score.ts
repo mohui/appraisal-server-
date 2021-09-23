@@ -2,7 +2,6 @@ import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
 import {appDB, originalDB, unifs} from '../../app';
 import {KatoCommonError, KatoRuntimeError} from 'kato-server';
-import {AreaTreeNode, getLeaves, getOriginalArray} from '../group';
 import {
   BasicTagUsages,
   MarkTagUsages,
@@ -29,6 +28,7 @@ import {Permission} from '../../../common/permission';
 import {createBackJob} from '../../utils/back-job';
 import {v4 as uuid} from 'uuid';
 import * as path from 'path';
+import {getHospitals} from './common';
 
 /**
  * 获取百分数字符串, 默认返回'0'
@@ -93,23 +93,23 @@ export async function getMarks(
   CO00: number;
   CO01: number;
 }> {
-  const leaves = await getLeaves(group);
-  const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
-  const result = [];
-  for (const id of viewHospitals.map(it => it.id)) {
-    // language=PostgreSQL
-    const marks = await originalDB.execute(
-      `
-        select *
-        from mark_organization
-        where id = ?
-          and year = ?
-      `,
-      id,
-      year
-    );
-    if (marks[0]) result.push(marks[0]);
-  }
+  // language=PostgreSQL
+  const result = await originalDB.execute(
+    `
+      select *
+      from mark_organization
+      where id in (
+        select code
+        from area
+        where label in ('hospital.center', 'hospital.station')
+          and (code = ? or path like ?))
+        and year = ?
+    `,
+    group,
+    `%${group}%`,
+    year
+  );
+
   const obj = result.reduce(
     (prev, current) => {
       for (const key of Object.keys(prev)) {
@@ -166,7 +166,13 @@ export async function getMarks(
  * @param year 考核年份
  */
 export async function getWorkPoints(
-  organization: {id: string; code: string; region: string}[],
+  organization: {
+    code: string;
+    path: string;
+    name: string;
+    parent: string;
+    label: string;
+  }[],
   projects: string[],
   year: number
 ) {
@@ -180,7 +186,9 @@ export async function getWorkPoints(
     await Promise.all(
       organization.map(async o => {
         // 查询his数据
-        const his: string = o.region.startsWith('340222') ? '340222' : '340203';
+        const his: string = o.path.startsWith('34.3402.340222')
+          ? '340222'
+          : '340203';
         // 当前机构对应的原始工分项
         const originalProjectIds: string[] = ProjectMapping.filter(it =>
           projects.find(p => p === it.id)
@@ -192,17 +200,17 @@ export async function getWorkPoints(
         if (originalProjectIds?.length > 0) {
           const ret = sqlRender(
             `
-select cast(sum(score) as float) as score
-from view_workScoreTotal
-where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
-  and OperateOrganization = {{? id}}
-  and MissionTime >= {{? start}}
-  and MissionTime < {{? end}}
+              select cast(sum(score) as float) as score
+              from ph_work_score_total
+              where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
+                and OperateOrganization = {{? id}}
+                and MissionTime >= {{? start}}
+                and MissionTime < {{? end}}
           `,
             {
               start,
               end,
-              id: o.id,
+              id: o.code,
               projects: originalProjectIds
             }
           );
@@ -211,14 +219,14 @@ where ProjectType in ({{#each projects}}{{? this}}{{#sep}}, {{/sep}}{{/each}})
         } else {
           const ret = sqlRender(
             `
-select
-  cast(sum(score) as float) as score
-from view_workScoreTotal
-where OperateOrganization = {{? id}}
-  and MissionTime >= {{? start}}
-  and MissionTime < {{? end}}
+              select
+                cast(sum(score) as float) as score
+              from ph_work_score_total
+              where OperateOrganization = {{? id}}
+                and MissionTime >= {{? start}}
+                and MissionTime < {{? end}}
           `,
-            {start, end, id: o.id}
+            {start, end, id: o.code}
           );
           sql = ret[0];
           params = ret[1];
@@ -240,19 +248,19 @@ where OperateOrganization = {{? id}}
 /**
  * 获取基础数据
  *
- * @param leaves code对应的所有叶子节点
+ * @param hospital code对应的所有叶子节点
  * @param tag 基础数据的tag
  * @param year 年份
  */
 export async function getBasicData(
-  leaves: AreaTreeNode[],
+  hospital: string[],
   tag: string,
   year: number
 ): Promise<number> {
   const data: number = await BasicTagDataModel.sum('value', {
     where: {
       hospital: {
-        [Op.in]: leaves.filter(it => it.code.length === 36).map(it => it.code)
+        [Op.in]: hospital
       },
       code: tag,
       year
@@ -428,10 +436,10 @@ export default class Score {
         totalScore: 0,
         rate: 0
       };
-      // 查询当前地区对应的叶子节点
-      const leaves = await getLeaves(group);
-      // 获取原始机构id数组
-      const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
+      // 获取所有机构信息
+      const hospitals = await getHospitals(group);
+      // 获取机构id
+      const hospitalIds = hospitals.map(it => it.code);
       // 查询考核对象对应的考核体系的考核小项
       // language=PostgreSQL
       const parentRules: {id: string}[] = await appDB.execute(
@@ -511,7 +519,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.S01.code) {
                 // 查询服务总人口数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.DocPeople,
                   year
                 );
@@ -612,7 +620,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.O00.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.OldPeople,
                   year
                 );
@@ -648,7 +656,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.O02.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.OldPeople,
                   year
                 );
@@ -685,7 +693,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.H00.code) {
                 // 查询高血压人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HypertensionPeople,
                   year
                 );
@@ -783,7 +791,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.D00.code) {
                 // 查询糖尿病人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.DiabetesPeople,
                   year
                 );
@@ -908,7 +916,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.HE09.code) {
                 // 查询健康教育咨询的次数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HE09,
                   year
                 );
@@ -943,7 +951,7 @@ export default class Score {
               else if (tagModel.tag === MarkTagUsages.HE07.code) {
                 // 查询健康知识讲座的次数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HE07,
                   year
                 );
@@ -1005,7 +1013,7 @@ export default class Score {
               //卫生计生监督协管信息报告率
               if (tagModel.tag === MarkTagUsages.SC00.code) {
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.Supervision,
                   year
                 );
@@ -1068,7 +1076,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.CO01.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.OCD00,
                   year
                 );
@@ -1104,7 +1112,7 @@ export default class Score {
               if (tagModel.tag === MarkTagUsages.CH01.code) {
                 // 查询老年人人数
                 const basicData = await getBasicData(
-                  leaves,
+                  hospitalIds,
                   BasicTagUsages.HR00,
                   year
                 );
@@ -1158,7 +1166,7 @@ export default class Score {
           debug('考核小项获取参与校正工分开始');
           // 获取工分数组
           const scoreArray: {score: number}[] = await getWorkPoints(
-            viewHospitals,
+            hospitals,
             projects,
             year
           );
@@ -1231,7 +1239,7 @@ export default class Score {
       debug('考核地区获取总工分开始');
       // 获取总工分数组
       const scoreArray: {score: number}[] = await getWorkPoints(
-        viewHospitals,
+        hospitals,
         [],
         year
       );
@@ -1258,7 +1266,6 @@ export default class Score {
     } catch (e) {
       await t.rollback();
       debug(`${check} ${group} 系统打分异常: ${e}`);
-      throw new KatoRuntimeError(e);
     }
   }
 

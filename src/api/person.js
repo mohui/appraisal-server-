@@ -1,29 +1,176 @@
-import {appDB, originalDB} from '../app';
+import {originalDB} from '../app';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
 import dayjs from 'dayjs';
-import {HospitalModel, RegionModel} from '../database/model';
-import {Op} from 'sequelize';
 import {getTagsList} from '../../common/person-tag';
 import Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
-import {getLeaves} from './group';
+import {getHospitals} from './group/common';
 
-async function dictionaryQuery(categoryno) {
+async function dictionaryQuery(category) {
+  // language=PostgreSQL
   return await originalDB.execute(
-    `select categoryno,code,codename from view_codedictionary vc where categoryno=?`,
-    categoryno
+    `select category, code, name
+       from ph_dict vc
+       where category = ?`,
+    category
   );
 }
 
+/***
+ * 获取表格的buffer数据
+ * @param params
+ * @returns {Promise<{count: number, rows: []}|Buffer>}
+ */
+export async function getPersonExcelBuffer(params) {
+  const {
+    region,
+    idCard,
+    tags,
+    personOr = false,
+    documentOr = false,
+    year
+  } = params;
+  const his = '340203';
+  let {name} = params;
+  if (name) name = `%${name}%`;
+  let hospitals = [];
+  //没有选机构和地区,则默认查询当前用户所拥有的机构
+  if (!region) throw new KatoCommonError('未传机构id或者地区code');
+  // 获取所有的机构
+  const areaModels = await getHospitals(region);
+  hospitals = areaModels.map(it => it.code);
+
+  //如果查询出来的机构列表为空,则数据都为空
+  if (hospitals.length === 0) return {count: 0, rows: []};
+
+  const sqlRenderResult = listRenderForExcel({
+    his,
+    name,
+    hospitals,
+    idCard,
+    ...tags,
+    personOr,
+    documentOr,
+    year
+  });
+  let person = await originalDB.execute(
+    `select vp.id,
+                vp.name,
+                vp.idcardno    as "idCard",
+                vp.address     as "address",
+                vp.sex         as "gender",
+                vp.phone       as "phone",
+                mp."S03",
+                mp."S23",
+                mp."O00",
+                mp."O02",
+                mp."H00",
+                mp."H01",
+                mp."H02",
+                mp."D00",
+                mp."D01",
+                mp."D02",
+                mp."C01",
+                mp."C02",
+                mp."C03",
+                mp."C04",
+                mp."C05",
+                mp."C00",
+                mp."C06",
+                mp."C07",
+                mp."C08",
+                mp."C09",
+                mp."C10",
+                mp."C11",
+                mp."C13",
+                mp."C14",
+                mp."E00",
+                mc.name as "markName",
+                mc.content as "markContent",
+                area.name    as "hospitalName",
+                vp.operatetime as date
+         ${sqlRenderResult[0]}
+         order by vp.operatetime desc, vp.id desc
+         `,
+    ...sqlRenderResult[1]
+  );
+  person.forEach(p => {
+    for (let i in p) {
+      //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
+      if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
+    }
+  });
+  person = person
+    .map(it => getTagsList(it))
+    .reduce((pre, next) => {
+      const current = pre.find(p => p.id === next.id);
+      if (current) {
+        let tag = current.tags.find(t => t.code === next.markName);
+        if (tag) {
+          if (tag.content.indexOf(next.markContent) < 0)
+            tag.content.push(next.markContent);
+        } else
+          current.tags.push({
+            label: current.label,
+            code: current.markName,
+            content: [current.markContent]
+          });
+      } else {
+        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
+        pre.push({
+          ...next,
+          tags: tags
+        });
+      }
+      return pre;
+    }, [])
+    .map(it => ({
+      name: it.name,
+      idCard: it.idCard,
+      address: it.address,
+      gender: it.gender === '1' ? '男' : '女',
+      phone: it.phone,
+      personTags: it.personTags.map(tag => tag.label).join(','),
+      tags: it.tags
+        .map(item => item.label + ':[' + item.content + ']')
+        .join(',')
+    }));
+  //开始创建Excel表格
+  const workBook = new Excel.Workbook();
+  const workSheet = workBook.addWorksheet(`人员档案表格...`);
+  //添加标题
+  workSheet.addRow([
+    '序号',
+    '姓名',
+    '身份证号',
+    '住址',
+    '性别',
+    '电话',
+    '人群分类',
+    '档案问题'
+  ]);
+  const rows = person.map((it, index) => {
+    let current = [index + 1];
+    for (let k in it) {
+      current.push(it[k]);
+    }
+    return current;
+  });
+
+  workSheet.addRows(rows);
+  return workBook.xlsx.writeBuffer();
+}
+
+// region 拼接SQL
 //查询档案列表的sql
 function listRender(params) {
   return sqlRender(
     `
-      from view_personinfo vp
-             left join mark_person mp on mp.personnum = vp.personnum and mp.year = {{? year}}
-             inner join view_hospital vh on vp.adminorganization = vh.hospid
+      from ph_person vp
+             left join mark_person mp on mp.id = vp.id and mp.year = {{? year}}
+             inner join area on vp.adminorganization = area.code
       where 1 = 1
         and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
@@ -76,9 +223,9 @@ function listRenderForExcel(params) {
   return sqlRender(
     `
       from mark_person mp
-             inner join view_personinfo vp on mp.personnum = vp.personnum and mp.year = {{? year}}
-             inner join view_hospital vh on vp.adminorganization = vh.hospid
-             left join mark_content mc on mc.id = vp.personnum
+             inner join ph_person vp on mp.id = vp.id and mp.year = {{? year}}
+             inner join area on vp.adminorganization = area.code
+             left join mark_content mc on mc.id = vp.id
       where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
@@ -121,16 +268,15 @@ function listRenderForExcel(params) {
   );
 }
 
+// endregion
 export default class Person {
+  // region 列表
+
   @validate(
     should.object({
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       name: should.string().allow('', null),
-      hospital: should
-        .string()
-        .required()
-        .allow('', null),
       region: should
         .string()
         .required()
@@ -143,7 +289,6 @@ export default class Person {
         .object()
         .required()
         .allow([]),
-      include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
       year: should.number().allow(null)
@@ -153,11 +298,9 @@ export default class Person {
     const {
       pageSize,
       pageNo,
-      hospital,
       region,
       idCard,
       tags,
-      include,
       personOr = false,
       documentOr = false,
       year = dayjs().year()
@@ -168,65 +311,25 @@ export default class Person {
     let {name} = params;
     if (name) name = `%${name}%`;
     let hospitals = [];
-    //没有选机构和地区,则默认查询当前用户所拥有的机构
-    if (!region && !hospital)
+    //没有选地区,则默认查询当前用户所拥有的机构
+    if (!region || region === '')
       hospitals = Context.current.user.hospitals.map(it => it.id);
-    //仅有地区,则查询该地区下的所有机构
-    if (region && !hospital) {
-      const children = await getLeaves(region);
-      hospitals = (
-        await HospitalModel.findAll({
-          where: {
-            id: {
-              [Op.in]: children
-                .map(it => it.code)
-                //TODO: 苟且区分一下地区和机构
-                .filter(it => it.length === 36)
-            }
-          }
-        })
-      )
-        .map(it => it.toJSON())
-        .map(it => it.id);
+    else {
+      const areaModels = await originalDB.execute(
+        // language=PostgreSQL
+        `select code id,
+                  name
+           from area
+           where label in ('hospital.center', 'hospital.station')
+             and (code = ? or path like ?)`,
+        region,
+        `%${region}%`
+      );
+      hospitals = areaModels.map(it => it.id);
     }
-    if (hospital) hospitals = [hospital];
 
     //如果查询出来的机构列表为空,则数据都为空
     if (hospitals.length === 0) return {count: 0, rows: []};
-    // language=PostgreSQL
-    hospitals = (
-      await Promise.all(
-        hospitals.map(it =>
-          appDB.execute(
-            `select hishospid as id from hospital_mapping where h_id = ?`,
-            it
-          )
-        )
-      )
-    )
-      .filter(it => it.length > 0)
-      .reduce(
-        (result, current) => [...result, ...current.map(it => it.id)],
-        []
-      );
-    if (include && hospital)
-      hospitals = (
-        await Promise.all(
-          hospitals.map(item =>
-            //查询机构的下属机构
-            originalDB.execute(
-              `select hospid as id from view_hospital where hos_hospid = ?`,
-              item
-            )
-          )
-        )
-      )
-        .filter(it => it.length > 0)
-        .reduce(
-          (result, current) => [...result, ...current.map(it => it.id)],
-          []
-        )
-        .concat(hospitals);
 
     const sqlRenderResult = listRender({
       his,
@@ -244,8 +347,9 @@ export default class Person {
         ...sqlRenderResult[1]
       )
     )[0].count;
+    // 0-6 岁为true 查看详情不一定有数据 国卫和妇幼的数据是两套数据
     const person = await originalDB.execute(
-      `select vp.personnum   as id,
+      `select vp.id,
                 vp.name,
                 vp.idcardno    as "idCard",
                 vp.address     as "address",
@@ -281,10 +385,10 @@ export default class Person {
                 mp.ai_2dm,
                 mp.ai_hua,
                 mp.year,
-                vh.hospname    as "hospitalName",
+                area.name    as "hospitalName",
                 vp.operatetime as date
          ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.personnum desc
+         order by vp.operatetime desc, vp.id desc
          limit ? offset ?`,
       ...sqlRenderResult[1],
       limit,
@@ -297,6 +401,10 @@ export default class Person {
     };
   }
 
+  // endregion
+
+  // region 导出人员档案表格
+
   /***
    * 导出人员档案表格
    * @param params
@@ -304,60 +412,48 @@ export default class Person {
    */
   async personExcel(params) {
     try {
-      const {hospital, region} = params;
-      //需要查询的机构或者地区code
-      let code = '';
-      //code默认为hospital,否则为region
-      code = hospital ? hospital : region;
-      //当前用户级别是否是地区
-      const isRegion = Context.current.user.isRegion;
-      //两者都没有,则用用户默认code
-      if (!code) {
-        code = Context.current.user.code;
-        if (isRegion) params.region = code; //补充默认的地区code
-        if (!isRegion) params.hospital = code; //补充默认的机构code
+      // 如果region没有值
+      if (!params.region) {
+        //补充默认的地区code
+        params.region = Context.current.user.code;
       }
-      let fileName = '';
-      if (hospital)
-        fileName =
-          (await HospitalModel.findOne({where: {id: code}}))?.name +
-          '人员档案表格';
 
-      if (!hospital && code) {
-        if (isRegion) {
-          //可能是个地址
-          fileName =
-            (await RegionModel.findOne({where: {code}}))?.name + '人员档案表格';
-        }
-        if (!isRegion) {
-          //可能是机构
-          fileName =
-            (
-              await HospitalModel.findOne({
-                where: {id: code}
-              })
-            )?.name + '人员档案表格';
-        }
-      }
-      return createBackJob('personExcel', fileName, {params, fileName});
+      // 获取名称
+      // language=PostgreSQL
+      const areaModel = await originalDB.execute(
+        `select name
+           from area
+           where code = ?`,
+        params.region
+      );
+      const fileName = `${areaModel[0]?.name}人员档案表格`;
+
+      return createBackJob('personExcel', fileName, {
+        params,
+        fileName
+      });
     } catch (e) {
       throw new KatoCommonError(e.message);
     }
   }
+
+  // endregion
+
+  // region 详情
 
   async detail(id) {
     // language=PostgreSQL
     const person = (
       await originalDB.execute(
         `
-          select personnum as id,
+          select id,
                  name,
                  sex,
                  birth,
-                 idcardno  as "idCard",
+                 idcardno as "idCard",
                  phone
-          from view_personinfo
-          where personnum = ?
+          from ph_person
+          where id = ?
           limit 1
         `,
         id
@@ -368,7 +464,7 @@ export default class Person {
     const hypertensionRows = await originalDB.execute(
       `
         select *
-        from view_hypertension
+        from ph_hypertension
         where personnum = ?
       `,
       id
@@ -407,7 +503,7 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select vp.personnum as id,
+          select vp.id,
                  vp.name,
                  vp.address,
                  vp.Residencestring as "census",
@@ -440,10 +536,10 @@ export default class Person {
                  mp."C13",
                  mp."C14",
                  mp."E00",
-                 vp.operatetime as "updateAt"
-          from view_personinfo vp
-             left join mark_person mp on mp.personnum = vp.personnum and year = ?
-          where vp.personnum = ?
+                 vp.operatetime     as "updateAt"
+          from ph_person vp
+                 left join mark_person mp on mp.id = vp.id and year = ?
+          where vp.id = ?
             and vp.WriteOff = false
           limit 1
         `,
@@ -457,9 +553,9 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-          select hospid as id, hospname as name
-          from view_hospital
-          where hospid = ?
+          select code as id, name as name
+          from area
+          where code = ?
         `,
         person.operateorganization
       )
@@ -469,10 +565,10 @@ export default class Person {
       await originalDB.execute(
         // language=PostgreSQL
         `
-            select hospid as id, hospname as name
-            from view_hospital
-            where hospid = ?
-          `,
+          select code as id, name as name
+          from area
+          where code = ?
+        `,
         person.adminorganization
       )
     )[0];
@@ -480,6 +576,9 @@ export default class Person {
     return person;
   }
 
+  // endregion
+
+  // region 高血压
   /**
    * 获取高血压随访
    *
@@ -496,33 +595,32 @@ export default class Person {
    */
   async hypertensions(id) {
     const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      `select dict.name,dict.code from ph_dict dict where dict.category = ?`,
       '7010104'
     );
     return (
       await originalDB.execute(
         // language=PostgreSQL
         `
-        select vhv.highbloodid as id,
-               vhv.followupdate as "followDate",
-               vhv.followupway as "followWay",
-               vhv.systolicpressure as "systolicPressure",
-               vhv.assertpressure as "assertPressure",
-               vhv.doctor,
-               vhv.operatetime as "updateAt"
-        from view_hypertensionvisit vhv
-               inner join view_hypertension vh on vhv.HypertensionCardID = vh.HypertensionCardID
-        where vh.personnum = ?
-          and vh.isdelete = false
-          and vhv.isdelete = false
-        order by vhv.followupdate desc
-      `,
+          select vhv.id,
+                 vhv.followupdate     as "followDate",
+                 vhv.followupway      as "followWay",
+                 vhv.systolicpressure as "systolicPressure",
+                 vhv.assertpressure   as "assertPressure",
+                 vhv.doctor,
+                 vhv.operatetime      as "updateAt"
+          from ph_hypertension_visit vhv
+                 inner join ph_hypertension vh on vhv.hypertensionCardID = vh.id
+          where vh.personnum = ?
+            and vh.isdelete = false
+            and vhv.isdelete = false
+          order by vhv.followupdate desc
+        `,
         id
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
@@ -591,7 +689,10 @@ export default class Person {
   async hypertensionsDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select * from view_codedictionary vc where categoryno=?;`,
+        // language=PostgreSQL
+        `select code, name
+           from ph_dict vc
+           where category = ?;`,
         '331'
       )
     ).map(item => ({
@@ -600,81 +701,90 @@ export default class Person {
     }));
 
     const result = await originalDB.execute(
-      `select
-        vh.highbloodid as "id",
-        vh.hypertensioncardid as "cardId",
-        vh.Name as "name",
-        vc_sex.codeName as "gender",
-        vh.age as "age",
-        vh.ContactPhone as "phone",
-        vh.SerialNum as "No",
-        vh.FollowUpDate as "followDate",
-        vc_follow.codename as "followWay",
-        vh.PresentSymptoms as "symptoms",
-        vh.SystolicPressure as "systolicPressure",
-        vh.AssertPressure as "assertPressure",
-        vh.Weight as "weight",
-        vh.Weight_Suggest as "weightSuggest",
-        vh.Stature as "stature",
-        vh.BMI as "BMI",
-        vh.BMIck as "BMISuggest",
-        vh.HeartRate as "heartRate",
-        vh.Other_Tz as "other",
-        vh.DaySmoke as "daySmoke",
-        vh.DaySmoke_Suggest as "daySmokeSuggest",
-        vh.DayDrink as "dayDrink",
-        vh.DayDrink_Suggest as "dayDrinkSuggest",
-        vh.Sport_Week as "exerciseWeek",
-        vh.Sport_Minute as "exerciseMinute",
-        vh.Sport_Week_Suggest as "exerciseWeekSuggest",
-        vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-        vc_salt.codename as "saltInTake",
-        vc_salt_suggest.codename as "saltInTakeSuggest",
-        vh.MentalSet as "mental",
-        vc_doctor_s.codename as "doctorStatue",
-        vh.Fzjc as "assistExam",
-        vc_ma.codename as "medicationAdherence",
-        vh.AdverseEffect as "adverseReactions",
-        vh.AdverseEffectOther as "adverseReactionsExplain",
-        vc_vc.codename as "visitClass",
-        vh.DrugName1 as "drugName1",
-        vh.Usage_Day1 as "dailyTimesDrugName1",
-        vh.Usage_Time1 as "usageDrugName1",
-        vh.DrugName2 as "drugName2",
-        vh.Usage_Day2 as "dailyTimesDrugName2",
-        vh.Usage_Time2 as "usageDrugName2",
-        vh.DrugName3 as "drugName3",
-        vh.Usage_Day3 as "dailyTimesDrugName3",
-        vh.Usage_Time3 as "usageDrugName3",
-        concat(vh.DrugName4,vh.DrugName5,vh.DrugName6,vh.DrugName7,vh.DrugName8) as "otherDrugName",
-        concat(vh.Usage_Day4,vh.Usage_Day5,vh.Usage_Day6,vh.Usage_Day7,vh.Usage_Day8) as "otherDailyTimesDrugName",
-        concat(vh.Usage_Time4,vh.Usage_Time5,vh.Usage_Time6,vh.Usage_Time7,vh.Usage_Time8) as "otherUsageDrugName",
-        vh.Remark as "remark",
-        vh.Referral as "referral",
-        vh.ReferralReason as "referralReason",
-        vh.ReferralAgencies as "referralAgencies",
-        vh.NextVisitDate as "nextVisitDate",
-        vh.OperateOrganization as "hospital",
-        vh.OperateTime as "updateAt",
-        vh.Doctor as "doctor"
-       from view_hypertensionvisit vh
-       left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vh.sex
-       left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vh.FollowUpWay
-       left join view_codedictionary vc_salt on vc_salt.categoryno='7010112' and vc_salt.code = vh.Salt_Situation
-       left join view_codedictionary vc_salt_suggest on vc_salt_suggest.categoryno='7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
-       left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vh.MentalSet  --TODO:字典数据里的code不带0, vh记录的带0
-       left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vh.DoctorStatue
-       left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vh.MedicationAdherence
-       left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vh.VisitClass
-       where vh.highbloodid=? and vh.isdelete=false`,
+      // language=PostgreSQL
+      `select vh.id,
+                vh.hypertensioncardid   as "cardId",
+                vh.Name                 as "name",
+                vc_sex.name             as "gender",
+                vh.age                  as "age",
+                vh.ContactPhone         as "phone",
+                vh.SerialNum            as "No",
+                vh.FollowUpDate         as "followDate",
+                vc_follow.name          as "followWay",
+                vh.PresentSymptoms      as "symptoms",
+                vh.SystolicPressure     as "systolicPressure",
+                vh.AssertPressure       as "assertPressure",
+                vh.Weight               as "weight",
+                vh.Weight_Suggest       as "weightSuggest",
+                vh.Stature              as "stature",
+                vh.BMI                  as "BMI",
+                vh.BMIck                as "BMISuggest",
+                vh.HeartRate            as "heartRate",
+                vh.Other_Tz             as "other",
+                vh.DaySmoke             as "daySmoke",
+                vh.DaySmoke_Suggest     as "daySmokeSuggest",
+                vh.DayDrink             as "dayDrink",
+                vh.DayDrink_Suggest     as "dayDrinkSuggest",
+                vh.Sport_Week           as "exerciseWeek",
+                vh.Sport_Minute         as "exerciseMinute",
+                vh.Sport_Week_Suggest   as "exerciseWeekSuggest",
+                vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+                vc_salt.name            as "saltInTake",
+                vc_salt_suggest.name    as "saltInTakeSuggest",
+                vh.MentalSet            as "mental",
+                vc_doctor_s.name        as "doctorStatue",
+                vh.Fzjc                 as "assistExam",
+                vc_ma.name              as "medicationAdherence",
+                vh.AdverseEffect        as "adverseReactions",
+                vh.AdverseEffectOther   as "adverseReactionsExplain",
+                vc_vc.name              as "visitClass",
+                vh.DrugName1            as "drugName1",
+                vh.Usage_Day1           as "dailyTimesDrugName1",
+                vh.Usage_Time1          as "usageDrugName1",
+                vh.DrugName2            as "drugName2",
+                vh.Usage_Day2           as "dailyTimesDrugName2",
+                vh.Usage_Time2          as "usageDrugName2",
+                vh.DrugName3            as "drugName3",
+                vh.Usage_Day3           as "dailyTimesDrugName3",
+                vh.Usage_Time3          as "usageDrugName3",
+                concat(vh.DrugName4, vh.DrugName5, vh.DrugName6, vh.DrugName7,
+                       vh.DrugName8)    as "otherDrugName",
+                concat(vh.Usage_Day4, vh.Usage_Day5, vh.Usage_Day6, vh.Usage_Day7,
+                       vh.Usage_Day8)   as "otherDailyTimesDrugName",
+                concat(vh.Usage_Time4, vh.Usage_Time5, vh.Usage_Time6, vh.Usage_Time7,
+                       vh.Usage_Time8)  as "otherUsageDrugName",
+                vh.Remark               as "remark",
+                vh.Referral             as "referral",
+                vh.ReferralReason       as "referralReason",
+                vh.ReferralAgencies     as "referralAgencies",
+                vh.NextVisitDate        as "nextVisitDate",
+                vh.OperateOrganization  as "hospital",
+                vh.OperateTime          as "updateAt",
+                vh.Doctor               as "doctor"
+         from ph_hypertension_visit vh
+                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vh.sex
+                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vh.FollowUpWay
+                left join ph_dict vc_salt on vc_salt.category = '7010112' and vc_salt.code = vh.Salt_Situation
+                left join ph_dict vc_salt_suggest
+                          on vc_salt_suggest.category = '7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+                left join ph_dict vc_mental
+                          on vc_mental.category = '331' and vc_mental.code = vh.MentalSet --TODO:字典数据里的code不带0, vh记录的带0
+                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vh.DoctorStatue
+                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vh.MedicationAdherence
+                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vh.VisitClass
+         where vh.id = ?
+           and vh.isdelete = false`,
       id
     );
     return result.map(r => ({
       ...r,
-      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.name
     }));
   }
 
+  // endregion
+
+  // region 糖尿病
   /**
    * 获取糖尿病随访
    * followDate: 随访时间
@@ -687,34 +797,32 @@ export default class Person {
    */
   async diabetes(id) {
     const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
+      `select vc.name,vc.code from ph_dict vc where vc.category = ?`,
       '7010104'
     );
     // language=PostgreSQL
     return (
       await originalDB.execute(
         `
-        select
-          vdv.DiabetesFollowUpID as "id",
-          vdv.followupdate as "followDate",
-          vdv.followupway as "followWay",
-          vdv.FastingGlucose as "fastingGlucose",
-          vdv.PostprandialGlucose as "postprandialGlucose",
-          vdv.doctor,
-          vdv.operatetime as "updateAt"
-        from view_diabetesvisit vdv
-               inner join view_diabetes vd on vdv.SugarDiseaseCardID = vd.SugarDiseaseCardID
-        where vd.personnum = ?
-          and vd.isdelete = false
-          and vdv.isdelete = false
-        order by vdv.operatetime desc
-      `,
+          select vdv.id,
+                 vdv.followupdate        as "followDate",
+                 vdv.followupway         as "followWay",
+                 vdv.FastingGlucose      as "fastingGlucose",
+                 vdv.PostprandialGlucose as "postprandialGlucose",
+                 vdv.doctor,
+                 vdv.operatetime         as "updateAt"
+          from ph_diabetes_visit vdv
+                 inner join ph_diabetes vd on vdv.SugarDiseaseCardID = vd.id
+          where vd.personnum = ?
+            and vd.isdelete = false
+            and vdv.isdelete = false
+          order by vdv.operatetime desc
+        `,
         id
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
@@ -788,95 +896,104 @@ export default class Person {
   async diabetesDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select * from view_codedictionary vc where categoryno=?;`,
+        `select code, name from ph_dict vc where category = ?;`,
         '331'
       )
     ).map(item => ({
       ...item,
       code: 0 + item.code //TODO:字典数据里的code不带0, vd记录的带0, 先在字典结果的code前面加个0暂用
     }));
+
+    // language=PostgreSQL
     const result = await originalDB.execute(
-      `select
-        vd.DiabetesFollowUpID as "id",
-        vd.name as "name",
-        vc_sex.codeName as "gender",
-        vd.age as "age",
-        vd.idCardNo as "idCard",
-        vd.serialNum as "No",
-        vd.followUpDate as "followDate",
-        vc_follow.codename as "followWay",
-        vd.presentSymptoms as "symptoms",
-        vd.SystolicPressure as "systolicPressure",
-        vd.AssertPressure as "assertPressure",
-        vd.Weight as "weight",
-        vd.Weight_Suggest as "weightSuggest",
-        vd.Stature as "stature",
-        vd.BMI as "BMI",
-        vd.BMI_Suggest as "BMISuggest",
-        vc_arterial.codename as "arterial",
-        vd.Other_Tz as "other",
-        vd.DaySmoke as "daySmoke",
-        vd.DaySmoke_Suggest as "daySmokeSuggest",
-        vd.DayDrink as "dayDrink",
-        vd.DayDrink_Suggest as "dayDrinkSuggest",
-        vd.Sport_Week as "exerciseWeek",
-        vd.Sport_Minute as "exerciseMinute",
-        vd.Sport_Week_Suggest as "exerciseWeekSuggest",
-        vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-        vd.Principal_Food as "principalFood",
-        vd.Principal_Food_Suggest as "principalFoodSuggest",
-        vd.MentalSet as "mental",
-        vc_doctor_s.codename as "doctorStatue",
-        vd.FastingGlucose as "fastingGlucose",
-        vd.PostprandialGlucose as "postprandialGlucose",
-        vd.Hemoglobin as "hemoglobin",
-        vc_lb.codename as "lowBloodReaction",
-        vd.CheckTime as "checkTime",
-        vd.MedicationAdherence as "medicationAdherence",
-        vd.Blfy as "adverseReactions",
-        vd.BlfyOther as "adverseReactionsExplain",
-        vc_vc.codename as "visitClass",
-        vd.DrugName1 as "drugName1",
-        vd.Usage_Day1 as "dailyTimesDrugName1",
-        vd.Usage_Time1 as "usageDrugName1",
-        vd.DrugName2 as "drugName2",
-        vd.Usage_Day2 as "dailyTimesDrugName2",
-        vd.Usage_Time2 as "usageDrugName2",
-        vd.DrugName3 as "drugName3",
-        vd.Usage_Day3 as "dailyTimesDrugName3",
-        vd.Usage_Time3 as "usageDrugName3",
-        concat(vd.DrugName4,vd.DrugName5,vd.DrugName6,vd.DrugName7,vd.DrugName8) as "otherDrugName",
-        concat(vd.Usage_Day4,vd.Usage_Day5,vd.Usage_Day6,vd.Usage_Day7,vd.Usage_Day8) as "otherDailyTimesDrugName",
-        concat(vd.Usage_Time4,vd.Usage_Time5,vd.Usage_Time6,vd.Usage_Time7,vd.Usage_Time8) as "otherUsageDrugName",
-        vd.Insulin1 as "insulin1",
-        vd.InsulinUsing1 as "usageInsulin1",
-        vd.Insulin2 as "insulin2",
-        vd.InsulinUsing2 as "usageInsulin2",
-        vd.Remark as "remark",
-        vd.Referral as "referral",
-        vd.ReferralReason as "referralReason",
-        vd.ReferralAgencies as "referralAgencies",
-        vd.NextVisitDate as "nextVisitDate",
-        vd.OperateOrganization as "hospital",
-        vd.OperateTime as "updateAt",
-        vd.Doctor as "doctor"
-        from view_diabetesvisit vd
-        left join view_codedictionary vc_sex on vc_sex.categoryno='001' and vc_sex.code = vd.sex
-        left join view_codedictionary vc_follow on vc_follow.categoryno='7010104' and vc_follow.code = vd.FollowUpWay
-        left join view_codedictionary vc_mental on vc_mental.categoryno='331' and vc_mental.code = vd.MentalSet
-        left join view_codedictionary vc_doctor_s on vc_doctor_s.categoryno='332' and vc_doctor_s.code = vd.DoctorStatue
-        left join view_codedictionary vc_ma on vc_ma.categoryno='181' and vc_ma.code = vd.MedicationAdherence
-        left join view_codedictionary vc_vc on vc_vc.categoryno='7010106' and vc_vc.code = vd.VisitClass
-        left join view_codedictionary vc_arterial on vc_arterial.categoryno='7152' and vc_arterial.code = vd.arterial
-        left join view_codedictionary vc_lb on vc_lb.categoryno='7020101' and vc_lb.code = vd.LowBlood
-        where DiabetesFollowUpID=? and vd.isdelete=false`,
+      `select vd.id,
+                vd.name                   as "name",
+                vc_sex.name               as "gender",
+                vd.age                    as "age",
+                vd.idCardNo               as "idCard",
+                vd.serialNum              as "No",
+                vd.followUpDate           as "followDate",
+                vc_follow.name            as "followWay",
+                vd.presentSymptoms        as "symptoms",
+                vd.SystolicPressure       as "systolicPressure",
+                vd.AssertPressure         as "assertPressure",
+                vd.Weight                 as "weight",
+                vd.Weight_Suggest         as "weightSuggest",
+                vd.Stature                as "stature",
+                vd.BMI                    as "BMI",
+                vd.BMI_Suggest            as "BMISuggest",
+                vc_arterial.name          as "arterial",
+                vd.Other_Tz               as "other",
+                vd.DaySmoke               as "daySmoke",
+                vd.DaySmoke_Suggest       as "daySmokeSuggest",
+                vd.DayDrink               as "dayDrink",
+                vd.DayDrink_Suggest       as "dayDrinkSuggest",
+                vd.Sport_Week             as "exerciseWeek",
+                vd.Sport_Minute           as "exerciseMinute",
+                vd.Sport_Week_Suggest     as "exerciseWeekSuggest",
+                vd.Sport_Minute_Suggest   as "exerciseMinuteSuggest",
+                vd.Principal_Food         as "principalFood",
+                vd.Principal_Food_Suggest as "principalFoodSuggest",
+                vd.MentalSet              as "mental",
+                vc_doctor_s.name          as "doctorStatue",
+                vd.FastingGlucose         as "fastingGlucose",
+                vd.PostprandialGlucose    as "postprandialGlucose",
+                vd.Hemoglobin             as "hemoglobin",
+                vc_lb.name                as "lowBloodReaction",
+                vd.CheckTime              as "checkTime",
+                vd.MedicationAdherence    as "medicationAdherence",
+                vd.Blfy                   as "adverseReactions",
+                vd.BlfyOther              as "adverseReactionsExplain",
+                vc_vc.name                as "visitClass",
+                vd.DrugName1              as "drugName1",
+                vd.Usage_Day1             as "dailyTimesDrugName1",
+                vd.Usage_Time1            as "usageDrugName1",
+                vd.DrugName2              as "drugName2",
+                vd.Usage_Day2             as "dailyTimesDrugName2",
+                vd.Usage_Time2            as "usageDrugName2",
+                vd.DrugName3              as "drugName3",
+                vd.Usage_Day3             as "dailyTimesDrugName3",
+                vd.Usage_Time3            as "usageDrugName3",
+                concat(vd.DrugName4, vd.DrugName5, vd.DrugName6, vd.DrugName7,
+                       vd.DrugName8)      as "otherDrugName",
+                concat(vd.Usage_Day4, vd.Usage_Day5, vd.Usage_Day6, vd.Usage_Day7,
+                       vd.Usage_Day8)     as "otherDailyTimesDrugName",
+                concat(vd.Usage_Time4, vd.Usage_Time5, vd.Usage_Time6, vd.Usage_Time7,
+                       vd.Usage_Time8)    as "otherUsageDrugName",
+                vd.Insulin1               as "insulin1",
+                vd.InsulinUsing1          as "usageInsulin1",
+                vd.Insulin2               as "insulin2",
+                vd.InsulinUsing2          as "usageInsulin2",
+                vd.Remark                 as "remark",
+                vd.Referral               as "referral",
+                vd.ReferralReason         as "referralReason",
+                vd.ReferralAgencies       as "referralAgencies",
+                vd.NextVisitDate          as "nextVisitDate",
+                vd.OperateOrganization    as "hospital",
+                vd.OperateTime            as "updateAt",
+                vd.Doctor                 as "doctor"
+         from ph_diabetes_visit vd
+                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vd.sex
+                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+                left join ph_dict vc_mental on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
+                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
+                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
+                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
+                left join ph_dict vc_arterial on vc_arterial.category = '7152' and vc_arterial.code = vd.arterial
+                left join ph_dict vc_lb on vc_lb.category = '7020101' and vc_lb.code = vd.LowBlood
+         where id = ?
+           and vd.isdelete = false`,
       id
     );
     return result.map(r => ({
       ...r,
-      mental: mentalCodeNames.find(m => m.code === r.mental)?.codename
+      mental: mentalCodeNames.find(m => m.code === r.mental)?.name
     }));
   }
+
+  // endregion
+
+  // region 体检
 
   /**
    * 获取体检表
@@ -889,21 +1006,21 @@ export default class Person {
    * @param id 个人id
    */
   async healthy(id) {
+    // language=PostgreSQL
     return originalDB.execute(
       `
-        select
-          vh.incrementno as "id",
-          vh.stature as "stature",
-          vh.weight as "weight",
-          vh.temperature as "temperature",
-          vh.symptom as "symptom",
-          vh.bc_abnormal as "bc_abnormal",
-          vh.operatetime as "updateAt"
-        from view_healthy vh
+        select vh.id,
+               vh.stature     as "stature",
+               vh.weight      as "weight",
+               vh.temperature as "temperature",
+               vh.symptom     as "symptom",
+               vh.bc_abnormal as "bc_abnormal",
+               vh.operatetime as "updateAt"
+        from ph_healthy vh
         where vh.personnum = ?
-        and vh.isdelete = false
+          and vh.isdelete = false
         order by vh.operatetime desc
-       `,
+      `,
       id
     );
   }
@@ -1199,338 +1316,341 @@ export default class Person {
       dictionaryQuery('4010006'), //尿酮体	ncgntt	4010006
       dictionaryQuery('4010007') //尿潜血	ncgnqx	4010007
     ]);
+    // language=PostgreSQL
     const result = await originalDB.execute(
       `
-        select
-          vh.incrementno as "id",
-          vh.name as "name",
-          vh.checkupNo as "checkupNo",
-          vh.IDCardNo as "IDCard",
-          vh.sex as "gender",
-          vh.stature as "stature",
-          vh.weight as "weight",
-          vh.checkupDate as "checkDate",
-          vh.checkupDoctor as "checkupDoctor",
-          vh.temperature as "temperature",
-          vh.symptom as "symptom",
-          vh.bc_abnormal as "bc_abnormal",
-          vh.MarrageType as "marrage",
-          vh.JobType as "professionType",
-          vh.pulse as "pulse",
-          vh.breathe as "breathe",
-          vh.xyzcszy as "leftDiastolicPressure",
-          vh.xyzcssy as "leftSystolicPressure",
-          vh.xyycszy as "rightDiastolicPressure",
-          vh.xyycssy as "rightSystolicPressure",
-          vh.waistline as "waistline",
-          vh.BMI as "BMI",
-          vh.lnrjkzt as "oldManHealthSelf",
-          vh.lnrzlnl as "oldManLifeSelf",
-          vh.lnrrzgn as "oldManCognitiveSelf",
-          vh.CognitiveFunctionScore as "cognitiveScore",
-          vh.lnrqgzt as "oldManEmotion",
-          vh.EmotionalStatusScore as "emotionalScore",
-          vh.dlpn as "exerciseFrequency",
-          vh.mcdlTime as "eachExerciseTime",
-          vh.jcdlTime as "stickExerciseTime",
-          vh.dlfs as "exerciseWay",
-          vh.ysxg as "eatingHabit",
-          vh.isxy as "smokingHistory",
-          vh.xyl as "smokingAmount",
-          vh.ksxyTime as "smokingStartTime",
-          vh.jyTime as "smokingStopTime",
-          vh.yjpn as "drinkFrequency",
-          vh.yjl as "drinkAmount",
-          vh.ksyjTime as "drinkStartTime",
-          vh.isjj as "isDrinkStop",
-          vh.ksjjTime as "drinkStopTime",
-          vh.iszj as "isDrunkThisYear",
-          vh.zyyjpz as "wineKind",
-          vh.zyblqk as "professionExpose",
-          vh.jtzy as "profession",
-          vh.cysj as "workingTime",
-          vh.fc as "dust",
-          vh.fcfhcs as "dustProtection",
-          vh.fcfhcs_other as "dustProtectionExplain",
-          vh.wlys as "physicalCause",
-          vh.wlysfhcs as "physicalProtection",
-          vh.wlysfhcs_other as "physicalProtectionExplain",
-          vh.hxp as "chemicals",
-          vh.hxpfhcs as "chemicalsProtection",
-          vh.hxpfhcs_other as "chemicalsProtectionExplain",
-          vh.sx as "radiation",
-          vh.sxfhcs as "radiationProtection",
-          vh.sxfhcs_other as "radiationProtectionExplain",
-          vh.qt as "other",
-          vh.qtfhcs as "otherProtection",
-          vh.qtfhcs_other as "otherProtectionExplain",
-          vh.kc as "lip",
-          vh.yb as "throat",
-          vh.cl as "tooth",
-          vh.qc1 as "missToothTopLeft",
-          vh.qc2 as "missToothTopRight",
-          vh.qc3 as "missToothBottomLeft",
-          vh.qc4 as "missToothTopRight",
-          vh.yuc1 as "cariesTopLeft",
-          vh.yuc2 as "cariesTopRight",
-          vh.yuc3 as "cariesBottomLeft",
-          vh.yuc4 as "cariesBottomRight",
-          vh.jy1 as "falseToothTopLeft",
-          vh.jy2 as "falseToothTopRight",
-          vh.jy3 as "falseToothBottomLeft",
-          vh.jy4 as "falseToothBottomRight",
-          vh.slzy as "visionLeft",
-          vh.slyy as "visionRight",
-          vh.yzzy as "visionCorrectionLeft",
-          vh.jzyy as "visonCorrectionRight",
-          vh.listen as "listen",
-          vh.ydgn as "sport",
-          vh.yd as "eyeGround",
-          vh.yd_abnormal as "eyeGroundExplain",
-          vh.pf as "skin",
-          vh.pf_Other as "skinExplain",
-          vh.gm as "sclera",
-          vh.gm_Other as "scleraExplain",
-          vh.lbj as "lymph",
-          vh.lbjOther as "lymphExplain",
-          vh.ftzx as "barrelChest",
-          vh.fhxy as "breathSound",
-          vh.fhxyyc as "breathSoundExplain",
-          vh.fly as "lungSound",
-          vh.flyOther as "lungSoundExplain",
-          vh.xzxn as "heartRate",
-          vh.xzxl as "heartRule",
-          vh.xzzy as "noise",
-          vh.xzzyOther as "noiseExplain",
-          vh.fbyt as "abdominalTenderness",
-          vh.fbytOther as "abdominalTendernessExplain",
-          vh.fbbk as "abdominalBag",
-          vh.fbbkOther as "abdominalBagExplain",
-          vh.fbgd as "abdominalLiver",
-          vh.fbgdOther as "abdominalLiverExplain",
-          vh.fbpd as "abdominalSpleen",
-          vh.fbpdOther as "abdominalSpleenExplain",
-          vh.fbydxzy as "abdominalNoise",
-          vh.fbydxzyOther as "abdominalNoiseExplain",
-          vh.xzsz as "lowLimbsEdema",
-          vh.gmzz as "anus",
-          vh.tnbzbdmbd as "arterial",
-          vh.rx as "mammary",
-          vh.fk_wy as "vulva",
-          vh.fk_wy_abnormal as "vulvaExplain",
-          vh.fk_yd as "vagina",
-          vh.fk_yd_abnormal as "vaginaExplain",
-          vh.fk_gj as "cervical",
-          vh.fk_gj_abnormal as "cervicalExplain",
-          vh.fk_gt as "uterus",
-          vh.fk_gt_abnormal as "uterusExplain",
-          vh.fk_fj as "attach",
-          vh.fk_fj_abnormal as "attachExplain",
-          vh.ctqt as "vaginaOther",
-          vh.xcgHb as "hemoglobin",
-          vh.xcgWBC as "whiteCell",
-          vh.xcgPLT as "platelet",
-          vh.xcgqt as "bloodOther",
-          vh.ncgndb as "urineProtein",
-          vh.ncgnt as "urineSugar",
-          vh.ncgntt as "urineKetone",
-          vh.ncgnqx as "urineBlood",
-          vh.ncgOther as "urineOther",
-          vh.nwlbdb as "urineTraceAlbumin",
-          vh.LEU as "urineWhiteCell",
-          vh.dbqx as "defecateBlood",
-          vh.xdt as "ecg",
-          vh.xdt_abnormal as "ecgExplain",
-          vh.HBsAg as "HBsAg",
-          vh.suijxt as "postprandialGlucose",
-          vh.kfxt as "fastingGlucose",
-          vh.tnbthxhdb as "sugarHemoglobin",
-          vh.ggnALT as "liverALT",
-          vh.ggnAST as "liverAST",
-          vh.ggnALB as "liverALB",
-          vh.ggnTBIL as "liverTBIL",
-          vh.ggnDBIL as "liverDBIL",
-          vh.sgnScr as "renalSCR",
-          vh.sgnBUN as "renalBUM",
-          vh.sgnxjnd as "renalPotassium",
-          vh.sgnxnnd as "renalSodium",
-          vh.BUA as "BUA",
-          vh.xzCHO as "bloodCHO",
-          vh.xzTG as "bloodTG",
-          vh.xzLDLC as "bloodLDLC",
-          vh.xzHDLC as "bloodHDLC",
-          vh.xp as "chest",
-          vh.xp_abnormal as "chestExplain",
-          vh.bc as "bc",
-          vh.bc_abnormal as "bcExplain",
-          vh.gjtp as "cervicalSmear",
-          vh.gjtp_abnormal as "cervicalSmearExplain",
-          vh.jkfzjcqt as "assistExam",
-          vh.nxgjb as "cerebrovascular",
-          vh.szjb as "renal",
-          vh.xzjb as "heart",
-          vh.xgjb as "bloodVessels",
-          vh.ybjb as "eye",
-          vh.sjxt as "nerve",
-          vh.sjxt_other as "nerveExplain",
-          vh.qtxt as "otherDisease",
-          vh.otherDisease1 as "otherDiseaseExplain",
-          vh.ruyTime1 as "inHospitalDate1",
-          vh.chuyTime1 as "outHospitalDate1",
-          vh.zhuyReason1 as "inHospitalReason1",
-          vh.hospName1 as "inHospitalName1",
-          vh.bah1 as "inHospitalRecord1",
-          vh.ruyTime2 as "inHospitalDate2",
-          vh.chuyTime2 as "outHospitalDate2",
-          vh.HospName2 as "inHospitalName2",
-          vh.bah2 as "inHospitalRecord2",
-          vh.jcTime1 as "familyInHospitalDate1",
-          vh.ccTime1 as "familyOutHospitalDate1",
-          vh.jcyy1 as "familyInHospitalReason1",
-          vh.jcyljgmc1 as "familyHospitalName1",
-          vh.jcbah1 as "familyHospitalRecord1",
-          vh.jcTime2 as "familyInHospitalDate2",
-          vh.ccTime2 as "familyOutHospitalDate2",
-          vh.jcyy2 as "familyInHospitalReason2",
-          vh.jcyljgmc2 as "familyHospitalName2",
-          vh.jcbah2 as "familyHospitalRecord2",
-          vh.yaowu1 as "drug1",
-          vh.yf1 as "drugUsage1",
-          vh.yl1 as "drugAmount1",
-          vh.yysj1 as "drugDate1",
-          vh.fyycx as "drugAdherence1",
-          vh.yaowu2 as "drug2",
-          vh.yf2 as "drugUsage2",
-          vh.yl2 as "drugAmount2",
-          vh.yysj2 as "drugDate2",
-          vh.fyycx2 as "drugAdherence2",
-          vh.yaowu3 as "drug3",
-          vh.yf3 as "drugUsage3",
-          vh.yl3 as "drugAmount3",
-          vh.yysj3 as "drugDate3",
-          vh.fyycx3 as "drugAdherence3",
-          vh.yaowu4 as "drug4",
-          vh.yf4 as "drugUsage4",
-          vh.yl4 as "drugAmount4",
-          vh.yysj4 as "drugDate4",
-          vh.fyycx4 as "drugAdherence4",
-          vh.yaowu5 as "drug5",
-          vh.yf5 as "drugUsage5",
-          vh.yl5 as "drugAmount5",
-          vh.yysj5 as "drugDate5",
-          vh.fyycx5 as "drugAdherence5",
-          vh.yaowu6 as "drug6",
-          vh.yf6 as "drugUsage6",
-          vh.yl6 as "drugAmount6",
-          vh.yysj6 as "drugDate6",
-          vh.fyycx6 as "drugAdherence6",
-          vh.fmy_mc1 as "vaccine1",
-          vh.fmy_jzrq1 as "vaccineDate1",
-          vh.fmy_jzjg1 as "vaccineHospital1",
-          vh.fmy_mc2 as "vaccine2",
-          vh.fmy_jzrq2 as "vaccineDate2",
-          vh.fmy_jzjg2 as "vaccineHospital2",
-          vh.fmy_mc3 as "vaccine3",
-          vh.fmy_jzrq3 as "vaccineDate3",
-          vh.fmy_jzjg3 as "vaccineHospital3",
-          vh.jkpjywyc as "healthyState",
-          vh.yichang1 as "abnormal1",
-          vh.yichang2 as "abnormal2",
-          vh.yichang3 as "abnormal3",
-          vh.yichang4 as "abnormal4",
-          vh.jkzd_dqsf as "healthyGuide",
-          vh.jkzd_wxyskz as "healthyRisk",
-          vc_hos.hospname as "hospital",
-          vh.operatetime as "updateAt"
-        from view_healthy vh
-        left join view_hospital vc_hos on vc_hos.hospid=vh.OperateOrganization
-        where vh.incrementno = ? and vh.isdelete=false
+        select vh.id,
+               vh.name                   as "name",
+               vh.checkupNo              as "checkupNo",
+               vh.IDCardNo               as "IDCard",
+               vh.sex                    as "gender",
+               vh.stature                as "stature",
+               vh.weight                 as "weight",
+               vh.checkupDate            as "checkDate",
+               vh.checkupDoctor          as "checkupDoctor",
+               vh.temperature            as "temperature",
+               vh.symptom                as "symptom",
+               vh.bc_abnormal            as "bc_abnormal",
+               vh.MarrageType            as "marrage",
+               vh.JobType                as "professionType",
+               vh.pulse                  as "pulse",
+               vh.breathe                as "breathe",
+               vh.xyzcszy                as "leftDiastolicPressure",
+               vh.xyzcssy                as "leftSystolicPressure",
+               vh.xyycszy                as "rightDiastolicPressure",
+               vh.xyycssy                as "rightSystolicPressure",
+               vh.waistline              as "waistline",
+               vh.BMI                    as "BMI",
+               vh.lnrjkzt                as "oldManHealthSelf",
+               vh.lnrzlnl                as "oldManLifeSelf",
+               vh.lnrrzgn                as "oldManCognitiveSelf",
+               vh.CognitiveFunctionScore as "cognitiveScore",
+               vh.lnrqgzt                as "oldManEmotion",
+               vh.EmotionalStatusScore   as "emotionalScore",
+               vh.dlpn                   as "exerciseFrequency",
+               vh.mcdlTime               as "eachExerciseTime",
+               vh.jcdlTime               as "stickExerciseTime",
+               vh.dlfs                   as "exerciseWay",
+               vh.ysxg                   as "eatingHabit",
+               vh.isxy                   as "smokingHistory",
+               vh.xyl                    as "smokingAmount",
+               vh.ksxyTime               as "smokingStartTime",
+               vh.jyTime                 as "smokingStopTime",
+               vh.yjpn                   as "drinkFrequency",
+               vh.yjl                    as "drinkAmount",
+               vh.ksyjTime               as "drinkStartTime",
+               vh.isjj                   as "isDrinkStop",
+               vh.ksjjTime               as "drinkStopTime",
+               vh.iszj                   as "isDrunkThisYear",
+               vh.zyyjpz                 as "wineKind",
+               vh.zyblqk                 as "professionExpose",
+               vh.jtzy                   as "profession",
+               vh.cysj                   as "workingTime",
+               vh.fc                     as "dust",
+               vh.fcfhcs                 as "dustProtection",
+               vh.fcfhcs_other           as "dustProtectionExplain",
+               vh.wlys                   as "physicalCause",
+               vh.wlysfhcs               as "physicalProtection",
+               vh.wlysfhcs_other         as "physicalProtectionExplain",
+               vh.hxp                    as "chemicals",
+               vh.hxpfhcs                as "chemicalsProtection",
+               vh.hxpfhcs_other          as "chemicalsProtectionExplain",
+               vh.sx                     as "radiation",
+               vh.sxfhcs                 as "radiationProtection",
+               vh.sxfhcs_other           as "radiationProtectionExplain",
+               vh.qt                     as "other",
+               vh.qtfhcs                 as "otherProtection",
+               vh.qtfhcs_other           as "otherProtectionExplain",
+               vh.kc                     as "lip",
+               vh.yb                     as "throat",
+               vh.cl                     as "tooth",
+               vh.qc1                    as "missToothTopLeft",
+               vh.qc2                    as "missToothTopRight",
+               vh.qc3                    as "missToothBottomLeft",
+               vh.qc4                    as "missToothTopRight",
+               vh.yuc1                   as "cariesTopLeft",
+               vh.yuc2                   as "cariesTopRight",
+               vh.yuc3                   as "cariesBottomLeft",
+               vh.yuc4                   as "cariesBottomRight",
+               vh.jy1                    as "falseToothTopLeft",
+               vh.jy2                    as "falseToothTopRight",
+               vh.jy3                    as "falseToothBottomLeft",
+               vh.jy4                    as "falseToothBottomRight",
+               vh.slzy                   as "visionLeft",
+               vh.slyy                   as "visionRight",
+               vh.yzzy                   as "visionCorrectionLeft",
+               vh.jzyy                   as "visonCorrectionRight",
+               vh.listen                 as "listen",
+               vh.ydgn                   as "sport",
+               vh.yd                     as "eyeGround",
+               vh.yd_abnormal            as "eyeGroundExplain",
+               vh.pf                     as "skin",
+               vh.pf_Other               as "skinExplain",
+               vh.gm                     as "sclera",
+               vh.gm_Other               as "scleraExplain",
+               vh.lbj                    as "lymph",
+               vh.lbjOther               as "lymphExplain",
+               vh.ftzx                   as "barrelChest",
+               vh.fhxy                   as "breathSound",
+               vh.fhxyyc                 as "breathSoundExplain",
+               vh.fly                    as "lungSound",
+               vh.flyOther               as "lungSoundExplain",
+               vh.xzxn                   as "heartRate",
+               vh.xzxl                   as "heartRule",
+               vh.xzzy                   as "noise",
+               vh.xzzyOther              as "noiseExplain",
+               vh.fbyt                   as "abdominalTenderness",
+               vh.fbytOther              as "abdominalTendernessExplain",
+               vh.fbbk                   as "abdominalBag",
+               vh.fbbkOther              as "abdominalBagExplain",
+               vh.fbgd                   as "abdominalLiver",
+               vh.fbgdOther              as "abdominalLiverExplain",
+               vh.fbpd                   as "abdominalSpleen",
+               vh.fbpdOther              as "abdominalSpleenExplain",
+               vh.fbydxzy                as "abdominalNoise",
+               vh.fbydxzyOther           as "abdominalNoiseExplain",
+               vh.xzsz                   as "lowLimbsEdema",
+               vh.gmzz                   as "anus",
+               vh.tnbzbdmbd              as "arterial",
+               vh.rx                     as "mammary",
+               vh.fk_wy                  as "vulva",
+               vh.fk_wy_abnormal         as "vulvaExplain",
+               vh.fk_yd                  as "vagina",
+               vh.fk_yd_abnormal         as "vaginaExplain",
+               vh.fk_gj                  as "cervical",
+               vh.fk_gj_abnormal         as "cervicalExplain",
+               vh.fk_gt                  as "uterus",
+               vh.fk_gt_abnormal         as "uterusExplain",
+               vh.fk_fj                  as "attach",
+               vh.fk_fj_abnormal         as "attachExplain",
+               vh.ctqt                   as "vaginaOther",
+               vh.xcgHb                  as "hemoglobin",
+               vh.xcgWBC                 as "whiteCell",
+               vh.xcgPLT                 as "platelet",
+               vh.xcgqt                  as "bloodOther",
+               vh.ncgndb                 as "urineProtein",
+               vh.ncgnt                  as "urineSugar",
+               vh.ncgntt                 as "urineKetone",
+               vh.ncgnqx                 as "urineBlood",
+               vh.ncgOther               as "urineOther",
+               vh.nwlbdb                 as "urineTraceAlbumin",
+               vh.LEU                    as "urineWhiteCell",
+               vh.dbqx                   as "defecateBlood",
+               vh.xdt                    as "ecg",
+               vh.xdt_abnormal           as "ecgExplain",
+               vh.HBsAg                  as "HBsAg",
+               vh.suijxt                 as "postprandialGlucose",
+               vh.kfxt                   as "fastingGlucose",
+               vh.tnbthxhdb              as "sugarHemoglobin",
+               vh.ggnALT                 as "liverALT",
+               vh.ggnAST                 as "liverAST",
+               vh.ggnALB                 as "liverALB",
+               vh.ggnTBIL                as "liverTBIL",
+               vh.ggnDBIL                as "liverDBIL",
+               vh.sgnScr                 as "renalSCR",
+               vh.sgnBUN                 as "renalBUM",
+               vh.sgnxjnd                as "renalPotassium",
+               vh.sgnxnnd                as "renalSodium",
+               vh.BUA                    as "BUA",
+               vh.xzCHO                  as "bloodCHO",
+               vh.xzTG                   as "bloodTG",
+               vh.xzLDLC                 as "bloodLDLC",
+               vh.xzHDLC                 as "bloodHDLC",
+               vh.xp                     as "chest",
+               vh.xp_abnormal            as "chestExplain",
+               vh.bc                     as "bc",
+               vh.bc_abnormal            as "bcExplain",
+               vh.gjtp                   as "cervicalSmear",
+               vh.gjtp_abnormal          as "cervicalSmearExplain",
+               vh.jkfzjcqt               as "assistExam",
+               vh.nxgjb                  as "cerebrovascular",
+               vh.szjb                   as "renal",
+               vh.xzjb                   as "heart",
+               vh.xgjb                   as "bloodVessels",
+               vh.ybjb                   as "eye",
+               vh.sjxt                   as "nerve",
+               vh.sjxt_other             as "nerveExplain",
+               vh.qtxt                   as "otherDisease",
+               vh.otherDisease1          as "otherDiseaseExplain",
+               vh.ruyTime1               as "inHospitalDate1",
+               vh.chuyTime1              as "outHospitalDate1",
+               vh.zhuyReason1            as "inHospitalReason1",
+               vh.hospName1              as "inHospitalName1",
+               vh.bah1                   as "inHospitalRecord1",
+               vh.ruyTime2               as "inHospitalDate2",
+               vh.chuyTime2              as "outHospitalDate2",
+               vh.HospName2              as "inHospitalName2",
+               vh.bah2                   as "inHospitalRecord2",
+               vh.jcTime1                as "familyInHospitalDate1",
+               vh.ccTime1                as "familyOutHospitalDate1",
+               vh.jcyy1                  as "familyInHospitalReason1",
+               vh.jcyljgmc1              as "familyHospitalName1",
+               vh.jcbah1                 as "familyHospitalRecord1",
+               vh.jcTime2                as "familyInHospitalDate2",
+               vh.ccTime2                as "familyOutHospitalDate2",
+               vh.jcyy2                  as "familyInHospitalReason2",
+               vh.jcyljgmc2              as "familyHospitalName2",
+               vh.jcbah2                 as "familyHospitalRecord2",
+               vh.yaowu1                 as "drug1",
+               vh.yf1                    as "drugUsage1",
+               vh.yl1                    as "drugAmount1",
+               vh.yysj1                  as "drugDate1",
+               vh.fyycx                  as "drugAdherence1",
+               vh.yaowu2                 as "drug2",
+               vh.yf2                    as "drugUsage2",
+               vh.yl2                    as "drugAmount2",
+               vh.yysj2                  as "drugDate2",
+               vh.fyycx2                 as "drugAdherence2",
+               vh.yaowu3                 as "drug3",
+               vh.yf3                    as "drugUsage3",
+               vh.yl3                    as "drugAmount3",
+               vh.yysj3                  as "drugDate3",
+               vh.fyycx3                 as "drugAdherence3",
+               vh.yaowu4                 as "drug4",
+               vh.yf4                    as "drugUsage4",
+               vh.yl4                    as "drugAmount4",
+               vh.yysj4                  as "drugDate4",
+               vh.fyycx4                 as "drugAdherence4",
+               vh.yaowu5                 as "drug5",
+               vh.yf5                    as "drugUsage5",
+               vh.yl5                    as "drugAmount5",
+               vh.yysj5                  as "drugDate5",
+               vh.fyycx5                 as "drugAdherence5",
+               vh.yaowu6                 as "drug6",
+               vh.yf6                    as "drugUsage6",
+               vh.yl6                    as "drugAmount6",
+               vh.yysj6                  as "drugDate6",
+               vh.fyycx6                 as "drugAdherence6",
+               vh.fmy_mc1                as "vaccine1",
+               vh.fmy_jzrq1              as "vaccineDate1",
+               vh.fmy_jzjg1              as "vaccineHospital1",
+               vh.fmy_mc2                as "vaccine2",
+               vh.fmy_jzrq2              as "vaccineDate2",
+               vh.fmy_jzjg2              as "vaccineHospital2",
+               vh.fmy_mc3                as "vaccine3",
+               vh.fmy_jzrq3              as "vaccineDate3",
+               vh.fmy_jzjg3              as "vaccineHospital3",
+               vh.jkpjywyc               as "healthyState",
+               vh.yichang1               as "abnormal1",
+               vh.yichang2               as "abnormal2",
+               vh.yichang3               as "abnormal3",
+               vh.yichang4               as "abnormal4",
+               vh.jkzd_dqsf              as "healthyGuide",
+               vh.jkzd_wxyskz            as "healthyRisk",
+               area.name                 as "hospital",
+               vh.operatetime            as "updateAt"
+        from ph_healthy vh
+               left join area on area.code = vh.OperateOrganization
+        where vh.id = ?
+          and vh.isdelete = false
         order by vh.operatetime desc
-       `,
+      `,
       id
     );
     return result.map(item => ({
       ...item,
       checkDate: dayjs(item.checkDate).toDate(),
-      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
-      marrage: marrageCode.find(it => it.code === item.marrage)?.codename ?? '',
+      gender: genderCode.find(it => it.code === item.gender)?.name ?? '',
+      marrage: marrageCode.find(it => it.code === item.marrage)?.name ?? '',
       professionType:
-        jobTypeCode.find(it => `0${it.code}` === item.professionType)
-          ?.codename ?? '',
+        jobTypeCode.find(it => `0${it.code}` === item.professionType)?.name ??
+        '',
       // oldManHealthSelf:
       //   oldManHealthSelfCode.find(it => it.code === item.professionType)
-      //     ?.codename || '',
+      //     ?.name || '',
       // oldManLifeSelf:
       //   oldManLifeSelfCode.find(it => it.code === item.oldManLifeSelf)
-      //     ?.codename || '',
+      //     ?.name || '',
       // eyeGround:
-      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.codename || '',
-      // skin: skinCode.find(it => it.code === item.skin)?.codename || '',
-      // sclera: scleraCode.find(it => it.code === item.sclera)?.codename || '',
-      // lymph: lymphCode.find(it => it.code === item.lymph)?.codename || '',
+      //   eyeGroundCode.find(it => it.code === item.eyeGround)?.name || '',
+      // skin: skinCode.find(it => it.code === item.skin)?.name || '',
+      // sclera: scleraCode.find(it => it.code === item.sclera)?.name || '',
+      // lymph: lymphCode.find(it => it.code === item.lymph)?.name || '',
       // barrelChest:
-      //   barrelChestCode.find(it => it.code === item.barrelChest)?.codename ||
+      //   barrelChestCode.find(it => it.code === item.barrelChest)?.name ||
       //   '',
       // breathSound:
-      //   breathSoundCode.find(it => it.code === item.breathSound)?.codename ||
+      //   breathSoundCode.find(it => it.code === item.breathSound)?.name ||
       //   '',
       // lungSound:
-      //   lungSoundCode.find(it => it.code === item.lungSound)?.codename || '',
+      //   lungSoundCode.find(it => it.code === item.lungSound)?.name || '',
       // exerciseFrequency:
       //   exerciseFrequencyCode.find(it => it.code === item.exerciseFrequency)
-      //     ?.codename || '',
+      //     ?.name || '',
       // drinkFrequency:
       //   drinkFrequencyCode.find(it => it.code === item.drinkFrequency)
-      //     ?.codename || '',
+      //     ?.name || '',
       // professionExpose:
       //   professionExposeCode.find(it => it.code === item.professionExpose)
-      //     ?.codename || '',
+      //     ?.name || '',
       dustProtection:
         professionExposeCode.find(it => it.code === item.dustProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       physicalProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       chemicalsProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       radiationProtection:
         professionExposeCode.find(it => it.code === item.physicalProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       otherProtection:
         professionExposeCode.find(it => it.code === item.otherProtection)
-          ?.codename ?? '',
+          ?.name ?? '',
       // abdominalBag:
-      //   abdominalCode.find(it => it.code === item.abdominalBag)?.codename || '',
+      //   abdominalCode.find(it => it.code === item.abdominalBag)?.name || '',
       // abdominalLiver:
-      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalLiver)?.name ||
       //   '',
       // abdominalSpleen:
-      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalSpleen)?.name ||
       //   '',
       // abdominalNoise:
-      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.codename ||
+      //   abdominalCode.find(it => it.code === item.abdominalNoise)?.name ||
       //   '',
       // arterial:
-      //   arterialCode.find(it => it.code === item.arterial)?.codename || '',
-      // vulva: vaginaCode.find(it => it.code === item.vulva)?.codename || '',
-      // vagina: vaginaCode.find(it => it.code === item.vagina)?.codename || '',
+      //   arterialCode.find(it => it.code === item.arterial)?.name || '',
+      // vulva: vaginaCode.find(it => it.code === item.vulva)?.name || '',
+      // vagina: vaginaCode.find(it => it.code === item.vagina)?.name || '',
       // cervical:
-      //   vaginaCode.find(it => it.code === item.cervical)?.codename || '',
-      // uterus: vaginaCode.find(it => it.code === item.uterus)?.codename || '',
-      // attach: vaginaCode.find(it => it.code === item.attach)?.codename || '',
+      //   vaginaCode.find(it => it.code === item.cervical)?.name || '',
+      // uterus: vaginaCode.find(it => it.code === item.uterus)?.name || '',
+      // attach: vaginaCode.find(it => it.code === item.attach)?.name || '',
       urineProtein:
-        urineProteinCode.find(it => it.code === item.urineProtein)?.codename ??
-        '',
+        urineProteinCode.find(it => it.code === item.urineProtein)?.name ?? '',
       urineSugar:
-        urineSugarCode.find(it => it.code === item.urineSugar)?.codename ?? '',
+        urineSugarCode.find(it => it.code === item.urineSugar)?.name ?? '',
       urineKetone:
-        urineKetoneCode.find(it => it.code === item.urineKetone)?.codename ??
-        '',
+        urineKetoneCode.find(it => it.code === item.urineKetone)?.name ?? '',
       urineBlood:
-        urineBloodCode.find(it => it.code === item.urineBlood)?.codename ?? ''
+        urineBloodCode.find(it => it.code === item.urineBlood)?.name ?? ''
     }));
   }
+
+  // endregion
+
+  // region 妇幼
 
   /**
    * 获取新生儿访视记录及儿童检查记录列表
@@ -1542,7 +1662,9 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno from view_personinfo where personnum=?`,
+        `select idcardno
+           from ph_person
+           where id = ?`,
         id
       )
     )[0]?.idcardno;
@@ -1551,7 +1673,10 @@ export default class Person {
     // 通过身份证号查找产后访视记录表，拿到产后访视code（visitCode）
     // language=PostgreSQL
     const maternalVisits = await originalDB.execute(
-      `select visitcode from v_maternalvisits_kn where maternalidcardno=? order by visitdate`,
+      `select id
+         from mch_maternal_visit
+         where maternalidcardno = ?
+         order by visitdate`,
       idCardNo
     );
 
@@ -1560,8 +1685,38 @@ export default class Person {
     let newbornVisits = [];
     for (const i of maternalVisits) {
       const newbornVisit = await originalDB.execute(
-        `select * from v_newbornvisit_kn where mothervisitno=?`,
-        i.visitcode
+        `select id as visitno
+                , newbornchildno
+                , mothervisitno
+                , newbornname
+                , newbornbirthday
+                , feedingpatterns
+                , temperaturedegrees
+                , jaundice
+                , doorbrine
+                , eyes
+                , eyesinfection
+                , limbs
+                , ear
+                , earinfection
+                , nose
+                , noseinfection
+                , skin
+                , oral
+                , hip
+                , cardiopulmonary
+                , umbilicalcord
+                , treatmentviews
+                , visitdate
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_new_born_visit
+           where mothervisitno = ?`,
+        i.id
       );
       newbornVisits.push(newbornVisit);
     }
@@ -1574,16 +1729,54 @@ export default class Person {
     // language=PostgreSQL
     const childHealthBooksNo = (
       await originalDB.execute(
-        'select childhealthbooksno from v_childhealthbooks_kn where motheridcardno=?',
+        'select id from mch_child_health_books where motheridcardno = ?',
         idCardNo
       )
-    ).map(it => it.childhealthbooksno);
+    ).map(it => it.id);
     const childChecks = [];
     for (const childHealthBookNo of childHealthBooksNo) {
       // 儿童保健卡主键 -> 儿童体检表
-      // language=PostgreSQL
       const childCheck = await originalDB.execute(
-        'select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by checkdate',
+        // language=PostgreSQL
+        `select cc.id as medicalcode
+                , cc.childhealthbooksno
+                , cc.chronologicalage
+                , cc.checkdate
+                , cc.weight
+                , cc.weightage
+                , cc.height
+                , cc.heightage
+                , cc.headcircumference
+                , cc.face
+                , cc.skin
+                , cc.fontanelle
+                , cc.backfontanelle
+                , cc.eyes
+                , cc.ear
+                , cc.lefthearing
+                , cc.righthearing
+                , cc.oral
+                , cc.ricketsseems
+                , cc.genitaliainfo
+                , cc.genitalia
+                , cc.hemoglobin
+                , cc.fewteeth
+                , cc.signsrickets
+                , cc.outdoortime
+                , cc.guidancetreatment
+                , cc.reservationsdate
+                , cc.checkdoctor
+                , cc.doctor
+                , cc.operatetime
+                , cc.operatorid
+                , cc.operateorganization
+                , cc.created_at
+                , cc.updated_at
+                , cb.name  childname
+           from mch_child_check cc
+                  inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+           where cc.childhealthbooksno = ?
+           order by checkdate`,
         childHealthBookNo
       );
       childChecks.push(childCheck);
@@ -1612,7 +1805,37 @@ export default class Person {
   async newbornVisitDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_newbornvisit_kn where visitno=?`,
+      `select id as visitno
+              , newbornchildno
+              , mothervisitno
+              , newbornname
+              , newbornbirthday
+              , feedingpatterns
+              , temperaturedegrees
+              , jaundice
+              , doorbrine
+              , eyes
+              , eyesinfection
+              , limbs
+              , ear
+              , earinfection
+              , nose
+              , noseinfection
+              , skin
+              , oral
+              , hip
+              , cardiopulmonary
+              , umbilicalcord
+              , treatmentviews
+              , visitdate
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , created_at
+              , updated_at
+         from mch_new_born_visit
+         where id = ?`,
       code
     );
     return result[0];
@@ -1626,7 +1849,44 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select cc.*, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where medicalcode=?`,
+      `select cc.id as medicalcode
+              , cc.childhealthbooksno
+              , cc.chronologicalage
+              , cc.checkdate
+              , cc.weight
+              , cc.weightage
+              , cc.height
+              , cc.heightage
+              , cc.headcircumference
+              , cc.face
+              , cc.skin
+              , cc.fontanelle
+              , cc.backfontanelle
+              , cc.eyes
+              , cc.ear
+              , cc.lefthearing
+              , cc.righthearing
+              , cc.oral
+              , cc.ricketsseems
+              , cc.genitaliainfo
+              , cc.genitalia
+              , cc.hemoglobin
+              , cc.fewteeth
+              , cc.signsrickets
+              , cc.outdoortime
+              , cc.guidancetreatment
+              , cc.reservationsdate
+              , cc.checkdoctor
+              , cc.doctor
+              , cc.operatetime
+              , cc.operatorid
+              , cc.operateorganization
+              , cc.created_at
+              , cc.updated_at
+              , cb.name  childname
+         from mch_child_check cc
+                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+         where cc.id = ?`,
       code
     );
     return result[0];
@@ -1639,9 +1899,17 @@ export default class Person {
    */
   async developmentMonitoring(childHealthBookNo) {
     // 儿童保健卡主键 -> 儿童体检表
-    // language=PostgreSQL
     const childCheck = await originalDB.execute(
-      'select cc.medicalcode,cc.chronologicalage,cc.weight,cc.height, cb.name childname from v_childcheck_kn cc inner join v_childhealthbooks_kn cb on cc.childhealthbooksno = cb.childhealthbooksno where cc.childhealthbooksno=? order by chronologicalage',
+      // language=PostgreSQL
+      `select cc.id   as medicalcode
+              , cc.chronologicalage
+              , cc.weight
+              , cc.height
+              , cb.name as childname
+         from mch_child_check cc
+                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+         where cc.childhealthbooksno = ?
+         order by chronologicalage`,
       childHealthBookNo
     );
     return childCheck;
@@ -1660,7 +1928,9 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno from view_personinfo where personnum=?`,
+        `select idcardno
+           from ph_person
+           where id = ?`,
         id
       )
     )[0]?.idcardno;
@@ -1671,20 +1941,101 @@ export default class Person {
     // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
-      `select * from v_pregnancybooks_kn where idcardno=?`,
+      `select id
+              , etl_id
+              , original_id
+              , visitsdate
+              , vouchertype
+              , idcardno
+              , name
+              , age
+              , fathername
+              , fatherage
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , managehospid
+              , created_at
+              , updated_at
+         from mch_pregnancy_books
+         where idcardno = ?`,
       idCardNo
     );
     const result = [];
     for (const pregnancyBook of pregnancyBooks) {
       const maternalDate = [];
 
-      // 通过母子健康手册表中的主键（newlydiagnosedcode）查询以下表
+      // 通过母子健康手册表中的主键（id）查询以下表
 
       // 第一次产前检查信息表
       // language=PostgreSQL
       const newlyDiagnosedRecords = await originalDB.execute(
-        `select * from v_newlydiagnosed_kn where pre_newlydiagnosedcode=?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as newlydiagnosedcode
+                , pregnancybooksid as pre_newlydiagnosedcode
+                , name
+                , newlydiagnoseddate
+                , gestationalweeks
+                , gestationalageday
+                , age
+                , parity
+                , productionmeeting
+                , vaginaldelivery
+                , cesareansection
+                , lastmenstrual
+                , birth
+                , pasthistory
+                , familyhistory
+                , womansurgeryhistory
+                , spontaneousabortiontimes
+                , abortiontimes
+                , stillfetaltimes
+                , stillbirthtimes
+                , height
+                , weight
+                , bodymassindex
+                , systolicpressure
+                , assertpressure
+                , heart
+                , lung
+                , deputymilkgenital
+                , vagina
+                , cervical
+                , attachment
+                , hemoglobin
+                , interleukin
+                , plateletcount
+                , urinaryprotein
+                , urine
+                , ketone
+                , urineoccultblood
+                , bloodtype
+                , sgpt_fastingplasmaglucose
+                , sgpt_alt
+                , sgpt_ast
+                , sgpt_alb
+                , sgpt_tbili
+                , intoxicated
+                , urea
+                , vaginasecrete
+                , hbsagin
+                , hbsab
+                , hbeag
+                , kanghbe
+                , kanghbc
+                , rprscreen
+                , hivscreening
+                , bultrasonography
+                , nextcaredate
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_newly_diagnosed
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const newlyDiagnosed = {};
       newlyDiagnosed.name = '第一次产前检查信息表';
@@ -1695,8 +2046,33 @@ export default class Person {
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
       const prenatalCareRecords = await originalDB.execute(
-        `select * from v_prenatalcare_kn where newlydiagnosedcode=?`,
-        pregnancyBook.newlydiagnosedcode
+        `select card.id               as prenatalcarecode
+                , card.pregnancybooksid as newlydiagnosedcode
+                , card.checkdate
+                , card.diseasehistory
+                , card.chiefcomplaint
+                , card.weight
+                , card.uterinehigh
+                , card.abdominalcircumference
+                , card.fetalposition
+                , card.fetalheartrate
+                , card.fetalheartrate2
+                , card.fetalheartrate3
+                , card.assertpressure
+                , card.systolicpressure
+                , card.hemoglobin
+                , card.urinaryprotein
+                , card.guide
+                , card.nextappointmentdate
+                , card.doctor
+                , card.operatetime
+                , card.operatorid
+                , card.operateorganization
+                , card.created_at
+                , card.updated_at
+           from mch_prenatal_care card
+           where card.pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const prenatalCare = {};
       prenatalCare.name = '第2~5次产前随访服务信息表';
@@ -1706,8 +2082,28 @@ export default class Person {
       // 产后访视记录表
       // language=PostgreSQL
       const maternalVisitRecords = await originalDB.execute(
-        `select * from v_maternalvisits_kn where newlydiagnosedcode=?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as visitcode
+                , pregnancybooksid as newlydiagnosedcode
+                , maternitycode
+                , maternalname
+                , maternalidcardno
+                , visitdate
+                , temperaturedegrees
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochiatype
+                , lochiavolume
+                , perinealincision
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_maternal_visit
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const maternalVisits = {};
       maternalVisits.name = '产后访视记录表';
@@ -1718,8 +2114,27 @@ export default class Person {
       // 产后42天健康检查记录表
       // language=PostgreSQL
       const examine42thDayRecords = await originalDB.execute(
-        `select * from v_examine42thday_kn where newlydiagnosedcode=?`,
-        pregnancyBook.newlydiagnosedcode
+        `select id               as examineno
+                , pregnancybooksid as newlydiagnosedcode
+                , pregnantwomenname
+                , visitdate
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochia
+                , lochiacolor
+                , lochiasmell
+                , perinealincision
+                , other
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_examine_42th_day
+           where pregnancybooksid = ?`,
+        pregnancyBook.id
       );
       const examine42thDay = {};
       examine42thDay.name = '产后42天健康检查记录表';
@@ -1734,17 +2149,81 @@ export default class Person {
 
   /**
    * 第 1 次产前检查服务记录表详情
-   * @param 主键id
+   * @param code 主键id
    */
   async firstPrenatalCheck(code) {
     // 第一次产前检查信息表
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
       `
-        select b.fathername, b.fatherage, n.*, n.weight / (n.height / 100) ^ 2 as bmi
-        from v_newlydiagnosed_kn n
-               inner join v_pregnancybooks_kn b on n.pre_newlydiagnosedcode = b.newlydiagnosedcode
-        where n.newlydiagnosedcode = ?
+        select b.fathername
+             , b.fatherage
+             , n.id                            as newlydiagnosedcode
+             , n.pregnancybooksid              as pre_newlydiagnosedcode
+             , n.name
+             , n.newlydiagnoseddate
+             , n.gestationalweeks
+             , n.gestationalageday
+             , n.age
+             , n.parity
+             , n.productionmeeting
+             , n.vaginaldelivery
+             , n.cesareansection
+             , n.lastmenstrual
+             , n.birth
+             , n.pasthistory
+             , n.familyhistory
+             , n.womansurgeryhistory
+             , n.spontaneousabortiontimes
+             , n.abortiontimes
+             , n.stillfetaltimes
+             , n.stillbirthtimes
+             , n.height
+             , n.weight
+             , n.bodymassindex
+             , n.systolicpressure
+             , n.assertpressure
+             , n.heart
+             , n.lung
+             , n.deputymilkgenital
+             , n.vagina
+             , n.cervical
+             , n.attachment
+             , n.hemoglobin
+             , n.interleukin
+             , n.plateletcount
+             , n.urinaryprotein
+             , n.urine
+             , n.ketone
+             , n.urineoccultblood
+             , n.bloodtype
+             , n.sgpt_fastingplasmaglucose
+             , n.sgpt_alt
+             , n.sgpt_ast
+             , n.sgpt_alb
+             , n.sgpt_tbili
+             , n.intoxicated
+             , n.urea
+             , n.vaginasecrete
+             , n.hbsagin
+             , n.hbsab
+             , n.hbeag
+             , n.kanghbe
+             , n.kanghbc
+             , n.rprscreen
+             , n.hivscreening
+             , n.bultrasonography
+             , n.nextcaredate
+             , n.doctor
+             , n.operatetime
+             , n.operatorid
+             , n.operateorganization
+             , n.created_at
+             , n.updated_at
+             , n.weight / (n.height / 100) ^ 2 as bmi
+        from mch_newly_diagnosed n
+               inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
+        where n.id = ?
       `,
       code
     );
@@ -1753,15 +2232,40 @@ export default class Person {
 
   /**
    * 第2~5次产前随访服务信息表详情
-   * @param 主键id
+   * @param code 主键id
    */
   async recordPrenatalFollowUp(code) {
     // 第2~5次产前随访服务信息表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select b.name, p.*
-         from v_prenatalcare_kn p inner join v_pregnancybooks_kn b on p.newlydiagnosedcode = b.newlydiagnosedcode
-         where prenatalcarecode = ?`,
+      `select b.name
+              , card.id               as prenatalcarecode
+              , card.pregnancybooksid as newlydiagnosedcode
+              , card.checkdate
+              , card.diseasehistory
+              , card.chiefcomplaint
+              , card.weight
+              , card.uterinehigh
+              , card.abdominalcircumference
+              , card.fetalposition
+              , card.fetalheartrate
+              , card.fetalheartrate2
+              , card.fetalheartrate3
+              , card.assertpressure
+              , card.systolicpressure
+              , card.hemoglobin
+              , card.urinaryprotein
+              , card.guide
+              , card.nextappointmentdate
+              , card.doctor
+              , card.operatetime
+              , card.operatorid
+              , card.operateorganization
+              , card.created_at
+              , card.updated_at
+         from mch_prenatal_care card
+                inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+         where card.id = ?`,
       code
     );
     return result[0];
@@ -1769,12 +2273,32 @@ export default class Person {
 
   /**
    * 产后访视记录表详情
-   * @param 主键id
+   * @param code 主键
    */
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_maternalvisits_kn where visitcode=?`,
+      `select id               as visitcode
+              , pregnancybooksid as newlydiagnosedcode
+              , maternitycode
+              , maternalname
+              , maternalidcardno
+              , visitdate
+              , temperaturedegrees
+              , diastolicpressure
+              , systolicpressure
+              , breast
+              , lochiatype
+              , lochiavolume
+              , perinealincision
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , created_at
+              , updated_at
+         from mch_maternal_visit
+         where id = ?`,
       code
     );
     return result[0];
@@ -1782,17 +2306,40 @@ export default class Person {
 
   /**
    * 产后42天健康检查记录表详情
-   * @param 主键id
+   * @param code 主键
    */
   async recordPostpartum42DaysCheck(code) {
     // 产后42天健康检查记录表
-    // language=PostgreSQL
     const result = await originalDB.execute(
-      `select * from v_examine42thday_kn where examineno=?`,
+      // language=PostgreSQL
+      `select id               as examineno
+              , pregnancybooksid as newlydiagnosedcode
+              , pregnantwomenname
+              , visitdate
+              , diastolicpressure
+              , systolicpressure
+              , breast
+              , lochia
+              , lochiacolor
+              , lochiasmell
+              , perinealincision
+              , other
+              , doctor
+              , operatetime
+              , operatorid
+              , operateorganization
+              , created_at
+              , updated_at
+         from mch_examine_42th_day
+         where id = ?`,
       code
     );
     return result[0];
   }
+
+  // endregion
+
+  // region 个人档案详情
 
   /***
    * 个人档案详情
@@ -1870,82 +2417,84 @@ export default class Person {
       dictionaryQuery('002') //contractStaff
     ]);
     const result = await originalDB.execute(
-      `select
-        vp.PersonNum as "id",
-        vp.name as "name",
-        vp.Sex as "gender",
-        vp.VoucherType as "voucher",
-        vp.IdCardNo as "idCard",
-        vp.Birth as "birth",
-        vp.Phone as "phone",
-        vp.RegionCode as "regionCode",
-        vp.Address as "address",
-        vp.Residencestring as "census",
-        vp.WorkUnit as "workUnit",
-        vp.RHeadHousehold as "houseHold",
-        vp.ContactName as "contactName",
-        vp.ContactPhone as "contactPhone",
-        vp.Relationship as "contactRelationship",
-        vp.LivingConditions as "livingConditions",
-        vp.AccountType as "accountType",
-        vp.BloodABO as blood,
-        vp.national as "national",
-        vp.RH as "RH",
-        vp.Education as "education",
-        vp.Occupation as "profession",
-        vp.MaritalStatus as "marrage",
-        vp.Responsibility as "doctor",
-        vp.FileDate as "createdAt",
-        vp.XNHCardNo as "XNHCard",
-        vp.YBCardNo as "medicareCard",
-        vp.MedicalExpensesPayKind as "medicalPayType",
-        vp.PaymentCard as "medicalCard",
-        vp.IsLowWarranty as "isLowWarranty",
-        vp.LowWarrantyCardNo as "lowWarrantyCard",
-        vp.DrugAllergy as "drugAllergy",
-        vp.AncestralHistory as "ancestralHistory",
-        vp.FatherHistory as "fatherHistory",
-        vp.MotherHistory as "motherHistory",
-        vp.SiblingHistory as "siblingHistory",
-        vp.ChildrenHistory as "childrenHistory",
-        vp.IsGeneticHistory as "isGeneticHistory",
-        vp.GeneticDisease as "geneticDisease",
-        vp.WhetherDisability as "isDisability",
-        vp.ExposureHistory as "exposureHistory",
-        vp.PastHistory as "diseaseHistory",
-        vp.IsSurgicalHistory as "isSurgeryHistory",
-        vp.IsTraumaticHistory as "isTraumaticHistory",
-        vp.IsTransfusionHistory as "isTransfusionHistory",
-        vp.shhjcf as "kitchenVentilation",
-        vp.shhjrl as "fuelType",
-        vp.shhjys as "water",
-        vp.shhjcs as "toilet",
-        vp.shhjscl as "livestock",
-        vp.ContractStaff as "contractStaff",
-        vp.AdminOrganization as "managementHospital",
-        vp.OperateOrganization as "hospital",
-        vc_hos.hospname as "hospital",
-        vp.OperatorId as "hospitalId",
-        vp.OperateTime as "updatedAt"
-        from view_personinfo vp
-        left join view_hospital vc_hos on vc_hos.hospid=vp.OperateOrganization
-        where personnum=?`,
+      // language=PostgreSQL
+      `select vp.id,
+                vp.name                   as "name",
+                vp.Sex                    as "gender",
+                vp.VoucherType            as "voucher",
+                vp.IdCardNo               as "idCard",
+                vp.Birth                  as "birth",
+                vp.Phone                  as "phone",
+                vp.RegionCode             as "regionCode",
+                vp.Address                as "address",
+                vp.Residencestring        as "census",
+                vp.WorkUnit               as "workUnit",
+                vp.RHeadHousehold         as "houseHold",
+                vp.ContactName            as "contactName",
+                vp.ContactPhone           as "contactPhone",
+                vp.Relationship           as "contactRelationship",
+                vp.LivingConditions       as "livingConditions",
+                vp.AccountType            as "accountType",
+                vp.BloodABO               as blood,
+                vp.national               as "national",
+                vp.RH                     as "RH",
+                vp.Education              as "education",
+                vp.Occupation             as "profession",
+                vp.MaritalStatus          as "marrage",
+                vp.Responsibility         as "doctor",
+                vp.FileDate               as "createdAt",
+                vp.XNHCardNo              as "XNHCard",
+                vp.YBCardNo               as "medicareCard",
+                vp.MedicalExpensesPayKind as "medicalPayType",
+                vp.PaymentCard            as "medicalCard",
+                vp.IsLowWarranty          as "isLowWarranty",
+                vp.LowWarrantyCardNo      as "lowWarrantyCard",
+                vp.DrugAllergy            as "drugAllergy",
+                vp.AncestralHistory       as "ancestralHistory",
+                vp.FatherHistory          as "fatherHistory",
+                vp.MotherHistory          as "motherHistory",
+                vp.SiblingHistory         as "siblingHistory",
+                vp.ChildrenHistory        as "childrenHistory",
+                vp.IsGeneticHistory       as "isGeneticHistory",
+                vp.GeneticDisease         as "geneticDisease",
+                vp.WhetherDisability      as "isDisability",
+                vp.ExposureHistory        as "exposureHistory",
+                vp.PastHistory            as "diseaseHistory",
+                vp.IsSurgicalHistory      as "isSurgeryHistory",
+                vp.IsTraumaticHistory     as "isTraumaticHistory",
+                vp.IsTransfusionHistory   as "isTransfusionHistory",
+                vp.shhjcf                 as "kitchenVentilation",
+                vp.shhjrl                 as "fuelType",
+                vp.shhjys                 as "water",
+                vp.shhjcs                 as "toilet",
+                vp.shhjscl                as "livestock",
+                vp.ContractStaff          as "contractStaff",
+                vp.AdminOrganization      as "managementHospital",
+                vp.OperateOrganization    as "hospital",
+                area.name                 as "hospital",
+                vp.OperatorId             as "hospitalId",
+                vp.OperateTime            as "updatedAt"
+         from ph_person vp
+                left join area on area.code = vp.OperateOrganization
+         where id = ?`,
       id
     );
 
     return result.map(item => ({
       ...item,
-      gender: genderCode.find(it => it.code === item.gender)?.codename ?? '',
-      voucher: voucherCode.find(it => it.code === item.voucher)?.codename ?? '',
-      national:
-        nationalCode.find(it => it.code === item.national)?.codename ?? '',
+      gender: genderCode.find(it => it.code === item.gender)?.name ?? '',
+      voucher: voucherCode.find(it => it.code === item.voucher)?.name ?? '',
+      national: nationalCode.find(it => it.code === item.national)?.name ?? '',
       houseHold:
-        houseHoldCode.find(it => it.code === item.houseHold)?.codename ?? '',
+        houseHoldCode.find(it => it.code === item.houseHold)?.name ?? '',
       contractStaff:
-        contractStaffCode.find(it => it.code === item.contractStaff)
-          ?.codename ?? ''
+        contractStaffCode.find(it => it.code === item.contractStaff)?.name ?? ''
     }));
   }
+
+  // endregion
+
+  // region 老年人
 
   /***
    * 老年人生活自理评分
@@ -1965,19 +2514,20 @@ export default class Person {
   async oldManSelfCare(id) {
     return (
       await originalDB.execute(
-        `select
-            vhc.scoreID as "id",
-            vhc.IncrementNo as "healthyID",
-            vh.checkupDate as "checkDate",
-            vhc.jcScore as "mealScore",
-            vhc.sxScore as "washScore",
-            vhc.cyScore as "dressScore",
-            vhc.rcScore as "toiletScore",
-            vhc.hdScore as "activityScore",
-            vhc.AllScore as "total"
-        from view_healthchecktablescore vhc
-        left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vh.personnum=? and vh.isdelete=false`,
+        // language=PostgreSQL
+        `select vhc.id,
+                  vhc.IncrementNo as "healthyID",
+                  vh.checkupDate  as "checkDate",
+                  vhc.jcScore     as "mealScore",
+                  vhc.sxScore     as "washScore",
+                  vhc.cyScore     as "dressScore",
+                  vhc.rcScore     as "toiletScore",
+                  vhc.hdScore     as "activityScore",
+                  vhc.AllScore    as "total"
+           from ph_old_health_check vhc
+                  left join ph_healthy vh on vh.id = vhc.incrementno
+           where vh.personnum = ?
+             and vh.isdelete = false`,
         id
       )
     ).map(it => ({
@@ -2023,38 +2573,39 @@ export default class Person {
   async oldManSelfCareDetail(id) {
     return (
       await originalDB.execute(
-        `select
-            vhc.scoreID as "id",
-            vhc.IncrementNo as "healthyID",
-            vh.checkupDate as "checkDate",
-            vh.name as "name",
-            vhc.jckzl as "mealNormal",
-            vhc.jczdyl as "mealModerate",
-            vhc.jcbnzl as "mealDisable",
-            vhc.jcScore as "mealScore",
-            vhc.sxkzl as "washNormal",
-            vhc.sxqdyl as "washMild",
-            vhc.sxzdyl as "washModerate",
-            vhc.sxbnzl as "washDisable",
-            vhc.sxScore as "washScore",
-            vhc.cykzl as "dressNormal",
-            vhc.cyzdyl as "dressModerate",
-            vhc.cybnzl as "dressDisable",
-            vhc.cyScore as "dressScore",
-            vhc.rckzl as "toiletNormal",
-            vhc.rcqdyl as "toiletMild",
-            vhc.rczdyl as "toiletModerate",
-            vhc.rcbnzl as "toiletDisable",
-            vhc.rcScore as "toiletScore",
-            vhc.hdkzl as "activityNormal",
-            vhc.hdqdyl as "activityMild",
-            vhc.hdzdyl as "activityModerate",
-            vhc.hdbnzl as "activityDisable",
-            vhc.hdScore as "activityScore",
-            vhc.AllScore as "total"
-        from view_healthchecktablescore vhc
-        left join view_healthy vh on vh.incrementno=vhc.incrementno
-        where vhc.scoreID=? and vh.isdelete=false`,
+        // language=PostgreSQL
+        `select vhc.id,
+                  vhc.IncrementNo as "healthyID",
+                  vh.checkupDate  as "checkDate",
+                  vh.name         as "name",
+                  vhc.jckzl       as "mealNormal",
+                  vhc.jczdyl      as "mealModerate",
+                  vhc.jcbnzl      as "mealDisable",
+                  vhc.jcScore     as "mealScore",
+                  vhc.sxkzl       as "washNormal",
+                  vhc.sxqdyl      as "washMild",
+                  vhc.sxzdyl      as "washModerate",
+                  vhc.sxbnzl      as "washDisable",
+                  vhc.sxScore     as "washScore",
+                  vhc.cykzl       as "dressNormal",
+                  vhc.cyzdyl      as "dressModerate",
+                  vhc.cybnzl      as "dressDisable",
+                  vhc.cyScore     as "dressScore",
+                  vhc.rckzl       as "toiletNormal",
+                  vhc.rcqdyl      as "toiletMild",
+                  vhc.rczdyl      as "toiletModerate",
+                  vhc.rcbnzl      as "toiletDisable",
+                  vhc.rcScore     as "toiletScore",
+                  vhc.hdkzl       as "activityNormal",
+                  vhc.hdqdyl      as "activityMild",
+                  vhc.hdzdyl      as "activityModerate",
+                  vhc.hdbnzl      as "activityDisable",
+                  vhc.hdScore     as "activityScore",
+                  vhc.AllScore    as "total"
+           from ph_old_health_check vhc
+                  left join ph_healthy vh on vh.id = vhc.incrementno
+           where vhc.id = ?
+             and vh.isdelete = false`,
         id
       )
     ).map(it => ({
@@ -2063,10 +2614,15 @@ export default class Person {
     }));
   }
 
+  // endregion
+
+  // region 问卷
+
   /***
    * 标签的具体内容
    * @param id
    * @param code
+   * @param year
    */
   @validate(
     should
@@ -2081,7 +2637,12 @@ export default class Person {
   async markContent(id, code, year) {
     if (!year) year = dayjs().year();
     return originalDB.execute(
-      `select * from mark_content where year = ? and id=? and name=?`,
+      // language=PostgreSQL
+      `select *
+         from mark_content
+         where year = ?
+           and id = ?
+           and name = ?`,
       year,
       id,
       code
@@ -2105,18 +2666,18 @@ export default class Person {
       .description('个人id')
   )
   async questionnaire(id) {
+    // language=PostgreSQL
     return originalDB.execute(
       `
-       select
-     vq.QuestionnaireMainSN as "id",
-     vp.name,
-     vq.questionnairemaindate as "date",
-     vq.doctorname as "doctor",
-     vh.hospname as "hospitalName"
-     from view_questionnairemain vq
-     left join view_personinfo vp on vq.personnum = vp.personnum
-     left join view_hospital vh on vp.operateorganization = vh.hospid
-     where vp.personnum=?;`,
+        select vq.id,
+               vp.name,
+               vq.questionnairemaindate as "date",
+               vq.doctorname            as "doctor",
+               area.name                as "hospitalName"
+        from ph_old_questionnaire_main vq
+               left join ph_person vp on vq.personnum = vp.id
+               left join area on vp.operateorganization = area.code
+        where vp.id = ?;`,
       id
     );
   }
@@ -2152,26 +2713,25 @@ export default class Person {
       .description('问卷表id')
   )
   async questionnaireDetail(id) {
-    const questionnaire = (
-      await originalDB.execute(
-        `select
-            cast(vb.questioncode as int) as "questionCode",
-            vb.questioncode as "questionCode",
-            vqd.questionnairemainsn as "detailId",
-            vqd.questionnairedetailcontent as "question",
-            vq.optioncontent as "option",
-            vq.optioncode as "optionCode",
-            vq.score
-            from view_questionnairedetail vqd
-            inner join view_questionoptionslib vq on
-            cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-            inner join view_questionlib vb on
-                vb.questionsn = vq.questionsn
-            where vqd.QuestionnaireMainSN = ?
-        order by cast(vb.questioncode as int)`,
-        id
-      )
-    ).reduce((res, next) => {
+    const questionnaireModels = await originalDB.execute(
+      // language=PostgreSQL
+      `select cast(vb.questioncode as int)   as "questionCode",
+                vb.questioncode                as "questionCode",
+                vqd.questionnairemainsn        as "detailId",
+                vqd.questionnairedetailcontent as "question",
+                vq.optioncontent               as "option",
+                vq.optioncode                  as "optionCode",
+                vq.score
+         from ph_questionnaire_detail vqd
+                inner join ph_question_options vq on
+           cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+                inner join ph_question_lib vb on
+           vb.questionsn = vq.questionsn
+         where vqd.QuestionnaireMainSN = ?
+         order by cast(vb.questioncode as int)`,
+      id
+    );
+    const questionnaire = questionnaireModels.reduce((res, next) => {
       let current = res.find(it => it.questionCode === next.questionCode);
       // 如果查找到, 说明这个答案得分有两次
       if (current) {
@@ -2195,12 +2755,15 @@ export default class Person {
     const name =
       (
         await originalDB.execute(
+          // language=PostgreSQL
           `
-        select vp.name from view_questionnairedetail vqd
-            left join view_questionnairemain vm on
-            cast(vm.questionnairemainsn as varchar) = cast(vqd.questionnairemainsn as varchar)
-            right join view_personinfo vp on vm.personnum = vp.personnum
-        where vqd.questionnairemainsn = ? limit 1;`,
+            select vp.name
+            from ph_questionnaire_detail vqd
+                   left join ph_old_questionnaire_main vm on
+              cast(vm.id as varchar) = cast(vqd.questionnairemainsn as varchar)
+                   right join ph_person vp on vm.personnum = vp.id
+            where vqd.questionnairemainsn = ?
+            limit 1;`,
           id
         )
       )[0]?.name ?? null;
@@ -2208,17 +2771,17 @@ export default class Person {
     const constitution =
       (
         await originalDB.execute(
-          `select
-            vp.name,
-            vq.constitutiontype,
-            vq.constitutiontypepossible,
-            vq.OperateTime as "date",
-            vh.hospname as "hospitalName",
-            vq.doctor
-            from view_questionnaireguide  vq
-            left join view_personinfo vp on vq.personnum = vp.personnum
-            left join view_hospital vh on vp.operateorganization = vh.hospid
-            where vq.questionnairemainsn = ?`,
+          // language=PostgreSQL
+          `select vp.name,
+                    vq.constitutiontype,
+                    vq.constitutiontypepossible,
+                    vq.OperateTime as "date",
+                    area.name      as "hospitalName",
+                    vq.doctor
+             from ph_questionnaire_guide vq
+                    left join ph_person vp on vq.personnum = vp.id
+                    left join area on vp.operateorganization = area.code
+             where vq.id = ?`,
           questionnaire[0]?.detailId
         )
       )[0] ?? null;
@@ -2226,6 +2789,10 @@ export default class Person {
     if (constitution) constitution.guide = '';
     return {name, questionnaire, constitution};
   }
+
+  // endregion
+
+  // region 高危人群
 
   /**
    * 高危人群随访列表
@@ -2241,22 +2808,19 @@ export default class Person {
    * }]
    */
   async chronicDiseaseHighList(id) {
-    const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      '7010104'
-    );
+    const followCodeNames = await dictionaryQuery('7010104');
     // language=PostgreSQL
     return (
       await originalDB.execute(
         `
-          select vdv.ChronicDiseaseHighID as "id",
-                 vdv.FollowUpDate         as "followDate",
-                 vdv.FollowUpWay          as "followWay",
-                 vdv.RiskFactorsName      as "riskFactorsName",
+          select vdv.id,
+                 vdv.FollowUpDate    as "followDate",
+                 vdv.FollowUpWay     as "followWay",
+                 vdv.RiskFactorsName as "riskFactorsName",
                  vdv.Doctor,
-                 vdv.OperateTime          as "updateAt"
-          from view_ChronicDiseaseHighFollowUp vdv
-                 inner join view_ChronicDiseaseHighCard vd on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+                 vdv.OperateTime     as "updateAt"
+          from ph_chronic_disease_high_visit vdv
+                 inner join ph_chronic_disease_high_card vd on vdv.ChronicDiseaseHighCardID = vd.id
           where vd.PersonNum = ?
             and vd.TerminationManage = true
             and vd.IsDelete = false
@@ -2267,8 +2831,7 @@ export default class Person {
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
@@ -2313,11 +2876,11 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-          select vd.ChronicDiseaseHighID as "id",
+          select vd.id,
                  vd.serialNum            as "No",
                  vp.name                 as "name",
                  vd.followUpDate         as "followDate",
-                 vc_follow.codename      as "followWay",
+                 vc_follow.name          as "followWay",
                  vd.RiskFactorsName      as "riskFactorsName",
                  vd.SystolicPressure     as "systolicPressure",
                  vd.AssertPressure       as "assertPressure",
@@ -2342,17 +2905,21 @@ export default class Person {
                  vd.OperateTime          as "updateAt",
                  vd.Doctor               as "doctor",
                  vd.Remark               as "remark"
-          from view_ChronicDiseaseHighFollowUp vd
-                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
-                 left join view_codedictionary vc_follow
-                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
-          where ChronicDiseaseHighID = ?
+          from ph_chronic_disease_high_visit vd
+                 inner join ph_person vp on vd.personnum = vp.id
+                 left join ph_dict vc_follow
+                           on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+          where vd.id = ?
             and vd.isdelete = false
         `,
         id
       )
     )[0];
   }
+
+  // endregion
+
+  // region 其他慢病
 
   /**
    * 其他慢病随访列表
@@ -2368,23 +2935,20 @@ export default class Person {
    }]
    */
   async chronicDiseaseOtherList(id) {
-    const followCodeNames = await originalDB.execute(
-      `select vc.codename,vc.code from view_codedictionary vc where vc.categoryno=?`,
-      '7010104'
-    );
+    const followCodeNames = await dictionaryQuery('7010104');
     // language=PostgreSQL
     return (
       await originalDB.execute(
         `
-          select vdv.HighbloodID     as "id",
+          select vdv.id,
                  vdv.FollowUpDate    as "followDate",
                  vdv.FollowUpWay     as "followWay",
                  vdv.PresentSymptoms as "presentSymptoms",
                  vdv.Doctor,
                  vdv.OperateTime     as "updateAt"
-          from view_ChronicDiseaseHighCardOtherFollowUp vdv
-                 inner join view_ChronicDiseaseHighCardOther vd
-                            on vdv.ChronicDiseaseHighCardID = vd.ChronicDiseaseHighCardID
+          from ph_chronic_disease_other_visit vdv
+                 inner join ph_chronic_disease_other_card vd
+                            on vdv.ChronicDiseaseHighCardID = vd.id
           where vd.PersonNum = ?
             and vd.TerminationManage = true
             and vd.IsDelete = false
@@ -2395,8 +2959,7 @@ export default class Person {
       )
     ).map(item => ({
       ...item,
-      followWay: followCodeNames.find(way => way.code === item.followWay)
-        ?.codename
+      followWay: followCodeNames.find(way => way.code === item.followWay)?.name
     }));
   }
 
@@ -2464,261 +3027,82 @@ export default class Person {
     return (
       await originalDB.execute(
         `
-          select vd.HighbloodID           as "id",
-                 vd.serialNum             as "No",
-                 vp.name                  as "name",
-                 vd.followUpDate          as "followDate",
-                 vc_follow.codename       as "followWay",
-                 vd.presentSymptoms       as "symptoms",
-                 vd.SystolicPressure      as "systolicPressure",
-                 vd.AssertPressure        as "assertPressure",
-                 vd.Weight                as "weight",
-                 vd.Weight_Suggest        as "weightSuggest",
-                 vd.Stature               as "stature",
-                 vd.BMI                   as "BMI",
-                 vd.BMI_Suggest           as "BMISuggest",
-                 vd.HeartRate             as "HeartRate",
-                 vd.Other_Tz              as "other",
-                 vd.DaySmoke              as "daySmoke",
-                 vd.DaySmoke_Suggest      as "daySmokeSuggest",
-                 vd.DayDrink              as "dayDrink",
-                 vd.DayDrink_Suggest      as "dayDrinkSuggest",
-                 vd.Sport_Week            as "exerciseWeek",
-                 vd.Sport_Minute          as "exerciseMinute",
-                 vd.Sport_Week_Suggest    as "exerciseWeekSuggest",
-                 vd.Sport_Minute_Suggest  as "exerciseMinuteSuggest",
-                 vc_salt.codename         as "saltSituation",
-                 vc_salt_suggest.codename as "saltSituationSuggest",
-                 vc_mental.codename       as "mental",
-                 vc_doctor_s.codename     as "doctorStatue",
-                 vd.Other_Sysjc           as "qtzysx",
-                 vd.Fzjc                  as "fzjc",
-                 vc_ma.codename           as "medicationAdherence",
-                 vc_effect.codename       as "adverseReactions",
-                 vd.AdverseEffectOther    as "adverseReactionsExplain",
-                 vc_vc.codename           as "visitClass",
-                 vd.DrugName1             as "drugName1",
-                 vd.Usage_Day1            as "dailyTimesDrugName1",
-                 vd.Usage_Time1           as "usageDrugName1",
-                 vd.DrugName2             as "drugName2",
-                 vd.Usage_Day2            as "dailyTimesDrugName2",
-                 vd.Usage_Time2           as "usageDrugName2",
-                 vd.DrugName3             as "drugName3",
-                 vd.Usage_Day3            as "dailyTimesDrugName3",
-                 vd.Usage_Time3           as "usageDrugName3",
-                 vd.DrugNameOther         as "otherDrugName",
-                 vd.Usage_DayOther        as "otherDailyTimesDrugName",
-                 vd.Usage_TimeOther       as "otherUsageDrugName",
-                 vd.Remark                as "remark",
-                 vd.Referral              as "referral",
-                 vd.ReferralReason        as "referralReason",
-                 vd.ReferralAgencies      as "referralAgencies",
-                 vd.NextVisitDate         as "nextVisitDate",
-                 vd.OperateTime           as "updateAt",
-                 vd.Doctor                as "doctor"
-          from view_ChronicDiseaseHighCardOtherFollowUp vd
-                 inner join view_PersonInfo vp on vd.personnum = vp.PersonNum
-                 left join view_codedictionary vc_follow
-                           on vc_follow.categoryno = '7010104' and vc_follow.code = vd.FollowUpWay
-                 left join view_codedictionary vc_salt
-                           on vc_salt.categoryno = '7010112' and vc_salt.code = vd.Salt_Situation
-                 left join view_codedictionary vc_salt_suggest
-                           on vc_salt_suggest.categoryno = '7010112' and
+          select vd.id,
+                 vd.serialNum            as "No",
+                 vp.name                 as "name",
+                 vd.followUpDate         as "followDate",
+                 vc_follow.name          as "followWay",
+                 vd.presentSymptoms      as "symptoms",
+                 vd.SystolicPressure     as "systolicPressure",
+                 vd.AssertPressure       as "assertPressure",
+                 vd.Weight               as "weight",
+                 vd.Weight_Suggest       as "weightSuggest",
+                 vd.Stature              as "stature",
+                 vd.BMI                  as "BMI",
+                 vd.BMI_Suggest          as "BMISuggest",
+                 vd.HeartRate            as "HeartRate",
+                 vd.Other_Tz             as "other",
+                 vd.DaySmoke             as "daySmoke",
+                 vd.DaySmoke_Suggest     as "daySmokeSuggest",
+                 vd.DayDrink             as "dayDrink",
+                 vd.DayDrink_Suggest     as "dayDrinkSuggest",
+                 vd.Sport_Week           as "exerciseWeek",
+                 vd.Sport_Minute         as "exerciseMinute",
+                 vd.Sport_Week_Suggest   as "exerciseWeekSuggest",
+                 vd.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+                 vc_salt.name            as "saltSituation",
+                 vc_salt_suggest.name    as "saltSituationSuggest",
+                 vc_mental.name          as "mental",
+                 vc_doctor_s.name        as "doctorStatue",
+                 vd.Other_Sysjc          as "qtzysx",
+                 vd.Fzjc                 as "fzjc",
+                 vc_ma.name              as "medicationAdherence",
+                 vc_effect.name          as "adverseReactions",
+                 vd.AdverseEffectOther   as "adverseReactionsExplain",
+                 vc_vc.name              as "visitClass",
+                 vd.DrugName1            as "drugName1",
+                 vd.Usage_Day1           as "dailyTimesDrugName1",
+                 vd.Usage_Time1          as "usageDrugName1",
+                 vd.DrugName2            as "drugName2",
+                 vd.Usage_Day2           as "dailyTimesDrugName2",
+                 vd.Usage_Time2          as "usageDrugName2",
+                 vd.DrugName3            as "drugName3",
+                 vd.Usage_Day3           as "dailyTimesDrugName3",
+                 vd.Usage_Time3          as "usageDrugName3",
+                 vd.DrugNameOther        as "otherDrugName",
+                 vd.Usage_DayOther       as "otherDailyTimesDrugName",
+                 vd.Usage_TimeOther      as "otherUsageDrugName",
+                 vd.Remark               as "remark",
+                 vd.Referral             as "referral",
+                 vd.ReferralReason       as "referralReason",
+                 vd.ReferralAgencies     as "referralAgencies",
+                 vd.NextVisitDate        as "nextVisitDate",
+                 vd.OperateTime          as "updateAt",
+                 vd.Doctor               as "doctor"
+          from ph_chronic_disease_other_visit vd
+                 inner join ph_person vp on vd.personnum = vp.id
+                 left join ph_dict vc_follow
+                           on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+                 left join ph_dict vc_salt
+                           on vc_salt.category = '7010112' and vc_salt.code = vd.Salt_Situation
+                 left join ph_dict vc_salt_suggest
+                           on vc_salt_suggest.category = '7010112' and
                               vc_salt_suggest.code = vd.Salt_Situation_Suggest
-                 left join view_codedictionary vc_mental
-                           on vc_mental.categoryno = '331' and vc_mental.code = vd.MentalSet
-                 left join view_codedictionary vc_doctor_s
-                           on vc_doctor_s.categoryno = '332' and vc_doctor_s.code = vd.DoctorStatue
-                 left join view_codedictionary vc_ma on vc_ma.categoryno = '181' and vc_ma.code = vd.MedicationAdherence
-                 left join view_codedictionary vc_effect
-                           on vc_effect.categoryno = '005' and vc_effect.code = vd.AdverseEffect
-                 left join view_codedictionary vc_vc on vc_vc.categoryno = '7010106' and vc_vc.code = vd.VisitClass
-          where HighbloodID = ?
+                 left join ph_dict vc_mental
+                           on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
+                 left join ph_dict vc_doctor_s
+                           on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
+                 left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
+                 left join ph_dict vc_effect
+                           on vc_effect.category = '005' and vc_effect.code = vd.AdverseEffect
+                 left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
+          where vd.id = ?
             and vd.isdelete = false
         `,
         id
       )
     )[0];
   }
-}
 
-/***
- * 获取表格的buffer数据
- * @param params
- * @returns {Promise<{count: number, rows: []}|Buffer>}
- */
-export async function getPersonExcelBuffer(params) {
-  const {
-    hospital,
-    region,
-    idCard,
-    tags,
-    include,
-    personOr = false,
-    documentOr = false,
-    year
-  } = params;
-  const his = '340203';
-  let {name} = params;
-  if (name) name = `%${name}%`;
-  let hospitals = [];
-  //没有选机构和地区,则默认查询当前用户所拥有的机构
-  if (!region && !hospital) throw new KatoCommonError('未传机构id或者地区code');
-  //仅有地区,则查询该地区下的所有机构
-  if (region && !hospital) {
-    hospitals = (
-      await HospitalModel.findAll({
-        where: {region: {[Op.like]: `${region}%`}}
-      })
-    ).map(it => it.id);
-  }
-  if (hospital) hospitals = [hospital];
-
-  //如果查询出来的机构列表为空,则数据都为空
-  if (hospitals.length === 0) return {count: 0, rows: []};
-  // language=PostgreSQL
-  hospitals = (
-    await Promise.all(
-      hospitals.map(it =>
-        appDB.execute(
-          `select hishospid as id from hospital_mapping where h_id = ?`,
-          it
-        )
-      )
-    )
-  )
-    .filter(it => it.length > 0)
-    .reduce((result, current) => [...result, ...current.map(it => it.id)], []);
-  if (include && hospital)
-    hospitals = (
-      await Promise.all(
-        hospitals.map(item =>
-          //查询机构的下属机构
-          originalDB.execute(
-            `select hospid as id from view_hospital where hos_hospid = ?`,
-            item
-          )
-        )
-      )
-    )
-      .filter(it => it.length > 0)
-      .reduce((result, current) => [...result, ...current.map(it => it.id)], [])
-      .concat(hospitals);
-
-  const sqlRenderResult = listRenderForExcel({
-    his,
-    name,
-    hospitals,
-    idCard,
-    ...tags,
-    personOr,
-    documentOr,
-    year
-  });
-  let person = await originalDB.execute(
-    `select vp.personnum   as id,
-                vp.name,
-                vp.idcardno    as "idCard",
-                vp.address     as "address",
-                vp.sex         as "gender",
-                vp.phone       as "phone",
-                mp."S03",
-                mp."S23",
-                mp."O00",
-                mp."O02",
-                mp."H00",
-                mp."H01",
-                mp."H02",
-                mp."D00",
-                mp."D01",
-                mp."D02",
-                mp."C01",
-                mp."C02",
-                mp."C03",
-                mp."C04",
-                mp."C05",
-                mp."C00",
-                mp."C06",
-                mp."C07",
-                mp."C08",
-                mp."C09",
-                mp."C10",
-                mp."C11",
-                mp."C13",
-                mp."C14",
-                mp."E00",
-                mc.name as "markName",
-                mc.content as "markContent",
-                vh.hospname    as "hospitalName",
-                vp.operatetime as date
-         ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.personnum desc
-         `,
-    ...sqlRenderResult[1]
-  );
-  person.forEach(p => {
-    for (let i in p) {
-      //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
-      if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
-    }
-  });
-  person = person
-    .map(it => getTagsList(it))
-    .reduce((pre, next) => {
-      const current = pre.find(p => p.id === next.id);
-      if (current) {
-        let tag = current.tags.find(t => t.code === next.markName);
-        if (tag) {
-          if (tag.content.indexOf(next.markContent) < 0)
-            tag.content.push(next.markContent);
-        } else
-          current.tags.push({
-            label: current.label,
-            code: current.markName,
-            content: [current.markContent]
-          });
-      } else {
-        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
-        pre.push({
-          ...next,
-          tags: tags
-        });
-      }
-      return pre;
-    }, [])
-    .map(it => ({
-      name: it.name,
-      idCard: it.idCard,
-      address: it.address,
-      gender: it.gender === '1' ? '男' : '女',
-      phone: it.phone,
-      personTags: it.personTags.map(tag => tag.label).join(','),
-      tags: it.tags
-        .map(item => item.label + ':[' + item.content + ']')
-        .join(',')
-    }));
-  //开始创建Excel表格
-  const workBook = new Excel.Workbook();
-  const workSheet = workBook.addWorksheet(`人员档案表格...`);
-  //添加标题
-  workSheet.addRow([
-    '序号',
-    '姓名',
-    '身份证号',
-    '住址',
-    '性别',
-    '电话',
-    '人群分类',
-    '档案问题'
-  ]);
-  const rows = person.map((it, index) => {
-    let current = [index + 1];
-    for (let k in it) {
-      current.push(it[k]);
-    }
-    return current;
-  });
-
-  workSheet.addRows(rows);
-  return workBook.xlsx.writeBuffer();
+  // endregion
 }

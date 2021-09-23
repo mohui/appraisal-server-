@@ -60,22 +60,11 @@ export default class HisStaff {
   async listPhStaffs() {
     const hospital = await getHospital();
 
-    //查询hospital绑定关系
-    // language=PostgreSQL
-    const hisHospitalModels = await appDB.execute(
-      `
-        select hishospid,
-               h_id hospital
-        from hospital_mapping
-        where h_id = ?
-      `,
-      hospital
-    );
-
     // 根据绑定关系查询公卫机构下的所有员工
+    // language=PostgreSQL
     const sysUserList = await originalDB.execute(
-      `select useracc id, username, states from view_sysuser where hospid = ?`,
-      hisHospitalModels[0]?.hishospid
+      `select id, name username, states from ph_user where hospital = ?`,
+      hospital
     );
 
     const staffs = await appDB.execute(
@@ -408,22 +397,11 @@ export default class HisStaff {
       hospital
     );
 
-    //查询hospital绑定关系
-    // language=PostgreSQL
-    const hisHospitalModels = await appDB.execute(
-      `
-        select hishospid,
-               h_id hospital
-        from hospital_mapping
-        where h_id = ?
-      `,
-      hospital
-    );
-
     // 根据绑定关系查询公卫机构下的所有员工
+    // language=PostgreSQL
     const sysUserList = await originalDB.execute(
-      `select useracc id, username from view_sysuser where hospid = ?`,
-      hisHospitalModels[0]?.hishospid
+      `select id, name username from ph_user where hospital = ?`,
+      hospital
     );
 
     const dept = await appDB.execute(

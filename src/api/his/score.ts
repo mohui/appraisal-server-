@@ -16,8 +16,7 @@ import {
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange,
-  StaffAssessModel
+  monthToRange
 } from './service';
 import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
@@ -92,17 +91,28 @@ export async function workPointCalculation(
     type: string;
   }[]
 > {
-  // 根据员工i查询员工信息
+  // 根据员工id查询员工信息
   const staffModel: {
     id: string;
     name: string;
     department?: string;
     hospital: string;
     staff?: string;
+    hospitalName?: string;
     ph_staff?: string;
   } = (
     await appDB.execute(
-      `select id, name, staff, hospital, department, ph_staff from staff where id = ?`,
+      // language=PostgreSQL
+      `select staff.id,
+                staff.name,
+                staff.staff,
+                staff.hospital,
+                staff.department,
+                staff.ph_staff,
+                area.name as "hospitalName"
+         from staff
+                left join area on staff.hospital = area.code
+         where staff.id = ?`,
       staff
     )
   )[0];
@@ -246,9 +256,10 @@ export async function workPointCalculation(
     phStaff = phStaffModels.map(it => it.ph_staff);
     if (phStaff.length > 0) {
       // 查询这些公卫员工的名称
+      // language=PostgreSQL
       phUserList = await originalDB.execute(
-        `select useracc id, username from view_sysuser
-             where useracc in (${phStaff.map(() => '?')})`,
+        `select id, name username from ph_user
+             where id in (${phStaff.map(() => '?')})`,
         ...phStaff
       );
     }
@@ -347,23 +358,7 @@ export async function workPointCalculation(
   //endregion
   //region 计算公卫数据工分来源
   for (const param of bindings.filter(it => it.source.startsWith('公卫数据'))) {
-    // 公卫数据分为两种情况, 1:机构级别, 直接用当前员工的机构id, 2: 个人级别, 用公卫的员工id
-    //查询hospital绑定关系
-    // language=PostgreSQL
-    const hisHospitalModels = await appDB.execute(
-      `
-        select mapping.hishospid hospital,
-               hospital.id,
-               hospital.name
-        from hospital_mapping mapping
-               inner join hospital on mapping.h_id = hospital.id
-        where mapping.h_id = ?
-      `,
-      staffModel.hospital
-    );
-    const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
-    //没有绑定关系, 直接跳过
-    if (hisHospitals.length === 0) continue;
+    //机构级别的数据, 直接用当前员工的机构id即可
     const item = HisWorkItemSources.find(it => it.id === param.source);
     //未配置数据表, 直接跳过
     if (!item || !item?.datasource?.table) continue;
@@ -385,15 +380,15 @@ export async function workPointCalculation(
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
-            and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            and OperateOrganization = {{? hospital}}
             {{#if scope}}
               and operatorid in ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-           {{/if}}
-           {{#each columns}} and {{this}} {{/each}}
+            {{/if}}
+          {{#each columns}} and {{this}} {{/each}}
           `,
       {
         dateCol: item.datasource.date,
-        hospitals: hisHospitals,
+        hospital: staffModel.hospital,
         table: item.datasource.table,
         columns: item.datasource.columns,
         scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
@@ -410,19 +405,18 @@ export async function workPointCalculation(
     //公卫数据流水转换成工分流水
     workItems = workItems.concat(
       rows.map(it => {
-        const item = hisHospitalModels.find(
-          hospitalIt => hospitalIt.hospital === it.hospital
-        );
         const phStaffItem = phUserList.find(phIt => phIt.id === it.hospital);
         return {
           value: it.value,
           date: it.date,
           staffId:
-            param.scope === HisStaffDeptType.Staff ? phStaffItem?.id : item?.id,
+            param.scope === HisStaffDeptType.Staff
+              ? phStaffItem?.id
+              : staffModel?.hospital,
           staffName:
             param.scope === HisStaffDeptType.Staff
               ? phStaffItem?.username
-              : item?.name,
+              : staffModel?.hospitalName,
           itemId: param.source,
           itemName: param?.sourceName,
           type:
@@ -481,7 +475,7 @@ export async function workPointCalculation(
 
 // endregion
 
-// region 公卫打分
+// region 医疗绩效公卫数据打分
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
