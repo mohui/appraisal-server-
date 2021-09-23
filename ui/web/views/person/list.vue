@@ -12,7 +12,7 @@
         :model="queryForm"
         label-width="100px"
         size="mini"
-        style="background-color: #fff;padding-top: 18px; border-bottom: 1px solid #eee;"
+        style="background-color: #fff;padding: 18px 10px 0 10px; border-bottom: 1px solid #eee;"
       >
         <el-row>
           <el-col :span="6" :xs="24" :sm="12" :md="8" :lg="6" :xl="4">
@@ -163,6 +163,7 @@
     </kn-collapse>
     <el-table
       ref="personTable"
+      v-hidden-scroll
       v-loading="$asyncComputed.serverData.updating"
       :data="tableData"
       empty-text="没有筛选到符合条件的数据"

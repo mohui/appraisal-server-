@@ -72,6 +72,7 @@
         </el-form>
       </kn-collapse>
       <el-table
+        v-hidden-scroll
         :key="symbolKey"
         v-loading="tableLoading"
         class="table-staff-department"

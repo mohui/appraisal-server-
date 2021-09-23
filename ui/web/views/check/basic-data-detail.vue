@@ -50,7 +50,11 @@
         >导入上年度数据
       </el-button>
     </div>
-    <div v-else style="flex: 1 1 auto; overflow-y: auto;height: 0;">
+    <div
+      v-else
+      v-hidden-scroll
+      style="flex: 1 1 auto; overflow-y: auto;height: 0;"
+    >
       <div v-for="(item, i) of listData" :key="i" class="centre-name">
         <p>{{ item.name }}</p>
         <el-table :data="item.child" highlight-current-row>

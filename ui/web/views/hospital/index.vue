@@ -49,6 +49,7 @@
     </div>
     <el-table
       v-show="params.flag === 'real'"
+      v-hidden-scroll
       v-loading="$asyncComputed.hospitalListServerData.updating"
       :data="hospitalListData"
       height="100%"
