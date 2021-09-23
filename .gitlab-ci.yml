@@ -56,10 +56,12 @@ dev_deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker pull $IMAGE_NAME"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server-area || true && docker rm appraisal-server-area || true"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server-area -p 3202:3000 -v /data/etc/appraisal-server/area.js:/home/node/app/config/production.js -v /data/volume/jx/dev:/data -v /data/volume/lake/guidelines:/guidelines $IMAGE_NAME"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server-dev || true && docker rm appraisal-server-dev || true"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server-dev -p 3200:3000 -v /data/etc/appraisal-server/dev.js:/home/node/app/config/production.js -v /data/volume/jx/dev:/data -v /data/volume/lake/guidelines:/guidelines $IMAGE_NAME"
   dependencies:
     - docker_build
+  only:
+    - master
 
 prod_deploy:
   stage: deploy
