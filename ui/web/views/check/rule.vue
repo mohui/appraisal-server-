@@ -26,6 +26,7 @@
         </el-button>
       </div>
       <div
+        v-hidden-scroll
         style="flex-grow: 1;height: 0; overflow-y: auto; overflow-x: hidden;"
       >
         <div v-for="(item, index) in ruleList" :key="item.ruleId">
@@ -121,7 +122,7 @@
               </el-button>
             </div>
           </div>
-          <el-table :data="item.group">
+          <el-table v-hidden-scroll :data="item.group">
             <el-table-column
               width="50px"
               type="index"

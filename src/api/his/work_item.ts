@@ -531,6 +531,7 @@ export default class HisWorkItem {
     should
       .array()
       .required()
+      .min(1)
       .description('来源id[]'),
     should
       .string()
@@ -739,6 +740,7 @@ export default class HisWorkItem {
     should
       .array()
       .required()
+      .min(1)
       .description('来源id[]'),
     should
       .string()

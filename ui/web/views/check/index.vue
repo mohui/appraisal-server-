@@ -32,6 +32,7 @@
       }"
     >
       <el-table
+        v-hidden-scroll
         class="check-table"
         size="mini"
         :data="checkList"
@@ -372,6 +373,7 @@
       <el-row>
         <el-col :span="24">
           <div
+            v-hidden-scroll
             v-loading="$asyncComputed.treeServerData.updating"
             class="organization-box"
           >

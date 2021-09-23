@@ -47,21 +47,8 @@
         padding: $settings.isMobile ? '10px 0 0' : '20px'
       }"
     >
-      <kn-collapse
-        :is-show="$settings.isMobile"
-        :is-collapsed="isCollapsed"
-        @toggle="is => (isCollapsed = is)"
-      >
-        <el-form
-          ref="ruleForm"
-          :model="searchForm"
-          label-width="100px"
-          size="mini"
-        >
-          <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6"> </el-col>
-        </el-form>
-      </kn-collapse>
       <el-collapse
+        v-hidden-scroll
         class="work-collapse"
         style="flex-grow: 1;height: 1px;overflow-y: scroll"
         v-model="activeCollapse"

@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div v-hidden-scroll>
       <!--顶部表头-->
       <div
         v-if="params.listFlag === 'quality'"
@@ -212,7 +212,13 @@
                   <div class="second-title" style="text-align: left;">
                     工分值校正明细
                   </div>
-                  <el-table :data="projectDetailData" height="99%">
+                  <el-table
+                    v-hidden-scroll
+                    :data="projectDetailData"
+                    height="99%"
+                    :header-cell-class-name="tableHeaderClass"
+                    :cell-class-name="tableCellClass"
+                  >
                     <el-table-column
                       prop="projectName"
                       label="工分项"
@@ -290,6 +296,7 @@
                       :name="tag.type"
                     >
                       <el-table
+                        v-hidden-scroll
                         :ref="tag.type"
                         v-loading="
                           $asyncComputed.healthEducationServerData.updating
@@ -361,6 +368,7 @@
                     label="报告"
                   >
                     <el-table
+                      v-hidden-scroll
                       ref="reportTable"
                       v-loading="
                         $asyncComputed.supervisionReportServerData.updating
@@ -410,6 +418,7 @@
                     label="巡查"
                   >
                     <el-table
+                      v-hidden-scroll
                       ref="assistTable"
                       v-loading="
                         $asyncComputed.supervisionAssistServerData.updating
@@ -542,6 +551,7 @@
             >
               <div class="second-title">下级工分</div>
               <el-table
+                v-hidden-scroll
                 :data="workpointRankData"
                 height="600"
                 :cell-class-name="cellClassHover"
@@ -572,6 +582,7 @@
             >
               <div class="second-title">工分项目</div>
               <el-table
+                v-hidden-scroll
                 ref="refTable"
                 :data="workPointsProjectData"
                 height="600"

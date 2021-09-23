@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div v-hidden-scroll>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
         <div
@@ -108,6 +108,7 @@
             <div
               class="content"
               v-loading="$asyncComputed.staffCheckListSeverData.updating"
+              v-hidden-scroll
             >
               <div class="top-container">
                 <div v-loading="$asyncComputed.overviewServerData.updating">
@@ -115,7 +116,7 @@
                 </div>
               </div>
               <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
-                <div class="rank-box">
+                <div class="rank-box" v-hidden-scroll>
                   <div
                     v-for="(i, index) of staffCheckListData"
                     :key="index"
@@ -178,7 +179,7 @@
             <div class="workbench-header">
               工作台
             </div>
-            <div class="content">
+            <div class="content" v-hidden-scroll>
               <div class="square">
                 <div class="square-inner grid">
                   <div v-for="i of 8" :key="i">
@@ -576,7 +577,7 @@ export default {
     async handleCompute() {
       try {
         await this.$api.HisScore.score(this.currentDate);
-        this.$message.success('计算完成');
+        this.$message.success('请刷新后查看');
       } catch (e) {
         this.$message.error(e.message);
       }

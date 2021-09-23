@@ -65,6 +65,7 @@
         <el-tabs v-model="activeName" type="card">
           <el-tab-pane label="自动打分" name="first">
             <el-table
+              v-hidden-scroll
               :data="form.target"
               size="mini"
               border
@@ -222,6 +223,7 @@
             <el-table
               :data="form.manual"
               size="mini"
+              v-hidden-scroll
               border
               style="width: 100%;height: 100%;"
               :max-height="fullHeight"
@@ -332,7 +334,6 @@
           </el-tab-pane>
         </el-tabs>
       </el-form-item>
-      <el-form-item> </el-form-item>
       <el-form-item>
         <el-button
           type="primary"
