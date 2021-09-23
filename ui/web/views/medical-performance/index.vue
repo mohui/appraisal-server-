@@ -577,7 +577,7 @@ export default {
     async handleCompute() {
       try {
         await this.$api.HisScore.score(this.currentDate);
-        this.$message.success('计算完成');
+        this.$message.success('请刷新后查看');
       } catch (e) {
         this.$message.error(e.message);
       }
