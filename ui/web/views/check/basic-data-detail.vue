@@ -58,15 +58,9 @@
       v-hidden-scroll
       style="flex: 1 1 auto; overflow-y: auto;height: 0;"
     >
-      <div v-for="(item, i) of listData" :key="i" style="">
-        <p>{{ i + 1 }} {{ item.name }}</p>
-        <el-table
-          stripe
-          size="mini"
-          :data="item.child"
-          border
-          highlight-current-row
-        >
+      <div v-for="(item, i) of listData" :key="i" class="centre-name">
+        <p>{{ item.name }}</p>
+        <el-table :data="item.child" highlight-current-row>
           <el-table-column
             label="序号"
             type="index"
