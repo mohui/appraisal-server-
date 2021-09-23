@@ -373,6 +373,7 @@
       <el-row>
         <el-col :span="24">
           <div
+            v-hidden-scroll
             v-loading="$asyncComputed.treeServerData.updating"
             class="organization-box"
           >

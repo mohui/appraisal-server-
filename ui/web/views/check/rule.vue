@@ -122,7 +122,7 @@
               </el-button>
             </div>
           </div>
-          <el-table :data="item.group">
+          <el-table v-hidden-scroll :data="item.group">
             <el-table-column
               width="50px"
               type="index"
