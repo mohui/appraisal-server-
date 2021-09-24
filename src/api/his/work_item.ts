@@ -479,6 +479,117 @@ export const HisWorkItemSources: {
       date: 'VisitDate'
     }
   },
+  // 9-24新增issues258指标 开始
+  {
+    id: '公卫数据.居民健康档案-建档人数',
+    name: '居民健康档案-建档人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_person',
+      date: 'operatetime',
+      columns: ['writeoff = false']
+    }
+  },
+  {
+    id: '公卫数据.居民健康档案-人脸采集数',
+    name: '居民健康档案-人脸采集数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_person_face',
+      date: 'operatetime'
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-慢病高危管理卡人数',
+    name: '高危人群管理-慢病高危管理卡人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_card',
+      date: 'operatetime',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-慢病高危随访人次',
+    name: '高危人群管理-慢病高危随访人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_visit',
+      date: 'FollowUpDate',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高血压患者管理-高血压新建档案人数',
+    name: '高血压患者管理-高血压新建档案人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_hypertension',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.糖尿病患者管理-糖尿病新建档案人数',
+    name: '糖尿病患者管理-糖尿病新建档案人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_diabetes',
+      date: 'operatetime',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-宣传栏更新次数',
+    name: '健康教育-宣传栏更新次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'activitytime',
+      columns: [`activityformcode = '3'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-公众咨询活动次数',
+    name: '健康教育-公众咨询活动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'activitytime',
+      columns: [`activityformcode = '5'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-健康知识讲座次数',
+    name: '健康教育-健康知识讲座次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'activitytime',
+      columns: [`activityformcode = '4'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-个性化健康教育人次',
+    name: '健康教育-个性化健康教育人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'activitytime',
+      columns: [`activityformcode = '6'`, 'state = 1']
+    }
+  },
+  // 9-24新增issues258指标 完
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
   {
     id: '其他.门诊诊疗人次',
