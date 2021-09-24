@@ -129,6 +129,11 @@
           min-width="80"
         ></el-table-column>
         <el-table-column
+          prop="phStaffName"
+          label="公卫用户"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
           prop="remark"
           label="备注"
           min-width="100"
@@ -228,6 +233,26 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
@@ -313,6 +338,27 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item
+          label="公卫用户"
+          prop="phStaff"
+          :label-width="formLabelWidth"
+        >
+          <el-select
+            v-model="userForm.phStaff"
+            style="width:100%"
+            size="mini"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="h in phStaffList"
+              :key="h.id"
+              :label="h.username"
+              :value="h.id"
+              :disabled="!h.usable"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="dialogFormEditUsersVisible = false"
@@ -373,6 +419,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null,
         department: null
       },
@@ -443,6 +490,13 @@ export default {
     // 科室列表
     departmentList() {
       return this.serverDepartment;
+    },
+    // 公卫医生列表
+    phStaffList() {
+      return this.serverPhStaffData.map(it => ({
+        ...it,
+        username: `${it.username}${it.states ? '' : ' (禁用)'}`
+      }));
     }
   },
   watch: {
@@ -499,6 +553,17 @@ export default {
         }
       },
       default: []
+    },
+    serverPhStaffData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listPhStaffs();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
     }
   },
   methods: {
@@ -523,6 +588,7 @@ export default {
         password: '',
         name: '',
         his: '',
+        phStaff: '',
         remark: null
       };
     },
@@ -538,7 +604,8 @@ export default {
               this.userForm.password.trim(),
               this.userForm.name.trim(),
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
@@ -546,6 +613,7 @@ export default {
             });
             this.$asyncComputed.listMember.update(); //刷新系统员工列表
             this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.dialogFormAddUsersVisible = false;
           } catch (e) {
             this.$message.error(e.message);
@@ -577,6 +645,7 @@ export default {
           password: row.password,
           name: row.name,
           his: row.staff,
+          phStaff: row.phStaff,
           remark: row.remark,
           department: row.department
         }
@@ -595,13 +664,16 @@ export default {
               this.userForm.password.trim(),
               this.userForm.his || null,
               this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null
+              this.userForm.department?.trim() || null,
+              this.userForm.phStaff?.trim() || null
             );
             this.$message({
               type: 'success',
               message: '保存成功!'
             });
             this.$asyncComputed.listMember.update();
+            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
             this.symbolKey = Symbol(this.$dayjs().toString());
           } catch (e) {
             this.$message.error(e.message);

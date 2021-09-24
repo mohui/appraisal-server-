@@ -76,9 +76,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_HealthCheckTableScore',
+      table: 'ph_old_health_check',
       date: 'OperateTime'
     }
   },
@@ -88,7 +88,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'OperateTime',
       columns: ['dlpn is not null']
     }
@@ -99,7 +99,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'OperateTime',
       columns: ['kc is not null']
     }
@@ -110,7 +110,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['yd is not null']
     }
@@ -121,7 +121,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['tnbzbdmbd is not null']
     }
@@ -132,7 +132,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['gmzz is not null']
     }
@@ -143,7 +143,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['fk_wy is not null']
     }
@@ -154,7 +154,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['ctqt is not null']
     }
@@ -165,7 +165,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xcgHb is not null']
     }
@@ -176,7 +176,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['ncgndb is not null']
     }
@@ -187,7 +187,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['kfxt is not null']
     }
@@ -198,7 +198,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xdt is not null']
     }
@@ -209,7 +209,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['nwlbdb is not null']
     }
@@ -220,7 +220,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['dbqx is not null']
     }
@@ -231,7 +231,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['tnbthxhdb is not null']
     }
@@ -242,7 +242,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['HBsAg is not null']
     }
@@ -253,7 +253,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['ggnALT is not null']
     }
@@ -264,7 +264,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['sgnScr is not null']
     }
@@ -275,7 +275,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xzCHO is not null']
     }
@@ -286,7 +286,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xzCHO is not null']
     }
@@ -297,7 +297,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xp is not null']
     }
@@ -308,7 +308,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['xp is not null']
     }
@@ -319,7 +319,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy',
       date: 'checkupDate',
       columns: ['jkfzjcqt is not null']
     }
@@ -328,9 +328,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访',
     name: '高血压随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_HypertensionVisit',
+      table: 'ph_hypertension_visit',
       date: 'FollowUpDate'
     }
   },
@@ -340,7 +340,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_HypertensionVisit',
+      table: 'ph_hypertension_visit',
       date: 'FollowUpDate',
       columns: ['Fzjc is not null']
     }
@@ -349,9 +349,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访',
     name: '2型糖尿病随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit',
       date: 'FollowUpDate'
     }
   },
@@ -361,7 +361,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit',
       date: 'FollowUpDate',
       columns: ['Hemoglobin is not null']
     }
@@ -372,7 +372,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit',
       date: 'FollowUpDate',
       columns: ['FastingGlucose is not null']
     }
@@ -381,9 +381,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人中医药服务',
     name: '老年人中医药服务',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_QuestionnaireMain',
+      table: 'ph_old_questionnaire_main',
       date: 'OperateTime'
     }
   },
@@ -393,7 +393,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_SanitaryControlReport',
+      table: 'ph_sanitary_control_report',
       date: 'ReportTime'
     }
   },
@@ -403,7 +403,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_SanitaryControlAssist',
+      table: 'ph_sanitary_control_assist',
       date: 'checkDate'
     }
   },
@@ -413,7 +413,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_NewbornVisit_KN',
+      table: 'mch_new_born_visit',
       date: 'VisitDate'
     }
   },
@@ -423,7 +423,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_ChildCheck_KN',
+      table: 'mch_child_check',
       date: 'CheckDate',
       columns: ['chronologicalage >= 12', 'chronologicalage < 31']
     }
@@ -434,7 +434,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_ChildCheck_KN',
+      table: 'mch_child_check',
       date: 'CheckDate',
       columns: ['chronologicalage >= 36', 'chronologicalage < 73']
     }
@@ -445,7 +445,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_NewlyDiagnosed_KN',
+      table: 'mch_newly_diagnosed',
       date: 'NewlyDiagnosedDate'
     }
   },
@@ -455,7 +455,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_PrenatalCare_KN',
+      table: 'mch_prenatal_care',
       date: 'CheckDate'
     }
   },
@@ -465,7 +465,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_MaternalVisits_KN',
+      table: 'mch_maternal_visit',
       date: 'VisitDate'
     }
   },
@@ -475,7 +475,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_Examine42thDay_KN',
+      table: 'mch_examine_42th_day',
       date: 'VisitDate'
     }
   },
@@ -531,6 +531,7 @@ export default class HisWorkItem {
     should
       .array()
       .required()
+      .min(1)
       .description('来源id[]'),
     should
       .string()
@@ -739,6 +740,7 @@ export default class HisWorkItem {
     should
       .array()
       .required()
+      .min(1)
       .description('来源id[]'),
     should
       .string()

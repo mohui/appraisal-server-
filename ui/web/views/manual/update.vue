@@ -63,6 +63,7 @@
     </div>
     <el-table
       v-if="query.input === MD.PROP"
+      v-hidden-scroll
       :data="list"
       empty-text="没有筛选到符合条件的数据"
       height="100%"

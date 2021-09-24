@@ -112,6 +112,7 @@
             </div>
           </div>
           <el-table
+            v-hidden-scroll
             :data="item.group"
             :header-cell-style="{
               color: '#40415a',

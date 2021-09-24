@@ -43,6 +43,8 @@ import {DropStaffVirtualMigration} from './040_drop_staff_virtual';
 import {AddWorkRemarkMigration} from './041_add_work_remark';
 import {IncreaseSourceSizeMigration} from './042_change_source_size';
 import {AddWorkItemTypeMigration} from './043_add_work_item_type';
+import {AddStaffPhStaffMigration} from './044_add_staff_ph_staff';
+import {UpdateStaffMigration} from './045_update_staff';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -89,5 +91,7 @@ export const migrations: IMigration[] = [
   new DropStaffVirtualMigration(),
   new AddWorkRemarkMigration(),
   new IncreaseSourceSizeMigration(),
-  new AddWorkItemTypeMigration()
+  new AddWorkItemTypeMigration(),
+  new AddStaffPhStaffMigration(),
+  new UpdateStaffMigration()
 ];

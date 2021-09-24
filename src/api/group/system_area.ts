@@ -15,12 +15,13 @@ import {sql as sqlRender} from '../../database/template';
 import {appDB, originalDB, unifs} from '../../app';
 import {Decimal} from 'decimal.js';
 import {Projects} from '../../../common/project';
-import {getAreaTree, getOriginalArray} from '../group';
+import {getAreaTree} from '../group';
 import {RuleAreaBudget} from '../../database/model/group/rule-area-budget';
 import {getWorkPoints} from './score';
 import {Workbook} from 'exceljs';
 import {Context} from '../context';
 import {createBackJob} from '../../utils/back-job';
+import {getChildrenArea, getHospitals} from './common';
 
 /**
  * 通过地区编码和时间获取checkId
@@ -57,6 +58,7 @@ export function getYear(year) {
 }
 
 export default class SystemArea {
+  // region 考核结果汇总, 排行, 历史记录
   /**
    * 质量系数,公分值
    *
@@ -250,6 +252,9 @@ export default class SystemArea {
     });
   }
 
+  // endregion
+
+  // region lake库
   /**
    * 人脸采集信息
    *
@@ -267,15 +272,9 @@ export default class SystemArea {
       .description('年份')
   )
   async faceCollect(code, year) {
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
+    // 根据地区id获取机构id
+    const hospitals = await getHospitals(code);
+    const hospitalIds = hospitals.map(it => it.code);
 
     let faceData = {face: 0, total: 0, rate: 0};
 
@@ -287,10 +286,10 @@ export default class SystemArea {
               coalesce(sum("S00"),0)::integer as "total",
               coalesce(sum("S30"),0)::integer as "face"
             from mark_organization
-            where id::varchar in ({{#each hishospid}}{{? this}}{{#sep}},{{/sep}}{{/each}})
+            where id::varchar in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
               and year = {{? year}}`,
         {
-          hishospid: hisHospIds,
+          hospitalIds,
           year
         }
       );
@@ -325,17 +324,11 @@ export default class SystemArea {
       .description('年份')
   )
   async signRegister(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    if (hospitals.length === 0) throw new KatoCommonError('机构id不合法');
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 如果没有传年份获取年份
     year = getYear(year);
@@ -343,14 +336,14 @@ export default class SystemArea {
     const signedSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.personnum) as "Number"
-            from view_SignRegiste vsr
-                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            from ph_sign_register vsr
+                   inner join ph_person vp on vp.id = vsr.PersonNum
+            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
               and vp.WriteOff = false
               and vsr.YearDegree = {{? YearDegree}}
           `,
       {
-        hisHospIds,
+        hospitalIds,
         YearDegree: year
       }
     );
@@ -358,14 +351,14 @@ export default class SystemArea {
     const exeSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
-            from view_SignRegisteCheckMain vsrcm
-                   inner join view_SignRegiste vsr on vsr.RegisterID = vsrcm.RegisterID
-            where vsrcm.ExeOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-              and vsrcm.ExeTime >= {{? startTime}}
-              and vsrcm.ExeTime < {{? endTime}}
+            from ph_sign_check_main main
+                   inner join ph_sign_register vsr on vsr.id = main.RegisterID
+            where main.ExeOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+              and main.ExeTime >= {{? startTime}}
+              and main.ExeTime < {{? endTime}}
           `,
       {
-        hisHospIds,
+        hospitalIds,
         startTime: dayjs()
           .year(year)
           .startOf('y')
@@ -381,10 +374,10 @@ export default class SystemArea {
     const renewSqlRenderResult = sqlRender(
       `
             select count(distinct vsr.PersonNum) as "Number"
-            from view_SignRegiste vsr
-                   inner join view_SignRegiste a on a.PersonNum = vsr.PersonNum and a.YearDegree = {{? YearDegree}}
-                   inner join view_PersonInfo vp on vp.PersonNum = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            from ph_sign_register vsr
+                   inner join ph_sign_register a on a.PersonNum = vsr.PersonNum and a.YearDegree = {{? YearDegree}}
+                   inner join ph_Person vp on vp.id = vsr.PersonNum
+            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
               and vp.WriteOff = false
               and vsr.YearDegree = {{? vsrYearDegree}}
           `,
@@ -393,7 +386,7 @@ export default class SystemArea {
           .year(year)
           .add(-1, 'y')
           .year(),
-        hisHospIds,
+        hospitalIds,
         vsrYearDegree: year
       }
     );
@@ -444,19 +437,12 @@ export default class SystemArea {
     // 赋值默认值
     if (!pageNo) pageNo = 1;
     if (!pageSize) pageSize = 20;
-    // 获取树形结构
-    const tree = await getAreaTree(code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份
     year = getYear(year);
@@ -468,13 +454,13 @@ export default class SystemArea {
             address as "Address",
             Contents as "Contents",
             ReportTime as "Date"
-        from view_SanitaryControlReport
-        where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        from ph_sanitary_control_report
+        where OperateOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
         and ReportTime>={{? start}} and ReportTime<{{? end}}
         order by ReportTime desc
       `,
       {
-        hisHospIds,
+        hospitalIds,
         start: dayjs()
           .year(year)
           .startOf('y')
@@ -520,18 +506,12 @@ export default class SystemArea {
     if (!pageNo) pageNo = 1;
     if (!pageSize) pageSize = 20;
 
-    // 获取树形结构
-    const tree = await getAreaTree(code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -542,13 +522,13 @@ export default class SystemArea {
         institutionname as "InstitutionName",
         address as "Address",
         checkDate as "Date"
-    from view_SanitaryControlAssist
-    where OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-    and checkDate>={{? start}} and checkDate<{{? end}}
+    from ph_sanitary_control_assist
+    where OperateOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+    and checkDate >= {{? start}} and checkDate < {{? end}}
     order by checkDate desc
     `,
       {
-        hisHospIds,
+        hospitalIds,
         start: dayjs()
           .year(year)
           .startOf('y')
@@ -601,18 +581,12 @@ export default class SystemArea {
     if (!pageNo) pageNo = 1;
     // 默认条数
     if (!pageSize) pageSize = 20;
-    // 获取树形结构
-    const tree = await getAreaTree(code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-    const hisHospIds = hisHospIdObjs.map(it => it.id);
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -631,12 +605,12 @@ export default class SystemArea {
                vhe.ActivityName     as "ActivityName",
                vhe.VideotapeName    as "VideotapeName",
                vhe.ActivityTime     as "ActivityTime"
-        FROM view_HealthEducation vhe
+        FROM ph_health_education vhe
         where  vhe.ActivityTime >= {{? startTime}}
           and vhe.ActivityTime < {{? endTime}}
           and vhe.ActivityFormCode = {{? activityFormCode}}
           and vhe.State = 1
-          and vhe.OperateOrganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+          and vhe.OperateOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
         order by vhe.ActivityTime desc
       `,
       {
@@ -650,7 +624,7 @@ export default class SystemArea {
           .add(1, 'y')
           .toDate(),
         activityFormCode: type,
-        hisHospIds
+        hospitalIds
       }
     );
 
@@ -672,7 +646,7 @@ export default class SystemArea {
   }
 
   /**
-   * 公分列表[地区工分]
+   * 工分列表[地区工分]
    *
    * @param code
    * @param year
@@ -688,34 +662,16 @@ export default class SystemArea {
       .description('年份')
   )
   async workPointsArea(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
 
-    // 权限的下级子节点
-    let childrenTree = [];
-    // 如果没有查到子节点,可能是机构节点,判断机构节点是否合法
-    if (tree.length === 0)
+    if (hospitals.length === 0)
       throw new KatoCommonError(`code 为 ${code} 的地区不存在`);
-    else if (tree.length > 1) {
-      // 非机构权限, 列表为下级权限 => 找到自己的子节点
-      childrenTree = tree
-        .map(it => {
-          if (it.parent === code) return it;
-        })
-        .filter(item => item);
-    }
-    // 找到所有的叶子节点
-    const hospitalIds = tree.filter(it => it.leaf === true);
 
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(
-      hospitalIds.map(item => item.code)
-    );
-
-    const hisHospIds = hisHospIdObjs.map(it => it['id']);
-
-    // 根据地区id获取机构id列表
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
+    // 获取下级菜单
+    const childrenTree = await getChildrenArea(code);
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -728,21 +684,22 @@ export default class SystemArea {
                 operatorid as "doctorId",
                 doctor as "doctorName"
             from mark_workpoint
-            where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+            where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/each}})
              and year = {{? year}}
              group by operatorid, doctor, operateorganization
              `,
       {
-        hisHospIds,
+        hospitalIds,
         year
       }
     );
 
     // 执行SQL语句
-    const workPoint = await originalDB.execute(sql, ...params);
-    // 如果是机构级节点, 返回查询结果
+    const workPointModels = await originalDB.execute(sql, ...params);
+
+    // 如果是机构级节点(根据id查子集, 查不到代表是机构节点), 返回查询结果
     if (childrenTree.length === 0) {
-      return workPoint.map(it => {
+      return workPointModels.map(it => {
         return {
           code: it.doctorId,
           name: it.doctorName,
@@ -750,29 +707,11 @@ export default class SystemArea {
           isDoctor: true
         };
       });
-    }
-
-    // 如果是机构节点之前, 把机构id赋值给查询结果
-    const hospitalWorkPoint = workPoint
-      .map(it => {
-        const hospitalIdObj = hisHospIdObjs.find(
-          item => item.id === it.operateorganization
-        );
-        return {
-          ...it,
-          hospitalId: hospitalIdObj.code
-        };
-      })
-      .map(it => {
-        const index = hospitalIds.find(item => item.code === it.hospitalId);
-        return {
-          ...it,
-          path: index.path
-        };
-      })
-      .map(it => {
-        const index = childrenTree.find(item =>
-          it.path.find(p => p === item.code)
+    } else {
+      // 先把所有的上级放到机构数组中
+      const newHospitals = hospitals.map(it => {
+        const index = childrenTree.find(child =>
+          it.path.includes(`.${child.code}.`)
         );
         return {
           ...it,
@@ -781,24 +720,38 @@ export default class SystemArea {
         };
       });
 
-    const returnPoint = [];
-    for (const it of hospitalWorkPoint) {
-      const index = returnPoint.find(item => item.code === it.parentCode);
-      if (index) {
-        index.score += it.score;
-      } else {
-        returnPoint.push({
-          code: it.parentCode,
-          name: it.parentName,
-          score: it.score
-        });
-      }
-    }
+      // 如果是机构节点之前的节点, 把机构节点的上级路径放到公分项数组中
+      const workPoints = workPointModels.map(it => {
+        const index = newHospitals.find(
+          hospital => hospital.code === it.operateorganization
+        );
+        if (index) {
+          return {
+            ...it,
+            parentCode: index?.parentCode ?? null,
+            parentName: index?.parentName ?? null
+          };
+        }
+      });
 
-    return returnPoint;
+      const returnPoint = [];
+      for (const it of workPoints) {
+        const index = returnPoint.find(item => item.code === it.parentCode);
+        if (index) {
+          index.score += it.score;
+        } else {
+          returnPoint.push({
+            code: it.parentCode,
+            name: it.parentName,
+            score: it.score
+          });
+        }
+      }
+      return returnPoint;
+    }
   }
 
-  // 公分列表[医生工分, 工分项目]
+  // 工分列表[医生工分, 工分项目]
   @validate(
     should
       .string()
@@ -810,21 +763,13 @@ export default class SystemArea {
       .description('年份')
   )
   async workPointsProject(code, year) {
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-
-    const hisHospIds = hisHospIdObjs.map(it => it['id']);
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
+    // 获取所有机构id
+    const hospitalIds = hospitals.map(it => it.code);
 
     // 根据地区id获取机构id列表
-    if (hisHospIds.length < 1) throw new KatoCommonError('机构id不合法');
+    if (hospitalIds.length < 1) throw new KatoCommonError('机构id不合法');
 
     // 如果没有传年份获取年份,默认当前年
     year = getYear(year);
@@ -836,18 +781,20 @@ export default class SystemArea {
             projectname as "name",
             projecttype as "code"
         from mark_workpoint
-        where operateorganization in ({{#each hisHospIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+        where operateorganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
          and year = {{? year}}
          group by projecttype, projectname
          `,
       {
-        hisHospIds,
+        hospitalIds,
         year
       }
     );
 
     return originalDB.execute(sql, ...params);
   }
+
+  // endregion
 
   /**
    * 各个工分项的详情
@@ -878,17 +825,8 @@ export default class SystemArea {
 
     if (checkSystem.length === 0) throw new KatoCommonError('该地区无考核.');
 
-    // 获取树形结构
-    const tree = await getAreaTree(code);
-
-    // 找到所有的叶子节点
-    const hospitalIds = tree
-      .filter(it => it.leaf === true)
-      .map(item => item.code);
-
-    // 根据机构id获取对应的原始数据id
-    const hisHospIdObjs = await getOriginalArray(hospitalIds);
-
+    // 根据code获取所有机构信息
+    const hospitals = await getHospitals(code);
     // 取出考核id
     const checkId = checkSystem[0]?.checkId;
 
@@ -931,8 +869,8 @@ export default class SystemArea {
     const returnList = [];
     // 循环工分项
     for (const it of workTypes) {
-      // 获取此工分项下的所有公分
-      const hospitalPoints = await getWorkPoints(hisHospIdObjs, [it], year);
+      // 获取此工分项下的所有工分
+      const hospitalPoints = await getWorkPoints(hospitals, [it], year);
 
       // 把工分值累加一起
       const workPoint = hospitalPoints.reduce(
@@ -1052,6 +990,7 @@ export default class SystemArea {
       if (!imageKey) await AreaVoucherModel.destroy({where: {area, year}});
     });
   }
+
   @validate(
     should
       .string()

@@ -3,10 +3,10 @@ import {monthToRange} from '../his/service';
 import * as dayjs from 'dayjs';
 import * as dayOfYear from 'dayjs/plugin/dayOfYear';
 import * as isLeapYear from 'dayjs/plugin/isLeapYear';
-import {getLeaves, getOriginalArray} from '../group';
 import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
+import {getHospitals} from '../group/common';
 
 //dayjs 加载插件
 dayjs.extend(dayOfYear);
@@ -16,10 +16,10 @@ export default class AppHome {
   // 获取医疗人员数量
   async staff() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
 
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 医疗人员数量
     const doctor = await originalDB.execute(
@@ -33,13 +33,13 @@ export default class AppHome {
     );
     return Number(doctor[0]?.count);
   }
+
   // 获取本月医疗收入
   async money() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 获取月份的时间范围
     const {start, end} = monthToRange(dayjs().toDate());
@@ -60,13 +60,13 @@ export default class AppHome {
     );
     return Number(moneys[0]?.price);
   }
+
   // 获取本月诊疗人次
   async visits() {
     const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitals = hisHospitals.map(it => it.code);
+    const areaModels = await getHospitals(group);
+    // 获取机构id
+    const hospitals = areaModels.map(it => it.code);
 
     // 获取月份的时间范围
     const {start, end} = monthToRange(dayjs().toDate());
@@ -88,59 +88,49 @@ export default class AppHome {
     );
     return Number(rows[0]?.count);
   }
+
   // 居民档案数量
   async person() {
-    const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitalIds = hisHospitals.map(it => it.id);
-
     //获取当前月
     const year = dayjs().year();
-
-    // 获取 居民档案数量(S00)
-    const mark = await originalDB.execute(
-      // language=PostgreSQL
-      `
-            select "S00"
-            from mark_organization
-            where id in (${hospitalIds.map(() => '?')})
-              and year = ?
-          `,
-      ...hospitalIds,
-      year
-    );
-
-    // 获取月份的时间范围
-    return Number(mark[0]?.S00);
+    const markModel = await getMarks(Context.current.user.code, year);
+    return markModel?.S00 ?? 0;
   }
-  // 慢病管理人数
+
+  /**
+   * 慢病管理人数
+   *
+   * 包括高血压, 糖尿病, 脑卒中 严重精神病, 肺结核, 其他慢病
+   */
   async chronic() {
-    const group = Context.current.user.areaCode;
-    const leaves = await getLeaves(group);
-
-    const hisHospitals = await getOriginalArray(leaves.map(it => it.code));
-    const hospitalIds = hisHospitals.map(it => it.id);
-
     //获取当前年
     const year = dayjs().year();
-
-    // 获取 高血压数(H00), 糖尿病数(D00)
-    const mark = await originalDB.execute(
-      // language=PostgreSQL
-      `
-            select "H00", "D00"
-            from mark_organization
-            where id in (${hospitalIds.map(() => '?')})
-              and year = ?
-          `,
-      ...hospitalIds,
-      year
+    //查询机构id
+    const viewHospitals = (await getHospitals(Context.current.user.code)).map(
+      it => it.code
     );
-
-    // 获取月份的时间范围
-    return Number(mark[0]?.H00) + Number(mark[0]?.D00);
+    if (viewHospitals.length === 0) {
+      return 0;
+    }
+    //language=PostgreSQL
+    const amount = (
+      await originalDB.execute(
+        `
+          select count(1) as amount
+          from mark_person mp
+                 inner join ph_person vp on mp.id = vp.id
+            and vp.adminorganization in (${viewHospitals.map(() => '?').join()})
+          where mp.year = ?
+            and (
+                mp."C02" = true or mp."C03" = true or mp."C06" = true
+              or mp."C08" = true or mp."C09" = true or mp."C11" = true
+            )
+        `,
+        ...viewHospitals,
+        year
+      )
+    )[0].amount;
+    return Number(amount);
   }
 
   /**
@@ -149,7 +139,7 @@ export default class AppHome {
   async htn() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.H00 ? 0 : markModel.H01 / markModel.H00;
+    return markModel.H00 ? markModel.H01 / markModel.H00 : 0;
   }
 
   /**
@@ -158,7 +148,7 @@ export default class AppHome {
   async t2dm() {
     const year = dayjs().year();
     const markModel = await getMarks(Context.current.user.code, year);
-    return markModel.D00 ? 0 : markModel.D01 / markModel.D00;
+    return markModel.D00 ? markModel.D01 / markModel.D00 : 0;
   }
 
   /**
@@ -171,10 +161,13 @@ export default class AppHome {
     if (!markModel.O00) {
       return 0;
     }
-    //获取基础数据
-    const leaves = await getLeaves(areaCode);
+
+    const hospitals = await getHospitals(areaCode);
+    // 获取机构id
+    const hospitalIds = hospitals.map(it => it.code);
+
     const basicData = await getBasicData(
-      leaves,
+      hospitalIds,
       BasicTagUsages.OldPeople,
       year
     );

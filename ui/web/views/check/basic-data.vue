@@ -4,6 +4,7 @@
       <span class="header-title">基础数据</span>
     </div>
     <el-table
+      v-hidden-scroll
       :cell-class-name="cellClassHover"
       :data="tagList"
       height="100%"
