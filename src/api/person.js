@@ -277,6 +277,10 @@ export default class Person {
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       name: should.string().allow('', null),
+      hospital: should
+        .string()
+        .required()
+        .allow('', null),
       region: should
         .string()
         .required()
@@ -289,6 +293,7 @@ export default class Person {
         .object()
         .required()
         .allow([]),
+      include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
       year: should.number().allow(null)
