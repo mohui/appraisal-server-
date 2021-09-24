@@ -10,8 +10,6 @@
             $asyncComputed.totalServerData.updating
         "
         class="header-box-card"
-        shadow="never"
-        style="align-items: center"
       >
         <div class="header-title">
           {{ totalData.name }}
@@ -21,7 +19,7 @@
           <el-select
             v-if="!$settings.isMobile"
             v-model="params.year"
-            size="small"
+            size="mini"
             placeholder="请选择考核年度"
             @change="handleYearChange(params.year)"
             style="margin: 0 10px"
@@ -51,7 +49,7 @@
           <div v-if="!$settings.isMobile" style="margin:0 10px">
             <el-button
               plain
-              size="small"
+              size="mini"
               type="primary"
               @click="
                 handleFileDownload(
@@ -61,9 +59,9 @@
               >考核共识下载</el-button
             >
           </div>
-          <div v-if="!$settings.isMobile" style="margin:0 10px">
+          <div v-if="!$settings.isMobile">
             <el-button
-              size="small"
+              size="mini"
               type="primary"
               @click="handleAppraisalResultsDownload()"
               >考核结果下载
@@ -73,6 +71,7 @@
               plain
               size="small"
               type="primary"
+              style="margin:0 10px"
               @click="handleFileDownload(reportListData[0].url)"
               >公卫报告下载</el-button
             >
@@ -81,6 +80,7 @@
               split-button
               size="small"
               type="primary"
+              style="margin:0 10px"
               @command="handleFileDownload"
             >
               公卫报告下载
@@ -97,7 +97,7 @@
           </div>
           <el-button
             v-if="showBackButton()"
-            style="float:right; margin: 4px 0 10px 30px"
+            style="margin-left: 20px"
             size="small"
             type="primary"
             @click="handleBack"
@@ -105,11 +105,11 @@
           </el-button>
         </div>
       </div>
-      <div v-if="params.listFlag === 'score'">
-        <div class="jx-header" style="align-items: center">
+      <div v-if="params.listFlag === 'score'" v-sticky>
+        <div class="header-box-card" style="align-items: center">
           <span class="header-title"> {{ totalData.name }}工分校正详情 </span>
           <el-button
-            size="small"
+            size="mini"
             type="primary"
             @click="latTypeChanged('quality')"
             >关闭
@@ -204,14 +204,14 @@
           <div v-else>
             <!--工分值校正明细-->
             <el-col :span="24">
-              <el-card
+              <div class="table-title">
+                工分值校正明细
+              </div>
+              <div
                 v-loading="$asyncComputed.projectDetailServerData.updating"
                 shadow="hover"
               >
                 <div class="score-detail">
-                  <div class="second-title" style="text-align: left;">
-                    工分值校正明细
-                  </div>
                   <el-table
                     v-hidden-scroll
                     :data="projectDetailData"
@@ -256,7 +256,7 @@
                     </el-table-column>
                   </el-table>
                 </div>
-              </el-card>
+              </div>
             </el-col>
           </div>
         </el-row>
@@ -482,23 +482,48 @@
               shadow="hover"
             >
               <div class="second-title">下级质量系数排行</div>
-              <div v-for="(item, index) of rankData" :key="item.code">
+              <div class="rank-box">
                 <div
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.code)"
+                  v-for="(i, index) of rankData"
+                  :key="index"
+                  class="cell"
+                  @click="handleClickSubordinateArea(i.code)"
                 >
-                  <p>
-                    {{ index + 1 }}、{{ item.name }}
-                    <span style="float:right"
-                      >{{ Math.round(item.rate * 100) }}%</span
+                  <div class="ranking">{{ index + 1 }}</div>
+                  <div class="container">
+                    <div class="name single-text">{{ i.name }}</div>
+                    <div class="progress el-progress-staff-cell">
+                      <el-progress
+                        :stroke-width="16"
+                        :percentage="i.rate * 100"
+                        :show-text="false"
+                        :color="
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                        "
+                      ></el-progress>
+                    </div>
+                    <div
+                      class="text"
+                      :style="{
+                        color:
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                      }"
                     >
-                  </p>
-                  <el-progress
-                    :text-inside="true"
-                    :stroke-width="18"
-                    :percentage="Math.round(item.rate * 100)"
-                  >
-                  </el-progress>
+                      {{ Number((i.rate * 100).toFixed(2)) }}%
+                    </div>
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -509,22 +534,51 @@
               shadow="hover"
             >
               <div class="second-title">下级校正前工分排行</div>
-              <div v-for="(item, index) of rankTotalData" :key="item.code">
+              <div class="rank-box">
                 <div
-                  class="pointer"
-                  @click="handleClickSubordinateArea(item.code)"
+                  v-for="(i, index) of rankTotalData"
+                  :key="index"
+                  class="cell"
+                  @click="handleClickSubordinateArea(i.code)"
                 >
-                  <p>
-                    {{ index + 1 }}、{{ item.name }}
-                    <span style="float:right">{{ item.totalWorkPoint }}</span>
-                  </p>
-                  <el-progress
-                    :text-inside="true"
-                    :stroke-width="18"
-                    :percentage="Math.round(item.totalWorkPointRate * 100)"
-                    :format="setProgress(item.totalWorkPoint)"
-                  >
-                  </el-progress>
+                  <div class="ranking">{{ index + 1 }}</div>
+                  <div class="container">
+                    <div class="name single-text">{{ i.name }}</div>
+                    <div class="progress el-progress-staff-cell">
+                      <el-progress
+                        :style="{
+                          width: `${i.proportion * 100}%`
+                        }"
+                        :stroke-width="16"
+                        :percentage="100"
+                        :show-text="false"
+                        :color="
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                        "
+                      ></el-progress>
+                    </div>
+                    <div
+                      class="text"
+                      :style="{
+                        color:
+                          index === 0
+                            ? '#4458fe'
+                            : index === 1
+                            ? '#00d0b4'
+                            : index === 2
+                            ? '#ffb143'
+                            : '#ff56a9'
+                      }"
+                    >
+                      {{ Number(i.totalWorkPoint.toFixed(2)) }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -545,16 +599,17 @@
             :xl="12"
             style="margin-bottom: 10px;"
           >
-            <el-card
+            <div class="table-title">下级工分</div>
+            <div
               v-loading="$asyncComputed.workpointRankServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">下级工分</div>
               <el-table
                 v-hidden-scroll
                 :data="workpointRankData"
                 height="600"
                 :cell-class-name="cellClassHover"
+                :header-cell-class-name="tableHeaderClass"
                 @row-click="handleCellClick"
               >
                 <el-table-column label="序号" align="center">
@@ -573,19 +628,21 @@
                   </template>
                 </el-table-column>
               </el-table>
-            </el-card>
+            </div>
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-card
+            <div class="table-title">工分项目</div>
+            <div
               v-loading="$asyncComputed.workPointsProjectServerData.updating"
               shadow="hover"
             >
-              <div class="second-title">工分项目</div>
               <el-table
                 v-hidden-scroll
                 ref="refTable"
                 :data="workPointsProjectData"
                 height="600"
+                :header-cell-class-name="tableHeaderClass"
+                :cell-class-name="tableCellClass"
               >
                 <el-table-column label="序号" align="center">
                   <template slot-scope="scope">
@@ -603,7 +660,7 @@
                   </template>
                 </el-table-column>
               </el-table>
-            </el-card>
+            </div>
           </el-col>
         </el-row>
       </div>
@@ -819,11 +876,12 @@ export default {
       const maxTotalWorkPoint = ranks
         .sort((a, b) => b.totalWorkPoint - a.totalWorkPoint)
         .map(item => item.totalWorkPoint)[0];
-      // return maxTotalWorkPoint;
+
       return ranks.map(item => {
         return {
           ...item,
-          totalWorkPointRate: maxTotalWorkPoint
+          // 较最大工分的比例
+          proportion: maxTotalWorkPoint
             ? item?.totalWorkPoint / maxTotalWorkPoint
             : 0
         };
@@ -840,6 +898,12 @@ export default {
     this.initParams(this.$route);
   },
   methods: {
+    tableCellClass() {
+      return 'appraisal-result-table-cell';
+    },
+    tableHeaderClass() {
+      return 'appraisal-result-table-header';
+    },
     computedColWidth(field) {
       if (this.projectDetailData?.length > 0) {
         return this.$widthCompute(
@@ -908,6 +972,7 @@ export default {
     //设置标题可点击样式
     cellClassHover({columnIndex}) {
       if (columnIndex === 1) return 'appraisal-result-subordinate-name';
+      return 'appraisal-result-table-cell';
     },
     //点击标题跳转详情
     handleCellClick(row, column) {
@@ -1116,6 +1181,27 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.appraisal-result-table-header {
+  color: #3a3f62;
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.appraisal-result-table-cell {
+  color: #3e4260;
+  font-size: 14px;
+}
+
+.el-progress-staff-cell {
+  .el-progress-bar__outer,
+  .el-progress-bar__inner {
+    /*圆角*/
+    border-radius: 2px;
+  }
+}
+</style>
+
 <style scoped lang="scss">
 @import '../../styles/vars';
 
@@ -1142,15 +1228,16 @@ export default {
   }
 }
 
-.second-title {
-  font-size: 16px;
-  color: #40415a;
+.table-title {
+  text-align: left;
+  background: #eef2fe;
+  padding: 20px;
 }
 
-.header-title {
-  font: bold 20px/2 Arial;
-  color: $color-primary;
-  margin-right: 10px;
+.second-title,
+.table-title {
+  font-size: 16px;
+  color: #444c63;
 }
 
 .header-box-card {
@@ -1158,11 +1245,17 @@ export default {
   z-index: 2001 !important;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background-color: #fff;
-  padding: 12px 20px;
+  padding: 15px 20px;
   border-radius: 5px;
   border: 1px solid #ebeef5;
   box-sizing: border-box;
+  .header-title {
+    font-size: 18px;
+    color: #3a3f62;
+    margin-right: 10px;
+  }
 }
 
 .score-detail {
@@ -1231,6 +1324,45 @@ export default {
   }
 }
 
+.rank-box {
+  padding-top: 20px;
+  .cell {
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 12px;
+    color: #3a3f62;
+    .ranking {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #dae0f2;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .container {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      .name {
+        width: 80px;
+      }
+      .progress {
+        flex: 1;
+        margin: 5px 2px;
+      }
+      .text {
+        width: 80px;
+        text-align: right;
+      }
+    }
+  }
+}
+
 .el-dropdown-link {
   cursor: pointer;
   color: #409eff;
@@ -1247,7 +1379,7 @@ export default {
 <style lang="scss">
 .appraisal-result-subordinate-name {
   cursor: pointer;
-
+  color: #3a3f62;
   :hover {
     color: #1a95d7;
   }

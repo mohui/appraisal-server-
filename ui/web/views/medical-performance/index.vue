@@ -121,6 +121,7 @@
                     v-for="(i, index) of staffCheckListData"
                     :key="index"
                     class="cell"
+                    @click="onGotoStaffDetail(i.id)"
                   >
                     <div class="ranking">{{ index + 1 }}</div>
                     <div class="container">
@@ -405,6 +406,16 @@ export default {
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
+    },
+    // 跳转到员工详情页
+    onGotoStaffDetail(id) {
+      this.$router.push({
+        name: 'personal-appraisal-results',
+        query: {
+          id: id,
+          date: JSON.stringify(this.currentDate)
+        }
+      });
     },
     // 报表数据处理
     handleReportData() {
@@ -816,9 +827,12 @@ export default {
         display: flex;
         flex-direction: row;
         align-items: center;
+        font-size: 13px;
+        color: #3a3f62;
+        cursor: pointer;
         .ranking {
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -832,11 +846,14 @@ export default {
           flex-direction: row;
           align-items: center;
           .name {
-            width: 45px;
+            width: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
           .progress {
             flex: 1;
-            margin: 0 10px;
+            margin: 5px 3px;
           }
           .text {
             width: 100px;
