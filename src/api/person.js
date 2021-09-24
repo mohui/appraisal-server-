@@ -277,10 +277,7 @@ export default class Person {
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       name: should.string().allow('', null),
-      hospital: should
-        .string()
-        .required()
-        .allow('', null),
+      hospital: should.string().allow('', null),
       region: should
         .string()
         .required()
