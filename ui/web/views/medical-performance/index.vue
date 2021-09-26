@@ -52,16 +52,16 @@
       </el-card>
       <el-row
         style="margin: 10px 0"
-        v-for="(item, index) of ['医疗指标', '公卫指标']"
+        v-for="(item, index) of indicatorsData"
         :key="index"
       >
-        <div class="card">
+        <div class="card indicators-box">
+          <div class="indicators-title-card title-box">
+            <div class="title">{{ item.name }}</div>
+          </div>
           <div class="indicators-container">
-            <div class="indicators-title-card title-box">
-              <div class="title">{{ item }}</div>
-            </div>
             <div
-              v-for="(i, index) of medicalIndicatorsData"
+              v-for="(i, index) of item.data"
               :key="index"
               class="item-content indicators-card"
             >
@@ -308,11 +308,26 @@ export default {
       currentDate: dayjs()
         .startOf('M')
         .toDate(),
-      medicalIndicatorsData: [
-        {name: '服务人口数', number: 5566},
-        {name: '员工人数', number: 235},
-        {name: '诊疗人次数', number: 6863},
-        {name: '出院人次数', number: 758}
+      indicatorsData: [
+        {
+          name: '医疗指标',
+          data: [
+            {name: '医疗人员数量', number: 5566},
+            {name: '本月医疗收入', number: 235},
+            {name: '本月诊疗人次', number: 6863},
+            {name: '医师日均担负诊疗人次数', number: 6863}
+          ]
+        },
+        {
+          name: '公卫指标',
+          data: [
+            {name: '居民档案数量', number: 5566},
+            {name: '慢病管理人数', number: 235},
+            {name: '高血压规范管理率', number: 6863},
+            {name: '糖尿病规范管理率', number: 758},
+            {name: '老年人管理率', number: 758}
+          ]
+        }
       ],
       disabledDate: {
         disabledDate(time) {
@@ -731,7 +746,8 @@ export default {
 }
 
 .indicators-card {
-  border-left: 1px solid #ebeef5;
+  border-right: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
   background-color: #ffffff;
   padding: 10px;
 }
@@ -741,11 +757,12 @@ export default {
 }
 .indicators-title-card {
   background-color: #ffffff;
+  border-right: 1px solid #ebeef5;
   color: #3a3f62;
   padding: 10px;
 }
 
-.indicators-container {
+.indicators-box {
   display: flex;
   flex-direction: row;
   .title-box {
@@ -758,31 +775,37 @@ export default {
       font-size: 17px;
     }
   }
-  .item-content {
+  .indicators-container {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    color: #3a3f62;
-    .indicators-name {
-      font-size: 15px;
-      padding: 10px;
-    }
-    .indicators-content {
-      flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    .item-content {
+      width: calc((100% - 84px) / 4);
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding: 10px 0 20px 0;
-      .number {
-        text-align: center;
-        flex: 1;
-        font-size: 28px;
+      flex-direction: column;
+      color: #3a3f62;
+      .indicators-name {
+        font-size: 15px;
+        padding: 10px;
       }
-      .icon-box {
-        margin: 0 10px;
-        .icon {
-          font-size: 36px;
-          color: #71a0fd;
+      .indicators-content {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px 0 20px 0;
+        .number {
+          text-align: center;
+          flex: 1;
+          font-size: 28px;
+        }
+        .icon-box {
+          margin: 0 10px;
+          .icon {
+            font-size: 36px;
+            color: #71a0fd;
+          }
         }
       }
     }
