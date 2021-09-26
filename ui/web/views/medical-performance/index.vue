@@ -57,7 +57,7 @@
       >
         <div
           class="card indicators-box"
-          :style="{height: item.isOpen ? 'auto' : '132px', overflow: 'hidden'}"
+          :style="{height: item.isOpen ? 'auto' : '118px', overflow: 'hidden'}"
         >
           <div class="indicators-title-card title-box">
             <div class="title">{{ item.name }}</div>
@@ -804,21 +804,20 @@ export default {
       color: #3a3f62;
       .indicators-name {
         font-size: 15px;
-        padding: 10px;
+        padding: 5px;
       }
       .indicators-content {
         flex: 1;
         display: flex;
         flex-direction: row;
         align-items: center;
-        padding: 10px 0 20px 0;
         .number {
           text-align: center;
           flex: 1;
           font-size: 28px;
         }
         .icon-box {
-          margin: 0 10px;
+          margin: 0 40px 30px 0;
           .icon {
             font-size: 36px;
             color: #71a0fd;
