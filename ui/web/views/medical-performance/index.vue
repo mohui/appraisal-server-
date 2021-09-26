@@ -55,7 +55,10 @@
         v-for="(item, index) of indicatorsData"
         :key="index"
       >
-        <div class="card indicators-box">
+        <div
+          class="card indicators-box"
+          :style="{height: item.isOpen ? 'auto' : '132px', overflow: 'hidden'}"
+        >
           <div class="indicators-title-card title-box">
             <div class="title">{{ item.name }}</div>
           </div>
@@ -77,6 +80,17 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div
+            v-if="item.data.length > 4"
+            class="arrow-box"
+            @click="() => (item.isOpen = !item.isOpen)"
+          >
+            <div
+              :class="
+                `${item.isOpen ? 'el-icon-arrow-up' : 'el-icon-arrow-down'}`
+              "
+            />
           </div>
         </div>
       </el-row>
@@ -311,6 +325,7 @@ export default {
       indicatorsData: [
         {
           name: '医疗指标',
+          isOpen: false,
           data: [
             {name: '医疗人员数量', number: 5566},
             {name: '本月医疗收入', number: 235},
@@ -320,6 +335,7 @@ export default {
         },
         {
           name: '公卫指标',
+          isOpen: false,
           data: [
             {name: '居民档案数量', number: 5566},
             {name: '慢病管理人数', number: 235},
@@ -765,6 +781,7 @@ export default {
 .indicators-box {
   display: flex;
   flex-direction: row;
+  position: relative;
   .title-box {
     display: flex;
     flex-direction: row;
@@ -809,6 +826,16 @@ export default {
         }
       }
     }
+  }
+  .arrow-box {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 .staff-container {
