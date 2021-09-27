@@ -82,9 +82,14 @@
             </div>
           </div>
           <div
-            v-if="item.data.length > 4"
+            v-if="Object.getOwnPropertyNames(item.data).length > 4"
             class="arrow-box"
-            @click="() => (item.isOpen = !item.isOpen)"
+            @click="
+              () =>
+                key === 'medicalIndicators'
+                  ? (medicalIndicatorsIsOpen = !medicalIndicatorsIsOpen)
+                  : (publicIndicatorsIsOpen = !publicIndicatorsIsOpen)
+            "
           >
             <div
               :class="
@@ -336,7 +341,9 @@ export default {
       categorySpanArr: [],
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
-      staffFlag: 'workPoint'
+      staffFlag: 'workPoint',
+      medicalIndicatorsIsOpen: false,
+      publicIndicatorsIsOpen: false
     };
   },
   directives: {
@@ -375,7 +382,7 @@ export default {
       return {
         medicalIndicators: {
           name: '医疗指标',
-          isOpen: false,
+          isOpen: this.medicalIndicatorsIsOpen,
           data: {
             staff: {
               name: '医疗人员数量',
@@ -401,7 +408,7 @@ export default {
         },
         publicIndicators: {
           name: '公卫指标',
-          isOpen: false,
+          isOpen: this.publicIndicatorsIsOpen,
           data: {
             person: {
               name: '居民档案数量',
