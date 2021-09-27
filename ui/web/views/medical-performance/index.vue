@@ -72,7 +72,7 @@
                 {{ i.name }}
               </div>
               <div class="indicators-content">
-                <div class="number">
+                <div class="number" v-loading="i.isLoading">
                   {{ i.number }}
                 </div>
                 <div class="icon-box">
@@ -377,15 +377,25 @@ export default {
           name: '医疗指标',
           isOpen: false,
           data: {
-            staff: {name: '医疗人员数量', number: this.staffSeverData},
+            staff: {
+              name: '医疗人员数量',
+              number: this.staffSeverData,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
             money: {
               name: '本月医疗收入',
-              number: Number(this.moneySeverData.toFixed(2))
+              number: Number(this.moneySeverData.toFixed(2)),
+              isLoading: this.$asyncComputed.moneySeverData.updating
             },
-            visits: {name: '本月诊疗人次', number: this.visitsSeverData},
+            visits: {
+              name: '本月诊疗人次',
+              number: this.visitsSeverData,
+              isLoading: this.$asyncComputed.visitsSeverData.updating
+            },
             doctorDailyVisits: {
               name: '医师日均担负诊疗人次数',
-              number: Number(this.doctorDailyVisitsSeverData.toFixed(2))
+              number: Number(this.doctorDailyVisitsSeverData.toFixed(2)),
+              isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
             }
           }
         },
@@ -393,19 +403,30 @@ export default {
           name: '公卫指标',
           isOpen: false,
           data: {
-            person: {name: '居民档案数量', number: this.personSeverData},
-            chronic: {name: '慢病管理人数', number: this.chronicSeverData},
+            person: {
+              name: '居民档案数量',
+              number: this.personSeverData,
+              isLoading: this.$asyncComputed.personSeverData.updating
+            },
+            chronic: {
+              name: '慢病管理人数',
+              number: this.chronicSeverData,
+              isLoading: this.$asyncComputed.chronicSeverData.updating
+            },
             htn: {
               name: '高血压规范管理率',
-              number: Number(this.htnSeverData.toFixed(2))
+              number: Number(this.htnSeverData.toFixed(2)),
+              isLoading: this.$asyncComputed.htnSeverData.updating
             },
             t2dm: {
               name: '糖尿病规范管理率',
-              number: Number(this.t2dmSeverData.toFixed(2))
+              number: Number(this.t2dmSeverData.toFixed(2)),
+              isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
             old: {
               name: '老年人管理率',
-              number: Number(this.oldSeverData.toFixed(2))
+              number: Number(this.oldSeverData.toFixed(2)),
+              isLoading: this.$asyncComputed.oldSeverData.updating
             }
           }
         }
