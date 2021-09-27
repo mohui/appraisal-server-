@@ -52,8 +52,8 @@
       </el-card>
       <el-row
         style="margin: 10px 0"
-        v-for="(item, key) in indicatorsData"
-        :key="key"
+        v-for="(item, index) of indicatorsData"
+        :key="index"
       >
         <div
           class="card indicators-box"
@@ -64,8 +64,8 @@
           </div>
           <div class="indicators-container">
             <div
-              v-for="(i, key) in item.data"
-              :key="key"
+              v-for="(i, index) of item.data"
+              :key="index"
               class="item-content indicators-card"
             >
               <div class="indicators-name">
@@ -82,13 +82,15 @@
             </div>
           </div>
           <div
-            v-if="Object.getOwnPropertyNames(item.data).length > 4"
+            v-if="item.data.length > 4"
             class="arrow-box"
             @click="
               () =>
-                key === 'medicalIndicators'
+                item.name === '医疗指标'
                   ? (medicalIndicatorsIsOpen = !medicalIndicatorsIsOpen)
-                  : (publicIndicatorsIsOpen = !publicIndicatorsIsOpen)
+                  : item.name === '公卫指标'
+                  ? (publicIndicatorsIsOpen = !publicIndicatorsIsOpen)
+                  : null
             "
           >
             <div
@@ -379,65 +381,65 @@ export default {
         .sort((a, b) => b.correctionScore - a.correctionScore);
     },
     indicatorsData() {
-      return {
-        medicalIndicators: {
+      return [
+        {
           name: '医疗指标',
           isOpen: this.medicalIndicatorsIsOpen,
-          data: {
-            staff: {
+          data: [
+            {
               name: '医疗人员数量',
               number: this.staffSeverData,
               isLoading: this.$asyncComputed.oldSeverData.updating
             },
-            money: {
+            {
               name: '本月医疗收入',
               number: Number(this.moneySeverData.toFixed(2)),
               isLoading: this.$asyncComputed.moneySeverData.updating
             },
-            visits: {
+            {
               name: '本月诊疗人次',
               number: this.visitsSeverData,
               isLoading: this.$asyncComputed.visitsSeverData.updating
             },
-            doctorDailyVisits: {
+            {
               name: '医师日均担负诊疗人次数',
               number: Number(this.doctorDailyVisitsSeverData.toFixed(2)),
               isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
             }
-          }
+          ]
         },
-        publicIndicators: {
+        {
           name: '公卫指标',
           isOpen: this.publicIndicatorsIsOpen,
-          data: {
-            person: {
+          data: [
+            {
               name: '居民档案数量',
               number: this.personSeverData,
               isLoading: this.$asyncComputed.personSeverData.updating
             },
-            chronic: {
+            {
               name: '慢病管理人数',
               number: this.chronicSeverData,
               isLoading: this.$asyncComputed.chronicSeverData.updating
             },
-            htn: {
+            {
               name: '高血压规范管理率',
               number: Number(this.htnSeverData.toFixed(2)),
               isLoading: this.$asyncComputed.htnSeverData.updating
             },
-            t2dm: {
+            {
               name: '糖尿病规范管理率',
               number: Number(this.t2dmSeverData.toFixed(2)),
               isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
-            old: {
+            {
               name: '老年人管理率',
               number: Number(this.oldSeverData.toFixed(2)),
               isLoading: this.$asyncComputed.oldSeverData.updating
             }
-          }
+          ]
         }
-      };
+      ];
     }
   },
   asyncComputed: {
