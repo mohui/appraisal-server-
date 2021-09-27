@@ -377,21 +377,36 @@ export default {
           name: '医疗指标',
           isOpen: false,
           data: {
-            staff: {name: '医疗人员数量', number: 5566},
-            money: {name: '本月医疗收入', number: 235},
-            visits: {name: '本月诊疗人次', number: 6863},
-            doctorDailyVisits: {name: '医师日均担负诊疗人次数', number: 6863}
+            staff: {name: '医疗人员数量', number: this.staffSeverData},
+            money: {
+              name: '本月医疗收入',
+              number: Number(this.moneySeverData.toFixed(2))
+            },
+            visits: {name: '本月诊疗人次', number: this.visitsSeverData},
+            doctorDailyVisits: {
+              name: '医师日均担负诊疗人次数',
+              number: Number(this.doctorDailyVisitsSeverData.toFixed(2))
+            }
           }
         },
         publicIndicators: {
           name: '公卫指标',
           isOpen: false,
           data: {
-            person: {name: '居民档案数量', number: 5566},
-            chronic: {name: '慢病管理人数', number: 235},
-            htn: {name: '高血压规范管理率', number: 6863},
-            t2dm: {name: '糖尿病规范管理率', number: 758},
-            old: {name: '老年人管理率', number: 758}
+            person: {name: '居民档案数量', number: this.personSeverData},
+            chronic: {name: '慢病管理人数', number: this.chronicSeverData},
+            htn: {
+              name: '高血压规范管理率',
+              number: Number(this.htnSeverData.toFixed(2))
+            },
+            t2dm: {
+              name: '糖尿病规范管理率',
+              number: Number(this.t2dmSeverData.toFixed(2))
+            },
+            old: {
+              name: '老年人管理率',
+              number: Number(this.oldSeverData.toFixed(2))
+            }
           }
         }
       };
@@ -412,6 +427,78 @@ export default {
       },
       default() {
         return [];
+      }
+    },
+    staffSeverData: {
+      async get() {
+        return await this.$api.AppHome.staff();
+      },
+      default() {
+        return 0;
+      }
+    },
+    moneySeverData: {
+      async get() {
+        return await this.$api.AppHome.money();
+      },
+      default() {
+        return 0;
+      }
+    },
+    visitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.visits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    doctorDailyVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.doctorDailyVisits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    personSeverData: {
+      async get() {
+        return await this.$api.AppHome.person();
+      },
+      default() {
+        return 0;
+      }
+    },
+    chronicSeverData: {
+      async get() {
+        return await this.$api.AppHome.chronic();
+      },
+      default() {
+        return 0;
+      }
+    },
+    htnSeverData: {
+      async get() {
+        return await this.$api.AppHome.htn();
+      },
+      default() {
+        return 0;
+      }
+    },
+    t2dmSeverData: {
+      async get() {
+        return await this.$api.AppHome.t2dm();
+      },
+      default() {
+        return 0;
+      }
+    },
+    oldSeverData: {
+      async get() {
+        return await this.$api.AppHome.old();
+      },
+      default() {
+        return 0;
       }
     }
   },
