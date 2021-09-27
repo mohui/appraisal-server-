@@ -52,8 +52,8 @@
       </el-card>
       <el-row
         style="margin: 10px 0"
-        v-for="(item, index) of indicatorsData"
-        :key="index"
+        v-for="(item, key) in indicatorsData"
+        :key="key"
       >
         <div
           class="card indicators-box"
@@ -64,8 +64,8 @@
           </div>
           <div class="indicators-container">
             <div
-              v-for="(i, index) of item.data"
-              :key="index"
+              v-for="(i, key) in item.data"
+              :key="key"
               class="item-content indicators-card"
             >
               <div class="indicators-name">
@@ -76,7 +76,7 @@
                   {{ i.number }}
                 </div>
                 <div class="icon-box">
-                  <i class="el-icon-circle-plus-outline icon" />
+                  <i class="el-icon-s-platform icon" />
                 </div>
               </div>
             </div>
@@ -322,29 +322,6 @@ export default {
       currentDate: dayjs()
         .startOf('M')
         .toDate(),
-      indicatorsData: [
-        {
-          name: '医疗指标',
-          isOpen: false,
-          data: [
-            {name: '医疗人员数量', number: 5566},
-            {name: '本月医疗收入', number: 235},
-            {name: '本月诊疗人次', number: 6863},
-            {name: '医师日均担负诊疗人次数', number: 6863}
-          ]
-        },
-        {
-          name: '公卫指标',
-          isOpen: false,
-          data: [
-            {name: '居民档案数量', number: 5566},
-            {name: '慢病管理人数', number: 235},
-            {name: '高血压规范管理率', number: 6863},
-            {name: '糖尿病规范管理率', number: 758},
-            {name: '老年人管理率', number: 758}
-          ]
-        }
-      ],
       disabledDate: {
         disabledDate(time) {
           return time.getTime() > dayjs().toDate();
@@ -393,6 +370,31 @@ export default {
           proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
         }))
         .sort((a, b) => b.correctionScore - a.correctionScore);
+    },
+    indicatorsData() {
+      return {
+        medicalIndicators: {
+          name: '医疗指标',
+          isOpen: false,
+          data: {
+            staff: {name: '医疗人员数量', number: 5566},
+            money: {name: '本月医疗收入', number: 235},
+            visits: {name: '本月诊疗人次', number: 6863},
+            doctorDailyVisits: {name: '医师日均担负诊疗人次数', number: 6863}
+          }
+        },
+        publicIndicators: {
+          name: '公卫指标',
+          isOpen: false,
+          data: {
+            person: {name: '居民档案数量', number: 5566},
+            chronic: {name: '慢病管理人数', number: 235},
+            htn: {name: '高血压规范管理率', number: 6863},
+            t2dm: {name: '糖尿病规范管理率', number: 758},
+            old: {name: '老年人管理率', number: 758}
+          }
+        }
+      };
     }
   },
   asyncComputed: {
