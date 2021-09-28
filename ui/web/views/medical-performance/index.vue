@@ -949,11 +949,12 @@ export default {
     position: absolute;
     right: 0;
     bottom: 0;
-    height: 50px;
-    width: 50px;
+    height: 100px;
+    width: 100px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-end;
+    justify-content: right;
+    padding: 0 15px 15px 0;
   }
 }
 .staff-container {
