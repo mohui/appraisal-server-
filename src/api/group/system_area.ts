@@ -711,7 +711,8 @@ export default class SystemArea {
       // 先把所有的上级放到机构数组中
       const newHospitals = hospitals.map(it => {
         const index = childrenTree.find(child =>
-          'hospital.center' || child.leabel === 'hospital.station'
+          child.label === 'hospital.center' ||
+          child.label === 'hospital.station'
             ? it.path.includes(`.${child.code}`)
             : it.path.includes(`.${child.code}.`)
         );
