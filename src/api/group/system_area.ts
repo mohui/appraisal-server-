@@ -68,7 +68,7 @@ export default class SystemArea {
    *   id: 地区id
    *   name: 地区名称
    *   parent: 上级id. 如果已经是用户权限级别, 则为null
-   *   label: 地区类型. province: 省, city: 市, centre: 中心层, hospital.center: 服务中心/卫生院, hospital.station: 卫生站/卫生室'
+   *   label: 地区类型. province: 省, city: 市, district: 区, centre: 中心层, hospital.center: 服务中心/卫生院, hospital.station: 卫生站/卫生室
    *   totalWorkPoint: 校正前总公分
    *   workPoint:参与校正工分
    *   correctWorkPoint: 矫正后的公分值
