@@ -622,44 +622,30 @@ export default class HisWorkItem {
    *
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
-   * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
-   * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .min(1)
-      .description('来源id[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -668,16 +654,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async add(
     name,
@@ -692,7 +671,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -706,16 +685,15 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
 
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
       // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
@@ -827,48 +805,31 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定
-   * @param staffs [绑定的员工]
-   * @param mappings
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
    * @param score 分值
-   * @param scope 固定的时候范围必传
+   * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目id'),
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .min(1)
-      .description('来源id[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -877,16 +838,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('公分项分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async update(
     id,
@@ -902,7 +856,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -916,10 +870,7 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
@@ -933,7 +884,9 @@ export default class HisWorkItem {
     if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
     // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
 
     // 定义一个新数组
     const newMappings = [];
