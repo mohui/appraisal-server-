@@ -562,7 +562,7 @@
                           totalData.label === 'city' ||
                           totalData.label === 'district'
                             ? '55px'
-                            : '190px'
+                            : '200px'
                       }"
                     >
                       {{ i.name }}
