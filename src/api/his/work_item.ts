@@ -589,7 +589,39 @@ export const HisWorkItemSources: {
       columns: [`activityformcode = '6'`, 'state = 1']
     }
   },
-  // 9-24新增issues258指标 完
+  // 9-26新增issues258指标
+  {
+    id: '公卫数据.孕产妇管理服务-早孕建册人数',
+    name: '孕产妇管理服务-早孕建册人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_pregnancy_books',
+      date: 'VisitsDate'
+    }
+  },
+  {
+    id: '公卫数据.儿童保健服务-0-12月儿童建卡保健管理人次',
+    name: '儿童保健服务-0-12月儿童建卡保健管理人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_child_check',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 0', 'chronologicalage < 13']
+    }
+  },
+  {
+    id: '公卫数据.儿童保健服务-18-36个月儿童健康保健管理人次',
+    name: '儿童保健服务-18-36个月儿童健康保健管理人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_child_check',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 18', 'chronologicalage < 37']
+    }
+  },
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
   {
     id: '其他.门诊诊疗人次',
