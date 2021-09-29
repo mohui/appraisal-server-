@@ -424,17 +424,17 @@ export default {
             },
             {
               name: '高血压规范管理率',
-              number: Number(this.htnSeverData.toFixed(2)),
+              number: Number((this.htnSeverData * 100).toFixed(2)) + '%',
               isLoading: this.$asyncComputed.htnSeverData.updating
             },
             {
               name: '糖尿病规范管理率',
-              number: Number(this.t2dmSeverData.toFixed(2)),
+              number: Number((this.t2dmSeverData * 100).toFixed(2)) + '%',
               isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
             {
               name: '老年人管理率',
-              number: Number(this.oldSeverData.toFixed(2)),
+              number: Number((this.oldSeverData * 100).toFixed(2)) + '%',
               isLoading: this.$asyncComputed.oldSeverData.updating
             }
           ]
