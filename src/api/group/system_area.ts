@@ -64,23 +64,36 @@ export default class SystemArea {
    *
    * @param code
    * @param year
-   *
-   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
+   * @return {
+   *   id: 地区id
+   *   name: 地区名称
+   *   parent: 上级id. 如果已经是用户权限级别, 则为null
+   *   label: 地区类型. province: 省, city: 市, centre: 中心层, hospital.center: 服务中心/卫生院, hospital.station: 卫生站/卫生室'
+   *   totalWorkPoint: 校正前总公分
+   *   workPoint:参与校正工分
+   *   correctWorkPoint: 矫正后的公分值
+   *   score: 得分
+   *   rate: 质量系数
+   *   budget: 分配金额
+   * }
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
+  @validate(should.string().required(), should.number().allow(null))
   async total(code, year) {
     // 查询本级权限
-    const areas = await AreaModel.findOne({where: {code}});
-
+    const areas: {
+      code: string;
+      name: string;
+      parent: string;
+      label: string;
+    } = (
+      await originalDB.execute(
+        `
+          select code, name, parent, label
+          from area
+          where code = ?`,
+        code
+      )
+    )[0];
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     // 获取树形结构
@@ -108,6 +121,7 @@ export default class SystemArea {
       id: areas.code,
       name: areas.name,
       parent: parentIndex > -1 ? areas.parent : null,
+      label: areas?.label ?? null,
       score: reportArea ? Number(reportArea.score) : 0,
       workPoint: reportArea ? Number(reportArea.workPoint) : 0,
       rate: reportArea ? Number(reportArea.rate) : 0,
