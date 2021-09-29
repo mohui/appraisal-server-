@@ -408,6 +408,7 @@ export async function workPointCalculation(
         const phStaffItem = phUserList.find(phIt => phIt.id === it.hospital);
         return {
           value: it.value,
+          //兼容数据库date字段
           date: dayjs(it.date).toDate(),
           staffId:
             param.scope === HisStaffDeptType.Staff
