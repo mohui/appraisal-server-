@@ -370,9 +370,7 @@ export default {
         )
         .map(it => ({
           ...it,
-          child: result.filter(
-            item => item.parent === it.id || item.id === it.id
-          )
+          child: result.filter(item => item.parent === it.parent)
         }));
 
       let cur = arr.map(it => it.child).flat();
