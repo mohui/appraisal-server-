@@ -74,6 +74,7 @@
               <div class="indicators-content">
                 <div class="number" v-loading="i.isLoading">
                   {{ i.number }}
+                  <span style="font-size: 16px">{{ i.unit }}</span>
                 </div>
                 <div class="icon-box">
                   <i class="el-icon-s-platform icon" />
@@ -381,6 +382,7 @@ export default {
         .sort((a, b) => b.correctionScore - a.correctionScore);
     },
     indicatorsData() {
+      const num = 100000;
       return [
         {
           name: '医疗指标',
@@ -388,22 +390,48 @@ export default {
           data: [
             {
               name: '医疗人员数量',
-              number: this.staffSeverData,
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.staffSeverData > num
+                  ? this.staffSeverData / 10000
+                  : this.staffSeverData
+                ).toFixed(2)
+              ),
+
               isLoading: this.$asyncComputed.oldSeverData.updating
             },
             {
               name: '本月医疗收入',
-              number: Number(this.moneySeverData.toFixed(2)),
+              unit: this.moneySeverData > num ? '万元' : '元',
+              number: Number(
+                (this.moneySeverData > num
+                  ? this.moneySeverData / 10000
+                  : this.moneySeverData
+                ).toFixed(2)
+              ),
               isLoading: this.$asyncComputed.moneySeverData.updating
             },
             {
-              name: '本月诊疗人次',
-              number: this.visitsSeverData,
+              name: '本月诊疗人次数',
+              unit: this.visitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.visitsSeverData > num
+                  ? this.visitsSeverData / 10000
+                  : this.visitsSeverData
+                ).toFixed(2)
+              ),
               isLoading: this.$asyncComputed.visitsSeverData.updating
             },
             {
               name: '医师日均担负诊疗人次数',
-              number: Number(this.doctorDailyVisitsSeverData.toFixed(2)),
+              unit: this.doctorDailyVisitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.doctorDailyVisitsSeverData > num
+                  ? this.doctorDailyVisitsSeverData / 10000
+                  : this.doctorDailyVisitsSeverData
+                ).toFixed(2)
+              ),
+
               isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
             }
           ]
@@ -414,27 +442,42 @@ export default {
           data: [
             {
               name: '居民档案数量',
-              number: this.personSeverData,
+              unit: this.personSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.personSeverData > num
+                  ? this.personSeverData / 10000
+                  : this.personSeverData
+                ).toFixed(2)
+              ),
               isLoading: this.$asyncComputed.personSeverData.updating
             },
             {
               name: '慢病管理人数',
-              number: this.chronicSeverData,
+              unit: this.chronicSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.chronicSeverData > num
+                  ? this.chronicSeverData / 10000
+                  : this.chronicSeverData
+                ).toFixed(2)
+              ),
               isLoading: this.$asyncComputed.chronicSeverData.updating
             },
             {
               name: '高血压规范管理率',
-              number: Number((this.htnSeverData * 100).toFixed(2)) + '%',
+              number: Number((this.htnSeverData * 100).toFixed(2)),
+              unit: '%',
               isLoading: this.$asyncComputed.htnSeverData.updating
             },
             {
               name: '糖尿病规范管理率',
-              number: Number((this.t2dmSeverData * 100).toFixed(2)) + '%',
+              number: Number((this.t2dmSeverData * 100).toFixed(2)),
+              unit: '%',
               isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
             {
               name: '老年人管理率',
-              number: Number((this.oldSeverData * 100).toFixed(2)) + '%',
+              number: Number((this.oldSeverData * 100).toFixed(2)),
+              unit: '%',
               isLoading: this.$asyncComputed.oldSeverData.updating
             }
           ]
