@@ -491,7 +491,18 @@
                 >
                   <div class="ranking">{{ index + 1 }}</div>
                   <div class="container">
-                    <div class="name single-text">{{ i.name }}</div>
+                    <div
+                      class="name single-text"
+                      :style="{
+                        width:
+                          totalData.label === 'city' ||
+                          totalData.label === 'province'
+                            ? '55px'
+                            : '200px'
+                      }"
+                    >
+                      {{ i.name }}
+                    </div>
                     <div class="progress el-progress-staff-cell">
                       <el-progress
                         :stroke-width="16"
@@ -543,7 +554,19 @@
                 >
                   <div class="ranking">{{ index + 1 }}</div>
                   <div class="container">
-                    <div class="name single-text">{{ i.name }}</div>
+                    <div
+                      class="name single-text"
+                      :style="{
+                        width:
+                          totalData.label === 'province' ||
+                          totalData.label === 'city' ||
+                          totalData.label === 'district'
+                            ? '55px'
+                            : '190px'
+                      }"
+                    >
+                      {{ i.name }}
+                    </div>
                     <div class="progress el-progress-staff-cell">
                       <el-progress
                         :style="{
