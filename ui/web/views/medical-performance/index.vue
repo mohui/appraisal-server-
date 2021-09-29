@@ -52,16 +52,19 @@
       </el-card>
       <el-row
         style="margin: 10px 0"
-        v-for="(item, index) of ['医疗指标', '公卫指标']"
+        v-for="(item, index) of indicatorsData"
         :key="index"
       >
-        <div class="card">
+        <div
+          class="card indicators-box"
+          :style="{height: item.isOpen ? 'auto' : '118px', overflow: 'hidden'}"
+        >
+          <div class="indicators-title-card title-box">
+            <div class="title">{{ item.name }}</div>
+          </div>
           <div class="indicators-container">
-            <div class="indicators-title-card title-box">
-              <div class="title">{{ item }}</div>
-            </div>
             <div
-              v-for="(i, index) of medicalIndicatorsData"
+              v-for="(i, index) of item.data"
               :key="index"
               class="item-content indicators-card"
             >
@@ -69,14 +72,33 @@
                 {{ i.name }}
               </div>
               <div class="indicators-content">
-                <div class="number">
+                <div class="number" v-loading="i.isLoading">
                   {{ i.number }}
+                  <span style="font-size: 16px">{{ i.unit }}</span>
                 </div>
                 <div class="icon-box">
-                  <i class="el-icon-circle-plus-outline icon" />
+                  <i class="el-icon-s-platform icon" />
                 </div>
               </div>
             </div>
+          </div>
+          <div
+            v-if="item.data.length > 4"
+            class="arrow-box"
+            @click="
+              () =>
+                item.name === '医疗指标'
+                  ? (medicalIndicatorsIsOpen = !medicalIndicatorsIsOpen)
+                  : item.name === '公卫指标'
+                  ? (publicIndicatorsIsOpen = !publicIndicatorsIsOpen)
+                  : null
+            "
+          >
+            <div
+              :class="
+                `${item.isOpen ? 'el-icon-arrow-up' : 'el-icon-arrow-down'}`
+              "
+            />
           </div>
         </div>
       </el-row>
@@ -308,12 +330,6 @@ export default {
       currentDate: dayjs()
         .startOf('M')
         .toDate(),
-      medicalIndicatorsData: [
-        {name: '服务人口数', number: 5566},
-        {name: '员工人数', number: 235},
-        {name: '诊疗人次数', number: 6863},
-        {name: '出院人次数', number: 758}
-      ],
       disabledDate: {
         disabledDate(time) {
           return time.getTime() > dayjs().toDate();
@@ -328,7 +344,9 @@ export default {
       categorySpanArr: [],
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
-      staffFlag: 'workPoint'
+      staffFlag: 'workPoint',
+      medicalIndicatorsIsOpen: false,
+      publicIndicatorsIsOpen: false
     };
   },
   directives: {
@@ -362,6 +380,109 @@ export default {
           proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
         }))
         .sort((a, b) => b.correctionScore - a.correctionScore);
+    },
+    indicatorsData() {
+      const num = 100000;
+      return [
+        {
+          name: '医疗指标',
+          isOpen: this.medicalIndicatorsIsOpen,
+          data: [
+            {
+              name: '医疗人员数量',
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.staffSeverData > num
+                  ? this.staffSeverData / 10000
+                  : this.staffSeverData
+                ).toFixed(2)
+              ),
+
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '本月医疗收入',
+              unit: this.moneySeverData > num ? '万元' : '元',
+              number: Number(
+                (this.moneySeverData > num
+                  ? this.moneySeverData / 10000
+                  : this.moneySeverData
+                ).toFixed(2)
+              ),
+              isLoading: this.$asyncComputed.moneySeverData.updating
+            },
+            {
+              name: '本月诊疗人次数',
+              unit: this.visitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.visitsSeverData > num
+                  ? this.visitsSeverData / 10000
+                  : this.visitsSeverData
+                ).toFixed(2)
+              ),
+              isLoading: this.$asyncComputed.visitsSeverData.updating
+            },
+            {
+              name: '医师日均担负诊疗人次数',
+              unit: this.doctorDailyVisitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.doctorDailyVisitsSeverData > num
+                  ? this.doctorDailyVisitsSeverData / 10000
+                  : this.doctorDailyVisitsSeverData
+                ).toFixed(2)
+              ),
+
+              isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
+            }
+          ]
+        },
+        {
+          name: '公卫指标',
+          isOpen: this.publicIndicatorsIsOpen,
+          data: [
+            {
+              name: '居民档案数量',
+              unit: this.personSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.personSeverData > num
+                  ? this.personSeverData / 10000
+                  : this.personSeverData
+                ).toFixed(2)
+              ),
+              isLoading: this.$asyncComputed.personSeverData.updating
+            },
+            {
+              name: '慢病管理人数',
+              unit: this.chronicSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.chronicSeverData > num
+                  ? this.chronicSeverData / 10000
+                  : this.chronicSeverData
+                ).toFixed(2)
+              ),
+              isLoading: this.$asyncComputed.chronicSeverData.updating
+            },
+            {
+              name: '高血压规范管理率',
+              number: Number((this.htnSeverData * 100).toFixed(2)),
+              unit: '%',
+              isLoading: this.$asyncComputed.htnSeverData.updating
+            },
+            {
+              name: '糖尿病规范管理率',
+              number: Number((this.t2dmSeverData * 100).toFixed(2)),
+              unit: '%',
+              isLoading: this.$asyncComputed.t2dmSeverData.updating
+            },
+            {
+              name: '老年人管理率',
+              number: Number((this.oldSeverData * 100).toFixed(2)),
+              unit: '%',
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            }
+          ]
+        }
+      ];
     }
   },
   asyncComputed: {
@@ -379,6 +500,78 @@ export default {
       },
       default() {
         return [];
+      }
+    },
+    staffSeverData: {
+      async get() {
+        return await this.$api.AppHome.staff();
+      },
+      default() {
+        return 0;
+      }
+    },
+    moneySeverData: {
+      async get() {
+        return await this.$api.AppHome.money();
+      },
+      default() {
+        return 0;
+      }
+    },
+    visitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.visits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    doctorDailyVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.doctorDailyVisits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    personSeverData: {
+      async get() {
+        return await this.$api.AppHome.person();
+      },
+      default() {
+        return 0;
+      }
+    },
+    chronicSeverData: {
+      async get() {
+        return await this.$api.AppHome.chronic();
+      },
+      default() {
+        return 0;
+      }
+    },
+    htnSeverData: {
+      async get() {
+        return await this.$api.AppHome.htn();
+      },
+      default() {
+        return 0;
+      }
+    },
+    t2dmSeverData: {
+      async get() {
+        return await this.$api.AppHome.t2dm();
+      },
+      default() {
+        return 0;
+      }
+    },
+    oldSeverData: {
+      async get() {
+        return await this.$api.AppHome.old();
+      },
+      default() {
+        return 0;
       }
     }
   },
@@ -731,7 +924,8 @@ export default {
 }
 
 .indicators-card {
-  border-left: 1px solid #ebeef5;
+  border-right: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
   background-color: #ffffff;
   padding: 10px;
 }
@@ -741,13 +935,15 @@ export default {
 }
 .indicators-title-card {
   background-color: #ffffff;
+  border-right: 1px solid #ebeef5;
   color: #3a3f62;
   padding: 10px;
 }
 
-.indicators-container {
+.indicators-box {
   display: flex;
   flex-direction: row;
+  position: relative;
   .title-box {
     display: flex;
     flex-direction: row;
@@ -758,34 +954,50 @@ export default {
       font-size: 17px;
     }
   }
-  .item-content {
+  .indicators-container {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    color: #3a3f62;
-    .indicators-name {
-      font-size: 15px;
-      padding: 10px;
-    }
-    .indicators-content {
-      flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    .item-content {
+      width: calc((100% - 84px) / 4);
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding: 10px 0 20px 0;
-      .number {
-        text-align: center;
-        flex: 1;
-        font-size: 28px;
+      flex-direction: column;
+      color: #3a3f62;
+      .indicators-name {
+        font-size: 15px;
+        padding: 5px;
       }
-      .icon-box {
-        margin: 0 10px;
-        .icon {
-          font-size: 36px;
-          color: #71a0fd;
+      .indicators-content {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .number {
+          text-align: center;
+          flex: 1;
+          font-size: 28px;
+        }
+        .icon-box {
+          margin: 0 40px 30px 0;
+          .icon {
+            font-size: 36px;
+            color: #71a0fd;
+          }
         }
       }
     }
+  }
+  .arrow-box {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: right;
+    padding: 0 15px 15px 0;
   }
 }
 .staff-container {
