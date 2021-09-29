@@ -80,7 +80,7 @@ export default class SystemArea {
   @validate(should.string().required(), should.number().allow(null))
   async total(code, year) {
     // 查询本级权限
-    const areas: {
+    const areaModel: {
       code: string;
       name: string;
       parent: string;
@@ -94,11 +94,11 @@ export default class SystemArea {
         code
       )
     )[0];
-    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
+    if (!areaModel) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     // 获取树形结构
     const tree = await getAreaTree(Context.current.user.code);
-    const parentIndex = tree.findIndex(it => it.code === areas.parent);
+    const parentIndex = tree.findIndex(it => it.code === areaModel.parent);
 
     // 如果没有传年份,获取年份
     year = getYear(year);
@@ -118,10 +118,10 @@ export default class SystemArea {
     }
 
     return {
-      id: areas.code,
-      name: areas.name,
-      parent: parentIndex > -1 ? areas.parent : null,
-      label: areas?.label ?? null,
+      id: areaModel.code,
+      name: areaModel.name,
+      parent: parentIndex > -1 ? areaModel.parent : null,
+      label: areaModel?.label ?? null,
       score: reportArea ? Number(reportArea.score) : 0,
       workPoint: reportArea ? Number(reportArea.workPoint) : 0,
       rate: reportArea ? Number(reportArea.rate) : 0,
