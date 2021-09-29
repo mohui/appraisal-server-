@@ -643,7 +643,7 @@ export default class HisWorkItem {
       .array()
       .required()
       .min(1)
-      .description('来源id[]'),
+      .description('来源id以及scope[]'),
     should
       .string()
       .required()
@@ -692,7 +692,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -706,16 +706,15 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
 
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
       // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
@@ -902,7 +901,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -916,10 +915,7 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
@@ -933,7 +929,9 @@ export default class HisWorkItem {
     if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
     // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
 
     // 定义一个新数组
     const newMappings = [];
