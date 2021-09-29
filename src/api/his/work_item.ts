@@ -624,42 +624,28 @@ export default class HisWorkItem {
    * @param method 得分方式; 计数/总和
    * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
-   * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .min(1)
-      .description('来源id以及scope[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -668,16 +654,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async add(
     name,
@@ -826,48 +805,31 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
+   * @param mappings 来源id[]
    * @param staffMethod 指定方式; 动态/固定
-   * @param staffs [绑定的员工]
-   * @param mappings
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
    * @param score 分值
-   * @param scope 固定的时候范围必传
+   * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目id'),
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .min(1)
-      .description('来源id[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -876,16 +838,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('公分项分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async update(
     id,
