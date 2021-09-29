@@ -18,7 +18,12 @@
     <div class="patient-info">
       <p><span>户籍地址: </span>{{ patient.census }}</p>
       <p><span>联系电话: </span>{{ patient.phone }}</p>
-      <p><span>建档机构: </span>{{ patient.operateOrganization.name }}</p>
+      <p>
+        <span>建档机构: </span
+        ><span v-if="patient.operateOrganization">{{
+          patient.operateOrganization.name
+        }}</span>
+      </p>
       <p><span>建档日期: </span>{{ patient.fileDate.toLocaleString() }}</p>
       <p><span>管理机构: </span>{{ patient.organization.name }}</p>
     </div>
