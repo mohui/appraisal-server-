@@ -622,7 +622,7 @@ export default class HisWorkItem {
    *
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
-   * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
    * @param score 分值
@@ -805,7 +805,7 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
-   * @param mappings 来源id[]
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
    * @param score 分值
