@@ -761,7 +761,10 @@ export default {
           const paramsArr = [
             this.newWork.work,
             this.newWork.scoreMethod,
-            this.newWork.projectsSelected.map(it => it.id), //被选中的项目id
+            this.newWork.projectsSelected.map(it => ({
+              id: it.id,
+              scope: it.scope
+            })), //被选中的项目id
             this.newWork.staffMethod,
             this.newWork.staffMethod === HisStaffMethod.STATIC
               ? this.newWork.staffs.map(it => ({
