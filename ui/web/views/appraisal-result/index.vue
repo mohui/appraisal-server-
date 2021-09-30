@@ -495,8 +495,8 @@
                       class="name single-text"
                       :style="{
                         width:
-                          totalData.label === 'city' ||
-                          totalData.label === 'province'
+                          totalData.label === 'province' ||
+                          totalData.label === 'city'
                             ? '55px'
                             : '200px'
                       }"
@@ -559,8 +559,7 @@
                       :style="{
                         width:
                           totalData.label === 'province' ||
-                          totalData.label === 'city' ||
-                          totalData.label === 'district'
+                          totalData.label === 'city'
                             ? '55px'
                             : '200px'
                       }"
