@@ -527,7 +527,7 @@
                             : '#ff56a9'
                       }"
                     >
-                      {{ Number((i.rate * 100).toFixed(2)) }}%
+                      {{ i.rateFormat }}
                     </div>
                   </div>
                 </div>
@@ -792,9 +792,7 @@ export default {
     },
     rankRateWidth() {
       let width =
-        this.$widthCompute(
-          this.rankData.map(it => Number(it.rate.toFixed(2)) + '%')
-        ) - 30;
+        this.$widthCompute(this.rankData.map(it => it.rateFormat)) - 30;
       return width + 'px';
     },
     //家庭医生签约
@@ -896,7 +894,12 @@ export default {
             return it;
           });
       } else {
-        return result.sort((a, b) => b.rate - a.rate);
+        return result
+          .sort((a, b) => b.rate - a.rate)
+          .map(it => ({
+            ...it,
+            rateFormat: Number((it.rate * 100).toFixed(2)) + '%'
+          }));
       }
     },
     //下级地区排行数据
