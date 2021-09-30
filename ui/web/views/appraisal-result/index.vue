@@ -493,13 +493,7 @@
                   <div class="container">
                     <div
                       class="name single-text"
-                      :style="{
-                        width:
-                          totalData.label === 'province' ||
-                          totalData.label === 'city'
-                            ? '55px'
-                            : '200px'
-                      }"
+                      :style="{width: rankNameWidth}"
                     >
                       {{ i.name }}
                     </div>
@@ -522,6 +516,7 @@
                     <div
                       class="text"
                       :style="{
+                        width: rankRateWidth,
                         color:
                           index === 0
                             ? '#4458fe'
@@ -556,13 +551,7 @@
                   <div class="container">
                     <div
                       class="name single-text"
-                      :style="{
-                        width:
-                          totalData.label === 'province' ||
-                          totalData.label === 'city'
-                            ? '55px'
-                            : '200px'
-                      }"
+                      :style="{width: rankNameWidth}"
                     >
                       {{ i.name }}
                     </div>
@@ -588,6 +577,7 @@
                     <div
                       class="text"
                       :style="{
+                        width: rankScoreWidth,
                         color:
                           index === 0
                             ? '#4458fe'
@@ -788,6 +778,25 @@ export default {
     };
   },
   computed: {
+    rankNameWidth() {
+      return this.$widthCompute(this.rankData.map(it => it.name)) - 30 + 'px';
+    },
+    rankScoreWidth() {
+      let width =
+        this.$widthCompute(
+          this.rankData.map(it =>
+            Number(it.totalWorkPoint.toFixed(2)).toString()
+          )
+        ) - 30;
+      return width + 'px';
+    },
+    rankRateWidth() {
+      let width =
+        this.$widthCompute(
+          this.rankData.map(it => Number(it.rate.toFixed(2)) + '%')
+        ) - 30;
+      return width + 'px';
+    },
     //家庭医生签约
     familyDoctorContractData() {
       let arr = [
@@ -1376,7 +1385,7 @@ export default {
       }
       .progress {
         flex: 1;
-        margin: 5px 2px;
+        margin: 5px 10px;
       }
       .text {
         width: 80px;
