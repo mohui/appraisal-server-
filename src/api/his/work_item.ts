@@ -589,6 +589,17 @@ export const HisWorkItemSources: {
       columns: [`activityformcode = '6'`, 'state = 1']
     }
   },
+  {
+    id: '公卫数据.健康教育-慢病自我管理小组活动次数',
+    name: '健康教育-慢病自我管理小组活动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '8'`, 'state = 1']
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
