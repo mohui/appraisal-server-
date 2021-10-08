@@ -666,6 +666,17 @@ export const HisWorkItemSources: {
       columns: [`sp.ncmsservicepackageid = '5'`]
     }
   },
+  {
+    id: '公卫数据.家庭医生签约-履约人数',
+    name: '家庭医生签约-履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_check_main',
+      date: 'ExeTime',
+      columns: []
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
