@@ -600,6 +600,61 @@ export const HisWorkItemSources: {
       columns: [`ActivityFormCode = '8'`, 'state = 1']
     }
   },
+  {
+    id: '公卫数据.家庭医生签约-签约基础包人数',
+    name: '家庭医生签约-签约基础包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '1'`, `sp.conceitedmoney = 0`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约初级包人数',
+    name: '家庭医生签约-签约初级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '2'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约中级包人数',
+    name: '家庭医生签约-签约中级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '3'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约高级包人数',
+    name: '家庭医生签约-签约高级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '4'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约复合包人数',
+    name: '家庭医生签约-签约复合包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '5'`]
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
@@ -1458,7 +1513,7 @@ export default class HisWorkItem {
       // language=PostgreSQL
       await appDB.execute(
         `insert into his_work_item_type(id, name, hospital, "order", created_at, updated_at)
-           values (?, ?, ?, ?, ?, ?)`,
+         values (?, ?, ?, ?, ?, ?)`,
         uuid(),
         name,
         hospital,
@@ -1676,10 +1731,10 @@ export default class HisWorkItem {
         // language=PostgreSQL
         await appDB.execute(
           `update his_staff_work_item_mapping
-             set rate       = ?,
-                 remark     = ?,
-                 updated_at = ?
-             where id = ?
+           set rate       = ?,
+               remark     = ?,
+               updated_at = ?
+           where id = ?
           `,
           params?.rate,
           params?.remark,
