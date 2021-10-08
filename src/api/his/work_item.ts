@@ -601,6 +601,17 @@ export const HisWorkItemSources: {
     }
   },
   {
+    id: '公卫数据.健康教育-全面健康生活方式行动次数',
+    name: '健康教育-全面健康生活方式行动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '9'`, 'state = 1']
+    }
+  },
+  {
     id: '公卫数据.家庭医生签约-签约基础包人数',
     name: '家庭医生签约-签约基础包人数',
     parent: '公卫数据',
