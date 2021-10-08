@@ -373,18 +373,17 @@ export async function workPointCalculation(
         `
           SELECT
             1 as value,
-            MAX({{dateCol}}) as date,
-            MAX({{#if scope}}s.OperatorId {{else}} s.OperateOrganization{{/if}}) as hospital
+            {{dateCol}} as date,
+            {{#if scope}}s.OperatorId {{else}} s.OperateOrganization{{/if}} as hospital
           FROM {{table}}
                  INNER JOIN ph_sign_register_package rp ON s.id = rp.register
-                 INNER JOIN ph_sign_package sp ON sp.id = rp.service
+                 INNER JOIN ph_sign_package sp ON sp.id = rp.service --区分服务包类型
           WHERE 1 = 1
             AND {{dateCol}} >= {{? start}}
             AND {{dateCol}} < {{? end}}
             AND s.OperateOrganization = {{? hospital}}
             {{#if scope}}AND s.OperatorId IN ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
             {{#each columns}}AND {{this}}{{/each}}
-          GROUP BY s.PersonNum
         `,
         {
           dateCol: item.datasource.date,
