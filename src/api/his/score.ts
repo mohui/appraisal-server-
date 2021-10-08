@@ -382,7 +382,8 @@ export async function workPointCalculation(
             AND {{dateCol}} >= {{? start}}
             AND {{dateCol}} < {{? end}}
             AND s.OperateOrganization = {{? hospital}}
-            {{#each columns}} and {{this}} {{/each}}
+            {{#if scope}}AND s.OperatorId IN ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+            {{#each columns}}AND {{this}}{{/each}}
           GROUP BY s.PersonNum
         `,
         {
