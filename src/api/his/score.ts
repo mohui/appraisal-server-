@@ -368,7 +368,8 @@ export async function workPointCalculation(
       continue;
     //渲染sql
     let sqlRendResult = [];
-    if (item.id.startsWith('公卫数据.家庭医生签约-')) {
+    //TODO: 特殊处理,日后统一
+    if (item.id.startsWith('公卫数据.家庭医生签约-签约')) {
       sqlRendResult = sqlRender(
         `
           SELECT
