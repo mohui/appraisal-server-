@@ -670,7 +670,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-履约人数',
     name: '家庭医生签约-履约人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_check_main',
       date: 'ExeTime',
