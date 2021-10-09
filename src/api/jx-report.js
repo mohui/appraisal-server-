@@ -1109,8 +1109,4 @@ export default class JxReport {
     const data = await getExponent(code, time);
     return await render(data);
   }
-
-  async test(time, code) {
-    return getExponent(code, time);
-  }
 }
