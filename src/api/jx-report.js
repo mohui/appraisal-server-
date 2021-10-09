@@ -903,7 +903,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow1Obj = {
-        index: dataRow1.length + 1,
+        index: '',
         name: '合计',
         value: dataRow1Value
       };
@@ -927,7 +927,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow2Obj = {
-        index: dataRow2.length + 1,
+        index: '',
         name: '合计',
         value: dataRow2Value
       };
@@ -951,7 +951,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow3Obj = {
-        index: dataRow3.length + 1,
+        index: '',
         name: '合计',
         value: dataRow3Value
       };
@@ -1078,5 +1078,9 @@ export default class JxReport {
   async generate(time, code) {
     const data = await getExponent(code, time);
     return await render(data);
+  }
+
+  async test(time, code) {
+    return getExponent(code, time);
   }
 }
