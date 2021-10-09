@@ -589,6 +589,94 @@ export const HisWorkItemSources: {
       columns: [`activityformcode = '6'`, 'state = 1']
     }
   },
+  {
+    id: '公卫数据.健康教育-慢病自我管理小组活动次数',
+    name: '健康教育-慢病自我管理小组活动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '8'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-全面健康生活方式行动次数',
+    name: '健康教育-全面健康生活方式行动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '9'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约基础包人数',
+    name: '家庭医生签约-签约基础包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '1'`, `sp.conceitedmoney = 0`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约初级包人数',
+    name: '家庭医生签约-签约初级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '2'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约中级包人数',
+    name: '家庭医生签约-签约中级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '3'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约高级包人数',
+    name: '家庭医生签约-签约高级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '4'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约复合包人数',
+    name: '家庭医生签约-签约复合包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_register s',
+      date: 's.SignDate',
+      columns: [`sp.ncmsservicepackageid = '5'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-履约人数',
+    name: '家庭医生签约-履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_check_main',
+      date: 'ExeTime',
+      columns: []
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
