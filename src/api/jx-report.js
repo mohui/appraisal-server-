@@ -992,12 +992,44 @@ async function getExponent(code, time) {
     } else {
       dataTable.push(dataTableObj1, dataTableObj2, dataTableObj3);
     }
-
+    //表格数据重排序
+    const tables = dataTable.map(item => {
+      item.rows = item.rows
+        //排序
+        .sort((a, b) => {
+          //index为false的是合计行, 排最后
+          if (!a.index) {
+            return 1;
+          } else if (!b.index) {
+            return -1;
+          } else if (a.is_rate) {
+            //XX率的排序
+            if (a.basic && b.basic) {
+              return b.value / b.basic - a.value / a.basic;
+            } else if (!a.basic) {
+              return 1;
+            } else if (!b.basic) {
+              return -1;
+            }
+          } else if (a.is_num) {
+            //XX值的排序
+            return b.value - a.value;
+          } else {
+            return 0;
+          }
+        })
+        //序号重新赋值
+        .map((row, index) => ({
+          ...row,
+          index: row.index ? index + 1 : row.index
+        }));
+      return item;
+    });
     //
     dataList.push({
       title: `${title.areaName}${title.dateLabel}${MarkTagUsages[markItem].name}`,
       name: `${MarkTagUsages[markItem].name}`,
-      tables: dataTable
+      tables: tables
     });
   }
 
