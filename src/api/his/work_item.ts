@@ -615,7 +615,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-签约基础包人数',
     name: '家庭医生签约-签约基础包人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_register s',
       date: 's.SignDate',
@@ -626,7 +626,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-签约初级包人数',
     name: '家庭医生签约-签约初级包人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_register s',
       date: 's.SignDate',
@@ -637,7 +637,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-签约中级包人数',
     name: '家庭医生签约-签约中级包人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_register s',
       date: 's.SignDate',
@@ -648,7 +648,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-签约高级包人数',
     name: '家庭医生签约-签约高级包人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_register s',
       date: 's.SignDate',
@@ -659,7 +659,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.家庭医生签约-签约复合包人数',
     name: '家庭医生签约-签约复合包人数',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
       table: 'ph_sign_register s',
       date: 's.SignDate',
