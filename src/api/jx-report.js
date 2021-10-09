@@ -487,7 +487,7 @@ async function getExponent(code, time) {
               name: `${hospital?.name}`,
               value: hospitalMark?.D00,
               basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}%`
+              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
             });
           } else {
             // 表三: 卫生站/卫生室
@@ -903,7 +903,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow1Obj = {
-        index: dataRow1.length + 1,
+        index: '',
         name: '合计',
         value: dataRow1Value
       };
@@ -927,7 +927,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow2Obj = {
-        index: dataRow2.length + 1,
+        index: '',
         name: '合计',
         value: dataRow2Value
       };
@@ -951,7 +951,7 @@ async function getExponent(code, time) {
         0
       );
       let dataRow3Obj = {
-        index: dataRow3.length + 1,
+        index: '',
         name: '合计',
         value: dataRow3Value
       };
@@ -992,12 +992,42 @@ async function getExponent(code, time) {
     } else {
       dataTable.push(dataTableObj1, dataTableObj2, dataTableObj3);
     }
-
+    //表格数据重排序
+    const tables = dataTable.map(item => {
+      item.rows = item.rows
+        //排序
+        .sort((a, b) => {
+          //index为false的是合计行, 排最后
+          if (!a.index) {
+            return 1;
+          } else if (!b.index) {
+            return -1;
+          } else if (a.rate) {
+            //XX率的排序
+            if (a.basic && b.basic) {
+              return b.value / b.basic - a.value / a.basic;
+            } else if (!a.basic) {
+              return 1;
+            } else if (!b.basic) {
+              return -1;
+            }
+          } else {
+            //XX值的排序
+            return b.value - a.value;
+          }
+        })
+        //序号重新赋值
+        .map((row, index) => ({
+          ...row,
+          index: row.index ? index + 1 : row.index
+        }));
+      return item;
+    });
     //
     dataList.push({
       title: `${title.areaName}${title.dateLabel}${MarkTagUsages[markItem].name}`,
       name: `${MarkTagUsages[markItem].name}`,
-      tables: dataTable
+      tables: tables
     });
   }
 
