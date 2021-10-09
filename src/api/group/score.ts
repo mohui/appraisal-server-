@@ -92,6 +92,8 @@ export async function getMarks(
   CH01: number;
   CO00: number;
   CO01: number;
+  MCH00: number;
+  MCH01: number;
 }> {
   const leaves = await getLeaves(group);
   const viewHospitals = await getOriginalArray(leaves.map(it => it.code));
@@ -152,7 +154,9 @@ export async function getMarks(
       CH00: 0,
       CH01: 0,
       CO00: 0,
-      CO01: 0
+      CO01: 0,
+      MCH00: 0,
+      MCH01: 0
     }
   );
   return {...obj, id: group};
@@ -1132,6 +1136,40 @@ export default class Score {
                   mark?.CH01
                 ) {
                   const rate = mark.CH01 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 早孕建册率
+              if (tagModel.tag === MarkTagUsages.MCH01.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.MCH01.name
+                  } = 辖区内孕13周之前建册并进行第1次产前检查的产妇人数 / 该地该时间内活产数 = ${
+                    mark?.MCH01
+                  } / ${mark?.MCH00} = ${percentString(
+                    mark?.MCH01,
+                    mark?.MCH00
+                  )}`
+                );
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.MCH01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.MCH01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.MCH01 &&
+                  mark?.MCH00
+                ) {
+                  const rate = mark.MCH01 / mark.MCH00 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
