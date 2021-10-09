@@ -1002,7 +1002,7 @@ async function getExponent(code, time) {
             return 1;
           } else if (!b.index) {
             return -1;
-          } else if (a.is_rate) {
+          } else if (a.rate) {
             //XX率的排序
             if (a.basic && b.basic) {
               return b.value / b.basic - a.value / a.basic;
@@ -1011,11 +1011,9 @@ async function getExponent(code, time) {
             } else if (!b.basic) {
               return -1;
             }
-          } else if (a.is_num) {
+          } else {
             //XX值的排序
             return b.value - a.value;
-          } else {
-            return 0;
           }
         })
         //序号重新赋值
