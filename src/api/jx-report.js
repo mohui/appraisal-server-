@@ -487,7 +487,7 @@ async function getExponent(code, time) {
               name: `${hospital?.name}`,
               value: hospitalMark?.D00,
               basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}%`
+              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
             });
           } else {
             // 表三: 卫生站/卫生室
