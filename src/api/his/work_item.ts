@@ -1535,7 +1535,7 @@ export default class HisWorkItem {
       // language=PostgreSQL
       await appDB.execute(
         `insert into his_work_item_type(id, name, hospital, "order", created_at, updated_at)
-         values (?, ?, ?, ?, ?, ?)`,
+           values (?, ?, ?, ?, ?, ?)`,
         uuid(),
         name,
         hospital,
@@ -1753,10 +1753,10 @@ export default class HisWorkItem {
         // language=PostgreSQL
         await appDB.execute(
           `update his_staff_work_item_mapping
-           set rate       = ?,
-               remark     = ?,
-               updated_at = ?
-           where id = ?
+             set rate       = ?,
+                 remark     = ?,
+                 updated_at = ?
+             where id = ?
           `,
           params?.rate,
           params?.remark,
