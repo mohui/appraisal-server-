@@ -229,10 +229,11 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffList = await appDB.execute(
         `
-            select staff, name
-                from staff
-            where staff is not null
-              and id in (${staffIds.map(() => '?')})`,
+          select staff, name
+          from staff
+          where staff is not null
+            and id in (${staffIds.map(() => '?')})
+        `,
         ...staffIds
       );
       doctorIds = staffList.map(it => it.staff);
@@ -244,24 +245,46 @@ export async function workPointCalculation(
   let phStaff;
   let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
-    // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
-    const phStaffModels = await appDB.execute(
-      `
-            select ph_staff
-                from staff
-            where ph_staff is not null
-              and id in (${staffIds.map(() => '?')})`,
-      ...staffIds
-    );
-    phStaff = phStaffModels.map(it => it.ph_staff);
-    if (phStaff.length > 0) {
-      // 查询这些公卫员工的名称
+    // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联公卫员工的员工
+    if (
+      staffMethod === HisStaffMethod.DYNAMIC &&
+      scope === HisStaffDeptType.HOSPITAL
+    ) {
       // language=PostgreSQL
       phUserList = await originalDB.execute(
-        `select id, name username from ph_user
-             where id in (${phStaff.map(() => '?')})`,
-        ...phStaff
+        `
+          select id, name username
+          from ph_user
+          where hospital = ?
+        `,
+        staffModel.hospital
       );
+      phStaff = phUserList.map(it => it.id);
+    } else {
+      // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
+      const phStaffModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select ph_staff
+          from staff
+          where ph_staff is not null
+              and id in (${staffIds.map(() => '?')})
+        `,
+        ...staffIds
+      );
+      phStaff = phStaffModels.map(it => it.ph_staff);
+      if (phStaff.length > 0) {
+        // 查询这些公卫员工的名称
+        // language=PostgreSQL
+        phUserList = await originalDB.execute(
+          `
+            select id, name username
+            from ph_user
+            where id in (${phStaff.map(() => '?')})
+          `,
+          ...phStaff
+        );
+      }
     }
   }
   // endregion
