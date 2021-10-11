@@ -466,8 +466,8 @@ export const MarkTags = [
           },
           {
             name: '产后访视率',
-            code: 'M02',
-            enabled: false
+            code: 'MCH02',
+            enabled: true
           }
         ]
       },
@@ -838,6 +838,10 @@ export const MarkTagUsages = {
   MCH01: {
     name: '早孕建册率',
     code: 'MCH01'
+  },
+  MCH02: {
+    name: '产后访视率',
+    code: 'MCH02'
   }
 };
 
