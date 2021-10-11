@@ -251,9 +251,11 @@ export async function workPointCalculation(
     ) {
       // language=PostgreSQL
       phUserList = await originalDB.execute(
-        `select id, name username
-           from ph_user
-           where hospital = ?`,
+        `
+          select id, name username
+          from ph_user
+          where hospital = ?
+        `,
         staffModel.hospital
       );
       phStaff = phUserList.map(it => it.id);
