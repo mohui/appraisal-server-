@@ -229,10 +229,11 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffList = await appDB.execute(
         `
-            select staff, name
-                from staff
-            where staff is not null
-              and id in (${staffIds.map(() => '?')})`,
+          select staff, name
+          from staff
+          where staff is not null
+            and id in (${staffIds.map(() => '?')})
+        `,
         ...staffIds
       );
       doctorIds = staffList.map(it => it.staff);
@@ -264,10 +265,11 @@ export async function workPointCalculation(
       const phStaffModels = await appDB.execute(
         // language=PostgreSQL
         `
-            select ph_staff
-                from staff
-            where ph_staff is not null
-              and id in (${staffIds.map(() => '?')})`,
+          select ph_staff
+          from staff
+          where ph_staff is not null
+              and id in (${staffIds.map(() => '?')})
+        `,
         ...staffIds
       );
       phStaff = phStaffModels.map(it => it.ph_staff);
@@ -275,8 +277,11 @@ export async function workPointCalculation(
         // 查询这些公卫员工的名称
         // language=PostgreSQL
         phUserList = await originalDB.execute(
-          `select id, name username from ph_user
-             where id in (${phStaff.map(() => '?')})`,
+          `
+            select id, name username
+            from ph_user
+            where id in (${phStaff.map(() => '?')})
+          `,
           ...phStaff
         );
       }
