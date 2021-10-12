@@ -400,8 +400,8 @@ export async function workPointCalculation(
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
             and main.OperateOrganization = {{? hospital}}
-            {{#if scope}} and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}}) {{/if}}
-            {{#each columns}} and {{this}} {{/each}}
+            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#each columns}}and {{this}} {{/each}}
           `,
       {
         dateCol: item.datasource.date,
