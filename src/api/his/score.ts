@@ -394,7 +394,7 @@ export async function workPointCalculation(
       `
           select 1 as value,
             {{dateCol}} as date,
-            {{#if scope}} operatorid {{else}} OperateOrganization {{/if}} as hospital
+            {{#if scope}} main.operatorid {{else}} main.OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
