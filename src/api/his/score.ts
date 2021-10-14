@@ -390,68 +390,30 @@ export async function workPointCalculation(
     if (param.scope === HisStaffDeptType.Staff && phStaff.length === 0)
       continue;
     //渲染sql
-    let sqlRendResult = [];
-    //TODO: 特殊处理,日后统一
-    if (item.id.startsWith('公卫数据.家庭医生签约-签约')) {
-      sqlRendResult = sqlRender(
-        `
-          SELECT
-            1 as value,
+    const sqlRendResult = sqlRender(
+      `
+          select 1 as value,
             {{dateCol}} as date,
-            {{#if scope}}s.OperatorId {{else}} s.OperateOrganization{{/if}} as hospital
-          FROM {{table}}
-                 INNER JOIN ph_sign_register_package rp ON s.id = rp.register
-                 INNER JOIN ph_sign_package sp ON sp.id = rp.service --区分服务包类型
-          WHERE 1 = 1
-            AND {{dateCol}} >= {{? start}}
-            AND {{dateCol}} < {{? end}}
-            AND s.OperateOrganization = {{? hospital}}
-            {{#if scope}}AND s.OperatorId IN ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
-            {{#each columns}}AND {{this}}{{/each}}
-        `,
-        {
-          dateCol: item.datasource.date,
-          hospital: staffModel.hospital,
-          table: item.datasource.table,
-          columns: item.datasource.columns,
-          scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
-          phStaff: phStaff,
-          start,
-          end
-        }
-      );
-    } else {
-      sqlRendResult = sqlRender(
-        `
-          select 1 as value
-            , {{dateCol}} as date
-            {{#if scope}}
-            , operatorid as hospital
-            {{else}}
-            , OperateOrganization as hospital
-            {{/if}}
+            {{#if scope}} operatorid {{else}} OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
-            and OperateOrganization = {{? hospital}}
-            {{#if scope}}
-              and operatorid in ({{#each phStaff}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-            {{/if}}
-          {{#each columns}} and {{this}} {{/each}}
+            and main.OperateOrganization = {{? hospital}}
+            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#each columns}}and {{this}} {{/each}}
           `,
-        {
-          dateCol: item.datasource.date,
-          hospital: staffModel.hospital,
-          table: item.datasource.table,
-          columns: item.datasource.columns,
-          scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
-          phStaff: phStaff,
-          start,
-          end
-        }
-      );
-    }
+      {
+        dateCol: item.datasource.date,
+        hospital: staffModel.hospital,
+        table: item.datasource.table,
+        columns: item.datasource.columns,
+        scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
+        phStaff: phStaff,
+        start,
+        end
+      }
+    );
 
     const rows: {
       date: Date;
