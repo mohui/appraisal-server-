@@ -725,6 +725,20 @@ export const HisWorkItemSources: {
       ]
     }
   },
+  {
+    id: '公卫数据.儿童保健服务-42天访视',
+    name: '儿童保健服务-42天访视',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'mch_new_born_visit main',
+      date: 'VisitDate',
+      columns: [
+        `date_part( 'day', VisitDate - NewbornBirthDay) > 31`,
+        `date_part( 'day', VisitDate - NewbornBirthDay) < 43`
+      ]
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
