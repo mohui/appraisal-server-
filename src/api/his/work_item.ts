@@ -715,7 +715,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.儿童保健服务-满月访视',
     name: '儿童保健服务-满月访视',
     parent: '公卫数据',
-    scope: HisStaffDeptType.Staff,
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'mch_new_born_visit main',
       date: 'VisitDate',
@@ -729,7 +729,7 @@ export const HisWorkItemSources: {
     id: '公卫数据.儿童保健服务-42天访视',
     name: '儿童保健服务-42天访视',
     parent: '公卫数据',
-    scope: HisStaffDeptType.Staff,
+    scope: HisStaffDeptType.HOSPITAL,
     datasource: {
       table: 'mch_new_born_visit main',
       date: 'VisitDate',
