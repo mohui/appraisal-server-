@@ -697,6 +697,20 @@ export const HisWorkItemSources: {
       columns: []
     }
   },
+  {
+    id: '公卫数据.老年人管理-老年人体检人数',
+    name: '老年人管理-老年人体检人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 2 = 2`]
+    }
+  },
   // 9-26新增issues258指标
   {
     id: '公卫数据.孕产妇管理服务-早孕建册人数',
