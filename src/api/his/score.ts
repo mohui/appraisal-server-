@@ -292,14 +292,12 @@ export async function workPointCalculation(
   // 工分流水
   let workItems = [];
   //计算工分
-  //region 计算CHECK和DRUG工分来源
-  for (const param of bindings.filter(
-    it => it.source.startsWith('门诊') || it.source.startsWith('住院')
-  )) {
+  //region 计算门诊CHECK和DRUG工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('门诊'))) {
     //region 处理人员条件条件
     let doctorCondition = '1 = 0';
     if (doctorIds.length > 0) {
-      doctorCondition = `doctor in (${doctorIds.map(() => '?').join()})`;
+      doctorCondition = `detail.doctor in (${doctorIds.map(() => '?').join()})`;
     }
     //endregion
     //查询his的收费项目
@@ -314,20 +312,67 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select total_price as value,
-                 operate_time as date,
-                 item "itemId",
-                 item_name "itemName",
-                 doctor "staffId",
+          select detail.total_price as value,
+                 detail.operate_time as date,
+                 detail.item "itemId",
+                 detail.item_name "itemName",
+                 detail.doctor "staffId",
                  staff.name as "staffName",
                  '${PreviewType.HIS_STAFF}' as type
           from his_charge_detail detail
           inner join his_staff staff on detail.doctor = staff.id
-          where operate_time > ?
-            and operate_time < ?
-            and (item like ? or item = ?)
+          where detail.operate_time > ?
+            and detail.operate_time < ?
+            and (detail.item like ? or detail.item = ?)
             and ${doctorCondition}
-          order by operate_time
+          order by detail.operate_time
+        `,
+      start,
+      end,
+      `${param.source}.%`,
+      param.source,
+      ...doctorIds
+    );
+    //his收费项目流水转换成工分流水
+    workItems = workItems.concat(rows);
+  }
+  //endregion
+  //region 计算住院CHECK和DRUG工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('住院'))) {
+    //region 处理人员条件条件
+    let doctorCondition = '1 = 0';
+    if (doctorIds.length > 0) {
+      doctorCondition = `detail.doctor in (${doctorIds.map(() => '?').join()})`;
+    }
+    //endregion
+    //查询his的收费项目
+    const rows: {
+      value: string;
+      date: Date;
+      staffId: string;
+      staffName: string;
+      itemId: string;
+      itemName: string;
+      type: string;
+    }[] = await originalDB.execute(
+      // language=PostgreSQL
+      `
+          select detail.total_price as value,
+                 detail.operate_time as date,
+                 detail.item "itemId",
+                 detail.item_name "itemName",
+                 detail.doctor "staffId",
+                 staff.name as "staffName",
+                 '${PreviewType.HIS_STAFF}' as type
+          from his_charge_detail detail
+              inner join his_charge_master master on detail.main = master.id
+              inner join his_inpatient inpatient on master.treat = inpatient.id
+              inner join his_staff staff on detail.doctor = staff.id
+          where inpatient.out_date > ?
+            and inpatient.out_date < ?
+            and (detail.item like ? or detail.item = ?)
+            and ${doctorCondition}
+          order by detail.operate_time
         `,
       start,
       end,
