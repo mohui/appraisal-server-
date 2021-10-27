@@ -340,8 +340,8 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col span="24">
-            <el-form-item>
+          <el-col :span="24">
+            <el-form-item style="margin-top: 10px">
               <el-switch
                 v-model="userForm.isAllDoctor"
                 inactive-text="是否为全科医师"
