@@ -77,7 +77,7 @@
                   <span style="font-size: 16px">{{ i.unit }}</span>
                 </div>
                 <div class="icon-box">
-                  <i class="el-icon-s-platform icon" />
+                  <img style="width: 40px; height: 40px" :src="i.img" />
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ export default {
                   : this.staffSeverData
                 ).toFixed(2)
               ),
-
+              img: require('../../../assets/numberPeople.png').default,
               isLoading: this.$asyncComputed.oldSeverData.updating
             },
             {
@@ -420,6 +420,7 @@ export default {
                   : this.moneySeverData
                 ).toFixed(2)
               ),
+              img: require('../../../assets/medicalIncome.png').default,
               isLoading: this.$asyncComputed.moneySeverData.updating
             },
             {
@@ -431,6 +432,7 @@ export default {
                   : this.visitsSeverData
                 ).toFixed(2)
               ),
+              img: require('../../../assets/month.png').default,
               isLoading: this.$asyncComputed.visitsSeverData.updating
             },
             {
@@ -442,7 +444,7 @@ export default {
                   : this.doctorDailyVisitsSeverData
                 ).toFixed(2)
               ),
-
+              img: require('../../../assets/averageDaily.png').default,
               isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
             }
           ]
@@ -460,6 +462,7 @@ export default {
                   : this.personSeverData
                 ).toFixed(2)
               ),
+              img: require('../../../assets/archives.png').default,
               isLoading: this.$asyncComputed.personSeverData.updating
             },
             {
@@ -471,24 +474,28 @@ export default {
                   : this.chronicSeverData
                 ).toFixed(2)
               ),
+              img: require('../../../assets/slowDisease.png').default,
               isLoading: this.$asyncComputed.chronicSeverData.updating
             },
             {
               name: '高血压规范管理率',
               number: Number((this.htnSeverData * 100).toFixed(2)),
               unit: '%',
+              img: require('../../../assets/hypertension.png').default,
               isLoading: this.$asyncComputed.htnSeverData.updating
             },
             {
               name: '糖尿病规范管理率',
               number: Number((this.t2dmSeverData * 100).toFixed(2)),
               unit: '%',
+              img: require('../../../assets/diabetes.png').default,
               isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
             {
               name: '老年人管理率',
               number: Number((this.oldSeverData * 100).toFixed(2)),
               unit: '%',
+              img: require('../../../assets/elderly.png').default,
               isLoading: this.$asyncComputed.oldSeverData.updating
             }
           ]
