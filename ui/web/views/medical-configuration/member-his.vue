@@ -173,86 +173,250 @@
       :visible.sync="dialogFormAddUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
-      <el-form ref="userFormAdd" :model="userForm" :rules="rulesAdd">
-        <el-form-item
-          label="登录名"
-          prop="account"
-          :label-width="formLabelWidth"
-        >
-          <el-input v-model="userForm.account" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-          :label-width="formLabelWidth"
-        >
-          <el-input v-model="userForm.password" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
-          <el-input
-            v-model="userForm.remark"
-            type="textarea"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item
-          label="科室"
-          prop="department"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="userForm.department"
-            style="width:100%"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in departmentList"
-              :key="h.id"
-              :label="h.name"
-              :value="h.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select
-            v-model="userForm.his"
-            style="width:100%"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in hisList"
-              :key="h.id"
-              :label="h.name"
-              :value="h.id"
-              :disabled="!h.usable"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="公卫用户"
-          prop="phStaff"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="userForm.phStaff"
-            style="width:100%"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in phStaffList"
-              :key="h.id"
-              :label="h.username"
-              :value="h.id"
-              :disabled="!h.usable"
-            ></el-option>
-          </el-select>
-        </el-form-item>
+      <el-form
+        class="staff-form"
+        ref="userFormAdd"
+        :model="userForm"
+        :rules="rulesAdd"
+        label-position="top"
+      >
+        <el-row>
+          <el-col :span="24">
+            <el-form-item
+              ><span style="font-weight: bold">账户信息</span></el-form-item
+            >
+          </el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="登录名"
+              prop="account"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.account"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="密码"
+              prop="password"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.password"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              ><span style="font-weight: bold">个人信息</span></el-form-item
+            >
+          </el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              :label-width="formLabelWidth"
+              label="姓名"
+              prop="name"
+            >
+              <el-input
+                v-model="userForm.name"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="4" :xs="12" :sm="4" :md="4" :lg="4" :xl="4">
+            <el-form-item label="性别" prop="" :label-width="formLabelWidth">
+              <el-select
+                v-model="userForm.gender"
+                placeholder="请选择"
+                size="mini"
+              >
+                <el-option label="男" value="'man'" />
+                <el-option label="女" value="'human'" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
+            <el-form-item label="联系电话" :label-width="formLabelWidth">
+              <el-input
+                v-model="userForm.phone"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              ><span style="font-weight: bold">职业信息</span></el-form-item
+            >
+          </el-col>
+          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+            <el-form-item
+              label="专业类别"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+            <el-form-item
+              label="职称名称"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+            <el-form-item
+              label="学历"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+            <el-form-item
+              label="科室"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col span="24">
+            <el-form-item>
+              <el-switch
+                v-model="userForm.isAllDoctor"
+                inactive-text="是否为全科医师"
+                size="mini"
+              >
+              </el-switch>
+              <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
+            </el-form-item>
+          </el-col>
+          <el-col>
+            <el-divider></el-divider>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              ><span style="font-weight: bold">账户关联</span></el-form-item
+            >
+          </el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="his用户"
+              prop="his"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.his"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in hisList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                  :disabled="!h.usable"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="公卫用户"
+              prop="phStaff"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.phStaff"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in phStaffList"
+                  :key="h.id"
+                  :label="h.username"
+                  :value="h.id"
+                  :disabled="!h.usable"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="备注"
+              prop="remark"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.remark"
+                type="textarea"
+                autocomplete="off"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
@@ -418,6 +582,9 @@ export default {
         account: '',
         password: '',
         name: '',
+        gender: '',
+        phone: '',
+        isAllDoctor: false,
         his: '',
         phStaff: '',
         remark: null,
@@ -761,10 +928,23 @@ export default {
     background: #f8f8ff;
   }
 }
+
+.staff-form {
+  .el-col {
+    padding: 0 8px;
+  }
+  .el-form-item {
+    margin-bottom: 0;
+  }
+}
 </style>
 <style scoped>
 .no-department-cell {
   text-align: center;
   width: 100%;
+}
+::v-deep .el-form-item__label {
+  margin-bottom: -10px;
+  padding: 0;
 }
 </style>
