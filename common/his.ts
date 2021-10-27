@@ -79,6 +79,16 @@ export enum PreviewType {
   HOSPITAL = '系统机构'
 }
 
+/**
+ * 学历
+ */
+export enum Education {
+  COLLEGE = '专科及以下',
+  BACHELOR = '本科',
+  MASTER = '硕士',
+  DOCTOR = '博士'
+}
+
 //region 指标相关
 /**
  * 指标
