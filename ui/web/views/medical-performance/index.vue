@@ -205,9 +205,9 @@
             <div class="content" v-hidden-scroll>
               <div class="square">
                 <div class="square-inner grid">
-                  <div v-for="i of workbenchImgSrc" :key="i">
+                  <div v-for="i of 8" :key="i">
                     <div class="item">
-                      <img style="width: 75%; height: 75%" :src="i" />
+                      <div class="el-icon-s-tools icon"></div>
                     </div>
                   </div>
                 </div>
@@ -346,18 +346,7 @@ export default {
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
       medicalIndicatorsIsOpen: false,
-      publicIndicatorsIsOpen: false,
-      workbenchImgSrc: {
-        archives: require('../../../assets/archives.png').default,
-        hypertension: require('../../../assets/hypertension.png').default,
-        averageDaily: require('../../../assets/averageDaily.png').default,
-        elderly: require('../../../assets/elderly.png').default,
-        medicalIncome: require('../../../assets/medicalIncome.png').default,
-        month: require('../../../assets/month.png').default,
-        numberPeople: require('../../../assets/numberPeople.png').default,
-        slowDisease: require('../../../assets/slowDisease.png').default,
-        diabetes: require('../../../assets/diabetes.png').default
-      }
+      publicIndicatorsIsOpen: false
     };
   },
   directives: {
