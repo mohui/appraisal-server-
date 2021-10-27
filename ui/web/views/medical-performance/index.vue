@@ -77,7 +77,7 @@
                   <span style="font-size: 16px">{{ i.unit }}</span>
                 </div>
                 <div class="icon-box">
-                  <img style="width: 40px; height: 40px" :src="i.img" />
+                  <img class="icon" :src="i.img" />
                 </div>
               </div>
             </div>
@@ -997,10 +997,10 @@ export default {
           font-size: 28px;
         }
         .icon-box {
-          margin: 0 40px 30px 0;
+          margin: 0 40px 20px 0;
           .icon {
-            font-size: 36px;
-            color: #71a0fd;
+            width: 50px;
+            height: 50px;
           }
         }
       }
