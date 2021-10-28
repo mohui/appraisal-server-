@@ -79,6 +79,7 @@ export enum PreviewType {
   HOSPITAL = '系统机构'
 }
 
+//region 用户信息
 /**
  * 学历
  */
@@ -95,11 +96,43 @@ export enum Education {
 export const Gender = ['男', '女', '未说明的性别', '未知的性别'];
 
 /**
+ * 职称 类型
+ */
+export enum MajorType {
+  PHYSICIAN = '医师',
+  NURSE = '护士'
+}
+
+/**
+ * 医生类型
+ */
+export enum DoctorType {
+  TCM = '中医'
+}
+
+/**
+ * 是否是卫生技术人员
+ */
+export enum MajorHealthType {
+  healthWorkers = '卫生技术人员'
+}
+
+/**
+ * 高级职称
+ */
+
+export enum HighTitle {
+  highTitle = '高级职称'
+}
+
+/**
  * 职业信息 的 专业类别,职称名称
  */
 export const Occupation = [
   {
     name: '临床（西医）医生',
+    majorType: MajorType.PHYSICIAN,
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '助理医师'
@@ -111,15 +144,19 @@ export const Occupation = [
         name: '主治（主管）医师'
       },
       {
-        name: '副主任医师'
+        name: '副主任医师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任医师'
+        name: '主任医师',
+        level: HighTitle.highTitle
       }
     ]
   },
   {
     name: '公共卫生医生',
+    majorType: MajorType.PHYSICIAN,
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '助理医师'
@@ -131,15 +168,20 @@ export const Occupation = [
         name: '主治（主管）医师'
       },
       {
-        name: '副主任医师'
+        name: '副主任医师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任医师'
+        name: '主任医师',
+        level: HighTitle.highTitle
       }
     ]
   },
   {
     name: '临床（中医）医生',
+    majorType: MajorType.PHYSICIAN,
+    doctorType: DoctorType.TCM,
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '助理医师'
@@ -160,6 +202,7 @@ export const Occupation = [
   },
   {
     name: '药学人员',
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '药士'
@@ -171,15 +214,19 @@ export const Occupation = [
         name: '主管药师'
       },
       {
-        name: '副主任药师'
+        name: '副主任药师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任药师'
+        name: '主任药师',
+        level: HighTitle.highTitle
       }
     ]
   },
   {
     name: '护理人员',
+    majorType: MajorType.NURSE,
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '护士'
@@ -191,15 +238,18 @@ export const Occupation = [
         name: '主管护师'
       },
       {
-        name: '副主任护师'
+        name: '副主任护师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任护师'
+        name: '主任护师',
+        level: HighTitle.highTitle
       }
     ]
   },
   {
     name: '技术人员',
+    majorHealthType: MajorHealthType.healthWorkers,
     children: [
       {
         name: '技士'
@@ -211,10 +261,12 @@ export const Occupation = [
         name: '主管技师'
       },
       {
-        name: '副主任技师'
+        name: '副主任技师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任技师'
+        name: '主任技师',
+        level: HighTitle.highTitle
       }
     ]
   },
@@ -228,14 +280,17 @@ export const Occupation = [
         name: '后勤人员'
       },
       {
-        name: '中心主任'
+        name: '中心主任',
+        level: HighTitle.highTitle
       },
       {
-        name: '中心副主任'
+        name: '中心副主任',
+        level: HighTitle.highTitle
       }
     ]
   }
 ];
+//endregion
 
 //region 指标相关
 /**
