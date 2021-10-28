@@ -22,8 +22,9 @@
         </el-button>
       </div>
       <div
-        v-loading="isLoading"
         v-show="!isError"
+        v-loading="isLoading"
+        v-hidden-scroll
         style="flex-grow: 1;height: 0; overflow-y: auto;"
       >
         <div class="record-head">

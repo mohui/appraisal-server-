@@ -21,7 +21,7 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div v-hidden-scroll style="flex-grow: 1;height: 0; overflow-y: auto;">
         <div class="record-head">
           <div style="float: right;">
             编号：{{ detailDate.prenatalcarecode }}
