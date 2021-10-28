@@ -231,14 +231,24 @@
             </el-form-item>
           </el-col>
           <el-col :span="4" :xs="12" :sm="4" :md="4" :lg="4" :xl="4">
-            <el-form-item label="性别" prop="" :label-width="formLabelWidth">
+            <el-form-item
+              required
+              label="性别"
+              prop="gender"
+              :label-width="formLabelWidth"
+            >
               <el-select
                 v-model="userForm.gender"
                 placeholder="请选择"
+                clearable
                 size="mini"
               >
-                <el-option label="男" value="'man'" />
-                <el-option label="女" value="'human'" />
+                <el-option
+                  v-for="g in genders"
+                  :key="g"
+                  :value="g"
+                  :label="g"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -258,64 +268,69 @@
           </el-col>
           <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
             <el-form-item
+              required
               label="专业类别"
-              prop="department"
+              prop="occupation"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.department"
+                v-model="userForm.occupation"
                 style="width:100%"
                 clearable
                 filterable
                 size="mini"
+                @change="occupationsChange"
               >
                 <el-option
-                  v-for="h in departmentList"
-                  :key="h.id"
+                  v-for="h in occupations"
+                  :key="h.name"
                   :label="h.name"
-                  :value="h.id"
+                  :value="h.name"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
           <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
             <el-form-item
+              required
               label="职称名称"
-              prop="department"
+              prop="professional"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.department"
+                ref="professionalSelector"
+                v-model="userForm.professional"
                 style="width:100%"
                 clearable
                 filterable
                 size="mini"
               >
                 <el-option
-                  v-for="h in departmentList"
-                  :key="h.id"
-                  :label="h.name"
-                  :value="h.id"
+                  v-for="p in professionals"
+                  :key="p.name"
+                  :label="p.name"
+                  :value="p.name"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
           <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
             <el-form-item
+              required
               label="学历"
-              prop="department"
+              prop="education"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.department"
+                v-model="userForm.education"
                 style="width:100%"
                 clearable
                 filterable
                 size="mini"
               >
                 <el-option
-                  v-for="h in departmentList"
-                  :key="h.id"
-                  :label="h.name"
-                  :value="h.id"
+                  v-for="e in educations"
+                  :key="e"
+                  :label="e"
+                  :value="e"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
@@ -567,6 +582,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+import {Gender, Occupation, Education} from '../../../../common/his.ts';
 
 export default {
   name: 'User',
@@ -575,6 +591,9 @@ export default {
       isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
       permission: Permission,
+      educations: Education,
+      genders: Gender,
+      occupations: Occupation,
       dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
       formLabelWidth: '100px',
@@ -587,6 +606,9 @@ export default {
         isAllDoctor: false,
         his: '',
         phStaff: '',
+        education: '',
+        occupation: '',
+        professional: '',
         remark: null,
         department: null
       },
@@ -599,7 +621,14 @@ export default {
       rulesAdd: {
         account: [{required: true, message: '请输入登录名', trigger: 'blur'}],
         name: [{required: true, message: '请输入姓名', trigger: 'blur'}],
-        password: [{required: true, message: '请输入密码', trigger: 'blur'}]
+        password: [{required: true, message: '请输入密码', trigger: 'blur'}],
+        occupation: [
+          {required: true, message: '请选择专业类别', trigger: 'change'}
+        ],
+        gender: [{required: true, message: '请选择性别', trigger: 'change'}],
+        professional: [
+          {required: true, message: '请选择职称名称', trigger: 'change'}
+        ]
       },
       rulesEdit: {
         name: [{required: true, message: '请输入姓名', trigger: 'blur'}]
@@ -664,6 +693,14 @@ export default {
         ...it,
         username: `${it.username}${it.states ? '' : ' (禁用)'}`
       }));
+    },
+    //职称名称
+    professionals() {
+      const occ = this.occupations.find(
+        oc => oc.name === this.userForm.occupation
+      );
+      if (occ) return occ.children;
+      return [];
     }
   },
   watch: {
@@ -734,6 +771,13 @@ export default {
     }
   },
   methods: {
+    occupationsChange() {
+      const professionalSelector = this.$refs.professionalSelector;
+      professionalSelector.$emit('input', '');
+      professionalSelector.emitChange('');
+      professionalSelector.visible = false;
+      professionalSelector.$emit('clear');
+    },
     isShowPwd() {
       this.inputType = this.inputType === 'password' ? '' : 'password';
     },
