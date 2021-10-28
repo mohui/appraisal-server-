@@ -3,14 +3,7 @@
     <el-row :gutter="10" style="height: 100%;">
       <el-col :span="6" :xs="24">
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
-        <el-alert
-          title="注意: 档案内容为最近一次同步数据, 与年度无关!"
-          type="error"
-          center
-          :closable="false"
-          show-icon
-        >
-        </el-alert>
+        <el-button type="primary" @click="$router.go(-1)">返回 </el-button>
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
@@ -21,18 +14,8 @@
             height: 'calc(100% - 40px)',
             padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
-          ><el-button
-            style="position: absolute;top:15px;right:30px;z-index: 9;"
-            size="small"
-            type="primary"
-            @click="$router.go(-1)"
-            >返回
-          </el-button>
-          <el-tabs
-            v-model="activeTab"
-            class="patient-tab-list"
-            :style="{width: $settings.isMobile ? '100%' : 'calc(100% - 70px)'}"
-          >
+        >
+          <el-tabs v-model="activeTab" class="patient-tab-list">
             <el-tab-pane
               label="个人基本信息表"
               name="personal"
