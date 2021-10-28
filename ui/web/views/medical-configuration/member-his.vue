@@ -271,19 +271,19 @@
             <el-form-item
               required
               label="专业类别"
-              prop="occupation"
+              prop="major"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.occupation"
+                v-model="userForm.major"
                 style="width:100%"
                 clearable
                 filterable
                 size="mini"
-                @change="occupationsChange"
+                @change="majorsChange"
               >
                 <el-option
-                  v-for="h in occupations"
+                  v-for="h in majors"
                   :key="h.name"
                   :label="h.name"
                   :value="h.name"
@@ -294,19 +294,19 @@
             <el-form-item
               required
               label="职称名称"
-              prop="professional"
+              prop="title"
               :label-width="formLabelWidth"
             >
               <el-select
-                ref="professionalSelector"
-                v-model="userForm.professional"
+                ref="titleSelector"
+                v-model="userForm.title"
                 style="width:100%"
                 clearable
                 filterable
                 size="mini"
               >
                 <el-option
-                  v-for="p in professionals"
+                  v-for="p in titles"
                   :key="p.name"
                   :label="p.name"
                   :value="p.name"
@@ -357,9 +357,10 @@
               </el-select> </el-form-item
           ></el-col>
           <el-col :span="24">
-            <el-form-item style="margin-top: 10px">
+            <el-form-item style="margin-top: 10px" prop="isGP">
+              {{ userForm.isGP }}
               <el-switch
-                v-model="userForm.isAllDoctor"
+                v-model="userForm.isGP"
                 inactive-text="是否为全科医师"
                 size="mini"
               >
@@ -482,7 +483,7 @@ export default {
       permission: Permission,
       educations: Education,
       genders: Gender,
-      occupations: Occupation,
+      majors: Occupation,
       dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
       formLabelWidth: '100px',
@@ -492,12 +493,12 @@ export default {
         name: '',
         gender: '',
         phone: '',
-        isAllDoctor: false,
+        isGP: false,
         his: '',
         phStaff: '',
         education: '',
-        occupation: '',
-        professional: '',
+        major: '',
+        title: '',
         remark: null,
         department: null
       },
@@ -511,14 +512,10 @@ export default {
         account: [{required: true, message: '请输入登录名', trigger: 'change'}],
         name: [{required: true, message: '请输入姓名', trigger: 'change'}],
         password: [{required: true, message: '请输入密码', trigger: 'change'}],
-        occupation: [
-          {required: true, message: '请选择专业类别', trigger: 'change'}
-        ],
+        major: [{required: true, message: '请选择专业类别', trigger: 'change'}],
         gender: [{required: true, message: '请选择性别', trigger: 'change'}],
         education: [{required: true, message: '请选择学历', trigger: 'change'}],
-        professional: [
-          {required: true, message: '请选择职称名称', trigger: 'change'}
-        ]
+        title: [{required: true, message: '请选择职称名称', trigger: 'change'}]
       },
       rulesEdit: {
         name: [{required: true, message: '请输入姓名', trigger: 'change'}]
@@ -584,10 +581,8 @@ export default {
       }));
     },
     //职称名称
-    professionals() {
-      const occ = this.occupations.find(
-        oc => oc.name === this.userForm.occupation
-      );
+    titles() {
+      const occ = this.majors.find(oc => oc.name === this.userForm.major);
       if (occ) return occ.children;
       return [];
     }
@@ -663,12 +658,12 @@ export default {
     beforeClose() {
       this.$refs.ruleForm.resetFields();
     },
-    occupationsChange() {
-      const professionalSelector = this.$refs.professionalSelector;
-      professionalSelector.$emit('input', '');
-      professionalSelector.emitChange('');
-      professionalSelector.visible = false;
-      professionalSelector.$emit('clear');
+    majorsChange() {
+      const titleSelector = this.$refs.titleSelector;
+      titleSelector.$emit('input', '');
+      titleSelector.emitChange('');
+      titleSelector.visible = false;
+      titleSelector.$emit('clear');
     },
     isShowPwd() {
       this.inputType = this.inputType === 'password' ? '' : 'password';
