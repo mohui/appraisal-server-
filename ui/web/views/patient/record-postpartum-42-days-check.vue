@@ -20,7 +20,7 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div v-hidden-scroll style="flex-grow: 1;height: 0; overflow-y: auto;">
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
             姓名：<strong>{{ detailDate.pregnantwomenname }}</strong>

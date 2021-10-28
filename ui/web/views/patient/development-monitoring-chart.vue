@@ -21,8 +21,9 @@
         </el-button>
       </div>
       <div
-        style="flex-grow: 1; height: 0; overflow-y: auto;"
         v-loading="isLoading"
+        v-hidden-scroll
+        style="flex-grow: 1; height: 0; overflow-y: auto;"
       >
         <el-row type="flex" justify="space-between" class="record-head">
           <el-col :span="6">

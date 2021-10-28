@@ -22,7 +22,11 @@
           >返回
         </el-button>
       </div>
-      <div v-show="!isError" style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div
+        v-show="!isError"
+        v-hidden-scroll
+        style="flex-grow: 1;height: 0; overflow-y: auto;"
+      >
         <div class="record-head">
           <div style="float: right;">编号：{{ id }}</div>
           姓名：<strong>{{ person.constitution.name }}</strong>
