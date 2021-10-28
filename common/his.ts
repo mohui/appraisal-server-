@@ -79,6 +79,164 @@ export enum PreviewType {
   HOSPITAL = '系统机构'
 }
 
+/**
+ * 学历
+ */
+export enum Education {
+  COLLEGE = '专科及以下',
+  BACHELOR = '本科',
+  MASTER = '硕士',
+  DOCTOR = '博士'
+}
+
+/**
+ * 性别
+ */
+export const Gender = ['男', '女', '未说明的性别', '未知的性别'];
+
+/**
+ * 职业信息 的 专业类别,职称名称
+ */
+export const Occupation = [
+  {
+    name: '临床（西医）医生',
+    children: [
+      {
+        name: '助理医师'
+      },
+      {
+        name: '医师'
+      },
+      {
+        name: '主治（主管）医师'
+      },
+      {
+        name: '副主任医师'
+      },
+      {
+        name: '主任医师'
+      }
+    ]
+  },
+  {
+    name: '公共卫生医生',
+    children: [
+      {
+        name: '助理医师'
+      },
+      {
+        name: '医师'
+      },
+      {
+        name: '主治（主管）医师'
+      },
+      {
+        name: '副主任医师'
+      },
+      {
+        name: '主任医师'
+      }
+    ]
+  },
+  {
+    name: '临床（中医）医生',
+    children: [
+      {
+        name: '助理医师'
+      },
+      {
+        name: '医师'
+      },
+      {
+        name: '主治（主管）医师'
+      },
+      {
+        name: '副主任医师'
+      },
+      {
+        name: '主任医师'
+      }
+    ]
+  },
+  {
+    name: '药学人员',
+    children: [
+      {
+        name: '药士'
+      },
+      {
+        name: '药师'
+      },
+      {
+        name: '主管药师'
+      },
+      {
+        name: '副主任药师'
+      },
+      {
+        name: '主任药师'
+      }
+    ]
+  },
+  {
+    name: '护理人员',
+    children: [
+      {
+        name: '护士'
+      },
+      {
+        name: '护师'
+      },
+      {
+        name: '主管护师'
+      },
+      {
+        name: '副主任护师'
+      },
+      {
+        name: '主任护师'
+      }
+    ]
+  },
+  {
+    name: '技术人员',
+    children: [
+      {
+        name: '技士'
+      },
+      {
+        name: '技师'
+      },
+      {
+        name: '主管技师'
+      },
+      {
+        name: '副主任技师'
+      },
+      {
+        name: '主任技师'
+      }
+    ]
+  },
+  {
+    name: '管理及其他人员',
+    children: [
+      {
+        name: '财务人员'
+      },
+      {
+        name: '后勤人员'
+      },
+      {
+        name: '中心主任'
+      },
+      {
+        name: '中心副主任'
+      }
+    ]
+  }
+];
+
 //region 指标相关
 /**
  * 指标
