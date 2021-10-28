@@ -21,7 +21,7 @@ export class AddStaffOccupationMigration implements IMigration {
       COMMENT ON COLUMN staff.title IS '职称名称';
 
       ALTER table staff ADD COLUMN education varchar(255) DEFAULT null;
-      COMMENT ON COLUMN staff.education IS '学历';
+      COMMENT ON COLUMN staff.education IS '学历; 专科及以下, 本科, 硕士, 博士';
 
       ALTER table staff ADD COLUMN "isGP" boolean not null DEFAULT false;
       COMMENT ON COLUMN staff."isGP" IS '是否为全科医师';
