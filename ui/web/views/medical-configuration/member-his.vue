@@ -169,9 +169,10 @@
       </el-table>
     </el-card>
     <el-dialog
-      title="新建用户"
+      :title="userForm.id ? '修改用户' : '新建用户'"
       :visible.sync="dialogFormAddUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
+      @close="beforeClose"
     >
       <el-form
         class="staff-form"
@@ -440,118 +441,6 @@
         </el-button>
       </div>
     </el-dialog>
-    <el-dialog
-      title="修改用户"
-      :visible.sync="dialogFormEditUsersVisible"
-      :width="$settings.isMobile ? '99%' : '50%'"
-    >
-      <el-form ref="userFormEdit" :model="userForm" :rules="rulesEdit">
-        <el-form-item label="登录名" :label-width="formLabelWidth">
-          <el-input
-            v-model="userForm.account"
-            autocomplete="off"
-            disabled
-          ></el-input>
-        </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-          :label-width="formLabelWidth"
-        >
-          <el-input
-            v-model="userForm.password"
-            :type="inputType"
-            autocomplete="off"
-            style="width: auto"
-            ><i
-              slot="suffix"
-              style="cursor: pointer;"
-              class="el-icon-view"
-              @click="isShowPwd()"
-            ></i
-          ></el-input>
-        </el-form-item>
-        <el-form-item :label-width="formLabelWidth" label="姓名" prop="name">
-          <el-input v-model="userForm.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark" :label-width="formLabelWidth">
-          <el-input
-            v-model="userForm.remark"
-            type="textarea"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item
-          label="科室"
-          prop="department"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="userForm.department"
-            style="width: 100%"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in departmentList"
-              :key="h.id"
-              :label="h.name"
-              :value="h.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="his用户" prop="his" :label-width="formLabelWidth">
-          <el-select
-            v-model="userForm.his"
-            style="width: 100%"
-            size="mini"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in hisList"
-              :key="h.id"
-              :label="h.name"
-              :value="h.id"
-              :disabled="!h.usable"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="公卫用户"
-          prop="phStaff"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="userForm.phStaff"
-            style="width:100%"
-            size="mini"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="h in phStaffList"
-              :key="h.id"
-              :label="h.username"
-              :value="h.id"
-              :disabled="!h.usable"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="dialogFormEditUsersVisible = false"
-          >取 消</el-button
-        >
-        <el-button
-          v-loading="updateLoading"
-          size="small"
-          type="primary"
-          @click="updateUser"
-          >确 定</el-button
-        >
-      </div>
-    </el-dialog>
     <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
       <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
         <el-form-item
@@ -619,23 +508,23 @@ export default {
         pageNo: 1
       },
       rulesAdd: {
-        account: [{required: true, message: '请输入登录名', trigger: 'blur'}],
-        name: [{required: true, message: '请输入姓名', trigger: 'blur'}],
-        password: [{required: true, message: '请输入密码', trigger: 'blur'}],
+        account: [{required: true, message: '请输入登录名', trigger: 'change'}],
+        name: [{required: true, message: '请输入姓名', trigger: 'change'}],
+        password: [{required: true, message: '请输入密码', trigger: 'change'}],
         occupation: [
           {required: true, message: '请选择专业类别', trigger: 'change'}
         ],
         gender: [{required: true, message: '请选择性别', trigger: 'change'}],
+        education: [{required: true, message: '请选择学历', trigger: 'change'}],
         professional: [
           {required: true, message: '请选择职称名称', trigger: 'change'}
         ]
       },
       rulesEdit: {
-        name: [{required: true, message: '请输入姓名', trigger: 'blur'}]
+        name: [{required: true, message: '请输入姓名', trigger: 'change'}]
       },
       tableLoading: false,
       addBtnLoading: false,
-      updateLoading: false,
       addDepartmentVisible: false,
       departmentForm: {
         id: null,
@@ -771,6 +660,9 @@ export default {
     }
   },
   methods: {
+    beforeClose() {
+      this.$refs.ruleForm.resetFields();
+    },
     occupationsChange() {
       const professionalSelector = this.$refs.professionalSelector;
       professionalSelector.$emit('input', '');
@@ -808,20 +700,23 @@ export default {
       this.$refs.userFormAdd.validate(async valid => {
         if (valid) {
           try {
-            this.addBtnLoading = true;
-            await this.$api.HisStaff.add(
-              this.userForm.his || null,
-              this.userForm.account.trim(),
-              this.userForm.password.trim(),
-              this.userForm.name.trim(),
-              this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null,
-              this.userForm.phStaff?.trim() || null
-            );
-            this.$message({
-              type: 'success',
-              message: '新建用户成功!'
-            });
+            if (this.userForm.id) await this.updateUser();
+            else {
+              this.addBtnLoading = true;
+              await this.$api.HisStaff.add(
+                this.userForm.his || null,
+                this.userForm.account.trim(),
+                this.userForm.password.trim(),
+                this.userForm.name.trim(),
+                this.userForm.remark?.trim() || null,
+                this.userForm.department?.trim() || null,
+                this.userForm.phStaff?.trim() || null
+              );
+              this.$message({
+                type: 'success',
+                message: '新建用户成功!'
+              });
+            }
             this.$asyncComputed.listMember.update(); //刷新系统员工列表
             this.$asyncComputed.serverHisData.update(); //刷新his员工列表
             this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
@@ -861,41 +756,33 @@ export default {
           department: row.department
         }
       );
-      this.dialogFormEditUsersVisible = true;
+      this.dialogFormAddUsersVisible = true;
     },
     //更新保存用户信息
-    updateUser() {
-      this.$refs.userFormEdit.validate(async valid => {
-        if (valid) {
-          try {
-            this.updateLoading = true;
-            await this.$api.HisStaff.update(
-              this.userForm.id,
-              this.userForm.name.trim(),
-              this.userForm.password.trim(),
-              this.userForm.his || null,
-              this.userForm.remark?.trim() || null,
-              this.userForm.department?.trim() || null,
-              this.userForm.phStaff?.trim() || null
-            );
-            this.$message({
-              type: 'success',
-              message: '保存成功!'
-            });
-            this.$asyncComputed.listMember.update();
-            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
-            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
-            this.symbolKey = Symbol(this.$dayjs().toString());
-          } catch (e) {
-            this.$message.error(e.message);
-          } finally {
-            this.updateLoading = false;
-            this.dialogFormEditUsersVisible = false;
-          }
-        } else {
-          return false;
-        }
-      });
+    async updateUser() {
+      try {
+        await this.$api.HisStaff.update(
+          this.userForm.id,
+          this.userForm.name.trim(),
+          this.userForm.password.trim(),
+          this.userForm.his || null,
+          this.userForm.remark?.trim() || null,
+          this.userForm.department?.trim() || null,
+          this.userForm.phStaff?.trim() || null
+        );
+        this.$message({
+          type: 'success',
+          message: '保存成功!'
+        });
+        this.$asyncComputed.listMember.update();
+        this.$asyncComputed.serverHisData.update(); //刷新his员工列表
+        this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
+        this.symbolKey = Symbol(this.$dayjs().toString());
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.dialogFormAddUsersVisible = false;
+      }
     },
     //删除用户
     async delUser(row) {
