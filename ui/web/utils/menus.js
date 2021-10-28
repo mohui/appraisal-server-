@@ -144,8 +144,8 @@ module.exports = [
     index: 'plan',
     permission: [Permission.MEDICAL_PLAN],
     label: '医疗考核方案',
-    icon: require('../../assets/menu-icon/manual.png').default,
-    iconActive: require('../../assets/menu-icon/manual-active.png').default,
+    icon: require('../../assets/menu-icon/plan.png').default,
+    iconActive: require('../../assets/menu-icon/plan-active.png').default,
     router: '/plan'
   },
   {
