@@ -193,6 +193,7 @@ function listRender(params) {
             {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
             {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
             {{#compare MCH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH01"={{? MCH01}} {{/compare}}
+            {{#compare MCH02}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH02"={{? MCH02}} {{/compare}}
           )
           and
           (
@@ -248,6 +249,7 @@ function listRenderForExcel(params) {
             {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
             {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
             {{#compare MCH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH01"={{? MCH01}} {{/compare}}
+            {{#compare MCH02}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH02"={{? MCH02}} {{/compare}}
           )
           and
           (
@@ -374,6 +376,7 @@ export default class Person {
                 mp."D01",
                 mp."D02",
                 mp."MCH01",
+                mp."MCH02",
                 mp."C01",
                 mp."C02",
                 mp."C03",

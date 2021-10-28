@@ -202,6 +202,13 @@ export const documentTags = {
       type: !!value,
       code: 'MCH01'
     };
+  },
+  MCH02(value) {
+    return {
+      label: `产后健康管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'MCH02'
+    };
   }
 };
 
@@ -264,6 +271,10 @@ export const documentTagList = [
   {
     id: 'MCH01',
     name: '孕早期管理不规范'
+  },
+  {
+    id: 'MCH02',
+    name: '产后健康管理不规范'
   }
 ];
 
@@ -312,5 +323,7 @@ export function getTagsList(it) {
   if (it.CO01 != undefined) it.tags.push(documentTags.CO01(it.CO01));
   // 孕产妇管理标记
   if (it.MCH01 != undefined) it.tags.push(documentTags.MCH01(it.MCH01));
+  // 产后健康管理不规范
+  if (it.MCH02 != undefined) it.tags.push(documentTags.MCH02(it.MCH02));
   return it;
 }
