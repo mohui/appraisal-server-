@@ -705,7 +705,13 @@ export default {
                 this.userForm.name.trim(),
                 this.userForm.remark?.trim() || null,
                 this.userForm.department?.trim() || null,
-                this.userForm.phStaff?.trim() || null
+                this.userForm.phStaff?.trim() || null,
+                this.userForm.phone?.trim() || null,
+                this.userForm.gender?.trim() || null,
+                this.userForm.major?.trim() || null,
+                this.userForm.title?.trim() || null,
+                this.userForm.education?.trim() || null,
+                this.userForm.isGP || false
               );
               this.$message({
                 type: 'success',
@@ -763,7 +769,13 @@ export default {
           this.userForm.his || null,
           this.userForm.remark?.trim() || null,
           this.userForm.department?.trim() || null,
-          this.userForm.phStaff?.trim() || null
+          this.userForm.phStaff?.trim() || null,
+          this.userForm.phone?.trim() || null,
+          this.userForm.gender?.trim() || null,
+          this.userForm.major?.trim() || null,
+          this.userForm.title?.trim() || null,
+          this.userForm.education?.trim() || null,
+          this.userForm.isGP || false
         );
         this.$message({
           type: 'success',
