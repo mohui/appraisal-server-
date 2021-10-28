@@ -90,6 +90,11 @@ export enum Education {
 }
 
 /**
+ * 性别
+ */
+export const Gender = ['男', '女', '未说明的性别', '未知的性别'];
+
+/**
  * 职业信息 的 专业类别,职称名称
  */
 export const Occupation = [
