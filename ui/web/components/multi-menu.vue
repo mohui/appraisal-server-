@@ -11,7 +11,14 @@
     }"
   >
     <template slot="title">
-      <i :class="menu.icon"></i>
+      <img
+        v-if="menu.iconActive"
+        class="menu-img"
+        :style="{
+          '--icon': `url(${menu.icon})`,
+          '--iconActive': `url(${menu.iconActive})`
+        }"
+      />
       <span>{{ menu.label }}</span>
     </template>
     <multi-menu
@@ -30,7 +37,14 @@
       display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
     }"
   >
-    <i :class="menu.icon"></i>
+    <img
+      v-if="menu.iconActive"
+      :style="{
+        '--icon': `url(${menu.icon})`,
+        '--iconActive': `url(${menu.iconActive})`
+      }"
+      class="menu-img"
+    />
     <span>{{ menu.label }}</span>
   </el-menu-item>
 </template>
@@ -56,4 +70,16 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.menu-img {
+  width: 20px;
+  height: 20px;
+  content: var(--icon);
+}
+
+.is-active {
+  .menu-img {
+    content: var(--iconActive);
+  }
+}
+</style>
