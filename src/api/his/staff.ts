@@ -489,6 +489,12 @@ export default class HisStaff {
           name,
           remark,
           department,
+          phone,
+          gender,
+          major,
+          title,
+          education,
+          "isGP",
           created_at,
           updated_at
         from staff
