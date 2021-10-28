@@ -3,14 +3,7 @@
     <el-row :gutter="10" style="height: 100%;">
       <el-col :span="6" :xs="24">
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
-        <el-alert
-          title="注意: 档案内容为最近一次同步数据, 与年度无关!"
-          type="error"
-          center
-          :closable="false"
-          show-icon
-        >
-        </el-alert>
+        <el-button type="primary" @click="$router.go(-1)">返回 </el-button>
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
@@ -21,24 +14,14 @@
             height: 'calc(100% - 40px)',
             padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
-          ><el-button
-            style="position: absolute;top:15px;right:30px;z-index: 9;"
-            size="small"
-            type="primary"
-            @click="$router.go(-1)"
-            >返回
-          </el-button>
-          <el-tabs
-            v-model="activeTab"
-            class="patient-tab-list"
-            :style="{width: $settings.isMobile ? '100%' : 'calc(100% - 70px)'}"
-          >
+        >
+          <el-tabs v-model="activeTab" class="patient-tab-list">
             <el-tab-pane
               label="个人基本信息表"
               name="personal"
               v-if="personDetailSeverData.length"
             >
-              <div>
+              <div v-hidden-scroll>
                 <div style="padding: 5px;">
                   <div style="float: right;">
                     编号：{{ personDetailData.id }}
@@ -361,7 +344,7 @@
                 {{ item.label }}
               </span>
 
-              <div v-show="item.code === 'physical'">
+              <div v-hidden-scroll v-show="item.code === 'physical'">
                 <div
                   class="notes"
                   v-for="(item, index) of healthyList"
@@ -387,7 +370,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'hypertension'">
+              <div v-hidden-scroll v-show="item.code === 'hypertension'">
                 <div
                   class="notes"
                   v-for="(item, index) of hypertensions"
@@ -415,7 +398,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'diabetes'">
+              <div v-hidden-scroll v-show="item.code === 'diabetes'">
                 <div
                   class="notes"
                   v-for="(item, index) of diabetesList"
@@ -443,7 +426,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'oldManSelfCare'">
+              <div v-hidden-scroll v-show="item.code === 'oldManSelfCare'">
                 <div
                   class="notes"
                   v-for="(item, index) of oldManSelfCareList"
@@ -501,7 +484,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'maternal'">
+              <div v-hidden-scroll v-show="item.code === 'maternal'">
                 <div v-for="(item, index) of maternalData" :key="index">
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
@@ -564,7 +547,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'children'">
+              <div v-hidden-scroll v-show="item.code === 'children'">
                 <div
                   v-for="(item, index) of childrenHealthCheckData"
                   :key="index"
@@ -643,7 +626,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'chronicDiseaseOther'">
+              <div v-hidden-scroll v-show="item.code === 'chronicDiseaseOther'">
                 <div
                   class="notes"
                   v-for="(item, index) of chronicDiseaseOtherData"
@@ -671,7 +654,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'chronicDiseaseHigh'">
+              <div v-hidden-scroll v-show="item.code === 'chronicDiseaseHigh'">
                 <div
                   class="notes"
                   v-for="(item, index) of chronicDiseaseHighData"
