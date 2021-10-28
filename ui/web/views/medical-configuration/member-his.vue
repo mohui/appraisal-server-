@@ -358,7 +358,6 @@
           ></el-col>
           <el-col :span="24">
             <el-form-item style="margin-top: 10px" prop="isGP">
-              {{ userForm.isGP }}
               <el-switch
                 v-model="userForm.isGP"
                 inactive-text="是否为全科医师"
@@ -744,19 +743,7 @@ export default {
         this.addDepartmentVisible = true;
         return;
       }
-      this.userForm = Object.assign(
-        {},
-        {
-          id: row.id,
-          account: row.account,
-          password: row.password,
-          name: row.name,
-          his: row.staff,
-          phStaff: row.phStaff,
-          remark: row.remark,
-          department: row.department
-        }
-      );
+      this.userForm = Object.assign({}, row);
       this.dialogFormAddUsersVisible = true;
     },
     //更新保存用户信息
