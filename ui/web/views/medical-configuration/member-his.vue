@@ -946,5 +946,9 @@ export default {
 ::v-deep .el-form-item__label {
   margin-bottom: -10px;
   padding: 0;
+  line-height: 25px;
+}
+.el-textarea {
+  margin: 10px 0;
 }
 </style>
