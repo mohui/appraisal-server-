@@ -548,6 +548,8 @@ export default class Person {
                  mp."C13",
                  mp."C14",
                  mp."E00",
+                 mp."MCH01",
+                 mp."MCH02",
                  vp.operatetime     as "updateAt"
           from ph_person vp
                  left join mark_person mp on mp.id = vp.id and year = ?
