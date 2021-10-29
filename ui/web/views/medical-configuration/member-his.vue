@@ -899,15 +899,17 @@ export default {
   }
 }
 </style>
-<style scoped>
+<style lang="scss" scoped>
 .no-department-cell {
   text-align: center;
   width: 100%;
 }
-::v-deep .el-form-item__label {
-  margin-bottom: -10px;
-  padding: 0;
-  line-height: 25px;
+::v-deep .staff-form {
+  .el-form-item__label {
+    margin-bottom: -10px;
+    padding: 0;
+    line-height: 25px;
+  }
 }
 .el-textarea {
   margin: 10px 0;
