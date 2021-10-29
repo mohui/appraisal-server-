@@ -88,7 +88,12 @@
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
       >
-        <el-table-column prop="departmentText" label="科室" min-width="180">
+        <el-table-column
+          align="center"
+          prop="departmentText"
+          label="科室"
+          min-width="180"
+        >
           <template slot-scope="{row}">
             <span v-if="row.departmentId">{{ row.departmentText }}</span>
             <div
@@ -114,41 +119,72 @@
           </template>
         </el-table-column>
         <el-table-column
+          align="center"
           prop="account"
           label="登录名"
-          min-width="80"
+          min-width="100"
         ></el-table-column>
         <el-table-column
+          align="center"
           prop="name"
           label="姓名"
           min-width="80"
         ></el-table-column>
         <el-table-column
+          align="center"
+          prop="gender"
+          label="性别"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="phone"
+          label="电话"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          align="center"
           prop="staffName"
           label="His用户"
           min-width="80"
         ></el-table-column>
         <el-table-column
+          align="center"
           prop="phStaffName"
           label="公卫用户"
           min-width="80"
         ></el-table-column>
         <el-table-column
+          align="center"
+          prop="major"
+          label="专业"
+          min-width="120"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="title"
+          label="职称名称"
+          min-width="100"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="education"
+          label="学历"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
+          align="center"
+          prop="phStaffName"
+          label="公卫用户"
+          min-width="80"
+        ></el-table-column>
+        <el-table-column
+          align="center"
           prop="remark"
           label="备注"
           min-width="100"
         ></el-table-column>
-        <el-table-column
-          prop="created_at"
-          label="创建时间"
-          min-width="120"
-        ></el-table-column>
-        <el-table-column
-          prop="updated_at"
-          label="修改时间"
-          min-width="120"
-        ></el-table-column>
-        <el-table-column label="操作" min-width="160">
+        <el-table-column align="center" label="操作" min-width="160">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
               <el-button type="primary" size="small" @click="editUser(row)">
