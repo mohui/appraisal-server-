@@ -842,6 +842,14 @@ export const MarkTagUsages = {
   MCH02: {
     name: '产后访视率',
     code: 'MCH02'
+  },
+  MCH03: {
+    name: '新生儿访视率',
+    code: 'MCH03'
+  },
+  MCH04: {
+    name: '儿童健康管理率',
+    code: 'MCH04'
   }
 };
 
