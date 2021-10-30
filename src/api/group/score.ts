@@ -421,6 +421,17 @@ export default class Score {
     if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
     // 考核年度
     const year = Number(checkModel.checkYear);
+    // 年度开始时间
+    const start = dayjs()
+      .year(year)
+      .startOf('y')
+      .toDate();
+    // 年度结束时间
+    const end = dayjs()
+      .year(year)
+      .startOf('y')
+      .add(1, 'y')
+      .toDate();
     debug('获取marks开始');
     const mark = await getMarks(group, year);
     debug('获取marks结束');
@@ -1217,6 +1228,101 @@ export default class Score {
                   mark?.MCH00
                 ) {
                   const rate = mark.MCH02 / mark.MCH00 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 新生儿访视率(2021-10-30)
+              if (tagModel.tag === MarkTagUsages.MCH03.code) {
+                // 查询孕册数
+                const basicData =
+                  // language=PostgreSQL
+                  (
+                    await originalDB.execute(
+                      `
+                  select count(1) count
+                  from mch_pregnancy_books
+                  where operateorganization in (${hospitalIds.map(() => '?')})
+                  and operatetime >= ?
+                  and operatetime < ?
+                  `,
+                      ...hospitalIds,
+                      start,
+                      end
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.MCH03.name
+                  } = 年度辖区内按照规范要求接受1次及以上访视的新生儿人数 / 孕产妇建册数 x 100% = ${
+                    mark?.MCH03
+                  } / ${basicData} = ${percentString(mark?.MCH03, basicData)}`
+                );
+
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.MCH03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.MCH03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SC00
+                ) {
+                  const rate = mark.MCH03 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+              // 儿童健康管理率(2021-10-30)
+              if (tagModel.tag === MarkTagUsages.MCH04.code) {
+                // 查询 年度辖区内0-6岁儿童数
+                const basicData =
+                  // language=PostgreSQL
+                  (
+                    await originalDB.execute(
+                      `
+                  select count(1) count
+                  from mch_child_check
+                  where operateorganization in (${hospitalIds.map(() => '?')})
+                    and chronologicalage >= 0 and chronologicalage < 73
+                    and operatetime >= ?
+                    and operatetime < ?
+                  `,
+                      ...hospitalIds,
+                      start,
+                      end
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.MCH04.name
+                  } = (年度辖区内接受1次及以上随访的0-3岁儿童数 或 年度辖区内接受1次及以上随访的0-6岁儿童数)/ 年度辖区内0-6岁儿童数 x 100% = ${
+                    mark?.MCH04
+                  } / ${basicData} = ${percentString(mark?.MCH04, basicData)}`
+                );
+
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.MCH04
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.MCH04
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SC00
+                ) {
+                  const rate = mark.MCH04 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
