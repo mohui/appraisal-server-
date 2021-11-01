@@ -1221,7 +1221,7 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
-              // 新生儿访视率(2021-10-30)
+              // 新生儿访视率
               if (tagModel.tag === MarkTagUsages.MCH03.code) {
                 // 查询孕册数
                 const basicData =
@@ -1268,7 +1268,7 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
-              // 儿童健康管理率(2021-10-30)
+              // 儿童健康管理率
               if (tagModel.tag === MarkTagUsages.MCH04.code) {
                 // 查询 年度辖区内0-6岁儿童数
                 const basicData = await getBasicData(
