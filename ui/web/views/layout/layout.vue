@@ -225,11 +225,13 @@ export default {
   z-index: 9;
 }
 ::v-deep .el-menu {
+  color: $color-menu-dark;
   & > li {
     border-radius: 30px;
 
     &.el-menu-item,
     > .el-submenu__title {
+      color: $color-menu-dark;
       height: 46px !important;
       line-height: 46px !important;
       &:hover {
@@ -256,7 +258,7 @@ export default {
     > ul {
       > li {
         padding-left: 60px !important;
-
+        color: $color-menu-dark;
         &.is-active {
           color: $color-primary;
         }
