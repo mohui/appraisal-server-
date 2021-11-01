@@ -1282,23 +1282,11 @@ export default class Score {
               // 儿童健康管理率(2021-10-30)
               if (tagModel.tag === MarkTagUsages.MCH04.code) {
                 // 查询 年度辖区内0-6岁儿童数
-                const basicData =
-                  // language=PostgreSQL
-                  (
-                    await originalDB.execute(
-                      `
-                  select count(1) count
-                  from mch_child_check
-                  where operateorganization in (${hospitalIds.map(() => '?')})
-                    and chronologicalage >= 0 and chronologicalage < 73
-                    and operatetime >= ?
-                    and operatetime < ?
-                  `,
-                      ...hospitalIds,
-                      start,
-                      end
-                    )
-                  )[0]?.count ?? 0;
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.Children01,
+                  year
+                );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
