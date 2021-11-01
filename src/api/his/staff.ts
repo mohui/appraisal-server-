@@ -3,7 +3,12 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {HisWorkScoreType, HisStaffDeptType} from '../../../common/his';
+import {
+  Gender,
+  Education,
+  HisStaffDeptType,
+  HisWorkMethod
+} from '../../../common/his';
 import {
   dateValid,
   getEndTime,
@@ -161,6 +166,12 @@ export default class HisStaff {
    * @param remark 备注
    * @param department 科室
    * @param phStaff 公卫员工
+   * @param phone 联系电话
+   * @param gender 性别
+   * @param major 专业类别
+   * @param title 职称名称
+   * @param education 学历
+   * @param isGP 是否为全科医师
    */
   @validate(
     should
@@ -186,9 +197,42 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('科室')
+      .description('科室'),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(Gender[0], Gender[1], Gender[2], Gender[3])
+      .required(),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(
+        Education.COLLEGE,
+        Education.BACHELOR,
+        Education.MASTER,
+        Education.DOCTOR
+      )
+      .required()
+      .description('学历'),
+    should.boolean().required()
   )
-  async add(staff, account, password, name, remark, department, phStaff) {
+  async add(
+    staff,
+    account,
+    password,
+    name,
+    remark,
+    department,
+    phStaff,
+    phone,
+    gender,
+    major,
+    title,
+    education,
+    isGP
+  ) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -214,6 +258,7 @@ export default class HisStaff {
 
     return appDB.transaction(async () => {
       const staffId = uuid();
+      // language=PostgreSQL
       return await appDB.execute(
         `insert into
             staff(
@@ -226,10 +271,16 @@ export default class HisStaff {
               name,
               remark,
               department,
+              phone,
+              gender,
+              major,
+              title,
+              education,
+              "isGP",
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
@@ -239,12 +290,35 @@ export default class HisStaff {
         name,
         remark,
         department,
+        phone,
+        gender,
+        major,
+        title,
+        education,
+        isGP,
         dayjs().toDate(),
         dayjs().toDate()
       );
     });
   }
 
+  /**
+   * 修改员工信息
+   *
+   * @param id 主键
+   * @param name 名称
+   * @param password 密码
+   * @param staff his员工
+   * @param remark 备注
+   * @param department 科室
+   * @param phStaff 公卫员工
+   * @param phone 联系电话
+   * @param gender 性别
+   * @param major 专业类别
+   * @param title 职称名称
+   * @param education 学历
+   * @param isGP 是否为全科医师
+   */
   @validate(
     should
       .string()
@@ -273,12 +347,41 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('公卫员工')
+      .description('公卫员工'),
+    should.string().allow(null),
+    should
+      .string()
+      .only(Gender[0], Gender[1], Gender[2], Gender[3])
+      .required(),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(
+        Education.COLLEGE,
+        Education.BACHELOR,
+        Education.MASTER,
+        Education.DOCTOR
+      )
+      .required()
+      .description('学历'),
+    should.boolean().required()
   )
-  /**
-   * 修改员工信息
-   */
-  async update(id, name, password, staff, remark, department, phStaff) {
+  async update(
+    id,
+    name,
+    password,
+    staff,
+    remark,
+    department,
+    phStaff,
+    phone,
+    gender,
+    major,
+    title,
+    education,
+    isGP
+  ) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -289,6 +392,7 @@ export default class HisStaff {
       if (selStaff.length > 0)
         throw new KatoRuntimeError(`该his用户已绑定过员工`);
     }
+    // language=PostgreSQL
     return await appDB.execute(
       `
         update staff set
@@ -298,6 +402,12 @@ export default class HisStaff {
           ph_staff = ?,
           remark = ?,
           department = ?,
+          phone = ?,
+          gender = ?,
+          major = ?,
+          title = ?,
+          education = ?,
+          "isGP" = ?,
           updated_at = ?
         where id = ?`,
       name,
@@ -306,6 +416,12 @@ export default class HisStaff {
       phStaff,
       remark,
       department,
+      phone,
+      gender,
+      major,
+      title,
+      education,
+      isGP,
       dayjs().toDate(),
       id
     );
@@ -373,6 +489,12 @@ export default class HisStaff {
           name,
           remark,
           department,
+          phone,
+          gender,
+          major,
+          title,
+          education,
+          "isGP",
           created_at,
           updated_at
         from staff
