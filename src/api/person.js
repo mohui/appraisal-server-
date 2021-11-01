@@ -1958,7 +1958,7 @@ union select PregnancyBooksId as id from mch_prenatal_care a
         inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
       where a.PregnancyBooksId is not null
 union select PregnancyBooksId as id from mch_maternal_visit where MaternalIdCardNo = ? and PregnancyBooksId is not null
-union select PregnancyBooksId as id from mch_examine_42th_day where IdCard = ? and PregnancyBooksId is not null
+union select PregnancyBooksId as id from mch_examine_42th_day where idCard = ? and PregnancyBooksId is not null
 `,
       idCardNo,
       idCardNo,
@@ -2250,7 +2250,7 @@ union select PregnancyBooksId as id from mch_examine_42th_day where IdCard = ? a
          left join mch_delivery_record r on r.id = d.MaternityCode
          left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
          left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
-         where a.IdCard = ?
+         where a.idCard = ?
                and d.MaternityCode is null
                and a.MaternityCode is not null
                and (
