@@ -225,11 +225,13 @@ export default {
   z-index: 9;
 }
 ::v-deep .el-menu {
+  color: $color-menu-dark;
   & > li {
     border-radius: 30px;
 
     &.el-menu-item,
     > .el-submenu__title {
+      color: $color-menu-dark;
       height: 46px !important;
       line-height: 46px !important;
       &:hover {
@@ -255,8 +257,8 @@ export default {
 
     > ul {
       > li {
-        padding-left: 54px !important;
-
+        padding-left: 60px !important;
+        color: $color-menu-dark;
         &.is-active {
           color: $color-primary;
         }
@@ -267,7 +269,6 @@ export default {
           position: absolute;
           width: 0.3rem;
           height: 0.3rem;
-          background-color: rgba(91, 91, 91, 0.2);
           left: 1.8rem;
           top: calc(50% - 0.1rem);
           border: 1px solid rgba(91, 91, 91, 0.7);
@@ -276,10 +277,11 @@ export default {
         }
         &.is-active:after {
           background-color: #409eff;
-          width: 0.4rem;
-          height: 0.4rem;
-          left: 1.75rem;
+          width: 0.5rem;
+          height: 0.5rem;
+          left: 1.8rem;
           top: calc(50% - 0.2rem);
+          border: 0;
         }
       }
     }
