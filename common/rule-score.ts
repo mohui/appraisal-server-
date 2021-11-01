@@ -273,7 +273,11 @@ export const BasicTagUsages = {
   // 年内应管理高危人群人数
   HR00: 'HR00',
   // 年内应管理其他慢病人群人数
-  OCD00: 'OCD00'
+  OCD00: 'OCD00',
+  // 年度辖区内活产数
+  Children00: 'Children00',
+  // 年度辖区内0-6岁儿童数
+  Children01: 'Children01'
 };
 
 /**
@@ -445,13 +449,13 @@ export const MarkTags = [
         children: [
           {
             name: '新生儿访视率',
-            code: 'C01',
-            enabled: false
+            code: 'MCH03',
+            enabled: true
           },
           {
             name: '儿童健康管理率',
-            code: 'C02',
-            enabled: false
+            code: 'MCH04',
+            enabled: true
           }
         ]
       },
@@ -842,6 +846,14 @@ export const MarkTagUsages = {
   MCH02: {
     name: '产后访视率',
     code: 'MCH02'
+  },
+  MCH03: {
+    name: '新生儿访视率',
+    code: 'MCH03'
+  },
+  MCH04: {
+    name: '儿童健康管理率',
+    code: 'MCH04'
   }
 };
 
