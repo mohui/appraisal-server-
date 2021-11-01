@@ -1261,7 +1261,7 @@ export default class Score {
                   ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
-                  mark?.SC00
+                  mark?.MCH03
                 ) {
                   const rate = mark.MCH03 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
@@ -1297,7 +1297,7 @@ export default class Score {
                   ruleAreaScoreModel.score += tagModel.score;
                 if (
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
-                  mark?.SC00
+                  mark?.MCH04
                 ) {
                   const rate = mark.MCH04 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
