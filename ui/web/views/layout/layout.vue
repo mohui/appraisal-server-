@@ -255,7 +255,7 @@ export default {
 
     > ul {
       > li {
-        padding-left: 54px !important;
+        padding-left: 60px !important;
 
         &.is-active {
           color: $color-primary;

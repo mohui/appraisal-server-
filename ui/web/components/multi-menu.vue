@@ -72,8 +72,9 @@ export default {
 
 <style lang="scss" scoped>
 .menu-img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  margin-right: 15px;
   content: var(--icon);
 }
 
