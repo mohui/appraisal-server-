@@ -1950,30 +1950,24 @@ export default class Person {
     // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
-      `select id
-              , etl_id
-              , original_id
-              , visitsdate
-              , vouchertype
-              , idcardno
-              , name
-              , age
-              , fathername
-              , fatherage
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , managehospid
-              , created_at
-              , updated_at
-         from mch_pregnancy_books
-         where idcardno = ?`,
+      `
+select PregnancyBooksId as id from mch_newly_diagnosed a
+  inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
+where a.PregnancyBooksId is not null
+union select PregnancyBooksId as id from mch_prenatal_care a
+        inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
+      where a.PregnancyBooksId is not null
+union select PregnancyBooksId as id from mch_maternal_visit where MaternalIdCardNo = ? and PregnancyBooksId is not null
+union select PregnancyBooksId as id from mch_examine_42th_day where IdCard = ? and PregnancyBooksId is not null
+`,
+      idCardNo,
+      idCardNo,
+      idCardNo,
       idCardNo
     );
     const result = [];
     for (const pregnancyBook of pregnancyBooks) {
-      const maternalDate = [];
+      const maternalData = [];
 
       // 通过母子健康手册表中的主键（id）查询以下表
 
@@ -2050,7 +2044,7 @@ export default class Person {
       newlyDiagnosed.name = '第一次产前检查信息表';
       newlyDiagnosed.type = 'newlyDiagnosed';
       newlyDiagnosed.records = newlyDiagnosedRecords;
-      maternalDate.push(newlyDiagnosed);
+      maternalData.push(newlyDiagnosed);
 
       // 第2~5次产前随访服务信息表
       // language=PostgreSQL
@@ -2087,10 +2081,11 @@ export default class Person {
       prenatalCare.name = '第2~5次产前随访服务信息表';
       prenatalCare.type = 'prenatalCare';
       prenatalCare.records = prenatalCareRecords;
-      maternalDate.push(prenatalCare);
+      maternalData.push(prenatalCare);
       // 产后访视记录表
       // language=PostgreSQL
-      const maternalVisitRecords = await originalDB.execute(
+      // 按孕册表匹配
+      const pregnancyBookVisitRecords = await originalDB.execute(
         `select id               as visitcode
                 , pregnancybooksid as newlydiagnosedcode
                 , maternitycode
@@ -2114,15 +2109,44 @@ export default class Person {
            where pregnancybooksid = ?`,
         pregnancyBook.id
       );
+      const maternalVisitRecords = await originalDB.execute(
+        `select v.id               as visitcode
+                , v.pregnancybooksid as newlydiagnosedcode
+                , v.maternitycode
+                , v.maternalname
+                , v.maternalidcardno
+                , v.visitdate
+                , v.temperaturedegrees
+                , v.diastolicpressure
+                , v.systolicpressure
+                , v.breast
+                , v.lochiatype
+                , v.lochiavolume
+                , v.perinealincision
+                , v.doctor
+                , v.operatetime
+                , v.operatorid
+                , v.operateorganization
+                , v.created_at
+                , v.updated_at
+           from mch_maternal_visit v
+           inner join mch_maternal_visit v1 on v1.pregnancybooksid = ? and v1.maternitycode = v.maternitycode
+           where v.pregnancybooksid is null
+                 and v.maternitycode is not null`,
+        pregnancyBook.id
+      );
       const maternalVisits = {};
       maternalVisits.name = '产后访视记录表';
       maternalVisits.type = 'maternalVisits';
-      maternalVisits.records = maternalVisitRecords;
-      maternalDate.push(maternalVisits);
+      maternalVisits.records = pregnancyBookVisitRecords.concat(
+        maternalVisitRecords
+      );
+      maternalData.push(maternalVisits);
 
       // 产后42天健康检查记录表
       // language=PostgreSQL
-      const examine42thDayRecords = await originalDB.execute(
+      // 按孕册表匹配
+      const bookExamine42thDayRecords = await originalDB.execute(
         `select id               as examineno
                 , pregnancybooksid as newlydiagnosedcode
                 , pregnantwomenname
@@ -2145,13 +2169,173 @@ export default class Person {
            where pregnancybooksid = ?`,
         pregnancyBook.id
       );
+      const maternalExamine42thDayRecords = await originalDB.execute(
+        `select a.id               as examineno
+                , a.pregnancybooksid as newlydiagnosedcode
+                , a.pregnantwomenname
+                , a.visitdate
+                , a.diastolicpressure
+                , a.systolicpressure
+                , a.breast
+                , a.lochia
+                , a.lochiacolor
+                , a.lochiasmell
+                , a.perinealincision
+                , a.other
+                , a.doctor
+                , a.operatetime
+                , a.operatorid
+                , a.operateorganization
+                , a.created_at
+                , a.updated_at
+           from mch_examine_42th_day a
+           inner join mch_examine_42th_day b on b.pregnancybooksid = ? and a.maternitycode = b.maternitycode
+           where a.pregnancybooksid is null
+                 and a.maternitycode is not null`,
+        pregnancyBook.id
+      );
       const examine42thDay = {};
       examine42thDay.name = '产后42天健康检查记录表';
       examine42thDay.type = 'examine42thDay';
-      examine42thDay.records = examine42thDayRecords;
-      maternalDate.push(examine42thDay);
+      examine42thDay.records = bookExamine42thDayRecords.concat(
+        maternalExamine42thDayRecords
+      );
+      maternalData.push(examine42thDay);
 
-      result.push(maternalDate);
+      result.push(maternalData);
+    }
+    //有对应的产后记录
+    const deliveryList = await originalDB.execute(
+      `select
+              distinct a.MaternityCode as id
+         from mch_maternal_visit a
+         inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+         left join mch_delivery_record r on r.id = d.MaternityCode
+         left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
+         left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
+         where a.MaternalIdCardNo = ?
+               and a.MaternityCode is not null
+               and (
+                    r.PregnancyBooksId is null
+                    or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
+                    )
+         `,
+      idCardNo
+    );
+    //单独的产后访视记录
+    const deliveryList1 = await originalDB.execute(
+      `select
+              distinct a.MaternityCode as id
+         from mch_maternal_visit a
+         left join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+         left join mch_delivery_record r on r.id = d.MaternityCode
+         left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
+         left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
+         where a.MaternalIdCardNo = ?
+               and d.MaternityCode is null
+               and a.MaternityCode is not null
+               and (
+                    r.PregnancyBooksId is null
+                    or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
+                    )
+         `,
+      idCardNo
+    );
+    //单独的产后42天记录
+    const deliveryList2 = await originalDB.execute(
+      `select
+              distinct a.MaternityCode as id
+         from mch_examine_42th_day a
+         left join mch_maternal_visit d on a.MaternityCode = d.MaternityCode
+         left join mch_delivery_record r on r.id = d.MaternityCode
+         left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
+         left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
+         where a.IdCard = ?
+               and d.MaternityCode is null
+               and a.MaternityCode is not null
+               and (
+                    r.PregnancyBooksId is null
+                    or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
+                    )
+         `,
+      idCardNo
+    );
+    for (const delivery of [
+      ...deliveryList,
+      ...deliveryList1,
+      ...deliveryList2
+    ]) {
+      const deliveryData = [
+        {
+          name: '第一次产前检查信息表',
+          type: 'newlyDiagnosed',
+          records: []
+        },
+        {
+          name: '第2~5次产前随访服务信息表',
+          type: 'prenatalCare',
+          records: []
+        }
+      ];
+      const maternalVisitRecords = await originalDB.execute(
+        `select id               as visitcode
+                , pregnancybooksid as newlydiagnosedcode
+                , maternitycode
+                , maternalname
+                , maternalidcardno
+                , visitdate
+                , temperaturedegrees
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochiatype
+                , lochiavolume
+                , perinealincision
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_maternal_visit
+           where maternitycode = ?`,
+        delivery.id
+      );
+      const maternalVisits = {};
+      maternalVisits.name = '产后访视记录表';
+      maternalVisits.type = 'maternalVisits';
+      maternalVisits.records = maternalVisitRecords;
+      deliveryData.push(maternalVisits);
+      const maternalExamine42thDayRecords = await originalDB.execute(
+        `select id               as examineno
+                , pregnancybooksid as newlydiagnosedcode
+                , pregnantwomenname
+                , visitdate
+                , diastolicpressure
+                , systolicpressure
+                , breast
+                , lochia
+                , lochiacolor
+                , lochiasmell
+                , perinealincision
+                , other
+                , doctor
+                , operatetime
+                , operatorid
+                , operateorganization
+                , created_at
+                , updated_at
+           from mch_examine_42th_day
+           where maternitycode = ?`,
+        delivery.id
+      );
+      const examine42thDay = {};
+      examine42thDay.name = '产后42天健康检查记录表';
+      examine42thDay.type = 'examine42thDay';
+      examine42thDay.records = maternalExamine42thDayRecords;
+      deliveryData.push(examine42thDay);
+
+      result.push(deliveryData);
     }
     return result;
   }
