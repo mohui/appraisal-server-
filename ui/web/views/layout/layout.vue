@@ -267,7 +267,6 @@ export default {
           position: absolute;
           width: 0.3rem;
           height: 0.3rem;
-          background-color: rgba(91, 91, 91, 0.2);
           left: 1.8rem;
           top: calc(50% - 0.1rem);
           border: 1px solid rgba(91, 91, 91, 0.7);
@@ -276,10 +275,11 @@ export default {
         }
         &.is-active:after {
           background-color: #409eff;
-          width: 0.4rem;
-          height: 0.4rem;
-          left: 1.75rem;
+          width: 0.5rem;
+          height: 0.5rem;
+          left: 1.8rem;
           top: calc(50% - 0.2rem);
+          border: 0;
         }
       }
     }
