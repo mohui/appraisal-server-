@@ -450,12 +450,12 @@ export const MarkTags = [
           {
             name: '新生儿访视率',
             code: 'MCH03',
-            enabled: false
+            enabled: true
           },
           {
             name: '儿童健康管理率',
             code: 'MCH04',
-            enabled: false
+            enabled: true
           }
         ]
       },
