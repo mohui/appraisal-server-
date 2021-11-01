@@ -1223,23 +1223,12 @@ export default class Score {
               }
               // 新生儿访视率
               if (tagModel.tag === MarkTagUsages.MCH03.code) {
-                // 查询孕册数
-                const basicData =
-                  // language=PostgreSQL
-                  (
-                    await originalDB.execute(
-                      `
-                  select count(1) count
-                  from mch_pregnancy_books
-                  where operateorganization in (${hospitalIds.map(() => '?')})
-                  and operatetime >= ?
-                  and operatetime < ?
-                  `,
-                      ...hospitalIds,
-                      start,
-                      end
-                    )
-                  )[0]?.count ?? 0;
+                // 年度辖区内活产数
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.Children00,
+                  year
+                );
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
