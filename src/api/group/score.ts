@@ -421,17 +421,6 @@ export default class Score {
     if (!checkModel) throw new KatoRuntimeError(`考核体系 [${check}] 不合法`);
     // 考核年度
     const year = Number(checkModel.checkYear);
-    // 年度开始时间
-    const start = dayjs()
-      .year(year)
-      .startOf('y')
-      .toDate();
-    // 年度结束时间
-    const end = dayjs()
-      .year(year)
-      .startOf('y')
-      .add(1, 'y')
-      .toDate();
     debug('获取marks开始');
     const mark = await getMarks(group, year);
     debug('获取marks结束');
