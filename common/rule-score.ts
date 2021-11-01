@@ -273,7 +273,9 @@ export const BasicTagUsages = {
   // 年内应管理高危人群人数
   HR00: 'HR00',
   // 年内应管理其他慢病人群人数
-  OCD00: 'OCD00'
+  OCD00: 'OCD00',
+  // 年度辖区内0-6岁儿童数
+  Children01: 'Children01'
 };
 
 /**
