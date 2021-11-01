@@ -274,6 +274,8 @@ export const BasicTagUsages = {
   HR00: 'HR00',
   // 年内应管理其他慢病人群人数
   OCD00: 'OCD00',
+  // 年度辖区内活产数
+  Children00: 'Children00',
   // 年度辖区内0-6岁儿童数
   Children01: 'Children01'
 };
