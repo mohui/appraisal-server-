@@ -1244,7 +1244,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.MCH03.name
-                  } = 年度辖区内按照规范要求接受1次及以上访视的新生儿人数 / 孕产妇建册数 x 100% = ${
+                  } = 年度辖区内按照规范要求接受1次及以上访视的新生儿人数 / 年度辖区内活产数 x 100% = ${
                     mark?.MCH03
                   } / ${basicData} = ${percentString(mark?.MCH03, basicData)}`
                 );
@@ -1280,7 +1280,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.MCH04.name
-                  } = (年度辖区内接受1次及以上随访的0-3岁儿童数 或 年度辖区内接受1次及以上随访的0-6岁儿童数)/ 年度辖区内0-6岁儿童数 x 100% = ${
+                  } = 年度辖区内接受1次及以上随访的0-3岁儿童数 / 年度辖区内0-6岁儿童数 x 100% = ${
                     mark?.MCH04
                   } / ${basicData} = ${percentString(mark?.MCH04, basicData)}`
                 );
