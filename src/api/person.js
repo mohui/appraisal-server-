@@ -419,10 +419,6 @@ export default class Person {
   // endregion
 
   // region 导出人员档案表格
-  // TODO: 要删除的
-  async personExcelTest(params) {
-    return getPersonExcelBuffer(params);
-  }
 
   /***
    * 导出人员档案表格
