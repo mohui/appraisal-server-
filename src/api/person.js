@@ -118,7 +118,10 @@ export async function getPersonExcelBuffer(params) {
             content: [current.markContent]
           });
       } else {
-        let tags = next.tags.map(t => ({...t, content: [next.markContent]}));
+        let tags = next.tags.map(t => ({
+          ...t,
+          content: t.code === next.markName ? [next.markContent] : []
+        }));
         pre.push({
           ...next,
           tags: tags
