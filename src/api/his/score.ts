@@ -7,7 +7,10 @@ import {
   HisStaffMethod,
   HisWorkMethod,
   MarkTagUsages,
-  PreviewType
+  PreviewType,
+  Occupation,
+  DoctorType,
+  MajorType
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -689,7 +692,31 @@ export default class HisScore {
     should.string().required()
   )
   async autoScoreStaff(day, staff, hospital) {
+    // 获取指标的值
     const mark = await getMark(hospital, dayjs(day).year());
+
+    // region 获取员工信息
+    // 查询员工信息
+    const staffModels = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select id, account, name, major, title, education, "isGP"
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 给员工标注
+    const staffList = staffModels.map(it => {
+      const findIndex = Occupation.find(majorIt => majorIt.name === it.major);
+      return {
+        ...it,
+        majorType: findIndex?.majorType ?? null,
+        doctorType: findIndex?.doctorType ?? null
+      };
+    });
+    // endregion
+
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
@@ -792,6 +819,37 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
+          // 中医列表
+          const TCMList = staffList.filter(
+            it => it.doctorType === DoctorType.TCM
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 中医数量
+          const TCMCount = TCMList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = TCMCount / physicianCount / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
