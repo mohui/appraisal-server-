@@ -557,7 +557,7 @@ export const MarkTag = [
           {
             value: 'RatioOfTCM',
             label: '中医类别医师占比',
-            enabled: false
+            enabled: true
           }
         ]
       }
@@ -596,6 +596,10 @@ export const MarkTagUsages = {
   HIS00: {
     code: 'HIS00',
     name: '诊疗人次'
+  },
+  RatioOfTCM: {
+    code: 'RatioOfTCM',
+    name: '中医类别医师占比'
   }
 };
 
