@@ -529,12 +529,12 @@ export const MarkTag = [
         label: '人力配置',
         children: [
           {
-            value: 'a36',
+            value: 'GPsPerW',
             label: '每万人口全科医生数',
             enabled: false
           },
           {
-            value: 'a37',
+            value: 'RatioOfMedicalAndNursing',
             label: '医护比',
             enabled: false
           }
@@ -545,17 +545,17 @@ export const MarkTag = [
         label: '人员结构',
         children: [
           {
-            value: 'a38',
+            value: 'RatioOfHealthTechnicianEducation',
             label: '卫生技术人员学历结构',
             enabled: false
           },
           {
-            value: 'a39',
+            value: 'RatioOfHealthTechnicianTitles',
             label: '卫生技术人员职称结构',
             enabled: false
           },
           {
-            value: 'a40',
+            value: 'RatioOfTCM',
             label: '中医类别医师占比',
             enabled: false
           }
