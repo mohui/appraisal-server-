@@ -1735,7 +1735,7 @@ export default class Person {
            where mothervisitno = ?`,
         i.id
       );
-      newbornVisits.push(newbornVisit);
+      if (newbornVisit.length > 0) newbornVisits.push(newbornVisit);
     }
     // 二维数组降一维数组
     newbornVisits = newbornVisits.flat();
@@ -1796,7 +1796,7 @@ export default class Person {
            order by checkdate`,
         childHealthBookNo
       );
-      childChecks.push(childCheck);
+      if (childCheck.length > 0) childChecks.push(childCheck);
     }
     // 如果 新生儿家庭访视记录表 和 0-6岁儿童体检表 都为空, 返回空字符串
     if (newbornVisits.length === 0 && childChecks.length === 0) return [];
