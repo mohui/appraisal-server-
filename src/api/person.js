@@ -1963,15 +1963,17 @@ export default class Person {
                inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
         where a.PregnancyBooksId is not null
         union
-        select PregnancyBooksId as id
-        from mch_maternal_visit
-        where MaternalIdCardNo = ?
-          and PregnancyBooksId is not null
+        select COALESCE(v.PregnancyBooksId, r.PregnancyBooksId) as id
+        from mch_maternal_visit v
+               left join mch_delivery_record r on r.id = v.maternitycode
+        where v.MaternalIdCardNo = ?
+          and (v.PregnancyBooksId is not null or r.PregnancyBooksId is not null)
         union
-        select PregnancyBooksId as id
-        from mch_examine_42th_day
+        select COALESCE(v.PregnancyBooksId, r.PregnancyBooksId) as id
+        from mch_examine_42th_day v
+               left join mch_delivery_record r on r.id = v.maternitycode
         where idCard = ?
-          and PregnancyBooksId is not null
+          and (v.PregnancyBooksId is not null or r.PregnancyBooksId is not null)
       `,
       idCardNo,
       idCardNo,
@@ -2151,7 +2153,7 @@ export default class Person {
                  v.created_at,
                  v.updated_at
           from mch_maternal_visit v
-                 inner join mch_maternal_visit v1 on v1.pregnancybooksid = ? and v1.maternitycode = v.maternitycode
+                 inner join mch_delivery_record v1 on v1.pregnancybooksid = ? and v1.id = v.maternitycode
           where v.pregnancybooksid is null
             and v.maternitycode is not null
         `,
@@ -2214,7 +2216,7 @@ export default class Person {
                  a.created_at,
                  a.updated_at
           from mch_examine_42th_day a
-                 inner join mch_examine_42th_day b on b.pregnancybooksid = ? and a.maternitycode = b.maternitycode
+                 inner join mch_delivery_record b on b.pregnancybooksid = ? and a.maternitycode = b.id
           where a.pregnancybooksid is null
             and a.maternitycode is not null`,
         pregnancyBook.id
@@ -2241,10 +2243,7 @@ export default class Person {
                left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
         where a.MaternalIdCardNo = ?
           and a.MaternityCode is not null
-          and (
-            r.PregnancyBooksId is null
-            or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
-          )
+          and r.PregnancyBooksId is null
       `,
       idCardNo
     );
@@ -2260,10 +2259,7 @@ export default class Person {
         where a.MaternalIdCardNo = ?
           and d.MaternityCode is null
           and a.MaternityCode is not null
-          and (
-            r.PregnancyBooksId is null
-            or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
-          )
+          and r.PregnancyBooksId is null
       `,
       idCardNo
     );
@@ -2279,10 +2275,7 @@ export default class Person {
         where a.idCard = ?
           and d.MaternityCode is null
           and a.MaternityCode is not null
-          and (
-            r.PregnancyBooksId is null
-            or (r.PregnancyBooksId is not null and (b.PregnancyBooksId is null or c.PregnancyBooksId is null))
-          )
+          and r.PregnancyBooksId is null
       `,
       idCardNo
     );
@@ -2461,33 +2454,33 @@ export default class Person {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `select b.name
-              , card.id               as prenatalcarecode
-              , card.pregnancybooksid as newlydiagnosedcode
-              , card.checkdate
-              , card.diseasehistory
-              , card.chiefcomplaint
-              , card.weight
-              , card.uterinehigh
-              , card.abdominalcircumference
-              , card.fetalposition
-              , card.fetalheartrate
-              , card.fetalheartrate2
-              , card.fetalheartrate3
-              , card.assertpressure
-              , card.systolicpressure
-              , card.hemoglobin
-              , card.urinaryprotein
-              , card.guide
-              , card.nextappointmentdate
-              , card.doctor
-              , card.operatetime
-              , card.operatorid
-              , card.operateorganization
-              , card.created_at
-              , card.updated_at
-         from mch_prenatal_care card
-                inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-         where card.id = ?`,
+            , card.id               as prenatalcarecode
+            , card.pregnancybooksid as newlydiagnosedcode
+            , card.checkdate
+            , card.diseasehistory
+            , card.chiefcomplaint
+            , card.weight
+            , card.uterinehigh
+            , card.abdominalcircumference
+            , card.fetalposition
+            , card.fetalheartrate
+            , card.fetalheartrate2
+            , card.fetalheartrate3
+            , card.assertpressure
+            , card.systolicpressure
+            , card.hemoglobin
+            , card.urinaryprotein
+            , card.guide
+            , card.nextappointmentdate
+            , card.doctor
+            , card.operatetime
+            , card.operatorid
+            , card.operateorganization
+            , card.created_at
+            , card.updated_at
+       from mch_prenatal_care card
+              inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+       where card.id = ?`,
       code
     );
     return result[0];
