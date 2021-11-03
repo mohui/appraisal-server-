@@ -533,7 +533,7 @@ export const MarkTag = [
           {
             value: 'GPsPerW',
             label: '每万人口全科医生数',
-            enabled: false
+            enabled: true
           },
           {
             value: 'RatioOfMedicalAndNursing',
@@ -598,6 +598,10 @@ export const MarkTagUsages = {
   HIS00: {
     code: 'HIS00',
     name: '诊疗人次'
+  },
+  GPsPerW: {
+    code: 'GPsPerW',
+    name: '万人口全科医生数'
   },
   RatioOfMedicalAndNursing: {
     code: 'RatioOfMedicalAndNursing',

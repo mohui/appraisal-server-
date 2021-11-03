@@ -1,6 +1,6 @@
 import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {TagAlgorithmUsages} from '../../../common/rule-score';
+import {BasicTagUsages, TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {
   HisStaffDeptType,
@@ -28,6 +28,7 @@ import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
+import {getBasicData} from '../group/score';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -832,6 +833,37 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.GPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(it => it.isGP);
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
