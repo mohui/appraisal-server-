@@ -837,6 +837,44 @@ export default class HisScore {
           }
         }
 
+        // 医护比(注册执业（助理）医师数/同期注册护士数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfMedicalAndNursing.code) {
+          // 护士列表
+          const nurseList = staffList.filter(
+            it => it.majorType === MajorType.NURSE
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 护士数量
+          const nurseCount = nurseList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = physicianCount / nurseCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code

@@ -538,7 +538,7 @@ export const MarkTag = [
           {
             value: 'RatioOfMedicalAndNursing',
             label: '医护比',
-            enabled: false
+            enabled: true
           }
         ]
       },
@@ -598,6 +598,10 @@ export const MarkTagUsages = {
   HIS00: {
     code: 'HIS00',
     name: '诊疗人次'
+  },
+  RatioOfMedicalAndNursing: {
+    code: 'RatioOfMedicalAndNursing',
+    name: '医护比'
   },
   RatioOfHealthTechnicianEducation: {
     code: 'RatioOfHealthTechnicianEducation',
