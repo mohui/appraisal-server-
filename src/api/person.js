@@ -1942,12 +1942,14 @@ export default class Person {
    */
   async maternalHealthCheck(id) {
     // 通过居民id查找到身份证号
-    // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno
-           from ph_person
-           where id = ?`,
+        // language=PostgreSQL
+        `
+          select idcardno
+          from ph_person
+          where id = ?
+        `,
         id
       )
     )[0]?.idcardno;
@@ -1958,208 +1960,415 @@ export default class Person {
     // 通过身份证号（idCardNo）查询
     // language=PostgreSQL
     const pregnancyBooks = await originalDB.execute(
-      `select id
-              , etl_id
-              , original_id
-              , visitsdate
-              , vouchertype
-              , idcardno
-              , name
-              , age
-              , fathername
-              , fatherage
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , managehospid
-              , created_at
-              , updated_at
-         from mch_pregnancy_books
-         where idcardno = ?`,
+      `
+        select PregnancyBooksId as id
+        from mch_newly_diagnosed a
+               inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
+        where a.PregnancyBooksId is not null
+        union
+        select PregnancyBooksId as id
+        from mch_prenatal_care a
+               inner join mch_pregnancy_books b on b.id = a.PregnancyBooksId and b.IdCardNo = ?
+        where a.PregnancyBooksId is not null
+        union
+        select COALESCE(v.PregnancyBooksId, r.PregnancyBooksId) as id
+        from mch_maternal_visit v
+               left join mch_delivery_record r on r.id = v.maternitycode
+        where v.MaternalIdCardNo = ?
+          and (v.PregnancyBooksId is not null or r.PregnancyBooksId is not null)
+        union
+        select COALESCE(v.PregnancyBooksId, r.PregnancyBooksId) as id
+        from mch_examine_42th_day v
+               left join mch_delivery_record r on r.id = v.maternitycode
+        where idCard = ?
+          and (v.PregnancyBooksId is not null or r.PregnancyBooksId is not null)
+      `,
+      idCardNo,
+      idCardNo,
+      idCardNo,
       idCardNo
     );
     const result = [];
     for (const pregnancyBook of pregnancyBooks) {
-      const maternalDate = [];
+      const maternalData = [];
 
       // 通过母子健康手册表中的主键（id）查询以下表
 
       // 第一次产前检查信息表
       // language=PostgreSQL
       const newlyDiagnosedRecords = await originalDB.execute(
-        `select id               as newlydiagnosedcode
-                , pregnancybooksid as pre_newlydiagnosedcode
-                , name
-                , newlydiagnoseddate
-                , gestationalweeks
-                , gestationalageday
-                , age
-                , parity
-                , productionmeeting
-                , vaginaldelivery
-                , cesareansection
-                , lastmenstrual
-                , birth
-                , pasthistory
-                , familyhistory
-                , womansurgeryhistory
-                , spontaneousabortiontimes
-                , abortiontimes
-                , stillfetaltimes
-                , stillbirthtimes
-                , height
-                , weight
-                , bodymassindex
-                , systolicpressure
-                , assertpressure
-                , heart
-                , lung
-                , deputymilkgenital
-                , vagina
-                , cervical
-                , attachment
-                , hemoglobin
-                , interleukin
-                , plateletcount
-                , urinaryprotein
-                , urine
-                , ketone
-                , urineoccultblood
-                , bloodtype
-                , sgpt_fastingplasmaglucose
-                , sgpt_alt
-                , sgpt_ast
-                , sgpt_alb
-                , sgpt_tbili
-                , intoxicated
-                , urea
-                , vaginasecrete
-                , hbsagin
-                , hbsab
-                , hbeag
-                , kanghbe
-                , kanghbc
-                , rprscreen
-                , hivscreening
-                , bultrasonography
-                , nextcaredate
-                , doctor
-                , operatetime
-                , operatorid
-                , operateorganization
-                , created_at
-                , updated_at
-           from mch_newly_diagnosed
-           where pregnancybooksid = ?`,
+        `
+          select id               as newlydiagnosedcode,
+                 pregnancybooksid as pre_newlydiagnosedcode,
+                 name,
+                 newlydiagnoseddate,
+                 gestationalweeks,
+                 gestationalageday,
+                 age,
+                 parity,
+                 productionmeeting,
+                 vaginaldelivery,
+                 cesareansection,
+                 lastmenstrual,
+                 birth,
+                 pasthistory,
+                 familyhistory,
+                 womansurgeryhistory,
+                 spontaneousabortiontimes,
+                 abortiontimes,
+                 stillfetaltimes,
+                 stillbirthtimes,
+                 height,
+                 weight,
+                 bodymassindex,
+                 systolicpressure,
+                 assertpressure,
+                 heart,
+                 lung,
+                 deputymilkgenital,
+                 vagina,
+                 cervical,
+                 attachment,
+                 hemoglobin,
+                 interleukin,
+                 plateletcount,
+                 urinaryprotein,
+                 urine,
+                 ketone,
+                 urineoccultblood,
+                 bloodtype,
+                 sgpt_fastingplasmaglucose,
+                 sgpt_alt,
+                 sgpt_ast,
+                 sgpt_alb,
+                 sgpt_tbili,
+                 intoxicated,
+                 urea,
+                 vaginasecrete,
+                 hbsagin,
+                 hbsab,
+                 hbeag,
+                 kanghbe,
+                 kanghbc,
+                 rprscreen,
+                 hivscreening,
+                 bultrasonography,
+                 nextcaredate,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_newly_diagnosed
+          where pregnancybooksid = ?
+          order by newlydiagnoseddate
+        `,
         pregnancyBook.id
       );
       const newlyDiagnosed = {};
       newlyDiagnosed.name = '第一次产前检查信息表';
       newlyDiagnosed.type = 'newlyDiagnosed';
       newlyDiagnosed.records = newlyDiagnosedRecords;
-      maternalDate.push(newlyDiagnosed);
+      maternalData.push(newlyDiagnosed);
 
       // 第2~5次产前随访服务信息表
-      // language=PostgreSQL
       const prenatalCareRecords = await originalDB.execute(
-        `select card.id               as prenatalcarecode
-                , card.pregnancybooksid as newlydiagnosedcode
-                , card.checkdate
-                , card.diseasehistory
-                , card.chiefcomplaint
-                , card.weight
-                , card.uterinehigh
-                , card.abdominalcircumference
-                , card.fetalposition
-                , card.fetalheartrate
-                , card.fetalheartrate2
-                , card.fetalheartrate3
-                , card.assertpressure
-                , card.systolicpressure
-                , card.hemoglobin
-                , card.urinaryprotein
-                , card.guide
-                , card.nextappointmentdate
-                , card.doctor
-                , card.operatetime
-                , card.operatorid
-                , card.operateorganization
-                , card.created_at
-                , card.updated_at
-           from mch_prenatal_care card
-           where card.pregnancybooksid = ?`,
+        // language=PostgreSQL
+        `
+          select card.id               as prenatalcarecode,
+                 card.pregnancybooksid as newlydiagnosedcode,
+                 card.checkdate,
+                 card.diseasehistory,
+                 card.chiefcomplaint,
+                 card.weight,
+                 card.uterinehigh,
+                 card.abdominalcircumference,
+                 card.fetalposition,
+                 card.fetalheartrate,
+                 card.fetalheartrate2,
+                 card.fetalheartrate3,
+                 card.assertpressure,
+                 card.systolicpressure,
+                 card.hemoglobin,
+                 card.urinaryprotein,
+                 card.guide,
+                 card.nextappointmentdate,
+                 card.doctor,
+                 card.operatetime,
+                 card.operatorid,
+                 card.operateorganization,
+                 card.created_at,
+                 card.updated_at
+          from mch_prenatal_care card
+          where card.pregnancybooksid = ?
+          order by card.checkdate
+        `,
         pregnancyBook.id
       );
       const prenatalCare = {};
       prenatalCare.name = '第2~5次产前随访服务信息表';
       prenatalCare.type = 'prenatalCare';
       prenatalCare.records = prenatalCareRecords;
-      maternalDate.push(prenatalCare);
+      maternalData.push(prenatalCare);
       // 产后访视记录表
-      // language=PostgreSQL
+      // 按孕册表匹配
+      const pregnancyBookVisitRecords = await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select id               as visitcode,
+                 pregnancybooksid as newlydiagnosedcode,
+                 maternitycode,
+                 maternalname,
+                 maternalidcardno,
+                 visitdate,
+                 temperaturedegrees,
+                 diastolicpressure,
+                 systolicpressure,
+                 breast,
+                 lochiatype,
+                 lochiavolume,
+                 perinealincision,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_maternal_visit
+          where pregnancybooksid = ?
+          order by visitdate
+        `,
+        pregnancyBook.id
+      );
       const maternalVisitRecords = await originalDB.execute(
-        `select id               as visitcode
-                , pregnancybooksid as newlydiagnosedcode
-                , maternitycode
-                , maternalname
-                , maternalidcardno
-                , visitdate
-                , temperaturedegrees
-                , diastolicpressure
-                , systolicpressure
-                , breast
-                , lochiatype
-                , lochiavolume
-                , perinealincision
-                , doctor
-                , operatetime
-                , operatorid
-                , operateorganization
-                , created_at
-                , updated_at
-           from mch_maternal_visit
-           where pregnancybooksid = ?`,
+        // language=PostgreSQL
+        `
+          select v.id               as visitcode,
+                 v.pregnancybooksid as newlydiagnosedcode,
+                 v.maternitycode,
+                 v.maternalname,
+                 v.maternalidcardno,
+                 v.visitdate,
+                 v.temperaturedegrees,
+                 v.diastolicpressure,
+                 v.systolicpressure,
+                 v.breast,
+                 v.lochiatype,
+                 v.lochiavolume,
+                 v.perinealincision,
+                 v.doctor,
+                 v.operatetime,
+                 v.operatorid,
+                 v.operateorganization,
+                 v.created_at,
+                 v.updated_at
+          from mch_maternal_visit v
+                 inner join mch_delivery_record v1 on v1.pregnancybooksid = ? and v1.id = v.maternitycode
+          where v.pregnancybooksid is null
+            and v.maternitycode is not null
+          order by v.visitdate
+        `,
         pregnancyBook.id
       );
       const maternalVisits = {};
       maternalVisits.name = '产后访视记录表';
       maternalVisits.type = 'maternalVisits';
-      maternalVisits.records = maternalVisitRecords;
-      maternalDate.push(maternalVisits);
+      maternalVisits.records = pregnancyBookVisitRecords.concat(
+        maternalVisitRecords
+      );
+      maternalData.push(maternalVisits);
 
       // 产后42天健康检查记录表
       // language=PostgreSQL
-      const examine42thDayRecords = await originalDB.execute(
-        `select id               as examineno
-                , pregnancybooksid as newlydiagnosedcode
-                , pregnantwomenname
-                , visitdate
-                , diastolicpressure
-                , systolicpressure
-                , breast
-                , lochia
-                , lochiacolor
-                , lochiasmell
-                , perinealincision
-                , other
-                , doctor
-                , operatetime
-                , operatorid
-                , operateorganization
-                , created_at
-                , updated_at
-           from mch_examine_42th_day
-           where pregnancybooksid = ?`,
+      // 按孕册表匹配
+      const bookExamine42thDayRecords = await originalDB.execute(
+        `
+          select id               as examineno,
+                 pregnancybooksid as newlydiagnosedcode,
+                 pregnantwomenname,
+                 visitdate,
+                 diastolicpressure,
+                 systolicpressure,
+                 breast,
+                 lochia,
+                 lochiacolor,
+                 lochiasmell,
+                 perinealincision,
+                 other,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_examine_42th_day
+          where pregnancybooksid = ?
+          order by visitdate
+        `,
+        pregnancyBook.id
+      );
+      const maternalExamine42thDayRecords = await originalDB.execute(
+        `
+          select a.id               as examineno,
+                 a.pregnancybooksid as newlydiagnosedcode,
+                 a.pregnantwomenname,
+                 a.visitdate,
+                 a.diastolicpressure,
+                 a.systolicpressure,
+                 a.breast,
+                 a.lochia,
+                 a.lochiacolor,
+                 a.lochiasmell,
+                 a.perinealincision,
+                 a.other,
+                 a.doctor,
+                 a.operatetime,
+                 a.operatorid,
+                 a.operateorganization,
+                 a.created_at,
+                 a.updated_at
+          from mch_examine_42th_day a
+                 inner join mch_delivery_record b on b.pregnancybooksid = ? and a.maternitycode = b.id
+          where a.pregnancybooksid is null
+            and a.maternitycode is not null
+          order by a.visitdate`,
         pregnancyBook.id
       );
       const examine42thDay = {};
       examine42thDay.name = '产后42天健康检查记录表';
       examine42thDay.type = 'examine42thDay';
-      examine42thDay.records = examine42thDayRecords;
-      maternalDate.push(examine42thDay);
+      examine42thDay.records = bookExamine42thDayRecords.concat(
+        maternalExamine42thDayRecords
+      );
+      maternalData.push(examine42thDay);
 
-      result.push(maternalDate);
+      result.push(maternalData);
+    }
+    //有对应的产后记录
+    const deliveryList = await originalDB.execute(
+      //language=PostgreSQL
+      `
+        select distinct a.MaternityCode as id
+        from mch_maternal_visit a
+               inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+               left join mch_delivery_record r on r.id = d.MaternityCode
+        where a.MaternalIdCardNo = ?
+          and a.MaternityCode is not null
+          and r.PregnancyBooksId is null
+      `,
+      idCardNo
+    );
+    //单独的产后访视记录
+    const deliveryList1 = await originalDB.execute(
+      `
+        select distinct a.MaternityCode as id
+        from mch_maternal_visit a
+               left join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+               left join mch_delivery_record r on r.id = a.MaternityCode
+        where a.MaternalIdCardNo = ?
+          and d.MaternityCode is null
+          and a.MaternityCode is not null
+          and r.PregnancyBooksId is null
+      `,
+      idCardNo
+    );
+    //单独的产后42天记录
+    const deliveryList2 = await originalDB.execute(
+      `
+        select distinct a.MaternityCode as id
+        from mch_examine_42th_day a
+               left join mch_maternal_visit d on a.MaternityCode = d.MaternityCode
+               left join mch_delivery_record r on r.id = a.MaternityCode
+        where a.idCard = ?
+          and d.MaternityCode is null
+          and a.MaternityCode is not null
+          and r.PregnancyBooksId is null
+      `,
+      idCardNo
+    );
+    for (const delivery of [
+      ...deliveryList,
+      ...deliveryList1,
+      ...deliveryList2
+    ]) {
+      const deliveryData = [
+        {
+          name: '第一次产前检查信息表',
+          type: 'newlyDiagnosed',
+          records: []
+        },
+        {
+          name: '第2~5次产前随访服务信息表',
+          type: 'prenatalCare',
+          records: []
+        }
+      ];
+      const maternalVisitRecords = await originalDB.execute(
+        `
+          select id               as visitcode,
+                 pregnancybooksid as newlydiagnosedcode,
+                 maternitycode,
+                 maternalname,
+                 maternalidcardno,
+                 visitdate,
+                 temperaturedegrees,
+                 diastolicpressure,
+                 systolicpressure,
+                 breast,
+                 lochiatype,
+                 lochiavolume,
+                 perinealincision,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_maternal_visit
+          where maternitycode = ?
+          order by visitdate
+        `,
+        delivery.id
+      );
+      const maternalVisits = {};
+      maternalVisits.name = '产后访视记录表';
+      maternalVisits.type = 'maternalVisits';
+      maternalVisits.records = maternalVisitRecords;
+      deliveryData.push(maternalVisits);
+      const maternalExamine42thDayRecords = await originalDB.execute(
+        `
+          select id               as examineno,
+                 pregnancybooksid as newlydiagnosedcode,
+                 pregnantwomenname,
+                 visitdate,
+                 diastolicpressure,
+                 systolicpressure,
+                 breast,
+                 lochia,
+                 lochiacolor,
+                 lochiasmell,
+                 perinealincision,
+                 other,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_examine_42th_day
+          where maternitycode = ?
+          order by visitdate
+        `,
+        delivery.id
+      );
+      const examine42thDay = {};
+      examine42thDay.name = '产后42天健康检查记录表';
+      examine42thDay.type = 'examine42thDay';
+      examine42thDay.records = maternalExamine42thDayRecords;
+      deliveryData.push(examine42thDay);
+
+      result.push(deliveryData);
     }
     return result;
   }
@@ -2256,33 +2465,33 @@ export default class Person {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `select b.name
-              , card.id               as prenatalcarecode
-              , card.pregnancybooksid as newlydiagnosedcode
-              , card.checkdate
-              , card.diseasehistory
-              , card.chiefcomplaint
-              , card.weight
-              , card.uterinehigh
-              , card.abdominalcircumference
-              , card.fetalposition
-              , card.fetalheartrate
-              , card.fetalheartrate2
-              , card.fetalheartrate3
-              , card.assertpressure
-              , card.systolicpressure
-              , card.hemoglobin
-              , card.urinaryprotein
-              , card.guide
-              , card.nextappointmentdate
-              , card.doctor
-              , card.operatetime
-              , card.operatorid
-              , card.operateorganization
-              , card.created_at
-              , card.updated_at
-         from mch_prenatal_care card
-                inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-         where card.id = ?`,
+            , card.id               as prenatalcarecode
+            , card.pregnancybooksid as newlydiagnosedcode
+            , card.checkdate
+            , card.diseasehistory
+            , card.chiefcomplaint
+            , card.weight
+            , card.uterinehigh
+            , card.abdominalcircumference
+            , card.fetalposition
+            , card.fetalheartrate
+            , card.fetalheartrate2
+            , card.fetalheartrate3
+            , card.assertpressure
+            , card.systolicpressure
+            , card.hemoglobin
+            , card.urinaryprotein
+            , card.guide
+            , card.nextappointmentdate
+            , card.doctor
+            , card.operatetime
+            , card.operatorid
+            , card.operateorganization
+            , card.created_at
+            , card.updated_at
+       from mch_prenatal_care card
+              inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+       where card.id = ?`,
       code
     );
     return result[0];
