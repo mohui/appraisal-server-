@@ -599,6 +599,10 @@ export const MarkTagUsages = {
     code: 'HIS00',
     name: '诊疗人次'
   },
+  RatioOfHealthTechnicianTitles: {
+    code: 'RatioOfHealthTechnicianTitles',
+    name: '卫生技术人员职称结构'
+  },
   RatioOfTCM: {
     code: 'RatioOfTCM',
     name: '中医类别医师占比'
