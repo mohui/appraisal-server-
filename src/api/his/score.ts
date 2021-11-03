@@ -835,6 +835,7 @@ export default class HisScore {
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
         }
+
         // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
@@ -874,6 +875,7 @@ export default class HisScore {
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
         }
+
         // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
         if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
           // 中医列表
