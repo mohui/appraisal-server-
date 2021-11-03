@@ -549,12 +549,12 @@ export const MarkTag = [
           {
             value: 'RatioOfHealthTechnicianEducation',
             label: '卫生技术人员学历结构',
-            enabled: false
+            enabled: true
           },
           {
             value: 'RatioOfHealthTechnicianTitles',
             label: '卫生技术人员职称结构',
-            enabled: false
+            enabled: true
           },
           {
             value: 'RatioOfTCM',
@@ -598,6 +598,10 @@ export const MarkTagUsages = {
   HIS00: {
     code: 'HIS00',
     name: '诊疗人次'
+  },
+  RatioOfHealthTechnicianEducation: {
+    code: 'RatioOfHealthTechnicianEducation',
+    name: '卫生技术人员学历结构'
   },
   RatioOfHealthTechnicianTitles: {
     code: 'RatioOfHealthTechnicianTitles',
