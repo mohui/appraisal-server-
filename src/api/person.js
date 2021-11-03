@@ -2239,8 +2239,6 @@ export default class Person {
         from mch_maternal_visit a
                inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
                left join mch_delivery_record r on r.id = d.MaternityCode
-               left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
-               left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
         where a.MaternalIdCardNo = ?
           and a.MaternityCode is not null
           and r.PregnancyBooksId is null
@@ -2253,9 +2251,7 @@ export default class Person {
         select distinct a.MaternityCode as id
         from mch_maternal_visit a
                left join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
-               left join mch_delivery_record r on r.id = d.MaternityCode
-               left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
-               left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
+               left join mch_delivery_record r on r.id = a.MaternityCode
         where a.MaternalIdCardNo = ?
           and d.MaternityCode is null
           and a.MaternityCode is not null
@@ -2269,9 +2265,7 @@ export default class Person {
         select distinct a.MaternityCode as id
         from mch_examine_42th_day a
                left join mch_maternal_visit d on a.MaternityCode = d.MaternityCode
-               left join mch_delivery_record r on r.id = d.MaternityCode
-               left join mch_newly_diagnosed b on r.PregnancyBooksId = b.PregnancyBooksId
-               left join mch_prenatal_care c on r.PregnancyBooksId = c.PregnancyBooksId
+               left join mch_delivery_record r on r.id = a.MaternityCode
         where a.idCard = ?
           and d.MaternityCode is null
           and a.MaternityCode is not null
