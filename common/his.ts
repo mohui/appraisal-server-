@@ -193,10 +193,12 @@ export const Occupation = [
         name: '主治（主管）医师'
       },
       {
-        name: '副主任医师'
+        name: '副主任医师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任医师'
+        name: '主任医师',
+        level: HighTitle.highTitle
       }
     ]
   },
