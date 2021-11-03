@@ -2054,6 +2054,7 @@ export default class Person {
                  updated_at
           from mch_newly_diagnosed
           where pregnancybooksid = ?
+          order by newlydiagnoseddate
         `,
         pregnancyBook.id
       );
@@ -2093,6 +2094,7 @@ export default class Person {
                  card.updated_at
           from mch_prenatal_care card
           where card.pregnancybooksid = ?
+          order by card.checkdate
         `,
         pregnancyBook.id
       );
@@ -2127,6 +2129,7 @@ export default class Person {
                  updated_at
           from mch_maternal_visit
           where pregnancybooksid = ?
+          order by visitdate
         `,
         pregnancyBook.id
       );
@@ -2156,6 +2159,7 @@ export default class Person {
                  inner join mch_delivery_record v1 on v1.pregnancybooksid = ? and v1.id = v.maternitycode
           where v.pregnancybooksid is null
             and v.maternitycode is not null
+          order by v.visitdate
         `,
         pregnancyBook.id
       );
@@ -2192,6 +2196,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where pregnancybooksid = ?
+          order by visitdate
         `,
         pregnancyBook.id
       );
@@ -2218,7 +2223,8 @@ export default class Person {
           from mch_examine_42th_day a
                  inner join mch_delivery_record b on b.pregnancybooksid = ? and a.maternitycode = b.id
           where a.pregnancybooksid is null
-            and a.maternitycode is not null`,
+            and a.maternitycode is not null
+          order by a.visitdate`,
         pregnancyBook.id
       );
       const examine42thDay = {};
@@ -2312,7 +2318,9 @@ export default class Person {
                  created_at,
                  updated_at
           from mch_maternal_visit
-          where maternitycode = ?`,
+          where maternitycode = ?
+          order by visitdate
+        `,
         delivery.id
       );
       const maternalVisits = {};
@@ -2342,6 +2350,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where maternitycode = ?
+          order by visitdate
         `,
         delivery.id
       );
