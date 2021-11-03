@@ -582,7 +582,7 @@
                     <div v-for="(it, i) of item.records" :key="i">
                       <div style="margin: 20px 0;">
                         <span style="font-size: 18px">
-                          儿童姓名：{{ it[i].childname }}
+                          儿童姓名：{{ it[0].childname }}
                         </span>
                         <span
                           style="cursor: pointer; margin-left: 20px; color: #409eff"
