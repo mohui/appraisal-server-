@@ -12,7 +12,8 @@ import {
   DoctorType,
   MajorType,
   HighTitle,
-  MajorHealthType
+  MajorHealthType,
+  Education
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -831,6 +832,49 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code
+        ) {
+          // 查询所有不是专科及以下的,就是本科及以上, 切学历不能为空,必须是卫生技术人员
+          const bachelorList = staffList.filter(
+            it =>
+              it.education != Education.COLLEGE &&
+              it.education &&
+              it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 本科及以上卫生技术人员数
+          const bachelorCount = bachelorList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = bachelorCount / healthWorkersCount / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
