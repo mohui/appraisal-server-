@@ -10,7 +10,9 @@ import {
   PreviewType,
   Occupation,
   DoctorType,
-  MajorType
+  MajorType,
+  HighTitle,
+  MajorHealthType
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -708,11 +710,21 @@ export default class HisScore {
     );
     // 给员工标注
     const staffList = staffModels.map(it => {
+      // 先查找 专业类别,找到此专业类别的类型
       const findIndex = Occupation.find(majorIt => majorIt.name === it.major);
+      // 根据查找到的专业类别, 查找 职称名称 的职称类型
+      let titleIndex;
+      if (findIndex) {
+        titleIndex = findIndex?.children?.find(
+          titleIt => titleIt.name === it.title
+        );
+      }
       return {
         ...it,
         majorType: findIndex?.majorType ?? null,
-        doctorType: findIndex?.doctorType ?? null
+        doctorType: findIndex?.doctorType ?? null,
+        majorHealthType: findIndex?.majorHealthType ?? null,
+        level: titleIndex?.level ?? null
       };
     });
     // endregion
@@ -819,6 +831,45 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+        // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
+        ) {
+          // 具有 高级职称 的卫生技术人员数
+          const highTitleList = staffList.filter(
+            it => it.level === HighTitle.highTitle
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 具有高级职称的卫生技术人员数
+          const highTitleCount = highTitleList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = highTitleCount / healthWorkersCount / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
