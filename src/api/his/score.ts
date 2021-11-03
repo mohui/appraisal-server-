@@ -699,12 +699,17 @@ export default class HisScore {
     // 获取指标的值
     const mark = await getMark(hospital, dayjs(day).year());
 
+    // 获取本年的开始时间
+    const yearStart = dayjs(day)
+      .startOf('y')
+      .toDate();
+
     // region 获取员工信息
     // 查询员工信息
     const staffModels = await appDB.execute(
       // language=PostgreSQL
       `
-        select id, account, name, major, title, education, "isGP"
+        select id, account, name, major, title, education, "isGP", created_at
         from staff
         where hospital = ?
       `,
@@ -842,6 +847,39 @@ export default class HisScore {
         if (ruleIt.metric === MarkTagUsages.GPsPerW.code) {
           // 基层医疗卫生机构全科医生数
           const GPList = staffList.filter(it => it.isGP);
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生年增长数 (全科医师增加数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.IncreasesOfGPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(
+            it => it.isGP && it.created_at > yearStart
+          );
           // 服务人口数
           const basicData = await getBasicData(
             [hospital],

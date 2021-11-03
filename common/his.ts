@@ -536,6 +536,11 @@ export const MarkTag = [
             enabled: true
           },
           {
+            value: 'IncreasesOfGPsPerW',
+            label: '万人口全科医生年增长数',
+            enabled: true
+          },
+          {
             value: 'RatioOfMedicalAndNursing',
             label: '医护比',
             enabled: true
@@ -602,6 +607,10 @@ export const MarkTagUsages = {
   GPsPerW: {
     code: 'GPsPerW',
     name: '万人口全科医生数'
+  },
+  IncreasesOfGPsPerW: {
+    code: 'IncreasesOfGPsPerW',
+    name: '万人口全科医生年增长数'
   },
   RatioOfMedicalAndNursing: {
     code: 'RatioOfMedicalAndNursing',
