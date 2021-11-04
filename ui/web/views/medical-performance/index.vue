@@ -133,8 +133,14 @@
               v-hidden-scroll
             >
               <div class="top-container" v-sticky>
-                <div v-loading="$asyncComputed.overviewServerData.updating">
+                <div
+                  v-if="staffFlag === 'workPoint'"
+                  v-loading="$asyncComputed.overviewServerData.updating"
+                >
                   当前月工作总量：{{ overviewData.originalScore }}分
+                </div>
+                <div v-if="staffFlag === 'rate'">
+                  平均质量系数：{{ averageRate * 100 }}%
                 </div>
               </div>
               <div v-if="staffFlag === 'workPoint'">
@@ -444,6 +450,14 @@ export default {
           proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
         }))
         .sort((a, b) => b.correctionScore - a.correctionScore);
+    },
+    averageRate() {
+      const data = this.staffCheckListSeverData
+        .filter(it => it.rate !== null)
+        .map(it => it.rate);
+      const total = data.reduce((prev, curr) => prev + curr, 0);
+      const average = Number((total / data.length).toFixed(4));
+      return average;
     },
     indicatorsData() {
       const num = 100000;
