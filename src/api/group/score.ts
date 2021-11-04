@@ -1560,6 +1560,61 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
+
+              // 糖尿病人有偿签约率
+              if (tagModel.tag === MarkTagUsages.SN05.code) {
+                // 糖尿病患者人数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                        inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                        and vp.adminorganization in (${hospitalIds.map(
+                          () => '?'
+                        )})
+                        and  mp."C03" = true
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN05.name
+                  } = 糖尿病有偿签约人数 / 糖尿病患者人数 x 100% = ${
+                    mark?.SN05
+                  } / ${basicData} = ${percentString(mark?.SN05, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN05
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN05
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN05
+                ) {
+                  const rate = mark.SN05 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
             }
             // 如果未设置关联关系, 则得满分
             if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;

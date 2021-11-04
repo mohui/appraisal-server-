@@ -665,7 +665,7 @@ export const MarkTags = [
           {
             code: 'SN05',
             name: '糖尿病人有偿签约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN06',
