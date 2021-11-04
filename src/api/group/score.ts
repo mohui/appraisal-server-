@@ -1359,17 +1359,17 @@ export default class Score {
                       `
                         select count(1) count
                         from mark_person mp
-                        inner join ph_person vp on mp.id = vp.id
+                               inner join ph_person vp on mp.id = vp.id
                         where mp.year = ?
-                        and vp.adminorganization in (${hospitalIds.map(
-                          () => '?'
-                        )})
-                        and (
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and (
                             mp."C01" = true or mp."C02" = true or mp."C03" = true or
                             mp."C04" = true or mp."C05" = true or mp."C06" = true or
                             mp."C07" = true or mp."C08" = true or mp."C09" = true or
                             mp."C10" = true or mp."C11" = true
-                            )
+                          )
                       `,
                       year,
                       ...hospitalIds
@@ -1419,12 +1419,12 @@ export default class Score {
                       `
                         select count(1) count
                         from mark_person mp
-                        inner join ph_person vp on mp.id = vp.id
+                               inner join ph_person vp on mp.id = vp.id
                         where mp.year = ?
-                        and vp.adminorganization in (${hospitalIds.map(
-                          () => '?'
-                        )})
-                        and  mp."C07" = true
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C07" = true
                       `,
                       year,
                       ...hospitalIds
@@ -1516,12 +1516,12 @@ export default class Score {
                       `
                         select count(1) count
                         from mark_person mp
-                        inner join ph_person vp on mp.id = vp.id
+                               inner join ph_person vp on mp.id = vp.id
                         where mp.year = ?
-                        and vp.adminorganization in (${hospitalIds.map(
-                          () => '?'
-                        )})
-                        and  mp."C02" = true
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C02" = true
                       `,
                       year,
                       ...hospitalIds
@@ -1571,12 +1571,12 @@ export default class Score {
                       `
                         select count(1) count
                         from mark_person mp
-                        inner join ph_person vp on mp.id = vp.id
+                               inner join ph_person vp on mp.id = vp.id
                         where mp.year = ?
-                        and vp.adminorganization in (${hospitalIds.map(
-                          () => '?'
-                        )})
-                        and  mp."C03" = true
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C03" = true
                       `,
                       year,
                       ...hospitalIds
