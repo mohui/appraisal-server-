@@ -680,7 +680,7 @@ export const MarkTags = [
           {
             code: 'SN08',
             name: '有偿续约率',
-            enabled: false
+            enabled: true
           }
         ]
       },

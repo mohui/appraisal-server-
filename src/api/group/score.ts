@@ -1651,6 +1651,43 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
+
+              // 有偿续约率
+              if (tagModel.tag === MarkTagUsages.SN08.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN08.name
+                  } = 明年度签约的有偿签约居民 / 今年度的有偿签约人数 x 100% = ${
+                    mark?.SN08
+                  } / ${mark?.SN03} = ${percentString(mark?.SN08, mark?.SN03)}`
+                );
+                console.log(ruleAreaScoreModel.details);
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN08
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN08
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN08
+                ) {
+                  const rate = mark.SN08 / mark?.SN03 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
             }
             // 如果未设置关联关系, 则得满分
             if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;
