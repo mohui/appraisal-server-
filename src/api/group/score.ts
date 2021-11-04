@@ -1348,6 +1348,67 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
+
+              // 重点人群签约服务覆盖率
+              if (tagModel.tag === MarkTagUsages.SN01.code) {
+                // 重点人群数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                        inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                        and vp.adminorganization in (${hospitalIds.map(
+                          () => '?'
+                        )})
+                        and (
+                            mp."C01" = true or mp."C02" = true or mp."C03" = true or
+                            mp."C04" = true or mp."C05" = true or mp."C06" = true or
+                            mp."C07" = true or mp."C08" = true or mp."C09" = true or
+                            mp."C10" = true or mp."C11" = true
+                            )
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN01.name
+                  } = 重点人群签约数 / 重点人群数 x 100% = ${
+                    mark?.SN01
+                  } / ${basicData} = ${percentString(mark?.SN01, basicData)}`
+                );
+                console.log(ruleAreaScoreModel.details);
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN01
+                ) {
+                  const rate = mark.SN01 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
             }
             // 如果未设置关联关系, 则得满分
             if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;
