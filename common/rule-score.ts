@@ -650,7 +650,7 @@ export const MarkTags = [
           {
             code: 'SN02',
             name: '计划生育特扶人员签约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN03',
