@@ -1615,6 +1615,42 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
+
+              // 续约率
+              if (tagModel.tag === MarkTagUsages.SN07.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN07.name
+                  } = 明年签约的居民 / 今年签约人数 x 100% = ${mark?.SN07} / ${
+                    mark?.SN00
+                  } = ${percentString(mark?.SN07, mark?.SN00)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN07
+                ) {
+                  const rate = mark.SN07 / mark?.SN00 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
             }
             // 如果未设置关联关系, 则得满分
             if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;

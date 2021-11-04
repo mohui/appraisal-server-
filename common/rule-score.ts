@@ -675,7 +675,7 @@ export const MarkTags = [
           {
             code: 'SN07',
             name: '续约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN08',
