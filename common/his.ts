@@ -193,10 +193,12 @@ export const Occupation = [
         name: '主治（主管）医师'
       },
       {
-        name: '副主任医师'
+        name: '副主任医师',
+        level: HighTitle.highTitle
       },
       {
-        name: '主任医师'
+        name: '主任医师',
+        level: HighTitle.highTitle
       }
     ]
   },
@@ -529,14 +531,19 @@ export const MarkTag = [
         label: '人力配置',
         children: [
           {
-            value: 'a36',
+            value: 'GPsPerW',
             label: '每万人口全科医生数',
-            enabled: false
+            enabled: true
           },
           {
-            value: 'a37',
+            value: 'IncreasesOfGPsPerW',
+            label: '万人口全科医生年增长数',
+            enabled: true
+          },
+          {
+            value: 'RatioOfMedicalAndNursing',
             label: '医护比',
-            enabled: false
+            enabled: true
           }
         ]
       },
@@ -545,19 +552,19 @@ export const MarkTag = [
         label: '人员结构',
         children: [
           {
-            value: 'a38',
+            value: 'RatioOfHealthTechnicianEducation',
             label: '卫生技术人员学历结构',
-            enabled: false
+            enabled: true
           },
           {
-            value: 'a39',
+            value: 'RatioOfHealthTechnicianTitles',
             label: '卫生技术人员职称结构',
-            enabled: false
+            enabled: true
           },
           {
-            value: 'a40',
+            value: 'RatioOfTCM',
             label: '中医类别医师占比',
-            enabled: false
+            enabled: true
           }
         ]
       }
@@ -596,6 +603,30 @@ export const MarkTagUsages = {
   HIS00: {
     code: 'HIS00',
     name: '诊疗人次'
+  },
+  GPsPerW: {
+    code: 'GPsPerW',
+    name: '万人口全科医生数'
+  },
+  IncreasesOfGPsPerW: {
+    code: 'IncreasesOfGPsPerW',
+    name: '万人口全科医生年增长数'
+  },
+  RatioOfMedicalAndNursing: {
+    code: 'RatioOfMedicalAndNursing',
+    name: '医护比'
+  },
+  RatioOfHealthTechnicianEducation: {
+    code: 'RatioOfHealthTechnicianEducation',
+    name: '卫生技术人员学历结构'
+  },
+  RatioOfHealthTechnicianTitles: {
+    code: 'RatioOfHealthTechnicianTitles',
+    name: '卫生技术人员职称结构'
+  },
+  RatioOfTCM: {
+    code: 'RatioOfTCM',
+    name: '中医类别医师占比'
   }
 };
 

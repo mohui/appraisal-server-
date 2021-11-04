@@ -1,13 +1,19 @@
 import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {TagAlgorithmUsages} from '../../../common/rule-score';
+import {BasicTagUsages, TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {
   HisStaffDeptType,
   HisStaffMethod,
   HisWorkMethod,
   MarkTagUsages,
-  PreviewType
+  PreviewType,
+  Occupation,
+  DoctorType,
+  MajorType,
+  HighTitle,
+  MajorHealthType,
+  Education
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -22,6 +28,7 @@ import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
+import {getBasicData} from '../group/score';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -689,7 +696,46 @@ export default class HisScore {
     should.string().required()
   )
   async autoScoreStaff(day, staff, hospital) {
+    // 获取指标的值
     const mark = await getMark(hospital, dayjs(day).year());
+
+    // 获取本年的开始时间
+    const yearStart = dayjs(day)
+      .startOf('y')
+      .toDate();
+
+    // region 获取员工信息
+    // 查询员工信息
+    const staffModels = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select id, account, name, major, title, education, "isGP", created_at
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 给员工标注
+    const staffList = staffModels.map(it => {
+      // 先查找 专业类别,找到此专业类别的类型
+      const findIndex = Occupation.find(majorIt => majorIt.name === it.major);
+      // 根据查找到的专业类别, 查找 职称名称 的职称类型
+      let titleIndex;
+      if (findIndex) {
+        titleIndex = findIndex?.children?.find(
+          titleIt => titleIt.name === it.title
+        );
+      }
+      return {
+        ...it,
+        majorType: findIndex?.majorType ?? null,
+        doctorType: findIndex?.doctorType ?? null,
+        majorHealthType: findIndex?.majorHealthType ?? null,
+        level: titleIndex?.level ?? null
+      };
+    });
+    // endregion
+
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
@@ -792,6 +838,223 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.GPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(it => it.isGP);
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生年增长数 (全科医师增加数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.IncreasesOfGPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(
+            it => it.isGP && it.created_at >= yearStart
+          );
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 医护比(注册执业（助理）医师数/同期注册护士数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfMedicalAndNursing.code) {
+          // 护士列表
+          const nurseList = staffList.filter(
+            it => it.majorType === MajorType.NURSE
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 护士数量
+          const nurseCount = nurseList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = physicianCount / nurseCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code
+        ) {
+          // 查询所有不是专科及以下的,就是本科及以上, 切学历不能为空,必须是卫生技术人员
+          const bachelorList = staffList.filter(
+            it =>
+              it.education != Education.COLLEGE &&
+              it.education &&
+              it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 本科及以上卫生技术人员数
+          const bachelorCount = bachelorList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = bachelorCount / healthWorkersCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
+        ) {
+          // 具有 高级职称 的卫生技术人员数
+          const highTitleList = staffList.filter(
+            it => it.level === HighTitle.highTitle
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 具有高级职称的卫生技术人员数
+          const highTitleCount = highTitleList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = highTitleCount / healthWorkersCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
+          // 中医列表
+          const TCMList = staffList.filter(
+            it => it.doctorType === DoctorType.TCM
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 中医数量
+          const TCMCount = TCMList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = TCMCount / physicianCount / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
