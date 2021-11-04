@@ -660,7 +660,7 @@ export const MarkTags = [
           {
             code: 'SN04',
             name: '高血压病人有偿签约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN05',
