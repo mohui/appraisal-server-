@@ -655,7 +655,7 @@ export const MarkTags = [
           {
             code: 'SN03',
             name: '有偿签约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN04',

@@ -1463,6 +1463,48 @@ export default class Score {
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
               }
+
+              // 有偿签约率
+              if (tagModel.tag === MarkTagUsages.SN03.code) {
+                // 服务人口数
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.DocPeople,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN03.name
+                  } = 所有的有偿签约人数 / 服务人口数 x 100% = ${
+                    mark?.SN03
+                  } / ${basicData} = ${percentString(mark?.SN03, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN03
+                ) {
+                  const rate = mark.SN03 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
             }
             // 如果未设置关联关系, 则得满分
             if (formulas?.length === 0) ruleAreaScoreModel.score = rule.score;
