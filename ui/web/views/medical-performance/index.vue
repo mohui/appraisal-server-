@@ -132,7 +132,7 @@
               v-loading="$asyncComputed.staffCheckListSeverData.updating"
               v-hidden-scroll
             >
-              <div class="top-container">
+              <div class="top-container" v-sticky>
                 <div v-loading="$asyncComputed.overviewServerData.updating">
                   当前月工作总量：{{ overviewData.originalScore }}分
                 </div>
@@ -1116,18 +1116,19 @@ export default {
   }
 
   .content {
-    padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
 
     .top-container {
+      background: #ffffff;
       display: flex;
       flex-direction: row;
       align-items: center;
-      padding: 10px;
+      padding: 10px 20px;
     }
 
     .rank-box {
+      padding: 10px;
       .cell {
         padding: 10px;
         display: flex;
