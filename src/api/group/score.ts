@@ -97,6 +97,15 @@ export async function getMarks(
   MCH02: number;
   MCH03: number;
   MCH04: number;
+  SN00: number;
+  SN01: number;
+  SN02: number;
+  SN03: number;
+  SN04: number;
+  SN05: number;
+  SN06: number;
+  SN07: number;
+  SN08: number;
 }> {
   // language=PostgreSQL
   const result = await originalDB.execute(
@@ -162,7 +171,16 @@ export async function getMarks(
       MCH01: 0,
       MCH02: 0,
       MCH03: 0,
-      MCH04: 0
+      MCH04: 0,
+      SN00: 0,
+      SN01: 0,
+      SN02: 0,
+      SN03: 0,
+      SN04: 0,
+      SN05: 0,
+      SN06: 0,
+      SN07: 0,
+      SN08: 0
     }
   );
   return {...obj, id: group};
@@ -1289,6 +1307,43 @@ export default class Score {
                   mark?.MCH04
                 ) {
                   const rate = mark.MCH04 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 签约服务覆盖率
+              if (tagModel.tag === MarkTagUsages.SIGN01.code) {
+                // 查询 服务人口数（基础数据中居民档案中的辖区内常驻人口数）
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.DocPeople,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SIGN01.name
+                  } = 所有签约人群 / 服务人口数 x 100% = ${
+                    mark?.SN00
+                  } / ${basicData} = ${percentString(mark?.SN00, basicData)}`
+                );
+
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN00
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN00
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN00
+                ) {
+                  const rate = mark.SN00 / basicData / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }

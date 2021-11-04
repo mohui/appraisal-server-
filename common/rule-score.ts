@@ -640,7 +640,7 @@ export const MarkTags = [
           {
             code: 'SIGN01',
             name: '签约服务覆盖率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SIGN02',
@@ -854,6 +854,10 @@ export const MarkTagUsages = {
   MCH04: {
     name: '儿童健康管理率',
     code: 'MCH04'
+  },
+  SIGN01: {
+    name: '签约服务覆盖率',
+    code: 'SIGN01'
   }
 };
 
