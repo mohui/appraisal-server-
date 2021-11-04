@@ -1383,7 +1383,6 @@ export default class Score {
                     mark?.SN01
                   } / ${basicData} = ${percentString(mark?.SN01, basicData)}`
                 );
-                console.log(ruleAreaScoreModel.details);
 
                 // 结果为”是“时，得满分
                 if (
