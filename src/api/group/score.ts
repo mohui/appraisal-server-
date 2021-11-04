@@ -1313,7 +1313,7 @@ export default class Score {
               }
 
               // 签约服务覆盖率
-              if (tagModel.tag === MarkTagUsages.SIGN01.code) {
+              if (tagModel.tag === MarkTagUsages.SN00.code) {
                 // 查询 服务人口数（基础数据中居民档案中的辖区内常驻人口数）
                 const basicData = await getBasicData(
                   hospitalIds,
@@ -1323,7 +1323,7 @@ export default class Score {
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
-                    MarkTagUsages.SIGN01.name
+                    MarkTagUsages.SN00.name
                   } = 所有签约人群 / 服务人口数 x 100% = ${
                     mark?.SN00
                   } / ${basicData} = ${percentString(mark?.SN00, basicData)}`
