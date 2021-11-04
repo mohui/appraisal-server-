@@ -878,7 +878,7 @@ export default class HisScore {
         if (ruleIt.metric === MarkTagUsages.IncreasesOfGPsPerW.code) {
           // 基层医疗卫生机构全科医生数
           const GPList = staffList.filter(
-            it => it.isGP && it.created_at > yearStart
+            it => it.isGP && it.created_at >= yearStart
           );
           // 服务人口数
           const basicData = await getBasicData(
