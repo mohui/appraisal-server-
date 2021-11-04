@@ -137,10 +137,12 @@
                   当前月工作总量：{{ overviewData.originalScore }}分
                 </div>
               </div>
-              <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
+              <div v-if="staffFlag === 'workPoint'">
                 <div class="rank-box" v-hidden-scroll>
                   <div
-                    v-for="(i, index) of staffCheckListData"
+                    v-for="(i, index) of staffCheckListData.sort(
+                      (a, b) => b.correctionScore - a.correctionScore
+                    )"
                     :key="index"
                     class="cell"
                     @click="onGotoStaffDetail(i.id)"
@@ -181,6 +183,65 @@
                         }"
                       >
                         {{ i.correctionScore }}/{{ i.score }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="staffFlag === 'rate'">
+                <div class="rank-box" v-hidden-scroll>
+                  <div
+                    v-for="(i, index) of staffCheckListData.sort((a, b) => {
+                      if (a.rate === null && b.rate === null) {
+                        return 0;
+                      } else if (a.rate === null) {
+                        return 1;
+                      } else if (b.rate === null) {
+                        return -1;
+                      } else {
+                        return b.rate - a.rate;
+                      }
+                    })"
+                    :key="index"
+                    class="cell"
+                    @click="onGotoStaffDetail(i.id)"
+                  >
+                    <div class="ranking">{{ index + 1 }}</div>
+                    <div class="container">
+                      <div class="name">{{ i.name }}</div>
+                      <div class="progress el-progress-staff-cell">
+                        <el-progress
+                          :style="{
+                            width: `${i.rate === null ? 0 : 100}%`
+                          }"
+                          :stroke-width="16"
+                          :percentage="i.rate * 100"
+                          :show-text="false"
+                          :color="
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                          "
+                        ></el-progress>
+                      </div>
+                      <div
+                        class="text"
+                        :style="{
+                          color:
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                        }"
+                      >
+                        {{ i.rateFormat }}
                       </div>
                     </div>
                   </div>
@@ -241,8 +302,8 @@
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
-            >导出</el-button
-          >
+            >导出
+          </el-button>
         </div>
         <el-table
           id="reportTable"
@@ -374,7 +435,10 @@ export default {
         ?.sort((a, b) => b.score - a.score)
         .map(it => ({
           ...it,
-          rate: it.rate || 1,
+          rateFormat:
+            it.rate === null
+              ? '无考核'
+              : Number((it.rate * 100).toFixed(2)) + '%',
           score: Number(it.score?.toFixed(2)) || 0,
           correctionScore: Number((it.score * (it.rate || 1)).toFixed(2)),
           proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
@@ -884,10 +948,12 @@ export default {
   .custom-cell {
     background: #f5f7fa;
   }
+
   tr {
     pointer-events: none;
   }
 }
+
 .el-progress-staff-cell {
   .el-progress-bar__outer,
   .el-progress-bar__inner {
@@ -920,10 +986,12 @@ export default {
     margin: 0 20px 15px 0;
     float: left;
   }
+
   .right {
     float: right;
     margin-right: 0;
   }
+
   .header-title {
     font: 18px/1.4 Arial;
     color: #3a3f62;
@@ -936,10 +1004,12 @@ export default {
   background-color: #ffffff;
   padding: 10px;
 }
+
 .card {
   border-radius: 4px;
   background-color: #ffffff;
 }
+
 .indicators-title-card {
   background-color: #ffffff;
   border-right: 1px solid #ebeef5;
@@ -951,42 +1021,51 @@ export default {
   display: flex;
   flex-direction: row;
   position: relative;
+
   .title-box {
     display: flex;
     flex-direction: row;
     align-items: center;
+
     .title {
       writing-mode: vertical-lr;
       letter-spacing: 0.3em;
       font-size: 17px;
     }
   }
+
   .indicators-container {
     flex: 1;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+
     .item-content {
       width: calc((100% - 84px) / 4);
       display: flex;
       flex-direction: column;
       color: #3a3f62;
+
       .indicators-name {
         font-size: 15px;
         padding: 5px;
       }
+
       .indicators-content {
         flex: 1;
         display: flex;
         flex-direction: row;
         align-items: center;
+
         .number {
           text-align: center;
           flex: 1;
           font-size: 28px;
         }
+
         .icon-box {
           margin: 0 40px 20px 0;
+
           .icon {
             width: 50px;
             height: 50px;
@@ -995,6 +1074,7 @@ export default {
       }
     }
   }
+
   .arrow-box {
     position: absolute;
     right: 0;
@@ -1007,10 +1087,12 @@ export default {
     padding: 0 15px 15px 0;
   }
 }
+
 .staff-container {
   height: 60vh;
   color: #3a3f62;
   font-size: 15px;
+
   .staff-tabs {
     height: 60px;
     display: flex;
@@ -1019,6 +1101,7 @@ export default {
     font-size: 16px;
     background: #dae0f2;
     border-bottom: 1px solid #ebeef5;
+
     .tab,
     .tab-select {
       width: 50%;
@@ -1026,20 +1109,24 @@ export default {
       text-align: center;
       line-height: 60px;
     }
+
     .tab-select {
       background: #ffffff;
     }
   }
+
   .content {
     padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
+
     .top-container {
       display: flex;
       flex-direction: row;
       align-items: center;
       padding: 10px;
     }
+
     .rank-box {
       .cell {
         padding: 10px;
@@ -1049,6 +1136,7 @@ export default {
         font-size: 13px;
         color: #3a3f62;
         cursor: pointer;
+
         .ranking {
           width: 20px;
           height: 20px;
@@ -1059,21 +1147,25 @@ export default {
           border-radius: 50%;
           margin-right: 10px;
         }
+
         .container {
           width: 100%;
           display: flex;
           flex-direction: row;
           align-items: center;
+
           .name {
             width: 50px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
           }
+
           .progress {
             flex: 1;
             margin: 5px 3px;
           }
+
           .text {
             width: 100px;
             text-align: right;
@@ -1083,8 +1175,10 @@ export default {
     }
   }
 }
+
 .workbench-container {
   height: 60vh;
+
   .workbench-header {
     height: 40px;
     line-height: 40px;
@@ -1093,16 +1187,19 @@ export default {
     color: #3a3f62;
     font-size: 18px;
   }
+
   .content {
     padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
+
     .square {
       position: relative;
       width: 100%;
       height: 0;
       padding-bottom: 100%; /* padding百分比是相对父元素宽度计算的 */
     }
+
     .square-inner {
       position: absolute;
       top: 0;
@@ -1118,6 +1215,7 @@ export default {
       grid-gap: 1px; /* grid-column-gap 和 grid-row-gap的简写 */
       grid-auto-flow: row;
     }
+
     .grid > div {
       color: #fff;
       line-height: 2;
@@ -1125,6 +1223,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+
       .item {
         background: #dae0f2;
         width: 80%;
@@ -1136,6 +1235,7 @@ export default {
         align-items: center;
         justify-content: center;
         border-radius: 20px;
+
         .icon {
           color: #848dbd;
           font-size: 3.2vw;
