@@ -489,18 +489,71 @@
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
                   </div>
-                  <div>
+                  <div class="maternal">
                     <div
-                      style="font-size: 20px; margin:10px 0"
-                      v-for="(it, itIndex) in item"
+                      v-for="(it, itIndex) in item.slice(0, 2)"
                       :key="itIndex"
+                      :class="'record-' + itIndex"
                     >
-                      <div>{{ it.name }}</div>
+                      <div class="record-title">{{ it.name }}</div>
                       <div
-                        class="notes"
-                        style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
+                        class="notes"
+                        @click="handleGotoDetailse(record, it.type)"
+                      >
+                        <div class="notes-block">
+                          <span class="hospital">
+                            <span v-if="it.type === 'newlyDiagnosed'">
+                              填表日期：{{
+                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span v-else-if="it.type === 'prenatalCare'">
+                              随访日期：{{
+                                record.checkdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                            <span
+                              v-else-if="
+                                it.type === 'maternalVisits' ||
+                                  it.type === 'examine42thDay'
+                              "
+                            >
+                              访视日期：{{
+                                record.visitdate.$format('YYYY-MM-DD')
+                              }}
+                            </span>
+                          </span>
+                        </div>
+                        <p>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            年龄：{{ record.age }} 体重：{{ record.weight }}kg
+                          </span>
+                          <span
+                            v-if="
+                              it.type === 'prenatalCare' ||
+                                it.type === 'examine42thDay' ||
+                                it.type === 'maternalVisits'
+                            "
+                          >
+                            医生姓名：{{ record.doctor }}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="maternal">
+                    <div
+                      v-for="(it, itIndex) in item.slice(2)"
+                      :key="itIndex"
+                      :class="'record-' + itIndex"
+                    >
+                      <div class="record-title">{{ it.name }}</div>
+                      <div
+                        v-for="(record, recordIndex) of it.records"
+                        :key="recordIndex"
+                        class="notes"
                         @click="handleGotoDetailse(record, it.type)"
                       >
                         <div class="notes-block">
@@ -1048,6 +1101,60 @@ export default {
 <style lang="scss" scoped>
 @import '../../styles/vars';
 
+.maternal {
+  display: flex;
+  flex-direction: row;
+  background-color: #f0f4ff;
+  color: #42486d;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  & > div {
+    padding: 10px 0 10px 20px;
+    min-width: 180px;
+    .notes {
+      float: left;
+      background-color: #fff;
+      margin-bottom: 10px;
+      margin-right: 20px;
+      min-width: 180px;
+      padding: 10px;
+      line-height: 2;
+      font-size: 14px;
+      border-radius: 6px;
+      p {
+        margin: 0;
+        font-size: initial;
+      }
+    }
+  }
+  .record-title {
+    line-height: 2;
+  }
+  .record-0,
+  .record-3 {
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+  .record-0 {
+    p {
+      font-weight: bold;
+    }
+  }
+  .record-0,
+  .record-2 {
+    position: relative;
+    &:after {
+      position: absolute;
+      display: block;
+      content: '';
+      height: 100%;
+      top: 0;
+      right: 0;
+      width: 4px;
+      background-color: #fff;
+    }
+  }
+}
 .notes {
   cursor: pointer;
   border-bottom: 1px solid #eee;
