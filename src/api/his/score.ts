@@ -29,6 +29,7 @@ import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
 import {getBasicData} from '../group/score';
+import {getStaffList} from './common';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -704,37 +705,8 @@ export default class HisScore {
       .startOf('y')
       .toDate();
 
-    // region 获取员工信息
-    // 查询员工信息
-    const staffModels = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select id, account, name, major, title, education, "isGP", created_at
-        from staff
-        where hospital = ?
-      `,
-      hospital
-    );
-    // 给员工标注
-    const staffList = staffModels.map(it => {
-      // 先查找 专业类别,找到此专业类别的类型
-      const findIndex = Occupation.find(majorIt => majorIt.name === it.major);
-      // 根据查找到的专业类别, 查找 职称名称 的职称类型
-      let titleIndex;
-      if (findIndex) {
-        titleIndex = findIndex?.children?.find(
-          titleIt => titleIt.name === it.title
-        );
-      }
-      return {
-        ...it,
-        majorType: findIndex?.majorType ?? null,
-        doctorType: findIndex?.doctorType ?? null,
-        majorHealthType: findIndex?.majorHealthType ?? null,
-        level: titleIndex?.level ?? null
-      };
-    });
-    // endregion
+    // 获取员工信息
+    const staffList = await getStaffList(hospital);
 
     return await appDB.joinTx(async () => {
       // region 打分前的校验
