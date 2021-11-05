@@ -490,30 +490,36 @@ export default {
               name: '每万人口全科医生数',
               unit: this.staffSeverData > num ? '万人' : '人',
               number: Number(
-                (this.staffSeverData > num
-                  ? this.staffSeverData / 10000
-                  : this.staffSeverData
+                (this.generalPractitionersNumberSeverData > num
+                  ? this.generalPractitionersNumberSeverData / 10000
+                  : this.generalPractitionersNumberSeverData
                 ).toFixed(2)
               ),
               img: require('../../../assets/indicators-icon/generalPractitionersNumber.png')
                 .default,
-              isLoading: this.$asyncComputed.oldSeverData.updating
+              isLoading: this.$asyncComputed.generalPractitionersNumberSeverData
+                .updating
             },
             {
               name: '医护比',
               unit: '',
-              number: Number(this.staffSeverData.toFixed(2)),
+              number: Number(this.healthCareRatioSeverData.toFixed(2)),
               img: require('../../../assets/indicators-icon/healthCareRatio.png')
                 .default,
-              isLoading: this.$asyncComputed.oldSeverData.updating
+              isLoading: this.$asyncComputed.healthCareRatioSeverData.updating
             },
             {
               name: '卫生技术人员学历结构',
-              number: Number((this.htnSeverData * 100).toFixed(2)),
+              number: Number(
+                (
+                  this.educationalStructureHealthTechniciansSeverData * 100
+                ).toFixed(2)
+              ),
               unit: '%',
               img: require('../../../assets/indicators-icon/educationalStructureHealthTechnicians.png')
                 .default,
-              isLoading: this.$asyncComputed.htnSeverData.updating
+              isLoading: this.$asyncComputed
+                .educationalStructureHealthTechniciansSeverData.updating
             },
             {
               name: '中医类别医师占比',
@@ -697,6 +703,33 @@ export default {
     oldSeverData: {
       async get() {
         return await this.$api.AppHome.old();
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 每万人口全科医生数
+    generalPractitionersNumberSeverData: {
+      async get() {
+        return await this.$api.AppHome.GPsPerW();
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 医护比
+    healthCareRatioSeverData: {
+      async get() {
+        return await this.$api.AppHome.ratioOfMedicalAndNursing();
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 卫生技术人员学历结构
+    educationalStructureHealthTechniciansSeverData: {
+      async get() {
+        return await this.$api.AppHome.ratioOfHealthTechnicianEducation();
       },
       default() {
         return 0;
