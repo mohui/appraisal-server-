@@ -7,7 +7,14 @@ import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
 import {getHospitals} from '../group/common';
-
+import {KatoRuntimeError} from 'kato-server';
+import {getStaffList} from '../his/common';
+import {
+  Education,
+  HighTitle,
+  MajorHealthType,
+  MajorType
+} from '../../../common/his';
 //dayjs 加载插件
 dayjs.extend(dayOfYear);
 dayjs.extend(isLeapYear);
@@ -231,4 +238,153 @@ export default class AppHome {
       )[0]?.counts ?? 0;
     return (counts / doctors / today.dayOfYear() / 251) * 365;
   }
+
+  // region 员工考核相关指标
+
+  // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 100%)
+  async GPsPerW() {
+    const group = Context.current.user.areaCode;
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+    const hospital = areaModels[0]?.code;
+    const staffList = await getStaffList(hospital);
+
+    // 基层医疗卫生机构全科医生数
+    const GPList = staffList.filter(it => it.isGP);
+    // 服务人口数
+    const basicData = await getBasicData(
+      [hospital],
+      BasicTagUsages.DocPeople,
+      dayjs().year()
+    );
+    // 基层医疗卫生机构全科医生数
+    const GPCount = GPList.length;
+
+    return basicData > 0 ? GPCount / basicData : 0;
+  }
+
+  // 万人口全科医生年增长数
+  async increasesOfGPsPerW() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    // 取出机构下所有医生信息
+    const staffList = await getStaffList(hospital);
+
+    // 获取本年的开始时间
+    const yearStart = dayjs()
+      .startOf('y')
+      .toDate();
+
+    // 基层医疗卫生机构全科医生数
+    const GPList = staffList.filter(
+      it => it.isGP && it.created_at >= yearStart
+    );
+    // 服务人口数
+    const basicData = await getBasicData(
+      [hospital],
+      BasicTagUsages.DocPeople,
+      dayjs().year()
+    );
+    // 基层医疗卫生机构全科医生数
+    const GPCount = GPList.length;
+
+    return basicData > 0 ? GPCount / basicData : 0;
+  }
+
+  // 医护比(注册执业（助理）医师数/同期注册护士数)
+  async ratioOfMedicalAndNursing() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    // 取出机构下所有医生信息
+    const staffList = await getStaffList(hospital);
+
+    // 护士列表
+    const nurseList = staffList.filter(it => it.majorType === MajorType.NURSE);
+    // 医师列表
+    const physicianList = staffList.filter(
+      it => it.majorType === MajorType.PHYSICIAN
+    );
+    // 护士数量
+    const nurseCount = nurseList.length;
+    // 医师数量
+    const physicianCount = physicianList.length;
+    return nurseCount > 0 ? physicianCount / nurseCount : 0;
+  }
+
+  // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
+  async ratioOfHealthTechnicianEducation() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    // 取出机构下所有医生信息
+    const staffList = await getStaffList(hospital);
+
+    // 查询所有不是专科及以下的,就是本科及以上, 切学历不能为空,必须是卫生技术人员
+    const bachelorList = staffList.filter(
+      it =>
+        it.education != Education.COLLEGE &&
+        it.education &&
+        it.majorHealthType === MajorHealthType.healthWorkers
+    );
+    // 同期卫生技术人员总数
+    const healthWorkersList = staffList.filter(
+      it => it.majorHealthType === MajorHealthType.healthWorkers
+    );
+    // 本科及以上卫生技术人员数
+    const bachelorCount = bachelorList.length;
+    // 同期卫生技术人员总数
+    const healthWorkersCount = healthWorkersList.length;
+    return healthWorkersCount > 0 ? bachelorCount / healthWorkersCount : 0;
+  }
+
+  // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
+  async ratioOfHealthTechnicianTitles() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    // 取出机构下所有医生信息
+    const staffList = await getStaffList(hospital);
+
+    // 具有 高级职称 的卫生技术人员数
+    const highTitleList = staffList.filter(
+      it => it.level === HighTitle.highTitle
+    );
+    // 同期卫生技术人员总数
+    const healthWorkersList = staffList.filter(
+      it => it.majorHealthType === MajorHealthType.healthWorkers
+    );
+    // 具有高级职称的卫生技术人员数
+    const highTitleCount = highTitleList.length;
+    // 同期卫生技术人员总数
+    const healthWorkersCount = healthWorkersList.length;
+    return healthWorkersCount > 0 ? highTitleCount / healthWorkersCount : 0;
+  }
+
+  // endregion
 }
