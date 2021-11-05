@@ -438,6 +438,119 @@ export default {
               img: require('../../../assets/indicators-icon/averageDaily.png')
                 .default,
               isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
+            },
+            {
+              name: '出院人员数量',
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.staffSeverData > num
+                  ? this.staffSeverData / 10000
+                  : this.staffSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/leaveHospitalNumber.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '病床使用率',
+              number: Number((this.htnSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/bedUtilizationRate.png')
+                .default,
+              isLoading: this.$asyncComputed.htnSeverData.updating
+            },
+            {
+              name: '门急诊次均费用',
+              unit: this.moneySeverData > num ? '万元' : '元',
+              number: Number(
+                (this.moneySeverData > num
+                  ? this.moneySeverData / 10000
+                  : this.moneySeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageCostOutpatientEmergency.png')
+                .default,
+              isLoading: this.$asyncComputed.moneySeverData.updating
+            },
+            {
+              name: '住院次均费用',
+              unit: this.moneySeverData > num ? '万元' : '元',
+              number: Number(
+                (this.moneySeverData > num
+                  ? this.moneySeverData / 10000
+                  : this.moneySeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageCostHospitalization.png')
+                .default,
+              isLoading: this.$asyncComputed.moneySeverData.updating
+            },
+            {
+              name: '每万人口全科医生数',
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.staffSeverData > num
+                  ? this.staffSeverData / 10000
+                  : this.staffSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/generalPractitionersNumber.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '医护比',
+              unit: '',
+              number: Number(this.staffSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/healthCareRatio.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '卫生技术人员学历结构',
+              number: Number((this.htnSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/educationalStructureHealthTechnicians.png')
+                .default,
+              isLoading: this.$asyncComputed.htnSeverData.updating
+            },
+            {
+              name: '中医类别医师占比',
+              unit: '',
+              number: Number(this.staffSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/proportionTCMPhysicians.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '每万人服务门诊当量',
+              unit: '',
+              number: Number(this.staffSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/outpatientServiceEquivalent.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '每万人服务住院当量',
+              unit: '',
+              number: Number(this.staffSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/serviceHospitalizationEquivalent.png')
+                .default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '职工年平均担负门急诊人次',
+              unit: this.visitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.visitsSeverData > num
+                  ? this.visitsSeverData / 10000
+                  : this.visitsSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageAnnualNumberOutpatientVisitsEmployees.png')
+                .default,
+              isLoading: this.$asyncComputed.visitsSeverData.updating
             }
           ]
         },
