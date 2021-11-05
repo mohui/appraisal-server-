@@ -1411,7 +1411,7 @@ export default class Score {
 
               // 计划生育特扶人员签约率
               if (tagModel.tag === MarkTagUsages.SN02.code) {
-                // 高血压患者人数
+                // 计划生育人口数
                 const basicData =
                   (
                     await originalDB.execute(
@@ -1434,7 +1434,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN02.name
-                  } =  计算生育特扶人员签约数 / 计划生育人口数 x 100% = ${
+                  } =  计划生育特扶人员签约数 / 计划生育人口数 x 100% = ${
                     mark?.SN02
                   } / ${basicData} = ${percentString(mark?.SN02, basicData)}`
                 );
