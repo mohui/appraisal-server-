@@ -499,5 +499,27 @@ export default class AppHome {
       ? (metricModels['HIS.InpatientVisits'] / basicData) * 10000
       : 0;
   }
+
+  /**
+   * 职工年平均担负门急诊人次(门急诊人次数/在岗职工数×100%)
+   */
+  async staffOutpatientVisits() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    const metricModels = await getMarkMetric(hospital);
+
+    const staffs = await getStaffList(hospital);
+
+    return staffs.staffCount > 0
+      ? (metricModels['HIS.OutpatientVisits'] / staffs.staffCount) * 10000
+      : 0;
+  }
   // endregion
 }
