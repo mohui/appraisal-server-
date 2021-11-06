@@ -361,5 +361,20 @@ export default class AppHome {
       : 0;
   }
 
+  // 出院人员数量
+  async dischargedVisits() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    const metricModels = await getMarkMetric(hospital);
+    return metricModels['HIS.DischargedVisits'];
+  }
+
   // endregion
 }
