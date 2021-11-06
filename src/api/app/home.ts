@@ -384,5 +384,26 @@ export default class AppHome {
   async sickbedUsageRate() {
     return null;
   }
+
+  /**
+   * 门急诊次均费用(门急诊收入/年门急诊人次数)
+   */
+  async outpatientAverageIncomes() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    const metricModels = await getMarkMetric(hospital);
+
+    return metricModels['HIS.OutpatientVisits'] > 0
+      ? metricModels['HIS.OutpatientIncomes'] /
+          metricModels['HIS.OutpatientVisits']
+      : 0;
+  }
   // endregion
 }
