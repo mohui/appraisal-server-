@@ -447,5 +447,31 @@ export default class AppHome {
       ? staffs.TCMCount / staffs.physicianCount
       : 0;
   }
+
+  /**
+   * 每万人服务门诊当量(辖区门诊服务总当量 / 辖区内常住居民数 x 10000)
+   */
+  async thousandOutpatientVisits() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    const metricModels = await getMarkMetric(hospital);
+
+    // 辖区内常住居民数
+    const basicData = await getBasicData(
+      [hospital],
+      BasicTagUsages.DocPeople,
+      dayjs().year()
+    );
+    return basicData > 0
+      ? (metricModels['HIS.OutpatientVisits'] / basicData) * 10000
+      : 0;
+  }
   // endregion
 }
