@@ -405,5 +405,26 @@ export default class AppHome {
           metricModels['HIS.OutpatientVisits']
       : 0;
   }
+
+  /**
+   * 住院次均费用(住院业务总收入/年住院总人次数)
+   */
+  async inpatientAverageIncomes() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    const metricModels = await getMarkMetric(hospital);
+
+    return metricModels['HIS.InpatientVisits'] > 0
+      ? metricModels['HIS.InpatientIncomes'] /
+          metricModels['HIS.InpatientVisits']
+      : 0;
+  }
   // endregion
 }
