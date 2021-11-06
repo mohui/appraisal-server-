@@ -104,6 +104,7 @@ export async function getStaffList(hospital) {
    * healthWorkersCount: 同期卫生技术人员总数
    * highTitleCount: 具有高级职称的卫生技术人员数
    * TCMCount: 中医数量
+   * staffCount: 所有职工数量
    */
   return {
     GPCount: GPList.length,
@@ -113,7 +114,8 @@ export async function getStaffList(hospital) {
     bachelorCount: bachelorList.length,
     healthWorkersCount: healthWorkersList.length,
     highTitleCount: highTitleList.length,
-    TCMCount: TCMList.length
+    TCMCount: TCMList.length,
+    staffCount: staffModels.length
   };
 }
 
