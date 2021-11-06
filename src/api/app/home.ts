@@ -361,7 +361,9 @@ export default class AppHome {
       : 0;
   }
 
-  // 出院人员数量
+  /**
+   * 出院人员数量
+   */
   async dischargedVisits() {
     // 获取所属地区
     const group = Context.current.user.areaCode;
@@ -376,5 +378,11 @@ export default class AppHome {
     return metricModels['HIS.DischargedVisits'];
   }
 
+  /**
+   * 病床使用率
+   */
+  async sickbedUsageRate() {
+    return null;
+  }
   // endregion
 }
