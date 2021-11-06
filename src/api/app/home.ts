@@ -8,18 +8,15 @@ import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
 import {getHospitals} from '../group/common';
 import {KatoRuntimeError} from 'kato-server';
-import {getStaffList} from '../his/common';
-import {
-  Education,
-  HighTitle,
-  MajorHealthType,
-  MajorType
-} from '../../../common/his';
+import {getStaffList, getMarkMetric} from '../his/common';
+
 //dayjs 加载插件
 dayjs.extend(dayOfYear);
 dayjs.extend(isLeapYear);
 
 export default class AppHome {
+  // region 小程序
+
   // 获取医疗人员数量
   async staff() {
     const group = Context.current.user.areaCode;
@@ -239,6 +236,8 @@ export default class AppHome {
     return (counts / doctors / today.dayOfYear() / 251) * 365;
   }
 
+  // endregion
+
   // region 员工考核相关指标
 
   // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 10000)
@@ -339,6 +338,26 @@ export default class AppHome {
 
     return staffs.healthWorkersCount > 0
       ? staffs.highTitleCount / staffs.healthWorkersCount
+      : 0;
+  }
+
+  // 医师日均担负诊疗人次数(门急诊人次数/医师数)
+  async physicianAverageOutpatientVisits() {
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+
+    // 取出机构id
+    const hospital = areaModels[0]?.code;
+
+    // 取出机构下所有医生信息
+    const staffs = await getStaffList(hospital);
+
+    const metricModels = await getMarkMetric(hospital);
+    return staffs.physicianCount > 0
+      ? metricModels['HIS.OutpatientVisits'] / staffs.physicianCount
       : 0;
   }
 
