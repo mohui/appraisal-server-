@@ -125,7 +125,8 @@ export async function getStaffList(hospital) {
  * 指标数量
  */
 export async function getMarkMetric(
-  hospital
+  hospital,
+  year = null
 ): Promise<{
   'HIS.OutpatientVisits': number;
   'HIS.OutpatientIncomes': number;
@@ -133,7 +134,8 @@ export async function getMarkMetric(
   'HIS.InpatientVisits': number;
   'HIS.InpatientIncomes': number;
 }> {
-  const year = dayjs().year();
+  if (!year) year = dayjs().year();
+
   // 查询机构指标信息
   const staffModels = await originalDB.execute(
     // language=PostgreSQL
