@@ -1,5 +1,5 @@
 // region 员工信息
-import {appDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import {
   DoctorType,
   Education,
@@ -17,10 +17,17 @@ export async function getStaffList(hospital) {
   const staffModels = await appDB.execute(
     // language=PostgreSQL
     `
-        select id, account, name, major, title, education, "isGP", created_at
-        from staff
-        where hospital = ?
-      `,
+      select id,
+             account,
+             name,
+             major,
+             title,
+             education,
+             "isGP",
+             created_at
+      from staff
+      where hospital = ?
+    `,
     hospital
   );
   // 给员工标注
@@ -109,4 +116,54 @@ export async function getStaffList(hospital) {
     TCMCount: TCMList.length
   };
 }
+
 // endregion
+
+/**
+ * 指标数量
+ */
+export async function getMarkMetric(
+  hospital
+): Promise<{
+  'HIS.OutpatientVisits': number;
+  'HIS.OutpatientIncomes': number;
+  'HIS.DischargedVisits': number;
+  'HIS.InpatientVisits': number;
+  'HIS.InpatientIncomes': number;
+}> {
+  const year = dayjs().year();
+  // 查询机构指标信息
+  const staffModels = await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id, year, name, value, created_at
+      from mark_metric
+      where id = ?
+        and year = ?
+    `,
+    hospital,
+    year
+  );
+
+  /**
+   * HIS.OutpatientVisits: 门急诊人次数
+   * HIS.OutpatientIncomes: 门急诊收入
+   * HIS.DischargedVisits: 出院人次数
+   * HIS.InpatientVisits: 住院人次数
+   * HIS.InpatientIncomes: 住院收入
+   */
+  const obj = {
+    'HIS.OutpatientVisits': 0,
+    'HIS.OutpatientIncomes': 0,
+    'HIS.DischargedVisits': 0,
+    'HIS.InpatientVisits': 0,
+    'HIS.InpatientIncomes': 0
+  };
+
+  for (const it of staffModels) {
+    for (const key of Object.keys(obj)) {
+      if (it.name === key) obj[key] = it?.value ?? 0;
+    }
+  }
+  return obj;
+}
