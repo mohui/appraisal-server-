@@ -518,7 +518,7 @@ export default class AppHome {
     const staffs = await getStaffList(hospital);
 
     return staffs.staffCount > 0
-      ? (metricModels['HIS.OutpatientVisits'] / staffs.staffCount) * 10000
+      ? metricModels['HIS.OutpatientVisits'] / staffs.staffCount
       : 0;
   }
   // endregion
