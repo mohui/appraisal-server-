@@ -1790,6 +1790,7 @@ export default class Person {
                 , cc.created_at
                 , cc.updated_at
                 , cb.name  childname
+                , cb.birth birthday
            from mch_child_check cc
                   inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
            where cc.childhealthbooksno = ?
