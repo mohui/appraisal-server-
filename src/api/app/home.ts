@@ -341,7 +341,7 @@ export default class AppHome {
       : 0;
   }
 
-  // 医师日均担负诊疗人次数(门急诊人次数/医师数)
+  // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
   async physicianAverageOutpatientVisits() {
     // 获取所属地区
     const group = Context.current.user.areaCode;
@@ -357,7 +357,7 @@ export default class AppHome {
 
     const metricModels = await getMarkMetric(hospital);
     return staffs.physicianCount > 0
-      ? metricModels['HIS.OutpatientVisits'] / staffs.physicianCount
+      ? metricModels['HIS.OutpatientVisits'] / staffs.physicianCount / 251
       : 0;
   }
 
