@@ -313,7 +313,7 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'thousandOutpatientVisits',
+            value: 'ThousandOutpatientVisits',
             label: '每万人服务门诊当量',
             enabled: true
           },
@@ -323,9 +323,39 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'thousandInpatientVisits',
+            value: 'ThousandInpatientVisits',
             label: '每万人服务住院当量',
             enabled: true
+          },
+          {
+            value: 'PhysicianAverageOutpatientVisits',
+            label: '医师日均担负诊疗人次',
+            enabled: true
+          },
+          {
+            value: 'StaffOutpatientVisits',
+            label: '职工年平均担负门急诊人次',
+            enabled: true
+          },
+          {
+            value: 'OutpatientAverageIncomes',
+            label: '门急诊次均费用',
+            enabled: false
+          },
+          {
+            value: 'OutpatientAverageIncomesIncreasesRate',
+            label: '门急诊次均费用变化情况',
+            enabled: false
+          },
+          {
+            value: 'InpatientAverageIncomes',
+            label: '住院次均费用',
+            enabled: false
+          },
+          {
+            value: 'InpatientAverageIncomesIncreasesRate',
+            label: '住院次均费用变化情况',
+            enabled: false
           },
           {
             value: 'HIS00',
@@ -652,17 +682,41 @@ export const MarkTagUsages = {
     code: 'OutpatientIncreasesRate',
     name: '门急诊人次增长率'
   },
-  thousandOutpatientVisits: {
-    code: 'thousandOutpatientVisits',
+  ThousandOutpatientVisits: {
+    code: 'ThousandOutpatientVisits',
     name: '每万人服务门诊当量'
   },
   DischargedIncreasesRate: {
     code: 'DischargedIncreasesRate',
     name: '出院人次增长率'
   },
-  thousandInpatientVisits: {
-    code: 'thousandInpatientVisits',
+  ThousandInpatientVisits: {
+    code: 'ThousandInpatientVisits',
     name: '每万人服务住院当量'
+  },
+  PhysicianAverageOutpatientVisits: {
+    code: 'PhysicianAverageOutpatientVisits',
+    name: '医师日均担负诊疗人次'
+  },
+  StaffOutpatientVisits: {
+    code: 'StaffOutpatientVisits',
+    name: '职工年平均担负门急诊人次'
+  },
+  OutpatientAverageIncomes: {
+    code: 'OutpatientAverageIncomes',
+    name: '门急诊次均费用'
+  },
+  OutpatientAverageIncomesIncreasesRate: {
+    code: 'OutpatientAverageIncomesIncreasesRate',
+    name: '门急诊次均费用变化情况'
+  },
+  InpatientAverageIncomes: {
+    code: 'InpatientAverageIncomes',
+    name: '住院次均费用'
+  },
+  InpatientAverageIncomesIncreasesRate: {
+    code: 'InpatientAverageIncomesIncreasesRate',
+    name: '住院次均费用变化情况'
   }
 };
 
