@@ -386,6 +386,11 @@ export const MarkTag = [
             value: 'a16',
             label: '签约服务情况',
             enabled: false
+          },
+          {
+            value: 'OutpatientIncreasesRate',
+            label: '门急诊人次增长率',
+            enabled: true
           }
         ]
       },
@@ -627,6 +632,10 @@ export const MarkTagUsages = {
   RatioOfTCM: {
     code: 'RatioOfTCM',
     name: '中医类别医师占比'
+  },
+  OutpatientIncreasesRate: {
+    code: 'OutpatientIncreasesRate',
+    name: '门急诊人次增长率'
   }
 };
 
