@@ -1,4 +1,3 @@
-// region 员工信息
 import {appDB, originalDB} from '../../app';
 import {
   DoctorType,
@@ -10,6 +9,11 @@ import {
 } from '../../../common/his';
 import * as dayjs from 'dayjs';
 
+/**
+ * 员工信息
+ *
+ * @param hospital
+ */
 export async function getStaffList(hospital) {
   // region 员工信息
 
@@ -95,34 +99,29 @@ export async function getStaffList(hospital) {
   const TCMList = staffList.filter(it => it.doctorType === DoctorType.TCM);
   // endregion
 
-  /**
-   * GPCount: 基层医疗卫生机构全科医生数
-   * increasesGPCount: 基层医疗卫生机构全科医生增长数
-   * nurseCount: 护士数量
-   * physicianCount: 医师数量
-   * bachelorCount: 本科及以上卫生技术人员数
-   * healthWorkersCount: 同期卫生技术人员总数
-   * highTitleCount: 具有高级职称的卫生技术人员数
-   * TCMCount: 中医数量
-   * staffCount: 所有职工数量
-   */
   return {
-    GPCount: GPList.length,
-    increasesGPCount: increasesGPList.length,
-    nurseCount: nurseList.length,
-    physicianCount: physicianList.length,
-    bachelorCount: bachelorList.length,
-    healthWorkersCount: healthWorkersList.length,
-    highTitleCount: highTitleList.length,
-    TCMCount: TCMList.length,
-    staffCount: staffModels.length
+    GPCount: GPList.length, // 基层医疗卫生机构全科医生数
+    increasesGPCount: increasesGPList.length, // 基层医疗卫生机构全科医生增长数
+    nurseCount: nurseList.length, // 护士数量
+    physicianCount: physicianList.length, // 医师数量
+    bachelorCount: bachelorList.length, // 本科及以上卫生技术人员数
+    healthWorkersCount: healthWorkersList.length, // 同期卫生技术人员总数
+    highTitleCount: highTitleList.length, // 具有高级职称的卫生技术人员数
+    TCMCount: TCMList.length, // 中医数量
+    staffCount: staffModels.length // 所有职工数量
   };
 }
 
-// endregion
-
 /**
  * 指标数量
+ *
+ * @return {
+ *   OutpatientVisits: 门急诊人次数
+ *   OutpatientIncomes: 门急诊收入
+ *   DischargedVisits: 出院人次数
+ *   InpatientVisits: 住院人次数
+ *   InpatientIncomes: 住院收入
+ * }
  */
 export async function getMarkMetric(
   hospital,
@@ -137,7 +136,7 @@ export async function getMarkMetric(
   if (!year) year = dayjs().year();
 
   // 查询机构指标信息
-  const staffModels = await originalDB.execute(
+  const markMetricModels = await originalDB.execute(
     // language=PostgreSQL
     `
       select id, year, name, value, created_at
@@ -149,22 +148,15 @@ export async function getMarkMetric(
     year
   );
 
-  /**
-   * HIS.OutpatientVisits: 门急诊人次数
-   * HIS.OutpatientIncomes: 门急诊收入
-   * HIS.DischargedVisits: 出院人次数
-   * HIS.InpatientVisits: 住院人次数
-   * HIS.InpatientIncomes: 住院收入
-   */
   const obj = {
-    'HIS.OutpatientVisits': 0,
-    'HIS.OutpatientIncomes': 0,
-    'HIS.DischargedVisits': 0,
-    'HIS.InpatientVisits': 0,
-    'HIS.InpatientIncomes': 0
+    'HIS.OutpatientVisits': 0, // 门急诊人次数
+    'HIS.OutpatientIncomes': 0, // 门急诊收入
+    'HIS.DischargedVisits': 0, // 出院人次数
+    'HIS.InpatientVisits': 0, // 住院人次数
+    'HIS.InpatientIncomes': 0 // 住院收入
   };
 
-  for (const it of staffModels) {
+  for (const it of markMetricModels) {
     for (const key of Object.keys(obj)) {
       if (it.name === key) obj[key] = it?.value ?? 0;
     }
