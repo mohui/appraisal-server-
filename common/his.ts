@@ -318,6 +318,16 @@ export const MarkTag = [
             enabled: true
           },
           {
+            value: 'DischargedIncreasesRate',
+            label: '出院人次增长率',
+            enabled: true
+          },
+          {
+            value: 'thousandInpatientVisits',
+            label: '每万人服务住院当量',
+            enabled: true
+          },
+          {
             value: 'HIS00',
             label: '诊疗人次数',
             enabled: true
@@ -645,6 +655,14 @@ export const MarkTagUsages = {
   thousandOutpatientVisits: {
     code: 'thousandOutpatientVisits',
     name: '每万人服务门诊当量'
+  },
+  DischargedIncreasesRate: {
+    code: 'DischargedIncreasesRate',
+    name: '出院人次增长率'
+  },
+  thousandInpatientVisits: {
+    code: 'thousandInpatientVisits',
+    name: '每万人服务住院当量'
   }
 };
 

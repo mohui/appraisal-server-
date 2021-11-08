@@ -1057,6 +1057,65 @@ export default class HisScore {
           }
         }
 
+        // 出院人次增长率((本年度出院人次数 - 上年度出院人次数) / 上年度出院人次数 x 100%)
+        if (ruleIt.metric === MarkTagUsages.DischargedIncreasesRate.code) {
+          const numerator =
+            lastMetricModels['HIS.DischargedVisits'] > 0
+              ? (metricModels['HIS.DischargedVisits'] -
+                  lastMetricModels['HIS.DischargedVisits']) /
+                lastMetricModels['HIS.DischargedVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 每万人服务住院当量
+        if (ruleIt.metric === MarkTagUsages.thousandInpatientVisits.code) {
+          // 辖区内常住居民数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs().year()
+          );
+
+          const numerator =
+            basicData > 0
+              ? (metricModels['HIS.InpatientVisits'] / basicData) * 10000
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,
