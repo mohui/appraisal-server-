@@ -308,6 +308,16 @@ export const MarkTag = [
         label: '功能定位',
         children: [
           {
+            value: 'OutpatientIncreasesRate',
+            label: '门急诊人次增长率',
+            enabled: true
+          },
+          {
+            value: 'thousandOutpatientVisits',
+            label: '每万人服务门诊当量',
+            enabled: true
+          },
+          {
             value: 'HIS00',
             label: '诊疗人次数',
             enabled: true
@@ -386,11 +396,6 @@ export const MarkTag = [
             value: 'a16',
             label: '签约服务情况',
             enabled: false
-          },
-          {
-            value: 'OutpatientIncreasesRate',
-            label: '门急诊人次增长率',
-            enabled: true
           }
         ]
       },
@@ -636,6 +641,10 @@ export const MarkTagUsages = {
   OutpatientIncreasesRate: {
     code: 'OutpatientIncreasesRate',
     name: '门急诊人次增长率'
+  },
+  thousandOutpatientVisits: {
+    code: 'thousandOutpatientVisits',
+    name: '每万人服务门诊当量'
   }
 };
 
