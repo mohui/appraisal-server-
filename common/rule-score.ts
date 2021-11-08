@@ -638,19 +638,49 @@ export const MarkTags = [
         code: 'sign',
         children: [
           {
-            code: 'SIGN01',
+            code: 'SN00',
             name: '签约服务覆盖率',
-            enabled: false
+            enabled: true
           },
           {
-            code: 'SIGN02',
+            code: 'SN01',
             name: '重点人群签约服务覆盖率',
+            enabled: true
+          },
+          {
+            code: 'SN02',
+            name: '计划生育特扶人员签约率',
+            enabled: true
+          },
+          {
+            code: 'SN03',
+            name: '有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN04',
+            name: '高血压病人有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN05',
+            name: '糖尿病人有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN06',
+            name: '履约率',
             enabled: false
           },
           {
-            code: 'SIGN03',
-            name: '签约居民续签率',
-            enabled: false
+            code: 'SN07',
+            name: '续约率',
+            enabled: true
+          },
+          {
+            code: 'SN08',
+            name: '有偿续约率',
+            enabled: true
           }
         ]
       },
@@ -854,6 +884,42 @@ export const MarkTagUsages = {
   MCH04: {
     name: '儿童健康管理率',
     code: 'MCH04'
+  },
+  SN00: {
+    name: '签约服务覆盖率',
+    code: 'SN00'
+  },
+  SN01: {
+    name: '重点人群签约服务覆盖率',
+    code: 'SN01'
+  },
+  SN02: {
+    name: '计划生育特扶人员签约率',
+    code: 'SN02'
+  },
+  SN03: {
+    name: '有偿签约率',
+    code: 'SN03'
+  },
+  SN04: {
+    name: '高血压病人有偿签约率',
+    code: 'SN04'
+  },
+  SN05: {
+    name: '糖尿病人有偿签约率',
+    code: 'SN05'
+  },
+  SN06: {
+    name: '履约率',
+    code: 'SN06'
+  },
+  SN07: {
+    name: '续约率',
+    code: 'SN07'
+  },
+  SN08: {
+    name: '有偿续约率',
+    code: 'SN08'
   }
 };
 

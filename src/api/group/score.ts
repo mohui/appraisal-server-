@@ -97,6 +97,15 @@ export async function getMarks(
   MCH02: number;
   MCH03: number;
   MCH04: number;
+  SN00: number;
+  SN01: number;
+  SN02: number;
+  SN03: number;
+  SN04: number;
+  SN05: number;
+  SN06: number;
+  SN07: number;
+  SN08: number;
 }> {
   // language=PostgreSQL
   const result = await originalDB.execute(
@@ -162,7 +171,16 @@ export async function getMarks(
       MCH01: 0,
       MCH02: 0,
       MCH03: 0,
-      MCH04: 0
+      MCH04: 0,
+      SN00: 0,
+      SN01: 0,
+      SN02: 0,
+      SN03: 0,
+      SN04: 0,
+      SN05: 0,
+      SN06: 0,
+      SN07: 0,
+      SN08: 0
     }
   );
   return {...obj, id: group};
@@ -1289,6 +1307,382 @@ export default class Score {
                   mark?.MCH04
                 ) {
                   const rate = mark.MCH04 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 签约服务覆盖率
+              if (tagModel.tag === MarkTagUsages.SN00.code) {
+                // 查询 服务人口数（基础数据中居民档案中的辖区内常驻人口数）
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.DocPeople,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN00.name
+                  } = 所有签约人群 / 服务人口数 x 100% = ${
+                    mark?.SN00
+                  } / ${basicData} = ${percentString(mark?.SN00, basicData)}`
+                );
+
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN00
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN00
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN00
+                ) {
+                  const rate = mark.SN00 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 重点人群签约服务覆盖率
+              if (tagModel.tag === MarkTagUsages.SN01.code) {
+                // 重点人群数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                               inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and (
+                            mp."C01" = true or mp."C02" = true or mp."C03" = true or
+                            mp."C04" = true or mp."C05" = true or mp."C06" = true or
+                            mp."C07" = true or mp."C08" = true or mp."C09" = true or
+                            mp."C10" = true or mp."C11" = true
+                          )
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN01.name
+                  } = 重点人群签约数 / 重点人群数 x 100% = ${
+                    mark?.SN01
+                  } / ${basicData} = ${percentString(mark?.SN01, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN01
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN01
+                ) {
+                  const rate = mark.SN01 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 计划生育特扶人员签约率
+              if (tagModel.tag === MarkTagUsages.SN02.code) {
+                // 计划生育人口数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                               inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C07" = true
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN02.name
+                  } =  计划生育特扶人员签约数 / 计划生育人口数 x 100% = ${
+                    mark?.SN02
+                  } / ${basicData} = ${percentString(mark?.SN02, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN02
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN02
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN02
+                ) {
+                  const rate = mark.SN02 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 有偿签约率
+              if (tagModel.tag === MarkTagUsages.SN03.code) {
+                // 服务人口数
+                const basicData = await getBasicData(
+                  hospitalIds,
+                  BasicTagUsages.DocPeople,
+                  year
+                );
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN03.name
+                  } = 所有的有偿签约人数 / 服务人口数 x 100% = ${
+                    mark?.SN03
+                  } / ${basicData} = ${percentString(mark?.SN03, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN03
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN03
+                ) {
+                  const rate = mark.SN03 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 高血压病人有偿签约率
+              if (tagModel.tag === MarkTagUsages.SN04.code) {
+                // 高血压患者人数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                               inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C02" = true
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN04.name
+                  } = 高血压有偿签约人数 / 高血压患者人数 x 100% = ${
+                    mark?.SN04
+                  } / ${basicData} = ${percentString(mark?.SN04, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN04
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN04
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN04
+                ) {
+                  const rate = mark.SN04 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 糖尿病人有偿签约率
+              if (tagModel.tag === MarkTagUsages.SN05.code) {
+                // 糖尿病患者人数
+                const basicData =
+                  (
+                    await originalDB.execute(
+                      // language=PostgreSQL
+                      `
+                        select count(1) count
+                        from mark_person mp
+                               inner join ph_person vp on mp.id = vp.id
+                        where mp.year = ?
+                          and vp.adminorganization in (${hospitalIds.map(
+                            () => '?'
+                          )})
+                          and mp."C03" = true
+                      `,
+                      year,
+                      ...hospitalIds
+                    )
+                  )[0]?.count ?? 0;
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN05.name
+                  } = 糖尿病有偿签约人数 / 糖尿病患者人数 x 100% = ${
+                    mark?.SN05
+                  } / ${basicData} = ${percentString(mark?.SN05, basicData)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN05
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN05
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN05
+                ) {
+                  const rate = mark.SN05 / basicData / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 续约率
+              if (tagModel.tag === MarkTagUsages.SN07.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN07.name
+                  } = 明年签约的居民 / 今年签约人数 x 100% = ${mark?.SN07} / ${
+                    mark?.SN00
+                  } = ${percentString(mark?.SN07, mark?.SN00)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN07
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN07
+                ) {
+                  const rate = mark.SN07 / mark?.SN00 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 有偿续约率
+              if (tagModel.tag === MarkTagUsages.SN08.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN08.name
+                  } = 明年度签约的有偿签约居民 / 今年度的有偿签约人数 x 100% = ${
+                    mark?.SN08
+                  } / ${mark?.SN03} = ${percentString(mark?.SN08, mark?.SN03)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN08
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN08
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN08
+                ) {
+                  const rate = mark.SN08 / mark?.SN03 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
