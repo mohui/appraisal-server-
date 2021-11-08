@@ -1170,6 +1170,74 @@ export default class HisScore {
           }
         }
 
+        // 门急诊次均费用(门急诊收入/年门急诊人次数)
+        if (ruleIt.metric === MarkTagUsages.OutpatientAverageIncomes.code) {
+          const numerator =
+            metricModels['HIS.OutpatientVisits'] > 0
+              ? metricModels['HIS.OutpatientIncomes'] /
+                metricModels['HIS.OutpatientVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 门急诊次均费用变化情况((本年度门急诊次均医疗费用-上年度门急诊次均医疗费用)/上年度门急诊次均医疗费用×100%)
+        if (
+          ruleIt.metric ===
+          MarkTagUsages.OutpatientAverageIncomesIncreasesRate.code
+        ) {
+          // 本年度门急诊次均医疗费用
+          const currentNumerator =
+            metricModels['HIS.OutpatientVisits'] > 0
+              ? metricModels['HIS.OutpatientIncomes'] /
+                metricModels['HIS.OutpatientVisits']
+              : 0;
+          // 上年度门急诊次均医疗费用
+          const lastNumerator =
+            lastMetricModels['HIS.OutpatientVisits'] > 0
+              ? lastMetricModels['HIS.OutpatientIncomes'] /
+                lastMetricModels['HIS.OutpatientVisits']
+              : 0;
+
+          // 门急诊次均费用变化情况
+          const numerator =
+            lastNumerator > 0
+              ? (currentNumerator - lastNumerator) / lastNumerator
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,
