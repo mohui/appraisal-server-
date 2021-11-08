@@ -1025,6 +1025,38 @@ export default class HisScore {
           }
         }
 
+        // 每万人服务门诊当量(辖区门诊服务总当量 / 辖区内常住居民数 x 10000)
+        if (ruleIt.metric === MarkTagUsages.thousandOutpatientVisits.code) {
+          // 辖区内常住居民数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs().year()
+          );
+
+          const numerator =
+            basicData > 0
+              ? (metricModels['HIS.OutpatientVisits'] / basicData) * 10000
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,
