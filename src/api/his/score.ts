@@ -795,6 +795,8 @@ export default class HisScore {
         let score = 0;
         // 根据指标获取指标数据
         if (ruleIt.metric === MarkTagUsages.HIS00.code) {
+          const numerator = mark.HIS00;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
             // 指标分数
@@ -807,7 +809,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate = mark.HIS00 / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -822,6 +824,9 @@ export default class HisScore {
             dayjs(day).year()
           );
 
+          const numerator =
+            basicData > 0 ? (staffList.GPCount / basicData) * 10000 : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -840,8 +845,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              ((staffList.GPCount / basicData) * 10000) / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -856,10 +860,15 @@ export default class HisScore {
             dayjs(day).year()
           );
 
+          const numerator =
+            basicData > 0
+              ? (staffList.increasesGPCount / basicData) * 10000
+              : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
-            staffList.GPCount
+            staffList.increasesGPCount
           ) {
             // 指标分数
             score = ruleIt.score;
@@ -867,15 +876,14 @@ export default class HisScore {
           // 根据指标算法,计算得分 之 结果为"否"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.N01.code &&
-            !staffList.GPCount
+            !staffList.increasesGPCount
           ) {
             // 指标分数
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              ((staffList.GPCount / basicData) * 10000) / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -883,6 +891,10 @@ export default class HisScore {
 
         // 医护比(注册执业（助理）医师数/同期注册护士数)
         if (ruleIt.metric === MarkTagUsages.RatioOfMedicalAndNursing.code) {
+          const numerator =
+            staffList.nurseCount > 0
+              ? staffList.physicianCount / staffList.nurseCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -901,8 +913,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.physicianCount / staffList.nurseCount / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -912,6 +923,11 @@ export default class HisScore {
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code
         ) {
+          const numerator =
+            staffList.healthWorkersCount > 0
+              ? staffList.bachelorCount / staffList.healthWorkersCount
+              : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -930,10 +946,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.bachelorCount /
-              staffList.healthWorkersCount /
-              ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -943,6 +956,10 @@ export default class HisScore {
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
         ) {
+          const numerator =
+            staffList.healthWorkersCount > 0
+              ? staffList.highTitleCount / staffList.healthWorkersCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -961,10 +978,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.highTitleCount /
-              staffList.healthWorkersCount /
-              ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -972,6 +986,10 @@ export default class HisScore {
 
         // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
         if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
+          const numerator =
+            staffList.physicianCount > 0
+              ? staffList.TCMCount / staffList.physicianCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -990,8 +1008,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.TCMCount / staffList.physicianCount / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
