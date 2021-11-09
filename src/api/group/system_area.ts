@@ -366,7 +366,7 @@ export default class SystemArea {
       `
             select count(distinct vsr.PersonNum) as "Number"
             from ph_sign_check_main main
-                   inner join ph_sign_register vsr on vsr.id = main.RegisterID
+                   inner join ph_sign_register vsr on vsr.id = main.register
             where main.ExeOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
               and main.ExeTime >= {{? startTime}}
               and main.ExeTime < {{? endTime}}
