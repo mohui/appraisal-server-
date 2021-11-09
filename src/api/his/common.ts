@@ -8,6 +8,7 @@ import {
   Occupation
 } from '../../../common/his';
 import * as dayjs from 'dayjs';
+import {monthToRange} from './service';
 
 /**
  * 员工信息
@@ -151,7 +152,7 @@ export async function getStaffList(hospital, date = null) {
  */
 export async function getMarkMetric(
   hospital,
-  date = null
+  date
 ): Promise<{
   'HIS.OutpatientVisits': number;
   'HIS.OutpatientIncomes': number;
@@ -159,25 +160,7 @@ export async function getMarkMetric(
   'HIS.InpatientVisits': number;
   'HIS.InpatientIncomes': number;
 }> {
-  let start, end;
-  if (!date) {
-    start = dayjs()
-      .startOf('month')
-      .toDate();
-    end = dayjs()
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  } else {
-    start = dayjs(date)
-      .startOf('month')
-      .toDate();
-    end = dayjs(date)
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  }
-
+  const {start, end} = monthToRange(date);
   // 查询机构指标信息
   const markMetricModels = await originalDB.execute(
     // language=PostgreSQL
