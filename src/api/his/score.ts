@@ -700,7 +700,7 @@ export default class HisScore {
       .toDate();
 
     // 获取员工信息
-    const staffList = await getStaffList(hospital);
+    const staffList = await getStaffList(hospital, day);
 
     return await appDB.joinTx(async () => {
       // region 打分前的校验
