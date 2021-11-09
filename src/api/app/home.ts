@@ -503,7 +503,7 @@ export default class AppHome {
   /**
    * 职工年平均担负门急诊人次(门急诊人次数/在岗职工数×100%)
    */
-  async staffOutpatientVisits() {
+  async staffOutpatientVisits(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -513,8 +513,7 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
-
+    const metricModels = await getMarkMetric(hospital, date);
     const staffs = await getStaffList(hospital);
 
     return staffs.staffCount > 0
