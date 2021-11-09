@@ -241,11 +241,12 @@ export default class AppHome {
   // region 员工考核相关指标
 
   // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 10000)
-  async GPsPerW() {
+  async GPsPerW(date) {
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
     if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
     const hospital = areaModels[0]?.code;
+    const year = dayjs(date).year();
 
     // 获取员工数
     const staffs = await getStaffList(hospital);
@@ -254,14 +255,14 @@ export default class AppHome {
     const basicData = await getBasicData(
       [hospital],
       BasicTagUsages.DocPeople,
-      dayjs().year()
+      year
     );
 
     return basicData > 0 ? (staffs.GPCount / basicData) * 10000 : 0;
   }
 
   // 万人口全科医生年增长数
-  async increasesOfGPsPerW() {
+  async increasesOfGPsPerW(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -271,6 +272,8 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
+    const year = dayjs(date).year();
+
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital);
 
@@ -278,7 +281,7 @@ export default class AppHome {
     const basicData = await getBasicData(
       [hospital],
       BasicTagUsages.DocPeople,
-      dayjs().year()
+      year
     );
 
     return basicData > 0 ? (staffs.increasesGPCount / basicData) * 10000 : 0;
@@ -342,7 +345,7 @@ export default class AppHome {
   }
 
   // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
-  async physicianAverageOutpatientVisits() {
+  async physicianAverageOutpatientVisits(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -355,7 +358,7 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital);
 
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, date);
     return staffs.physicianCount > 0
       ? metricModels['HIS.OutpatientVisits'] / staffs.physicianCount / 251
       : 0;
@@ -364,7 +367,7 @@ export default class AppHome {
   /**
    * 出院人员数量
    */
-  async dischargedVisits() {
+  async dischargedVisits(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -374,7 +377,7 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, date);
     return metricModels['HIS.DischargedVisits'];
   }
 
@@ -388,7 +391,7 @@ export default class AppHome {
   /**
    * 门急诊次均费用(门急诊收入/年门急诊人次数)
    */
-  async outpatientAverageIncomes() {
+  async outpatientAverageIncomes(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -398,7 +401,7 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, date);
 
     return metricModels['HIS.OutpatientVisits'] > 0
       ? metricModels['HIS.OutpatientIncomes'] /
@@ -409,7 +412,7 @@ export default class AppHome {
   /**
    * 住院次均费用(住院业务总收入/年住院总人次数)
    */
-  async inpatientAverageIncomes() {
+  async inpatientAverageIncomes(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -419,7 +422,7 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, date);
 
     return metricModels['HIS.InpatientVisits'] > 0
       ? metricModels['HIS.InpatientIncomes'] /
@@ -451,7 +454,7 @@ export default class AppHome {
   /**
    * 每万人服务门诊当量(辖区门诊服务总当量 / 辖区内常住居民数 x 10000)
    */
-  async thousandOutpatientVisits() {
+  async thousandOutpatientVisits(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -461,13 +464,14 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, date);
 
+    const year = dayjs(date).year();
     // 辖区内常住居民数
     const basicData = await getBasicData(
       [hospital],
       BasicTagUsages.DocPeople,
-      dayjs().year()
+      year
     );
     return basicData > 0
       ? (metricModels['HIS.OutpatientVisits'] / basicData) * 10000
@@ -477,7 +481,7 @@ export default class AppHome {
   /**
    * 每万人服务住院当量(辖区住院总人次数/辖区内常住居民数×10000)
    */
-  async thousandInpatientVisits() {
+  async thousandInpatientVisits(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -487,13 +491,14 @@ export default class AppHome {
     // 取出机构id
     const hospital = areaModels[0]?.code;
 
-    const metricModels = await getMarkMetric(hospital);
+    const year = dayjs(date).year();
+    const metricModels = await getMarkMetric(hospital, date);
 
     // 辖区内常住居民数
     const basicData = await getBasicData(
       [hospital],
       BasicTagUsages.DocPeople,
-      dayjs().year()
+      year
     );
     return basicData > 0
       ? (metricModels['HIS.InpatientVisits'] / basicData) * 10000
