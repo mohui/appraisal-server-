@@ -13,7 +13,8 @@ import {monthToRange} from './service';
 /**
  * 员工信息
  *
- * @param hospital
+ * @param hospital 机构id
+ * @param date 时间
  */
 export async function getStaffList(hospital, date) {
   // region 员工信息
@@ -124,6 +125,9 @@ export async function getStaffList(hospital, date) {
 
 /**
  * 指标数量
+ *
+ * @param hospital 机构id
+ * @param date 时间
  *
  * @return {
  *   OutpatientVisits: 门急诊人次数
