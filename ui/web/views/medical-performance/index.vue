@@ -1176,8 +1176,8 @@ export default {
         }
         .top_three_ranking {
           .icon {
-            width: 21.2px;
-            height: 26.7px;
+            width: 23px;
+            height: 30px;
           }
         }
 
