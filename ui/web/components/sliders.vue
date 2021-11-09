@@ -39,7 +39,7 @@ export default {
     };
   },
   mounted() {
-    this.itemLength = this.$slots.default.length;
+    this.itemLength = this.$slots?.default?.length;
     if (this.itemLength) {
       this.itemWidth = this.$slots.default[0].elm.offsetWidth;
       if (this.$el.offsetWidth < this.itemLength * this.itemWidth) {
