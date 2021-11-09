@@ -242,6 +242,8 @@ export default class AppHome {
 
   // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 10000)
   async GPsPerW(date) {
+    if (!date) date = dayjs().toDate();
+
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
     if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
@@ -263,6 +265,8 @@ export default class AppHome {
 
   // 万人口全科医生年增长数
   async increasesOfGPsPerW(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -289,6 +293,8 @@ export default class AppHome {
 
   // 医护比(注册执业（助理）医师数/同期注册护士数)
   async ratioOfMedicalAndNursing(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -308,6 +314,8 @@ export default class AppHome {
 
   // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
   async ratioOfHealthTechnicianEducation(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -327,6 +335,8 @@ export default class AppHome {
 
   // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
   async ratioOfHealthTechnicianTitles(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -346,6 +356,8 @@ export default class AppHome {
 
   // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
   async physicianAverageOutpatientVisits(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -368,6 +380,8 @@ export default class AppHome {
    * 出院人员数量
    */
   async dischargedVisits(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -392,6 +406,8 @@ export default class AppHome {
    * 门急诊次均费用(门急诊收入/年门急诊人次数)
    */
   async outpatientAverageIncomes(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -413,6 +429,8 @@ export default class AppHome {
    * 住院次均费用(住院业务总收入/年住院总人次数)
    */
   async inpatientAverageIncomes(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -434,6 +452,8 @@ export default class AppHome {
    * 中医类别医师占比
    */
   async RatioOfTCM(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -455,6 +475,8 @@ export default class AppHome {
    * 每万人服务门诊当量(辖区门诊服务总当量 / 辖区内常住居民数 x 10000)
    */
   async thousandOutpatientVisits(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -482,6 +504,8 @@ export default class AppHome {
    * 每万人服务住院当量(辖区住院总人次数/辖区内常住居民数×10000)
    */
   async thousandInpatientVisits(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -509,6 +533,8 @@ export default class AppHome {
    * 职工年平均担负门急诊人次(门急诊人次数/在岗职工数×100%)
    */
   async staffOutpatientVisits(date) {
+    if (!date) date = dayjs().toDate();
+
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
