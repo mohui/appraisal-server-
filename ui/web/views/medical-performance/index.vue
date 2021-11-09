@@ -153,7 +153,12 @@
                     class="cell"
                     @click="onGotoStaffDetail(i.id)"
                   >
-                    <div class="ranking">{{ index + 1 }}</div>
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
                     <div class="container">
                       <div class="name">{{ i.name }}</div>
                       <div class="progress el-progress-staff-cell">
@@ -212,7 +217,12 @@
                     class="cell"
                     @click="onGotoStaffDetail(i.id)"
                   >
-                    <div class="ranking">{{ index + 1 }}</div>
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
                     <div class="container">
                       <div class="name">{{ i.name }}</div>
                       <div class="progress el-progress-staff-cell">
@@ -389,6 +399,9 @@ import VueSticky from 'vue-sticky';
 import * as dayjs from 'dayjs';
 import FileSaver from 'file-saver';
 import XLSX from 'xlsx';
+import firstIcon from '../../../assets/rank/first.png';
+import secondIcon from '../../../assets/rank/second.png';
+import thirdIcon from '../../../assets/rank/third.png';
 
 export default {
   name: 'index',
@@ -413,7 +426,8 @@ export default {
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
       medicalIndicatorsIsOpen: false,
-      publicIndicatorsIsOpen: false
+      publicIndicatorsIsOpen: false,
+      topThreeIcon: [firstIcon, secondIcon, thirdIcon]
     };
   },
   directives: {
@@ -1152,18 +1166,28 @@ export default {
         color: #3a3f62;
         cursor: pointer;
 
+        .top_three_ranking,
         .ranking {
           width: 20px;
           height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+        .top_three_ranking {
+          .icon {
+            width: 23px;
+            height: 30px;
+          }
+        }
+
+        .ranking {
           background: #dae0f2;
           border-radius: 50%;
-          margin-right: 10px;
         }
 
         .container {
+          margin-left: 10px;
           width: 100%;
           display: flex;
           flex-direction: row;
