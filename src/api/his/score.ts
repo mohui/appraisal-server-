@@ -1039,12 +1039,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1098,12 +1104,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1127,12 +1139,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1152,12 +1170,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1178,12 +1202,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1246,12 +1276,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
@@ -1286,12 +1322,18 @@ export default class HisScore {
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientIncomes']
+          ) {
             // 指标分数
             score = ruleIt.score;
           }
