@@ -249,7 +249,7 @@ export default class AppHome {
     const year = dayjs(date).year();
 
     // 获取员工数
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     // 服务人口数
     const basicData = await getBasicData(
@@ -275,7 +275,7 @@ export default class AppHome {
     const year = dayjs(date).year();
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     // 服务人口数
     const basicData = await getBasicData(
@@ -288,7 +288,7 @@ export default class AppHome {
   }
 
   // 医护比(注册执业（助理）医师数/同期注册护士数)
-  async ratioOfMedicalAndNursing() {
+  async ratioOfMedicalAndNursing(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -299,7 +299,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     return staffs.nurseCount > 0
       ? staffs.physicianCount / staffs.nurseCount
@@ -307,7 +307,7 @@ export default class AppHome {
   }
 
   // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
-  async ratioOfHealthTechnicianEducation() {
+  async ratioOfHealthTechnicianEducation(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -318,7 +318,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     return staffs.healthWorkersCount > 0
       ? staffs.bachelorCount / staffs.healthWorkersCount
@@ -326,7 +326,7 @@ export default class AppHome {
   }
 
   // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
-  async ratioOfHealthTechnicianTitles() {
+  async ratioOfHealthTechnicianTitles(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -337,7 +337,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     return staffs.healthWorkersCount > 0
       ? staffs.highTitleCount / staffs.healthWorkersCount
@@ -356,7 +356,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     const metricModels = await getMarkMetric(hospital, date);
     return staffs.physicianCount > 0
@@ -433,7 +433,7 @@ export default class AppHome {
   /**
    * 中医类别医师占比
    */
-  async RatioOfTCM() {
+  async RatioOfTCM(date) {
     // 获取所属地区
     const group = Context.current.user.areaCode;
     // 获取权限下机构
@@ -444,7 +444,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     return staffs.physicianCount > 0
       ? staffs.TCMCount / staffs.physicianCount
@@ -519,7 +519,7 @@ export default class AppHome {
     const hospital = areaModels[0]?.code;
 
     const metricModels = await getMarkMetric(hospital, date);
-    const staffs = await getStaffList(hospital);
+    const staffs = await getStaffList(hospital, date);
 
     return staffs.staffCount > 0
       ? metricModels['HIS.OutpatientVisits'] / staffs.staffCount

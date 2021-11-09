@@ -14,8 +14,35 @@ import * as dayjs from 'dayjs';
  *
  * @param hospital
  */
-export async function getStaffList(hospital) {
+export async function getStaffList(hospital, date = null) {
   // region 员工信息
+
+  // 年份的开始时间
+  let yearStart;
+  // 月份的结束时间
+  let monthEnd;
+
+  if (date) {
+    // 获取所传时间的年份的开始时间
+    yearStart = dayjs(date)
+      .startOf('y')
+      .toDate();
+    // 获取所传月份的结束时间
+    monthEnd = dayjs(date)
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
+  } else {
+    // 获取本年的开始时间
+    yearStart = dayjs()
+      .startOf('y')
+      .toDate();
+    // 获取本月份的结束时间
+    monthEnd = dayjs()
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
+  }
 
   // 查询员工信息
   const staffModels = await appDB.execute(
@@ -31,8 +58,12 @@ export async function getStaffList(hospital) {
              created_at
       from staff
       where hospital = ?
+        and created_at >= ?
+        and created_at <= ?
     `,
-    hospital
+    hospital,
+    yearStart,
+    monthEnd
   );
   // 给员工标注
   const staffList = staffModels.map(it => {
@@ -56,11 +87,6 @@ export async function getStaffList(hospital) {
   // endregion
 
   // region 得出机构下各种员工数
-
-  // 获取本年的开始时间
-  const yearStart = dayjs()
-    .startOf('y')
-    .toDate();
 
   // 基层医疗卫生机构全科医生数
   const GPList = staffList.filter(it => it.isGP);
