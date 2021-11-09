@@ -668,9 +668,9 @@ export const MarkTags = [
             enabled: true
           },
           {
-            code: 'SN06',
+            code: 'SN10',
             name: '履约率',
-            enabled: false
+            enabled: true
           },
           {
             code: 'SN07',
@@ -909,9 +909,9 @@ export const MarkTagUsages = {
     name: '糖尿病人有偿签约率',
     code: 'SN05'
   },
-  SN06: {
+  SN10: {
     name: '履约率',
-    code: 'SN06'
+    code: 'SN10'
   },
   SN07: {
     name: '续约率',

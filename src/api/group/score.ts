@@ -106,6 +106,8 @@ export async function getMarks(
   SN06: number;
   SN07: number;
   SN08: number;
+  SN09: number;
+  SN10: number;
 }> {
   // language=PostgreSQL
   const result = await originalDB.execute(
@@ -180,7 +182,9 @@ export async function getMarks(
       SN05: 0,
       SN06: 0,
       SN07: 0,
-      SN08: 0
+      SN08: 0,
+      SN09: 0,
+      SN10: 0
     }
   );
   return {...obj, id: group};
@@ -1324,7 +1328,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN00.name
-                  } = 所有签约人群 / 服务人口数 x 100% = ${
+                  } = 总签约人群数 / 服务人口数 x 100% = ${
                     mark?.SN00
                   } / ${basicData} = ${percentString(mark?.SN00, basicData)}`
                 );
@@ -1379,7 +1383,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN01.name
-                  } = 重点人群签约数 / 重点人群数 x 100% = ${
+                  } = 重点人群签约数 / 重点人群总数 x 100% = ${
                     mark?.SN01
                   } / ${basicData} = ${percentString(mark?.SN01, basicData)}`
                 );
@@ -1434,7 +1438,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN02.name
-                  } =  计划生育特扶人员签约数 / 计划生育人口数 x 100% = ${
+                  } =  计划生育特扶人员签约数 / 计划生育特扶人员数 x 100% = ${
                     mark?.SN02
                   } / ${basicData} = ${percentString(mark?.SN02, basicData)}`
                 );
@@ -1476,7 +1480,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN03.name
-                  } = 所有的有偿签约人数 / 服务人口数 x 100% = ${
+                  } = 有偿签约人数 / 服务人口数 x 100% = ${
                     mark?.SN03
                   } / ${basicData} = ${percentString(mark?.SN03, basicData)}`
                 );
@@ -1531,7 +1535,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN04.name
-                  } = 高血压有偿签约人数 / 高血压患者人数 x 100% = ${
+                  } = 高血压有偿签约人数 / 高血压在管患者总数 x 100% = ${
                     mark?.SN04
                   } / ${basicData} = ${percentString(mark?.SN04, basicData)}`
                 );
@@ -1586,7 +1590,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN05.name
-                  } = 糖尿病有偿签约人数 / 糖尿病患者人数 x 100% = ${
+                  } = 糖尿病有偿签约人数 / 糖尿病在管患者总数 x 100% = ${
                     mark?.SN05
                   } / ${basicData} = ${percentString(mark?.SN05, basicData)}`
                 );
@@ -1622,9 +1626,9 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN07.name
-                  } = 明年签约的居民 / 今年签约人数 x 100% = ${mark?.SN07} / ${
-                    mark?.SN00
-                  } = ${percentString(mark?.SN07, mark?.SN00)}`
+                  } = 明年继续签约的人数 / 今年签约的居民总数 x 100% = ${
+                    mark?.SN07
+                  } / ${mark?.SN00} = ${percentString(mark?.SN07, mark?.SN00)}`
                 );
 
                 // 结果为”是“时，得满分
@@ -1658,7 +1662,7 @@ export default class Score {
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN08.name
-                  } = 明年度签约的有偿签约居民 / 今年度的有偿签约人数 x 100% = ${
+                  } = 明年继续有偿签约人数 / 今年度有偿签约居民总数 x 100% = ${
                     mark?.SN08
                   } / ${mark?.SN03} = ${percentString(mark?.SN08, mark?.SN03)}`
                 );
@@ -1683,6 +1687,42 @@ export default class Score {
                   mark?.SN08
                 ) {
                   const rate = mark.SN08 / mark?.SN03 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 履约率
+              if (tagModel.tag === MarkTagUsages.SN10.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN10.name
+                  } = 履约的项目数 / 签约的项目总数 x 100% = ${mark?.SN10} / ${
+                    mark?.SN09
+                  } = ${percentString(mark?.SN10, mark?.SN09)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN10
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN10
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN10
+                ) {
+                  const rate = mark.SN10 / mark?.SN09 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
