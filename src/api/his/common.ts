@@ -125,7 +125,7 @@ export async function getStaffList(hospital) {
  */
 export async function getMarkMetric(
   hospital,
-  year = null
+  date = null
 ): Promise<{
   'HIS.OutpatientVisits': number;
   'HIS.OutpatientIncomes': number;
@@ -133,19 +133,38 @@ export async function getMarkMetric(
   'HIS.InpatientVisits': number;
   'HIS.InpatientIncomes': number;
 }> {
-  if (!year) year = dayjs().year();
+  let start, end;
+  if (!date) {
+    start = dayjs()
+      .startOf('month')
+      .toDate();
+    end = dayjs()
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
+  } else {
+    start = dayjs(date)
+      .startOf('month')
+      .toDate();
+    end = dayjs(date)
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
+  }
 
   // 查询机构指标信息
   const markMetricModels = await originalDB.execute(
     // language=PostgreSQL
     `
-      select id, year, name, value, created_at
+      select id, date, name, value, created_at
       from mark_metric
       where id = ?
-        and year = ?
+        and date >= ?
+        and date < ?
     `,
     hospital,
-    year
+    start,
+    end
   );
 
   const obj = {
