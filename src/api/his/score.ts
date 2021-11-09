@@ -700,7 +700,7 @@ export default class HisScore {
       .year();
 
     // 获取员工信息
-    const staffList = await getStaffList(hospital);
+    const staffList = await getStaffList(hospital, day);
 
     // 获取指标数据
     const metricModels = await getMarkMetric(hospital);

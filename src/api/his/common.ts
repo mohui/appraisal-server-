@@ -8,41 +8,26 @@ import {
   Occupation
 } from '../../../common/his';
 import * as dayjs from 'dayjs';
+import {monthToRange} from './service';
 
 /**
  * 员工信息
  *
- * @param hospital
+ * @param hospital 机构id
+ * @param date 时间
  */
-export async function getStaffList(hospital, date = null) {
+export async function getStaffList(hospital, date) {
   // region 员工信息
 
   // 年份的开始时间
-  let yearStart;
+  const yearStart = dayjs(date)
+    .startOf('y')
+    .toDate();
   // 月份的结束时间
-  let monthEnd;
-
-  if (date) {
-    // 获取所传时间的年份的开始时间
-    yearStart = dayjs(date)
-      .startOf('y')
-      .toDate();
-    // 获取所传月份的结束时间
-    monthEnd = dayjs(date)
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  } else {
-    // 获取本年的开始时间
-    yearStart = dayjs()
-      .startOf('y')
-      .toDate();
-    // 获取本月份的结束时间
-    monthEnd = dayjs()
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  }
+  const monthEnd = dayjs(date)
+    .add(1, 'month')
+    .startOf('month')
+    .toDate();
 
   // 查询员工信息
   const staffModels = await appDB.execute(
@@ -141,6 +126,9 @@ export async function getStaffList(hospital, date = null) {
 /**
  * 指标数量
  *
+ * @param hospital 机构id
+ * @param date 时间
+ *
  * @return {
  *   OutpatientVisits: 门急诊人次数
  *   OutpatientIncomes: 门急诊收入
@@ -151,7 +139,7 @@ export async function getStaffList(hospital, date = null) {
  */
 export async function getMarkMetric(
   hospital,
-  date = null
+  date
 ): Promise<{
   'HIS.OutpatientVisits': number;
   'HIS.OutpatientIncomes': number;
@@ -159,25 +147,7 @@ export async function getMarkMetric(
   'HIS.InpatientVisits': number;
   'HIS.InpatientIncomes': number;
 }> {
-  let start, end;
-  if (!date) {
-    start = dayjs()
-      .startOf('month')
-      .toDate();
-    end = dayjs()
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  } else {
-    start = dayjs(date)
-      .startOf('month')
-      .toDate();
-    end = dayjs(date)
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-  }
-
+  const {start, end} = monthToRange(date);
   // 查询机构指标信息
   const markMetricModels = await originalDB.execute(
     // language=PostgreSQL
