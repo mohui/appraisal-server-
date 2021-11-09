@@ -106,6 +106,8 @@ export async function getMarks(
   SN06: number;
   SN07: number;
   SN08: number;
+  SN09: number;
+  SN10: number;
 }> {
   // language=PostgreSQL
   const result = await originalDB.execute(
@@ -180,7 +182,9 @@ export async function getMarks(
       SN05: 0,
       SN06: 0,
       SN07: 0,
-      SN08: 0
+      SN08: 0,
+      SN09: 0,
+      SN10: 0
     }
   );
   return {...obj, id: group};
@@ -1683,6 +1687,42 @@ export default class Score {
                   mark?.SN08
                 ) {
                   const rate = mark.SN08 / mark?.SN03 / tagModel.baseline;
+                  ruleAreaScoreModel.score +=
+                    tagModel.score * (rate > 1 ? 1 : rate);
+                }
+              }
+
+              // 履约率
+              if (tagModel.tag === MarkTagUsages.SN10.code) {
+                // 添加指标解释数组
+                ruleAreaScoreModel.details.push(
+                  `${
+                    MarkTagUsages.SN10.name
+                  } = 履约的项目数 / 签约的项目总数 x 100% = ${mark?.SN10} / ${
+                    mark?.SN09
+                  } = ${percentString(mark?.SN10, mark?.SN09)}`
+                );
+
+                // 结果为”是“时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.Y01.code &&
+                  mark?.SN10
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // 结果为“否”时，得满分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.N01.code &&
+                  !mark?.SN10
+                )
+                  ruleAreaScoreModel.score += tagModel.score;
+
+                // “≥”时得满分，不足按比例得分
+                if (
+                  tagModel.algorithm === TagAlgorithmUsages.egt.code &&
+                  mark?.SN10
+                ) {
+                  const rate = mark.SN10 / mark?.SN09 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
