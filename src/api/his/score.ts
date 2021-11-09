@@ -691,19 +691,18 @@ export default class HisScore {
     should.string().required()
   )
   async autoScoreStaff(day, staff, hospital) {
-    // 获取指标的值
-    const mark = await getMark(hospital, dayjs(day).year());
-
     // 获取去年的年份
     const lastYear = dayjs(day)
       .subtract(1, 'year')
-      .year();
+      .toDate();
+    // 获取指标的值
+    const mark = await getMark(hospital, dayjs(day).year());
 
     // 获取员工信息
     const staffList = await getStaffList(hospital, day);
 
     // 获取指标数据
-    const metricModels = await getMarkMetric(hospital);
+    const metricModels = await getMarkMetric(hospital, day);
     // 上年度指标
     const lastMetricModels = await getMarkMetric(hospital, lastYear);
 
