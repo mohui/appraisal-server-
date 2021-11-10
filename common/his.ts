@@ -325,7 +325,7 @@ export const MarkTag = [
           {
             value: 'DischargedVisits',
             label: '出院人次数',
-            enabled: false
+            enabled: true
           },
           {
             value: 'DischargedIncreasesRate',
