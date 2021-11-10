@@ -323,7 +323,7 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'a2',
+            value: 'DischargedVisits',
             label: '出院人次数',
             enabled: false
           },
@@ -580,6 +580,10 @@ export const MarkTagUsages = {
   ThousandOutpatientVisits: {
     code: 'ThousandOutpatientVisits',
     name: '每万人服务门诊当量'
+  },
+  DischargedVisits: {
+    code: 'DischargedVisits',
+    name: '出院人次数'
   },
   DischargedIncreasesRate: {
     code: 'DischargedIncreasesRate',
