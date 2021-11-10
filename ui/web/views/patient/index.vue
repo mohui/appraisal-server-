@@ -609,6 +609,9 @@
                   v-if="childrenHealthLength.length > 1"
                   v-model="curChild"
                   placeholder="请选择"
+                  size="small"
+                  style="margin-bottom: 10px;"
+                  @change="tabClick"
                 >
                   <el-option
                     v-for="(items, ii) in childrenHealthLength"
@@ -712,7 +715,7 @@
                           width: 'calc(100% - 80px)',
                           backgroundColor: '#fff',
                           overflow: 'auto',
-                          margin: '10px 40px 0'
+                          margin: '10px 40px 40px'
                         }"
                       ></GrowthChart>
                     </div>
@@ -860,14 +863,11 @@ export default {
     },
     // 儿童数量
     childrenHealthLength: function() {
-      const arr = ['一', '二', '三', '四', '五', '六'];
       return (
-        this.childrenHealthCheckServerData[1]?.records
-          .reverse()
-          .map((it, i) => ({
-            birthday: it[0].birthday,
-            children: arr[i] + '孩'
-          })) || []
+        this.childrenHealthCheckServerData[1]?.records.map(it => ({
+          birthday: it[0].birthday,
+          children: it[0].childname
+        })) || []
       );
     },
     // 高危人群规范管理列表数据
@@ -886,6 +886,7 @@ export default {
     },
     // 添加默认排序
     titleList() {
+      this.tabClick();
       return [
         {
           code: 'physical',
@@ -1032,7 +1033,7 @@ export default {
     childrenHealthCheckServerData: {
       async get() {
         const result = await this.$api.Person.childrenHealthCheck(this.id);
-        if (result[1].records.length > 1) {
+        if (result[1]?.records?.length > 1) {
           this.curChild = result[1].records[0][0].birthday;
         }
         return await Promise.all(

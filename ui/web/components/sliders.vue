@@ -15,7 +15,10 @@
     <div class="wrapper">
       <div
         class="list"
-        :style="{transform: 'translate3d(' + distance + 'px, 0px, 0px)'}"
+        :style="{
+          transition: 'all 2s',
+          transform: 'translate3d(' + distance + 'px, 0px, 0px)'
+        }"
       >
         <slot></slot>
       </div>
@@ -26,6 +29,12 @@
 <script>
 export default {
   name: 'Sliders',
+  props: {
+    spacing: {
+      type: Number,
+      default: 20
+    }
+  },
   data() {
     return {
       currentIndex: 0,
@@ -41,31 +50,34 @@ export default {
   mounted() {
     this.itemLength = this.$slots?.default?.length;
     if (this.itemLength) {
-      this.itemWidth = this.$slots.default[0].elm.offsetWidth;
-      if (this.$el.offsetWidth < this.itemLength * this.itemWidth) {
+      if (this.hasItem()) {
         this.scrollable.next = false;
       }
     }
   },
   methods: {
+    hasItem() {
+      this.itemWidth = this.$slots.default[0].elm.offsetWidth;
+      return (
+        this.$el.offsetWidth <
+        (this.itemLength - this.currentIndex) * this.itemWidth
+      );
+    },
     scrollPrev() {
-      if (this.currentIndex === 0) {
-        this.scrollable.prev = true;
-        return;
-      }
       this.scrollable.next = false;
       this.currentIndex -= 1;
-      this.distance = -this.currentIndex * (this.itemWidth + 20);
+      this.distance = -this.currentIndex * (this.itemWidth + this.spacing);
+      if (this.currentIndex === 0) {
+        this.scrollable.prev = true;
+      }
     },
     scrollNext() {
-      if (this.currentIndex === this.itemLength) {
-        this.scrollable.next = true;
-        return;
-      }
       this.scrollable.prev = false;
       this.currentIndex += 1;
-      this.distance = -this.currentIndex * (this.itemWidth + 20);
-      console.log(this.distance);
+      this.distance = -this.currentIndex * (this.itemWidth + this.spacing);
+      if (!this.hasItem()) {
+        this.scrollable.next = true;
+      }
     }
   }
 };
@@ -78,9 +90,10 @@ export default {
 .el-tabs__nav-prev,
 .el-tabs__nav-next {
   font-size: 30px;
-  top: calc(50% - 15px);
+  top: calc(50% - 24px);
   &.is-disabled {
     cursor: not-allowed;
+    display: none;
   }
 }
 .wrapper {
