@@ -176,3 +176,16 @@ export async function getMarkMetric(
   }
   return obj;
 }
+
+/**
+ * 除法运算
+ *
+ * @param numerator 分子
+ * @param denominator 分母
+ */
+export function divisionOperation(
+  numerator: number,
+  denominator: number
+): number {
+  return denominator > 0 ? numerator / denominator : 0;
+}
