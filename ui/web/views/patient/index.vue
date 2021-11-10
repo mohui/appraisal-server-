@@ -349,28 +349,43 @@
               </span>
 
               <div v-show="item.code === 'physical'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of healthyList"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'record-healthy',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">体检时间：{{ items.updateAt }}</span>
+                <div class="record">
+                  <div class="title">体验记录</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of healthyList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-healthy',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">
+                        {{ items.updateAt }}
+                      </div>
+                      <div class="notes-content">
+                        <div>
+                          身高：{{ items.stature }}<br />
+                          体重：{{ items.weight }}<br />
+                          体温：<span :class="{warn: items.temperature > 37.2}"
+                            >{{ items.temperature }}
+                          </span>
+                        </div>
+                        <div
+                          :class="{
+                            warn: !String(items.symptom).includes('无症状')
+                          }"
+                        >
+                          {{ items.symptom }}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p>
-                    身高：{{ items.stature }} 体重：{{ items.weight }} 体温：{{
-                      item.temperature
-                    }}
-                    症状：{{ items.symptom }}
-                  </p>
                 </div>
               </div>
 
@@ -1249,6 +1264,51 @@ export default {
     line-height: 2;
     font-size: 14px;
     border-radius: 6px;
+  }
+}
+.record {
+  background-color: #f0f4ff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  .title {
+    font-size: 22px;
+    margin: 0 0 20px 0;
+  }
+  .list {
+    width: 100%;
+    padding-left: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    .notes {
+      background-color: #fff;
+      margin-bottom: 10px;
+      margin-right: 20px;
+      width: 200px;
+      padding: 10px;
+      line-height: 2;
+      font-size: 14px;
+      border-radius: 6px;
+      .notes-content {
+        display: flex;
+        flex-direction: row;
+        border-top: 2px solid #f0f4ff;
+        & > div:first-child {
+          width: 50%;
+          border-right: 2px solid #f0f4ff;
+          padding-top: 5px;
+        }
+        & > div:last-child {
+          width: 50%;
+          align-self: center;
+          text-align: center;
+        }
+        .warn {
+          color: #f00;
+        }
+      }
+    }
   }
 }
 .notes {
