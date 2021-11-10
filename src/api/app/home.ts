@@ -8,7 +8,7 @@ import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
 import {getHospitals} from '../group/common';
 import {KatoRuntimeError} from 'kato-server';
-import {getStaffList, getMarkMetric} from '../his/common';
+import {getStaffList, getMarkMetric, divisionOperation} from '../his/common';
 
 //dayjs 加载插件
 dayjs.extend(dayOfYear);
@@ -260,7 +260,7 @@ export default class AppHome {
       year
     );
 
-    return basicData > 0 ? (staffs.GPCount / basicData) * 10000 : 0;
+    return divisionOperation(staffs.GPCount, basicData) * 10000;
   }
 
   // 万人口全科医生年增长数
@@ -288,7 +288,7 @@ export default class AppHome {
       year
     );
 
-    return basicData > 0 ? (staffs.increasesGPCount / basicData) * 10000 : 0;
+    return divisionOperation(staffs.increasesGPCount, basicData) * 10000;
   }
 
   // 医护比(注册执业（助理）医师数/同期注册护士数)
@@ -307,9 +307,7 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital, date);
 
-    return staffs.nurseCount > 0
-      ? staffs.physicianCount / staffs.nurseCount
-      : 0;
+    return divisionOperation(staffs.physicianCount, staffs.nurseCount);
   }
 
   // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
@@ -328,9 +326,7 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital, date);
 
-    return staffs.healthWorkersCount > 0
-      ? staffs.bachelorCount / staffs.healthWorkersCount
-      : 0;
+    return divisionOperation(staffs.bachelorCount, staffs.healthWorkersCount);
   }
 
   // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
@@ -349,9 +345,7 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital, date);
 
-    return staffs.healthWorkersCount > 0
-      ? staffs.highTitleCount / staffs.healthWorkersCount
-      : 0;
+    return divisionOperation(staffs.highTitleCount, staffs.healthWorkersCount);
   }
 
   // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
@@ -371,9 +365,13 @@ export default class AppHome {
     const staffs = await getStaffList(hospital, date);
 
     const metricModels = await getMarkMetric(hospital, date);
-    return staffs.physicianCount > 0
-      ? metricModels['HIS.OutpatientVisits'] / staffs.physicianCount / 251
-      : 0;
+
+    return (
+      divisionOperation(
+        metricModels['HIS.OutpatientVisits'],
+        staffs.physicianCount
+      ) / 251
+    );
   }
 
   /**
@@ -419,10 +417,10 @@ export default class AppHome {
 
     const metricModels = await getMarkMetric(hospital, date);
 
-    return metricModels['HIS.OutpatientVisits'] > 0
-      ? metricModels['HIS.OutpatientIncomes'] /
-          metricModels['HIS.OutpatientVisits']
-      : 0;
+    return divisionOperation(
+      metricModels['HIS.OutpatientIncomes'],
+      metricModels['HIS.OutpatientVisits']
+    );
   }
 
   /**
@@ -442,10 +440,10 @@ export default class AppHome {
 
     const metricModels = await getMarkMetric(hospital, date);
 
-    return metricModels['HIS.InpatientVisits'] > 0
-      ? metricModels['HIS.InpatientIncomes'] /
-          metricModels['HIS.InpatientVisits']
-      : 0;
+    return divisionOperation(
+      metricModels['HIS.InpatientIncomes'],
+      metricModels['HIS.InpatientVisits']
+    );
   }
 
   /**
@@ -466,9 +464,7 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(hospital, date);
 
-    return staffs.physicianCount > 0
-      ? staffs.TCMCount / staffs.physicianCount
-      : 0;
+    return divisionOperation(staffs.TCMCount, staffs.physicianCount);
   }
 
   /**
@@ -495,9 +491,9 @@ export default class AppHome {
       BasicTagUsages.DocPeople,
       year
     );
-    return basicData > 0
-      ? (metricModels['HIS.OutpatientVisits'] / basicData) * 10000
-      : 0;
+    return (
+      divisionOperation(metricModels['HIS.OutpatientVisits'], basicData) * 10000
+    );
   }
 
   /**
@@ -524,9 +520,9 @@ export default class AppHome {
       BasicTagUsages.DocPeople,
       year
     );
-    return basicData > 0
-      ? (metricModels['HIS.InpatientVisits'] / basicData) * 10000
-      : 0;
+    return (
+      divisionOperation(metricModels['HIS.InpatientVisits'], basicData) * 10000
+    );
   }
 
   /**
@@ -547,9 +543,10 @@ export default class AppHome {
     const metricModels = await getMarkMetric(hospital, date);
     const staffs = await getStaffList(hospital, date);
 
-    return staffs.staffCount > 0
-      ? metricModels['HIS.OutpatientVisits'] / staffs.staffCount
-      : 0;
+    return divisionOperation(
+      metricModels['HIS.OutpatientVisits'],
+      staffs.staffCount
+    );
   }
   // endregion
 }
