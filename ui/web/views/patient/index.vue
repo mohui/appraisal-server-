@@ -390,30 +390,35 @@
               </div>
 
               <div v-show="item.code === 'hypertension'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of hypertensions"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'record-hypertension',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ items.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ items.followDate }}</span
+                <div class="record hypertension">
+                  <div class="title">高血压随访记录</div>
+                  <sliders v-if="hypertensions.length">
+                    <div
+                      v-for="(items, index) of hypertensions"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-hypertension',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
-                  </div>
-                  <p>
-                    随访方式：{{ items.followWay }}；收缩压：{{
-                      items.systolicPressure
-                    }}；舒张压：{{ items.assertPressure }}
-                  </p>
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        收缩压：{{ items.systolicPressure }}；舒张压：{{
+                          items.assertPressure
+                        }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }}；随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
@@ -1255,6 +1260,10 @@ export default {
   padding: 20px;
   margin-bottom: 20px;
   border-radius: 6px;
+  .title {
+    font-size: 22px;
+    margin: 0 0 20px 0;
+  }
   .notes {
     background-color: #fff;
     margin-bottom: 10px;
@@ -1264,6 +1273,18 @@ export default {
     line-height: 2;
     font-size: 14px;
     border-radius: 6px;
+  }
+}
+.hypertension {
+  .notes {
+    width: 260px !important;
+    .main {
+      font-size: 18px;
+      line-height: 3;
+    }
+    & > div:last-child {
+      text-align: right;
+    }
   }
 }
 .record {
