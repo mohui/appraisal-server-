@@ -1317,7 +1317,10 @@ export default class HisScore {
         }
 
         // 住院次均费用变化情况((本年度住院次均医疗费用-上年度住院次均医疗费用)/上年度住院次均医疗费用×100%)
-        if (ruleIt.metric === MarkTagUsages.InpatientAverageIncomes.code) {
+        if (
+          ruleIt.metric ===
+          MarkTagUsages.InpatientAverageIncomesIncreasesRate.code
+        ) {
           // 本年度住院次均医疗费用
           const currentNumerator =
             metricModels['HIS.InpatientVisits'] > 0
