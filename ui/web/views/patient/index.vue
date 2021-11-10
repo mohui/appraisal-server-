@@ -15,7 +15,11 @@
             padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
         >
-          <el-tabs v-model="activeTab" class="patient-tab-list">
+          <el-tabs
+            v-model="activeTab"
+            class="patient-tab-list"
+            @tab-click="tabClick"
+          >
             <el-tab-pane
               v-if="personDetailSeverData.length"
               label="个人基本信息表"
@@ -609,7 +613,7 @@
                   <el-option
                     v-for="(items, ii) in childrenHealthLength"
                     :key="ii"
-                    :label="items.children + items.birthday"
+                    :label="items.children"
                     :value="items.birthday"
                   >
                   </el-option>
@@ -629,9 +633,11 @@
                         class="notes"
                         :style="{
                           display:
-                            !curChild || curChild === record.newbornbirthday
+                            !curChild ||
+                            curChild.toString() ===
+                              record.newbornbirthday.toString()
                               ? 'block'
-                              : ''
+                              : 'none'
                         }"
                         @click="handleGotoDetailse(record, item.type)"
                       >
@@ -658,6 +664,12 @@
                       v-for="(it, ii) of items.records"
                       :key="ii"
                       class="children"
+                      :style="{
+                        display:
+                          !curChild || curChild === it[0].birthday
+                            ? 'block'
+                            : 'none'
+                      }"
                     >
                       <div>
                         <div style="font-size: 22px; margin:0 0 20px 0">
@@ -667,7 +679,7 @@
                           儿童姓名：{{ it[0].childname }}
                         </div>
                       </div>
-                      <sliders v-if="it.length">
+                      <sliders v-if="it.length" :key="ii + 1 + keyCode">
                         <div
                           v-for="record of it"
                           :key="record.medicalcode"
@@ -691,16 +703,18 @@
                           </div>
                         </div>
                       </sliders>
-                      <span
-                        style="cursor: pointer; margin-left: 20px; color: #409eff"
-                        @click="
-                          handleGotoDevelopmentMonitoring(
-                            it[i].childhealthbooksno
-                          )
-                        "
-                      >
-                        生长发育监测图
-                      </span>
+                      <GrowthChart
+                        ref="chart"
+                        :key="ii + keyCode"
+                        :data="items.chartData[ii]"
+                        :style="{
+                          height: '500px',
+                          width: 'calc(100% - 80px)',
+                          backgroundColor: '#fff',
+                          overflow: 'auto',
+                          margin: '10px 40px 0'
+                        }"
+                      ></GrowthChart>
                     </div>
                   </div>
                 </div>
@@ -772,14 +786,16 @@
 <script>
 import card from './components/card';
 import sliders from '../../components/sliders';
+import GrowthChart from '../../components/growth-chart';
 import {getTagsList} from '../../../../common/person-tag.ts';
 export default {
   name: 'Patient',
-  components: {card, sliders},
+  components: {card, sliders, GrowthChart},
   data() {
     return {
       id: null,
       curChild: '',
+      keyCode: new Date().getTime(),
       activeTab: 'personal'
     };
   },
@@ -832,22 +848,27 @@ export default {
     },
     // 儿童健康管理记录数据
     childrenHealthCheckData() {
-      return this.childrenHealthCheckServerData;
+      return this.childrenHealthCheckServerData.map(it => ({
+        ...it,
+        chartData: it.chartData
+          ? it.chartData.map(c => ({
+              weights: c.map(w => w.weight),
+              heights: c.map(w => w.height)
+            }))
+          : ''
+      }));
     },
     // 儿童数量
-    childrenHealthLength() {
+    childrenHealthLength: function() {
       const arr = ['一', '二', '三', '四', '五', '六'];
-      const list =
-        this.childrenHealthCheckServerData[0]?.records.map((it, i) => ({
-          birthday: it.newbornbirthday,
-          children: arr[i] + '孩'
-        })) || [];
-      if (list.length > 0) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.curChild = list[0].birthday;
-        console.log(this.curChild);
-      }
-      return list;
+      return (
+        this.childrenHealthCheckServerData[1]?.records
+          .reverse()
+          .map((it, i) => ({
+            birthday: it[0].birthday,
+            children: arr[i] + '孩'
+          })) || []
+      );
     },
     // 高危人群规范管理列表数据
     chronicDiseaseHighData() {
@@ -1010,7 +1031,28 @@ export default {
     },
     childrenHealthCheckServerData: {
       async get() {
-        return await this.$api.Person.childrenHealthCheck(this.id);
+        const result = await this.$api.Person.childrenHealthCheck(this.id);
+        if (result[1].records.length > 1) {
+          this.curChild = result[1].records[0][0].birthday;
+        }
+        return await Promise.all(
+          result.map(async item => {
+            return {
+              ...item,
+              chartData:
+                item.type === 'childCheck'
+                  ? await Promise.all(
+                      item.records.map(
+                        async it =>
+                          await this.$api.Person.developmentMonitoring(
+                            it[0].childhealthbooksno
+                          )
+                      )
+                    )
+                  : ''
+            };
+          })
+        );
       },
       default() {
         return [];
@@ -1036,18 +1078,11 @@ export default {
     }
   },
   methods: {
+    tabClick() {
+      this.keyCode = new Date().getTime();
+    },
     handleBack() {
       this.$router.go(-1);
-    },
-
-    // 跳转到生长发育监测表详情
-    handleGotoDevelopmentMonitoring(bookNo) {
-      this.$router.push({
-        name: 'development-monitoring-chart',
-        query: {
-          id: bookNo
-        }
-      });
     },
 
     // 跳转到相应的体检表详情
@@ -1208,7 +1243,7 @@ export default {
     background-color: #fff;
     margin-bottom: 10px;
     margin-right: 20px;
-    min-width: 240px;
+    min-width: 294px;
     padding: 10px;
     line-height: 2;
     font-size: 14px;
