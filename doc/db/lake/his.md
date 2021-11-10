@@ -12,6 +12,12 @@
 | name | varchar(255) | 名称 |
 | department | varchar(36) | 所属科室id |
 | remark | varchar(500) | 备注 |
+| phone | varchar(30) | 联系电话 |
+| gender | varchar(255) | 性别; 男,女,未说明的性别,未知的性别 |
+| major | varchar(255) | 专业类别 |
+| title | varchar(255) | 职称名称 |
+| education | varchar(255) | 学历 |
+| isGP | boolean | 是否为全科医师 |
 | created_at | timestamp | 创建时间 |
 | updated_at | timestamp | 修改时间 |
 

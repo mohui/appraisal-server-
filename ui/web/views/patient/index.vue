@@ -3,14 +3,7 @@
     <el-row :gutter="10" style="height: 100%;">
       <el-col :span="6" :xs="24">
         <card v-loading="$asyncComputed.document.updating" :patient="person" />
-        <el-alert
-          title="注意: 档案内容为最近一次同步数据, 与年度无关!"
-          type="error"
-          center
-          :closable="false"
-          show-icon
-        >
-        </el-alert>
+        <el-button type="primary" @click="$router.go(-1)">返回 </el-button>
       </el-col>
       <el-col :span="18" :xs="24" style="height: 100%;">
         <el-card
@@ -21,24 +14,14 @@
             height: 'calc(100% - 40px)',
             padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
-          ><el-button
-            style="position: absolute;top:15px;right:30px;z-index: 9;"
-            size="small"
-            type="primary"
-            @click="$router.go(-1)"
-            >返回
-          </el-button>
-          <el-tabs
-            v-model="activeTab"
-            class="patient-tab-list"
-            :style="{width: $settings.isMobile ? '100%' : 'calc(100% - 70px)'}"
-          >
+        >
+          <el-tabs v-model="activeTab" class="patient-tab-list">
             <el-tab-pane
               label="个人基本信息表"
               name="personal"
               v-if="personDetailSeverData.length"
             >
-              <div>
+              <div v-hidden-scroll>
                 <div style="padding: 5px;">
                   <div style="float: right;">
                     编号：{{ personDetailData.id }}
@@ -361,7 +344,7 @@
                 {{ item.label }}
               </span>
 
-              <div v-show="item.code === 'physical'">
+              <div v-show="item.code === 'physical'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of healthyList"
@@ -387,7 +370,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'hypertension'">
+              <div v-show="item.code === 'hypertension'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of hypertensions"
@@ -415,7 +398,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'diabetes'">
+              <div v-show="item.code === 'diabetes'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of diabetesList"
@@ -443,7 +426,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'oldManSelfCare'">
+              <div v-show="item.code === 'oldManSelfCare'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of oldManSelfCareList"
@@ -501,7 +484,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'maternal'">
+              <div v-show="item.code === 'maternal'" v-hidden-scroll>
                 <div v-for="(item, index) of maternalData" :key="index">
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
@@ -564,7 +547,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'children'">
+              <div v-show="item.code === 'children'" v-hidden-scroll>
                 <div
                   v-for="(item, index) of childrenHealthCheckData"
                   :key="index"
@@ -599,7 +582,7 @@
                     <div v-for="(it, i) of item.records" :key="i">
                       <div style="margin: 20px 0;">
                         <span style="font-size: 18px">
-                          儿童姓名：{{ it[i].childname }}
+                          儿童姓名：{{ it[0].childname }}
                         </span>
                         <span
                           style="cursor: pointer; margin-left: 20px; color: #409eff"
@@ -643,7 +626,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'chronicDiseaseOther'">
+              <div v-show="item.code === 'chronicDiseaseOther'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of chronicDiseaseOtherData"
@@ -671,7 +654,7 @@
                 </div>
               </div>
 
-              <div v-show="item.code === 'chronicDiseaseHigh'">
+              <div v-show="item.code === 'chronicDiseaseHigh'" v-hidden-scroll>
                 <div
                   class="notes"
                   v-for="(item, index) of chronicDiseaseHighData"
@@ -1063,6 +1046,8 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
+@import '../../styles/vars';
+
 .notes {
   cursor: pointer;
   border-bottom: 1px solid #eee;
@@ -1100,7 +1085,7 @@ export default {
       border-top: 1px solid #ccc;
       border-left: 1px solid #ccc;
       em {
-        color: #409eff;
+        color: $color-primary;
       }
       sub {
         vertical-align: bottom;

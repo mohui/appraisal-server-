@@ -3,7 +3,12 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {HisWorkScoreType, HisStaffDeptType} from '../../../common/his';
+import {
+  Gender,
+  Education,
+  HisStaffDeptType,
+  HisWorkMethod
+} from '../../../common/his';
 import {
   dateValid,
   getEndTime,
@@ -47,6 +52,32 @@ export default class HisStaff {
     );
     return hisStaffs.map(it => {
       const index = staffs.find(item => it.id === item.staff);
+      return {
+        ...it,
+        usable: !index
+      };
+    });
+  }
+
+  /**
+   * 查询公卫员工
+   */
+  async listPhStaffs() {
+    const hospital = await getHospital();
+
+    // 根据绑定关系查询公卫机构下的所有员工
+    // language=PostgreSQL
+    const sysUserList = await originalDB.execute(
+      `select id, name username, states from ph_user where hospital = ?`,
+      hospital
+    );
+
+    const staffs = await appDB.execute(
+      `select ph_staff "phStaff" from staff where hospital = ?`,
+      hospital
+    );
+    return sysUserList.map(it => {
+      const index = staffs.find(item => it.id === item.phStaff);
       return {
         ...it,
         usable: !index
@@ -133,6 +164,14 @@ export default class HisStaff {
    * @param password
    * @param name
    * @param remark 备注
+   * @param department 科室
+   * @param phStaff 公卫员工
+   * @param phone 联系电话
+   * @param gender 性别
+   * @param major 专业类别
+   * @param title 职称名称
+   * @param education 学历
+   * @param isGP 是否为全科医师
    */
   @validate(
     should
@@ -158,9 +197,42 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('科室')
+      .description('科室'),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(Gender[0], Gender[1], Gender[2], Gender[3])
+      .required(),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(
+        Education.COLLEGE,
+        Education.BACHELOR,
+        Education.MASTER,
+        Education.DOCTOR
+      )
+      .required()
+      .description('学历'),
+    should.boolean().required()
   )
-  async add(staff, account, password, name, remark, department) {
+  async add(
+    staff,
+    account,
+    password,
+    name,
+    remark,
+    department,
+    phStaff,
+    phone,
+    gender,
+    major,
+    title,
+    education,
+    isGP
+  ) {
     const hospital = await getHospital();
     if (staff) {
       // 查询his员工是否已经被绑定
@@ -172,37 +244,81 @@ export default class HisStaff {
     } else {
       staff = null;
     }
+    // 校验公卫员工
+    if (phStaff) {
+      // 查询his员工是否已经被绑定
+      const phStaffOne = await appDB.execute(
+        `select * from staff where ph_staff = ?`,
+        phStaff
+      );
+      if (phStaffOne.length > 0) throw new KatoRuntimeError(`his员工已经存在`);
+    } else {
+      phStaff = null;
+    }
+
     return appDB.transaction(async () => {
       const staffId = uuid();
+      // language=PostgreSQL
       return await appDB.execute(
         `insert into
             staff(
               id,
               hospital,
               staff,
+              ph_staff,
               account,
               password,
               name,
               remark,
               department,
+              phone,
+              gender,
+              major,
+              title,
+              education,
+              "isGP",
               created_at,
               updated_at
               )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
+        phStaff,
         account,
         password,
         name,
         remark,
         department,
+        phone,
+        gender,
+        major,
+        title,
+        education,
+        isGP,
         dayjs().toDate(),
         dayjs().toDate()
       );
     });
   }
 
+  /**
+   * 修改员工信息
+   *
+   * @param id 主键
+   * @param name 名称
+   * @param password 密码
+   * @param staff his员工
+   * @param remark 备注
+   * @param department 科室
+   * @param phStaff 公卫员工
+   * @param phone 联系电话
+   * @param gender 性别
+   * @param major 专业类别
+   * @param title 职称名称
+   * @param education 学历
+   * @param isGP 是否为全科医师
+   */
   @validate(
     should
       .string()
@@ -227,12 +343,45 @@ export default class HisStaff {
     should
       .string()
       .allow(null)
-      .description('科室')
+      .description('科室'),
+    should
+      .string()
+      .allow(null)
+      .description('公卫员工'),
+    should.string().allow(null),
+    should
+      .string()
+      .only(Gender[0], Gender[1], Gender[2], Gender[3])
+      .required(),
+    should.string().allow(null),
+    should.string().allow(null),
+    should
+      .string()
+      .only(
+        Education.COLLEGE,
+        Education.BACHELOR,
+        Education.MASTER,
+        Education.DOCTOR
+      )
+      .required()
+      .description('学历'),
+    should.boolean().required()
   )
-  /**
-   * 修改员工信息
-   */
-  async update(id, name, password, staff, remark, department) {
+  async update(
+    id,
+    name,
+    password,
+    staff,
+    remark,
+    department,
+    phStaff,
+    phone,
+    gender,
+    major,
+    title,
+    education,
+    isGP
+  ) {
     // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
     if (staff) {
       const selStaff = await appDB.execute(
@@ -243,21 +392,36 @@ export default class HisStaff {
       if (selStaff.length > 0)
         throw new KatoRuntimeError(`该his用户已绑定过员工`);
     }
+    // language=PostgreSQL
     return await appDB.execute(
       `
         update staff set
           name = ?,
           password = ?,
           staff = ?,
+          ph_staff = ?,
           remark = ?,
           department = ?,
+          phone = ?,
+          gender = ?,
+          major = ?,
+          title = ?,
+          education = ?,
+          "isGP" = ?,
           updated_at = ?
         where id = ?`,
       name,
       password,
       staff,
+      phStaff,
       remark,
       department,
+      phone,
+      gender,
+      major,
+      title,
+      education,
+      isGP,
       dayjs().toDate(),
       id
     );
@@ -319,11 +483,18 @@ export default class HisStaff {
           id,
           hospital,
           staff,
+          ph_staff "phStaff",
           account,
           password,
           name,
           remark,
           department,
+          phone,
+          gender,
+          major,
+          title,
+          education,
+          "isGP",
           created_at,
           updated_at
         from staff
@@ -348,6 +519,13 @@ export default class HisStaff {
       hospital
     );
 
+    // 根据绑定关系查询公卫机构下的所有员工
+    // language=PostgreSQL
+    const sysUserList = await originalDB.execute(
+      `select id, name username from ph_user where hospital = ?`,
+      hospital
+    );
+
     const dept = await appDB.execute(
       `
         select id, hospital, name, created_at
@@ -360,10 +538,13 @@ export default class HisStaff {
     return staffList.map(it => {
       const index = hisStaffs.find(item => it.staff === item.id);
       const deptIndex = dept.find(item => item.id === it.department);
+      // 公卫员工
+      const phStaffIndex = sysUserList.find(item => it.phStaff === item.id);
       return {
         ...it,
         staffName: index?.name ?? '',
-        departmentName: deptIndex?.name ?? ''
+        departmentName: deptIndex?.name ?? '',
+        phStaffName: phStaffIndex?.username ?? ''
       };
     });
   }

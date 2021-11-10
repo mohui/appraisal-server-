@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div>
+    <div v-hidden-scroll>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
         <div
@@ -50,76 +50,249 @@
           </div>
         </div>
       </el-card>
-      <div>
-        <el-row :gutter="10" style="margin: 10px -5px 0;">
-          <el-col
-            :span="10"
-            :xs="24"
-            :sm="10"
-            :md="10"
-            :lg="10"
-            :xl="10"
-            style="margin-bottom: 10px;"
-          >
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.overviewServerData.updating"
-            >
-              <el-col :span="12" :xs="24">
-                <div
-                  class="score-detail"
-                  :style="{height: $settings.isMobile ? '200px' : '300px'}"
-                >
-                  <div class="total-score-title">总分</div>
-                  <div class="total-score">
-                    {{ overviewData.correctScore }}
-                  </div>
-                  <div>校正后</div>
-                  <div class="before-correction">
-                    校正前工分: {{ overviewData.originalScore }}
-                  </div>
-                </div>
-              </el-col>
-              <el-col :span="12" :xs="24">
-                <div>
-                  <div
-                    id="rateGauge"
-                    :style="{width: '100%', height: '300px'}"
-                  ></div>
-                </div>
-              </el-col>
-            </el-card>
-          </el-col>
-          <el-col
-            :span="14"
-            :xs="24"
-            :sm="14"
-            :md="14"
-            :lg="14"
-            :xl="14"
-            style="margin-bottom: 10px;"
-          >
-            <el-card
-              shadow="hover"
-              v-loading="$asyncComputed.staffCheckListSeverData.updating"
-            >
-              <div
-                id="doctorPerformanceBar"
-                :style="{width: '100%', height: '300px'}"
-              ></div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-      <el-card
-        shadow="hover"
-        v-loading="$asyncComputed.workScoreListSeverData.updating"
+      <el-row
+        style="margin: 10px 0"
+        v-for="(item, index) of indicatorsData"
+        :key="index"
       >
         <div
-          id="projectPerformanceBar"
-          :style="{width: '100%', height: '400px'}"
-        ></div>
-      </el-card>
+          class="card indicators-box"
+          :style="{height: item.isOpen ? 'auto' : '118px', overflow: 'hidden'}"
+        >
+          <div class="indicators-title-card title-box">
+            <div class="title">{{ item.name }}</div>
+          </div>
+          <div class="indicators-container">
+            <div
+              v-for="(i, index) of item.data"
+              :key="index"
+              class="item-content indicators-card"
+            >
+              <div class="indicators-name">
+                {{ i.name }}
+              </div>
+              <div class="indicators-content">
+                <div class="number" v-loading="i.isLoading">
+                  {{ i.number }}
+                  <span style="font-size: 16px">{{ i.unit }}</span>
+                </div>
+                <div class="icon-box">
+                  <img class="icon" :src="i.img" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-if="item.data.length > 4"
+            class="arrow-box"
+            @click="
+              () =>
+                item.name === '医疗指标'
+                  ? (medicalIndicatorsIsOpen = !medicalIndicatorsIsOpen)
+                  : item.name === '公卫指标'
+                  ? (publicIndicatorsIsOpen = !publicIndicatorsIsOpen)
+                  : null
+            "
+          >
+            <div
+              :class="
+                `${item.isOpen ? 'el-icon-arrow-up' : 'el-icon-arrow-down'}`
+              "
+            />
+          </div>
+        </div>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col
+          :span="17"
+          :xs="24"
+          :sm="12"
+          :md="12"
+          :lg="16"
+          :xl="17"
+          style="margin-bottom: 10px"
+        >
+          <div class="card staff-container">
+            <div class="staff-tabs">
+              <div
+                :class="staffFlag === 'workPoint' ? 'tab-select' : 'tab'"
+                @click="staffFlag = 'workPoint'"
+              >
+                员工工作量排名
+              </div>
+              <div
+                :class="staffFlag === 'rate' ? 'tab-select' : 'tab'"
+                @click="staffFlag = 'rate'"
+              >
+                员工质量系数排名
+              </div>
+            </div>
+            <div
+              class="content"
+              v-loading="$asyncComputed.staffCheckListSeverData.updating"
+              v-hidden-scroll
+            >
+              <div class="top-container" v-sticky>
+                <div
+                  v-if="staffFlag === 'workPoint'"
+                  v-loading="$asyncComputed.overviewServerData.updating"
+                >
+                  当前月工作总量：{{ overviewData.originalScore }}分
+                </div>
+                <div v-if="staffFlag === 'rate'">
+                  平均质量系数：{{ averageRate * 100 }}%
+                </div>
+              </div>
+              <div v-if="staffFlag === 'workPoint'">
+                <div class="rank-box" v-hidden-scroll>
+                  <div
+                    v-for="(i, index) of staffCheckListData.sort(
+                      (a, b) => b.correctionScore - a.correctionScore
+                    )"
+                    :key="index"
+                    class="cell"
+                    @click="onGotoStaffDetail(i.id)"
+                  >
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
+                    <div class="container">
+                      <div class="name">{{ i.name }}</div>
+                      <div class="progress el-progress-staff-cell">
+                        <el-progress
+                          :style="{
+                            width: `${i.proportion * 100}%`
+                          }"
+                          :stroke-width="16"
+                          :percentage="i.rate * 100"
+                          :show-text="false"
+                          :color="
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                          "
+                        ></el-progress>
+                      </div>
+                      <div
+                        class="text"
+                        :style="{
+                          color:
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                        }"
+                      >
+                        {{ i.correctionScore }}/{{ i.score }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="staffFlag === 'rate'">
+                <div class="rank-box" v-hidden-scroll>
+                  <div
+                    v-for="(i, index) of staffCheckListData.sort((a, b) => {
+                      if (a.rate === null && b.rate === null) {
+                        return 0;
+                      } else if (a.rate === null) {
+                        return 1;
+                      } else if (b.rate === null) {
+                        return -1;
+                      } else {
+                        return b.rate - a.rate;
+                      }
+                    })"
+                    :key="index"
+                    class="cell"
+                    @click="onGotoStaffDetail(i.id)"
+                  >
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
+                    <div class="container">
+                      <div class="name">{{ i.name }}</div>
+                      <div class="progress el-progress-staff-cell">
+                        <el-progress
+                          :style="{
+                            width: `${i.rate === null ? 0 : 100}%`
+                          }"
+                          :stroke-width="16"
+                          :percentage="i.rate * 100"
+                          :show-text="false"
+                          :color="
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                          "
+                        ></el-progress>
+                      </div>
+                      <div
+                        class="text"
+                        :style="{
+                          color:
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                        }"
+                      >
+                        {{ i.rateFormat }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-col>
+        <el-col
+          :span="7"
+          :xs="24"
+          :sm="12"
+          :md="12"
+          :lg="8"
+          :xl="7"
+          style="margin-bottom: 10px"
+        >
+          <div class="card workbench-container">
+            <div class="workbench-header">
+              工作台
+            </div>
+            <div class="content" v-hidden-scroll>
+              <div class="square">
+                <div class="square-inner grid">
+                  <div v-for="i of 8" :key="i">
+                    <div class="item">
+                      <div class="el-icon-s-tools icon"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
       <el-dialog
         title="报表"
         :visible.sync="dialogStaffTableVisible"
@@ -145,8 +318,8 @@
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
-            >导出</el-button
-          >
+            >导出
+          </el-button>
         </div>
         <el-table
           id="reportTable"
@@ -226,6 +399,9 @@ import VueSticky from 'vue-sticky';
 import * as dayjs from 'dayjs';
 import FileSaver from 'file-saver';
 import XLSX from 'xlsx';
+import firstIcon from '../../../assets/rank/first.png';
+import secondIcon from '../../../assets/rank/second.png';
+import thirdIcon from '../../../assets/rank/third.png';
 
 export default {
   name: 'index',
@@ -247,27 +423,15 @@ export default {
       spanArr: [],
       categorySpanArr: [],
       deptNameSpanArr: [],
-      chartColors: [
-        '#409eff',
-        '#ea9d42',
-        '#9e68f5',
-        '#5470c6',
-        '#91cc75',
-        '#fac858',
-        '#ee6666',
-        '#73c0de',
-        '#3ba272',
-        '#fc8452',
-        '#9a60b4',
-        '#ea7ccc'
-      ]
+      //员工工作量：workPoint， 质量系数：rate
+      staffFlag: 'workPoint',
+      medicalIndicatorsIsOpen: false,
+      publicIndicatorsIsOpen: false,
+      topThreeIcon: [firstIcon, secondIcon, thirdIcon]
     };
   },
   directives: {
     sticky: VueSticky
-  },
-  mounted() {
-    this.drawChart();
   },
   created() {
     this.initParams(this.$route);
@@ -286,17 +450,138 @@ export default {
           : 0
       };
     },
-    workScoreListData() {
-      return this.workScoreListSeverData?.map(it => ({
-        ...it,
-        score: Number(it.score?.toFixed(2)) || 0
-      }));
-    },
     staffCheckListData() {
-      return this.staffCheckListSeverData?.map(it => ({
-        ...it,
-        score: Number(it.score?.toFixed(2)) || 0
-      }));
+      return this.staffCheckListSeverData
+        ?.sort((a, b) => b.score - a.score)
+        .map(it => ({
+          ...it,
+          rateFormat:
+            it.rate === null
+              ? '无考核'
+              : Number((it.rate * 100).toFixed(2)) + '%',
+          score: Number(it.score?.toFixed(2)) || 0,
+          correctionScore: Number((it.score * (it.rate || 1)).toFixed(2)),
+          proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
+        }))
+        .sort((a, b) => b.correctionScore - a.correctionScore);
+    },
+    averageRate() {
+      const data = this.staffCheckListSeverData
+        .filter(it => it.rate !== null)
+        .map(it => it.rate);
+      const total = data.reduce((prev, curr) => prev + curr, 0);
+      const average = Number((total / data.length).toFixed(4));
+      return average;
+    },
+    indicatorsData() {
+      const num = 100000;
+      return [
+        {
+          name: '医疗指标',
+          isOpen: this.medicalIndicatorsIsOpen,
+          data: [
+            {
+              name: '医疗人员数量',
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.staffSeverData > num
+                  ? this.staffSeverData / 10000
+                  : this.staffSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/numberPeople.png').default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            },
+            {
+              name: '本月医疗收入',
+              unit: this.moneySeverData > num ? '万元' : '元',
+              number: Number(
+                (this.moneySeverData > num
+                  ? this.moneySeverData / 10000
+                  : this.moneySeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/medicalIncome.png').default,
+              isLoading: this.$asyncComputed.moneySeverData.updating
+            },
+            {
+              name: '本月诊疗人次数',
+              unit: this.visitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.visitsSeverData > num
+                  ? this.visitsSeverData / 10000
+                  : this.visitsSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/month.png').default,
+              isLoading: this.$asyncComputed.visitsSeverData.updating
+            },
+            {
+              name: '医师日均担负诊疗人次数',
+              unit: this.doctorDailyVisitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.doctorDailyVisitsSeverData > num
+                  ? this.doctorDailyVisitsSeverData / 10000
+                  : this.doctorDailyVisitsSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/averageDaily.png').default,
+              isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
+            }
+          ]
+        },
+        {
+          name: '公卫指标',
+          isOpen: this.publicIndicatorsIsOpen,
+          data: [
+            {
+              name: '居民档案数量',
+              unit: this.personSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.personSeverData > num
+                  ? this.personSeverData / 10000
+                  : this.personSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/archives.png').default,
+              isLoading: this.$asyncComputed.personSeverData.updating
+            },
+            {
+              name: '慢病管理人数',
+              unit: this.chronicSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.chronicSeverData > num
+                  ? this.chronicSeverData / 10000
+                  : this.chronicSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/slowDisease.png').default,
+              isLoading: this.$asyncComputed.chronicSeverData.updating
+            },
+            {
+              name: '高血压规范管理率',
+              number: Number((this.htnSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/hypertension.png').default,
+              isLoading: this.$asyncComputed.htnSeverData.updating
+            },
+            {
+              name: '糖尿病规范管理率',
+              number: Number((this.t2dmSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/diabetes.png').default,
+              isLoading: this.$asyncComputed.t2dmSeverData.updating
+            },
+            {
+              name: '老年人管理率',
+              number: Number((this.oldSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/elderly.png').default,
+              isLoading: this.$asyncComputed.oldSeverData.updating
+            }
+          ]
+        }
+      ];
     }
   },
   asyncComputed: {
@@ -308,14 +593,6 @@ export default {
         return {};
       }
     },
-    workScoreListSeverData: {
-      async get() {
-        return await this.$api.HisHospital.findWorkScoreList(this.currentDate);
-      },
-      default() {
-        return [];
-      }
-    },
     staffCheckListSeverData: {
       async get() {
         return await this.$api.HisHospital.findStaffCheckList(this.currentDate);
@@ -323,15 +600,81 @@ export default {
       default() {
         return [];
       }
+    },
+    staffSeverData: {
+      async get() {
+        return await this.$api.AppHome.staff();
+      },
+      default() {
+        return 0;
+      }
+    },
+    moneySeverData: {
+      async get() {
+        return await this.$api.AppHome.money();
+      },
+      default() {
+        return 0;
+      }
+    },
+    visitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.visits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    doctorDailyVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.doctorDailyVisits();
+      },
+      default() {
+        return 0;
+      }
+    },
+    personSeverData: {
+      async get() {
+        return await this.$api.AppHome.person();
+      },
+      default() {
+        return 0;
+      }
+    },
+    chronicSeverData: {
+      async get() {
+        return await this.$api.AppHome.chronic();
+      },
+      default() {
+        return 0;
+      }
+    },
+    htnSeverData: {
+      async get() {
+        return await this.$api.AppHome.htn();
+      },
+      default() {
+        return 0;
+      }
+    },
+    t2dmSeverData: {
+      async get() {
+        return await this.$api.AppHome.t2dm();
+      },
+      default() {
+        return 0;
+      }
+    },
+    oldSeverData: {
+      async get() {
+        return await this.$api.AppHome.old();
+      },
+      default() {
+        return 0;
+      }
     }
   },
   watch: {
-    workScoreListData: function() {
-      this.drawProjectPerformanceBar();
-    },
-    staffCheckListData: function() {
-      this.drawDoctorPerformanceBar();
-    },
     reportData: function() {
       // 获取需要合并的数据
       this.spanArr = this.getSpanArr();
@@ -355,6 +698,16 @@ export default {
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
+    },
+    // 跳转到员工详情页
+    onGotoStaffDetail(id) {
+      this.$router.push({
+        name: 'personal-appraisal-results',
+        query: {
+          id: id,
+          date: JSON.stringify(this.currentDate)
+        }
+      });
     },
     // 报表数据处理
     handleReportData() {
@@ -527,7 +880,7 @@ export default {
     async handleCompute() {
       try {
         await this.$api.HisScore.score(this.currentDate);
-        this.$message.success('计算完成');
+        this.$message.success('请刷新后查看');
       } catch (e) {
         this.$message.error(e.message);
       }
@@ -608,275 +961,6 @@ export default {
         if (typeof console !== 'undefined') console.log(e, wbOut);
       }
     },
-    // 绘制图表
-    drawChart() {
-      this.drawRateGauge();
-      this.drawDoctorPerformanceBar();
-      this.drawProjectPerformanceBar();
-    },
-    // 质量系数仪表盘图
-    drawRateGauge() {
-      // 基于准备好的dom，初始化echarts实例
-      const myChart = this.$echarts.init(document.getElementById('rateGauge'));
-      let option;
-      const color = '#409EFF';
-      const value = this.overviewData.rate;
-      option = {
-        series: [
-          {
-            type: 'gauge',
-            radius: '90%',
-            center: ['50%', '65%'],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            splitNumber: 2,
-            itemStyle: {
-              color: color
-            },
-            progress: {
-              show: true,
-              width: 30
-            },
-
-            axisTick: {show: false},
-
-            pointer: {
-              show: false
-            },
-            axisLine: {
-              lineStyle: {
-                width: 30,
-                color: [
-                  [value / 100, color],
-                  [1, '#f6f7fa']
-                ]
-              }
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              distance: 10,
-              color: '#999',
-              fontSize: 15
-            },
-            anchor: {
-              show: false
-            },
-            title: {
-              show: false
-            },
-            detail: {
-              show: true,
-              valueAnimation: true,
-              offsetCenter: [0, '-15%'],
-              fontSize: 25,
-              fontWeight: 'bolder',
-              formatter: '{value}%',
-              color: 'auto'
-            },
-            data: [
-              {
-                value: value
-              }
-            ]
-          }
-        ]
-      };
-      // 绘制图表
-      myChart.setOption(option);
-    },
-    // 医生绩效柱状图
-    drawDoctorPerformanceBar() {
-      const doctorData = this.staffCheckListData;
-      // 基于准备好的dom，初始化echarts实例
-      const myChart = this.$echarts.init(
-        document.getElementById('doctorPerformanceBar')
-      );
-      let option;
-      const colors = this.chartColors;
-      option = {
-        color: colors,
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'cross'
-          }
-        },
-        grid: {
-          right: '20%'
-        },
-        legend: {
-          data: ['人员得分', '质量系数']
-        },
-        dataZoom: [
-          {
-            show: true
-          },
-          {
-            type: 'inside',
-            zoomOnMouseWheel: 'ctrl'
-          }
-        ],
-        xAxis: [
-          {
-            type: 'category',
-            triggerEvent: true,
-            axisTick: {
-              alignWithLabel: true
-            },
-            data: doctorData.map(it => it.name)
-          }
-        ],
-        yAxis: [
-          {
-            type: 'value',
-            name: '人员得分',
-            min: 0,
-            position: 'right',
-            axisLine: {
-              show: true,
-              lineStyle: {
-                color: colors[0]
-              }
-            },
-            axisLabel: {
-              formatter: '{value} 分'
-            }
-          },
-          {
-            type: 'value',
-            name: '质量系数（%）',
-            min: 0,
-            max: 100,
-            axisLine: {
-              show: true,
-              lineStyle: {
-                color: colors[1]
-              }
-            },
-            axisLabel: {
-              formatter: '{value}'
-            }
-          }
-        ],
-        series: [
-          {
-            name: '人员得分',
-            type: 'bar',
-            yAxisIndex: 0,
-            data: doctorData.map(it => it.score)
-          },
-          {
-            name: '质量系数',
-            type: 'bar',
-            yAxisIndex: 1,
-            data: doctorData.map(it => Number((it.rate * 100).toFixed(2)))
-          }
-        ]
-      };
-
-      // 绘制图表
-      myChart.setOption(option);
-
-      // 表格的点击事件添加路由跳转
-      myChart.on('click', params => {
-        let id = '';
-        if (params.componentType === 'series') {
-          id = this.staffCheckListData[params.dataIndex].id;
-        } else if (params.componentType === 'xAxis') {
-          const anId = params.event.target.anid;
-          let strArr = anId.split('_');
-          const index = strArr[strArr.length - 1];
-          id = this.staffCheckListData[index].id;
-          console.log('id:', id);
-        }
-        if (id) {
-          this.$router.push({
-            name: 'personal-appraisal-results',
-            query: {
-              id: id,
-              date: JSON.stringify(this.currentDate)
-            }
-          });
-        }
-      });
-    },
-    // 项目绩效柱状图
-    drawProjectPerformanceBar() {
-      const myChart = this.$echarts.init(
-        document.getElementById('projectPerformanceBar')
-      );
-      let option;
-      option = {
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'shadow'
-          }
-        },
-        legend: {
-          data: ['项目实际得分', '项目应得分']
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        dataZoom: [
-          {
-            show: true,
-            yAxisIndex: 0,
-            left: '0%'
-          },
-          {
-            type: 'inside',
-            yAxisIndex: 0,
-            zoomOnMouseWheel: 'ctrl'
-          }
-        ],
-        xAxis: {
-          type: 'value',
-          boundaryGap: [0, 0.01],
-          axisLine: {
-            show: true
-          }
-        },
-        yAxis: {
-          type: 'category',
-          data: this.workScoreListData.map(it => it.name),
-          axisTick: {
-            alignWithLabel: true
-          }
-        },
-        series: [
-          {
-            name: '项目应得分',
-            type: 'bar',
-            data: this.workScoreListData.map(it => it.score),
-            itemStyle: {
-              color: 'rgba(64, 158, 255, 0.3)'
-            }
-          },
-          {
-            name: '项目实际得分',
-            type: 'bar',
-            data: this.workScoreListData.map(it =>
-              Number((it.score * this.overviewData.rate).toFixed(2))
-            ),
-            itemStyle: {
-              color: this.chartColors[0]
-            },
-            barGap: '-100%'
-          }
-        ]
-      };
-      myChart.setOption(option);
-    },
-
     tableCellClassName({row, columnIndex}) {
       // 非第一列（科室），以员工为单位，单元格进行斑马线颜色区分
       if (columnIndex !== 0 && row.nameIndex % 2 === 1) {
@@ -892,8 +976,17 @@ export default {
   .custom-cell {
     background: #f5f7fa;
   }
+
   tr {
     pointer-events: none;
+  }
+}
+
+.el-progress-staff-cell {
+  .el-progress-bar__outer,
+  .el-progress-bar__inner {
+    /*圆角*/
+    border-radius: 2px;
   }
 }
 </style>
@@ -917,40 +1010,277 @@ export default {
 }
 
 .header {
-  margin-bottom: -10px;
   & > div {
-    margin: 0 20px 10px 0;
+    margin: 0 20px 15px 0;
     float: left;
   }
+
   .right {
     float: right;
     margin-right: 0;
   }
+
   .header-title {
-    font: bold 20px/1.4 Arial;
-    color: $color-primary;
+    font: 18px/1.4 Arial;
+    color: #3a3f62;
   }
 }
 
-.score-detail {
-  height: 300px;
+.indicators-card {
+  border-right: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
+  background-color: #ffffff;
+  padding: 10px;
+}
+
+.card {
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+
+.indicators-title-card {
+  background-color: #ffffff;
+  border-right: 1px solid #ebeef5;
+  color: #3a3f62;
+  padding: 10px;
+}
+
+.indicators-box {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+
+  .title-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .title {
+      writing-mode: vertical-lr;
+      letter-spacing: 0.3em;
+      font-size: 17px;
+    }
+  }
+
+  .indicators-container {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .item-content {
+      width: calc((100% - 84px) / 4);
+      display: flex;
+      flex-direction: column;
+      color: #3a3f62;
+
+      .indicators-name {
+        font-size: 15px;
+        padding: 5px;
+      }
+
+      .indicators-content {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .number {
+          text-align: center;
+          flex: 1;
+          font-size: 28px;
+        }
+
+        .icon-box {
+          margin: 0 40px 20px 0;
+
+          .icon {
+            width: 50px;
+            height: 50px;
+          }
+        }
+      }
+    }
+  }
+
+  .arrow-box {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: right;
+    padding: 0 15px 15px 0;
+  }
+}
+
+.staff-container {
+  height: 60vh;
+  color: #3a3f62;
   font-size: 15px;
-  text-align: center;
-  .total-score-title {
-    font-size: 22px;
-    margin: 20px 10px;
-    padding-top: 50px;
+
+  .staff-tabs {
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    font-size: 16px;
+    background: #dae0f2;
+    border-bottom: 1px solid #ebeef5;
+
+    .tab,
+    .tab-select {
+      width: 50%;
+      height: 100%;
+      text-align: center;
+      line-height: 60px;
+    }
+
+    .tab-select {
+      background: #ffffff;
+    }
   }
-  .total-score {
-    font-size: 26px;
-    color: $color-primary;
-    margin: 10px;
-    font-weight: bold;
+
+  .content {
+    height: calc(60vh - 80px);
+    overflow-y: scroll;
+
+    .top-container {
+      background: #ffffff;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    .rank-box {
+      padding: 10px;
+      .cell {
+        padding: 10px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 13px;
+        color: #3a3f62;
+        cursor: pointer;
+
+        .top_three_ranking,
+        .ranking {
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .top_three_ranking {
+          .icon {
+            width: 23px;
+            height: 30px;
+          }
+        }
+
+        .ranking {
+          background: #dae0f2;
+          border-radius: 50%;
+        }
+
+        .container {
+          margin-left: 10px;
+          width: 100%;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+
+          .name {
+            width: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .progress {
+            flex: 1;
+            margin: 5px 3px;
+          }
+
+          .text {
+            width: 100px;
+            text-align: right;
+          }
+        }
+      }
+    }
   }
-  .before-correction {
-    color: darkgray;
-    font-size: 15px;
-    margin: 10px;
+}
+
+.workbench-container {
+  height: 60vh;
+
+  .workbench-header {
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #ebeef5;
+    padding: 10px;
+    color: #3a3f62;
+    font-size: 18px;
+  }
+
+  .content {
+    padding: 10px;
+    height: calc(60vh - 80px);
+    overflow-y: scroll;
+
+    .square {
+      position: relative;
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%; /* padding百分比是相对父元素宽度计算的 */
+    }
+
+    .square-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%; /* 铺满父元素容器，这时候宽高就始终相等了 */
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 相当于 1fr 1fr 1fr */
+      grid-template-rows: repeat(4, 1fr); /* fr单位可以将容器分为几等份 */
+      grid-gap: 1px; /* grid-column-gap 和 grid-row-gap的简写 */
+      grid-auto-flow: row;
+    }
+
+    .grid > div {
+      color: #fff;
+      line-height: 2;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .item {
+        background: #dae0f2;
+        width: 80%;
+        height: 80%;
+        min-width: 80px;
+        min-height: 80px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+
+        .icon {
+          color: #848dbd;
+          font-size: 3.2vw;
+        }
+      }
+    }
   }
 }
 

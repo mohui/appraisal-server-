@@ -1,13 +1,19 @@
 import {appDB, originalDB} from '../../app';
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {TagAlgorithmUsages} from '../../../common/rule-score';
+import {BasicTagUsages, TagAlgorithmUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {
   HisStaffDeptType,
   HisStaffMethod,
   HisWorkMethod,
   MarkTagUsages,
-  PreviewType
+  PreviewType,
+  Occupation,
+  DoctorType,
+  MajorType,
+  HighTitle,
+  MajorHealthType,
+  Education
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -16,13 +22,13 @@ import {
   getEndTime,
   getHospital,
   getSettle,
-  monthToRange,
-  StaffAssessModel
+  monthToRange
 } from './service';
 import {createBackJob} from '../../utils/back-job';
 import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
+import {getBasicData} from '../group/score';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -92,16 +98,28 @@ export async function workPointCalculation(
     type: string;
   }[]
 > {
-  // 根据员工i查询员工信息
+  // 根据员工id查询员工信息
   const staffModel: {
     id: string;
     name: string;
     department?: string;
     hospital: string;
     staff?: string;
+    hospitalName?: string;
+    ph_staff?: string;
   } = (
     await appDB.execute(
-      `select id, name, staff, hospital, department from staff where id = ?`,
+      // language=PostgreSQL
+      `select staff.id,
+                staff.name,
+                staff.staff,
+                staff.hospital,
+                staff.department,
+                staff.ph_staff,
+                area.name as "hospitalName"
+         from staff
+                left join area on staff.hospital = area.code
+         where staff.id = ?`,
       staff
     )
   )[0];
@@ -122,11 +140,12 @@ export async function workPointCalculation(
       method,
       score,
       source: it,
-      sourceName: item?.name
+      sourceName: item?.name,
+      scope: item?.scope
     };
   });
 
-  // region 取出系统员工id 适用于门诊,住院,手工数据
+  // region 取出系统员工id 适用于门诊,住院,手工数据,部分公卫数据
   // 系统员工, 不管绑定没绑定his员工,全部都要
   let staffIds = [];
   // 取出当是 固定 时候的所有员工id
@@ -217,10 +236,11 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffList = await appDB.execute(
         `
-            select staff, name
-                from staff
-            where staff is not null
-              and id in (${staffIds.map(() => '?')})`,
+          select staff, name
+          from staff
+          where staff is not null
+            and id in (${staffIds.map(() => '?')})
+        `,
         ...staffIds
       );
       doctorIds = staffList.map(it => it.staff);
@@ -228,17 +248,63 @@ export async function workPointCalculation(
   }
   // endregion
 
+  // region 公卫数据工分来源(动态:个人, 固定)会用到
+  let phStaff;
+  let phUserList = [];
+  if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
+    // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联公卫员工的员工
+    if (
+      staffMethod === HisStaffMethod.DYNAMIC &&
+      scope === HisStaffDeptType.HOSPITAL
+    ) {
+      // language=PostgreSQL
+      phUserList = await originalDB.execute(
+        `
+          select id, name username
+          from ph_user
+          where hospital = ?
+        `,
+        staffModel.hospital
+      );
+      phStaff = phUserList.map(it => it.id);
+    } else {
+      // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
+      const phStaffModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select ph_staff
+          from staff
+          where ph_staff is not null
+              and id in (${staffIds.map(() => '?')})
+        `,
+        ...staffIds
+      );
+      phStaff = phStaffModels.map(it => it.ph_staff);
+      if (phStaff.length > 0) {
+        // 查询这些公卫员工的名称
+        // language=PostgreSQL
+        phUserList = await originalDB.execute(
+          `
+            select id, name username
+            from ph_user
+            where id in (${phStaff.map(() => '?')})
+          `,
+          ...phStaff
+        );
+      }
+    }
+  }
+  // endregion
+
   // 工分流水
   let workItems = [];
   //计算工分
-  //region 计算CHECK和DRUG工分来源
-  for (const param of bindings.filter(
-    it => it.source.startsWith('门诊') || it.source.startsWith('住院')
-  )) {
+  //region 计算门诊CHECK和DRUG工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('门诊'))) {
     //region 处理人员条件条件
     let doctorCondition = '1 = 0';
     if (doctorIds.length > 0) {
-      doctorCondition = `doctor in (${doctorIds.map(() => '?').join()})`;
+      doctorCondition = `detail.doctor in (${doctorIds.map(() => '?').join()})`;
     }
     //endregion
     //查询his的收费项目
@@ -253,20 +319,67 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select total_price as value,
-                 operate_time as date,
-                 item "itemId",
-                 item_name "itemName",
-                 doctor "staffId",
+          select detail.total_price as value,
+                 detail.operate_time as date,
+                 detail.item "itemId",
+                 detail.item_name "itemName",
+                 detail.doctor "staffId",
                  staff.name as "staffName",
                  '${PreviewType.HIS_STAFF}' as type
           from his_charge_detail detail
           inner join his_staff staff on detail.doctor = staff.id
-          where operate_time > ?
-            and operate_time < ?
-            and (item like ? or item = ?)
+          where detail.operate_time > ?
+            and detail.operate_time < ?
+            and (detail.item like ? or detail.item = ?)
             and ${doctorCondition}
-          order by operate_time
+          order by detail.operate_time
+        `,
+      start,
+      end,
+      `${param.source}.%`,
+      param.source,
+      ...doctorIds
+    );
+    //his收费项目流水转换成工分流水
+    workItems = workItems.concat(rows);
+  }
+  //endregion
+  //region 计算住院CHECK和DRUG工分来源
+  for (const param of bindings.filter(it => it.source.startsWith('住院'))) {
+    //region 处理人员条件条件
+    let doctorCondition = '1 = 0';
+    if (doctorIds.length > 0) {
+      doctorCondition = `detail.doctor in (${doctorIds.map(() => '?').join()})`;
+    }
+    //endregion
+    //查询his的收费项目
+    const rows: {
+      value: string;
+      date: Date;
+      staffId: string;
+      staffName: string;
+      itemId: string;
+      itemName: string;
+      type: string;
+    }[] = await originalDB.execute(
+      // language=PostgreSQL
+      `
+          select detail.total_price as value,
+                 detail.operate_time as date,
+                 detail.item "itemId",
+                 detail.item_name "itemName",
+                 detail.doctor "staffId",
+                 staff.name as "staffName",
+                 '${PreviewType.HIS_STAFF}' as type
+          from his_charge_detail detail
+              inner join his_charge_master master on detail.main = master.id
+              inner join his_inpatient inpatient on master.treat = inpatient.id
+              inner join his_staff staff on detail.doctor = staff.id
+          where inpatient.out_date > ?
+            and inpatient.out_date < ?
+            and (detail.item like ? or detail.item = ?)
+            and ${doctorCondition}
+          order by detail.operate_time
         `,
       start,
       end,
@@ -321,45 +434,39 @@ export async function workPointCalculation(
   //region 计算公卫数据工分来源
   for (const param of bindings.filter(it => it.source.startsWith('公卫数据'))) {
     //机构级别的数据, 直接用当前员工的机构id即可
-    //查询hospital绑定关系
-    // language=PostgreSQL
-    const hisHospitalModels = await appDB.execute(
-      `
-        select mapping.hishospid hospital,
-               hospital.id,
-               hospital.name
-        from hospital_mapping mapping
-               inner join hospital on mapping.h_id = hospital.id
-        where mapping.h_id = ?
-      `,
-      staffModel.hospital
-    );
-    const hisHospitals: string[] = hisHospitalModels.map(it => it.hospital);
-    //没有绑定关系, 直接跳过
-    if (hisHospitals.length === 0) continue;
     const item = HisWorkItemSources.find(it => it.id === param.source);
     //未配置数据表, 直接跳过
     if (!item || !item?.datasource?.table) continue;
+
+    // 如果取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
+    if (param.scope === HisStaffDeptType.Staff && phStaff.length === 0)
+      continue;
     //渲染sql
     const sqlRendResult = sqlRender(
       `
-          select 1 as value, {{dateCol}} as date, OperateOrganization hospital
+          select 1 as value,
+            {{dateCol}} as date,
+            {{#if scope}} main.operatorid {{else}} main.OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
-            and OperateOrganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}})
-          {{#each columns}} and {{this}} {{/each}}
+            and main.OperateOrganization = {{? hospital}}
+            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#each columns}}and {{this}} {{/each}}
           `,
       {
         dateCol: item.datasource.date,
-        hospitals: hisHospitals,
+        hospital: staffModel.hospital,
         table: item.datasource.table,
         columns: item.datasource.columns,
+        scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
+        phStaff: phStaff,
         start,
         end
       }
     );
+
     const rows: {
       date: Date;
       value: number;
@@ -368,17 +475,25 @@ export async function workPointCalculation(
     //公卫数据流水转换成工分流水
     workItems = workItems.concat(
       rows.map(it => {
-        const item = hisHospitalModels.find(
-          hospitalIt => hospitalIt.hospital === it.hospital
-        );
+        const phStaffItem = phUserList.find(phIt => phIt.id === it.hospital);
         return {
           value: it.value,
-          date: it.date,
-          staffId: item?.id,
-          staffName: item?.name,
+          //兼容数据库date字段
+          date: dayjs(it.date).toDate(),
+          staffId:
+            param.scope === HisStaffDeptType.Staff
+              ? phStaffItem?.id
+              : staffModel?.hospital,
+          staffName:
+            param.scope === HisStaffDeptType.Staff
+              ? phStaffItem?.username
+              : staffModel?.hospitalName,
           itemId: param.source,
           itemName: param?.sourceName,
-          type: PreviewType.HOSPITAL
+          type:
+            param.scope === HisStaffDeptType.Staff
+              ? PreviewType.PH_STAFF
+              : PreviewType.HOSPITAL
         };
       })
     );
@@ -431,7 +546,7 @@ export async function workPointCalculation(
 
 // endregion
 
-// region 公卫打分
+// region 医疗绩效公卫数据打分
 async function getMark(hospital, year) {
   const list = await originalDB.execute(
     `select id, "HIS00"
@@ -581,7 +696,46 @@ export default class HisScore {
     should.string().required()
   )
   async autoScoreStaff(day, staff, hospital) {
+    // 获取指标的值
     const mark = await getMark(hospital, dayjs(day).year());
+
+    // 获取本年的开始时间
+    const yearStart = dayjs(day)
+      .startOf('y')
+      .toDate();
+
+    // region 获取员工信息
+    // 查询员工信息
+    const staffModels = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select id, account, name, major, title, education, "isGP", created_at
+        from staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 给员工标注
+    const staffList = staffModels.map(it => {
+      // 先查找 专业类别,找到此专业类别的类型
+      const findIndex = Occupation.find(majorIt => majorIt.name === it.major);
+      // 根据查找到的专业类别, 查找 职称名称 的职称类型
+      let titleIndex;
+      if (findIndex) {
+        titleIndex = findIndex?.children?.find(
+          titleIt => titleIt.name === it.title
+        );
+      }
+      return {
+        ...it,
+        majorType: findIndex?.majorType ?? null,
+        doctorType: findIndex?.doctorType ?? null,
+        majorHealthType: findIndex?.majorHealthType ?? null,
+        level: titleIndex?.level ?? null
+      };
+    });
+    // endregion
+
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
@@ -684,6 +838,223 @@ export default class HisScore {
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
             const rate = mark.HIS00 / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生数(基层医疗卫生机构全科医生数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.GPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(it => it.isGP);
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 万人口全科医生年增长数 (全科医师增加数 / 服务人口数 × 100%)
+        if (ruleIt.metric === MarkTagUsages.IncreasesOfGPsPerW.code) {
+          // 基层医疗卫生机构全科医生数
+          const GPList = staffList.filter(
+            it => it.isGP && it.created_at >= yearStart
+          );
+          // 服务人口数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs(day).year()
+          );
+          // 基层医疗卫生机构全科医生数
+          const GPCount = GPList.length;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !GPList) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = GPCount / basicData / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 医护比(注册执业（助理）医师数/同期注册护士数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfMedicalAndNursing.code) {
+          // 护士列表
+          const nurseList = staffList.filter(
+            it => it.majorType === MajorType.NURSE
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 护士数量
+          const nurseCount = nurseList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !physicianCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = physicianCount / nurseCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 卫生技术人员学历结构(具有本科及以上学历的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code
+        ) {
+          // 查询所有不是专科及以下的,就是本科及以上, 切学历不能为空,必须是卫生技术人员
+          const bachelorList = staffList.filter(
+            it =>
+              it.education != Education.COLLEGE &&
+              it.education &&
+              it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 本科及以上卫生技术人员数
+          const bachelorCount = bachelorList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !bachelorCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = bachelorCount / healthWorkersCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 卫生技术人员职称结构(具有高级职称的卫生技术人员数/同期卫生技术人员总数×100%)
+        if (
+          ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
+        ) {
+          // 具有 高级职称 的卫生技术人员数
+          const highTitleList = staffList.filter(
+            it => it.level === HighTitle.highTitle
+          );
+          // 同期卫生技术人员总数
+          const healthWorkersList = staffList.filter(
+            it => it.majorHealthType === MajorHealthType.healthWorkers
+          );
+          // 具有高级职称的卫生技术人员数
+          const highTitleCount = highTitleList.length;
+          // 同期卫生技术人员总数
+          const healthWorkersCount = healthWorkersList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !highTitleCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = highTitleCount / healthWorkersCount / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
+        if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
+          // 中医列表
+          const TCMList = staffList.filter(
+            it => it.doctorType === DoctorType.TCM
+          );
+          // 医师列表
+          const physicianList = staffList.filter(
+            it => it.majorType === MajorType.PHYSICIAN
+          );
+          // 中医数量
+          const TCMCount = TCMList.length;
+          // 医师数量
+          const physicianCount = physicianList.length;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !TCMCount) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = TCMCount / physicianCount / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }

@@ -10,7 +10,8 @@ module.exports = [
     ],
     label: '绩效考核',
     sign: 'show',
-    icon: 'el-icon-data-analysis',
+    icon: require('../../assets/menu-icon/check.png').default,
+    iconActive: require('../../assets/menu-icon/check-active.png').default,
     children: [
       {
         index: 'appraisal-result',
@@ -50,14 +51,16 @@ module.exports = [
     permission: [Permission.PROFILE],
     label: '个人档案',
     sign: 'show',
-    icon: 'el-icon-edit',
+    icon: require('../../assets/menu-icon/person.png').default,
+    iconActive: require('../../assets/menu-icon/person-active.png').default,
     router: '/person'
   },
   {
     index: 'userManage',
     permission: [Permission.USER_INDEX, Permission.ROLE_INDEX],
     label: '用户管理',
-    icon: 'el-icon-user',
+    icon: require('../../assets/menu-icon/staff.png').default,
+    iconActive: require('../../assets/menu-icon/staff-active.png').default,
     children: [
       {
         index: 'user',
@@ -77,14 +80,16 @@ module.exports = [
     index: 'audit-log',
     permission: [Permission.AUDIT_LOG],
     label: '操作日志',
-    icon: 'el-icon-refresh',
+    icon: require('../../assets/menu-icon/opertion.png').default,
+    iconActive: require('../../assets/menu-icon/operation-active.png').default,
     router: '/audit-log'
   },
   {
     index: 'guidelines',
     permission: [Permission.GUIDELINES],
     label: '医学指南',
-    icon: 'el-icon-guide',
+    icon: require('../../assets/menu-icon/guide.png').default,
+    iconActive: require('../../assets/menu-icon/guide-active.png').default,
     router: '/guidelines'
   },
   {
@@ -92,7 +97,9 @@ module.exports = [
     permission: [Permission.MEDICAL_PERFORMANCE],
     label: '医疗绩效',
     sign: 'show',
-    icon: 'el-icon-s-data',
+    icon: require('../../assets/menu-icon/performance.png').default,
+    iconActive: require('../../assets/menu-icon/performance-active.png')
+      .default,
     router: '/medical-performance'
   },
   {
@@ -102,7 +109,8 @@ module.exports = [
       Permission.MEDICAL_CONFIGURATION_WORK
     ],
     label: '医疗绩效配置',
-    icon: 'el-icon-data-line',
+    icon: require('../../assets/menu-icon/config.png').default,
+    iconActive: require('../../assets/menu-icon/config-active.png').default,
     children: [
       {
         index: 'medical-configuration',
@@ -128,21 +136,24 @@ module.exports = [
     index: 'manual',
     permission: [Permission.MEDICAL_MANUAL],
     label: '手工数据维护',
-    icon: 'el-icon-notebook-1',
+    icon: require('../../assets/menu-icon/manual.png').default,
+    iconActive: require('../../assets/menu-icon/manual-active.png').default,
     router: '/manual'
   },
   {
     index: 'plan',
     permission: [Permission.MEDICAL_PLAN],
     label: '医疗考核方案',
-    icon: 'el-icon-setting',
+    icon: require('../../assets/menu-icon/plan.png').default,
+    iconActive: require('../../assets/menu-icon/plan-active.png').default,
     router: '/plan'
   },
   {
     index: 'work',
     permission: [Permission.MEDICAL_WORK],
     label: '医疗工作列表',
-    icon: 'el-icon-notebook-2',
+    icon: require('../../assets/menu-icon/worklist.png').default,
+    iconActive: require('../../assets/menu-icon/worklist-active.png').default,
     router: '/work'
   }
 ];

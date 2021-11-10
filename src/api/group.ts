@@ -1,4 +1,4 @@
-import {appDB} from '../app';
+import {appDB, originalDB} from '../app';
 import {AreaModel} from '../database';
 import {Context} from './context';
 import {KatoRuntimeError} from 'kato-server';
@@ -336,6 +336,12 @@ export default class Group {
     if (!code) {
       code = Context.current.user.code;
     }
-    return AreaModel.findAll({where: {parent: code}});
+    // language=PostgreSQL
+    return await originalDB.execute(
+      ` select code, name, parent
+          from area
+          where parent = ? `,
+      code
+    );
   }
 }

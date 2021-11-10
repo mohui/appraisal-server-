@@ -12,7 +12,6 @@ import {settingPlugin} from './plugins/setting';
 import * as echarts from 'echarts';
 import './directive';
 import KnDebounceInputComponent from './components/kn-debounce-input';
-import KnAreaCascader from './components/kn-area-cascader';
 import KnCollapse from './components/kn-collapse';
 
 (async () => {
@@ -25,7 +24,6 @@ import KnCollapse from './components/kn-collapse';
   Vue.use(dayjs);
   Vue.prototype.$echarts = echarts;
   Vue.component('kn-debounce-input', KnDebounceInputComponent);
-  Vue.component('kn-area-cascader', KnAreaCascader);
   Vue.component('kn-collapse', KnCollapse);
 
   new Vue({

@@ -42,7 +42,7 @@
       :style="{'flex-direction': $settings.isMobile ? 'column' : 'row'}"
     >
       <el-aside
-        :width="$settings.isMobile ? '100%' : '270px'"
+        :width="$settings.isMobile ? '100%' : '250px'"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -198,7 +198,7 @@ export default {
   padding: 0;
   border-bottom: solid 1px #e6e6e6;
   display: flex;
-  background: $color-primary;
+  background: $color-header;
   box-sizing: content-box;
   align-items: center;
   justify-content: space-between;
@@ -225,56 +225,63 @@ export default {
   z-index: 9;
 }
 ::v-deep .el-menu {
+  color: $color-menu-dark;
   & > li {
+    border-radius: 30px;
+
     &.el-menu-item,
     > .el-submenu__title {
+      color: $color-menu-dark;
       height: 46px !important;
       line-height: 46px !important;
       &:hover {
-        background-color: #ecf5ff;
+        background-color: #fff;
       }
+    }
+    &.is-active.parent-menu.el-menu-item {
+      background-image: linear-gradient(to right, $color-left, $color-right);
+      color: #fff;
+      border-radius: 30px;
+    }
+    &.is-active.el-menu-item {
+      background-color: #fff;
     }
     &.is-active > .el-submenu__title {
-      box-shadow: inset 3px 0 0 #2198f3;
-      background-color: #ecf5ff;
-    }
-    > ul {
-      background-color: rgba(0, 0, 0, 0.02);
-      &:before {
-        border-left: 1px dotted rgba(0, 0, 0, 0.2);
-        content: '';
-        display: block;
-        position: absolute;
-        z-index: 1;
-        left: 2rem;
-        top: 0;
-        bottom: 0;
+      i {
+        color: inherit;
       }
+      background-image: linear-gradient(to right, $color-left, $color-right);
+      color: #fff;
+      border-radius: 30px;
+    }
+
+    > ul {
       > li {
-        padding-left: 54px !important;
-        &:hover {
-          color: #409eff;
-          background-color: rgba(255, 255, 255, 0.1);
+        padding-left: 60px !important;
+        color: $color-menu-dark;
+        &.is-active {
+          color: $color-primary;
         }
         &:after {
+          margin-left: 10px !important;
           content: '';
           display: block;
           position: absolute;
           width: 0.3rem;
           height: 0.3rem;
-          background-color: rgba(91, 91, 91, 0.2);
           left: 1.8rem;
-          top: calc(50% - 0.2rem);
+          top: calc(50% - 0.1rem);
           border: 1px solid rgba(91, 91, 91, 0.7);
           border-radius: 50%;
           z-index: 1;
         }
         &.is-active:after {
           background-color: #409eff;
-          width: 0.4rem;
-          height: 0.4rem;
-          left: 1.75rem;
-          top: calc(50% - 0.25rem);
+          width: 0.5rem;
+          height: 0.5rem;
+          left: 1.8rem;
+          top: calc(50% - 0.2rem);
+          border: 0;
         }
       }
     }

@@ -23,7 +23,7 @@ export default {
     },
     color: {
       type: String,
-      default: '#409EFF'
+      default: '#5168f6'
     }
   },
   data() {
@@ -34,12 +34,10 @@ export default {
           show: true,
           text: '质量系数(%)',
           textStyle: {
-            fontSize: 18,
-            fontWeight: 'bolder',
-            color: this.color
-          },
-          top: 0,
-          left: '5px'
+            fontSize: 16,
+            fontWeight: 'normal',
+            color: '#40415a'
+          }
         },
         tooltip: {formatter: '{a} <br/>{b} : {c}%'},
         series: [
@@ -48,46 +46,48 @@ export default {
             type: 'gauge',
             startAngle: 180,
             endAngle: 0,
-            radius: '100%',
-            center: ['50%', '70%'],
+            min: 0,
+            max: 100,
+            splitNumber: 2,
+            radius: '60%',
+            center: ['50%', '55%'],
+            itemStyle: {
+              color: this.$echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                {offset: 0, color: '#4e89ff'},
+                {offset: 1, color: this.color}
+              ]),
+              shadowColor: this.color,
+              shadowBlur: 10
+            },
+            progress: {
+              show: true,
+              roundCap: true,
+              width: 20
+            },
             axisLine: {
+              roundCap: true,
               lineStyle: {
-                width: 30,
-                color: []
+                width: 20,
+                color: [[1, '#f6f7fa']]
               }
             },
             axisTick: {show: false},
             axisLabel: {
               show: true,
-              distance: 15,
-              textStyle: {color: '#000'},
-              formatter: function(e) {
-                switch (e + '') {
-                  case '10':
-                  case '20':
-                  case '30':
-                  case '40':
-                  case '60':
-                  case '70':
-                  case '80':
-                  case '90':
-                    return '';
-                  default:
-                    return e;
-                }
-              }
+              distance: -45,
+              textStyle: {color: '#000'}
             },
             splitLine: {show: false},
             pointer: {show: false},
             title: {
-              offsetCenter: [0, '-3%'],
-              textStyle: {color: this.color, fontSize: '14'}
+              offsetCenter: [0, '40%'],
+              textStyle: {color: '#7a7d95', fontSize: '13'}
             },
             detail: {
               show: true,
               formatter: '{value}',
-              offsetCenter: [0, '-30%'],
-              textStyle: {color: this.color, fontSize: '30', fontWeight: '600'}
+              offsetCenter: [0, '-22%'],
+              textStyle: {color: '#40415a', fontSize: '26'}
             },
             data: [
               {
@@ -115,21 +115,10 @@ export default {
   },
   methods: {
     circleChart() {
-      this.chart.series[0].axisLine.lineStyle.color = this.coefficient
-        ? [
-            [this.coefficient / 100, this.color],
-            [1, '#f6f7fa']
-          ]
-        : [
-            [0, this.color],
-            [1, '#f6f7fa']
-          ];
       this.chart.series[0].data[0].value = this.coefficient
         ? this.coefficient
         : 0;
-      this.chart.series[0].data[0].name = this.pointDate
-        ? this.pointDate + '\n' + this.text
-        : '';
+      this.chart.series[0].data[0].name = this.text;
       this.chartId.setOption(this.chart);
       this.chartId.getZr().off('click');
       this.chartId.getZr().on('click', () => this.onClick?.());

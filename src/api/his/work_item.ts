@@ -76,9 +76,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人生活自理能力评估',
     name: '老年人生活自理能力评估',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_HealthCheckTableScore',
+      table: 'ph_old_health_check main',
       date: 'OperateTime'
     }
   },
@@ -88,7 +88,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'OperateTime',
       columns: ['dlpn is not null']
     }
@@ -99,7 +99,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'OperateTime',
       columns: ['kc is not null']
     }
@@ -110,7 +110,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['yd is not null']
     }
@@ -121,7 +121,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['tnbzbdmbd is not null']
     }
@@ -132,7 +132,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['gmzz is not null']
     }
@@ -143,7 +143,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['fk_wy is not null']
     }
@@ -154,7 +154,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['ctqt is not null']
     }
@@ -165,7 +165,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xcgHb is not null']
     }
@@ -176,7 +176,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['ncgndb is not null']
     }
@@ -187,7 +187,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['kfxt is not null']
     }
@@ -198,7 +198,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xdt is not null']
     }
@@ -209,7 +209,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['nwlbdb is not null']
     }
@@ -220,7 +220,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['dbqx is not null']
     }
@@ -231,7 +231,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['tnbthxhdb is not null']
     }
@@ -242,7 +242,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['HBsAg is not null']
     }
@@ -253,7 +253,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['ggnALT is not null']
     }
@@ -264,7 +264,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['sgnScr is not null']
     }
@@ -275,7 +275,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xzCHO is not null']
     }
@@ -286,7 +286,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xzCHO is not null']
     }
@@ -297,7 +297,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xp is not null']
     }
@@ -308,7 +308,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['xp is not null']
     }
@@ -319,7 +319,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_Healthy',
+      table: 'ph_healthy main',
       date: 'checkupDate',
       columns: ['jkfzjcqt is not null']
     }
@@ -328,9 +328,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.高血压随访',
     name: '高血压随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_HypertensionVisit',
+      table: 'ph_hypertension_visit main',
       date: 'FollowUpDate'
     }
   },
@@ -340,7 +340,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_HypertensionVisit',
+      table: 'ph_hypertension_visit main',
       date: 'FollowUpDate',
       columns: ['Fzjc is not null']
     }
@@ -349,9 +349,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.2型糖尿病随访',
     name: '2型糖尿病随访',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit main',
       date: 'FollowUpDate'
     }
   },
@@ -361,7 +361,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit main',
       date: 'FollowUpDate',
       columns: ['Hemoglobin is not null']
     }
@@ -372,7 +372,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_DiabetesVisit',
+      table: 'ph_diabetes_visit main',
       date: 'FollowUpDate',
       columns: ['FastingGlucose is not null']
     }
@@ -381,9 +381,9 @@ export const HisWorkItemSources: {
     id: '公卫数据.老年人中医药服务',
     name: '老年人中医药服务',
     parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
+    scope: HisStaffDeptType.Staff,
     datasource: {
-      table: 'view_QuestionnaireMain',
+      table: 'ph_old_questionnaire_main main',
       date: 'OperateTime'
     }
   },
@@ -393,7 +393,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_SanitaryControlReport',
+      table: 'ph_sanitary_control_report main',
       date: 'ReportTime'
     }
   },
@@ -403,7 +403,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'view_SanitaryControlAssist',
+      table: 'ph_sanitary_control_assist main',
       date: 'checkDate'
     }
   },
@@ -413,7 +413,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_NewbornVisit_KN',
+      table: 'mch_new_born_visit main',
       date: 'VisitDate'
     }
   },
@@ -423,7 +423,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_ChildCheck_KN',
+      table: 'mch_child_check main',
       date: 'CheckDate',
       columns: ['chronologicalage >= 12', 'chronologicalage < 31']
     }
@@ -434,7 +434,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_ChildCheck_KN',
+      table: 'mch_child_check main',
       date: 'CheckDate',
       columns: ['chronologicalage >= 36', 'chronologicalage < 73']
     }
@@ -445,7 +445,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_NewlyDiagnosed_KN',
+      table: 'mch_newly_diagnosed main',
       date: 'NewlyDiagnosedDate'
     }
   },
@@ -455,7 +455,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_PrenatalCare_KN',
+      table: 'mch_prenatal_care main',
       date: 'CheckDate'
     }
   },
@@ -465,7 +465,7 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_MaternalVisits_KN',
+      table: 'mch_maternal_visit main',
       date: 'VisitDate'
     }
   },
@@ -475,8 +475,273 @@ export const HisWorkItemSources: {
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: 'V_Examine42thDay_KN',
+      table: 'mch_examine_42th_day main',
       date: 'VisitDate'
+    }
+  },
+  // 9-24新增issues258指标 开始
+  {
+    id: '公卫数据.居民健康档案-建档人数',
+    name: '居民健康档案-建档人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_person main',
+      date: 'operatetime',
+      columns: ['writeoff = false']
+    }
+  },
+  {
+    id: '公卫数据.居民健康档案-人脸采集数',
+    name: '居民健康档案-人脸采集数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_person_face main',
+      date: 'operatetime'
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-慢病高危管理卡人数',
+    name: '高危人群管理-慢病高危管理卡人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_card main',
+      date: 'operatetime',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-慢病高危随访人次',
+    name: '高危人群管理-慢病高危随访人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_visit main',
+      date: 'FollowUpDate',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高血压患者管理-高血压新建档案人数',
+    name: '高血压患者管理-高血压新建档案人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_hypertension main',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.糖尿病患者管理-糖尿病新建档案人数',
+    name: '糖尿病患者管理-糖尿病新建档案人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_diabetes main',
+      date: 'operatetime',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-宣传栏更新次数',
+    name: '健康教育-宣传栏更新次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'activitytime',
+      columns: [`activityformcode = '3'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-公众咨询活动次数',
+    name: '健康教育-公众咨询活动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'activitytime',
+      columns: [`activityformcode = '5'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-健康知识讲座次数',
+    name: '健康教育-健康知识讲座次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'activitytime',
+      columns: [`activityformcode = '4'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-个性化健康教育人次',
+    name: '健康教育-个性化健康教育人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'activitytime',
+      columns: [`activityformcode = '6'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-慢病自我管理小组活动次数',
+    name: '健康教育-慢病自我管理小组活动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '8'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.健康教育-全面健康生活方式行动次数',
+    name: '健康教育-全面健康生活方式行动次数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'ph_health_education main',
+      date: 'ActivityTime',
+      columns: [`ActivityFormCode = '9'`, 'state = 1']
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约基础包人数',
+    name: '家庭医生签约-签约基础包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_sign_register main
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service --区分服务包类型
+      `,
+      date: 'main.SignDate',
+      columns: [`sp.ncmsservicepackageid = '1'`, `sp.conceitedmoney = 0`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约初级包人数',
+    name: '家庭医生签约-签约初级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_sign_register main
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
+      `,
+      date: 'main.SignDate',
+      columns: [`sp.ncmsservicepackageid = '2'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约中级包人数',
+    name: '家庭医生签约-签约中级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_sign_register main
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
+      `,
+      date: 'main.SignDate',
+      columns: [`sp.ncmsservicepackageid = '3'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约高级包人数',
+    name: '家庭医生签约-签约高级包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_sign_register main
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
+      `,
+      date: 'main.SignDate',
+      columns: [`sp.ncmsservicepackageid = '4'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-签约复合包人数',
+    name: '家庭医生签约-签约复合包人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_sign_register main
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
+      `,
+      date: 'main.SignDate',
+      columns: [`sp.ncmsservicepackageid = '5'`]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-履约人数',
+    name: '家庭医生签约-履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_sign_check_main main',
+      date: 'ExeTime',
+      columns: []
+    }
+  },
+  {
+    id: '公卫数据.老年人管理-老年人体检人数',
+    name: '老年人管理-老年人体检人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 2 = 2`]
+    }
+  },
+  // 9-26新增issues258指标
+  {
+    id: '公卫数据.孕产妇管理服务-早孕建册人数',
+    name: '孕产妇管理服务-早孕建册人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_pregnancy_books main',
+      date: 'VisitsDate'
+    }
+  },
+  {
+    id: '公卫数据.儿童保健服务-0-12月儿童建卡保健管理人次',
+    name: '儿童保健服务-0-12月儿童建卡保健管理人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_child_check main',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 0', 'chronologicalage < 13']
+    }
+  },
+  {
+    id: '公卫数据.儿童保健服务-18-36个月儿童健康保健管理人次',
+    name: '儿童保健服务-18-36个月儿童健康保健管理人次',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.HOSPITAL,
+    datasource: {
+      table: 'mch_child_check main',
+      date: 'CheckDate',
+      columns: ['chronologicalage >= 18', 'chronologicalage < 37']
     }
   },
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
@@ -511,43 +776,30 @@ export default class HisWorkItem {
    *
    * @param name 工分项目名称
    * @param method 得分方式; 计数/总和
-   * @param mappings [{来源id[],type:类型; 检查项目/药品/手工数据}]
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
-   * @param staffs [绑定的员工] 动态的时候才有值, 员工id,科室id
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
    * @param score 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .description('来源id[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -556,16 +808,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async add(
     name,
@@ -580,7 +825,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -594,16 +839,15 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
 
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
     const newMappings = [];
     for (const sourceIt of mappingSorts) {
       // 是否以新数组元素开头, 并且长度大于等于新数组元素长度
@@ -715,47 +959,31 @@ export default class HisWorkItem {
    * @param id 工分项目id
    * @param name 工分项目名称
    * @param method 得分方式
+   * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定
-   * @param staffs [绑定的员工]
-   * @param mappings
+   * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
    * @param score 分值
-   * @param scope 固定的时候范围必传
+   * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
    * @param itemType 公分项分类
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('工分项目id'),
-    should
-      .string()
-      .required()
-      .description('工分项目名称'),
-    should
-      .string()
-      .only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM)
-      .description('得分方式; 计数/总和'),
+    should.string().required(),
+    should.string().required(),
+    should.string().only(HisWorkMethod.AMOUNT, HisWorkMethod.SUM),
     should
       .array()
       .required()
-      .description('来源id[]'),
+      .min(1),
     should
       .string()
       .required()
-      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC)
-      .description('关联员工的关联方式; 固定/动态'),
-    should
-      .array()
-      .items({
-        code: should.string().description('科室id/员工id'),
-        type: should.string().description('类型: 科室/员工')
-      })
-      .description('绑定的员工或者科室'),
-    should
-      .number()
-      .required()
-      .description('分值'),
+      .only(HisStaffMethod.STATIC, HisStaffMethod.DYNAMIC),
+    should.array().items({
+      code: should.string(),
+      type: should.string()
+    }),
+    should.number().required(),
     should
       .string()
       .only(
@@ -764,16 +992,9 @@ export default class HisWorkItem {
         HisStaffDeptType.HOSPITAL
       )
       .required()
-      .allow(null)
-      .description('固定的时候的范围, 员工/科室/机构'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('公分项分类')
+      .allow(null),
+    should.string().allow(null),
+    should.string().allow(null)
   )
   async update(
     id,
@@ -789,7 +1010,7 @@ export default class HisWorkItem {
   ) {
     if (
       mappings.find(
-        it => it === '手工数据' || it === '公卫数据' || it === '其他'
+        it => it.id === '手工数据' || it.id === '公卫数据' || it.id === '其他'
       )
     )
       throw new KatoRuntimeError(`不能选择手工数据,公卫数据,其他节点`);
@@ -803,10 +1024,7 @@ export default class HisWorkItem {
       throw new KatoRuntimeError(`${HisStaffMethod.DYNAMIC}时候scope必传`);
     // 如果选了公卫数据,和其他, scope必须是机构
     mappings.forEach(it => {
-      if (
-        (it.startsWith('公卫数据.') || it.startsWith('其他.')) &&
-        scope !== HisStaffDeptType.HOSPITAL
-      )
+      if (it.scope === '机构' && scope !== HisStaffDeptType.HOSPITAL)
         throw new KatoRuntimeError(
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
@@ -820,7 +1038,9 @@ export default class HisWorkItem {
     if (find.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
     // 按照长度排序, 父级的id比子集的id短,所以父级会排在前面
-    const mappingSorts = mappings.sort((a, b) => a.length - b.length);
+    const mappingSorts = mappings
+      .map(it => it.id)
+      .sort((a, b) => a.length - b.length);
 
     // 定义一个新数组
     const newMappings = [];

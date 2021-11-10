@@ -83,10 +83,10 @@ export const dateValid = should
  * @param month 月份
  */
 export async function getSettle(id, month): Promise<boolean> {
-  // language=PostgreSQL
-  let settle =
+  return (
     (
       await appDB.execute(
+        // language=PostgreSQL
         `
           select settle
           from his_hospital_settle
@@ -96,9 +96,8 @@ export async function getSettle(id, month): Promise<boolean> {
         id,
         month
       )
-    )[0]?.settle ?? false;
-  if (dayjs().diff(month, 'M') > 1) settle = true;
-  return settle;
+    )[0]?.settle ?? false
+  );
 }
 
 /**

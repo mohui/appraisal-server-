@@ -22,9 +22,10 @@
         </el-button>
       </div>
       <div
-        style="flex-grow: 1;height: 0; overflow-y: auto;"
-        v-loading="isLoading"
         v-show="!isError"
+        v-loading="isLoading"
+        v-hidden-scroll
+        style="flex-grow: 1;height: 0; overflow-y: auto;"
       >
         <div class="record-head">
           <div style="float: right;">编号：{{ person.checkupNo }}</div>
