@@ -172,9 +172,7 @@ export async function getMarkMetric(
   };
 
   for (const it of markMetricModels) {
-    for (const key of Object.keys(obj)) {
-      if (it.name === key) obj[key] = it?.value ?? 0;
-    }
+    obj[it.name] = it.value;
   }
   return obj;
 }
