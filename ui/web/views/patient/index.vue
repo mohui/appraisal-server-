@@ -392,7 +392,7 @@
               <div v-show="item.code === 'hypertension'" v-hidden-scroll>
                 <div class="record hypertension">
                   <div class="title">高血压随访记录</div>
-                  <sliders v-if="hypertensions.length">
+                  <sliders v-if="hypertensions.length" :key="keyCode + 'a'">
                     <div
                       v-for="(items, index) of hypertensions"
                       :key="index"
@@ -423,30 +423,35 @@
               </div>
 
               <div v-show="item.code === 'diabetes'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of diabetesList"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'record-diabetes',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ items.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ items.followDate }}</span
+                <div class="record hypertension">
+                  <div class="title">糖尿病随访记录</div>
+                  <sliders v-if="diabetesList.length" :key="keyCode + 'b'">
+                    <div
+                      v-for="(items, index) of diabetesList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-diabetes',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
-                  </div>
-                  <p>
-                    随访方式：{{ items.followWay }}；空腹血糖：{{
-                      items.fastingGlucose
-                    }}；随机血糖：{{ items.postprandialGlucose }}
-                  </p>
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        空腹血糖：{{ items.fastingGlucose }}；随机血糖：{{
+                          items.postprandialGlucose
+                        }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }}；随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
@@ -649,7 +654,7 @@
                     <div style="font-size: 22px; margin:0 0 20px 0">
                       {{ items.name }}
                     </div>
-                    <sliders v-if="items.records.length">
+                    <sliders v-if="items.records.length" :key="keyCode + 'c'">
                       <div
                         v-for="record of items.records"
                         :key="record.visitno"
@@ -702,7 +707,7 @@
                           儿童姓名：{{ it[0].childname }}
                         </div>
                       </div>
-                      <sliders v-if="it.length" :key="ii + 1 + keyCode">
+                      <sliders v-if="it.length" :key="ii + keyCode + 'd'">
                         <div
                           v-for="record of it"
                           :key="record.medicalcode"
