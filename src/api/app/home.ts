@@ -17,7 +17,7 @@ dayjs.extend(isLeapYear);
 export default class AppHome {
   // region 小程序
 
-  // 获取医疗人员数量
+  // 获取医疗人员数量(基础数据暂未提供员工入职时间)
   async staff(date) {
     if (!date) date = dayjs().toDate();
 
@@ -45,28 +45,11 @@ export default class AppHome {
     if (!date) date = dayjs().toDate();
 
     const group = Context.current.user.areaCode;
-    const areaModels = await getHospitals(group);
-    // 获取机构id
-    const hospitals = areaModels.map(it => it.code);
-
-    // 获取月份的时间范围
-    const {start, end} = monthToRange(date);
-
-    // 本月医疗收入
-    const moneys = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select sum(detail.total_price) as price
-            from his_staff staff
-             left join his_charge_detail detail on staff.id = detail.doctor
-            where staff.hospital in (${hospitals.map(() => '?')})
-              and detail.operate_time > ?
-              and detail.operate_time < ?`,
-      ...hospitals,
-      start,
-      end
+    const metricModels = await getMarkMetric(group, date);
+    return (
+      metricModels['HIS.InpatientIncomes'] +
+      metricModels['HIS.OutpatientIncomes']
     );
-    return Number(moneys[0]?.price);
   }
 
   // 获取本月诊疗人次
