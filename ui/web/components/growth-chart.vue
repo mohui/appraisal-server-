@@ -15,6 +15,11 @@ export default {
     return {
       chart: {},
       option: {
+        title: {
+          text: '生长发育监测图',
+          top: '10',
+          left: '10'
+        },
         tooltip: {
           trigger: 'none',
           axisPointer: {
@@ -26,6 +31,9 @@ export default {
           type: 'value',
           interval: 2,
           max: 36,
+          splitLine: {
+            show: false
+          },
           axisPointer: {
             label: {
               formatter: function(params) {
@@ -38,7 +46,14 @@ export default {
           {
             name: '身长/身高(cm)',
             type: 'value',
-            interval: 5,
+            interval: 10,
+            max: 120,
+            axisTick: {
+              show: false
+            },
+            axisLine: {
+              show: false
+            },
             axisPointer: {
               label: {
                 formatter: function(params) {
@@ -50,6 +65,13 @@ export default {
           {
             name: '体重(kg)',
             interval: 2,
+            max: 24,
+            xisTick: {
+              show: false
+            },
+            axisLine: {
+              show: false
+            },
             type: 'value',
             axisPointer: {
               label: {
@@ -76,8 +98,17 @@ export default {
             yAxisIndex: 1 // 通过这个判断左右
           }
         ],
+        color: ['#4d63fe', '#00d6bd'],
+        grid: {
+          top: '80',
+          left: '60',
+          right: '60',
+          containLabel: true
+        },
         legend: {
-          show: true
+          show: true,
+          right: 10,
+          top: 10
         }
       }
     };

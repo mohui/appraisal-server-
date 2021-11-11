@@ -456,7 +456,7 @@
               </div>
 
               <div v-show="item.code === 'oldManSelfCare'" v-hidden-scroll>
-                <div class="record">
+                <div v-if="oldManSelfCareList.length" class="record">
                   <div class="title">
                     老年人生活自理评分
                   </div>
@@ -498,7 +498,10 @@
                   </div>
                 </div>
 
-                <div class="record questionnaire">
+                <div
+                  v-if="questionnaireList.length"
+                  class="record questionnaire"
+                >
                   <div class="title">老年人中医药健康管理服务记录表</div>
                   <div class="list">
                     <div
@@ -540,32 +543,33 @@
                         class="notes"
                         @click="handleGotoDetailse(record, it.type)"
                       >
-                        <div class="notes-block">
-                          <span class="hospital">
-                            <span v-if="it.type === 'newlyDiagnosed'">
-                              填表日期：{{
-                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span v-else-if="it.type === 'prenatalCare'">
-                              随访日期：{{
-                                record.checkdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span
-                              v-else-if="
-                                it.type === 'maternalVisits' ||
-                                  it.type === 'examine42thDay'
-                              "
-                            >
-                              访视日期：{{
-                                record.visitdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
+                        <div>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            填表日期：{{
+                              record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span v-else-if="it.type === 'prenatalCare'">
+                            随访日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span
+                            v-else-if="
+                              it.type === 'maternalVisits' ||
+                                it.type === 'examine42thDay'
+                            "
+                          >
+                            访视日期：{{
+                              record.visitdate.$format('YYYY-MM-DD')
+                            }}
                           </span>
                         </div>
-                        <p>
-                          <span v-if="it.type === 'newlyDiagnosed'">
+                        <div>
+                          <span
+                            v-if="it.type === 'newlyDiagnosed'"
+                            class="main"
+                          >
                             年龄：{{ record.age }} 体重：{{ record.weight }}kg
                           </span>
                           <span
@@ -577,7 +581,7 @@
                           >
                             医生姓名：{{ record.doctor }}
                           </span>
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -594,31 +598,29 @@
                         class="notes"
                         @click="handleGotoDetailse(record, it.type)"
                       >
-                        <div class="notes-block">
-                          <span class="hospital">
-                            <span v-if="it.type === 'newlyDiagnosed'">
-                              填表日期：{{
-                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span v-else-if="it.type === 'prenatalCare'">
-                              随访日期：{{
-                                record.checkdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span
-                              v-else-if="
-                                it.type === 'maternalVisits' ||
-                                  it.type === 'examine42thDay'
-                              "
-                            >
-                              访视日期：{{
-                                record.visitdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
+                        <div>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            填表日期：{{
+                              record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span v-else-if="it.type === 'prenatalCare'">
+                            随访日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span
+                            v-else-if="
+                              it.type === 'maternalVisits' ||
+                                it.type === 'examine42thDay'
+                            "
+                          >
+                            访视日期：{{
+                              record.visitdate.$format('YYYY-MM-DD')
+                            }}
                           </span>
                         </div>
-                        <p>
+                        <div>
                           <span v-if="it.type === 'newlyDiagnosed'">
                             年龄：{{ record.age }} 体重：{{ record.weight }}kg
                           </span>
@@ -631,7 +633,7 @@
                           >
                             医生姓名：{{ record.doctor }}
                           </span>
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -639,22 +641,27 @@
               </div>
 
               <div v-show="item.code === 'children'" v-hidden-scroll>
-                <el-select
+                <div
                   v-if="childrenHealthLength.length > 1"
-                  v-model="curChild"
-                  placeholder="请选择"
-                  size="small"
-                  style="margin-bottom: 10px;"
-                  @change="tabClick"
+                  style="text-align: right"
                 >
-                  <el-option
-                    v-for="(items, ii) in childrenHealthLength"
-                    :key="ii"
-                    :label="items.children"
-                    :value="items.birthday"
+                  新生儿姓名：<el-select
+                    v-model="curChild"
+                    placeholder="请选择"
+                    size="small"
+                    style="margin-bottom: 10px;"
+                    @change="tabClick"
                   >
-                  </el-option>
-                </el-select>
+                    <el-option
+                      v-for="(items, ii) in childrenHealthLength"
+                      :key="ii"
+                      :label="items.children"
+                      :value="items.birthday"
+                    >
+                    </el-option>
+                  </el-select>
+                </div>
+
                 <div
                   v-for="(items, index) of childrenHealthCheckData"
                   :key="index"
@@ -678,7 +685,7 @@
                         }"
                         @click="handleGotoDetailse(record, item.type)"
                       >
-                        <div class="notes-block">
+                        <div>
                           <div>
                             访视日期：{{
                               record.visitdate.$format('YYYY-MM-DD')
@@ -725,7 +732,7 @@
                           class="notes"
                           @click="handleGotoDetailse(record, items.type)"
                         >
-                          <div class="notes-block">
+                          <div>
                             <div>
                               检查日期：{{
                                 record.checkdate.$format('YYYY-MM-DD')
@@ -905,8 +912,14 @@ export default {
         ...it,
         chartData: it.chartData
           ? it.chartData.map(c => ({
-              weights: c.map(w => w.weight),
-              heights: c.map(w => w.height)
+              weights: c.map(w => [
+                Number(w.chronologicalage),
+                Number(w.weight)
+              ]),
+              heights: c.map(w => [
+                Number(w.chronologicalage),
+                Number(w.height)
+              ])
             }))
           : ''
       }));
@@ -1231,6 +1244,18 @@ export default {
 <style lang="scss" scoped>
 @import '../../styles/vars';
 
+.notes {
+  cursor: pointer;
+  color: #42486d;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  padding: 10px;
+  line-height: 2;
+  font-size: 14px;
+  border-radius: 6px;
+}
 .maternal {
   display: flex;
   flex-direction: row;
@@ -1243,18 +1268,7 @@ export default {
     min-width: 180px;
     .notes {
       float: left;
-      background-color: #fff;
-      margin-bottom: 10px;
-      margin-right: 20px;
       min-width: 180px;
-      padding: 10px;
-      line-height: 2;
-      font-size: 14px;
-      border-radius: 6px;
-      p {
-        margin: 0;
-        font-size: inherit;
-      }
     }
   }
   .record-title {
@@ -1266,7 +1280,7 @@ export default {
     flex-shrink: 0;
   }
   .record-0 {
-    p {
+    .main {
       font-weight: bold;
     }
   }
@@ -1295,14 +1309,51 @@ export default {
     margin: 0 0 20px 0;
   }
   .notes {
-    background-color: #fff;
-    margin-bottom: 10px;
-    margin-right: 20px;
     min-width: 294px;
-    padding: 10px;
-    line-height: 2;
-    font-size: 14px;
-    border-radius: 6px;
+    .main {
+      font-weight: bold;
+    }
+    .doctor {
+      text-align: right;
+    }
+  }
+}
+.record {
+  background-color: #f0f4ff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  .title {
+    font-size: 22px;
+    margin: 0 0 20px 0;
+  }
+  .list {
+    width: 100%;
+    padding-left: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    .notes {
+      width: 200px;
+      .notes-content {
+        display: flex;
+        flex-direction: row;
+        border-top: 2px solid #f0f4ff;
+        & > div:first-child {
+          width: 50%;
+          border-right: 2px solid #f0f4ff;
+          padding-top: 5px;
+        }
+        & > div:last-child {
+          width: 50%;
+          align-self: center;
+          text-align: center;
+        }
+        .warn {
+          color: #f00;
+        }
+      }
+    }
   }
 }
 .hypertension {
@@ -1336,75 +1387,6 @@ export default {
         padding-left: 5px;
         text-align: left !important;
       }
-    }
-  }
-}
-.record {
-  background-color: #f0f4ff;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 6px;
-  .title {
-    font-size: 22px;
-    margin: 0 0 20px 0;
-  }
-  .list {
-    width: 100%;
-    padding-left: 40px;
-    box-sizing: border-box;
-    display: flex;
-    flex-wrap: wrap;
-    .notes {
-      background-color: #fff;
-      margin-bottom: 10px;
-      margin-right: 20px;
-      width: 200px;
-      padding: 10px;
-      line-height: 2;
-      font-size: 14px;
-      border-radius: 6px;
-      .notes-content {
-        display: flex;
-        flex-direction: row;
-        border-top: 2px solid #f0f4ff;
-        & > div:first-child {
-          width: 50%;
-          border-right: 2px solid #f0f4ff;
-          padding-top: 5px;
-        }
-        & > div:last-child {
-          width: 50%;
-          align-self: center;
-          text-align: center;
-        }
-        .warn {
-          color: #f00;
-        }
-      }
-    }
-  }
-}
-.notes {
-  cursor: pointer;
-  color: #42486d;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 10px;
-  p {
-    font-size: 14px;
-  }
-  .notes-block {
-    span {
-      display: block;
-    }
-    .visitTime {
-      font-size: 12px;
-      color: #777;
-    }
-    .main {
-      font-weight: bold;
-    }
-    .doctor {
-      text-align: right;
     }
   }
 }
