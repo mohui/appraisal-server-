@@ -159,62 +159,24 @@ export default class AppHome {
     return markModel.O00 / basicData;
   }
 
-  /**
-   * 医师日均诊疗人次
-   */
-  async doctorDailyVisits() {
-    const areaCode = Context.current.user.code;
-    //医师人数
-    const doctors =
-      (
-        await originalDB.execute(
-          //language=PostgreSQL
-          `
-            with recursive area_tree as (
-              select *
-              from area
-              where code = ?
-              union all
-              select self.*
-              from area self
-                     inner join area_tree on self.parent = area_tree.code
-            )
-            select count(1) as counts
-            from his_staff
-                   inner join area_tree on his_staff.hospital = area_tree.code
-          `,
-          areaCode
-        )
-      )[0]?.counts ?? 0;
-    if (!doctors) {
-      return 0;
-    }
-    //诊疗人次
-    const today = dayjs();
-    const counts =
-      (
-        await originalDB.execute(
-          //language=PostgreSQL
-          `
-            with recursive area_tree as (
-              select *
-              from area
-              where code = ?
-              union all
-              select self.*
-              from area self
-                     inner join area_tree on self.parent = area_tree.code
-            )
-            select count(distinct cm.treat) as counts
-            from his_charge_master cm
-                   inner join area_tree at on cm.hospital = at.code
-            where extract(year from cm.operate_time) = ?
-          `,
-          areaCode,
-          today.year()
-        )
-      )[0]?.counts ?? 0;
-    return (counts / doctors / today.dayOfYear() / 251) * 365;
+  // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
+  async doctorDailyVisits(date) {
+    if (!date) date = dayjs().toDate();
+
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+
+    // 取出机构下所有医生信息
+    const staffs = await getStaffList(group, date);
+
+    const metricModels = await getMarkMetric(group, date);
+
+    return (
+      divisionOperation(
+        metricModels['HIS.OutpatientVisits'],
+        staffs.physicianCount
+      ) / 251
+    );
   }
 
   // endregion
@@ -327,32 +289,6 @@ export default class AppHome {
     const staffs = await getStaffList(hospital, date);
 
     return divisionOperation(staffs.highTitleCount, staffs.healthWorkersCount);
-  }
-
-  // 医师日均担负诊疗人次数(门急诊人次数 / 医师数 / 251)
-  async physicianAverageOutpatientVisits(date) {
-    if (!date) date = dayjs().toDate();
-
-    // 获取所属地区
-    const group = Context.current.user.areaCode;
-    // 获取权限下机构
-    const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
-
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
-
-    // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital, date);
-
-    const metricModels = await getMarkMetric(hospital, date);
-
-    return (
-      divisionOperation(
-        metricModels['HIS.OutpatientVisits'],
-        staffs.physicianCount
-      ) / 251
-    );
   }
 
   /**
