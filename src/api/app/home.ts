@@ -211,19 +211,16 @@ export default class AppHome {
     const group = Context.current.user.areaCode;
     // 获取权限下机构
     const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
-
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
+    const hospitalIds = areaModels.map(it => it.code);
 
     const year = dayjs(date).year();
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital, date);
+    const staffs = await getStaffList(group, date);
 
     // 服务人口数
     const basicData = await getBasicData(
-      [hospital],
+      hospitalIds,
       BasicTagUsages.DocPeople,
       year
     );
