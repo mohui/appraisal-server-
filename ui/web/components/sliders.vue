@@ -60,7 +60,7 @@ export default {
       this.itemWidth = this.$slots.default[0].elm.offsetWidth;
       return (
         this.$el.offsetWidth <
-        (this.itemLength - this.currentIndex) * this.itemWidth
+        (this.itemLength - this.currentIndex + 1) * this.itemWidth
       );
     },
     scrollPrev() {
