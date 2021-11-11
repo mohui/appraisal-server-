@@ -686,7 +686,9 @@
                           </div>
                           <div class="main">
                             新生儿姓名：{{ record.newbornname }} <br />体温：{{
-                              record.temperaturedegrees.toFixed(1)
+                              record.temperaturedegrees
+                                ? record.temperaturedegrees.toFixed(1)
+                                : ''
                             }}
                           </div>
                           <div class="doctor">
@@ -786,30 +788,36 @@
               </div>
 
               <div v-show="item.code === 'chronicDiseaseHigh'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of chronicDiseaseHighData"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'chronic-disease-high-visit',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ items.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ items.followDate }}</span
+                <div class="record chronicDiseaseHigh">
+                  <div class="title">高危人群管理记录</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of chronicDiseaseHighData"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'chronic-disease-high-visit',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
+                      <div class="note-date">
+                        随访时间：{{ items.followDate
+                        }}<span style="float: right;"
+                          >随访医生：{{ items.doctor }}</span
+                        >
+                      </div>
+                      <div class="notes-content">
+                        <div>
+                          当前症状
+                        </div>
+                        <div>{{ items.riskFactorsName }}</div>
+                      </div>
+                    </div>
                   </div>
-                  <p>
-                    随访方式：{{ items.followWay }}；当前症状：{{
-                      items.riskFactorsName
-                    }}
-                  </p>
                 </div>
               </div>
             </el-tab-pane>
@@ -1304,6 +1312,23 @@ export default {
 .questionnaire {
   .notes {
     width: 300px !important;
+  }
+}
+.chronicDiseaseHigh {
+  .notes {
+    width: 400px !important;
+    .notes-content {
+      & > div:first-child {
+        width: 20px !important;
+        padding-top: 0 !important;
+      }
+      & > div:last-child {
+        width: calc(100% - 27px) !important;
+        align-self: center;
+        padding-left: 5px;
+        text-align: left !important;
+      }
+    }
   }
 }
 .record {
