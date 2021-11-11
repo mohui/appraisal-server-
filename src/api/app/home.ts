@@ -66,31 +66,12 @@ export default class AppHome {
   }
 
   // 获取本月诊疗人次
-  async visits() {
+  async visits(date) {
+    if (!date) date = dayjs().toDate();
+
     const group = Context.current.user.areaCode;
-    const areaModels = await getHospitals(group);
-    // 获取机构id
-    const hospitals = areaModels.map(it => it.code);
-
-    // 获取月份的时间范围
-    const {start, end} = monthToRange(dayjs().toDate());
-
-    // 本月诊疗人次
-    const rows = await originalDB.execute(
-      // language=PostgreSQL
-      `
-            select count(distinct master.treat) count
-            from his_staff staff
-            inner join his_charge_master master on staff.id = master.doctor
-            where staff.hospital in (${hospitals.map(() => '?')})
-              and master.operate_time > ?
-              and master.operate_time < ?
-          `,
-      ...hospitals,
-      start,
-      end
-    );
-    return Number(rows[0]?.count);
+    const metricModels = await getMarkMetric(group, date);
+    return metricModels['HIS.OutpatientVisits'];
   }
 
   // 居民档案数量
