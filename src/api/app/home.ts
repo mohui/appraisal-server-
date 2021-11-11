@@ -18,7 +18,9 @@ export default class AppHome {
   // region 小程序
 
   // 获取医疗人员数量
-  async staff() {
+  async staff(date) {
+    if (!date) date = dayjs().toDate();
+
     const group = Context.current.user.areaCode;
 
     const areaModels = await getHospitals(group);
@@ -39,14 +41,16 @@ export default class AppHome {
   }
 
   // 获取本月医疗收入
-  async money() {
+  async money(date) {
+    if (!date) date = dayjs().toDate();
+
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
     // 获取机构id
     const hospitals = areaModels.map(it => it.code);
 
     // 获取月份的时间范围
-    const {start, end} = monthToRange(dayjs().toDate());
+    const {start, end} = monthToRange(date);
 
     // 本月医疗收入
     const moneys = await originalDB.execute(
@@ -75,9 +79,11 @@ export default class AppHome {
   }
 
   // 居民档案数量
-  async person() {
+  async person(date) {
+    if (!date) date = dayjs().toDate();
+
     //获取当前月
-    const year = dayjs().year();
+    const year = dayjs(date).year();
     const markModel = await getMarks(Context.current.user.code, year);
     return markModel?.S00 ?? 0;
   }
@@ -87,9 +93,11 @@ export default class AppHome {
    *
    * 包括高血压, 糖尿病, 脑卒中 严重精神病, 肺结核, 其他慢病
    */
-  async chronic() {
+  async chronic(date) {
+    if (!date) date = dayjs().toDate();
+
     //获取当前年
-    const year = dayjs().year();
+    const year = dayjs(date).year();
     //查询机构id
     const viewHospitals = (await getHospitals(Context.current.user.code)).map(
       it => it.code
@@ -121,8 +129,10 @@ export default class AppHome {
   /**
    * 高血压规范管理率
    */
-  async htn() {
-    const year = dayjs().year();
+  async htn(date) {
+    if (!date) date = dayjs().toDate();
+
+    const year = dayjs(date).year();
     const markModel = await getMarks(Context.current.user.code, year);
     return markModel.H00 ? markModel.H01 / markModel.H00 : 0;
   }
@@ -130,8 +140,10 @@ export default class AppHome {
   /**
    * 糖尿病规范管理率
    */
-  async t2dm() {
-    const year = dayjs().year();
+  async t2dm(date) {
+    if (!date) date = dayjs().toDate();
+
+    const year = dayjs(date).year();
     const markModel = await getMarks(Context.current.user.code, year);
     return markModel.D00 ? markModel.D01 / markModel.D00 : 0;
   }
@@ -139,9 +151,11 @@ export default class AppHome {
   /**
    * 老年人管理率
    */
-  async old() {
+  async old(date) {
+    if (!date) date = dayjs().toDate();
+
     const areaCode = Context.current.user.code;
-    const year = dayjs().year();
+    const year = dayjs(date).year();
     const markModel = await getMarks(areaCode, year);
     if (!markModel.O00) {
       return 0;
