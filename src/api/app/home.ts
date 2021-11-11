@@ -234,15 +234,9 @@ export default class AppHome {
 
     // 获取所属地区
     const group = Context.current.user.areaCode;
-    // 获取权限下机构
-    const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
-
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
 
     // 取出机构下所有医生信息
-    const staffs = await getStaffList(hospital, date);
+    const staffs = await getStaffList(group, date);
 
     return divisionOperation(staffs.physicianCount, staffs.nurseCount);
   }
