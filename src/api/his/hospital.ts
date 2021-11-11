@@ -6,8 +6,7 @@ import {
   dayToRange,
   getHospital,
   getSettle,
-  monthToRange,
-  StaffWorkModel
+  monthToRange
 } from './service';
 import Decimal from 'decimal.js';
 
