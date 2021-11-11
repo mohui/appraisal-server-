@@ -760,30 +760,38 @@
               </div>
 
               <div v-show="item.code === 'chronicDiseaseOther'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of chronicDiseaseOtherData"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'chronic-disease-other-visit',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ items.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ items.followDate }}</span
-                    >
+                <div class="record hypertension">
+                  <div class="title">
+                    其它慢病管理记录
                   </div>
-                  <p>
-                    随访方式：{{ items.followWay }}；当前症状：{{
-                      item.presentSymptoms
-                    }}
-                  </p>
+                  <sliders
+                    v-if="chronicDiseaseOtherData.length"
+                    :key="keyCode + 'e'"
+                  >
+                    <div
+                      v-for="(items, index) of chronicDiseaseOtherData"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'chronic-disease-other-visit',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        当前症状：{{ items.presentSymptoms }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }} 随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
