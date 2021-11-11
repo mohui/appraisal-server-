@@ -346,17 +346,14 @@ export default class AppHome {
     const group = Context.current.user.areaCode;
     // 获取权限下机构
     const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
+    const hospitalIds = areaModels.map(it => it.code);
 
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
-
-    const metricModels = await getMarkMetric(hospital, date);
+    const metricModels = await getMarkMetric(group, date);
 
     const year = dayjs(date).year();
     // 辖区内常住居民数
     const basicData = await getBasicData(
-      [hospital],
+      hospitalIds,
       BasicTagUsages.DocPeople,
       year
     );
@@ -375,17 +372,14 @@ export default class AppHome {
     const group = Context.current.user.areaCode;
     // 获取权限下机构
     const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
-
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
+    const hospitalIds = areaModels.map(it => it.code);
 
     const year = dayjs(date).year();
-    const metricModels = await getMarkMetric(hospital, date);
+    const metricModels = await getMarkMetric(group, date);
 
     // 辖区内常住居民数
     const basicData = await getBasicData(
-      [hospital],
+      hospitalIds,
       BasicTagUsages.DocPeople,
       year
     );
@@ -402,15 +396,9 @@ export default class AppHome {
 
     // 获取所属地区
     const group = Context.current.user.areaCode;
-    // 获取权限下机构
-    const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
 
-    // 取出机构id
-    const hospital = areaModels[0]?.code;
-
-    const metricModels = await getMarkMetric(hospital, date);
-    const staffs = await getStaffList(hospital, date);
+    const metricModels = await getMarkMetric(group, date);
+    const staffs = await getStaffList(group, date);
 
     return divisionOperation(
       metricModels['HIS.OutpatientVisits'],
