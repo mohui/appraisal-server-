@@ -48,11 +48,9 @@ export async function getStaffList(hospital, date) {
              created_at
       from staff
       where hospital in (${hospitalIds.map(() => '?')})
-        and created_at >= ?
         and created_at <= ?
     `,
     ...hospitalIds,
-    yearStart,
     monthEnd
   );
   // 给员工标注
