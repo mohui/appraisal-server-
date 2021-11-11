@@ -152,11 +152,22 @@ export async function getMarkMetric(
   const markMetricModels = await originalDB.execute(
     // language=PostgreSQL
     `
-      select id, date, name, value, created_at
-      from mark_metric
-      where id = ?
-        and date >= ?
-        and date < ?
+      with recursive area_tree as (
+        select *
+        from area
+        where code = ?
+        union all
+        select self.*
+        from area self
+               inner join area_tree on self.parent = area_tree.code
+      )
+      select metric.name,
+             sum(metric.value) as value
+      from mark_metric metric
+             inner join area_tree at on metric.id = at.code
+      where metric.date >= ?
+        and metric.date < ?
+      group by metric.name
     `,
     hospital,
     start,
