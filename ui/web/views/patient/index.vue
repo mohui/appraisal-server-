@@ -456,60 +456,69 @@
               </div>
 
               <div v-show="item.code === 'oldManSelfCare'" v-hidden-scroll>
-                <div
-                  v-for="(items, index) of oldManSelfCareList"
-                  :key="'old' + index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'record-oldManSelfCare',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">
-                      [老年人生活自理评分] 总分：{{ items.total }}
-                    </span>
-                    <span class="visitTime">
-                      评估时间：{{ items.checkDate }}
-                    </span>
+                <div class="record">
+                  <div class="title">
+                    老年人生活自理评分
                   </div>
-                  <p>
-                    进餐得分：{{ items.mealScore }}；梳洗得分：{{
-                      items.washScore
-                    }}；穿衣得分：{{ items.dressScore }}；如厕得分：{{
-                      items.toiletScore
-                    }}；活动得分：{{ items.activityScore }}
-                  </p>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of oldManSelfCareList"
+                      :key="'old' + index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-oldManSelfCare',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">
+                        评估时间：{{ items.checkDate }}
+                      </div>
+                      <div class="notes-content" style="position: relative;">
+                        <div>
+                          进餐：{{ items.mealScore }}<br />
+                          梳洗：{{ items.washScore }}<br />
+                          穿衣：{{ items.dressScore }}<br />
+                          如厕：{{ items.toiletScore }}<br />
+                          活动：{{ items.activityScore }}
+                        </div>
+                        <div>
+                          {{ items.total }}
+                          <span
+                            style="position: absolute; bottom: 5px;right: 5px;"
+                          >
+                            总分
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div
-                  v-for="(items, index) of questionnaireList"
-                  :key="index"
-                  class="notes"
-                  @click="
-                    $router.push({
-                      name: 'record-old-constitution',
-                      query: {
-                        id: items.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">
-                      [老年人中医药健康管理服务记录表]
-                    </span>
-                    <span class="visitTime"> 问卷时间：{{ items.date }} </span>
+                <div class="record questionnaire">
+                  <div class="title">老年人中医药健康管理服务记录表</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of questionnaireList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-old-constitution',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">问卷时间：{{ items.date }}</div>
+                      <div>机构名称：{{ items.hospitalName }}</div>
+                      <div>医生姓名：{{ items.doctor }}</div>
+                    </div>
                   </div>
-                  <p>
-                    机构名称：{{ items.hospitalName }}； 医生姓名：{{
-                      items.doctor
-                    }}
-                  </p>
                 </div>
               </div>
 
@@ -1290,6 +1299,11 @@ export default {
     & > div:last-child {
       text-align: right;
     }
+  }
+}
+.questionnaire {
+  .notes {
+    width: 300px !important;
   }
 }
 .record {
