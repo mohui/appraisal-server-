@@ -186,16 +186,16 @@ export default class AppHome {
 
     const group = Context.current.user.areaCode;
     const areaModels = await getHospitals(group);
-    if (areaModels.length > 1) throw new KatoRuntimeError(`不是机构权限`);
-    const hospital = areaModels[0]?.code;
+    const hospitalIds = areaModels.map(it => it.code);
+
     const year = dayjs(date).year();
 
     // 获取员工数
-    const staffs = await getStaffList(hospital, date);
+    const staffs = await getStaffList(group, date);
 
     // 服务人口数
     const basicData = await getBasicData(
-      [hospital],
+      hospitalIds,
       BasicTagUsages.DocPeople,
       year
     );
