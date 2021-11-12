@@ -2471,34 +2471,35 @@ export default class Person {
     // 第2~5次产前随访服务信息表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select b.name
-            , card.id               as prenatalcarecode
-            , card.pregnancybooksid as newlydiagnosedcode
-            , card.checkdate
-            , card.diseasehistory
-            , card.chiefcomplaint
-            , card.weight
-            , card.uterinehigh
-            , card.abdominalcircumference
-            , card.fetalposition
-            , card.fetalheartrate
-            , card.fetalheartrate2
-            , card.fetalheartrate3
-            , card.assertpressure
-            , card.systolicpressure
-            , card.hemoglobin
-            , card.urinaryprotein
-            , card.guide
-            , card.nextappointmentdate
-            , card.doctor
-            , card.operatetime
-            , card.operatorid
-            , card.operateorganization
-            , card.created_at
-            , card.updated_at
-       from mch_prenatal_care card
-              inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-       where card.id = ?`,
+      `
+        select b.name,
+               card.id               as prenatalcarecode,
+               card.pregnancybooksid as newlydiagnosedcode,
+               card.checkdate,
+               card.diseasehistory,
+               card.chiefcomplaint,
+               card.weight,
+               card.uterinehigh,
+               card.abdominalcircumference,
+               card.fetalposition,
+               card.fetalheartrate,
+               card.fetalheartrate2,
+               card.fetalheartrate3,
+               card.assertpressure,
+               card.systolicpressure,
+               card.hemoglobin,
+               card.urinaryprotein,
+               card.guide,
+               card.nextappointmentdate,
+               card.doctor,
+               card.operatetime,
+               card.operatorid,
+               card.operateorganization,
+               card.created_at,
+               card.updated_at
+        from mch_prenatal_care card
+               inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+        where card.id = ?`,
       code
     );
     return result[0];
