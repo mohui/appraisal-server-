@@ -335,11 +335,13 @@ export default class Person {
     else {
       const areaModels = await originalDB.execute(
         // language=PostgreSQL
-        `select code id,
-                  name
-           from area
-           where label in ('hospital.center', 'hospital.station')
-             and (code = ? or path like ?)`,
+        `
+          select code id,
+                 name
+          from area
+          where label in ('hospital.center', 'hospital.station')
+            and (code = ? or path like ?)
+        `,
         region,
         `%${region}%`
       );
