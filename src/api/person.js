@@ -722,9 +722,11 @@ export default class Person {
     const mentalCodeNames = (
       await originalDB.execute(
         // language=PostgreSQL
-        `select code, name
-           from ph_dict vc
-           where category = ?;`,
+        `
+          select code, name
+          from ph_dict vc
+          where category = ?
+        `,
         '331'
       )
     ).map(item => ({
@@ -734,78 +736,80 @@ export default class Person {
 
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select vh.id,
-                vh.hypertensioncardid   as "cardId",
-                vh.Name                 as "name",
-                vc_sex.name             as "gender",
-                vh.age                  as "age",
-                vh.ContactPhone         as "phone",
-                vh.SerialNum            as "No",
-                vh.FollowUpDate         as "followDate",
-                vc_follow.name          as "followWay",
-                vh.PresentSymptoms      as "symptoms",
-                vh.SystolicPressure     as "systolicPressure",
-                vh.AssertPressure       as "assertPressure",
-                vh.Weight               as "weight",
-                vh.Weight_Suggest       as "weightSuggest",
-                vh.Stature              as "stature",
-                vh.BMI                  as "BMI",
-                vh.BMIck                as "BMISuggest",
-                vh.HeartRate            as "heartRate",
-                vh.Other_Tz             as "other",
-                vh.DaySmoke             as "daySmoke",
-                vh.DaySmoke_Suggest     as "daySmokeSuggest",
-                vh.DayDrink             as "dayDrink",
-                vh.DayDrink_Suggest     as "dayDrinkSuggest",
-                vh.Sport_Week           as "exerciseWeek",
-                vh.Sport_Minute         as "exerciseMinute",
-                vh.Sport_Week_Suggest   as "exerciseWeekSuggest",
-                vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-                vc_salt.name            as "saltInTake",
-                vc_salt_suggest.name    as "saltInTakeSuggest",
-                vh.MentalSet            as "mental",
-                vc_doctor_s.name        as "doctorStatue",
-                vh.Fzjc                 as "assistExam",
-                vc_ma.name              as "medicationAdherence",
-                vh.AdverseEffect        as "adverseReactions",
-                vh.AdverseEffectOther   as "adverseReactionsExplain",
-                vc_vc.name              as "visitClass",
-                vh.DrugName1            as "drugName1",
-                vh.Usage_Day1           as "dailyTimesDrugName1",
-                vh.Usage_Time1          as "usageDrugName1",
-                vh.DrugName2            as "drugName2",
-                vh.Usage_Day2           as "dailyTimesDrugName2",
-                vh.Usage_Time2          as "usageDrugName2",
-                vh.DrugName3            as "drugName3",
-                vh.Usage_Day3           as "dailyTimesDrugName3",
-                vh.Usage_Time3          as "usageDrugName3",
-                concat(vh.DrugName4, vh.DrugName5, vh.DrugName6, vh.DrugName7,
-                       vh.DrugName8)    as "otherDrugName",
-                concat(vh.Usage_Day4, vh.Usage_Day5, vh.Usage_Day6, vh.Usage_Day7,
-                       vh.Usage_Day8)   as "otherDailyTimesDrugName",
-                concat(vh.Usage_Time4, vh.Usage_Time5, vh.Usage_Time6, vh.Usage_Time7,
-                       vh.Usage_Time8)  as "otherUsageDrugName",
-                vh.Remark               as "remark",
-                vh.Referral             as "referral",
-                vh.ReferralReason       as "referralReason",
-                vh.ReferralAgencies     as "referralAgencies",
-                vh.NextVisitDate        as "nextVisitDate",
-                vh.OperateOrganization  as "hospital",
-                vh.OperateTime          as "updateAt",
-                vh.Doctor               as "doctor"
-         from ph_hypertension_visit vh
-                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vh.sex
-                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vh.FollowUpWay
-                left join ph_dict vc_salt on vc_salt.category = '7010112' and vc_salt.code = vh.Salt_Situation
-                left join ph_dict vc_salt_suggest
-                          on vc_salt_suggest.category = '7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
-                left join ph_dict vc_mental
-                          on vc_mental.category = '331' and vc_mental.code = vh.MentalSet --TODO:字典数据里的code不带0, vh记录的带0
-                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vh.DoctorStatue
-                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vh.MedicationAdherence
-                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vh.VisitClass
-         where vh.id = ?
-           and vh.isdelete = false`,
+      `
+        select vh.id,
+               vh.hypertensioncardid   as "cardId",
+               vh.Name                 as "name",
+               vc_sex.name             as "gender",
+               vh.age                  as "age",
+               vh.ContactPhone         as "phone",
+               vh.SerialNum            as "No",
+               vh.FollowUpDate         as "followDate",
+               vc_follow.name          as "followWay",
+               vh.PresentSymptoms      as "symptoms",
+               vh.SystolicPressure     as "systolicPressure",
+               vh.AssertPressure       as "assertPressure",
+               vh.Weight               as "weight",
+               vh.Weight_Suggest       as "weightSuggest",
+               vh.Stature              as "stature",
+               vh.BMI                  as "BMI",
+               vh.BMIck                as "BMISuggest",
+               vh.HeartRate            as "heartRate",
+               vh.Other_Tz             as "other",
+               vh.DaySmoke             as "daySmoke",
+               vh.DaySmoke_Suggest     as "daySmokeSuggest",
+               vh.DayDrink             as "dayDrink",
+               vh.DayDrink_Suggest     as "dayDrinkSuggest",
+               vh.Sport_Week           as "exerciseWeek",
+               vh.Sport_Minute         as "exerciseMinute",
+               vh.Sport_Week_Suggest   as "exerciseWeekSuggest",
+               vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+               vc_salt.name            as "saltInTake",
+               vc_salt_suggest.name    as "saltInTakeSuggest",
+               vh.MentalSet            as "mental",
+               vc_doctor_s.name        as "doctorStatue",
+               vh.Fzjc                 as "assistExam",
+               vc_ma.name              as "medicationAdherence",
+               vh.AdverseEffect        as "adverseReactions",
+               vh.AdverseEffectOther   as "adverseReactionsExplain",
+               vc_vc.name              as "visitClass",
+               vh.DrugName1            as "drugName1",
+               vh.Usage_Day1           as "dailyTimesDrugName1",
+               vh.Usage_Time1          as "usageDrugName1",
+               vh.DrugName2            as "drugName2",
+               vh.Usage_Day2           as "dailyTimesDrugName2",
+               vh.Usage_Time2          as "usageDrugName2",
+               vh.DrugName3            as "drugName3",
+               vh.Usage_Day3           as "dailyTimesDrugName3",
+               vh.Usage_Time3          as "usageDrugName3",
+               concat(vh.DrugName4, vh.DrugName5, vh.DrugName6, vh.DrugName7,
+                      vh.DrugName8)    as "otherDrugName",
+               concat(vh.Usage_Day4, vh.Usage_Day5, vh.Usage_Day6, vh.Usage_Day7,
+                      vh.Usage_Day8)   as "otherDailyTimesDrugName",
+               concat(vh.Usage_Time4, vh.Usage_Time5, vh.Usage_Time6, vh.Usage_Time7,
+                      vh.Usage_Time8)  as "otherUsageDrugName",
+               vh.Remark               as "remark",
+               vh.Referral             as "referral",
+               vh.ReferralReason       as "referralReason",
+               vh.ReferralAgencies     as "referralAgencies",
+               vh.NextVisitDate        as "nextVisitDate",
+               vh.OperateOrganization  as "hospital",
+               vh.OperateTime          as "updateAt",
+               vh.Doctor               as "doctor"
+        from ph_hypertension_visit vh
+               left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vh.sex
+               left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vh.FollowUpWay
+               left join ph_dict vc_salt on vc_salt.category = '7010112' and vc_salt.code = vh.Salt_Situation
+               left join ph_dict vc_salt_suggest
+                         on vc_salt_suggest.category = '7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+               left join ph_dict vc_mental
+                         on vc_mental.category = '331' and vc_mental.code = vh.MentalSet --TODO:字典数据里的code不带0, vh记录的带0
+               left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vh.DoctorStatue
+               left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vh.MedicationAdherence
+               left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vh.VisitClass
+        where vh.id = ?
+          and vh.isdelete = false
+      `,
       id
     );
     return result.map(r => ({
