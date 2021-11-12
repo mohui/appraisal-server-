@@ -937,7 +937,12 @@ export default class Person {
   async diabetesDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select code, name from ph_dict vc where category = ?;`,
+        // language=PostgreSQL
+        `
+          select code, name
+          from ph_dict vc
+          where category = ?
+        `,
         '331'
       )
     ).map(item => ({
@@ -947,83 +952,85 @@ export default class Person {
 
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select vd.id,
-                vd.name                   as "name",
-                vc_sex.name               as "gender",
-                vd.age                    as "age",
-                vd.idCardNo               as "idCard",
-                vd.serialNum              as "No",
-                vd.followUpDate           as "followDate",
-                vc_follow.name            as "followWay",
-                vd.presentSymptoms        as "symptoms",
-                vd.SystolicPressure       as "systolicPressure",
-                vd.AssertPressure         as "assertPressure",
-                vd.Weight                 as "weight",
-                vd.Weight_Suggest         as "weightSuggest",
-                vd.Stature                as "stature",
-                vd.BMI                    as "BMI",
-                vd.BMI_Suggest            as "BMISuggest",
-                vc_arterial.name          as "arterial",
-                vd.Other_Tz               as "other",
-                vd.DaySmoke               as "daySmoke",
-                vd.DaySmoke_Suggest       as "daySmokeSuggest",
-                vd.DayDrink               as "dayDrink",
-                vd.DayDrink_Suggest       as "dayDrinkSuggest",
-                vd.Sport_Week             as "exerciseWeek",
-                vd.Sport_Minute           as "exerciseMinute",
-                vd.Sport_Week_Suggest     as "exerciseWeekSuggest",
-                vd.Sport_Minute_Suggest   as "exerciseMinuteSuggest",
-                vd.Principal_Food         as "principalFood",
-                vd.Principal_Food_Suggest as "principalFoodSuggest",
-                vd.MentalSet              as "mental",
-                vc_doctor_s.name          as "doctorStatue",
-                vd.FastingGlucose         as "fastingGlucose",
-                vd.PostprandialGlucose    as "postprandialGlucose",
-                vd.Hemoglobin             as "hemoglobin",
-                vc_lb.name                as "lowBloodReaction",
-                vd.CheckTime              as "checkTime",
-                vd.MedicationAdherence    as "medicationAdherence",
-                vd.Blfy                   as "adverseReactions",
-                vd.BlfyOther              as "adverseReactionsExplain",
-                vc_vc.name                as "visitClass",
-                vd.DrugName1              as "drugName1",
-                vd.Usage_Day1             as "dailyTimesDrugName1",
-                vd.Usage_Time1            as "usageDrugName1",
-                vd.DrugName2              as "drugName2",
-                vd.Usage_Day2             as "dailyTimesDrugName2",
-                vd.Usage_Time2            as "usageDrugName2",
-                vd.DrugName3              as "drugName3",
-                vd.Usage_Day3             as "dailyTimesDrugName3",
-                vd.Usage_Time3            as "usageDrugName3",
-                concat(vd.DrugName4, vd.DrugName5, vd.DrugName6, vd.DrugName7,
-                       vd.DrugName8)      as "otherDrugName",
-                concat(vd.Usage_Day4, vd.Usage_Day5, vd.Usage_Day6, vd.Usage_Day7,
-                       vd.Usage_Day8)     as "otherDailyTimesDrugName",
-                concat(vd.Usage_Time4, vd.Usage_Time5, vd.Usage_Time6, vd.Usage_Time7,
-                       vd.Usage_Time8)    as "otherUsageDrugName",
-                vd.Insulin1               as "insulin1",
-                vd.InsulinUsing1          as "usageInsulin1",
-                vd.Insulin2               as "insulin2",
-                vd.InsulinUsing2          as "usageInsulin2",
-                vd.Remark                 as "remark",
-                vd.Referral               as "referral",
-                vd.ReferralReason         as "referralReason",
-                vd.ReferralAgencies       as "referralAgencies",
-                vd.NextVisitDate          as "nextVisitDate",
-                vd.OperateOrganization    as "hospital",
-                vd.OperateTime            as "updateAt",
-                vd.Doctor                 as "doctor"
-         from ph_diabetes_visit vd
-                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vd.sex
-                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
-                left join ph_dict vc_mental on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
-                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
-                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
-                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
-                left join ph_dict vc_arterial on vc_arterial.category = '7152' and vc_arterial.code = vd.arterial
-                left join ph_dict vc_lb on vc_lb.category = '7020101' and vc_lb.code = vd.LowBlood
-         where id = ?
-           and vd.isdelete = false`,
+      `
+        select vd.id,
+               vd.name                   as "name",
+               vc_sex.name               as "gender",
+               vd.age                    as "age",
+               vd.idCardNo               as "idCard",
+               vd.serialNum              as "No",
+               vd.followUpDate           as "followDate",
+               vc_follow.name            as "followWay",
+               vd.presentSymptoms        as "symptoms",
+               vd.SystolicPressure       as "systolicPressure",
+               vd.AssertPressure         as "assertPressure",
+               vd.Weight                 as "weight",
+               vd.Weight_Suggest         as "weightSuggest",
+               vd.Stature                as "stature",
+               vd.BMI                    as "BMI",
+               vd.BMI_Suggest            as "BMISuggest",
+               vc_arterial.name          as "arterial",
+               vd.Other_Tz               as "other",
+               vd.DaySmoke               as "daySmoke",
+               vd.DaySmoke_Suggest       as "daySmokeSuggest",
+               vd.DayDrink               as "dayDrink",
+               vd.DayDrink_Suggest       as "dayDrinkSuggest",
+               vd.Sport_Week             as "exerciseWeek",
+               vd.Sport_Minute           as "exerciseMinute",
+               vd.Sport_Week_Suggest     as "exerciseWeekSuggest",
+               vd.Sport_Minute_Suggest   as "exerciseMinuteSuggest",
+               vd.Principal_Food         as "principalFood",
+               vd.Principal_Food_Suggest as "principalFoodSuggest",
+               vd.MentalSet              as "mental",
+               vc_doctor_s.name          as "doctorStatue",
+               vd.FastingGlucose         as "fastingGlucose",
+               vd.PostprandialGlucose    as "postprandialGlucose",
+               vd.Hemoglobin             as "hemoglobin",
+               vc_lb.name                as "lowBloodReaction",
+               vd.CheckTime              as "checkTime",
+               vd.MedicationAdherence    as "medicationAdherence",
+               vd.Blfy                   as "adverseReactions",
+               vd.BlfyOther              as "adverseReactionsExplain",
+               vc_vc.name                as "visitClass",
+               vd.DrugName1              as "drugName1",
+               vd.Usage_Day1             as "dailyTimesDrugName1",
+               vd.Usage_Time1            as "usageDrugName1",
+               vd.DrugName2              as "drugName2",
+               vd.Usage_Day2             as "dailyTimesDrugName2",
+               vd.Usage_Time2            as "usageDrugName2",
+               vd.DrugName3              as "drugName3",
+               vd.Usage_Day3             as "dailyTimesDrugName3",
+               vd.Usage_Time3            as "usageDrugName3",
+               concat(vd.DrugName4, vd.DrugName5, vd.DrugName6, vd.DrugName7,
+                      vd.DrugName8)      as "otherDrugName",
+               concat(vd.Usage_Day4, vd.Usage_Day5, vd.Usage_Day6, vd.Usage_Day7,
+                      vd.Usage_Day8)     as "otherDailyTimesDrugName",
+               concat(vd.Usage_Time4, vd.Usage_Time5, vd.Usage_Time6, vd.Usage_Time7,
+                      vd.Usage_Time8)    as "otherUsageDrugName",
+               vd.Insulin1               as "insulin1",
+               vd.InsulinUsing1          as "usageInsulin1",
+               vd.Insulin2               as "insulin2",
+               vd.InsulinUsing2          as "usageInsulin2",
+               vd.Remark                 as "remark",
+               vd.Referral               as "referral",
+               vd.ReferralReason         as "referralReason",
+               vd.ReferralAgencies       as "referralAgencies",
+               vd.NextVisitDate          as "nextVisitDate",
+               vd.OperateOrganization    as "hospital",
+               vd.OperateTime            as "updateAt",
+               vd.Doctor                 as "doctor"
+        from ph_diabetes_visit vd
+               left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vd.sex
+               left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+               left join ph_dict vc_mental on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
+               left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
+               left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
+               left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
+               left join ph_dict vc_arterial on vc_arterial.category = '7152' and vc_arterial.code = vd.arterial
+               left join ph_dict vc_lb on vc_lb.category = '7020101' and vc_lb.code = vd.LowBlood
+        where id = ?
+          and vd.isdelete = false
+      `,
       id
     );
     return result.map(r => ({
