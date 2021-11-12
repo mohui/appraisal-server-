@@ -1710,9 +1710,11 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno
-           from ph_person
-           where id = ?`,
+        `
+          select idcardno
+          from ph_person
+          where id = ?
+        `,
         id
       )
     )[0]?.idcardno;
