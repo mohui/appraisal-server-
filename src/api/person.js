@@ -833,12 +833,17 @@ export default class Person {
    */
   async diabetes(id) {
     const followCodeNames = await originalDB.execute(
-      `select vc.name,vc.code from ph_dict vc where vc.category = ?`,
+      // language=PostgreSQL
+      `
+        select vc.name, vc.code
+        from ph_dict vc
+        where vc.category = ?
+      `,
       '7010104'
     );
-    // language=PostgreSQL
     return (
       await originalDB.execute(
+        // language=PostgreSQL
         `
           select vdv.id,
                  vdv.followupdate        as "followDate",
