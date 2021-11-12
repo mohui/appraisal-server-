@@ -1721,10 +1721,12 @@ export default class Person {
     // 通过身份证号查找产后访视记录表，拿到产后访视code（visitCode）
     // language=PostgreSQL
     const maternalVisits = await originalDB.execute(
-      `select id
-         from mch_maternal_visit
-         where maternalidcardno = ?
-         order by visitdate`,
+      `
+        select id
+        from mch_maternal_visit
+        where maternalidcardno = ?
+        order by visitdate
+      `,
       idCardNo
     );
 
@@ -1733,37 +1735,39 @@ export default class Person {
     let newbornVisits = [];
     for (const i of maternalVisits) {
       const newbornVisit = await originalDB.execute(
-        `select id as visitno
-                , newbornchildno
-                , mothervisitno
-                , newbornname
-                , newbornbirthday
-                , feedingpatterns
-                , temperaturedegrees
-                , jaundice
-                , doorbrine
-                , eyes
-                , eyesinfection
-                , limbs
-                , ear
-                , earinfection
-                , nose
-                , noseinfection
-                , skin
-                , oral
-                , hip
-                , cardiopulmonary
-                , umbilicalcord
-                , treatmentviews
-                , visitdate
-                , doctor
-                , operatetime
-                , operatorid
-                , operateorganization
-                , created_at
-                , updated_at
-           from mch_new_born_visit
-           where mothervisitno = ?`,
+        `
+          select id as visitno,
+                 newbornchildno,
+                 mothervisitno,
+                 newbornname,
+                 newbornbirthday,
+                 feedingpatterns,
+                 temperaturedegrees,
+                 jaundice,
+                 doorbrine,
+                 eyes,
+                 eyesinfection,
+                 limbs,
+                 ear,
+                 earinfection,
+                 nose,
+                 noseinfection,
+                 skin,
+                 oral,
+                 hip,
+                 cardiopulmonary,
+                 umbilicalcord,
+                 treatmentviews,
+                 visitdate,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_new_born_visit
+          where mothervisitno = ?
+        `,
         i.id
       );
       if (newbornVisit.length > 0) newbornVisits.push(newbornVisit);
@@ -1786,45 +1790,47 @@ export default class Person {
       // 儿童保健卡主键 -> 儿童体检表
       const childCheck = await originalDB.execute(
         // language=PostgreSQL
-        `select cc.id as medicalcode
-                , cc.childhealthbooksno
-                , cc.chronologicalage
-                , cc.checkdate
-                , cc.weight
-                , cc.weightage
-                , cc.height
-                , cc.heightage
-                , cc.headcircumference
-                , cc.face
-                , cc.skin
-                , cc.fontanelle
-                , cc.backfontanelle
-                , cc.eyes
-                , cc.ear
-                , cc.lefthearing
-                , cc.righthearing
-                , cc.oral
-                , cc.ricketsseems
-                , cc.genitaliainfo
-                , cc.genitalia
-                , cc.hemoglobin
-                , cc.fewteeth
-                , cc.signsrickets
-                , cc.outdoortime
-                , cc.guidancetreatment
-                , cc.reservationsdate
-                , cc.checkdoctor
-                , cc.doctor
-                , cc.operatetime
-                , cc.operatorid
-                , cc.operateorganization
-                , cc.created_at
-                , cc.updated_at
-                , cb.name  childname
-           from mch_child_check cc
-                  inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-           where cc.childhealthbooksno = ?
-           order by checkdate`,
+        `
+          select cc.id as medicalcode,
+                 cc.childhealthbooksno,
+                 cc.chronologicalage,
+                 cc.checkdate,
+                 cc.weight,
+                 cc.weightage,
+                 cc.height,
+                 cc.heightage,
+                 cc.headcircumference,
+                 cc.face,
+                 cc.skin,
+                 cc.fontanelle,
+                 cc.backfontanelle,
+                 cc.eyes,
+                 cc.ear,
+                 cc.lefthearing,
+                 cc.righthearing,
+                 cc.oral,
+                 cc.ricketsseems,
+                 cc.genitaliainfo,
+                 cc.genitalia,
+                 cc.hemoglobin,
+                 cc.fewteeth,
+                 cc.signsrickets,
+                 cc.outdoortime,
+                 cc.guidancetreatment,
+                 cc.reservationsdate,
+                 cc.checkdoctor,
+                 cc.doctor,
+                 cc.operatetime,
+                 cc.operatorid,
+                 cc.operateorganization,
+                 cc.created_at,
+                 cc.updated_at,
+                 cb.name  childname
+          from mch_child_check cc
+                 inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+          where cc.childhealthbooksno = ?
+          order by checkdate
+        `,
         childHealthBookNo
       );
       if (childCheck.length > 0) childChecks.push(childCheck);
