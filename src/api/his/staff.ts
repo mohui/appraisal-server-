@@ -605,6 +605,8 @@ export default class HisStaff {
   /**
    * 获取指定月份员工工分列表
    *
+   * 员工无考核,质量系数返回null
+   *
    * @param id 员工id
    * @param month 月份
    * @return {
@@ -692,12 +694,18 @@ export default class HisStaff {
       (prev, curr) => Number(prev) + Number(curr?.score),
       0
     );
-    const rate =
-      Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
+
+    // 质量系数
+    let rate = null;
+    // 如果员工有考核,打分结果查询大于0,算出质量系数
+    if (assessResultModel.length > 0) {
+      rate =
+        Number(scoreDenominator) > 0 ? scoreNumerator / scoreDenominator : 0;
+    }
 
     return {
       day: start,
-      rate: assessResultModel.length > 0 ? rate : null,
+      rate: rate,
       items: workItems
     };
   }
