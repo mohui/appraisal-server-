@@ -2589,26 +2589,28 @@ export default class Person {
     // 产后42天健康检查记录表
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select id               as examineno
-              , pregnancybooksid as newlydiagnosedcode
-              , pregnantwomenname
-              , visitdate
-              , diastolicpressure
-              , systolicpressure
-              , breast
-              , lochia
-              , lochiacolor
-              , lochiasmell
-              , perinealincision
-              , other
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_examine_42th_day
-         where id = ?`,
+      `
+        select id               as examineno,
+               pregnancybooksid as newlydiagnosedcode,
+               pregnantwomenname,
+               visitdate,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochia,
+               lochiacolor,
+               lochiasmell,
+               perinealincision,
+               other,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_examine_42th_day
+        where id = ?
+      `,
       code
     );
     return result[0];
