@@ -11,9 +11,13 @@ import {getHospitals} from './group/common';
 async function dictionaryQuery(category) {
   // language=PostgreSQL
   return await originalDB.execute(
-    `select category, code, name
-       from ph_dict vc
-       where category = ?`,
+    `
+      select category,
+             code,
+             name
+      from ph_dict vc
+      where category = ?
+    `,
     category
   );
 }
