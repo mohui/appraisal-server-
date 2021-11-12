@@ -697,7 +697,7 @@ export default class HisStaff {
 
     return {
       day: start,
-      rate: rate,
+      rate: assessResultModel.length > 0 ? rate : null,
       items: workItems
     };
   }
