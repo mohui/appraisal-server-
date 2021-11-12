@@ -444,9 +444,11 @@ export default class Person {
       // 获取名称
       // language=PostgreSQL
       const areaModel = await originalDB.execute(
-        `select name
-           from area
-           where code = ?`,
+        `
+          select name
+          from area
+          where code = ?
+        `,
         params.region
       );
       const fileName = `${areaModel[0]?.name}人员档案表格`;
