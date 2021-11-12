@@ -2223,9 +2223,9 @@ export default class Person {
       maternalData.push(maternalVisits);
 
       // 产后42天健康检查记录表
-      // language=PostgreSQL
       // 按孕册表匹配
       const bookExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as examineno,
                  pregnancybooksid as newlydiagnosedcode,
@@ -2252,6 +2252,7 @@ export default class Person {
         pregnancyBook.id
       );
       const maternalExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select a.id               as examineno,
                  a.pregnancybooksid as newlydiagnosedcode,
@@ -2304,6 +2305,7 @@ export default class Person {
     );
     //单独的产后访视记录
     const deliveryList1 = await originalDB.execute(
+      // language=PostgreSQL
       `
         select distinct a.MaternityCode as id
         from mch_maternal_visit a
@@ -2318,6 +2320,7 @@ export default class Person {
     );
     //单独的产后42天记录
     const deliveryList2 = await originalDB.execute(
+      // language=PostgreSQL
       `
         select distinct a.MaternityCode as id
         from mch_examine_42th_day a
@@ -2348,6 +2351,7 @@ export default class Person {
         }
       ];
       const maternalVisitRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as visitcode,
                  pregnancybooksid as newlydiagnosedcode,
@@ -2380,6 +2384,7 @@ export default class Person {
       maternalVisits.records = maternalVisitRecords;
       deliveryData.push(maternalVisits);
       const maternalExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as examineno,
                  pregnancybooksid as newlydiagnosedcode,
