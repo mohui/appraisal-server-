@@ -15,11 +15,15 @@
             padding: $settings.isMobile ? '10px 0 0' : '20px'
           }"
         >
-          <el-tabs v-model="activeTab" class="patient-tab-list">
+          <el-tabs
+            v-model="activeTab"
+            class="patient-tab-list"
+            @tab-click="tabClick"
+          >
             <el-tab-pane
+              v-if="personDetailSeverData.length"
               label="个人基本信息表"
               name="personal"
-              v-if="personDetailSeverData.length"
             >
               <div v-hidden-scroll>
                 <div style="padding: 5px;">
@@ -332,8 +336,8 @@
               </div>
             </el-tab-pane>
             <el-tab-pane
-              v-for="(item, index) in titleList"
-              :key="index"
+              v-for="(item, i) in titleList"
+              :key="i"
               :name="item.code"
               :disabled="item.disabled"
             >
@@ -345,189 +349,278 @@
               </span>
 
               <div v-show="item.code === 'physical'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of healthyList"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'record-healthy',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">体检时间：{{ item.updateAt }}</span>
+                <div class="record">
+                  <div class="title">体验记录</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of healthyList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-healthy',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">
+                        {{ items.updateAt }}
+                      </div>
+                      <div class="notes-content">
+                        <div>
+                          身高：{{ items.stature }}<br />
+                          体重：{{ items.weight }}<br />
+                          体温：<span :class="{warn: items.temperature > 37.2}"
+                            >{{ items.temperature }}
+                          </span>
+                        </div>
+                        <div
+                          :class="{
+                            warn: !String(items.symptom).includes('无症状')
+                          }"
+                        >
+                          {{ items.symptom }}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p>
-                    身高：{{ item.stature }} 体重：{{ item.weight }} 体温：{{
-                      item.temperature
-                    }}
-                    症状：{{ item.symptom }}
-                  </p>
                 </div>
               </div>
 
               <div v-show="item.code === 'hypertension'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of hypertensions"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'record-hypertension',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ item.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ item.followDate }}</span
+                <div class="record hypertension">
+                  <div class="title">高血压随访记录</div>
+                  <sliders v-if="hypertensions.length" :key="keyCode + 'a'">
+                    <div
+                      v-for="(items, index) of hypertensions"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-hypertension',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
-                  </div>
-                  <p>
-                    随访方式：{{ item.followWay }}；收缩压：{{
-                      item.systolicPressure
-                    }}；舒张压：{{ item.assertPressure }}
-                  </p>
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        收缩压：{{ items.systolicPressure }}；舒张压：{{
+                          items.assertPressure
+                        }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }}；随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
               <div v-show="item.code === 'diabetes'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of diabetesList"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'record-diabetes',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ item.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ item.followDate }}</span
+                <div class="record hypertension">
+                  <div class="title">糖尿病随访记录</div>
+                  <sliders v-if="diabetesList.length" :key="keyCode + 'b'">
+                    <div
+                      v-for="(items, index) of diabetesList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-diabetes',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
-                  </div>
-                  <p>
-                    随访方式：{{ item.followWay }}；空腹血糖：{{
-                      item.fastingGlucose
-                    }}；随机血糖：{{ item.postprandialGlucose }}
-                  </p>
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        空腹血糖：{{ items.fastingGlucose }}；随机血糖：{{
+                          items.postprandialGlucose
+                        }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }}；随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
               <div v-show="item.code === 'oldManSelfCare'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of oldManSelfCareList"
-                  :key="'old' + index"
-                  @click="
-                    $router.push({
-                      name: 'record-oldManSelfCare',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">
-                      [老年人生活自理评分] 总分：{{ item.total }}
-                    </span>
-                    <span class="visitTime">
-                      评估时间：{{ item.checkDate }}
-                    </span>
+                <div v-if="oldManSelfCareList.length" class="record">
+                  <div class="title">
+                    老年人生活自理评分
                   </div>
-                  <p>
-                    进餐得分：{{ item.mealScore }}；梳洗得分：{{
-                      item.washScore
-                    }}；穿衣得分：{{ item.dressScore }}；如厕得分：{{
-                      item.toiletScore
-                    }}；活动得分：{{ item.activityScore }}
-                  </p>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of oldManSelfCareList"
+                      :key="'old' + index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-oldManSelfCare',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">
+                        评估时间：{{ items.checkDate }}
+                      </div>
+                      <div class="notes-content" style="position: relative;">
+                        <div>
+                          进餐：{{ items.mealScore }}<br />
+                          梳洗：{{ items.washScore }}<br />
+                          穿衣：{{ items.dressScore }}<br />
+                          如厕：{{ items.toiletScore }}<br />
+                          活动：{{ items.activityScore }}
+                        </div>
+                        <div>
+                          {{ items.total }}
+                          <span
+                            style="position: absolute; bottom: 5px;right: 5px;"
+                          >
+                            总分
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div
-                  class="notes"
-                  v-for="(item, index) of questionnaireList"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'record-old-constitution',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
+                  v-if="questionnaireList.length"
+                  class="record questionnaire"
                 >
-                  <div class="notes-block">
-                    <span class="hospital">
-                      [老年人中医药健康管理服务记录表]
-                    </span>
-                    <span class="visitTime"> 问卷时间：{{ item.date }} </span>
+                  <div class="title">老年人中医药健康管理服务记录表</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of questionnaireList"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'record-old-constitution',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div class="notes-date">问卷时间：{{ items.date }}</div>
+                      <div>机构名称：{{ items.hospitalName }}</div>
+                      <div>医生姓名：{{ items.doctor }}</div>
+                    </div>
                   </div>
-                  <p>
-                    机构名称：{{ item.hospitalName }}； 医生姓名：{{
-                      item.doctor
-                    }}
-                  </p>
                 </div>
               </div>
 
               <div v-show="item.code === 'maternal'" v-hidden-scroll>
-                <div v-for="(item, index) of maternalData" :key="index">
+                <div v-for="(items, index) of maternalData" :key="index">
                   <div style="font-size: 22px; margin:20px 0">
                     第{{ index + 1 }}次生产记录
                   </div>
-                  <div>
+                  <div class="maternal">
                     <div
-                      style="font-size: 20px; margin:10px 0"
-                      v-for="(it, itIndex) in item"
+                      v-for="(it, itIndex) in items.slice(0, 2)"
                       :key="itIndex"
+                      :class="'record-' + itIndex"
                     >
-                      <div>{{ it.name }}</div>
+                      <div class="record-title">{{ it.name }}</div>
                       <div
-                        class="notes"
-                        style="font-size: 18px; margin:10px 0"
                         v-for="(record, recordIndex) of it.records"
                         :key="recordIndex"
+                        class="notes"
                         @click="handleGotoDetailse(record, it.type)"
                       >
-                        <div class="notes-block">
-                          <span class="hospital">
-                            <span v-if="it.type === 'newlyDiagnosed'">
-                              填表日期：{{
-                                record.newlydiagnoseddate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span v-else-if="it.type === 'prenatalCare'">
-                              随访日期：{{
-                                record.checkdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
-                            <span
-                              v-else-if="
-                                it.type === 'maternalVisits' ||
-                                  it.type === 'examine42thDay'
-                              "
-                            >
-                              访视日期：{{
-                                record.visitdate.$format('YYYY-MM-DD')
-                              }}
-                            </span>
+                        <div>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            填表日期：{{
+                              record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span v-else-if="it.type === 'prenatalCare'">
+                            随访日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span
+                            v-else-if="
+                              it.type === 'maternalVisits' ||
+                                it.type === 'examine42thDay'
+                            "
+                          >
+                            访视日期：{{
+                              record.visitdate.$format('YYYY-MM-DD')
+                            }}
                           </span>
                         </div>
-                        <p>
+                        <div>
+                          <span
+                            v-if="it.type === 'newlyDiagnosed'"
+                            class="main"
+                          >
+                            年龄：{{ record.age }} 体重：{{ record.weight }}kg
+                          </span>
+                          <span
+                            v-if="
+                              it.type === 'prenatalCare' ||
+                                it.type === 'examine42thDay' ||
+                                it.type === 'maternalVisits'
+                            "
+                          >
+                            医生姓名：{{ record.doctor }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="maternal">
+                    <div
+                      v-for="(it, itIndex) in items.slice(2)"
+                      :key="itIndex"
+                      :class="'record-' + (itIndex + 2)"
+                    >
+                      <div class="record-title">{{ it.name }}</div>
+                      <div
+                        v-for="(record, recordIndex) of it.records"
+                        :key="recordIndex"
+                        class="notes"
+                        @click="handleGotoDetailse(record, it.type)"
+                      >
+                        <div>
+                          <span v-if="it.type === 'newlyDiagnosed'">
+                            填表日期：{{
+                              record.newlydiagnoseddate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span v-else-if="it.type === 'prenatalCare'">
+                            随访日期：{{
+                              record.checkdate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                          <span
+                            v-else-if="
+                              it.type === 'maternalVisits' ||
+                                it.type === 'examine42thDay'
+                            "
+                          >
+                            访视日期：{{
+                              record.visitdate.$format('YYYY-MM-DD')
+                            }}
+                          </span>
+                        </div>
+                        <div>
                           <span v-if="it.type === 'newlyDiagnosed'">
                             年龄：{{ record.age }} 体重：{{ record.weight }}kg
                           </span>
@@ -540,7 +633,7 @@
                           >
                             医生姓名：{{ record.doctor }}
                           </span>
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -549,136 +642,197 @@
 
               <div v-show="item.code === 'children'" v-hidden-scroll>
                 <div
-                  v-for="(item, index) of childrenHealthCheckData"
+                  v-if="childrenHealthLength.length > 1"
+                  style="text-align: right"
+                >
+                  新生儿姓名：<el-select
+                    v-model="curChild"
+                    placeholder="请选择"
+                    size="small"
+                    style="margin-bottom: 10px;"
+                    @change="tabClick"
+                  >
+                    <el-option
+                      v-for="(items, ii) in childrenHealthLength"
+                      :key="ii"
+                      :label="items.children"
+                      :value="items.birthday"
+                    >
+                    </el-option>
+                  </el-select>
+                </div>
+
+                <div
+                  v-for="(items, index) of childrenHealthCheckData"
                   :key="index"
                 >
-                  <div style="font-size: 22px; margin:20px 0">
-                    {{ item.name }}
-                  </div>
-                  <div v-if="item.type === 'newbornVisit'">
-                    <div
-                      v-for="record of item.records"
-                      :key="record.visitno"
-                      class="notes"
-                      style="font-size: 18px; margin:10px 0"
-                      @click="handleGotoDetailse(record, item.type)"
-                    >
-                      <div class="notes-block">
-                        <div>访视医生：{{ record.doctor }}</div>
-                        <div class="visitTime">
-                          访视日期：{{ record.visitdate.$format('YYYY-MM-DD') }}
-                        </div>
-                        <div>
-                          <p>
-                            新生儿姓名：{{ record.newbornname }} 体温：{{
-                              record.temperaturedegrees.toFixed(1)
-                            }}
-                          </p>
-                        </div>
-                      </div>
+                  <div v-if="items.type === 'newbornVisit'" class="children">
+                    <div style="font-size: 22px; margin:0 0 20px 0">
+                      {{ items.name }}
                     </div>
-                  </div>
-                  <div v-else-if="item.type === 'childCheck'">
-                    <div v-for="(it, i) of item.records" :key="i">
-                      <div style="margin: 20px 0;">
-                        <span style="font-size: 18px">
-                          儿童姓名：{{ it[0].childname }}
-                        </span>
-                        <span
-                          style="cursor: pointer; margin-left: 20px; color: #409eff"
-                          @click="
-                            handleGotoDevelopmentMonitoring(
-                              it[i].childhealthbooksno
-                            )
-                          "
-                        >
-                          生长发育监测图
-                        </span>
-                      </div>
+                    <sliders v-if="items.records.length" :key="keyCode + 'c'">
                       <div
-                        v-for="record of it"
-                        :key="record.medicalcode"
+                        v-for="record of items.records"
+                        :key="record.visitno"
                         class="notes"
-                        style="font-size: 18px; margin:10px 20px"
+                        :style="{
+                          display:
+                            !curChild ||
+                            curChild.toString() ===
+                              record.newbornbirthday.toString()
+                              ? 'block'
+                              : 'none'
+                        }"
                         @click="handleGotoDetailse(record, item.type)"
                       >
-                        <div></div>
-                        <div class="notes-block">
-                          <div style="font-size: 16px">
-                            检查医生：{{ record.checkdoctor }}
-                          </div>
-                          <div class="visitTime">
-                            检查日期：{{
-                              record.checkdate.$format('YYYY-MM-DD')
+                        <div>
+                          <div>
+                            访视日期：{{
+                              record.visitdate.$format('YYYY-MM-DD')
                             }}
                           </div>
+                          <div class="main">
+                            新生儿姓名：{{ record.newbornname }} <br />体温：{{
+                              record.temperaturedegrees
+                                ? record.temperaturedegrees.toFixed(1)
+                                : ''
+                            }}
+                          </div>
+                          <div class="doctor">
+                            访视医生：{{ record.doctor }}
+                          </div>
+                        </div>
+                      </div>
+                    </sliders>
+                  </div>
+                  <div v-else-if="items.type === 'childCheck'">
+                    <div
+                      v-for="(it, ii) of items.records"
+                      :key="ii"
+                      class="children"
+                      :style="{
+                        display:
+                          !curChild || curChild === it[0].birthday
+                            ? 'block'
+                            : 'none'
+                      }"
+                    >
+                      <div>
+                        <div style="font-size: 22px; margin:0 0 20px 0">
+                          {{ items.name }}
+                        </div>
+                        <div style="text-align: right;">
+                          儿童姓名：{{ it[0].childname }}
+                        </div>
+                      </div>
+                      <sliders v-if="it.length" :key="ii + keyCode + 'd'">
+                        <div
+                          v-for="record of it"
+                          :key="record.medicalcode"
+                          class="notes"
+                          @click="handleGotoDetailse(record, items.type)"
+                        >
                           <div>
-                            <p>
+                            <div>
+                              检查日期：{{
+                                record.checkdate.$format('YYYY-MM-DD')
+                              }}
+                            </div>
+                            <div class="main">
                               月龄: {{ record.chronologicalage }} 身高：{{
                                 record.height
                               }}cm 体重：{{ record.weight }}kg
-                            </p>
+                            </div>
+                            <div class="doctor">
+                              检查医生：{{ record.checkdoctor }}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </sliders>
+                      <GrowthChart
+                        ref="chart"
+                        :key="ii + keyCode"
+                        :data="items.chartData[ii]"
+                        :style="{
+                          height: '500px',
+                          width: 'calc(100% - 80px)',
+                          backgroundColor: '#fff',
+                          overflow: 'auto',
+                          margin: '10px 40px 40px'
+                        }"
+                      ></GrowthChart>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div v-show="item.code === 'chronicDiseaseOther'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of chronicDiseaseOtherData"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'chronic-disease-other-visit',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ item.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ item.followDate }}</span
-                    >
+                <div class="record hypertension">
+                  <div class="title">
+                    其它慢病管理记录
                   </div>
-                  <p>
-                    随访方式：{{ item.followWay }}；当前症状：{{
-                      item.presentSymptoms
-                    }}
-                  </p>
+                  <sliders
+                    v-if="chronicDiseaseOtherData.length"
+                    :key="keyCode + 'e'"
+                  >
+                    <div
+                      v-for="(items, index) of chronicDiseaseOtherData"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'chronic-disease-other-visit',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
+                    >
+                      <div>随访时间：{{ items.followDate }}</div>
+                      <div class="main">
+                        当前症状：{{ items.presentSymptoms }}
+                      </div>
+                      <div>
+                        随访方式：{{ items.followWay }} 随访医生：{{
+                          items.doctor
+                        }}
+                      </div>
+                    </div>
+                  </sliders>
                 </div>
               </div>
 
               <div v-show="item.code === 'chronicDiseaseHigh'" v-hidden-scroll>
-                <div
-                  class="notes"
-                  v-for="(item, index) of chronicDiseaseHighData"
-                  :key="index"
-                  @click="
-                    $router.push({
-                      name: 'chronic-disease-high-visit',
-                      query: {
-                        id: item.id
-                      }
-                    })
-                  "
-                >
-                  <div class="notes-block">
-                    <span class="hospital">随访医生：{{ item.doctor }}</span>
-                    <span class="visitTime"
-                      >随访时间：{{ item.followDate }}</span
+                <div class="record chronicDiseaseHigh">
+                  <div class="title">高危人群管理记录</div>
+                  <div class="list">
+                    <div
+                      v-for="(items, index) of chronicDiseaseHighData"
+                      :key="index"
+                      class="notes"
+                      @click="
+                        $router.push({
+                          name: 'chronic-disease-high-visit',
+                          query: {
+                            id: items.id
+                          }
+                        })
+                      "
                     >
+                      <div class="note-date">
+                        随访时间：{{ items.followDate
+                        }}<span style="float: right;"
+                          >随访医生：{{ items.doctor }}</span
+                        >
+                      </div>
+                      <div class="notes-content">
+                        <div>
+                          当前症状
+                        </div>
+                        <div>{{ items.riskFactorsName }}</div>
+                      </div>
+                    </div>
                   </div>
-                  <p>
-                    随访方式：{{ item.followWay }}；当前症状：{{
-                      item.riskFactorsName
-                    }}
-                  </p>
                 </div>
               </div>
             </el-tab-pane>
@@ -691,20 +845,19 @@
 
 <script>
 import card from './components/card';
+import sliders from '../../components/sliders';
+import GrowthChart from '../../components/growth-chart';
 import {getTagsList} from '../../../../common/person-tag.ts';
 export default {
   name: 'Patient',
-  components: {card},
+  components: {card, sliders, GrowthChart},
   data() {
     return {
       id: null,
+      curChild: '',
+      keyCode: new Date().getTime(),
       activeTab: 'personal'
     };
-  },
-  created() {
-    const id = this.$route.query.id;
-    if (!id) this.$router.push('/person');
-    this.id = id;
   },
   computed: {
     person() {
@@ -755,7 +908,30 @@ export default {
     },
     // 儿童健康管理记录数据
     childrenHealthCheckData() {
-      return this.childrenHealthCheckServerData;
+      return this.childrenHealthCheckServerData.map(it => ({
+        ...it,
+        chartData: it.chartData
+          ? it.chartData.map(c => ({
+              weights: c.map(w => [
+                Number(w.chronologicalage),
+                Number(w.weight)
+              ]),
+              heights: c.map(w => [
+                Number(w.chronologicalage),
+                Number(w.height)
+              ])
+            }))
+          : ''
+      }));
+    },
+    // 儿童数量
+    childrenHealthLength: function() {
+      return (
+        this.childrenHealthCheckServerData[1]?.records.map(it => ({
+          birthday: it[0].birthday,
+          children: it[0].childname
+        })) || []
+      );
     },
     // 高危人群规范管理列表数据
     chronicDiseaseHighData() {
@@ -773,6 +949,7 @@ export default {
     },
     // 添加默认排序
     titleList() {
+      this.tabClick();
       return [
         {
           code: 'physical',
@@ -826,6 +1003,11 @@ export default {
         }
       ].sort((a, b) => a.disabled - b.disabled);
     }
+  },
+  created() {
+    const id = this.$route.query.id;
+    if (!id) this.$router.push('/person');
+    this.id = id;
   },
   asyncComputed: {
     document: {
@@ -913,7 +1095,28 @@ export default {
     },
     childrenHealthCheckServerData: {
       async get() {
-        return await this.$api.Person.childrenHealthCheck(this.id);
+        const result = await this.$api.Person.childrenHealthCheck(this.id);
+        if (result[1]?.records?.length > 1) {
+          this.curChild = result[1].records[0][0].birthday;
+        }
+        return await Promise.all(
+          result.map(async item => {
+            return {
+              ...item,
+              chartData:
+                item.type === 'childCheck'
+                  ? await Promise.all(
+                      item.records.map(
+                        async it =>
+                          await this.$api.Person.developmentMonitoring(
+                            it[0].childhealthbooksno
+                          )
+                      )
+                    )
+                  : ''
+            };
+          })
+        );
       },
       default() {
         return [];
@@ -939,18 +1142,11 @@ export default {
     }
   },
   methods: {
+    tabClick() {
+      this.keyCode = new Date().getTime();
+    },
     handleBack() {
       this.$router.go(-1);
-    },
-
-    // 跳转到生长发育监测表详情
-    handleGotoDevelopmentMonitoring(bookNo) {
-      this.$router.push({
-        name: 'development-monitoring-chart',
-        query: {
-          id: bookNo
-        }
-      });
     },
 
     // 跳转到相应的体检表详情
@@ -1050,18 +1246,147 @@ export default {
 
 .notes {
   cursor: pointer;
+  color: #42486d;
+  background-color: #fff;
   border-bottom: 1px solid #eee;
+  margin-right: 20px;
   margin-bottom: 10px;
-  p {
-    font-size: 14px;
-  }
-  .notes-block {
-    span {
-      display: block;
+  padding: 10px;
+  line-height: 2;
+  font-size: 14px;
+  border-radius: 6px;
+}
+.maternal {
+  display: flex;
+  flex-direction: row;
+  background-color: #f0f4ff;
+  color: #42486d;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  & > div {
+    padding: 10px 0 10px 20px;
+    min-width: 180px;
+    .notes {
+      float: left;
+      min-width: 180px;
     }
-    .visitTime {
-      font-size: 12px;
-      color: #777;
+  }
+  .record-title {
+    line-height: 2;
+  }
+  .record-0,
+  .record-3 {
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+  .record-0 {
+    .main {
+      font-weight: bold;
+    }
+  }
+  .record-0,
+  .record-2 {
+    position: relative;
+    &:after {
+      position: absolute;
+      display: block;
+      content: '';
+      height: 100%;
+      top: 0;
+      right: 0;
+      width: 4px;
+      background-color: #fff;
+    }
+  }
+}
+.children {
+  background-color: #f0f4ff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  .title {
+    font-size: 22px;
+    margin: 0 0 20px 0;
+  }
+  .notes {
+    min-width: 294px;
+    .main {
+      font-weight: bold;
+    }
+    .doctor {
+      text-align: right;
+    }
+  }
+}
+.record {
+  background-color: #f0f4ff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  .title {
+    font-size: 22px;
+    margin: 0 0 20px 0;
+  }
+  .list {
+    width: 100%;
+    padding-left: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    .notes {
+      width: 200px;
+      .notes-content {
+        display: flex;
+        flex-direction: row;
+        border-top: 2px solid #f0f4ff;
+        & > div:first-child {
+          width: 50%;
+          border-right: 2px solid #f0f4ff;
+          padding-top: 5px;
+        }
+        & > div:last-child {
+          width: 50%;
+          align-self: center;
+          text-align: center;
+        }
+        .warn {
+          color: #f00;
+        }
+      }
+    }
+  }
+}
+.hypertension {
+  .notes {
+    width: 260px !important;
+    .main {
+      font-size: 18px;
+      line-height: 3;
+    }
+    & > div:last-child {
+      text-align: right;
+    }
+  }
+}
+.questionnaire {
+  .notes {
+    width: 300px !important;
+  }
+}
+.chronicDiseaseHigh {
+  .notes {
+    width: 400px !important;
+    .notes-content {
+      & > div:first-child {
+        width: 20px !important;
+        padding-top: 0 !important;
+      }
+      & > div:last-child {
+        width: calc(100% - 27px) !important;
+        align-self: center;
+        padding-left: 5px;
+        text-align: left !important;
+      }
     }
   }
 }
