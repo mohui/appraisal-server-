@@ -2553,27 +2553,29 @@ export default class Person {
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select id               as visitcode
-              , pregnancybooksid as newlydiagnosedcode
-              , maternitycode
-              , maternalname
-              , maternalidcardno
-              , visitdate
-              , temperaturedegrees
-              , diastolicpressure
-              , systolicpressure
-              , breast
-              , lochiatype
-              , lochiavolume
-              , perinealincision
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_maternal_visit
-         where id = ?`,
+      `
+        select id               as visitcode,
+               pregnancybooksid as newlydiagnosedcode,
+               maternitycode,
+               maternalname,
+               maternalidcardno,
+               visitdate,
+               temperaturedegrees,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochiatype,
+               lochiavolume,
+               perinealincision,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_maternal_visit
+        where id = ?
+      `,
       code
     );
     return result[0];
