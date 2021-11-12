@@ -622,7 +622,12 @@ export default class Person {
    */
   async hypertensions(id) {
     const followCodeNames = await originalDB.execute(
-      `select dict.name,dict.code from ph_dict dict where dict.category = ?`,
+      // language=PostgreSQL
+      `
+        select dict.name, dict.code
+        from ph_dict dict
+        where dict.category = ?
+      `,
       '7010104'
     );
     return (
