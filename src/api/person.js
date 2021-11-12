@@ -1959,15 +1959,17 @@ export default class Person {
     // 儿童保健卡主键 -> 儿童体检表
     const childCheck = await originalDB.execute(
       // language=PostgreSQL
-      `select cc.id   as medicalcode
-              , cc.chronologicalage
-              , cc.weight
-              , cc.height
-              , cb.name as childname
-         from mch_child_check cc
-                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-         where cc.childhealthbooksno = ?
-         order by chronologicalage`,
+      `
+        select cc.id   as medicalcode,
+               cc.chronologicalage,
+               cc.weight,
+               cc.height,
+               cb.name as childname
+        from mch_child_check cc
+               inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+        where cc.childhealthbooksno = ?
+        order by chronologicalage
+      `,
       childHealthBookNo
     );
     return childCheck;
