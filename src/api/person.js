@@ -2697,65 +2697,67 @@ export default class Person {
     ]);
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select vp.id,
-                vp.name                   as "name",
-                vp.Sex                    as "gender",
-                vp.VoucherType            as "voucher",
-                vp.IdCardNo               as "idCard",
-                vp.Birth                  as "birth",
-                vp.Phone                  as "phone",
-                vp.RegionCode             as "regionCode",
-                vp.Address                as "address",
-                vp.Residencestring        as "census",
-                vp.WorkUnit               as "workUnit",
-                vp.RHeadHousehold         as "houseHold",
-                vp.ContactName            as "contactName",
-                vp.ContactPhone           as "contactPhone",
-                vp.Relationship           as "contactRelationship",
-                vp.LivingConditions       as "livingConditions",
-                vp.AccountType            as "accountType",
-                vp.BloodABO               as blood,
-                vp.national               as "national",
-                vp.RH                     as "RH",
-                vp.Education              as "education",
-                vp.Occupation             as "profession",
-                vp.MaritalStatus          as "marrage",
-                vp.Responsibility         as "doctor",
-                vp.FileDate               as "createdAt",
-                vp.XNHCardNo              as "XNHCard",
-                vp.YBCardNo               as "medicareCard",
-                vp.MedicalExpensesPayKind as "medicalPayType",
-                vp.PaymentCard            as "medicalCard",
-                vp.IsLowWarranty          as "isLowWarranty",
-                vp.LowWarrantyCardNo      as "lowWarrantyCard",
-                vp.DrugAllergy            as "drugAllergy",
-                vp.AncestralHistory       as "ancestralHistory",
-                vp.FatherHistory          as "fatherHistory",
-                vp.MotherHistory          as "motherHistory",
-                vp.SiblingHistory         as "siblingHistory",
-                vp.ChildrenHistory        as "childrenHistory",
-                vp.IsGeneticHistory       as "isGeneticHistory",
-                vp.GeneticDisease         as "geneticDisease",
-                vp.WhetherDisability      as "isDisability",
-                vp.ExposureHistory        as "exposureHistory",
-                vp.PastHistory            as "diseaseHistory",
-                vp.IsSurgicalHistory      as "isSurgeryHistory",
-                vp.IsTraumaticHistory     as "isTraumaticHistory",
-                vp.IsTransfusionHistory   as "isTransfusionHistory",
-                vp.shhjcf                 as "kitchenVentilation",
-                vp.shhjrl                 as "fuelType",
-                vp.shhjys                 as "water",
-                vp.shhjcs                 as "toilet",
-                vp.shhjscl                as "livestock",
-                vp.ContractStaff          as "contractStaff",
-                vp.AdminOrganization      as "managementHospital",
-                vp.OperateOrganization    as "hospital",
-                area.name                 as "hospital",
-                vp.OperatorId             as "hospitalId",
-                vp.OperateTime            as "updatedAt"
-         from ph_person vp
-                left join area on area.code = vp.OperateOrganization
-         where id = ?`,
+      `
+        select vp.id,
+               vp.name                   as "name",
+               vp.Sex                    as "gender",
+               vp.VoucherType            as "voucher",
+               vp.IdCardNo               as "idCard",
+               vp.Birth                  as "birth",
+               vp.Phone                  as "phone",
+               vp.RegionCode             as "regionCode",
+               vp.Address                as "address",
+               vp.Residencestring        as "census",
+               vp.WorkUnit               as "workUnit",
+               vp.RHeadHousehold         as "houseHold",
+               vp.ContactName            as "contactName",
+               vp.ContactPhone           as "contactPhone",
+               vp.Relationship           as "contactRelationship",
+               vp.LivingConditions       as "livingConditions",
+               vp.AccountType            as "accountType",
+               vp.BloodABO               as blood,
+               vp.national               as "national",
+               vp.RH                     as "RH",
+               vp.Education              as "education",
+               vp.Occupation             as "profession",
+               vp.MaritalStatus          as "marrage",
+               vp.Responsibility         as "doctor",
+               vp.FileDate               as "createdAt",
+               vp.XNHCardNo              as "XNHCard",
+               vp.YBCardNo               as "medicareCard",
+               vp.MedicalExpensesPayKind as "medicalPayType",
+               vp.PaymentCard            as "medicalCard",
+               vp.IsLowWarranty          as "isLowWarranty",
+               vp.LowWarrantyCardNo      as "lowWarrantyCard",
+               vp.DrugAllergy            as "drugAllergy",
+               vp.AncestralHistory       as "ancestralHistory",
+               vp.FatherHistory          as "fatherHistory",
+               vp.MotherHistory          as "motherHistory",
+               vp.SiblingHistory         as "siblingHistory",
+               vp.ChildrenHistory        as "childrenHistory",
+               vp.IsGeneticHistory       as "isGeneticHistory",
+               vp.GeneticDisease         as "geneticDisease",
+               vp.WhetherDisability      as "isDisability",
+               vp.ExposureHistory        as "exposureHistory",
+               vp.PastHistory            as "diseaseHistory",
+               vp.IsSurgicalHistory      as "isSurgeryHistory",
+               vp.IsTraumaticHistory     as "isTraumaticHistory",
+               vp.IsTransfusionHistory   as "isTransfusionHistory",
+               vp.shhjcf                 as "kitchenVentilation",
+               vp.shhjrl                 as "fuelType",
+               vp.shhjys                 as "water",
+               vp.shhjcs                 as "toilet",
+               vp.shhjscl                as "livestock",
+               vp.ContractStaff          as "contractStaff",
+               vp.AdminOrganization      as "managementHospital",
+               vp.OperateOrganization    as "hospital",
+               area.name                 as "hospital",
+               vp.OperatorId             as "hospitalId",
+               vp.OperateTime            as "updatedAt"
+        from ph_person vp
+               left join area on area.code = vp.OperateOrganization
+        where id = ?
+      `,
       id
     );
 
@@ -2794,19 +2796,21 @@ export default class Person {
     return (
       await originalDB.execute(
         // language=PostgreSQL
-        `select vhc.id,
-                  vhc.IncrementNo as "healthyID",
-                  vh.checkupDate  as "checkDate",
-                  vhc.jcScore     as "mealScore",
-                  vhc.sxScore     as "washScore",
-                  vhc.cyScore     as "dressScore",
-                  vhc.rcScore     as "toiletScore",
-                  vhc.hdScore     as "activityScore",
-                  vhc.AllScore    as "total"
-           from ph_old_health_check vhc
-                  left join ph_healthy vh on vh.id = vhc.incrementno
-           where vh.personnum = ?
-             and vh.isdelete = false`,
+        `
+          select vhc.id,
+                 vhc.IncrementNo as "healthyID",
+                 vh.checkupDate  as "checkDate",
+                 vhc.jcScore     as "mealScore",
+                 vhc.sxScore     as "washScore",
+                 vhc.cyScore     as "dressScore",
+                 vhc.rcScore     as "toiletScore",
+                 vhc.hdScore     as "activityScore",
+                 vhc.AllScore    as "total"
+          from ph_old_health_check vhc
+                 left join ph_healthy vh on vh.id = vhc.incrementno
+          where vh.personnum = ?
+            and vh.isdelete = false
+        `,
         id
       )
     ).map(it => ({
@@ -2853,38 +2857,40 @@ export default class Person {
     return (
       await originalDB.execute(
         // language=PostgreSQL
-        `select vhc.id,
-                  vhc.IncrementNo as "healthyID",
-                  vh.checkupDate  as "checkDate",
-                  vh.name         as "name",
-                  vhc.jckzl       as "mealNormal",
-                  vhc.jczdyl      as "mealModerate",
-                  vhc.jcbnzl      as "mealDisable",
-                  vhc.jcScore     as "mealScore",
-                  vhc.sxkzl       as "washNormal",
-                  vhc.sxqdyl      as "washMild",
-                  vhc.sxzdyl      as "washModerate",
-                  vhc.sxbnzl      as "washDisable",
-                  vhc.sxScore     as "washScore",
-                  vhc.cykzl       as "dressNormal",
-                  vhc.cyzdyl      as "dressModerate",
-                  vhc.cybnzl      as "dressDisable",
-                  vhc.cyScore     as "dressScore",
-                  vhc.rckzl       as "toiletNormal",
-                  vhc.rcqdyl      as "toiletMild",
-                  vhc.rczdyl      as "toiletModerate",
-                  vhc.rcbnzl      as "toiletDisable",
-                  vhc.rcScore     as "toiletScore",
-                  vhc.hdkzl       as "activityNormal",
-                  vhc.hdqdyl      as "activityMild",
-                  vhc.hdzdyl      as "activityModerate",
-                  vhc.hdbnzl      as "activityDisable",
-                  vhc.hdScore     as "activityScore",
-                  vhc.AllScore    as "total"
-           from ph_old_health_check vhc
-                  left join ph_healthy vh on vh.id = vhc.incrementno
-           where vhc.id = ?
-             and vh.isdelete = false`,
+        `
+          select vhc.id,
+                 vhc.IncrementNo as "healthyID",
+                 vh.checkupDate  as "checkDate",
+                 vh.name         as "name",
+                 vhc.jckzl       as "mealNormal",
+                 vhc.jczdyl      as "mealModerate",
+                 vhc.jcbnzl      as "mealDisable",
+                 vhc.jcScore     as "mealScore",
+                 vhc.sxkzl       as "washNormal",
+                 vhc.sxqdyl      as "washMild",
+                 vhc.sxzdyl      as "washModerate",
+                 vhc.sxbnzl      as "washDisable",
+                 vhc.sxScore     as "washScore",
+                 vhc.cykzl       as "dressNormal",
+                 vhc.cyzdyl      as "dressModerate",
+                 vhc.cybnzl      as "dressDisable",
+                 vhc.cyScore     as "dressScore",
+                 vhc.rckzl       as "toiletNormal",
+                 vhc.rcqdyl      as "toiletMild",
+                 vhc.rczdyl      as "toiletModerate",
+                 vhc.rcbnzl      as "toiletDisable",
+                 vhc.rcScore     as "toiletScore",
+                 vhc.hdkzl       as "activityNormal",
+                 vhc.hdqdyl      as "activityMild",
+                 vhc.hdzdyl      as "activityModerate",
+                 vhc.hdbnzl      as "activityDisable",
+                 vhc.hdScore     as "activityScore",
+                 vhc.AllScore    as "total"
+          from ph_old_health_check vhc
+                 left join ph_healthy vh on vh.id = vhc.incrementno
+          where vhc.id = ?
+            and vh.isdelete = false
+        `,
         id
       )
     ).map(it => ({
@@ -2917,11 +2923,13 @@ export default class Person {
     if (!year) year = dayjs().year();
     return originalDB.execute(
       // language=PostgreSQL
-      `select *
-         from mark_content
-         where year = ?
-           and id = ?
-           and name = ?`,
+      `
+        select *
+        from mark_content
+        where year = ?
+          and id = ?
+          and name = ?
+      `,
       year,
       id,
       code
@@ -2956,7 +2964,8 @@ export default class Person {
         from ph_old_questionnaire_main vq
                left join ph_person vp on vq.personnum = vp.id
                left join area on vp.operateorganization = area.code
-        where vp.id = ?;`,
+        where vp.id = ?
+      `,
       id
     );
   }
@@ -2994,20 +3003,22 @@ export default class Person {
   async questionnaireDetail(id) {
     const questionnaireModels = await originalDB.execute(
       // language=PostgreSQL
-      `select cast(vb.questioncode as int)   as "questionCode",
-                vb.questioncode                as "questionCode",
-                vqd.questionnairemainsn        as "detailId",
-                vqd.questionnairedetailcontent as "question",
-                vq.optioncontent               as "option",
-                vq.optioncode                  as "optionCode",
-                vq.score
-         from ph_questionnaire_detail vqd
-                inner join ph_question_options vq on
-           cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-                inner join ph_question_lib vb on
-           vb.questionsn = vq.questionsn
-         where vqd.QuestionnaireMainSN = ?
-         order by cast(vb.questioncode as int)`,
+      `
+        select cast(vb.questioncode as int)   as "questionCode",
+               vb.questioncode                as "questionCode",
+               vqd.questionnairemainsn        as "detailId",
+               vqd.questionnairedetailcontent as "question",
+               vq.optioncontent               as "option",
+               vq.optioncode                  as "optionCode",
+               vq.score
+        from ph_questionnaire_detail vqd
+               inner join ph_question_options vq on
+          cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+               inner join ph_question_lib vb on
+          vb.questionsn = vq.questionsn
+        where vqd.QuestionnaireMainSN = ?
+        order by cast(vb.questioncode as int)
+      `,
       id
     );
     const questionnaire = questionnaireModels.reduce((res, next) => {
@@ -3051,16 +3062,18 @@ export default class Person {
       (
         await originalDB.execute(
           // language=PostgreSQL
-          `select vp.name,
-                    vq.constitutiontype,
-                    vq.constitutiontypepossible,
-                    vq.OperateTime as "date",
-                    area.name      as "hospitalName",
-                    vq.doctor
-             from ph_questionnaire_guide vq
-                    left join ph_person vp on vq.personnum = vp.id
-                    left join area on vp.operateorganization = area.code
-             where vq.id = ?`,
+          `
+            select vp.name,
+                   vq.constitutiontype,
+                   vq.constitutiontypepossible,
+                   vq.OperateTime as "date",
+                   area.name      as "hospitalName",
+                   vq.doctor
+            from ph_questionnaire_guide vq
+                   left join ph_person vp on vq.personnum = vp.id
+                   left join area on vp.operateorganization = area.code
+            where vq.id = ?
+          `,
           questionnaire[0]?.detailId
         )
       )[0] ?? null;
