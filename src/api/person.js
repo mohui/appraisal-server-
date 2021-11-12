@@ -1905,44 +1905,46 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select cc.id as medicalcode
-              , cc.childhealthbooksno
-              , cc.chronologicalage
-              , cc.checkdate
-              , cc.weight
-              , cc.weightage
-              , cc.height
-              , cc.heightage
-              , cc.headcircumference
-              , cc.face
-              , cc.skin
-              , cc.fontanelle
-              , cc.backfontanelle
-              , cc.eyes
-              , cc.ear
-              , cc.lefthearing
-              , cc.righthearing
-              , cc.oral
-              , cc.ricketsseems
-              , cc.genitaliainfo
-              , cc.genitalia
-              , cc.hemoglobin
-              , cc.fewteeth
-              , cc.signsrickets
-              , cc.outdoortime
-              , cc.guidancetreatment
-              , cc.reservationsdate
-              , cc.checkdoctor
-              , cc.doctor
-              , cc.operatetime
-              , cc.operatorid
-              , cc.operateorganization
-              , cc.created_at
-              , cc.updated_at
-              , cb.name  childname
-         from mch_child_check cc
-                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-         where cc.id = ?`,
+      `
+        select cc.id as medicalcode,
+               cc.childhealthbooksno,
+               cc.chronologicalage,
+               cc.checkdate,
+               cc.weight,
+               cc.weightage,
+               cc.height,
+               cc.heightage,
+               cc.headcircumference,
+               cc.face,
+               cc.skin,
+               cc.fontanelle,
+               cc.backfontanelle,
+               cc.eyes,
+               cc.ear,
+               cc.lefthearing,
+               cc.righthearing,
+               cc.oral,
+               cc.ricketsseems,
+               cc.genitaliainfo,
+               cc.genitalia,
+               cc.hemoglobin,
+               cc.fewteeth,
+               cc.signsrickets,
+               cc.outdoortime,
+               cc.guidancetreatment,
+               cc.reservationsdate,
+               cc.checkdoctor,
+               cc.doctor,
+               cc.operatetime,
+               cc.operatorid,
+               cc.operateorganization,
+               cc.created_at,
+               cc.updated_at,
+               cb.name  childname
+        from mch_child_check cc
+               inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+        where cc.id = ?
+      `,
       code
     );
     return result[0];
