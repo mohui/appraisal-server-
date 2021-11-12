@@ -1859,37 +1859,39 @@ export default class Person {
   async newbornVisitDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select id as visitno
-              , newbornchildno
-              , mothervisitno
-              , newbornname
-              , newbornbirthday
-              , feedingpatterns
-              , temperaturedegrees
-              , jaundice
-              , doorbrine
-              , eyes
-              , eyesinfection
-              , limbs
-              , ear
-              , earinfection
-              , nose
-              , noseinfection
-              , skin
-              , oral
-              , hip
-              , cardiopulmonary
-              , umbilicalcord
-              , treatmentviews
-              , visitdate
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_new_born_visit
-         where id = ?`,
+      `
+        select id as visitno,
+               newbornchildno,
+               mothervisitno,
+               newbornname,
+               newbornbirthday,
+               feedingpatterns,
+               temperaturedegrees,
+               jaundice,
+               doorbrine,
+               eyes,
+               eyesinfection,
+               limbs,
+               ear,
+               earinfection,
+               nose,
+               noseinfection,
+               skin,
+               oral,
+               hip,
+               cardiopulmonary,
+               umbilicalcord,
+               treatmentviews,
+               visitdate,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_new_born_visit
+        where id = ?
+      `,
       code
     );
     return result[0];
