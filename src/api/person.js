@@ -2430,71 +2430,71 @@ export default class Person {
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
       `
-        select b.fathername
-             , b.fatherage
-             , n.id                            as newlydiagnosedcode
-             , n.pregnancybooksid              as pre_newlydiagnosedcode
-             , n.name
-             , n.newlydiagnoseddate
-             , n.gestationalweeks
-             , n.gestationalageday
-             , n.age
-             , n.parity
-             , n.productionmeeting
-             , n.vaginaldelivery
-             , n.cesareansection
-             , n.lastmenstrual
-             , n.birth
-             , n.pasthistory
-             , n.familyhistory
-             , n.womansurgeryhistory
-             , n.spontaneousabortiontimes
-             , n.abortiontimes
-             , n.stillfetaltimes
-             , n.stillbirthtimes
-             , n.height
-             , n.weight
-             , n.bodymassindex
-             , n.systolicpressure
-             , n.assertpressure
-             , n.heart
-             , n.lung
-             , n.deputymilkgenital
-             , n.vagina
-             , n.cervical
-             , n.attachment
-             , n.hemoglobin
-             , n.interleukin
-             , n.plateletcount
-             , n.urinaryprotein
-             , n.urine
-             , n.ketone
-             , n.urineoccultblood
-             , n.bloodtype
-             , n.sgpt_fastingplasmaglucose
-             , n.sgpt_alt
-             , n.sgpt_ast
-             , n.sgpt_alb
-             , n.sgpt_tbili
-             , n.intoxicated
-             , n.urea
-             , n.vaginasecrete
-             , n.hbsagin
-             , n.hbsab
-             , n.hbeag
-             , n.kanghbe
-             , n.kanghbc
-             , n.rprscreen
-             , n.hivscreening
-             , n.bultrasonography
-             , n.nextcaredate
-             , n.doctor
-             , n.operatetime
-             , n.operatorid
-             , n.operateorganization
-             , n.created_at
-             , n.updated_at
-             , n.weight / (n.height / 100) ^ 2 as bmi
+        select b.fathername,
+               b.fatherage,
+               n.id                            as newlydiagnosedcode,
+               n.pregnancybooksid              as pre_newlydiagnosedcode,
+               n.name,
+               n.newlydiagnoseddate,
+               n.gestationalweeks,
+               n.gestationalageday,
+               n.age,
+               n.parity,
+               n.productionmeeting,
+               n.vaginaldelivery,
+               n.cesareansection,
+               n.lastmenstrual,
+               n.birth,
+               n.pasthistory,
+               n.familyhistory,
+               n.womansurgeryhistory,
+               n.spontaneousabortiontimes,
+               n.abortiontimes,
+               n.stillfetaltimes,
+               n.stillbirthtimes,
+               n.height,
+               n.weight,
+               n.bodymassindex,
+               n.systolicpressure,
+               n.assertpressure,
+               n.heart,
+               n.lung,
+               n.deputymilkgenital,
+               n.vagina,
+               n.cervical,
+               n.attachment,
+               n.hemoglobin,
+               n.interleukin,
+               n.plateletcount,
+               n.urinaryprotein,
+               n.urine,
+               n.ketone,
+               n.urineoccultblood,
+               n.bloodtype,
+               n.sgpt_fastingplasmaglucose,
+               n.sgpt_alt,
+               n.sgpt_ast,
+               n.sgpt_alb,
+               n.sgpt_tbili,
+               n.intoxicated,
+               n.urea,
+               n.vaginasecrete,
+               n.hbsagin,
+               n.hbsab,
+               n.hbeag,
+               n.kanghbe,
+               n.kanghbc,
+               n.rprscreen,
+               n.hivscreening,
+               n.bultrasonography,
+               n.nextcaredate,
+               n.doctor,
+               n.operatetime,
+               n.operatorid,
+               n.operateorganization,
+               n.created_at,
+               n.updated_at,
+               n.weight / (n.height / 100) ^ 2 as bmi
         from mch_newly_diagnosed n
                inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
