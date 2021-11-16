@@ -305,7 +305,7 @@ export const MarkTag = [
     children: [
       {
         value: '一一',
-        label: '功能定位',
+        label: '医疗功能定位',
         children: [
           {
             value: 'HIS00',
@@ -313,78 +313,48 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'a2',
-            label: '出院人数',
-            enabled: false
+            value: 'OutpatientIncreasesRate',
+            label: '门急诊人次增长率',
+            enabled: true
+          },
+          {
+            value: 'ThousandOutpatientVisits',
+            label: '每万人服务门诊当量',
+            enabled: true
+          },
+          {
+            value: 'DischargedVisits',
+            label: '出院人次数',
+            enabled: true
+          },
+          {
+            value: 'DischargedIncreasesRate',
+            label: '出院人次增长率',
+            enabled: true
+          },
+          {
+            value: 'ThousandInpatientVisits',
+            label: '每万人服务住院当量',
+            enabled: true
           },
           {
             value: 'a3',
-            label: '中医药服务',
+            label: '中医诊疗人次数',
             enabled: false
           },
           {
             value: 'a4',
-            label: '健康档案管理',
+            label: '中医诊疗人次占比',
             enabled: false
           },
           {
             value: 'a5',
-            label: '健康教育',
+            label: '中医医疗技术方法种类',
             enabled: false
           },
           {
             value: 'a6',
-            label: '预防接种',
-            enabled: false
-          },
-          {
-            value: 'a7',
-            label: '儿童健康管理',
-            enabled: false
-          },
-          {
-            value: 'a8',
-            label: '孕产妇健康管理',
-            enabled: false
-          },
-          {
-            value: 'a9',
-            label: '老年人健康管理',
-            enabled: false
-          },
-          {
-            value: 'a10',
-            label: '高血压患者健康管理',
-            enabled: false
-          },
-          {
-            value: 'a11',
-            label: '糖尿病患者健康管理',
-            enabled: false
-          },
-          {
-            value: 'a12',
-            label: '严重精神障碍患者管理',
-            enabled: false
-          },
-          {
-            value: 'a13',
-            label: '结核病患者健康管理',
-            enabled: false
-          },
-          {
-            value: 'a14',
-            label: '传染病及突发公共卫生事件报告和处理',
-            enabled: false
-          },
-          {
-            value: 'a15',
-            label: '卫生监督协管',
-            enabled: false
-          },
-          {
-            value: 'a16',
-            label: '签约服务情况',
+            label: '门诊中医非药物疗法诊疗人次占比',
             enabled: false
           }
         ]
@@ -394,9 +364,14 @@ export const MarkTag = [
         label: '服务效率',
         children: [
           {
-            value: 'a17',
+            value: 'PhysicianAverageOutpatientVisits',
             label: '医师日均担负诊疗人次',
-            enabled: false
+            enabled: true
+          },
+          {
+            value: 'StaffOutpatientVisits',
+            label: '职工年平均担负门急诊人次',
+            enabled: true
           },
           {
             value: 'a18',
@@ -421,11 +396,16 @@ export const MarkTag = [
         children: [
           {
             value: 'a21',
-            label: '基本药物使用情况',
+            label: '基本药物采购品种比例',
             enabled: false
           },
           {
             value: 'a22',
+            label: '基本药物采购金额比例',
+            enabled: false
+          },
+          {
+            value: 'a222',
             label: '抗菌药物处方比例',
             enabled: false
           },
@@ -436,12 +416,27 @@ export const MarkTag = [
           },
           {
             value: 'a24',
-            label: '院内感染管理',
+            label: '两联抗菌药物使用比例',
             enabled: false
           },
           {
             value: 'a25',
-            label: '医疗纠纷处理',
+            label: '中成药处方比例',
+            enabled: false
+          },
+          {
+            value: 'a251',
+            label: '中草药处方比例',
+            enabled: false
+          },
+          {
+            value: 'a252',
+            label: '非药物处方比例',
+            enabled: false
+          },
+          {
+            value: 'a253',
+            label: '不合理处方比例',
             enabled: false
           }
         ]
@@ -450,21 +445,31 @@ export const MarkTag = [
   },
   {
     value: '二',
-    label: '服务效率',
+    label: '综合管理',
     children: [
       {
         value: '二一',
         label: '经济管理',
         children: [
           {
-            value: 'a26',
-            label: '门诊次均费用',
-            enabled: false
+            value: 'OutpatientAverageIncomes',
+            label: '门急诊次均费用',
+            enabled: true
           },
           {
-            value: 'a27',
+            value: 'OutpatientAverageIncomesIncreasesRate',
+            label: '门急诊次均费用变化情况',
+            enabled: true
+          },
+          {
+            value: 'InpatientAverageIncomes',
             label: '住院次均费用',
-            enabled: false
+            enabled: true
+          },
+          {
+            value: 'InpatientAverageIncomesIncreasesRate',
+            label: '住院次均费用变化情况',
+            enabled: true
           },
           {
             value: 'a28',
@@ -485,38 +490,6 @@ export const MarkTag = [
             value: 'a31',
             label: '人员支出占业务支出比例',
             enabled: false
-          },
-          {
-            value: 'a32',
-            label: '财务制度',
-            enabled: false
-          }
-        ]
-      },
-      {
-        value: '二二',
-        label: '信息管理',
-        children: [
-          {
-            value: 'a33',
-            label: '信息管理系统应用',
-            enabled: false
-          }
-        ]
-      },
-      {
-        value: '二三',
-        label: '协同服务',
-        children: [
-          {
-            value: 'a34',
-            label: '双向转诊',
-            enabled: false
-          },
-          {
-            value: 'a35',
-            label: '一体化管理',
-            enabled: false
           }
         ]
       }
@@ -532,7 +505,7 @@ export const MarkTag = [
         children: [
           {
             value: 'GPsPerW',
-            label: '每万人口全科医生数',
+            label: '万人口全科医生数',
             enabled: true
           },
           {
@@ -569,34 +542,6 @@ export const MarkTag = [
         ]
       }
     ]
-  },
-  {
-    value: '四',
-    label: '满意度评价',
-    children: [
-      {
-        value: '四一',
-        label: '患者满意度',
-        children: [
-          {
-            value: 'a41',
-            label: '患者满意度',
-            enabled: false
-          }
-        ]
-      },
-      {
-        value: '四二',
-        label: '医务人员满意度',
-        children: [
-          {
-            value: 'a42',
-            label: '医务人员满意度',
-            enabled: false
-          }
-        ]
-      }
-    ]
   }
 ];
 export const MarkTagUsages = {
@@ -627,6 +572,50 @@ export const MarkTagUsages = {
   RatioOfTCM: {
     code: 'RatioOfTCM',
     name: '中医类别医师占比'
+  },
+  OutpatientIncreasesRate: {
+    code: 'OutpatientIncreasesRate',
+    name: '门急诊人次增长率'
+  },
+  ThousandOutpatientVisits: {
+    code: 'ThousandOutpatientVisits',
+    name: '每万人服务门诊当量'
+  },
+  DischargedVisits: {
+    code: 'DischargedVisits',
+    name: '出院人次数'
+  },
+  DischargedIncreasesRate: {
+    code: 'DischargedIncreasesRate',
+    name: '出院人次增长率'
+  },
+  ThousandInpatientVisits: {
+    code: 'ThousandInpatientVisits',
+    name: '每万人服务住院当量'
+  },
+  PhysicianAverageOutpatientVisits: {
+    code: 'PhysicianAverageOutpatientVisits',
+    name: '医师日均担负诊疗人次'
+  },
+  StaffOutpatientVisits: {
+    code: 'StaffOutpatientVisits',
+    name: '职工年平均担负门急诊人次'
+  },
+  OutpatientAverageIncomes: {
+    code: 'OutpatientAverageIncomes',
+    name: '门急诊次均费用'
+  },
+  OutpatientAverageIncomesIncreasesRate: {
+    code: 'OutpatientAverageIncomesIncreasesRate',
+    name: '门急诊次均费用变化情况'
+  },
+  InpatientAverageIncomes: {
+    code: 'InpatientAverageIncomes',
+    name: '住院次均费用'
+  },
+  InpatientAverageIncomesIncreasesRate: {
+    code: 'InpatientAverageIncomesIncreasesRate',
+    name: '住院次均费用变化情况'
   }
 };
 
