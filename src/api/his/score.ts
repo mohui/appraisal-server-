@@ -1371,6 +1371,45 @@ export default class HisScore {
           }
         }
 
+        // 病床使用率(实际占用总床日数 / 实际开放总床日数(病床总数 x 365) × 100%)
+        if (ruleIt.metric === MarkTagUsages.SickbedUsageRate.code) {
+          // 病床数量
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.Sickbed,
+            dayjs().year()
+          );
+
+          // 病床使用率
+          const numerator =
+            basicData > 0
+              ? metricModels['HIS.InpatientDays'] / (basicData * 365)
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,
