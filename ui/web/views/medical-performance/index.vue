@@ -402,7 +402,7 @@ export default {
               isLoading: this.$asyncComputed.oldSeverData.updating
             },
             {
-              name: '本月医疗收入',
+              name: '医疗收入',
               unit: this.moneySeverData > num ? '万元' : '元',
               number: Number(
                 (this.moneySeverData > num
@@ -415,7 +415,7 @@ export default {
               isLoading: this.$asyncComputed.moneySeverData.updating
             },
             {
-              name: '本月诊疗人次数',
+              name: '诊疗人次数',
               unit: this.visitsSeverData > num ? '万人次' : '人次',
               number: Number(
                 (this.visitsSeverData > num
