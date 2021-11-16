@@ -541,26 +541,6 @@ export async function workPointCalculation(
 
 // endregion
 
-// region 医疗绩效公卫数据打分
-async function getMark(hospital, year) {
-  const list = await originalDB.execute(
-    `select id, "HIS00"
-         from mark_his_hospital
-         where id = ? and year = ?
-    `,
-    hospital,
-    year
-  );
-  return (
-    list[0] ?? {
-      id: null,
-      HIS00: 0
-    }
-  );
-}
-
-// endregion
-
 // region 质量系数公共方法
 // 考核细则
 type CheckRuleModel = {
