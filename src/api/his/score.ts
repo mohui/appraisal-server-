@@ -695,8 +695,6 @@ export default class HisScore {
     const lastYear = dayjs(day)
       .subtract(1, 'year')
       .toDate();
-    // 获取指标的值
-    const mark = await getMark(hospital, dayjs(day).year());
 
     // 获取员工信息
     const staffList = await getStaffList(hospital, day);
@@ -795,15 +793,15 @@ export default class HisScore {
         let score = 0;
         // 根据指标获取指标数据
         if (ruleIt.metric === MarkTagUsages.HIS00.code) {
-          const numerator = mark.HIS00;
+          const numerator = metricModels['HIS.OutpatientVisits'];
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !mark?.HIS00) {
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
             // 指标分数
             score = ruleIt.score;
           }
