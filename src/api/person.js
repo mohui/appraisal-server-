@@ -11,9 +11,13 @@ import {getHospitals} from './group/common';
 async function dictionaryQuery(category) {
   // language=PostgreSQL
   return await originalDB.execute(
-    `select category, code, name
-       from ph_dict vc
-       where category = ?`,
+    `
+      select category,
+             code,
+             name
+      from ph_dict vc
+      where category = ?
+    `,
     category
   );
 }
@@ -56,44 +60,45 @@ export async function getPersonExcelBuffer(params) {
     year
   });
   let person = await originalDB.execute(
-    `select vp.id,
-                vp.name,
-                vp.idcardno    as "idCard",
-                vp.address     as "address",
-                vp.sex         as "gender",
-                vp.phone       as "phone",
-                mp."S03",
-                mp."S23",
-                mp."O00",
-                mp."O02",
-                mp."H00",
-                mp."H01",
-                mp."H02",
-                mp."D00",
-                mp."D01",
-                mp."D02",
-                mp."C01",
-                mp."C02",
-                mp."C03",
-                mp."C04",
-                mp."C05",
-                mp."C00",
-                mp."C06",
-                mp."C07",
-                mp."C08",
-                mp."C09",
-                mp."C10",
-                mp."C11",
-                mp."C13",
-                mp."C14",
-                mp."E00",
-                mc.name as "markName",
-                mc.content as "markContent",
-                area.name    as "hospitalName",
-                vp.operatetime as date
-         ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.id desc
-         `,
+    `
+      select vp.id,
+             vp.name,
+             vp.idcardno    as "idCard",
+             vp.address     as "address",
+             vp.sex         as "gender",
+             vp.phone       as "phone",
+             mp."S03",
+             mp."S23",
+             mp."O00",
+             mp."O02",
+             mp."H00",
+             mp."H01",
+             mp."H02",
+             mp."D00",
+             mp."D01",
+             mp."D02",
+             mp."C01",
+             mp."C02",
+             mp."C03",
+             mp."C04",
+             mp."C05",
+             mp."C00",
+             mp."C06",
+             mp."C07",
+             mp."C08",
+             mp."C09",
+             mp."C10",
+             mp."C11",
+             mp."C13",
+             mp."C14",
+             mp."E00",
+             mc.name        as "markName",
+             mc.content     as "markContent",
+             area.name      as "hospitalName",
+             vp.operatetime as date
+      ${sqlRenderResult[0]}
+      order by vp.operatetime desc, vp.id desc
+    `,
     ...sqlRenderResult[1]
   );
   person.forEach(p => {
@@ -330,11 +335,13 @@ export default class Person {
     else {
       const areaModels = await originalDB.execute(
         // language=PostgreSQL
-        `select code id,
-                  name
-           from area
-           where label in ('hospital.center', 'hospital.station')
-             and (code = ? or path like ?)`,
+        `
+          select code id,
+                 name
+          from area
+          where label in ('hospital.center', 'hospital.station')
+            and (code = ? or path like ?)
+        `,
         region,
         `%${region}%`
       );
@@ -362,49 +369,50 @@ export default class Person {
     )[0].count;
     // 0-6 岁为true 查看详情不一定有数据 国卫和妇幼的数据是两套数据
     const person = await originalDB.execute(
-      `select vp.id,
-                vp.name,
-                vp.idcardno    as "idCard",
-                vp.address     as "address",
-                vp.sex         as "gender",
-                vp.phone       as "phone",
-                mp."S03",
-                mp."S23",
-                mp."O00",
-                mp."O02",
-                mp."H00",
-                mp."H01",
-                mp."H02",
-                mp."D00",
-                mp."D01",
-                mp."D02",
-                mp."MCH01",
-                mp."MCH02",
-                mp."C01",
-                mp."C02",
-                mp."C03",
-                mp."C04",
-                mp."C05",
-                mp."C00",
-                mp."C06",
-                mp."C07",
-                mp."C08",
-                mp."C09",
-                mp."C10",
-                mp."C11",
-                mp."C13",
-                mp."C14",
-                mp."CH01",
-                mp."CO01",
-                mp."E00",
-                mp.ai_2dm,
-                mp.ai_hua,
-                mp.year,
-                area.name    as "hospitalName",
-                vp.operatetime as date
-         ${sqlRenderResult[0]}
-         order by vp.operatetime desc, vp.id desc
-         limit ? offset ?`,
+      `
+        select vp.id,
+               vp.name,
+               vp.idcardno    as "idCard",
+               vp.address     as "address",
+               vp.sex         as "gender",
+               vp.phone       as "phone",
+               mp."S03",
+               mp."S23",
+               mp."O00",
+               mp."O02",
+               mp."H00",
+               mp."H01",
+               mp."H02",
+               mp."D00",
+               mp."D01",
+               mp."D02",
+               mp."MCH01",
+               mp."MCH02",
+               mp."C01",
+               mp."C02",
+               mp."C03",
+               mp."C04",
+               mp."C05",
+               mp."C00",
+               mp."C06",
+               mp."C07",
+               mp."C08",
+               mp."C09",
+               mp."C10",
+               mp."C11",
+               mp."C13",
+               mp."C14",
+               mp."CH01",
+               mp."CO01",
+               mp."E00",
+               mp.ai_2dm,
+               mp.ai_hua,
+               mp.year,
+               area.name      as "hospitalName",
+               vp.operatetime as date
+        ${sqlRenderResult[0]}
+        order by vp.operatetime desc, vp.id desc
+        limit ? offset ?`,
       ...sqlRenderResult[1],
       limit,
       offset
@@ -436,9 +444,11 @@ export default class Person {
       // 获取名称
       // language=PostgreSQL
       const areaModel = await originalDB.execute(
-        `select name
-           from area
-           where code = ?`,
+        `
+          select name
+          from area
+          where code = ?
+        `,
         params.region
       );
       const fileName = `${areaModel[0]?.name}人员档案表格`;
@@ -612,7 +622,12 @@ export default class Person {
    */
   async hypertensions(id) {
     const followCodeNames = await originalDB.execute(
-      `select dict.name,dict.code from ph_dict dict where dict.category = ?`,
+      // language=PostgreSQL
+      `
+        select dict.name, dict.code
+        from ph_dict dict
+        where dict.category = ?
+      `,
       '7010104'
     );
     return (
@@ -707,9 +722,11 @@ export default class Person {
     const mentalCodeNames = (
       await originalDB.execute(
         // language=PostgreSQL
-        `select code, name
-           from ph_dict vc
-           where category = ?;`,
+        `
+          select code, name
+          from ph_dict vc
+          where category = ?
+        `,
         '331'
       )
     ).map(item => ({
@@ -719,78 +736,80 @@ export default class Person {
 
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select vh.id,
-                vh.hypertensioncardid   as "cardId",
-                vh.Name                 as "name",
-                vc_sex.name             as "gender",
-                vh.age                  as "age",
-                vh.ContactPhone         as "phone",
-                vh.SerialNum            as "No",
-                vh.FollowUpDate         as "followDate",
-                vc_follow.name          as "followWay",
-                vh.PresentSymptoms      as "symptoms",
-                vh.SystolicPressure     as "systolicPressure",
-                vh.AssertPressure       as "assertPressure",
-                vh.Weight               as "weight",
-                vh.Weight_Suggest       as "weightSuggest",
-                vh.Stature              as "stature",
-                vh.BMI                  as "BMI",
-                vh.BMIck                as "BMISuggest",
-                vh.HeartRate            as "heartRate",
-                vh.Other_Tz             as "other",
-                vh.DaySmoke             as "daySmoke",
-                vh.DaySmoke_Suggest     as "daySmokeSuggest",
-                vh.DayDrink             as "dayDrink",
-                vh.DayDrink_Suggest     as "dayDrinkSuggest",
-                vh.Sport_Week           as "exerciseWeek",
-                vh.Sport_Minute         as "exerciseMinute",
-                vh.Sport_Week_Suggest   as "exerciseWeekSuggest",
-                vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
-                vc_salt.name            as "saltInTake",
-                vc_salt_suggest.name    as "saltInTakeSuggest",
-                vh.MentalSet            as "mental",
-                vc_doctor_s.name        as "doctorStatue",
-                vh.Fzjc                 as "assistExam",
-                vc_ma.name              as "medicationAdherence",
-                vh.AdverseEffect        as "adverseReactions",
-                vh.AdverseEffectOther   as "adverseReactionsExplain",
-                vc_vc.name              as "visitClass",
-                vh.DrugName1            as "drugName1",
-                vh.Usage_Day1           as "dailyTimesDrugName1",
-                vh.Usage_Time1          as "usageDrugName1",
-                vh.DrugName2            as "drugName2",
-                vh.Usage_Day2           as "dailyTimesDrugName2",
-                vh.Usage_Time2          as "usageDrugName2",
-                vh.DrugName3            as "drugName3",
-                vh.Usage_Day3           as "dailyTimesDrugName3",
-                vh.Usage_Time3          as "usageDrugName3",
-                concat(vh.DrugName4, vh.DrugName5, vh.DrugName6, vh.DrugName7,
-                       vh.DrugName8)    as "otherDrugName",
-                concat(vh.Usage_Day4, vh.Usage_Day5, vh.Usage_Day6, vh.Usage_Day7,
-                       vh.Usage_Day8)   as "otherDailyTimesDrugName",
-                concat(vh.Usage_Time4, vh.Usage_Time5, vh.Usage_Time6, vh.Usage_Time7,
-                       vh.Usage_Time8)  as "otherUsageDrugName",
-                vh.Remark               as "remark",
-                vh.Referral             as "referral",
-                vh.ReferralReason       as "referralReason",
-                vh.ReferralAgencies     as "referralAgencies",
-                vh.NextVisitDate        as "nextVisitDate",
-                vh.OperateOrganization  as "hospital",
-                vh.OperateTime          as "updateAt",
-                vh.Doctor               as "doctor"
-         from ph_hypertension_visit vh
-                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vh.sex
-                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vh.FollowUpWay
-                left join ph_dict vc_salt on vc_salt.category = '7010112' and vc_salt.code = vh.Salt_Situation
-                left join ph_dict vc_salt_suggest
-                          on vc_salt_suggest.category = '7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
-                left join ph_dict vc_mental
-                          on vc_mental.category = '331' and vc_mental.code = vh.MentalSet --TODO:字典数据里的code不带0, vh记录的带0
-                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vh.DoctorStatue
-                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vh.MedicationAdherence
-                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vh.VisitClass
-         where vh.id = ?
-           and vh.isdelete = false`,
+      `
+        select vh.id,
+               vh.hypertensioncardid   as "cardId",
+               vh.Name                 as "name",
+               vc_sex.name             as "gender",
+               vh.age                  as "age",
+               vh.ContactPhone         as "phone",
+               vh.SerialNum            as "No",
+               vh.FollowUpDate         as "followDate",
+               vc_follow.name          as "followWay",
+               vh.PresentSymptoms      as "symptoms",
+               vh.SystolicPressure     as "systolicPressure",
+               vh.AssertPressure       as "assertPressure",
+               vh.Weight               as "weight",
+               vh.Weight_Suggest       as "weightSuggest",
+               vh.Stature              as "stature",
+               vh.BMI                  as "BMI",
+               vh.BMIck                as "BMISuggest",
+               vh.HeartRate            as "heartRate",
+               vh.Other_Tz             as "other",
+               vh.DaySmoke             as "daySmoke",
+               vh.DaySmoke_Suggest     as "daySmokeSuggest",
+               vh.DayDrink             as "dayDrink",
+               vh.DayDrink_Suggest     as "dayDrinkSuggest",
+               vh.Sport_Week           as "exerciseWeek",
+               vh.Sport_Minute         as "exerciseMinute",
+               vh.Sport_Week_Suggest   as "exerciseWeekSuggest",
+               vh.Sport_Minute_Suggest as "exerciseMinuteSuggest",
+               vc_salt.name            as "saltInTake",
+               vc_salt_suggest.name    as "saltInTakeSuggest",
+               vh.MentalSet            as "mental",
+               vc_doctor_s.name        as "doctorStatue",
+               vh.Fzjc                 as "assistExam",
+               vc_ma.name              as "medicationAdherence",
+               vh.AdverseEffect        as "adverseReactions",
+               vh.AdverseEffectOther   as "adverseReactionsExplain",
+               vc_vc.name              as "visitClass",
+               vh.DrugName1            as "drugName1",
+               vh.Usage_Day1           as "dailyTimesDrugName1",
+               vh.Usage_Time1          as "usageDrugName1",
+               vh.DrugName2            as "drugName2",
+               vh.Usage_Day2           as "dailyTimesDrugName2",
+               vh.Usage_Time2          as "usageDrugName2",
+               vh.DrugName3            as "drugName3",
+               vh.Usage_Day3           as "dailyTimesDrugName3",
+               vh.Usage_Time3          as "usageDrugName3",
+               concat(vh.DrugName4, vh.DrugName5, vh.DrugName6, vh.DrugName7,
+                      vh.DrugName8)    as "otherDrugName",
+               concat(vh.Usage_Day4, vh.Usage_Day5, vh.Usage_Day6, vh.Usage_Day7,
+                      vh.Usage_Day8)   as "otherDailyTimesDrugName",
+               concat(vh.Usage_Time4, vh.Usage_Time5, vh.Usage_Time6, vh.Usage_Time7,
+                      vh.Usage_Time8)  as "otherUsageDrugName",
+               vh.Remark               as "remark",
+               vh.Referral             as "referral",
+               vh.ReferralReason       as "referralReason",
+               vh.ReferralAgencies     as "referralAgencies",
+               vh.NextVisitDate        as "nextVisitDate",
+               vh.OperateOrganization  as "hospital",
+               vh.OperateTime          as "updateAt",
+               vh.Doctor               as "doctor"
+        from ph_hypertension_visit vh
+               left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vh.sex
+               left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vh.FollowUpWay
+               left join ph_dict vc_salt on vc_salt.category = '7010112' and vc_salt.code = vh.Salt_Situation
+               left join ph_dict vc_salt_suggest
+                         on vc_salt_suggest.category = '7010112' and vc_salt_suggest.code = vh.Salt_Situation_Suggest
+               left join ph_dict vc_mental
+                         on vc_mental.category = '331' and vc_mental.code = vh.MentalSet --TODO:字典数据里的code不带0, vh记录的带0
+               left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vh.DoctorStatue
+               left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vh.MedicationAdherence
+               left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vh.VisitClass
+        where vh.id = ?
+          and vh.isdelete = false
+      `,
       id
     );
     return result.map(r => ({
@@ -814,12 +833,17 @@ export default class Person {
    */
   async diabetes(id) {
     const followCodeNames = await originalDB.execute(
-      `select vc.name,vc.code from ph_dict vc where vc.category = ?`,
+      // language=PostgreSQL
+      `
+        select vc.name, vc.code
+        from ph_dict vc
+        where vc.category = ?
+      `,
       '7010104'
     );
-    // language=PostgreSQL
     return (
       await originalDB.execute(
+        // language=PostgreSQL
         `
           select vdv.id,
                  vdv.followupdate        as "followDate",
@@ -913,7 +937,12 @@ export default class Person {
   async diabetesDetail(id) {
     const mentalCodeNames = (
       await originalDB.execute(
-        `select code, name from ph_dict vc where category = ?;`,
+        // language=PostgreSQL
+        `
+          select code, name
+          from ph_dict vc
+          where category = ?
+        `,
         '331'
       )
     ).map(item => ({
@@ -923,83 +952,85 @@ export default class Person {
 
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select vd.id,
-                vd.name                   as "name",
-                vc_sex.name               as "gender",
-                vd.age                    as "age",
-                vd.idCardNo               as "idCard",
-                vd.serialNum              as "No",
-                vd.followUpDate           as "followDate",
-                vc_follow.name            as "followWay",
-                vd.presentSymptoms        as "symptoms",
-                vd.SystolicPressure       as "systolicPressure",
-                vd.AssertPressure         as "assertPressure",
-                vd.Weight                 as "weight",
-                vd.Weight_Suggest         as "weightSuggest",
-                vd.Stature                as "stature",
-                vd.BMI                    as "BMI",
-                vd.BMI_Suggest            as "BMISuggest",
-                vc_arterial.name          as "arterial",
-                vd.Other_Tz               as "other",
-                vd.DaySmoke               as "daySmoke",
-                vd.DaySmoke_Suggest       as "daySmokeSuggest",
-                vd.DayDrink               as "dayDrink",
-                vd.DayDrink_Suggest       as "dayDrinkSuggest",
-                vd.Sport_Week             as "exerciseWeek",
-                vd.Sport_Minute           as "exerciseMinute",
-                vd.Sport_Week_Suggest     as "exerciseWeekSuggest",
-                vd.Sport_Minute_Suggest   as "exerciseMinuteSuggest",
-                vd.Principal_Food         as "principalFood",
-                vd.Principal_Food_Suggest as "principalFoodSuggest",
-                vd.MentalSet              as "mental",
-                vc_doctor_s.name          as "doctorStatue",
-                vd.FastingGlucose         as "fastingGlucose",
-                vd.PostprandialGlucose    as "postprandialGlucose",
-                vd.Hemoglobin             as "hemoglobin",
-                vc_lb.name                as "lowBloodReaction",
-                vd.CheckTime              as "checkTime",
-                vd.MedicationAdherence    as "medicationAdherence",
-                vd.Blfy                   as "adverseReactions",
-                vd.BlfyOther              as "adverseReactionsExplain",
-                vc_vc.name                as "visitClass",
-                vd.DrugName1              as "drugName1",
-                vd.Usage_Day1             as "dailyTimesDrugName1",
-                vd.Usage_Time1            as "usageDrugName1",
-                vd.DrugName2              as "drugName2",
-                vd.Usage_Day2             as "dailyTimesDrugName2",
-                vd.Usage_Time2            as "usageDrugName2",
-                vd.DrugName3              as "drugName3",
-                vd.Usage_Day3             as "dailyTimesDrugName3",
-                vd.Usage_Time3            as "usageDrugName3",
-                concat(vd.DrugName4, vd.DrugName5, vd.DrugName6, vd.DrugName7,
-                       vd.DrugName8)      as "otherDrugName",
-                concat(vd.Usage_Day4, vd.Usage_Day5, vd.Usage_Day6, vd.Usage_Day7,
-                       vd.Usage_Day8)     as "otherDailyTimesDrugName",
-                concat(vd.Usage_Time4, vd.Usage_Time5, vd.Usage_Time6, vd.Usage_Time7,
-                       vd.Usage_Time8)    as "otherUsageDrugName",
-                vd.Insulin1               as "insulin1",
-                vd.InsulinUsing1          as "usageInsulin1",
-                vd.Insulin2               as "insulin2",
-                vd.InsulinUsing2          as "usageInsulin2",
-                vd.Remark                 as "remark",
-                vd.Referral               as "referral",
-                vd.ReferralReason         as "referralReason",
-                vd.ReferralAgencies       as "referralAgencies",
-                vd.NextVisitDate          as "nextVisitDate",
-                vd.OperateOrganization    as "hospital",
-                vd.OperateTime            as "updateAt",
-                vd.Doctor                 as "doctor"
-         from ph_diabetes_visit vd
-                left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vd.sex
-                left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
-                left join ph_dict vc_mental on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
-                left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
-                left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
-                left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
-                left join ph_dict vc_arterial on vc_arterial.category = '7152' and vc_arterial.code = vd.arterial
-                left join ph_dict vc_lb on vc_lb.category = '7020101' and vc_lb.code = vd.LowBlood
-         where id = ?
-           and vd.isdelete = false`,
+      `
+        select vd.id,
+               vd.name                   as "name",
+               vc_sex.name               as "gender",
+               vd.age                    as "age",
+               vd.idCardNo               as "idCard",
+               vd.serialNum              as "No",
+               vd.followUpDate           as "followDate",
+               vc_follow.name            as "followWay",
+               vd.presentSymptoms        as "symptoms",
+               vd.SystolicPressure       as "systolicPressure",
+               vd.AssertPressure         as "assertPressure",
+               vd.Weight                 as "weight",
+               vd.Weight_Suggest         as "weightSuggest",
+               vd.Stature                as "stature",
+               vd.BMI                    as "BMI",
+               vd.BMI_Suggest            as "BMISuggest",
+               vc_arterial.name          as "arterial",
+               vd.Other_Tz               as "other",
+               vd.DaySmoke               as "daySmoke",
+               vd.DaySmoke_Suggest       as "daySmokeSuggest",
+               vd.DayDrink               as "dayDrink",
+               vd.DayDrink_Suggest       as "dayDrinkSuggest",
+               vd.Sport_Week             as "exerciseWeek",
+               vd.Sport_Minute           as "exerciseMinute",
+               vd.Sport_Week_Suggest     as "exerciseWeekSuggest",
+               vd.Sport_Minute_Suggest   as "exerciseMinuteSuggest",
+               vd.Principal_Food         as "principalFood",
+               vd.Principal_Food_Suggest as "principalFoodSuggest",
+               vd.MentalSet              as "mental",
+               vc_doctor_s.name          as "doctorStatue",
+               vd.FastingGlucose         as "fastingGlucose",
+               vd.PostprandialGlucose    as "postprandialGlucose",
+               vd.Hemoglobin             as "hemoglobin",
+               vc_lb.name                as "lowBloodReaction",
+               vd.CheckTime              as "checkTime",
+               vd.MedicationAdherence    as "medicationAdherence",
+               vd.Blfy                   as "adverseReactions",
+               vd.BlfyOther              as "adverseReactionsExplain",
+               vc_vc.name                as "visitClass",
+               vd.DrugName1              as "drugName1",
+               vd.Usage_Day1             as "dailyTimesDrugName1",
+               vd.Usage_Time1            as "usageDrugName1",
+               vd.DrugName2              as "drugName2",
+               vd.Usage_Day2             as "dailyTimesDrugName2",
+               vd.Usage_Time2            as "usageDrugName2",
+               vd.DrugName3              as "drugName3",
+               vd.Usage_Day3             as "dailyTimesDrugName3",
+               vd.Usage_Time3            as "usageDrugName3",
+               concat(vd.DrugName4, vd.DrugName5, vd.DrugName6, vd.DrugName7,
+                      vd.DrugName8)      as "otherDrugName",
+               concat(vd.Usage_Day4, vd.Usage_Day5, vd.Usage_Day6, vd.Usage_Day7,
+                      vd.Usage_Day8)     as "otherDailyTimesDrugName",
+               concat(vd.Usage_Time4, vd.Usage_Time5, vd.Usage_Time6, vd.Usage_Time7,
+                      vd.Usage_Time8)    as "otherUsageDrugName",
+               vd.Insulin1               as "insulin1",
+               vd.InsulinUsing1          as "usageInsulin1",
+               vd.Insulin2               as "insulin2",
+               vd.InsulinUsing2          as "usageInsulin2",
+               vd.Remark                 as "remark",
+               vd.Referral               as "referral",
+               vd.ReferralReason         as "referralReason",
+               vd.ReferralAgencies       as "referralAgencies",
+               vd.NextVisitDate          as "nextVisitDate",
+               vd.OperateOrganization    as "hospital",
+               vd.OperateTime            as "updateAt",
+               vd.Doctor                 as "doctor"
+        from ph_diabetes_visit vd
+               left join ph_dict vc_sex on vc_sex.category = '001' and vc_sex.code = vd.sex
+               left join ph_dict vc_follow on vc_follow.category = '7010104' and vc_follow.code = vd.FollowUpWay
+               left join ph_dict vc_mental on vc_mental.category = '331' and vc_mental.code = vd.MentalSet
+               left join ph_dict vc_doctor_s on vc_doctor_s.category = '332' and vc_doctor_s.code = vd.DoctorStatue
+               left join ph_dict vc_ma on vc_ma.category = '181' and vc_ma.code = vd.MedicationAdherence
+               left join ph_dict vc_vc on vc_vc.category = '7010106' and vc_vc.code = vd.VisitClass
+               left join ph_dict vc_arterial on vc_arterial.category = '7152' and vc_arterial.code = vd.arterial
+               left join ph_dict vc_lb on vc_lb.category = '7020101' and vc_lb.code = vd.LowBlood
+        where id = ?
+          and vd.isdelete = false
+      `,
       id
     );
     return result.map(r => ({
@@ -1679,9 +1710,11 @@ export default class Person {
     // language=PostgreSQL
     const idCardNo = (
       await originalDB.execute(
-        `select idcardno
-           from ph_person
-           where id = ?`,
+        `
+          select idcardno
+          from ph_person
+          where id = ?
+        `,
         id
       )
     )[0]?.idcardno;
@@ -1690,10 +1723,12 @@ export default class Person {
     // 通过身份证号查找产后访视记录表，拿到产后访视code（visitCode）
     // language=PostgreSQL
     const maternalVisits = await originalDB.execute(
-      `select id
-         from mch_maternal_visit
-         where maternalidcardno = ?
-         order by visitdate`,
+      `
+        select id
+        from mch_maternal_visit
+        where maternalidcardno = ?
+        order by visitdate
+      `,
       idCardNo
     );
 
@@ -1702,37 +1737,39 @@ export default class Person {
     let newbornVisits = [];
     for (const i of maternalVisits) {
       const newbornVisit = await originalDB.execute(
-        `select id as visitno
-                , newbornchildno
-                , mothervisitno
-                , newbornname
-                , newbornbirthday
-                , feedingpatterns
-                , temperaturedegrees
-                , jaundice
-                , doorbrine
-                , eyes
-                , eyesinfection
-                , limbs
-                , ear
-                , earinfection
-                , nose
-                , noseinfection
-                , skin
-                , oral
-                , hip
-                , cardiopulmonary
-                , umbilicalcord
-                , treatmentviews
-                , visitdate
-                , doctor
-                , operatetime
-                , operatorid
-                , operateorganization
-                , created_at
-                , updated_at
-           from mch_new_born_visit
-           where mothervisitno = ?`,
+        `
+          select id as visitno,
+                 newbornchildno,
+                 mothervisitno,
+                 newbornname,
+                 newbornbirthday,
+                 feedingpatterns,
+                 temperaturedegrees,
+                 jaundice,
+                 doorbrine,
+                 eyes,
+                 eyesinfection,
+                 limbs,
+                 ear,
+                 earinfection,
+                 nose,
+                 noseinfection,
+                 skin,
+                 oral,
+                 hip,
+                 cardiopulmonary,
+                 umbilicalcord,
+                 treatmentviews,
+                 visitdate,
+                 doctor,
+                 operatetime,
+                 operatorid,
+                 operateorganization,
+                 created_at,
+                 updated_at
+          from mch_new_born_visit
+          where mothervisitno = ?
+        `,
         i.id
       );
       if (newbornVisit.length > 0) newbornVisits.push(newbornVisit);
@@ -1755,46 +1792,48 @@ export default class Person {
       // 儿童保健卡主键 -> 儿童体检表
       const childCheck = await originalDB.execute(
         // language=PostgreSQL
-        `select cc.id as medicalcode
-                , cc.childhealthbooksno
-                , cc.chronologicalage
-                , cc.checkdate
-                , cc.weight
-                , cc.weightage
-                , cc.height
-                , cc.heightage
-                , cc.headcircumference
-                , cc.face
-                , cc.skin
-                , cc.fontanelle
-                , cc.backfontanelle
-                , cc.eyes
-                , cc.ear
-                , cc.lefthearing
-                , cc.righthearing
-                , cc.oral
-                , cc.ricketsseems
-                , cc.genitaliainfo
-                , cc.genitalia
-                , cc.hemoglobin
-                , cc.fewteeth
-                , cc.signsrickets
-                , cc.outdoortime
-                , cc.guidancetreatment
-                , cc.reservationsdate
-                , cc.checkdoctor
-                , cc.doctor
-                , cc.operatetime
-                , cc.operatorid
-                , cc.operateorganization
-                , cc.created_at
-                , cc.updated_at
-                , cb.name  childname
-                , cb.birth birthday
-           from mch_child_check cc
-                  inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-           where cc.childhealthbooksno = ?
-           order by checkdate`,
+        `
+          select cc.id as medicalcode,
+                 cc.childhealthbooksno,
+                 cc.chronologicalage,
+                 cc.checkdate,
+                 cc.weight,
+                 cc.weightage,
+                 cc.height,
+                 cc.heightage,
+                 cc.headcircumference,
+                 cc.face,
+                 cc.skin,
+                 cc.fontanelle,
+                 cc.backfontanelle,
+                 cc.eyes,
+                 cc.ear,
+                 cc.lefthearing,
+                 cc.righthearing,
+                 cc.oral,
+                 cc.ricketsseems,
+                 cc.genitaliainfo,
+                 cc.genitalia,
+                 cc.hemoglobin,
+                 cc.fewteeth,
+                 cc.signsrickets,
+                 cc.outdoortime,
+                 cc.guidancetreatment,
+                 cc.reservationsdate,
+                 cc.checkdoctor,
+                 cc.doctor,
+                 cc.operatetime,
+                 cc.operatorid,
+                 cc.operateorganization,
+                 cc.created_at,
+                 cc.updated_at,
+                 cb.name  childname,
+                 cb.birth birthday
+          from mch_child_check cc
+                 inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+          where cc.childhealthbooksno = ?
+          order by checkdate
+        `,
         childHealthBookNo
       );
       if (childCheck.length > 0) childChecks.push(childCheck);
@@ -1823,37 +1862,39 @@ export default class Person {
   async newbornVisitDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select id as visitno
-              , newbornchildno
-              , mothervisitno
-              , newbornname
-              , newbornbirthday
-              , feedingpatterns
-              , temperaturedegrees
-              , jaundice
-              , doorbrine
-              , eyes
-              , eyesinfection
-              , limbs
-              , ear
-              , earinfection
-              , nose
-              , noseinfection
-              , skin
-              , oral
-              , hip
-              , cardiopulmonary
-              , umbilicalcord
-              , treatmentviews
-              , visitdate
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_new_born_visit
-         where id = ?`,
+      `
+        select id as visitno,
+               newbornchildno,
+               mothervisitno,
+               newbornname,
+               newbornbirthday,
+               feedingpatterns,
+               temperaturedegrees,
+               jaundice,
+               doorbrine,
+               eyes,
+               eyesinfection,
+               limbs,
+               ear,
+               earinfection,
+               nose,
+               noseinfection,
+               skin,
+               oral,
+               hip,
+               cardiopulmonary,
+               umbilicalcord,
+               treatmentviews,
+               visitdate,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_new_born_visit
+        where id = ?
+      `,
       code
     );
     return result[0];
@@ -1867,44 +1908,46 @@ export default class Person {
   async childCheckDetail(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select cc.id as medicalcode
-              , cc.childhealthbooksno
-              , cc.chronologicalage
-              , cc.checkdate
-              , cc.weight
-              , cc.weightage
-              , cc.height
-              , cc.heightage
-              , cc.headcircumference
-              , cc.face
-              , cc.skin
-              , cc.fontanelle
-              , cc.backfontanelle
-              , cc.eyes
-              , cc.ear
-              , cc.lefthearing
-              , cc.righthearing
-              , cc.oral
-              , cc.ricketsseems
-              , cc.genitaliainfo
-              , cc.genitalia
-              , cc.hemoglobin
-              , cc.fewteeth
-              , cc.signsrickets
-              , cc.outdoortime
-              , cc.guidancetreatment
-              , cc.reservationsdate
-              , cc.checkdoctor
-              , cc.doctor
-              , cc.operatetime
-              , cc.operatorid
-              , cc.operateorganization
-              , cc.created_at
-              , cc.updated_at
-              , cb.name  childname
-         from mch_child_check cc
-                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-         where cc.id = ?`,
+      `
+        select cc.id as medicalcode,
+               cc.childhealthbooksno,
+               cc.chronologicalage,
+               cc.checkdate,
+               cc.weight,
+               cc.weightage,
+               cc.height,
+               cc.heightage,
+               cc.headcircumference,
+               cc.face,
+               cc.skin,
+               cc.fontanelle,
+               cc.backfontanelle,
+               cc.eyes,
+               cc.ear,
+               cc.lefthearing,
+               cc.righthearing,
+               cc.oral,
+               cc.ricketsseems,
+               cc.genitaliainfo,
+               cc.genitalia,
+               cc.hemoglobin,
+               cc.fewteeth,
+               cc.signsrickets,
+               cc.outdoortime,
+               cc.guidancetreatment,
+               cc.reservationsdate,
+               cc.checkdoctor,
+               cc.doctor,
+               cc.operatetime,
+               cc.operatorid,
+               cc.operateorganization,
+               cc.created_at,
+               cc.updated_at,
+               cb.name  childname
+        from mch_child_check cc
+               inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+        where cc.id = ?
+      `,
       code
     );
     return result[0];
@@ -1919,15 +1962,17 @@ export default class Person {
     // 儿童保健卡主键 -> 儿童体检表
     const childCheck = await originalDB.execute(
       // language=PostgreSQL
-      `select cc.id   as medicalcode
-              , cc.chronologicalage
-              , cc.weight
-              , cc.height
-              , cb.name as childname
-         from mch_child_check cc
-                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
-         where cc.childhealthbooksno = ?
-         order by chronologicalage`,
+      `
+        select cc.id   as medicalcode,
+               cc.chronologicalage,
+               cc.weight,
+               cc.height,
+               cb.name as childname
+        from mch_child_check cc
+               inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
+        where cc.childhealthbooksno = ?
+        order by chronologicalage
+      `,
       childHealthBookNo
     );
     return childCheck;
@@ -2181,9 +2226,9 @@ export default class Person {
       maternalData.push(maternalVisits);
 
       // 产后42天健康检查记录表
-      // language=PostgreSQL
       // 按孕册表匹配
       const bookExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as examineno,
                  pregnancybooksid as newlydiagnosedcode,
@@ -2210,6 +2255,7 @@ export default class Person {
         pregnancyBook.id
       );
       const maternalExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select a.id               as examineno,
                  a.pregnancybooksid as newlydiagnosedcode,
@@ -2262,6 +2308,7 @@ export default class Person {
     );
     //单独的产后访视记录
     const deliveryList1 = await originalDB.execute(
+      // language=PostgreSQL
       `
         select distinct a.MaternityCode as id
         from mch_maternal_visit a
@@ -2276,6 +2323,7 @@ export default class Person {
     );
     //单独的产后42天记录
     const deliveryList2 = await originalDB.execute(
+      // language=PostgreSQL
       `
         select distinct a.MaternityCode as id
         from mch_examine_42th_day a
@@ -2306,6 +2354,7 @@ export default class Person {
         }
       ];
       const maternalVisitRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as visitcode,
                  pregnancybooksid as newlydiagnosedcode,
@@ -2338,6 +2387,7 @@ export default class Person {
       maternalVisits.records = maternalVisitRecords;
       deliveryData.push(maternalVisits);
       const maternalExamine42thDayRecords = await originalDB.execute(
+        // language=PostgreSQL
         `
           select id               as examineno,
                  pregnancybooksid as newlydiagnosedcode,
@@ -2383,71 +2433,71 @@ export default class Person {
     // language=PostgreSQL
     const newlyDiagnosed = await originalDB.execute(
       `
-        select b.fathername
-             , b.fatherage
-             , n.id                            as newlydiagnosedcode
-             , n.pregnancybooksid              as pre_newlydiagnosedcode
-             , n.name
-             , n.newlydiagnoseddate
-             , n.gestationalweeks
-             , n.gestationalageday
-             , n.age
-             , n.parity
-             , n.productionmeeting
-             , n.vaginaldelivery
-             , n.cesareansection
-             , n.lastmenstrual
-             , n.birth
-             , n.pasthistory
-             , n.familyhistory
-             , n.womansurgeryhistory
-             , n.spontaneousabortiontimes
-             , n.abortiontimes
-             , n.stillfetaltimes
-             , n.stillbirthtimes
-             , n.height
-             , n.weight
-             , n.bodymassindex
-             , n.systolicpressure
-             , n.assertpressure
-             , n.heart
-             , n.lung
-             , n.deputymilkgenital
-             , n.vagina
-             , n.cervical
-             , n.attachment
-             , n.hemoglobin
-             , n.interleukin
-             , n.plateletcount
-             , n.urinaryprotein
-             , n.urine
-             , n.ketone
-             , n.urineoccultblood
-             , n.bloodtype
-             , n.sgpt_fastingplasmaglucose
-             , n.sgpt_alt
-             , n.sgpt_ast
-             , n.sgpt_alb
-             , n.sgpt_tbili
-             , n.intoxicated
-             , n.urea
-             , n.vaginasecrete
-             , n.hbsagin
-             , n.hbsab
-             , n.hbeag
-             , n.kanghbe
-             , n.kanghbc
-             , n.rprscreen
-             , n.hivscreening
-             , n.bultrasonography
-             , n.nextcaredate
-             , n.doctor
-             , n.operatetime
-             , n.operatorid
-             , n.operateorganization
-             , n.created_at
-             , n.updated_at
-             , n.weight / (n.height / 100) ^ 2 as bmi
+        select b.fathername,
+               b.fatherage,
+               n.id                            as newlydiagnosedcode,
+               n.pregnancybooksid              as pre_newlydiagnosedcode,
+               n.name,
+               n.newlydiagnoseddate,
+               n.gestationalweeks,
+               n.gestationalageday,
+               n.age,
+               n.parity,
+               n.productionmeeting,
+               n.vaginaldelivery,
+               n.cesareansection,
+               n.lastmenstrual,
+               n.birth,
+               n.pasthistory,
+               n.familyhistory,
+               n.womansurgeryhistory,
+               n.spontaneousabortiontimes,
+               n.abortiontimes,
+               n.stillfetaltimes,
+               n.stillbirthtimes,
+               n.height,
+               n.weight,
+               n.bodymassindex,
+               n.systolicpressure,
+               n.assertpressure,
+               n.heart,
+               n.lung,
+               n.deputymilkgenital,
+               n.vagina,
+               n.cervical,
+               n.attachment,
+               n.hemoglobin,
+               n.interleukin,
+               n.plateletcount,
+               n.urinaryprotein,
+               n.urine,
+               n.ketone,
+               n.urineoccultblood,
+               n.bloodtype,
+               n.sgpt_fastingplasmaglucose,
+               n.sgpt_alt,
+               n.sgpt_ast,
+               n.sgpt_alb,
+               n.sgpt_tbili,
+               n.intoxicated,
+               n.urea,
+               n.vaginasecrete,
+               n.hbsagin,
+               n.hbsab,
+               n.hbeag,
+               n.kanghbe,
+               n.kanghbc,
+               n.rprscreen,
+               n.hivscreening,
+               n.bultrasonography,
+               n.nextcaredate,
+               n.doctor,
+               n.operatetime,
+               n.operatorid,
+               n.operateorganization,
+               n.created_at,
+               n.updated_at,
+               n.weight / (n.height / 100) ^ 2 as bmi
         from mch_newly_diagnosed n
                inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
@@ -2465,34 +2515,35 @@ export default class Person {
     // 第2~5次产前随访服务信息表
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select b.name
-            , card.id               as prenatalcarecode
-            , card.pregnancybooksid as newlydiagnosedcode
-            , card.checkdate
-            , card.diseasehistory
-            , card.chiefcomplaint
-            , card.weight
-            , card.uterinehigh
-            , card.abdominalcircumference
-            , card.fetalposition
-            , card.fetalheartrate
-            , card.fetalheartrate2
-            , card.fetalheartrate3
-            , card.assertpressure
-            , card.systolicpressure
-            , card.hemoglobin
-            , card.urinaryprotein
-            , card.guide
-            , card.nextappointmentdate
-            , card.doctor
-            , card.operatetime
-            , card.operatorid
-            , card.operateorganization
-            , card.created_at
-            , card.updated_at
-       from mch_prenatal_care card
-              inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-       where card.id = ?`,
+      `
+        select b.name,
+               card.id               as prenatalcarecode,
+               card.pregnancybooksid as newlydiagnosedcode,
+               card.checkdate,
+               card.diseasehistory,
+               card.chiefcomplaint,
+               card.weight,
+               card.uterinehigh,
+               card.abdominalcircumference,
+               card.fetalposition,
+               card.fetalheartrate,
+               card.fetalheartrate2,
+               card.fetalheartrate3,
+               card.assertpressure,
+               card.systolicpressure,
+               card.hemoglobin,
+               card.urinaryprotein,
+               card.guide,
+               card.nextappointmentdate,
+               card.doctor,
+               card.operatetime,
+               card.operatorid,
+               card.operateorganization,
+               card.created_at,
+               card.updated_at
+        from mch_prenatal_care card
+               inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+        where card.id = ?`,
       code
     );
     return result[0];
@@ -2505,27 +2556,29 @@ export default class Person {
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
-      `select id               as visitcode
-              , pregnancybooksid as newlydiagnosedcode
-              , maternitycode
-              , maternalname
-              , maternalidcardno
-              , visitdate
-              , temperaturedegrees
-              , diastolicpressure
-              , systolicpressure
-              , breast
-              , lochiatype
-              , lochiavolume
-              , perinealincision
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_maternal_visit
-         where id = ?`,
+      `
+        select id               as visitcode,
+               pregnancybooksid as newlydiagnosedcode,
+               maternitycode,
+               maternalname,
+               maternalidcardno,
+               visitdate,
+               temperaturedegrees,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochiatype,
+               lochiavolume,
+               perinealincision,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_maternal_visit
+        where id = ?
+      `,
       code
     );
     return result[0];
@@ -2539,26 +2592,28 @@ export default class Person {
     // 产后42天健康检查记录表
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select id               as examineno
-              , pregnancybooksid as newlydiagnosedcode
-              , pregnantwomenname
-              , visitdate
-              , diastolicpressure
-              , systolicpressure
-              , breast
-              , lochia
-              , lochiacolor
-              , lochiasmell
-              , perinealincision
-              , other
-              , doctor
-              , operatetime
-              , operatorid
-              , operateorganization
-              , created_at
-              , updated_at
-         from mch_examine_42th_day
-         where id = ?`,
+      `
+        select id               as examineno,
+               pregnancybooksid as newlydiagnosedcode,
+               pregnantwomenname,
+               visitdate,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochia,
+               lochiacolor,
+               lochiasmell,
+               perinealincision,
+               other,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_examine_42th_day
+        where id = ?
+      `,
       code
     );
     return result[0];
@@ -2645,65 +2700,67 @@ export default class Person {
     ]);
     const result = await originalDB.execute(
       // language=PostgreSQL
-      `select vp.id,
-                vp.name                   as "name",
-                vp.Sex                    as "gender",
-                vp.VoucherType            as "voucher",
-                vp.IdCardNo               as "idCard",
-                vp.Birth                  as "birth",
-                vp.Phone                  as "phone",
-                vp.RegionCode             as "regionCode",
-                vp.Address                as "address",
-                vp.Residencestring        as "census",
-                vp.WorkUnit               as "workUnit",
-                vp.RHeadHousehold         as "houseHold",
-                vp.ContactName            as "contactName",
-                vp.ContactPhone           as "contactPhone",
-                vp.Relationship           as "contactRelationship",
-                vp.LivingConditions       as "livingConditions",
-                vp.AccountType            as "accountType",
-                vp.BloodABO               as blood,
-                vp.national               as "national",
-                vp.RH                     as "RH",
-                vp.Education              as "education",
-                vp.Occupation             as "profession",
-                vp.MaritalStatus          as "marrage",
-                vp.Responsibility         as "doctor",
-                vp.FileDate               as "createdAt",
-                vp.XNHCardNo              as "XNHCard",
-                vp.YBCardNo               as "medicareCard",
-                vp.MedicalExpensesPayKind as "medicalPayType",
-                vp.PaymentCard            as "medicalCard",
-                vp.IsLowWarranty          as "isLowWarranty",
-                vp.LowWarrantyCardNo      as "lowWarrantyCard",
-                vp.DrugAllergy            as "drugAllergy",
-                vp.AncestralHistory       as "ancestralHistory",
-                vp.FatherHistory          as "fatherHistory",
-                vp.MotherHistory          as "motherHistory",
-                vp.SiblingHistory         as "siblingHistory",
-                vp.ChildrenHistory        as "childrenHistory",
-                vp.IsGeneticHistory       as "isGeneticHistory",
-                vp.GeneticDisease         as "geneticDisease",
-                vp.WhetherDisability      as "isDisability",
-                vp.ExposureHistory        as "exposureHistory",
-                vp.PastHistory            as "diseaseHistory",
-                vp.IsSurgicalHistory      as "isSurgeryHistory",
-                vp.IsTraumaticHistory     as "isTraumaticHistory",
-                vp.IsTransfusionHistory   as "isTransfusionHistory",
-                vp.shhjcf                 as "kitchenVentilation",
-                vp.shhjrl                 as "fuelType",
-                vp.shhjys                 as "water",
-                vp.shhjcs                 as "toilet",
-                vp.shhjscl                as "livestock",
-                vp.ContractStaff          as "contractStaff",
-                vp.AdminOrganization      as "managementHospital",
-                vp.OperateOrganization    as "hospital",
-                area.name                 as "hospital",
-                vp.OperatorId             as "hospitalId",
-                vp.OperateTime            as "updatedAt"
-         from ph_person vp
-                left join area on area.code = vp.OperateOrganization
-         where id = ?`,
+      `
+        select vp.id,
+               vp.name                   as "name",
+               vp.Sex                    as "gender",
+               vp.VoucherType            as "voucher",
+               vp.IdCardNo               as "idCard",
+               vp.Birth                  as "birth",
+               vp.Phone                  as "phone",
+               vp.RegionCode             as "regionCode",
+               vp.Address                as "address",
+               vp.Residencestring        as "census",
+               vp.WorkUnit               as "workUnit",
+               vp.RHeadHousehold         as "houseHold",
+               vp.ContactName            as "contactName",
+               vp.ContactPhone           as "contactPhone",
+               vp.Relationship           as "contactRelationship",
+               vp.LivingConditions       as "livingConditions",
+               vp.AccountType            as "accountType",
+               vp.BloodABO               as blood,
+               vp.national               as "national",
+               vp.RH                     as "RH",
+               vp.Education              as "education",
+               vp.Occupation             as "profession",
+               vp.MaritalStatus          as "marrage",
+               vp.Responsibility         as "doctor",
+               vp.FileDate               as "createdAt",
+               vp.XNHCardNo              as "XNHCard",
+               vp.YBCardNo               as "medicareCard",
+               vp.MedicalExpensesPayKind as "medicalPayType",
+               vp.PaymentCard            as "medicalCard",
+               vp.IsLowWarranty          as "isLowWarranty",
+               vp.LowWarrantyCardNo      as "lowWarrantyCard",
+               vp.DrugAllergy            as "drugAllergy",
+               vp.AncestralHistory       as "ancestralHistory",
+               vp.FatherHistory          as "fatherHistory",
+               vp.MotherHistory          as "motherHistory",
+               vp.SiblingHistory         as "siblingHistory",
+               vp.ChildrenHistory        as "childrenHistory",
+               vp.IsGeneticHistory       as "isGeneticHistory",
+               vp.GeneticDisease         as "geneticDisease",
+               vp.WhetherDisability      as "isDisability",
+               vp.ExposureHistory        as "exposureHistory",
+               vp.PastHistory            as "diseaseHistory",
+               vp.IsSurgicalHistory      as "isSurgeryHistory",
+               vp.IsTraumaticHistory     as "isTraumaticHistory",
+               vp.IsTransfusionHistory   as "isTransfusionHistory",
+               vp.shhjcf                 as "kitchenVentilation",
+               vp.shhjrl                 as "fuelType",
+               vp.shhjys                 as "water",
+               vp.shhjcs                 as "toilet",
+               vp.shhjscl                as "livestock",
+               vp.ContractStaff          as "contractStaff",
+               vp.AdminOrganization      as "managementHospital",
+               vp.OperateOrganization    as "hospital",
+               area.name                 as "hospital",
+               vp.OperatorId             as "hospitalId",
+               vp.OperateTime            as "updatedAt"
+        from ph_person vp
+               left join area on area.code = vp.OperateOrganization
+        where id = ?
+      `,
       id
     );
 
@@ -2742,19 +2799,21 @@ export default class Person {
     return (
       await originalDB.execute(
         // language=PostgreSQL
-        `select vhc.id,
-                  vhc.IncrementNo as "healthyID",
-                  vh.checkupDate  as "checkDate",
-                  vhc.jcScore     as "mealScore",
-                  vhc.sxScore     as "washScore",
-                  vhc.cyScore     as "dressScore",
-                  vhc.rcScore     as "toiletScore",
-                  vhc.hdScore     as "activityScore",
-                  vhc.AllScore    as "total"
-           from ph_old_health_check vhc
-                  left join ph_healthy vh on vh.id = vhc.incrementno
-           where vh.personnum = ?
-             and vh.isdelete = false`,
+        `
+          select vhc.id,
+                 vhc.IncrementNo as "healthyID",
+                 vh.checkupDate  as "checkDate",
+                 vhc.jcScore     as "mealScore",
+                 vhc.sxScore     as "washScore",
+                 vhc.cyScore     as "dressScore",
+                 vhc.rcScore     as "toiletScore",
+                 vhc.hdScore     as "activityScore",
+                 vhc.AllScore    as "total"
+          from ph_old_health_check vhc
+                 left join ph_healthy vh on vh.id = vhc.incrementno
+          where vh.personnum = ?
+            and vh.isdelete = false
+        `,
         id
       )
     ).map(it => ({
@@ -2801,38 +2860,40 @@ export default class Person {
     return (
       await originalDB.execute(
         // language=PostgreSQL
-        `select vhc.id,
-                  vhc.IncrementNo as "healthyID",
-                  vh.checkupDate  as "checkDate",
-                  vh.name         as "name",
-                  vhc.jckzl       as "mealNormal",
-                  vhc.jczdyl      as "mealModerate",
-                  vhc.jcbnzl      as "mealDisable",
-                  vhc.jcScore     as "mealScore",
-                  vhc.sxkzl       as "washNormal",
-                  vhc.sxqdyl      as "washMild",
-                  vhc.sxzdyl      as "washModerate",
-                  vhc.sxbnzl      as "washDisable",
-                  vhc.sxScore     as "washScore",
-                  vhc.cykzl       as "dressNormal",
-                  vhc.cyzdyl      as "dressModerate",
-                  vhc.cybnzl      as "dressDisable",
-                  vhc.cyScore     as "dressScore",
-                  vhc.rckzl       as "toiletNormal",
-                  vhc.rcqdyl      as "toiletMild",
-                  vhc.rczdyl      as "toiletModerate",
-                  vhc.rcbnzl      as "toiletDisable",
-                  vhc.rcScore     as "toiletScore",
-                  vhc.hdkzl       as "activityNormal",
-                  vhc.hdqdyl      as "activityMild",
-                  vhc.hdzdyl      as "activityModerate",
-                  vhc.hdbnzl      as "activityDisable",
-                  vhc.hdScore     as "activityScore",
-                  vhc.AllScore    as "total"
-           from ph_old_health_check vhc
-                  left join ph_healthy vh on vh.id = vhc.incrementno
-           where vhc.id = ?
-             and vh.isdelete = false`,
+        `
+          select vhc.id,
+                 vhc.IncrementNo as "healthyID",
+                 vh.checkupDate  as "checkDate",
+                 vh.name         as "name",
+                 vhc.jckzl       as "mealNormal",
+                 vhc.jczdyl      as "mealModerate",
+                 vhc.jcbnzl      as "mealDisable",
+                 vhc.jcScore     as "mealScore",
+                 vhc.sxkzl       as "washNormal",
+                 vhc.sxqdyl      as "washMild",
+                 vhc.sxzdyl      as "washModerate",
+                 vhc.sxbnzl      as "washDisable",
+                 vhc.sxScore     as "washScore",
+                 vhc.cykzl       as "dressNormal",
+                 vhc.cyzdyl      as "dressModerate",
+                 vhc.cybnzl      as "dressDisable",
+                 vhc.cyScore     as "dressScore",
+                 vhc.rckzl       as "toiletNormal",
+                 vhc.rcqdyl      as "toiletMild",
+                 vhc.rczdyl      as "toiletModerate",
+                 vhc.rcbnzl      as "toiletDisable",
+                 vhc.rcScore     as "toiletScore",
+                 vhc.hdkzl       as "activityNormal",
+                 vhc.hdqdyl      as "activityMild",
+                 vhc.hdzdyl      as "activityModerate",
+                 vhc.hdbnzl      as "activityDisable",
+                 vhc.hdScore     as "activityScore",
+                 vhc.AllScore    as "total"
+          from ph_old_health_check vhc
+                 left join ph_healthy vh on vh.id = vhc.incrementno
+          where vhc.id = ?
+            and vh.isdelete = false
+        `,
         id
       )
     ).map(it => ({
@@ -2865,11 +2926,13 @@ export default class Person {
     if (!year) year = dayjs().year();
     return originalDB.execute(
       // language=PostgreSQL
-      `select *
-         from mark_content
-         where year = ?
-           and id = ?
-           and name = ?`,
+      `
+        select *
+        from mark_content
+        where year = ?
+          and id = ?
+          and name = ?
+      `,
       year,
       id,
       code
@@ -2904,7 +2967,8 @@ export default class Person {
         from ph_old_questionnaire_main vq
                left join ph_person vp on vq.personnum = vp.id
                left join area on vp.operateorganization = area.code
-        where vp.id = ?;`,
+        where vp.id = ?
+      `,
       id
     );
   }
@@ -2942,20 +3006,22 @@ export default class Person {
   async questionnaireDetail(id) {
     const questionnaireModels = await originalDB.execute(
       // language=PostgreSQL
-      `select cast(vb.questioncode as int)   as "questionCode",
-                vb.questioncode                as "questionCode",
-                vqd.questionnairemainsn        as "detailId",
-                vqd.questionnairedetailcontent as "question",
-                vq.optioncontent               as "option",
-                vq.optioncode                  as "optionCode",
-                vq.score
-         from ph_questionnaire_detail vqd
-                inner join ph_question_options vq on
-           cast(vqd.optionsn as int) = cast(vq.optionsn as int)
-                inner join ph_question_lib vb on
-           vb.questionsn = vq.questionsn
-         where vqd.QuestionnaireMainSN = ?
-         order by cast(vb.questioncode as int)`,
+      `
+        select cast(vb.questioncode as int)   as "questionCode",
+               vb.questioncode                as "questionCode",
+               vqd.questionnairemainsn        as "detailId",
+               vqd.questionnairedetailcontent as "question",
+               vq.optioncontent               as "option",
+               vq.optioncode                  as "optionCode",
+               vq.score
+        from ph_questionnaire_detail vqd
+               inner join ph_question_options vq on
+          cast(vqd.optionsn as int) = cast(vq.optionsn as int)
+               inner join ph_question_lib vb on
+          vb.questionsn = vq.questionsn
+        where vqd.QuestionnaireMainSN = ?
+        order by cast(vb.questioncode as int)
+      `,
       id
     );
     const questionnaire = questionnaireModels.reduce((res, next) => {
@@ -2999,16 +3065,18 @@ export default class Person {
       (
         await originalDB.execute(
           // language=PostgreSQL
-          `select vp.name,
-                    vq.constitutiontype,
-                    vq.constitutiontypepossible,
-                    vq.OperateTime as "date",
-                    area.name      as "hospitalName",
-                    vq.doctor
-             from ph_questionnaire_guide vq
-                    left join ph_person vp on vq.personnum = vp.id
-                    left join area on vp.operateorganization = area.code
-             where vq.id = ?`,
+          `
+            select vp.name,
+                   vq.constitutiontype,
+                   vq.constitutiontypepossible,
+                   vq.OperateTime as "date",
+                   area.name      as "hospitalName",
+                   vq.doctor
+            from ph_questionnaire_guide vq
+                   left join ph_person vp on vq.personnum = vp.id
+                   left join area on vp.operateorganization = area.code
+            where vq.id = ?
+          `,
           questionnaire[0]?.detailId
         )
       )[0] ?? null;
