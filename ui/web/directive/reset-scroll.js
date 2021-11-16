@@ -3,7 +3,7 @@ const tableBodyClass = 'el-table__body-wrapper';
 let pageInfo = []; //用来存储分页器信息数组
 
 Vue.directive('reset-scroll', {
-  inserted(el, binding, vnode) {
+  inserted(el) {
     //随机分配一个id
     const tagId = 'tag_' + Math.floor(Math.random() * 1000);
     //给组件标记id

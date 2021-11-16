@@ -1,4 +1,10 @@
-import {KatoCommonError, KatoLogicError, should, validate} from 'kato-server';
+import {
+  KatoCommonError,
+  KatoLogicError,
+  KatoRuntimeError,
+  should,
+  validate
+} from 'kato-server';
 import {appDB, originalDB} from '../app';
 import {
   RoleModel,
@@ -11,6 +17,7 @@ import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 import {imageSync} from 'qr-image';
+import {UserType} from './middleware/user';
 
 function countUserRender(params) {
   return sqlRender(
@@ -661,12 +668,18 @@ export default class User {
   }
 
   // 获取二维码
-  async getQRCode() {
-    const token = Context.req.headers.token;
+  async getQRCode(id) {
+    let token = Context.req.headers.token;
+    if (id) {
+      token = (await appDB.execute(`select id from staff where id = ?`, id))[0]
+        ?.id;
+      if (!token) throw new KatoRuntimeError(`员工不存在`);
+    }
     // 生成微信二维码
     const imageBuffer = imageSync(
       JSON.stringify({
-        code: token
+        code: token,
+        type: id ? UserType.STAFF : null
       }),
       {type: 'png'}
     );

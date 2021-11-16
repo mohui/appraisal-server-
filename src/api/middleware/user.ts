@@ -1,9 +1,63 @@
 import {Context} from '../context';
+import {
+  HospitalModel,
+  RegionModel,
+  RoleModel,
+  UserModel
+} from '../../database/model';
+import {getLeaves} from '../group';
+import {Op} from 'sequelize';
 import {appDB, originalDB} from '../../app';
+
+/**
+ * 用户类型枚举
+ */
+export enum UserType {
+  //员工
+  STAFF = 'STAFF'
+}
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   try {
     const token = ctx.req.header('token');
+    const type = ctx.req.header('type');
+    //加入staff逻辑
+    if (token && type == UserType.STAFF) {
+      const staffModel: {
+        hospital: string;
+        id: string;
+        name: string;
+        department_id: string | null;
+        department_name: string | null;
+      } = (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
+            select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
+            from staff s
+                   left join his_department d on s.department = d.id
+            where s.id = ?
+          `,
+          token
+        )
+      )[0];
+      if (staffModel) {
+        ctx.user = {
+          type: UserType.STAFF,
+          id: staffModel.id,
+          name: staffModel.name,
+          hospitals: [{id: staffModel.hospital}],
+          department: staffModel.department_id
+            ? {
+                id: staffModel.department_id,
+                name: staffModel.department_name
+              }
+            : null
+        };
+      }
+      await next();
+      return;
+    }
     if (token) {
       // 查询用户表
       // language=PostgreSQL
