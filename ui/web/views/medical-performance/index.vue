@@ -241,8 +241,8 @@
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
-            >导出</el-button
-          >
+            >导出
+          </el-button>
         </div>
         <el-table
           id="reportTable"
@@ -636,73 +636,38 @@ export default {
         return [];
       }
     },
+    /********************医疗指标**********************/
+    // 医疗人员数量
     staffSeverData: {
       async get() {
-        return await this.$api.AppHome.staff();
+        return await this.$api.AppHome.staff(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 医疗收入
     moneySeverData: {
       async get() {
-        return await this.$api.AppHome.money();
+        return await this.$api.AppHome.money(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 诊疗人次数
     visitsSeverData: {
       async get() {
-        return await this.$api.AppHome.visits();
+        return await this.$api.AppHome.visits(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 医师日均担负诊疗人次数
     doctorDailyVisitsSeverData: {
       async get() {
-        return await this.$api.AppHome.doctorDailyVisits();
-      },
-      default() {
-        return 0;
-      }
-    },
-    personSeverData: {
-      async get() {
-        return await this.$api.AppHome.person();
-      },
-      default() {
-        return 0;
-      }
-    },
-    chronicSeverData: {
-      async get() {
-        return await this.$api.AppHome.chronic();
-      },
-      default() {
-        return 0;
-      }
-    },
-    htnSeverData: {
-      async get() {
-        return await this.$api.AppHome.htn();
-      },
-      default() {
-        return 0;
-      }
-    },
-    t2dmSeverData: {
-      async get() {
-        return await this.$api.AppHome.t2dm();
-      },
-      default() {
-        return 0;
-      }
-    },
-    oldSeverData: {
-      async get() {
-        return await this.$api.AppHome.old();
+        return await this.$api.AppHome.doctorDailyVisits(this.currentDate);
       },
       default() {
         return 0;
@@ -711,7 +676,7 @@ export default {
     // 每万人口全科医生数
     generalPractitionersNumberSeverData: {
       async get() {
-        return await this.$api.AppHome.GPsPerW();
+        return await this.$api.AppHome.GPsPerW(this.currentDate);
       },
       default() {
         return 0;
@@ -720,7 +685,9 @@ export default {
     // 医护比
     healthCareRatioSeverData: {
       async get() {
-        return await this.$api.AppHome.ratioOfMedicalAndNursing();
+        return await this.$api.AppHome.ratioOfMedicalAndNursing(
+          this.currentDate
+        );
       },
       default() {
         return 0;
@@ -729,12 +696,63 @@ export default {
     // 卫生技术人员学历结构
     educationalStructureHealthTechniciansSeverData: {
       async get() {
-        return await this.$api.AppHome.ratioOfHealthTechnicianEducation();
+        return await this.$api.AppHome.ratioOfHealthTechnicianEducation(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 居民档案数量
+    personSeverData: {
+      async get() {
+        return await this.$api.AppHome.person(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    /********************医疗指标**********************/
+
+    /********************公卫指标**********************/
+    // 慢病管理人数
+    chronicSeverData: {
+      async get() {
+        return await this.$api.AppHome.chronic(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 病床使用率
+    htnSeverData: {
+      async get() {
+        return await this.$api.AppHome.htn(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 糖尿病规范管理率
+    t2dmSeverData: {
+      async get() {
+        return await this.$api.AppHome.t2dm(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 老年人管理率
+    oldSeverData: {
+      async get() {
+        return await this.$api.AppHome.old(this.currentDate);
       },
       default() {
         return 0;
       }
     }
+    /********************公卫指标**********************/
   },
   watch: {
     reportData: function() {
@@ -1038,10 +1056,12 @@ export default {
   .custom-cell {
     background: #f5f7fa;
   }
+
   tr {
     pointer-events: none;
   }
 }
+
 .el-progress-staff-cell {
   .el-progress-bar__outer,
   .el-progress-bar__inner {
@@ -1074,10 +1094,12 @@ export default {
     margin: 0 20px 15px 0;
     float: left;
   }
+
   .right {
     float: right;
     margin-right: 0;
   }
+
   .header-title {
     font: 18px/1.4 Arial;
     color: #3a3f62;
@@ -1090,10 +1112,12 @@ export default {
   background-color: #ffffff;
   padding: 10px;
 }
+
 .card {
   border-radius: 4px;
   background-color: #ffffff;
 }
+
 .indicators-title-card {
   background-color: #ffffff;
   border-right: 1px solid #ebeef5;
@@ -1105,42 +1129,51 @@ export default {
   display: flex;
   flex-direction: row;
   position: relative;
+
   .title-box {
     display: flex;
     flex-direction: row;
     align-items: center;
+
     .title {
       writing-mode: vertical-lr;
       letter-spacing: 0.3em;
       font-size: 17px;
     }
   }
+
   .indicators-container {
     flex: 1;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+
     .item-content {
       width: calc((100% - 84px) / 4);
       display: flex;
       flex-direction: column;
       color: #3a3f62;
+
       .indicators-name {
         font-size: 15px;
         padding: 5px;
       }
+
       .indicators-content {
         flex: 1;
         display: flex;
         flex-direction: row;
         align-items: center;
+
         .number {
           text-align: center;
           flex: 1;
           font-size: 28px;
         }
+
         .icon-box {
           margin: 0 40px 20px 0;
+
           .icon {
             width: 50px;
             height: 50px;
@@ -1149,6 +1182,7 @@ export default {
       }
     }
   }
+
   .arrow-box {
     position: absolute;
     right: 0;
@@ -1161,10 +1195,12 @@ export default {
     padding: 0 15px 15px 0;
   }
 }
+
 .staff-container {
   height: 60vh;
   color: #3a3f62;
   font-size: 15px;
+
   .staff-tabs {
     height: 60px;
     display: flex;
@@ -1173,6 +1209,7 @@ export default {
     font-size: 16px;
     background: #dae0f2;
     border-bottom: 1px solid #ebeef5;
+
     .tab,
     .tab-select {
       width: 50%;
@@ -1180,20 +1217,24 @@ export default {
       text-align: center;
       line-height: 60px;
     }
+
     .tab-select {
       background: #ffffff;
     }
   }
+
   .content {
     padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
+
     .top-container {
       display: flex;
       flex-direction: row;
       align-items: center;
       padding: 10px;
     }
+
     .rank-box {
       .cell {
         padding: 10px;
@@ -1203,6 +1244,7 @@ export default {
         font-size: 13px;
         color: #3a3f62;
         cursor: pointer;
+
         .ranking {
           width: 20px;
           height: 20px;
@@ -1213,21 +1255,25 @@ export default {
           border-radius: 50%;
           margin-right: 10px;
         }
+
         .container {
           width: 100%;
           display: flex;
           flex-direction: row;
           align-items: center;
+
           .name {
             width: 50px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
           }
+
           .progress {
             flex: 1;
             margin: 5px 3px;
           }
+
           .text {
             width: 100px;
             text-align: right;
@@ -1237,8 +1283,10 @@ export default {
     }
   }
 }
+
 .workbench-container {
   height: 60vh;
+
   .workbench-header {
     height: 40px;
     line-height: 40px;
@@ -1247,16 +1295,19 @@ export default {
     color: #3a3f62;
     font-size: 18px;
   }
+
   .content {
     padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
+
     .square {
       position: relative;
       width: 100%;
       height: 0;
       padding-bottom: 100%; /* padding百分比是相对父元素宽度计算的 */
     }
+
     .square-inner {
       position: absolute;
       top: 0;
@@ -1272,6 +1323,7 @@ export default {
       grid-gap: 1px; /* grid-column-gap 和 grid-row-gap的简写 */
       grid-auto-flow: row;
     }
+
     .grid > div {
       color: #fff;
       line-height: 2;
@@ -1279,6 +1331,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+
       .item {
         background: #dae0f2;
         width: 80%;
@@ -1290,6 +1343,7 @@ export default {
         align-items: center;
         justify-content: center;
         border-radius: 20px;
+
         .icon {
           color: #848dbd;
           font-size: 3.2vw;
