@@ -184,7 +184,7 @@
           label="备注"
           min-width="100"
         ></el-table-column>
-        <el-table-column align="center" label="操作" min-width="160">
+        <el-table-column align="center" label="操作" min-width="260">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
               <el-button type="primary" size="small" @click="editUser(row)">
