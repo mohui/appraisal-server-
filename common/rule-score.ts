@@ -252,6 +252,16 @@ export const BasicTags = [
         name: '年内应管理其他慢病人群人数'
       }
     ]
+  },
+  {
+    code: 'SickbedNumber',
+    name: '病床数量',
+    children: [
+      {
+        code: 'Sickbed',
+        name: '病床'
+      }
+    ]
   }
 ];
 
@@ -277,7 +287,9 @@ export const BasicTagUsages = {
   // 年度辖区内活产数
   Children00: 'Children00',
   // 年度辖区内0-6岁儿童数
-  Children01: 'Children01'
+  Children01: 'Children01',
+  // 病床数量
+  Sickbed: 'Sickbed'
 };
 
 /**
