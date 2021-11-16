@@ -379,9 +379,9 @@ export const MarkTag = [
             enabled: false
           },
           {
-            value: 'a19',
+            value: 'SickbedUsageRate',
             label: '病床使用率',
-            enabled: false
+            enabled: true
           },
           {
             value: 'a20',
@@ -616,6 +616,10 @@ export const MarkTagUsages = {
   InpatientAverageIncomesIncreasesRate: {
     code: 'InpatientAverageIncomesIncreasesRate',
     name: '住院次均费用变化情况'
+  },
+  SickbedUsageRate: {
+    code: 'SickbedUsageRate',
+    name: '病床使用率'
   }
 };
 
