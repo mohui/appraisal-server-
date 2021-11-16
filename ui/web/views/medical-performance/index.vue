@@ -525,6 +525,17 @@ export default {
                 .ratioOfHealthTechnicianEducationSeverData.updating
             },
             {
+              name: '卫生技术人员职称结构',
+              number: Number(
+                (this.ratioOfHealthTechnicianTitlesSeverData * 100).toFixed(2)
+              ),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/educationalStructureHealthTechnicians.png')
+                .default,
+              isLoading: this.$asyncComputed
+                .ratioOfHealthTechnicianTitlesSeverData.updating
+            },
+            {
               name: '中医类别医师占比',
               unit: '',
               number: Number(this.ratioOfTCMSeverData.toFixed(2)),
