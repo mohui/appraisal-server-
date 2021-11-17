@@ -474,7 +474,8 @@ export default {
         .filter(it => it.rate !== null)
         .map(it => it.rate);
       const total = data.reduce((prev, curr) => prev + curr, 0);
-      const average = Number((total / data.length).toFixed(4));
+      let average = 0;
+      if (data.length > 0) average = Number((total / data.length).toFixed(4));
       return average;
     },
     indicatorsData() {
