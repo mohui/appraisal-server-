@@ -30,7 +30,16 @@ module.exports = {
       //scss
       {
         test: /\.(sc|c)ss$/,
-        use: [styleLoader, 'css-loader', 'sass-loader']
+        use: [
+          styleLoader,
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              implementation: require('sass')
+            }
+          }
+        ]
       },
       //less
       {
