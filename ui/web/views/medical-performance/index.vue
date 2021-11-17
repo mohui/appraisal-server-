@@ -530,7 +530,7 @@ export default {
                 (this.ratioOfHealthTechnicianTitlesSeverData * 100).toFixed(2)
               ),
               unit: '%',
-              img: require('../../../assets/indicators-icon/educationalStructureHealthTechnicians.png')
+              img: require('../../../assets/indicators-icon/ratioOfHealthTechnicianTitles.png')
                 .default,
               isLoading: this.$asyncComputed
                 .ratioOfHealthTechnicianTitlesSeverData.updating
