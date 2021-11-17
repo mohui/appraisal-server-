@@ -132,26 +132,103 @@
               v-loading="$asyncComputed.staffCheckListSeverData.updating"
               v-hidden-scroll
             >
-              <div class="top-container">
-                <div v-loading="$asyncComputed.overviewServerData.updating">
+              <div class="top-container" v-sticky>
+                <div
+                  v-if="staffFlag === 'workPoint'"
+                  v-loading="$asyncComputed.overviewServerData.updating"
+                >
                   当前月工作总量：{{ overviewData.originalScore }}分
                 </div>
+                <div v-if="staffFlag === 'rate'">
+                  平均质量系数：{{ averageRate * 100 }}%
+                </div>
               </div>
-              <div v-if="staffFlag === 'workPoint' || staffFlag === 'rate'">
+              <div v-if="staffFlag === 'workPoint'">
                 <div class="rank-box" v-hidden-scroll>
                   <div
-                    v-for="(i, index) of staffCheckListData"
+                    v-for="(i, index) of staffCheckListData.sort(
+                      (a, b) => b.correctionScore - a.correctionScore
+                    )"
                     :key="index"
                     class="cell"
                     @click="onGotoStaffDetail(i.id)"
                   >
-                    <div class="ranking">{{ index + 1 }}</div>
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
                     <div class="container">
                       <div class="name">{{ i.name }}</div>
                       <div class="progress el-progress-staff-cell">
                         <el-progress
                           :style="{
                             width: `${i.proportion * 100}%`
+                          }"
+                          :stroke-width="16"
+                          :percentage="i.correctionRate * 100"
+                          :show-text="false"
+                          :color="
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                          "
+                        ></el-progress>
+                      </div>
+                      <div
+                        class="text"
+                        :style="{
+                          color:
+                            index === 0
+                              ? '#4458fe'
+                              : index === 1
+                              ? '#00d0b4'
+                              : index === 2
+                              ? '#ffb143'
+                              : '#ff56a9'
+                        }"
+                      >
+                        {{ i.correctionScore }}/{{ i.score }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="staffFlag === 'rate'">
+                <div class="rank-box" v-hidden-scroll>
+                  <div
+                    v-for="(i, index) of staffCheckListData.sort((a, b) => {
+                      if (a.rate === null && b.rate === null) {
+                        return 0;
+                      } else if (a.rate === null) {
+                        return 1;
+                      } else if (b.rate === null) {
+                        return -1;
+                      } else {
+                        return b.rate - a.rate;
+                      }
+                    })"
+                    :key="index"
+                    class="cell"
+                    @click="onGotoStaffDetail(i.id)"
+                  >
+                    <div v-if="index < 3" class="top_three_ranking">
+                      <img class="icon" :src="topThreeIcon[index]" alt="" />
+                    </div>
+                    <div v-else class="ranking">
+                      {{ index + 1 }}
+                    </div>
+                    <div class="container">
+                      <div class="name">{{ i.name }}</div>
+                      <div class="progress el-progress-staff-cell">
+                        <el-progress
+                          :style="{
+                            width: `${i.rate === null ? 0 : 100}%`
                           }"
                           :stroke-width="16"
                           :percentage="i.rate * 100"
@@ -180,7 +257,7 @@
                               : '#ff56a9'
                         }"
                       >
-                        {{ i.correctionScore }}/{{ i.score }}
+                        {{ i.rateFormat }}
                       </div>
                     </div>
                   </div>
@@ -322,6 +399,9 @@ import VueSticky from 'vue-sticky';
 import * as dayjs from 'dayjs';
 import FileSaver from 'file-saver';
 import XLSX from 'xlsx';
+import firstIcon from '../../../assets/rank/first.png';
+import secondIcon from '../../../assets/rank/second.png';
+import thirdIcon from '../../../assets/rank/third.png';
 
 export default {
   name: 'index',
@@ -346,7 +426,8 @@ export default {
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
       medicalIndicatorsIsOpen: false,
-      publicIndicatorsIsOpen: false
+      publicIndicatorsIsOpen: false,
+      topThreeIcon: [firstIcon, secondIcon, thirdIcon]
     };
   },
   directives: {
@@ -372,14 +453,30 @@ export default {
     staffCheckListData() {
       return this.staffCheckListSeverData
         ?.sort((a, b) => b.score - a.score)
-        .map(it => ({
-          ...it,
-          rate: it.rate || 1,
-          score: Number(it.score?.toFixed(2)) || 0,
-          correctionScore: Number((it.score * (it.rate || 1)).toFixed(2)),
-          proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
-        }))
+        .map(it => {
+          const correctionRate = it.rate ?? 1; // 用于校正得分的质量系数，为null时按照100%计算
+          return {
+            ...it,
+            correctionRate,
+            rateFormat:
+              it.rate === null
+                ? '无考核'
+                : Number((it.rate * 100).toFixed(2)) + '%',
+            score: Number(it.score?.toFixed(2)) || 0,
+            correctionScore: Number((it.score * correctionRate).toFixed(2)),
+            proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
+          };
+        })
         .sort((a, b) => b.correctionScore - a.correctionScore);
+    },
+    averageRate() {
+      const data = this.staffCheckListSeverData
+        .filter(it => it.rate !== null)
+        .map(it => it.rate);
+      const total = data.reduce((prev, curr) => prev + curr, 0);
+      let average = 0;
+      if (data.length > 0) average = Number((total / data.length).toFixed(4));
+      return average;
     },
     indicatorsData() {
       const num = 100000;
@@ -1331,18 +1428,20 @@ export default {
   }
 
   .content {
-    padding: 10px;
     height: calc(60vh - 80px);
     overflow-y: scroll;
 
     .top-container {
+      background: #ffffff;
       display: flex;
       flex-direction: row;
       align-items: center;
-      padding: 10px;
+      padding: 10px 20px;
     }
 
     .rank-box {
+      padding: 10px;
+
       .cell {
         padding: 10px;
         display: flex;
@@ -1352,18 +1451,29 @@ export default {
         color: #3a3f62;
         cursor: pointer;
 
+        .top_three_ranking,
         .ranking {
           width: 20px;
           height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        .top_three_ranking {
+          .icon {
+            width: 23px;
+            height: 30px;
+          }
+        }
+
+        .ranking {
           background: #dae0f2;
           border-radius: 50%;
-          margin-right: 10px;
         }
 
         .container {
+          margin-left: 10px;
           width: 100%;
           display: flex;
           flex-direction: row;

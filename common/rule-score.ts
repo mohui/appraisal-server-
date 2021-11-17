@@ -252,6 +252,16 @@ export const BasicTags = [
         name: '年内应管理其他慢病人群人数'
       }
     ]
+  },
+  {
+    code: 'SickbedNumber',
+    name: '病床数量',
+    children: [
+      {
+        code: 'Sickbed',
+        name: '病床'
+      }
+    ]
   }
 ];
 
@@ -277,7 +287,9 @@ export const BasicTagUsages = {
   // 年度辖区内活产数
   Children00: 'Children00',
   // 年度辖区内0-6岁儿童数
-  Children01: 'Children01'
+  Children01: 'Children01',
+  // 病床数量
+  Sickbed: 'Sickbed'
 };
 
 /**
@@ -638,19 +650,49 @@ export const MarkTags = [
         code: 'sign',
         children: [
           {
-            code: 'SIGN01',
+            code: 'SN00',
             name: '签约服务覆盖率',
-            enabled: false
+            enabled: true
           },
           {
-            code: 'SIGN02',
+            code: 'SN01',
             name: '重点人群签约服务覆盖率',
-            enabled: false
+            enabled: true
           },
           {
-            code: 'SIGN03',
-            name: '签约居民续签率',
-            enabled: false
+            code: 'SN02',
+            name: '计划生育特扶人员签约率',
+            enabled: true
+          },
+          {
+            code: 'SN03',
+            name: '有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN04',
+            name: '高血压病人有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN05',
+            name: '糖尿病人有偿签约率',
+            enabled: true
+          },
+          {
+            code: 'SN10',
+            name: '履约率',
+            enabled: true
+          },
+          {
+            code: 'SN07',
+            name: '续约率',
+            enabled: true
+          },
+          {
+            code: 'SN08',
+            name: '有偿续约率',
+            enabled: true
           }
         ]
       },
@@ -854,6 +896,42 @@ export const MarkTagUsages = {
   MCH04: {
     name: '儿童健康管理率',
     code: 'MCH04'
+  },
+  SN00: {
+    name: '签约服务覆盖率',
+    code: 'SN00'
+  },
+  SN01: {
+    name: '重点人群签约服务覆盖率',
+    code: 'SN01'
+  },
+  SN02: {
+    name: '计划生育特扶人员签约率',
+    code: 'SN02'
+  },
+  SN03: {
+    name: '有偿签约率',
+    code: 'SN03'
+  },
+  SN04: {
+    name: '高血压病人有偿签约率',
+    code: 'SN04'
+  },
+  SN05: {
+    name: '糖尿病人有偿签约率',
+    code: 'SN05'
+  },
+  SN10: {
+    name: '履约率',
+    code: 'SN10'
+  },
+  SN07: {
+    name: '续约率',
+    code: 'SN07'
+  },
+  SN08: {
+    name: '有偿续约率',
+    code: 'SN08'
   }
 };
 

@@ -23,7 +23,7 @@ import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
 import {getBasicData} from '../group/score';
-import {getStaffList} from './common';
+import {getStaffList, getMarkMetric} from './common';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -541,26 +541,6 @@ export async function workPointCalculation(
 
 // endregion
 
-// region 医疗绩效公卫数据打分
-async function getMark(hospital, year) {
-  const list = await originalDB.execute(
-    `select id, "HIS00"
-         from mark_his_hospital
-         where id = ? and year = ?
-    `,
-    hospital,
-    year
-  );
-  return (
-    list[0] ?? {
-      id: null,
-      HIS00: 0
-    }
-  );
-}
-
-// endregion
-
 // region 质量系数公共方法
 // 考核细则
 type CheckRuleModel = {
@@ -691,16 +671,18 @@ export default class HisScore {
     should.string().required()
   )
   async autoScoreStaff(day, staff, hospital) {
-    // 获取指标的值
-    const mark = await getMark(hospital, dayjs(day).year());
-
-    // 获取本年的开始时间
-    const yearStart = dayjs(day)
-      .startOf('y')
+    // 获取去年的年份
+    const lastYear = dayjs(day)
+      .subtract(1, 'year')
       .toDate();
 
     // 获取员工信息
     const staffList = await getStaffList(hospital, day);
+
+    // 获取指标数据
+    const metricModels = await getMarkMetric(hospital, day);
+    // 上年度指标
+    const lastMetricModels = await getMarkMetric(hospital, lastYear);
 
     return await appDB.joinTx(async () => {
       // region 打分前的校验
@@ -791,19 +773,21 @@ export default class HisScore {
         let score = 0;
         // 根据指标获取指标数据
         if (ruleIt.metric === MarkTagUsages.HIS00.code) {
+          const numerator = metricModels['HIS.OutpatientVisits'];
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && mark?.HIS00) {
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
             // 指标分数
             score = ruleIt.score;
           }
           // 根据指标算法,计算得分 之 结果为"否"得满分
-          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !mark?.HIS00) {
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
             // 指标分数
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate = mark.HIS00 / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -818,6 +802,9 @@ export default class HisScore {
             dayjs(day).year()
           );
 
+          const numerator =
+            basicData > 0 ? (staffList.GPCount / basicData) * 10000 : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -836,8 +823,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              ((staffList.GPCount / basicData) * 10000) / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -852,10 +838,15 @@ export default class HisScore {
             dayjs(day).year()
           );
 
+          const numerator =
+            basicData > 0
+              ? (staffList.increasesGPCount / basicData) * 10000
+              : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
-            staffList.GPCount
+            staffList.increasesGPCount
           ) {
             // 指标分数
             score = ruleIt.score;
@@ -863,15 +854,14 @@ export default class HisScore {
           // 根据指标算法,计算得分 之 结果为"否"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.N01.code &&
-            !staffList.GPCount
+            !staffList.increasesGPCount
           ) {
             // 指标分数
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              ((staffList.GPCount / basicData) * 10000) / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -879,6 +869,10 @@ export default class HisScore {
 
         // 医护比(注册执业（助理）医师数/同期注册护士数)
         if (ruleIt.metric === MarkTagUsages.RatioOfMedicalAndNursing.code) {
+          const numerator =
+            staffList.nurseCount > 0
+              ? staffList.physicianCount / staffList.nurseCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -897,8 +891,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.physicianCount / staffList.nurseCount / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -908,6 +901,11 @@ export default class HisScore {
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianEducation.code
         ) {
+          const numerator =
+            staffList.healthWorkersCount > 0
+              ? staffList.bachelorCount / staffList.healthWorkersCount
+              : 0;
+
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -926,10 +924,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.bachelorCount /
-              staffList.healthWorkersCount /
-              ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -939,6 +934,10 @@ export default class HisScore {
         if (
           ruleIt.metric === MarkTagUsages.RatioOfHealthTechnicianTitles.code
         ) {
+          const numerator =
+            staffList.healthWorkersCount > 0
+              ? staffList.highTitleCount / staffList.healthWorkersCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -957,10 +956,7 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.highTitleCount /
-              staffList.healthWorkersCount /
-              ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
@@ -968,6 +964,10 @@ export default class HisScore {
 
         // 中医类别医师占比(中医类别执业（助理）医师数/同期基层医疗卫生机构执业（助理）医师总数)
         if (ruleIt.metric === MarkTagUsages.RatioOfTCM.code) {
+          const numerator =
+            staffList.physicianCount > 0
+              ? staffList.TCMCount / staffList.physicianCount
+              : 0;
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
@@ -986,12 +986,430 @@ export default class HisScore {
           }
           // “≥”时得满分，不足按比例得分
           if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
-            const rate =
-              staffList.TCMCount / staffList.physicianCount / ruleIt.value;
+            const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
           }
         }
+
+        // 门急诊人次增长率((本年度门急诊人次数 - 上年度门急诊人次数) / 上年度门急诊人次数 x 100%)
+        if (ruleIt.metric === MarkTagUsages.OutpatientIncreasesRate.code) {
+          const numerator =
+            lastMetricModels['HIS.OutpatientVisits'] > 0
+              ? (metricModels['HIS.OutpatientVisits'] -
+                  lastMetricModels['HIS.OutpatientVisits']) /
+                lastMetricModels['HIS.OutpatientVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 每万人服务门诊当量(辖区门诊服务总当量 / 辖区内常住居民数 x 10000)
+        if (ruleIt.metric === MarkTagUsages.ThousandOutpatientVisits.code) {
+          // 辖区内常住居民数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs().year()
+          );
+
+          const numerator =
+            basicData > 0
+              ? (metricModels['HIS.OutpatientVisits'] / basicData) * 10000
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 出院人次数
+        if (ruleIt.metric === MarkTagUsages.DischargedVisits.code) {
+          const numerator = metricModels['HIS.DischargedVisits'];
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.DischargedVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.DischargedVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 出院人次增长率((本年度出院人次数 - 上年度出院人次数) / 上年度出院人次数 x 100%)
+        if (ruleIt.metric === MarkTagUsages.DischargedIncreasesRate.code) {
+          const numerator =
+            lastMetricModels['HIS.DischargedVisits'] > 0
+              ? (metricModels['HIS.DischargedVisits'] -
+                  lastMetricModels['HIS.DischargedVisits']) /
+                lastMetricModels['HIS.DischargedVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 每万人服务住院当量
+        if (ruleIt.metric === MarkTagUsages.ThousandInpatientVisits.code) {
+          // 辖区内常住居民数
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.DocPeople,
+            dayjs().year()
+          );
+
+          const numerator =
+            basicData > 0
+              ? (metricModels['HIS.InpatientVisits'] / basicData) * 10000
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 医师日均担负诊疗人次(诊疗人次数/平均医师人数/251)
+        if (
+          ruleIt.metric === MarkTagUsages.PhysicianAverageOutpatientVisits.code
+        ) {
+          const numerator =
+            staffList.physicianCount > 0
+              ? metricModels['HIS.OutpatientVisits'] /
+                staffList.physicianCount /
+                251
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 职工年平均担负门急诊人次(门急诊人次数/在岗职工数×100%)
+        if (ruleIt.metric === MarkTagUsages.StaffOutpatientVisits.code) {
+          const numerator =
+            staffList.staffCount > 0
+              ? metricModels['HIS.OutpatientVisits'] / staffList.staffCount
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientVisits']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 门急诊次均费用(门急诊收入/年门急诊人次数)
+        if (ruleIt.metric === MarkTagUsages.OutpatientAverageIncomes.code) {
+          const numerator =
+            metricModels['HIS.OutpatientVisits'] > 0
+              ? metricModels['HIS.OutpatientIncomes'] /
+                metricModels['HIS.OutpatientVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.OutpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.OutpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 门急诊次均费用变化情况((本年度门急诊次均医疗费用-上年度门急诊次均医疗费用)/上年度门急诊次均医疗费用×100%)
+        if (
+          ruleIt.metric ===
+          MarkTagUsages.OutpatientAverageIncomesIncreasesRate.code
+        ) {
+          // 本年度门急诊次均医疗费用
+          const currentNumerator =
+            metricModels['HIS.OutpatientVisits'] > 0
+              ? metricModels['HIS.OutpatientIncomes'] /
+                metricModels['HIS.OutpatientVisits']
+              : 0;
+          // 上年度门急诊次均医疗费用
+          const lastNumerator =
+            lastMetricModels['HIS.OutpatientVisits'] > 0
+              ? lastMetricModels['HIS.OutpatientIncomes'] /
+                lastMetricModels['HIS.OutpatientVisits']
+              : 0;
+
+          // 门急诊次均费用变化情况
+          const numerator =
+            lastNumerator > 0
+              ? (currentNumerator - lastNumerator) / lastNumerator
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 住院次均费用(住院业务总收入/年住院总人次数;其中：住院业务总收入只包含当年的总费用)
+        if (ruleIt.metric === MarkTagUsages.InpatientAverageIncomes.code) {
+          const numerator =
+            metricModels['HIS.InpatientVisits'] > 0
+              ? metricModels['HIS.InpatientIncomes'] /
+                metricModels['HIS.InpatientVisits']
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 住院次均费用变化情况((本年度住院次均医疗费用-上年度住院次均医疗费用)/上年度住院次均医疗费用×100%)
+        if (
+          ruleIt.metric ===
+          MarkTagUsages.InpatientAverageIncomesIncreasesRate.code
+        ) {
+          // 本年度住院次均医疗费用
+          const currentNumerator =
+            metricModels['HIS.InpatientVisits'] > 0
+              ? metricModels['HIS.InpatientIncomes'] /
+                metricModels['HIS.InpatientVisits']
+              : 0;
+
+          // 上年度住院次均医疗费用
+          const lastNumerator =
+            lastMetricModels['HIS.InpatientVisits'] > 0
+              ? lastMetricModels['HIS.InpatientIncomes'] /
+                lastMetricModels['HIS.InpatientVisits']
+              : 0;
+
+          // 住院次均费用变化情况
+          const numerator =
+            lastNumerator > 0
+              ? (currentNumerator - lastNumerator) / lastNumerator
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientIncomes']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 病床使用率(实际占用总床日数 / 实际开放总床日数(病床总数 x 365) × 100%)
+        if (ruleIt.metric === MarkTagUsages.SickbedUsageRate.code) {
+          // 病床数量
+          const basicData = await getBasicData(
+            [hospital],
+            BasicTagUsages.Sickbed,
+            dayjs().year()
+          );
+
+          // 病床使用率
+          const numerator =
+            basicData > 0
+              ? metricModels['HIS.InpatientDays'] / (basicData * 365)
+              : 0;
+
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,

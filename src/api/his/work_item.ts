@@ -619,8 +619,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_sign_register main
-        INNER JOIN ph_sign_register_package rp ON main.id = rp.register
-        INNER JOIN ph_sign_package sp ON sp.id = rp.service --区分服务包类型
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service --区分服务包类型
       `,
       date: 'main.SignDate',
       columns: [`sp.ncmsservicepackageid = '1'`, `sp.conceitedmoney = 0`]
@@ -634,8 +634,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_sign_register main
-        INNER JOIN ph_sign_register_package rp ON main.id = rp.register
-        INNER JOIN ph_sign_package sp ON sp.id = rp.service
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
       `,
       date: 'main.SignDate',
       columns: [`sp.ncmsservicepackageid = '2'`]
@@ -649,8 +649,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_sign_register main
-        INNER JOIN ph_sign_register_package rp ON main.id = rp.register
-        INNER JOIN ph_sign_package sp ON sp.id = rp.service
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
       `,
       date: 'main.SignDate',
       columns: [`sp.ncmsservicepackageid = '3'`]
@@ -664,8 +664,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_sign_register main
-        INNER JOIN ph_sign_register_package rp ON main.id = rp.register
-        INNER JOIN ph_sign_package sp ON sp.id = rp.service
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
       `,
       date: 'main.SignDate',
       columns: [`sp.ncmsservicepackageid = '4'`]
@@ -679,8 +679,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_sign_register main
-        INNER JOIN ph_sign_register_package rp ON main.id = rp.register
-        INNER JOIN ph_sign_package sp ON sp.id = rp.service
+        INNER JOIN ph_sign_register_service rp ON main.id = rp.register
+        INNER JOIN ph_sign_service sp ON sp.id = rp.service
       `,
       date: 'main.SignDate',
       columns: [`sp.ncmsservicepackageid = '5'`]
