@@ -167,7 +167,7 @@
                             width: `${i.proportion * 100}%`
                           }"
                           :stroke-width="16"
-                          :percentage="i.rate * 100"
+                          :percentage="i.correctionRate * 100"
                           :show-text="false"
                           :color="
                             index === 0
@@ -453,16 +453,20 @@ export default {
     staffCheckListData() {
       return this.staffCheckListSeverData
         ?.sort((a, b) => b.score - a.score)
-        .map(it => ({
-          ...it,
-          rateFormat:
-            it.rate === null
-              ? '无考核'
-              : Number((it.rate * 100).toFixed(2)) + '%',
-          score: Number(it.score?.toFixed(2)) || 0,
-          correctionScore: Number((it.score * (it.rate || 1)).toFixed(2)),
-          proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
-        }))
+        .map(it => {
+          const correctionRate = it.rate ?? 1; // 用于校正得分的质量系数，为null时按照100%计算
+          return {
+            ...it,
+            correctionRate,
+            rateFormat:
+              it.rate === null
+                ? '无考核'
+                : Number((it.rate * 100).toFixed(2)) + '%',
+            score: Number(it.score?.toFixed(2)) || 0,
+            correctionScore: Number((it.score * correctionRate).toFixed(2)),
+            proportion: it.score / (this.staffCheckListSeverData[0].score || 1)
+          };
+        })
         .sort((a, b) => b.correctionScore - a.correctionScore);
     },
     averageRate() {
@@ -1157,6 +1161,7 @@ export default {
 
     .rank-box {
       padding: 10px;
+
       .cell {
         padding: 10px;
         display: flex;
@@ -1174,6 +1179,7 @@ export default {
           align-items: center;
           justify-content: center;
         }
+
         .top_three_ranking {
           .icon {
             width: 23px;
