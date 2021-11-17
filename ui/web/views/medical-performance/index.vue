@@ -113,25 +113,21 @@
           style="margin-bottom: 10px"
         >
           <div class="card staff-container">
-            <div class="staff-tabs">
-              <div
-                :class="staffFlag === 'workPoint' ? 'tab-select' : 'tab'"
-                @click="staffFlag = 'workPoint'"
-              >
-                员工工作量排名
+            <div v-sticky style="z-index:999">
+              <div class="staff-tabs">
+                <div
+                  :class="staffFlag === 'workPoint' ? 'tab-select' : 'tab'"
+                  @click="staffFlag = 'workPoint'"
+                >
+                  员工工作量排名
+                </div>
+                <div
+                  :class="staffFlag === 'rate' ? 'tab-select' : 'tab'"
+                  @click="staffFlag = 'rate'"
+                >
+                  员工质量系数排名
+                </div>
               </div>
-              <div
-                :class="staffFlag === 'rate' ? 'tab-select' : 'tab'"
-                @click="staffFlag = 'rate'"
-              >
-                员工质量系数排名
-              </div>
-            </div>
-            <div
-              class="content"
-              v-loading="$asyncComputed.staffCheckListSeverData.updating"
-              v-hidden-scroll
-            >
               <div class="top-container" v-sticky>
                 <div
                   v-if="staffFlag === 'workPoint'"
@@ -143,6 +139,12 @@
                   平均质量系数：{{ averageRate * 100 }}%
                 </div>
               </div>
+            </div>
+            <div
+              class="content"
+              v-loading="$asyncComputed.staffCheckListSeverData.updating"
+              v-hidden-scroll
+            >
               <div v-if="staffFlag === 'workPoint'">
                 <div class="rank-box" v-hidden-scroll>
                   <div
@@ -1404,6 +1406,15 @@ export default {
   height: 60vh;
   color: #3a3f62;
   font-size: 15px;
+  overflow-y: scroll;
+
+  .top-container {
+    background: #ffffff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 20px;
+  }
 
   .staff-tabs {
     height: 60px;
@@ -1429,15 +1440,6 @@ export default {
 
   .content {
     height: calc(60vh - 80px);
-    overflow-y: scroll;
-
-    .top-container {
-      background: #ffffff;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding: 10px 20px;
-    }
 
     .rank-box {
       padding: 10px;
