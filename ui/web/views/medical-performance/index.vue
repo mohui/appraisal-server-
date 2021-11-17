@@ -494,11 +494,12 @@ export default {
                   : this.staffSeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/numberPeople.png').default,
+              img: require('../../../assets/indicators-icon/numberPeople.png')
+                .default,
               isLoading: this.$asyncComputed.oldSeverData.updating
             },
             {
-              name: '本月医疗收入',
+              name: '医疗收入',
               unit: this.moneySeverData > num ? '万元' : '元',
               number: Number(
                 (this.moneySeverData > num
@@ -506,11 +507,12 @@ export default {
                   : this.moneySeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/medicalIncome.png').default,
+              img: require('../../../assets/indicators-icon/medicalIncome.png')
+                .default,
               isLoading: this.$asyncComputed.moneySeverData.updating
             },
             {
-              name: '本月诊疗人次数',
+              name: '诊疗人次数',
               unit: this.visitsSeverData > num ? '万人次' : '人次',
               number: Number(
                 (this.visitsSeverData > num
@@ -518,7 +520,7 @@ export default {
                   : this.visitsSeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/month.png').default,
+              img: require('../../../assets/indicators-icon/month.png').default,
               isLoading: this.$asyncComputed.visitsSeverData.updating
             },
             {
@@ -530,8 +532,144 @@ export default {
                   : this.doctorDailyVisitsSeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/averageDaily.png').default,
+              img: require('../../../assets/indicators-icon/averageDaily.png')
+                .default,
               isLoading: this.$asyncComputed.doctorDailyVisitsSeverData.updating
+            },
+            {
+              name: '出院人员数量',
+              unit: this.dischargedVisitsSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.dischargedVisitsSeverData > num
+                  ? this.dischargedVisitsSeverData / 10000
+                  : this.dischargedVisitsSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/leaveHospitalNumber.png')
+                .default,
+              isLoading: this.$asyncComputed.dischargedVisitsSeverData.updating
+            },
+            {
+              name: '病床使用率',
+              number: Number((this.sickbedUsageRateSeverData * 100).toFixed(2)),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/bedUtilizationRate.png')
+                .default,
+              isLoading: this.$asyncComputed.sickbedUsageRateSeverData.updating
+            },
+            {
+              name: '门急诊次均费用',
+              unit:
+                this.outpatientAverageIncomesSeverData > num ? '万元' : '元',
+              number: Number(
+                (this.outpatientAverageIncomesSeverData > num
+                  ? this.outpatientAverageIncomesSeverData / 10000
+                  : this.outpatientAverageIncomesSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageCostOutpatientEmergency.png')
+                .default,
+              isLoading: this.$asyncComputed.outpatientAverageIncomesSeverData
+                .updating
+            },
+            {
+              name: '住院次均费用',
+              unit: this.inpatientAverageIncomesSeverData > num ? '万元' : '元',
+              number: Number(
+                (this.inpatientAverageIncomesSeverData > num
+                  ? this.inpatientAverageIncomesSeverData / 10000
+                  : this.inpatientAverageIncomesSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageCostHospitalization.png')
+                .default,
+              isLoading: this.$asyncComputed.inpatientAverageIncomesSeverData
+                .updating
+            },
+            {
+              name: '每万人口全科医生数',
+              unit: this.staffSeverData > num ? '万人' : '人',
+              number: Number(
+                (this.generalPractitionersNumberSeverData > num
+                  ? this.generalPractitionersNumberSeverData / 10000
+                  : this.generalPractitionersNumberSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/generalPractitionersNumber.png')
+                .default,
+              isLoading: this.$asyncComputed.generalPractitionersNumberSeverData
+                .updating
+            },
+            {
+              name: '医护比',
+              unit: '',
+              number: Number(this.healthCareRatioSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/healthCareRatio.png')
+                .default,
+              isLoading: this.$asyncComputed.healthCareRatioSeverData.updating
+            },
+            {
+              name: '卫生技术人员学历结构',
+              number: Number(
+                (this.ratioOfHealthTechnicianEducationSeverData * 100).toFixed(
+                  2
+                )
+              ),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/educationalStructureHealthTechnicians.png')
+                .default,
+              isLoading: this.$asyncComputed
+                .ratioOfHealthTechnicianEducationSeverData.updating
+            },
+            {
+              name: '卫生技术人员职称结构',
+              number: Number(
+                (this.ratioOfHealthTechnicianTitlesSeverData * 100).toFixed(2)
+              ),
+              unit: '%',
+              img: require('../../../assets/indicators-icon/ratioOfHealthTechnicianTitles.png')
+                .default,
+              isLoading: this.$asyncComputed
+                .ratioOfHealthTechnicianTitlesSeverData.updating
+            },
+            {
+              name: '中医类别医师占比',
+              unit: '',
+              number: Number(this.ratioOfTCMSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/proportionTCMPhysicians.png')
+                .default,
+              isLoading: this.$asyncComputed.ratioOfTCMSeverData.updating
+            },
+            {
+              name: '每万人服务门诊当量',
+              unit: '',
+              number: Number(this.thousandOutpatientVisitsSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/outpatientServiceEquivalent.png')
+                .default,
+              isLoading: this.$asyncComputed.thousandOutpatientVisitsSeverData
+                .updating
+            },
+            {
+              name: '每万人服务住院当量',
+              unit: '',
+              number: Number(this.thousandInpatientVisitsSeverData.toFixed(2)),
+              img: require('../../../assets/indicators-icon/serviceHospitalizationEquivalent.png')
+                .default,
+              isLoading: this.$asyncComputed.thousandInpatientVisitsSeverData
+                .updating
+            },
+            {
+              name: '职工年平均担负门急诊人次',
+              unit: this.visitsSeverData > num ? '万人次' : '人次',
+              number: Number(
+                (this.visitsSeverData > num
+                  ? this.visitsSeverData / 10000
+                  : this.visitsSeverData
+                ).toFixed(2)
+              ),
+              img: require('../../../assets/indicators-icon/averageAnnualNumberOutpatientVisitsEmployees.png')
+                .default,
+              isLoading: this.$asyncComputed.visitsSeverData.updating
             }
           ]
         },
@@ -548,7 +686,8 @@ export default {
                   : this.personSeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/archives.png').default,
+              img: require('../../../assets/indicators-icon/archives.png')
+                .default,
               isLoading: this.$asyncComputed.personSeverData.updating
             },
             {
@@ -560,28 +699,32 @@ export default {
                   : this.chronicSeverData
                 ).toFixed(2)
               ),
-              img: require('../../../assets/slowDisease.png').default,
+              img: require('../../../assets/indicators-icon/slowDisease.png')
+                .default,
               isLoading: this.$asyncComputed.chronicSeverData.updating
             },
             {
               name: '高血压规范管理率',
               number: Number((this.htnSeverData * 100).toFixed(2)),
               unit: '%',
-              img: require('../../../assets/hypertension.png').default,
+              img: require('../../../assets/indicators-icon/hypertension.png')
+                .default,
               isLoading: this.$asyncComputed.htnSeverData.updating
             },
             {
               name: '糖尿病规范管理率',
               number: Number((this.t2dmSeverData * 100).toFixed(2)),
               unit: '%',
-              img: require('../../../assets/diabetes.png').default,
+              img: require('../../../assets/indicators-icon/diabetes.png')
+                .default,
               isLoading: this.$asyncComputed.t2dmSeverData.updating
             },
             {
               name: '老年人管理率',
               number: Number((this.oldSeverData * 100).toFixed(2)),
               unit: '%',
-              img: require('../../../assets/elderly.png').default,
+              img: require('../../../assets/indicators-icon/elderly.png')
+                .default,
               isLoading: this.$asyncComputed.oldSeverData.updating
             }
           ]
@@ -606,78 +749,214 @@ export default {
         return [];
       }
     },
+    /********************医疗指标**********************/
+    // 医疗人员数量
     staffSeverData: {
       async get() {
-        return await this.$api.AppHome.staff();
+        return await this.$api.AppHome.staff(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 医疗收入
     moneySeverData: {
       async get() {
-        return await this.$api.AppHome.money();
+        return await this.$api.AppHome.money(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 诊疗人次数
     visitsSeverData: {
       async get() {
-        return await this.$api.AppHome.visits();
+        return await this.$api.AppHome.visits(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 医师日均担负诊疗人次数
     doctorDailyVisitsSeverData: {
       async get() {
-        return await this.$api.AppHome.doctorDailyVisits();
+        return await this.$api.AppHome.doctorDailyVisits(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 出院人员数量
+    dischargedVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.dischargedVisits(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 病床使用率
+    sickbedUsageRateSeverData: {
+      async get() {
+        return await this.$api.AppHome.sickbedUsageRate(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 门急诊次均费用
+    outpatientAverageIncomesSeverData: {
+      async get() {
+        return await this.$api.AppHome.outpatientAverageIncomes(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 住院次均费用
+    inpatientAverageIncomesSeverData: {
+      async get() {
+        return await this.$api.AppHome.inpatientAverageIncomes(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 每万人口全科医生数
+    generalPractitionersNumberSeverData: {
+      async get() {
+        return await this.$api.AppHome.GPsPerW(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 医护比
+    healthCareRatioSeverData: {
+      async get() {
+        return await this.$api.AppHome.ratioOfMedicalAndNursing(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 卫生技术人员学历结构
+    ratioOfHealthTechnicianEducationSeverData: {
+      async get() {
+        return await this.$api.AppHome.ratioOfHealthTechnicianEducation(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 卫生技术人员职称结构
+    ratioOfHealthTechnicianTitlesSeverData: {
+      async get() {
+        return await this.$api.AppHome.ratioOfHealthTechnicianTitles(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 中医类别医师占比
+    ratioOfTCMSeverData: {
+      async get() {
+        return await this.$api.AppHome.RatioOfTCM(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 每万人服务门诊当量
+    thousandOutpatientVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.thousandOutpatientVisits(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    // 每万人服务住院当量
+    thousandInpatientVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.thousandInpatientVisits(
+          this.currentDate
+        );
+      },
+      default() {
+        return 0;
+      }
+    },
+    //职工年平均担负门急诊人次
+    staffOutpatientVisitsSeverData: {
+      async get() {
+        return await this.$api.AppHome.staffOutpatientVisits(this.currentDate);
+      },
+      default() {
+        return 0;
+      }
+    },
+    /********************医疗指标**********************/
+
+    /********************公卫指标**********************/
+    // 居民档案数量
     personSeverData: {
       async get() {
-        return await this.$api.AppHome.person();
+        return await this.$api.AppHome.person(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 慢病管理人数
     chronicSeverData: {
       async get() {
-        return await this.$api.AppHome.chronic();
+        return await this.$api.AppHome.chronic(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 高血压
     htnSeverData: {
       async get() {
-        return await this.$api.AppHome.htn();
+        return await this.$api.AppHome.htn(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 糖尿病规范管理率
     t2dmSeverData: {
       async get() {
-        return await this.$api.AppHome.t2dm();
+        return await this.$api.AppHome.t2dm(this.currentDate);
       },
       default() {
         return 0;
       }
     },
+    // 老年人管理率
     oldSeverData: {
       async get() {
-        return await this.$api.AppHome.old();
+        return await this.$api.AppHome.old(this.currentDate);
       },
       default() {
         return 0;
       }
     }
+    /********************公卫指标**********************/
   },
   watch: {
     reportData: function() {

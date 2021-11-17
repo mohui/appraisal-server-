@@ -9,6 +9,7 @@ import {
 } from '../../../common/his';
 import * as dayjs from 'dayjs';
 import {monthToRange} from './service';
+import {getHospitals} from '../group/common';
 
 /**
  * 员工信息
@@ -29,6 +30,10 @@ export async function getStaffList(hospital, date) {
     .startOf('month')
     .toDate();
 
+  const hospitals = await getHospitals(hospital);
+  // 获取机构id
+  const hospitalIds = hospitals.map(it => it.code);
+
   // 查询员工信息
   const staffModels = await appDB.execute(
     // language=PostgreSQL
@@ -42,12 +47,10 @@ export async function getStaffList(hospital, date) {
              "isGP",
              created_at
       from staff
-      where hospital = ?
-        and created_at >= ?
+      where hospital in (${hospitalIds.map(() => '?')})
         and created_at <= ?
     `,
-    hospital,
-    yearStart,
+    ...hospitalIds,
     monthEnd
   );
   // 给员工标注
