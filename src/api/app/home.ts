@@ -281,10 +281,32 @@ export default class AppHome {
   }
 
   /**
-   * 病床使用率
+   * 病床使用率(实际占用总床日数 / 实际开放总床日数(病床总数 x 365) × 100%)
    */
-  async sickbedUsageRate() {
-    return null;
+  async sickbedUsageRate(date) {
+    if (!date) date = dayjs().toDate();
+
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    const hospitalIds = areaModels.map(it => it.code);
+
+    const metricModels = await getMarkMetric(group, date);
+
+    const year = dayjs(date).year();
+    // 病床数量
+    const basicData = await getBasicData(
+      hospitalIds,
+      BasicTagUsages.Sickbed,
+      year
+    );
+
+    return divisionOperation(
+      metricModels['HIS.InpatientDays'],
+      basicData * 365
+    );
   }
 
   /**
