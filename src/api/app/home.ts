@@ -1,5 +1,4 @@
 import {originalDB} from '../../app';
-import {monthToRange} from '../his/service';
 import * as dayjs from 'dayjs';
 import * as dayOfYear from 'dayjs/plugin/dayOfYear';
 import * as isLeapYear from 'dayjs/plugin/isLeapYear';
@@ -7,7 +6,6 @@ import {Context} from '../context';
 import {getBasicData, getMarks} from '../group/score';
 import {BasicTagUsages} from '../../../common/rule-score';
 import {getHospitals} from '../group/common';
-import {KatoRuntimeError} from 'kato-server';
 import {getStaffList, getMarkMetric, divisionOperation} from '../his/common';
 
 //dayjs 加载插件

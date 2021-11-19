@@ -3,21 +3,13 @@ import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../../database/template';
-import {
-  Gender,
-  Education,
-  HisStaffDeptType,
-  HisWorkMethod
-} from '../../../common/his';
+import {Gender, Education, HisStaffDeptType} from '../../../common/his';
 import {
   dateValid,
-  getEndTime,
   getHospital,
   getSettle,
   monthToRange,
-  dayToRange,
-  StaffAssessModel,
-  StaffWorkModel
+  dayToRange
 } from './service';
 
 // 质量系数

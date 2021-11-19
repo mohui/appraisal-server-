@@ -1,12 +1,4 @@
 import {Context} from '../context';
-import {
-  HospitalModel,
-  RegionModel,
-  RoleModel,
-  UserModel
-} from '../../database/model';
-import {getLeaves} from '../group';
-import {Op} from 'sequelize';
 import {appDB, originalDB} from '../../app';
 
 /**
