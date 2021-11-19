@@ -45,10 +45,9 @@ export default class AppHome {
     if (!date) date = dayjs().toDate();
 
     const group = Context.current.user.areaCode;
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
     return (
-      metricModels['HIS.InpatientIncomes'] +
-      metricModels['HIS.OutpatientIncomes']
+      metricModel['HIS.InpatientIncomes'] + metricModel['HIS.OutpatientIncomes']
     );
   }
 
@@ -57,8 +56,8 @@ export default class AppHome {
     if (!date) date = dayjs().toDate();
 
     const group = Context.current.user.areaCode;
-    const metricModels = await getMarkMetric(group, date);
-    return metricModels['HIS.OutpatientVisits'];
+    const metricModel = await getMarkMetric(group, date);
+    return metricModel['HIS.OutpatientVisits'];
   }
 
   // 居民档案数量
@@ -166,11 +165,11 @@ export default class AppHome {
     // 取出机构下所有医生信息
     const staffs = await getStaffList(group, date);
 
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
 
     return (
       divisionOperation(
-        metricModels['HIS.OutpatientVisits'],
+        metricModel['HIS.OutpatientVisits'],
         staffs.physicianCount
       ) / 251
     );
@@ -276,15 +275,34 @@ export default class AppHome {
     // 获取所属地区
     const group = Context.current.user.areaCode;
 
-    const metricModels = await getMarkMetric(group, date);
-    return metricModels['HIS.DischargedVisits'];
+    const metricModel = await getMarkMetric(group, date);
+    return metricModel['HIS.DischargedVisits'];
   }
 
   /**
-   * 病床使用率
+   * 病床使用率(实际占用总床日数 / 实际开放总床日数(病床总数 x 365) × 100%)
    */
-  async sickbedUsageRate() {
-    return null;
+  async sickbedUsageRate(date) {
+    if (!date) date = dayjs().toDate();
+
+    // 获取所属地区
+    const group = Context.current.user.areaCode;
+
+    // 获取权限下机构
+    const areaModels = await getHospitals(group);
+    const hospitalIds = areaModels.map(it => it.code);
+
+    const metricModel = await getMarkMetric(group, date);
+
+    const year = dayjs(date).year();
+    // 病床数量
+    const basicData = await getBasicData(
+      hospitalIds,
+      BasicTagUsages.Sickbed,
+      year
+    );
+
+    return divisionOperation(metricModel['HIS.InpatientDays'], basicData * 365);
   }
 
   /**
@@ -296,11 +314,11 @@ export default class AppHome {
     // 获取所属地区
     const group = Context.current.user.areaCode;
 
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
 
     return divisionOperation(
-      metricModels['HIS.OutpatientIncomes'],
-      metricModels['HIS.OutpatientVisits']
+      metricModel['HIS.OutpatientIncomes'],
+      metricModel['HIS.OutpatientVisits']
     );
   }
 
@@ -313,11 +331,11 @@ export default class AppHome {
     // 获取所属地区
     const group = Context.current.user.areaCode;
 
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
 
     return divisionOperation(
-      metricModels['HIS.InpatientIncomes'],
-      metricModels['HIS.InpatientVisits']
+      metricModel['HIS.InpatientIncomes'],
+      metricModel['HIS.InpatientVisits']
     );
   }
 
@@ -348,7 +366,7 @@ export default class AppHome {
     const areaModels = await getHospitals(group);
     const hospitalIds = areaModels.map(it => it.code);
 
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
 
     const year = dayjs(date).year();
     // 辖区内常住居民数
@@ -358,7 +376,7 @@ export default class AppHome {
       year
     );
     return (
-      divisionOperation(metricModels['HIS.OutpatientVisits'], basicData) * 10000
+      divisionOperation(metricModel['HIS.OutpatientVisits'], basicData) * 10000
     );
   }
 
@@ -375,7 +393,7 @@ export default class AppHome {
     const hospitalIds = areaModels.map(it => it.code);
 
     const year = dayjs(date).year();
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
 
     // 辖区内常住居民数
     const basicData = await getBasicData(
@@ -384,7 +402,7 @@ export default class AppHome {
       year
     );
     return (
-      divisionOperation(metricModels['HIS.InpatientVisits'], basicData) * 10000
+      divisionOperation(metricModel['HIS.InpatientVisits'], basicData) * 10000
     );
   }
 
@@ -397,11 +415,11 @@ export default class AppHome {
     // 获取所属地区
     const group = Context.current.user.areaCode;
 
-    const metricModels = await getMarkMetric(group, date);
+    const metricModel = await getMarkMetric(group, date);
     const staffs = await getStaffList(group, date);
 
     return divisionOperation(
-      metricModels['HIS.OutpatientVisits'],
+      metricModel['HIS.OutpatientVisits'],
       staffs.staffCount
     );
   }
