@@ -533,30 +533,4 @@ export default class CheckSystem {
       );
     });
   }
-
-  //删除规则
-  @validate(
-    should
-      .string()
-      .required()
-      .description('规则id')
-  )
-  async removeRule(id) {
-    await appDB.transaction(async () => {
-      //查询并锁定
-      const rule = await CheckRuleModel.findOne({
-        where: {ruleId: id},
-        lock: true
-      });
-      if (!rule) throw new KatoCommonError('该规则不存在');
-      //如果是规则组,则删除其下的细则
-      if (!rule.parentRuleId) {
-        const childRules = await CheckRuleModel.findAll({
-          where: {parentRuleId: rule.ruleId}
-        });
-        await Promise.all(childRules.map(async it => await it.destroy()));
-      }
-      await rule.destroy({force: true});
-    });
-  }
 }
