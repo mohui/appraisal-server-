@@ -2421,6 +2421,115 @@ export default class Person {
 
       result.push(deliveryData);
     }
+    //无孕册 无分娩的产后访视记录
+    const maternalVisitRecords = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id               as visitcode,
+               pregnancybooksid as newlydiagnosedcode,
+               maternitycode,
+               maternalname,
+               maternalidcardno,
+               visitdate,
+               temperaturedegrees,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochiatype,
+               lochiavolume,
+               perinealincision,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_maternal_visit
+        where maternalidcardno = ?
+          and pregnancybooksid is null
+          and maternitycode is null
+        order by visitdate
+      `,
+      idCardNo
+    );
+    if (maternalVisitRecords.length > 0) {
+      result.push([
+        {
+          name: '第一次产前检查信息表',
+          type: 'newlyDiagnosed',
+          records: []
+        },
+        {
+          name: '第2~5次产前随访服务信息表',
+          type: 'prenatalCare',
+          records: []
+        },
+        {
+          name: '产后访视记录表',
+          type: 'maternalVisits',
+          records: maternalVisitRecords
+        },
+        {
+          name: '产后42天健康检查记录表',
+          type: 'examine42thDay',
+          records: []
+        }
+      ]);
+    }
+    //无孕册 无分娩的42天记录
+    const maternalExamine42thDayRecords = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id               as examineno,
+               pregnancybooksid as newlydiagnosedcode,
+               pregnantwomenname,
+               visitdate,
+               diastolicpressure,
+               systolicpressure,
+               breast,
+               lochia,
+               lochiacolor,
+               lochiasmell,
+               perinealincision,
+               other,
+               doctor,
+               operatetime,
+               operatorid,
+               operateorganization,
+               created_at,
+               updated_at
+        from mch_examine_42th_day
+        where idcard = ?
+          and pregnancybooksid is null
+          and maternitycode is null
+        order by visitdate
+      `,
+      idCardNo
+    );
+    if (maternalExamine42thDayRecords.length > 0) {
+      result.push([
+        {
+          name: '第一次产前检查信息表',
+          type: 'newlyDiagnosed',
+          records: []
+        },
+        {
+          name: '第2~5次产前随访服务信息表',
+          type: 'prenatalCare',
+          records: []
+        },
+        {
+          name: '产后访视记录表',
+          type: 'maternalVisits',
+          records: []
+        },
+        {
+          name: '产后42天健康检查记录表',
+          type: 'examine42thDay',
+          records: maternalExamine42thDayRecords
+        }
+      ]);
+    }
     return result;
   }
 
