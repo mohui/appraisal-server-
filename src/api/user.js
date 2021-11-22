@@ -591,51 +591,6 @@ export default class User {
     });
   }
 
-  //用户关联机构
-  @validate(
-    should.object({
-      id: should
-        .string()
-        .required()
-        .description('用户id'),
-      hospitals: should
-        .array()
-        .items(should.string())
-        .allow([])
-        .description('机构id数组')
-    })
-  )
-  async setHospitals(params) {
-    //查询用户是否存在
-    const result = await UserModel.findOne({
-      where: {id: params.id},
-      paranoid: false,
-      attributes: {exclude: ['deleted_at']}
-    });
-    if (!result) throw new KatoCommonError('该用户不存在');
-    //查询该用户原有的机构关系
-    const originHospital = await UserHospitalModel.findAll({
-      where: {userId: params.id},
-      paranoid: false,
-      attributes: {exclude: ['deleted_at']}
-    });
-    //关联新添加的机构关系
-    await UserHospitalModel.bulkCreate(
-      params.hospitals
-        .filter(id => !originHospital.find(it => it.hospitalId === id))
-        .map(hId => ({
-          userId: params.id,
-          hospitalId: hId
-        }))
-    );
-    //删除解绑的机构
-    await Promise.all(
-      originHospital
-        .filter(h => !params.hospitals.includes(h.hospitalId))
-        .map(async hospital => hospital.destroy({force: true}))
-    );
-  }
-
   async profile() {
     return Context.current.user;
   }
