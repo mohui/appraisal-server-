@@ -1,5 +1,4 @@
 import {
-  AreaModel,
   RuleAreaScoreModel,
   CheckRuleModel,
   CheckSystemModel,
@@ -8,6 +7,7 @@ import {
   RuleAreaBudgetModel
 } from '../../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
+import {originalDB} from '../../app';
 
 import {MarkTagUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
@@ -33,7 +33,18 @@ export default class SystemRule {
   )
   async checks(code, year) {
     // 校验地区是否存在
-    const areas = await AreaModel.findOne({where: {code}});
+    const areas = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+        select code, name
+        from area
+        where code = ?
+      `,
+        code
+      )
+    )[0];
+
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
 
     // 如果没有传年份,获取年份
