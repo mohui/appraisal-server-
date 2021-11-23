@@ -1,7 +1,6 @@
 import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
-  AreaModel,
   AreaVoucherModel,
   CheckAreaModel,
   CheckRuleModel,
