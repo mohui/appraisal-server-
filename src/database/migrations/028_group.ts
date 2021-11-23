@@ -1,16 +1,7 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
 import {
-  AreaModel,
-  // CheckAreaModel,
-  // CheckHospitalModel,
   ManualScoreHistoryModel,
-  // ReportAreaHistoryModel,
-  // ReportHospitalHistoryModel,
-  // RuleAreaAttachModel,
-  // RuleAreaScoreModel,
-  // RuleHospitalAttachModel,
-  // RuleHospitalModel,
   ScoreRemarkHistoryModel,
   UserHospitalModel,
   UserModel
@@ -299,7 +290,7 @@ export class GroupMigration implements IMigration {
         order by level
       `
     );
-    await Promise.all(regions.map(region => AreaModel.upsert(region)));
+    // await Promise.all(regions.map(region => AreaModel.upsert(region)));
     debug('3.1.1 同步区级及以上的地区数据');
 
     // 同步中心层
@@ -323,30 +314,30 @@ export class GroupMigration implements IMigration {
     );
     for (const center of centers) {
       // 同步中心层
-      await AreaModel.upsert({
-        code: center.u_id,
-        name: center.name,
-        parent: center.region
-      });
-      // 同步一级机构
-      await AreaModel.upsert({
-        code: center.id,
-        name: center.name,
-        parent: center.u_id
-      });
+      // await AreaModel.upsert({
+      //   code: center.u_id,
+      //   name: center.name,
+      //   parent: center.region
+      // });
+      // // 同步一级机构
+      // await AreaModel.upsert({
+      //   code: center.id,
+      //   name: center.name,
+      //   parent: center.u_id
+      // });
       // 同步二级机构
       const hospitals: {code: string; name: string}[] = await client.execute(
         `select id as code, name from hospital where parent = ?`,
         center.id
       );
-      await Promise.all(
-        hospitals.map(it =>
-          AreaModel.upsert({
-            ...it,
-            parent: center.u_id
-          })
-        )
-      );
+      // await Promise.all(
+      //   hospitals.map(it =>
+      //     AreaModel.upsert({
+      //       ...it,
+      //       parent: center.u_id
+      //     })
+      //   )
+      // );
     }
     debug('3.1.2 中心层及机构');
 
