@@ -1098,7 +1098,17 @@ export default class SystemArea {
  */
 export async function getReportBuffer(code, year) {
   // 校验地区是否存在
-  const areas = await AreaModel.findOne({where: {code}});
+  const areas = (
+    await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where code = ?
+      `,
+      code
+    )
+  )[0];
   if (!areas) throw new KatoCommonError(`code为 [${code}] 不合法`);
 
   // 获取树形结构
