@@ -936,7 +936,17 @@ export default class SystemArea {
   async downloadCheck(code, year) {
     try {
       let fileName = '';
-      const area = await AreaModel.findOne({where: {code}});
+      const area = (
+        await originalDB.execute(
+          // language=PostgreSQL
+          `
+        select code, name
+        from area
+        where code = ?
+      `,
+          code
+        )
+      )[0];
       if (!area) throw new KatoCommonError('机构或地区id错误!');
 
       fileName = area.name;
