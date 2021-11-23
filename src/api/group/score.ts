@@ -8,7 +8,6 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import {
-  AreaModel,
   BasicTagDataModel,
   CheckAreaModel,
   CheckRuleModel,
@@ -1979,7 +1978,17 @@ export default class Score {
   async manualScore(ruleId, code, score, remark) {
     const rule = await CheckRuleModel.findOne({where: {ruleId: ruleId}});
     if (!rule) throw new KatoCommonError('规则不存在');
-    const area = await AreaModel.findOne({where: {code}});
+    const area = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+        select code, name
+        from area
+        where code = ?
+      `,
+        code
+      )
+    )[0];
     if (!area) {
       throw new KatoCommonError('打分对象不存在');
     }
