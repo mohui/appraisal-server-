@@ -7,10 +7,12 @@ export class AddHisCheckRuleFieldLengthMigration implements IMigration {
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
-    await client.execute(`
-      alter table his_check_rule alter detail type varchar(1024);
-
-    `);
+    await client.execute(
+      `
+        alter table his_check_rule
+          alter column detail type varchar(1024) using detail::varchar(1024);
+      `
+    );
   }
 
   async down(client: ExtendedSequelize): Promise<void> {
