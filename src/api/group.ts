@@ -1,5 +1,4 @@
 import {appDB, originalDB} from '../app';
-import {AreaModel} from '../database';
 import {Context} from './context';
 import {KatoRuntimeError} from 'kato-server';
 
@@ -271,21 +270,29 @@ export default class Group {
   /**
    * 地区列表
    * @param code
+   * @param checkId
    * return usable: true:可选, false: 不可选
    */
   async list(code, checkId) {
     let where;
     // 判断code是否为空,如果传值,查询下级,如果没有传值,查询自身权限
     if (code) {
-      where = {parent: code};
+      where = `parent = ?`;
     } else {
-      where = {code: Context.current.user.regionId};
+      code = Context.current.user.regionId;
+      where = `code = ?`;
     }
     // 地区列表
-    const list = await AreaModel.findAll({
-      where,
-      attributes: ['code', 'name']
-    });
+    const list = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where
+        ${where}
+      `,
+      code
+    );
 
     // 根据checkId获取年份
     const checkSystem = await appDB.execute(
