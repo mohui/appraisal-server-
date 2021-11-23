@@ -151,12 +151,15 @@ export default class SystemArea {
   )
   async rank(code, year) {
     // 地区列表
-    const areaList = await AreaModel.findAll({
-      where: {
-        parent: code
-      },
-      attributes: ['code', 'name']
-    });
+    const areaList = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where parent = ?
+      `,
+      code
+    );
     // 如果没有传年份获取年份
     year = getYear(year);
 
