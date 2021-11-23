@@ -222,7 +222,6 @@ export default class SystemArea {
    * 历史记录
    *
    * @param code
-   * @param checkId
    * @param year
    */
   @validate(
@@ -237,7 +236,17 @@ export default class SystemArea {
   )
   async history(code, year) {
     // 查询本级权限
-    const areas = await AreaModel.findOne({where: {code}});
+    const areas = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+        select code, name
+        from area
+        where code = ?
+      `,
+        code
+      )
+    )[0];
 
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
     // 如果没有传年份获取年份
