@@ -20,50 +20,63 @@ export type AreaTreeNode = {
  */
 export async function getAreaTree(code): Promise<AreaTreeNode[]> {
   const condition = code ? `code = '${code}'` : 'parent is null';
-  // language=PostgreSQL
-  return await appDB.execute(`
-    with recursive tree(
-                        name,
-                        code,
-                        parent,
-                        level,
-                        path,
-                        root,
-                        cycle
-      ) as (
-      select name,
-             code                          as code,
-             parent                        as code,
-             1                             as level,
-             (array [code])::varchar(36)[] as path,
-             code                          as root,
-             false                         as cycle
-      from area
-      where ${condition}
-      union all
-      select c.name,
-             c.code                               as code,
-             c.parent                             as parent,
-             level + 1                            as level,
-             (tree.path || c.code)::varchar(36)[] as path,
-             tree.root                            as root,
-             c.code = any (path)                  as cycle
-      from tree,
-           area c
-      where tree.code = c.parent
-        and not cycle
+  return (
+    await originalDB.execute(
+      // language=PostgreSQL
+      `
+      with recursive tree(
+                          name,
+                          code,
+                          parent,
+                          level,
+                          self_path,
+                          root,
+                          cycle
+        ) as (
+        select name,
+               code                          as code,
+               parent                        as code,
+               1                             as level,
+               (array [code])::varchar(36)[] as self_path,
+               code                          as root,
+               false                         as cycle
+        from area
+        where ${condition}
+        union all
+        select c.name,
+               c.code                                    as code,
+               c.parent                                  as parent,
+               level + 1                                 as level,
+               (tree.self_path || c.code)::varchar(36)[] as self_path,
+               tree.root                                 as root,
+               c.code = any (self_path)                  as cycle
+        from tree,
+             area c
+        where tree.code = c.parent
+          and not cycle
+      )
+      select name,                                                       -- 名称
+             code,                                                       -- code
+             tree.parent,                                                -- 父级code
+             level,                                                      -- 层级
+             root,                                                       -- 路径
+             self_path,                                                  -- 根节点
+             cycle,                                                      -- 是否循环
+             case when t.parent is null then true else false end as leaf -- 是否是叶子节点
+      from tree
+             left join (select parent from area group by parent) t on tree.code = t.parent
+    `
     )
-    select name,                                                       -- 名称
-           code,                                                       -- code
-           tree.parent,                                                -- 父级code
-           level,                                                      -- 层级
-           root,                                                       -- 路径
-           path,                                                       -- 根节点
-           cycle,                                                      -- 是否循环
-           case when t.parent is null then true else false end as leaf -- 是否是叶子节点
-    from tree
-           left join (select parent from area group by parent) t on tree.code = t.parent
-  `);
+  ).map<AreaTreeNode>(it => ({
+    name: it.name,
+    code: it.code,
+    parent: it.parent,
+    level: it.level,
+    path: it.self_path,
+    root: it.root,
+    cycle: it.cycle,
+    leaf: it.leaf
+  }));
 }
 
 /**
