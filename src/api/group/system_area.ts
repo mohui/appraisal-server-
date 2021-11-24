@@ -1,7 +1,6 @@
 import * as dayjs from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {
-  AreaModel,
   AreaVoucherModel,
   CheckAreaModel,
   CheckRuleModel,
@@ -151,12 +150,15 @@ export default class SystemArea {
   )
   async rank(code, year) {
     // 地区列表
-    const areaList = await AreaModel.findAll({
-      where: {
-        parent: code
-      },
-      attributes: ['code', 'name']
-    });
+    const areaList = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where parent = ?
+      `,
+      code
+    );
     // 如果没有传年份获取年份
     year = getYear(year);
 
@@ -219,7 +221,6 @@ export default class SystemArea {
    * 历史记录
    *
    * @param code
-   * @param checkId
    * @param year
    */
   @validate(
@@ -234,7 +235,17 @@ export default class SystemArea {
   )
   async history(code, year) {
     // 查询本级权限
-    const areas = await AreaModel.findOne({where: {code}});
+    const areas = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+        select code, name
+        from area
+        where code = ?
+      `,
+        code
+      )
+    )[0];
 
     if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
     // 如果没有传年份获取年份
@@ -924,7 +935,17 @@ export default class SystemArea {
   async downloadCheck(code, year) {
     try {
       let fileName = '';
-      const area = await AreaModel.findOne({where: {code}});
+      const area = (
+        await originalDB.execute(
+          // language=PostgreSQL
+          `
+        select code, name
+        from area
+        where code = ?
+      `,
+          code
+        )
+      )[0];
       if (!area) throw new KatoCommonError('机构或地区id错误!');
 
       fileName = area.name;
@@ -1076,7 +1097,17 @@ export default class SystemArea {
  */
 export async function getReportBuffer(code, year) {
   // 校验地区是否存在
-  const areas = await AreaModel.findOne({where: {code}});
+  const areas = (
+    await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where code = ?
+      `,
+      code
+    )
+  )[0];
   if (!areas) throw new KatoCommonError(`code为 [${code}] 不合法`);
 
   // 获取树形结构
