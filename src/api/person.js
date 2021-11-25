@@ -2798,32 +2798,85 @@ export default class Person {
   /**
    * 产后访视记录表详情
    * @param code 主键
+   *
+   * @return {
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册表主键',
+   *   maternitycode: '产妇分娩表主键',
+   *   maternalname: '姓名',
+   *   maternalidcardno: '身份证',
+   *   visitdate: '访视日期',
+   *   birthday: '出生时间',
+   *   dischargedate: '出院日期',
+   *   temperaturedegrees: '体温',
+   *   generalhealthcondition: '一般健康情况',
+   *   generalmentalcondition: '一般心理情况',
+   *   diastolicpressure: '舒张压',
+   *   systolicpressure: '收缩压',
+   *   breast: '乳房',
+   *   lochiatype: '恶露类型',
+   *   lochiavolume: '恶露量',
+   *   perinealincision: '伤口',
+   *   other: '其他',
+   *   classification: '分类',
+   *   guide: '指导',
+   *   referral: '是否转诊',
+   *   referralreason: '转诊原因',
+   *   referralorg: '转诊机构',
+   *   nextvisitdate: '下次随访日期',
+   *   doctor: '医生姓名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间'
+   * }
    */
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `
-        select id               as visitcode,
-               pregnancybooksid as newlydiagnosedcode,
+        select id,
+               pregnancybooksid,
                maternitycode,
                maternalname,
                maternalidcardno,
                visitdate,
+               birthday,
+               dischargedate,
                temperaturedegrees,
+               generalhealthcondition,
+               generalmentalcondition,
                diastolicpressure,
                systolicpressure,
                breast,
                lochiatype,
                lochiavolume,
                perinealincision,
+               other,
+               classification,
+               guide,
+               referral,
+               referralreason,
+               referralorg,
+               nextvisitdate,
                doctor,
                operatetime,
                operatorid,
                operateorganization,
+               updateoperatorid,
+               updatetime,
+               isdelete,
+               deleteoperatorid,
+               deletetime,
                created_at,
                updated_at
         from mch_maternal_visit
         where id = ?
+          and isdelete = false
       `,
       code
     );
