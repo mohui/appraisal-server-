@@ -2715,17 +2715,50 @@ export default class Person {
   /**
    * 第2~5次产前随访服务信息表详情
    * @param code 主键id
+   *
+   * @return {
+   *   name: '姓名'
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册表主键',
+   *   checkdate: '随访日期',
+   *   gestationalagemonth: '孕周',
+   *   chiefcomplaint: '主诉',
+   *   weight: '体重',
+   *   uterinehigh: '产科检查 - 宫底高度',
+   *   abdominalcircumference: '产科检查 - 腹围',
+   *   fetalposition: '产科检查 - 胎位. 编码表358',
+   *   fetalheartrate: '产科检查 - 胎心率',
+   *   systolicpressure: '血压 - 收缩压',
+   *   assertpressure: '血压 - 舒张压',
+   *   hemoglobin: '血红蛋白',
+   *   urinaryprotein: '尿蛋白. 编码表009',
+   *   classification: '分类',
+   *   guide: '指导. 编码表401004',
+   *   referral: '是否转诊',
+   *   referralreason: '转诊原因',
+   *   referralorg: '转诊机构及科室',
+   *   nextappointmentdate: '下次随访日期',
+   *   doctor: '医生姓名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间'
+   * }
    */
   async recordPrenatalFollowUp(code) {
     // 第2~5次产前随访服务信息表
-    // language=PostgreSQL
     const result = await originalDB.execute(
+      // language=PostgreSQL
       `
         select b.name,
-               card.id               as prenatalcarecode,
-               card.pregnancybooksid as newlydiagnosedcode,
+               card.id,
+               card.pregnancybooksid,
                card.checkdate,
-               ''                    as diseasehistory,
+               card.gestationalagemonth,
                card.chiefcomplaint,
                card.weight,
                card.uterinehigh,
@@ -2736,17 +2769,27 @@ export default class Person {
                card.systolicpressure,
                card.hemoglobin,
                card.urinaryprotein,
+               card.classification,
                card.guide,
+               card.referral,
+               card.referralorg,
                card.nextappointmentdate,
                card.doctor,
                card.operatetime,
                card.operatorid,
                card.operateorganization,
+               card.updateoperatorid,
+               card.updatetime,
+               card.isdelete,
+               card.deleteoperatorid,
+               card.deletetime,
                card.created_at,
                card.updated_at
         from mch_prenatal_care card
                inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-        where card.id = ?`,
+        where card.id = ?
+          and card.isdelete = false
+      `,
       code
     );
     return result[0];
