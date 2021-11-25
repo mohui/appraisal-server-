@@ -2704,9 +2704,10 @@ export default class Person {
                n.created_at,
                n.updated_at
         from mch_newly_diagnosed n
-               inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
+               left join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
           and n.isdelete = false
+          and b.isdelete = false
       `,
       code
     );
@@ -2715,8 +2716,8 @@ export default class Person {
 
   /**
    * 第2~5次产前随访服务信息表详情
-   * @param code 主键id
    *
+   * @param code 主键id
    * @return {
    *   name: '姓名'
    *   id: '主键',
@@ -2787,9 +2788,10 @@ export default class Person {
                card.created_at,
                card.updated_at
         from mch_prenatal_care card
-               inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
+               left join mch_pregnancy_books b on card.pregnancybooksid = b.id
         where card.id = ?
           and card.isdelete = false
+          and b.isdelete = false
       `,
       code
     );
@@ -2798,8 +2800,8 @@ export default class Person {
 
   /**
    * 产后访视记录表详情
-   * @param code 主键
    *
+   * @param code 主键
    * @return {
    *   id: '主键',
    *   pregnancybooksid: '母子健康手册表主键',
@@ -2886,8 +2888,8 @@ export default class Person {
 
   /**
    * 产后42天健康检查记录表详情
-   * @param code 主键
    *
+   * @param code 主键
    * @return {
    *   id: '主键',
    *   pregnancybooksid: '母子健康手册主键',
