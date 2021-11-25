@@ -1431,6 +1431,7 @@ export default {
       height: 100%;
       text-align: center;
       line-height: 60px;
+      cursor: pointer;
     }
 
     .tab-select {
