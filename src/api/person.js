@@ -2706,6 +2706,7 @@ export default class Person {
         from mch_newly_diagnosed n
                inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
+          and n.isdelete = false
       `,
       code
     );
