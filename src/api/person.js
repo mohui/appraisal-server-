@@ -2886,16 +2886,48 @@ export default class Person {
   /**
    * 产后42天健康检查记录表详情
    * @param code 主键
+   *
+   * @return {
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册主键',
+   *   maternitycode: '产妇分娩表主键',
+   *   idcard: '身份证号码',
+   *   pregnantwomenname: '姓名',
+   *   visitdate: '访视日期',
+   *   generalmentalcondition: '一般心理情况',
+   *   systolicpressure: '收缩压',
+   *   diastolicpressure: '舒张压',
+   *   breast: '乳房',
+   *   lochia: '恶露',
+   *   lochiacolor: '恶露色',
+   *   lochiasmell: '恶露味',
+   *   perinealincision: '伤口',
+   *   other: '其他',
+   *   guide: '指导',
+   *   treatmentviews: '处理',
+   *   doctor: '随访医生签名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间',
+   * }
    */
   async recordPostpartum42DaysCheck(code) {
     // 产后42天健康检查记录表
     const result = await originalDB.execute(
       // language=PostgreSQL
       `
-        select id               as examineno,
-               pregnancybooksid as newlydiagnosedcode,
+        select id,
+               pregnancybooksid,
+               maternitycode,
+               idcard,
                pregnantwomenname,
                visitdate,
+               generalmentalcondition,
                diastolicpressure,
                systolicpressure,
                breast,
@@ -2904,14 +2936,22 @@ export default class Person {
                lochiasmell,
                perinealincision,
                other,
+               guide,
+               treatmentviews,
                doctor,
                operatetime,
                operatorid,
                operateorganization,
+               updateoperatorid,
+               updatetime,
+               isdelete,
+               deleteoperatorid,
+               deletetime,
                created_at,
                updated_at
         from mch_examine_42th_day
         where id = ?
+          and isdelete = false
       `,
       code
     );
