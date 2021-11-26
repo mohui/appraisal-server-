@@ -24,7 +24,7 @@
       <div v-hidden-scroll style="flex-grow: 1;height: 0; overflow-y: auto;">
         <div class="record-head">
           <div style="float: right;">
-            编号：{{ detailDate.prenatalcarecode }}
+            编号：
           </div>
           姓名：<strong>{{ detailDate.name }}</strong>
         </div>
@@ -32,11 +32,13 @@
           <tbody>
             <tr>
               <td colspan="4">(随访/督促)日期</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">
+                {{ detailDate.checkdate }}
+              </td>
             </tr>
             <tr>
               <td colspan="4">孕 周</td>
-              <td colspan="20">{{ detailDate.diseasehistory }}</td>
+              <td colspan="20">{{ detailDate.gestationalagemonth }}</td>
             </tr>
             <tr>
               <td colspan="4">主 诉</td>
@@ -81,7 +83,7 @@
             </tr>
             <tr>
               <td colspan="4">分 类</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">{{ detailDate.classification }}</td>
             </tr>
             <tr>
               <td colspan="4">指 导</td>
@@ -89,7 +91,7 @@
             </tr>
             <tr>
               <td colspan="4">转 诊</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">{{ detailDate.referral }}</td>
             </tr>
             <tr>
               <td colspan="4">下次随访日期</td>
@@ -165,7 +167,13 @@ export default {
   },
   computed: {
     detailDate() {
-      return this.detailServerDate;
+      return {
+        ...this.detailServerDate,
+        checkdate: this.detailServerDate.checkdate?.$format('YYYY-MM-DD'),
+        nextappointmentdate: this.detailServerDate.nextappointmentdate?.$format(
+          'YYYY-MM-DD'
+        )
+      };
     }
   },
   asyncComputed: {
