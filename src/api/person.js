@@ -2108,6 +2108,7 @@ export default class Person {
                  updated_at
           from mch_newly_diagnosed
           where pregnancybooksid = ?
+            and isdelete = false
           order by newlydiagnoseddate
         `,
         pregnancyBook.id
@@ -2147,6 +2148,7 @@ export default class Person {
                  card.updated_at
           from mch_prenatal_care card
           where card.pregnancybooksid = ?
+            and card.isdelete = false
           order by card.checkdate
         `,
         pregnancyBook.id
@@ -2182,6 +2184,7 @@ export default class Person {
                  updated_at
           from mch_maternal_visit
           where pregnancybooksid = ?
+            and isdelete = false
           order by visitdate
         `,
         pregnancyBook.id
@@ -2209,9 +2212,11 @@ export default class Person {
                  v.created_at,
                  v.updated_at
           from mch_maternal_visit v
-                 inner join mch_delivery_record v1 on v1.pregnancybooksid = ? and v1.id = v.maternitycode
+                 inner join mch_delivery_record v1
+                            on v1.pregnancybooksid = ? and v1.isdelete = false and v1.id = v.maternitycode
           where v.pregnancybooksid is null
             and v.maternitycode is not null
+            and v.isdelete = false
           order by v.visitdate
         `,
         pregnancyBook.id
@@ -2249,6 +2254,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where pregnancybooksid = ?
+            and isdelete = false
           order by visitdate
         `,
         pregnancyBook.id
@@ -2275,9 +2281,11 @@ export default class Person {
                  a.created_at,
                  a.updated_at
           from mch_examine_42th_day a
-                 inner join mch_delivery_record b on b.pregnancybooksid = ? and a.maternitycode = b.id
+                 inner join mch_delivery_record b
+                            on b.pregnancybooksid = ? and b.isdelete = false and a.maternitycode = b.id
           where a.pregnancybooksid is null
             and a.maternitycode is not null
+            and a.isdelete = false
           order by a.visitdate`,
         pregnancyBook.id
       );
@@ -2297,11 +2305,13 @@ export default class Person {
       `
         select distinct a.MaternityCode as id
         from mch_maternal_visit a
-               inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+               inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode and d.isdelete = false
                left join mch_delivery_record r on r.id = d.MaternityCode
         where a.MaternalIdCardNo = ?
           and a.MaternityCode is not null
+          and a.isdelete = false
           and r.PregnancyBooksId is null
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2315,8 +2325,11 @@ export default class Person {
                left join mch_delivery_record r on r.id = a.MaternityCode
         where a.MaternalIdCardNo = ?
           and d.MaternityCode is null
+          and d.isdelete = false
           and a.MaternityCode is not null
+          and a.isdelete = false
           and r.PregnancyBooksId is null
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2332,6 +2345,9 @@ export default class Person {
           and d.MaternityCode is null
           and a.MaternityCode is not null
           and r.PregnancyBooksId is null
+          and a.isdelete = false
+          and d.isdelete = false
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2376,6 +2392,7 @@ export default class Person {
                  updated_at
           from mch_maternal_visit
           where maternitycode = ?
+            and isdelete = false
           order by visitdate
         `,
         delivery.id
@@ -2408,6 +2425,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where maternitycode = ?
+            and isdelete = false
           order by visitdate
         `,
         delivery.id
@@ -2447,6 +2465,7 @@ export default class Person {
         where maternalidcardno = ?
           and pregnancybooksid is null
           and maternitycode is null
+          and isdelete = false
         order by visitdate
       `,
       idCardNo
@@ -2501,6 +2520,7 @@ export default class Person {
         where idcard = ?
           and pregnancybooksid is null
           and maternitycode is null
+          and isdelete = false
         order by visitdate
       `,
       idCardNo
