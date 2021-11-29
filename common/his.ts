@@ -338,14 +338,14 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'a3',
+            value: 'TCMVisits',
             label: '中医诊疗人次数',
-            enabled: false
+            enabled: true
           },
           {
-            value: 'a4',
+            value: 'TCMVisitsRate',
             label: '中医诊疗人次占比',
-            enabled: false
+            enabled: true
           },
           {
             value: 'a5',
@@ -620,6 +620,14 @@ export const MarkTagUsages = {
   SickbedUsageRate: {
     code: 'SickbedUsageRate',
     name: '病床使用率'
+  },
+  TCMVisits: {
+    code: 'TCMVisits',
+    name: '中医诊疗人次数'
+  },
+  TCMVisitsRate: {
+    code: 'TCMVisitsRate',
+    name: '中医诊疗人次占比'
   }
 };
 
