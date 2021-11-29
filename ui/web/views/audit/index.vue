@@ -71,6 +71,7 @@
         class="clearfix"
         size="small"
         height="100%"
+        v-hidden-scroll
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
