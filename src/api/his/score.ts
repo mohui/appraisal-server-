@@ -23,7 +23,7 @@ import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
 import {getBasicData} from '../group/score';
-import {getStaffList, getMarkMetric} from './common';
+import {getStaffList, getMarkMetric, divisionOperation} from './common';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -577,6 +577,41 @@ type AssessModel = {
 };
 // endregion
 
+/**
+ * 获取 his_charge_master 数量
+ */
+async function getChargeMasters(hospital, day) {
+  // 获取所在月份的开始结束时间
+  const {start, end} = monthToRange(day);
+  // 获取员工信息
+  const staffList = await getStaffList(hospital, day);
+  // 获取中医资格医师id列表
+  const TCMList = staffList?.TCMList?.map(TCMIt => TCMIt.staff)?.filter(
+    TCMIt => TCMIt
+  );
+
+  const obj = {
+    TCMVisitCount: 0
+  };
+  if (TCMList.length > 0) {
+    const TCMVisit = await originalDB.execute(
+      // language=PostgreSQL
+      `
+              select count(distinct treat) count
+              from his_charge_master
+              where operate_time >= ?
+                and operate_time < ?
+                and charge_type = '门诊'
+                and doctor in (${TCMList.map(() => '?')})
+            `,
+      start,
+      end,
+      ...TCMList
+    );
+    obj.TCMVisitCount = TCMVisit[0]?.count ?? 0;
+  }
+  return obj;
+}
 export default class HisScore {
   // region 自动打分
   /**
@@ -683,6 +718,8 @@ export default class HisScore {
     const metricModels = await getMarkMetric(hospital, day);
     // 上年度指标
     const lastMetricModels = await getMarkMetric(hospital, lastYear);
+
+    const ChargeMaster = await getChargeMasters(hospital, day);
 
     return await appDB.joinTx(async () => {
       // region 打分前的校验
@@ -1398,6 +1435,58 @@ export default class HisScore {
           if (
             ruleIt.operator === TagAlgorithmUsages.N01.code &&
             !metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 中医诊疗人次数 (中医资格医师的诊疗人次数)
+        if (ruleIt.metric === MarkTagUsages.TCMVisits.code) {
+          // 获取中医诊疗人次数
+          const numerator = ChargeMaster.TCMVisitCount;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.Y01.code && numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (ruleIt.operator === TagAlgorithmUsages.N01.code && !numerator) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
+        // 中医诊疗人次占比 (中医诊疗人次数 / 诊疗人次数 x 100%)
+        if (ruleIt.metric === MarkTagUsages.TCMVisitsRate.code) {
+          const numerator = divisionOperation(
+            ChargeMaster.TCMVisitCount,
+            metricModels['HIS.OutpatientVisits']
+          );
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            ChargeMaster.TCMVisitCount
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !ChargeMaster.TCMVisitCount
           ) {
             // 指标分数
             score = ruleIt.score;
