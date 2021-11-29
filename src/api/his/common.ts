@@ -141,6 +141,8 @@ export async function getStaffList(hospital, date) {
  *   InpatientVisits: 住院人次数
  *   InpatientIncomes: 住院收入
  *   InpatientDays: 实际占用总床日数
+ *   DisChargedPatientDays: 出院病人占用总床日数
+ *   DisChargedIncomes: 出院患者住院收入
  * }
  */
 export async function getMarkMetric(
@@ -153,6 +155,8 @@ export async function getMarkMetric(
   'HIS.InpatientVisits': number;
   'HIS.InpatientIncomes': number;
   'HIS.InpatientDays': number;
+  'HIS.DisChargedPatientDays': number;
+  'HIS.DisChargedIncomes': number;
 }> {
   const {start, end} = monthToRange(date);
   // 查询机构指标信息
@@ -187,7 +191,9 @@ export async function getMarkMetric(
     'HIS.DischargedVisits': 0, // 出院人次数
     'HIS.InpatientVisits': 0, // 住院人次数
     'HIS.InpatientIncomes': 0, // 住院收入
-    'HIS.InpatientDays': 0 // 实际占用总床日数
+    'HIS.InpatientDays': 0, // 实际占用总床日数
+    'HIS.DisChargedPatientDays': 0, // 出院病人占用总床日数
+    'HIS.DisChargedIncomes': 0 // 出院患者住院收入
   };
 
   for (const it of markMetricModels) {
