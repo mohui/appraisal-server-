@@ -40,6 +40,7 @@ export async function getStaffList(hospital, date) {
     `
       select id,
              account,
+             staff,
              name,
              major,
              title,
