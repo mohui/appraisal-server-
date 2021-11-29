@@ -1499,6 +1499,37 @@ export default class HisScore {
           }
         }
 
+        // 医师日均担负住院床日 (实际占用总床日数 / 平均医师人数 / 365)
+        if (ruleIt.metric === MarkTagUsages.PhysicianAverageBedDay.code) {
+          const numerator =
+            divisionOperation(
+              metricModels['HIS.InpatientDays'],
+              staffList.physicianCount
+            ) / 365;
+          // 根据指标算法,计算得分 之 结果为"是"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.Y01.code &&
+            metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // 根据指标算法,计算得分 之 结果为"否"得满分
+          if (
+            ruleIt.operator === TagAlgorithmUsages.N01.code &&
+            !metricModels['HIS.InpatientDays']
+          ) {
+            // 指标分数
+            score = ruleIt.score;
+          }
+          // “≥”时得满分，不足按比例得分
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+            const rate = numerator / ruleIt.value;
+            // 指标分数
+            score = ruleIt.score * (rate > 1 ? 1 : rate);
+          }
+        }
+
         addRuleScore.push({
           staffId: staff,
           time: start,
