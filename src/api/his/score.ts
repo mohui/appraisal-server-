@@ -1327,18 +1327,18 @@ export default class HisScore {
           }
         }
 
-        // 住院次均费用(住院业务总收入/年住院总人次数;其中：住院业务总收入只包含当年的总费用)
+        // 住院次均费用(出院病人住院收入/出院人次数)
         if (ruleIt.metric === MarkTagUsages.InpatientAverageIncomes.code) {
           const numerator =
-            metricModels['HIS.InpatientVisits'] > 0
-              ? metricModels['HIS.InpatientIncomes'] /
-                metricModels['HIS.InpatientVisits']
+            metricModels['HIS.DischargedVisits'] > 0
+              ? metricModels['HIS.DisChargedIncomes'] /
+                metricModels['HIS.DischargedVisits']
               : 0;
 
           // 根据指标算法,计算得分 之 结果为"是"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.Y01.code &&
-            metricModels['HIS.InpatientIncomes']
+            metricModels['HIS.DisChargedIncomes']
           ) {
             // 指标分数
             score = ruleIt.score;
@@ -1346,7 +1346,7 @@ export default class HisScore {
           // 根据指标算法,计算得分 之 结果为"否"得满分
           if (
             ruleIt.operator === TagAlgorithmUsages.N01.code &&
-            !metricModels['HIS.InpatientIncomes']
+            !metricModels['HIS.DisChargedIncomes']
           ) {
             // 指标分数
             score = ruleIt.score;
