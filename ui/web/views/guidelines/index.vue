@@ -46,6 +46,7 @@
       </el-form>
       <el-table
         v-loading="$asyncComputed.list.updating"
+        v-hidden-scroll
         stripe
         size="medium"
         :cell-class-name="cellClassHover"
