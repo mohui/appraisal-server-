@@ -374,9 +374,9 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'a18',
+            value: 'PhysicianAverageBedDay',
             label: '医师日均担负住院床日',
-            enabled: false
+            enabled: true
           },
           {
             value: 'SickbedUsageRate',
@@ -384,9 +384,9 @@ export const MarkTag = [
             enabled: true
           },
           {
-            value: 'a20',
+            value: 'AverageHospitalizedDay',
             label: '平均住院日',
-            enabled: false
+            enabled: true
           }
         ]
       },
@@ -628,6 +628,14 @@ export const MarkTagUsages = {
   TCMVisitsRate: {
     code: 'TCMVisitsRate',
     name: '中医诊疗人次占比'
+  },
+  PhysicianAverageBedDay: {
+    code: 'PhysicianAverageBedDay',
+    name: '医师日均担负住院床日'
+  },
+  AverageHospitalizedDay: {
+    code: 'AverageHospitalizedDay',
+    name: '平均住院日'
   }
 };
 
