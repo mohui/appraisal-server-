@@ -122,7 +122,8 @@ export async function getStaffList(hospital, date) {
     healthWorkersCount: healthWorkersList.length, // 同期卫生技术人员总数
     highTitleCount: highTitleList.length, // 具有高级职称的卫生技术人员数
     TCMCount: TCMList.length, // 中医数量
-    staffCount: staffModels.length // 所有职工数量
+    staffCount: staffModels.length, // 所有职工数量
+    TCMList
   };
 }
 
