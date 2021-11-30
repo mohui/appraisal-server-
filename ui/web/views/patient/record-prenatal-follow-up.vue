@@ -26,60 +26,60 @@
           <div style="float: right;">
             编号：
           </div>
-          姓名：<strong>{{ detailDate.name }}</strong>
+          姓名：<strong>{{ detailData.name }}</strong>
         </div>
         <table class="record-table">
           <tbody>
             <tr>
               <td colspan="4">(随访/督促)日期</td>
               <td colspan="20">
-                {{ detailDate.checkdate }}
+                {{ detailData.checkdate }}
               </td>
             </tr>
             <tr>
               <td colspan="4">孕 周</td>
-              <td colspan="20">{{ detailDate.gestationalagemonth }}</td>
+              <td colspan="20">{{ detailData.gestationalagemonth }}</td>
             </tr>
             <tr>
               <td colspan="4">主 诉</td>
-              <td colspan="20">{{ detailDate.chiefcomplaint }}</td>
+              <td colspan="20">{{ detailData.chiefcomplaint }}</td>
             </tr>
             <tr>
               <td colspan="4">体重（kg）</td>
-              <td colspan="20">{{ detailDate.weight }}</td>
+              <td colspan="20">{{ detailData.weight }}</td>
             </tr>
             <tr>
               <td rowspan="4" colspan="2">产科检查</td>
               <td colspan="2">宫底高度（cm）</td>
-              <td colspan="20">{{ detailDate.uterinehigh }}</td>
+              <td colspan="20">{{ detailData.uterinehigh }}</td>
             </tr>
             <tr>
               <td colspan="2">腹围（cm）</td>
-              <td colspan="20">{{ detailDate.abdominalcircumference }}</td>
+              <td colspan="20">{{ detailData.abdominalcircumference }}</td>
             </tr>
             <tr>
               <td colspan="2">胎 位</td>
-              <td colspan="20">{{ detailDate.fetalposition }}</td>
+              <td colspan="20">{{ detailData.fetalposition }}</td>
             </tr>
             <tr>
               <td colspan="2">胎心率（次/分钟）</td>
-              <td colspan="20">{{ detailDate.fetalheartrate }}</td>
+              <td colspan="20">{{ detailData.fetalheartrate }}</td>
             </tr>
             <tr>
               <td colspan="4">血压（mmHg）</td>
               <td colspan="20">
-                {{ detailDate.systolicpressure }}/{{
-                  detailDate.assertpressure
+                {{ detailData.systolicpressure }}/{{
+                  detailData.assertpressure
                 }}
               </td>
             </tr>
             <tr>
               <td colspan="4">血红蛋白（g/L）</td>
-              <td colspan="20">{{ detailDate.hemoglobin }}</td>
+              <td colspan="20">{{ detailData.hemoglobin }}</td>
             </tr>
             <tr>
               <td colspan="4">尿蛋白</td>
-              <td colspan="20">{{ detailDate.urinaryprotein }}</td>
+              <td colspan="20">{{ detailData.urinaryprotein }}</td>
             </tr>
             <tr>
               <td colspan="4">其他辅助检查*</td>
@@ -87,23 +87,23 @@
             </tr>
             <tr>
               <td colspan="4">分 类</td>
-              <td colspan="20">{{ detailDate.classification }}</td>
+              <td colspan="20">{{ detailData.classification }}</td>
             </tr>
             <tr>
               <td colspan="4">指 导</td>
-              <td colspan="20">{{ detailDate.guide }}</td>
+              <td colspan="20">{{ detailData.guide }}</td>
             </tr>
             <tr>
               <td colspan="4">转 诊</td>
-              <td colspan="20">{{ detailDate.referral }}</td>
+              <td colspan="20">{{ detailData.referral }}</td>
             </tr>
             <tr>
               <td colspan="4">下次随访日期</td>
-              <td colspan="20">{{ detailDate.nextappointmentdate }}</td>
+              <td colspan="20">{{ detailData.nextappointmentdate }}</td>
             </tr>
             <tr>
               <td colspan="4">随访医生签名</td>
-              <td colspan="20">{{ detailDate.doctor }}</td>
+              <td colspan="20">{{ detailData.doctor }}</td>
             </tr>
           </tbody>
         </table>
@@ -170,7 +170,7 @@ export default {
     this.code = this.$route.query.id;
   },
   computed: {
-    detailDate() {
+    detailData() {
       return {
         ...this.detailServerDate,
         checkdate: this.detailServerDate.checkdate?.$format('YYYY-MM-DD'),
