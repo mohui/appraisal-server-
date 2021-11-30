@@ -80,15 +80,6 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
 }
 
 /**
- * 获取当前节点下的所有叶子节点
- *
- * @param code 地区code
- */
-export async function getLeaves(code: string): Promise<AreaTreeNode[]> {
-  return (await getAreaTree(code)).filter(it => it.leaf);
-}
-
-/**
  * 获取地区对应的原始数据的机构
  *
  * @param codes 地区code数据
