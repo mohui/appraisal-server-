@@ -2817,7 +2817,9 @@ export default class Person {
     );
     return result.map(it => ({
       ...it,
-      nextappointmentdate: dayjs(it.nextappointmentdate)
+      nextappointmentdate: it.nextappointmentdate
+        ? dayjs(it.nextappointmentdate)
+        : null
     }))[0];
   }
 
