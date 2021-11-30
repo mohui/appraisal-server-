@@ -25,110 +25,112 @@
           <el-col :span="6">
             姓名：<strong>{{ detailDate.maternalname }}</strong>
           </el-col>
-          <el-col :span="6">编号：{{ detailDate.visitcode }}</el-col>
+          <el-col :span="6">编号：</el-col>
         </el-row>
         <table class="record-postpartum-visit">
           <tbody>
             <tr>
               <td colspan="4">随访日期</td>
               <td colspan="20">
-                {{ detailDate.visitdate }}
+                <em>{{ detailDate.visitdate }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">分娩日期</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.birthday }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">出院日期</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.dischargedate }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">体温</td>
               <td colspan="20">
-                {{ detailDate.temperaturedegrees.toFixed(2) }}
+                <em>{{ detailDate.temperaturedegrees }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">一般健康情况</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.generalhealthcondition }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">一般心理状况</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.generalmentalcondition }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">血 压(mmHg)</td>
               <td colspan="20">
-                {{ detailDate.diastolicpressure }}
+                <em
+                  >{{ detailDate.systolicpressure }}/{{
+                    detailDate.diastolicpressure
+                  }}</em
+                >
               </td>
             </tr>
             <tr>
               <td colspan="4">乳 房</td>
               <td colspan="20">
-                {{ detailDate.breast }}
+                <em>{{ detailDate.breast }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">恶 露</td>
               <td colspan="20">
-                {{ detailDate.lochiatype }}
+                <em>{{ detailDate.lochiatype }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">子 宫</td>
-              <td colspan="20">
-                暂无数据
-              </td>
+              <td colspan="20"></td>
             </tr>
             <tr>
               <td colspan="4">伤 口</td>
               <td colspan="20">
-                {{ detailDate.perineaincision }}
+                <em>{{ detailDate.perinealincision }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">其 他</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.other }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">分 类</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.classification }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">指 导</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.guide }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">转 诊</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.referral }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">下次随访日期</td>
               <td colspan="20">
-                暂无数据
+                <em>{{ detailDate.nextvisitdate }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">随访医生签名</td>
               <td colspan="20">
-                {{ detailDate.doctor }}
+                <em>{{ detailDate.doctor }}</em>
               </td>
             </tr>
           </tbody>
@@ -153,6 +155,10 @@ export default {
     detailDate() {
       const date = this.detailServerDate;
       date.visitdate = date.visitdate?.$format('YYYY-MM-DD');
+      date.birthday = date.birthday?.$format('YYYY-MM-DD');
+      date.dischargedate = date.dischargedate?.$format('YYYY-MM-DD');
+      date.nextvisitdate = date.nextvisitdate?.$format('YYYY-MM-DD');
+      date.temperaturedegrees = date.temperaturedegrees?.toFixed(1);
       return date;
     }
   },

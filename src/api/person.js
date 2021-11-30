@@ -2108,6 +2108,7 @@ export default class Person {
                  updated_at
           from mch_newly_diagnosed
           where pregnancybooksid = ?
+            and isdelete = false
           order by newlydiagnoseddate
         `,
         pregnancyBook.id
@@ -2147,6 +2148,7 @@ export default class Person {
                  card.updated_at
           from mch_prenatal_care card
           where card.pregnancybooksid = ?
+            and card.isdelete = false
           order by card.checkdate
         `,
         pregnancyBook.id
@@ -2182,6 +2184,7 @@ export default class Person {
                  updated_at
           from mch_maternal_visit
           where pregnancybooksid = ?
+            and isdelete = false
           order by visitdate
         `,
         pregnancyBook.id
@@ -2209,9 +2212,11 @@ export default class Person {
                  v.created_at,
                  v.updated_at
           from mch_maternal_visit v
-                 inner join mch_delivery_record v1 on v1.pregnancybooksid = ? and v1.id = v.maternitycode
+                 inner join mch_delivery_record v1
+                            on v1.pregnancybooksid = ? and v1.isdelete = false and v1.id = v.maternitycode
           where v.pregnancybooksid is null
             and v.maternitycode is not null
+            and v.isdelete = false
           order by v.visitdate
         `,
         pregnancyBook.id
@@ -2249,6 +2254,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where pregnancybooksid = ?
+            and isdelete = false
           order by visitdate
         `,
         pregnancyBook.id
@@ -2275,9 +2281,11 @@ export default class Person {
                  a.created_at,
                  a.updated_at
           from mch_examine_42th_day a
-                 inner join mch_delivery_record b on b.pregnancybooksid = ? and a.maternitycode = b.id
+                 inner join mch_delivery_record b
+                            on b.pregnancybooksid = ? and b.isdelete = false and a.maternitycode = b.id
           where a.pregnancybooksid is null
             and a.maternitycode is not null
+            and a.isdelete = false
           order by a.visitdate`,
         pregnancyBook.id
       );
@@ -2297,11 +2305,13 @@ export default class Person {
       `
         select distinct a.MaternityCode as id
         from mch_maternal_visit a
-               inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode
+               inner join mch_examine_42th_day d on a.MaternityCode = d.MaternityCode and d.isdelete = false
                left join mch_delivery_record r on r.id = d.MaternityCode
         where a.MaternalIdCardNo = ?
           and a.MaternityCode is not null
+          and a.isdelete = false
           and r.PregnancyBooksId is null
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2315,8 +2325,11 @@ export default class Person {
                left join mch_delivery_record r on r.id = a.MaternityCode
         where a.MaternalIdCardNo = ?
           and d.MaternityCode is null
+          and d.isdelete = false
           and a.MaternityCode is not null
+          and a.isdelete = false
           and r.PregnancyBooksId is null
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2332,6 +2345,9 @@ export default class Person {
           and d.MaternityCode is null
           and a.MaternityCode is not null
           and r.PregnancyBooksId is null
+          and a.isdelete = false
+          and d.isdelete = false
+          and r.isdelete = false
       `,
       idCardNo
     );
@@ -2376,6 +2392,7 @@ export default class Person {
                  updated_at
           from mch_maternal_visit
           where maternitycode = ?
+            and isdelete = false
           order by visitdate
         `,
         delivery.id
@@ -2408,6 +2425,7 @@ export default class Person {
                  updated_at
           from mch_examine_42th_day
           where maternitycode = ?
+            and isdelete = false
           order by visitdate
         `,
         delivery.id
@@ -2447,6 +2465,7 @@ export default class Person {
         where maternalidcardno = ?
           and pregnancybooksid is null
           and maternitycode is null
+          and isdelete = false
         order by visitdate
       `,
       idCardNo
@@ -2501,6 +2520,7 @@ export default class Person {
         where idcard = ?
           and pregnancybooksid is null
           and maternitycode is null
+          and isdelete = false
         order by visitdate
       `,
       idCardNo
@@ -2535,6 +2555,89 @@ export default class Person {
   /**
    * 第 1 次产前检查服务记录表详情
    * @param code 主键id
+   *
+   * @return {
+   *   fathername: 丈夫姓名,
+   *   fatherage: 丈夫年龄
+   *   id: 主键
+   *   pregnancybooksid: 编号
+   *   name: 姓名
+   *   newlydiagnoseddate: 填表日期
+   *   gestationalweeks: 孕周 - 周
+   *   gestationalageday: 孕周 - 天
+   *   age: 孕妇年龄
+   *   丈夫电话暂无,
+   *   parity: 孕次,
+   *   productionmeeting: 产次,
+   *   vaginaldelivery: 产次 - 阴道分娩次数,
+   *   cesareansection: 产次 - 剖宫产次数,
+   *   lastmenstrual: 末次月经,
+   *   birth: 预产期,
+   *   pasthistory: 既往史,
+   *   familyhistory: 家族史,
+   *   暂无字段: 个人史,
+   *   womansurgeryhistory: 妇科手术史,
+   *   暂无字段: 妇产史,
+   *   spontaneousabortiontimes: 孕产史 - 自然流产次数,
+   *   abortiontimes: 孕产史 - 人工流产次数,
+   *   stillfetaltimes: 孕产史 - 死胎次数,
+   *   stillbirthtimes: 孕产史 - 死产次数,
+   *   newborndeadtimes: 孕产史 - 新生儿死亡,
+   *   height: 身高,
+   *   weight: 体重,
+   *   bodymassindex: 体质指数(BMI),
+   *   systolicpressure: 血压 - 舒张压,
+   *   assertpressure: 血压 - 收缩压,
+   *   heart: 听诊 - 心脏,
+   *   lung: 听诊 - 肺,
+   *   deputymilkgenital: 妇科检查 - 外阴,
+   *   vagina: 妇科检查 - 阴道,
+   *   cervical: 妇科检查 - 宫颈,
+   *   uterinesize: '子宫大小',
+   *   uterinehigh: '宫高',
+   *   attachment: '妇科检查 - 附件',
+   *   hemoglobin: '辅助检查 - 血常规 - 血红蛋白值',
+   *   interleukin: '辅助检查 - 血常规 - 白细胞计数值',
+   *   plateletcount: '辅助检查 - 血常规 - 血小板计数值',
+   *   urinaryprotein: '辅助检查 - 尿常规 - 尿蛋白. 编码表009',
+   *   urine: '辅助检查 - 尿常规 - 尿糖. 编码表362',
+   *   ketone: '辅助检查 - 尿常规 - 尿酮体',
+   *   urineoccultblood: '辅助检查 - 尿常规 - 尿潜血',
+   *   bloodtype: '辅助检查 - 血型 - ABO. 编码表004',
+   *   sgpt_fastingplasmaglucose: '辅助检查 - 空腹血糖',
+   *   fullhypoglycemia: '辅助检查 - 餐后血糖',
+   *   sgpt_alt: '辅助检查 - 肝功能 - 血清谷丙转氨酶',
+   *   sgpt_ast: '辅助检查 - 肝功能 - 血清谷草转氨酶',
+   *   sgpt_alb: '辅助检查 - 肝功能 - 白蛋白',
+   *   sgpt_tbili: '辅助检查 - 肝功能 - 总胆红素',
+   *   sgpt_dbili: '辅助检查 - 肝功能 - 结合胆红素',
+   *   intoxicated: '辅助检查 - 肾功能 - 血清肌酐',
+   *   urea: '辅助检查 - 肾功能 - 血尿素',
+   *   vaginasecrete: '辅助检查 - 阴道分泌物 + 阴道清洁度. 编码表4010008',
+   *   hbsagin: '辅助检查 - 乙型肝炎 - 乙型肝炎表面抗原. 编码表262',
+   *   hbsab: '辅助检查 - 乙型肝炎 - 乙型肝炎表面抗体. 编码表262',
+   *   hbeag: '辅助检查 - 乙型肝炎 - 乙型肝炎e抗原. 编码表262',
+   *   kanghbe: '辅助检查 - 乙型肝炎 - 乙型肝炎e抗体. 编码表262',
+   *   kanghbc: '辅助检查 - 乙型肝炎 - 乙型肝炎核心抗体. 编码表262',
+   *   rprscreen: '辅助检查 - 梅毒血清试验. 编码表364',
+   *   hivscreening: '辅助检查 - HIV抗体检测',
+   *   bultrasonography: '辅助检查 - B超',
+   *   classification: '总体评估',
+   *   treatment: '保健指导',
+   *   referral: '是否转诊',
+   *   referralreason: '转诊原因',
+   *   referralorg: '转诊机构及科室',
+   *   nextcaredate: '下次随访日期',
+   *   doctor: '医生姓名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间'
+   * }
    */
   async firstPrenatalCheck(code) {
     // 第一次产前检查信息表
@@ -2543,8 +2646,8 @@ export default class Person {
       `
         select b.fathername,
                b.fatherage,
-               n.id                            as newlydiagnosedcode,
-               n.pregnancybooksid              as pre_newlydiagnosedcode,
+               n.id,
+               n.pregnancybooksid,
                n.name,
                n.newlydiagnoseddate,
                n.gestationalweeks,
@@ -2563,6 +2666,7 @@ export default class Person {
                n.abortiontimes,
                n.stillfetaltimes,
                n.stillbirthtimes,
+               n.newborndeadtimes,
                n.height,
                n.weight,
                n.bodymassindex,
@@ -2573,6 +2677,8 @@ export default class Person {
                n.deputymilkgenital,
                n.vagina,
                n.cervical,
+               n.uterinesize,
+               n.uterinehigh,
                n.attachment,
                n.hemoglobin,
                n.interleukin,
@@ -2583,10 +2689,12 @@ export default class Person {
                n.urineoccultblood,
                n.bloodtype,
                n.sgpt_fastingplasmaglucose,
+               n.fullhypoglycemia,
                n.sgpt_alt,
                n.sgpt_ast,
                n.sgpt_alb,
                n.sgpt_tbili,
+               n.sgpt_dbili,
                n.intoxicated,
                n.urea,
                n.vaginasecrete,
@@ -2598,17 +2706,28 @@ export default class Person {
                n.rprscreen,
                n.hivscreening,
                n.bultrasonography,
+               n.classification,
+               n.treatment,
+               n.referral,
+               n.referralreason,
+               n.referralorg,
                n.nextcaredate,
                n.doctor,
                n.operatetime,
                n.operatorid,
                n.operateorganization,
+               n.updateoperatorid,
+               n.updatetime,
+               n.isdelete,
+               n.deleteoperatorid,
+               n.deletetime,
                n.created_at,
-               n.updated_at,
-               n.weight / (n.height / 100) ^ 2 as bmi
+               n.updated_at
         from mch_newly_diagnosed n
-               inner join mch_pregnancy_books b on n.pregnancybooksid = b.id
+               left join mch_pregnancy_books b on n.pregnancybooksid = b.id
         where n.id = ?
+          and n.isdelete = false
+          and b.isdelete = false
       `,
       code
     );
@@ -2617,18 +2736,51 @@ export default class Person {
 
   /**
    * 第2~5次产前随访服务信息表详情
+   *
    * @param code 主键id
+   * @return {
+   *   name: '姓名'
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册表主键',
+   *   checkdate: '随访日期',
+   *   gestationalagemonth: '孕周',
+   *   chiefcomplaint: '主诉',
+   *   weight: '体重',
+   *   uterinehigh: '产科检查 - 宫底高度',
+   *   abdominalcircumference: '产科检查 - 腹围',
+   *   fetalposition: '产科检查 - 胎位. 编码表358',
+   *   fetalheartrate: '产科检查 - 胎心率',
+   *   systolicpressure: '血压 - 收缩压',
+   *   assertpressure: '血压 - 舒张压',
+   *   hemoglobin: '血红蛋白',
+   *   urinaryprotein: '尿蛋白. 编码表009',
+   *   classification: '分类',
+   *   guide: '指导. 编码表401004',
+   *   referral: '是否转诊',
+   *   referralreason: '转诊原因',
+   *   referralorg: '转诊机构及科室',
+   *   nextappointmentdate: '下次随访日期',
+   *   doctor: '医生姓名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间'
+   * }
    */
   async recordPrenatalFollowUp(code) {
     // 第2~5次产前随访服务信息表
-    // language=PostgreSQL
     const result = await originalDB.execute(
+      // language=PostgreSQL
       `
         select b.name,
-               card.id               as prenatalcarecode,
-               card.pregnancybooksid as newlydiagnosedcode,
+               card.id,
+               card.pregnancybooksid,
                card.checkdate,
-               ''                    as diseasehistory,
+               card.gestationalagemonth,
                card.chiefcomplaint,
                card.weight,
                card.uterinehigh,
@@ -2639,51 +2791,118 @@ export default class Person {
                card.systolicpressure,
                card.hemoglobin,
                card.urinaryprotein,
+               card.classification,
                card.guide,
+               card.referral,
+               card.referralorg,
                card.nextappointmentdate,
                card.doctor,
                card.operatetime,
                card.operatorid,
                card.operateorganization,
+               card.updateoperatorid,
+               card.updatetime,
+               card.isdelete,
+               card.deleteoperatorid,
+               card.deletetime,
                card.created_at,
                card.updated_at
         from mch_prenatal_care card
-               inner join mch_pregnancy_books b on card.pregnancybooksid = b.id
-        where card.id = ?`,
+               left join mch_pregnancy_books b on card.pregnancybooksid = b.id
+        where card.id = ?
+          and card.isdelete = false
+          and b.isdelete = false
+      `,
       code
     );
-    return result[0];
+    return result.map(it => ({
+      ...it,
+      nextappointmentdate: dayjs(it.nextappointmentdate)
+    }))[0];
   }
 
   /**
    * 产后访视记录表详情
+   *
    * @param code 主键
+   * @return {
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册表主键',
+   *   maternitycode: '产妇分娩表主键',
+   *   maternalname: '姓名',
+   *   maternalidcardno: '身份证',
+   *   visitdate: '访视日期',
+   *   birthday: '出生时间',
+   *   dischargedate: '出院日期',
+   *   temperaturedegrees: '体温',
+   *   generalhealthcondition: '一般健康情况',
+   *   generalmentalcondition: '一般心理情况',
+   *   diastolicpressure: '舒张压',
+   *   systolicpressure: '收缩压',
+   *   breast: '乳房',
+   *   lochiatype: '恶露类型',
+   *   lochiavolume: '恶露量',
+   *   perinealincision: '伤口',
+   *   other: '其他',
+   *   classification: '分类',
+   *   guide: '指导',
+   *   referral: '是否转诊',
+   *   referralreason: '转诊原因',
+   *   referralorg: '转诊机构',
+   *   nextvisitdate: '下次随访日期',
+   *   doctor: '医生姓名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间'
+   * }
    */
   async maternalVisits(code) {
     // language=PostgreSQL
     const result = await originalDB.execute(
       `
-        select id               as visitcode,
-               pregnancybooksid as newlydiagnosedcode,
+        select id,
+               pregnancybooksid,
                maternitycode,
                maternalname,
                maternalidcardno,
                visitdate,
+               birthday,
+               dischargedate,
                temperaturedegrees,
+               generalhealthcondition,
+               generalmentalcondition,
                diastolicpressure,
                systolicpressure,
                breast,
                lochiatype,
                lochiavolume,
                perinealincision,
+               other,
+               classification,
+               guide,
+               referral,
+               referralreason,
+               referralorg,
+               nextvisitdate,
                doctor,
                operatetime,
                operatorid,
                operateorganization,
+               updateoperatorid,
+               updatetime,
+               isdelete,
+               deleteoperatorid,
+               deletetime,
                created_at,
                updated_at
         from mch_maternal_visit
         where id = ?
+          and isdelete = false
       `,
       code
     );
@@ -2692,17 +2911,49 @@ export default class Person {
 
   /**
    * 产后42天健康检查记录表详情
+   *
    * @param code 主键
+   * @return {
+   *   id: '主键',
+   *   pregnancybooksid: '母子健康手册主键',
+   *   maternitycode: '产妇分娩表主键',
+   *   idcard: '身份证号码',
+   *   pregnantwomenname: '姓名',
+   *   visitdate: '访视日期',
+   *   generalmentalcondition: '一般心理情况',
+   *   systolicpressure: '收缩压',
+   *   diastolicpressure: '舒张压',
+   *   breast: '乳房',
+   *   lochia: '恶露',
+   *   lochiacolor: '恶露色',
+   *   lochiasmell: '恶露味',
+   *   perinealincision: '伤口',
+   *   other: '其他',
+   *   guide: '指导',
+   *   treatmentviews: '处理',
+   *   doctor: '随访医生签名',
+   *   operateorganization: '操作机构',
+   *   operatorid: '操作账号',
+   *   operatetime: '操作时间',
+   *   updateoperatorid: '更新账号',
+   *   updatetime: '更新时间',
+   *   isdelete: '是否删除',
+   *   deleteoperatorid: '删除账号',
+   *   deletetime: '删除时间',
+   * }
    */
   async recordPostpartum42DaysCheck(code) {
     // 产后42天健康检查记录表
     const result = await originalDB.execute(
       // language=PostgreSQL
       `
-        select id               as examineno,
-               pregnancybooksid as newlydiagnosedcode,
+        select id,
+               pregnancybooksid,
+               maternitycode,
+               idcard,
                pregnantwomenname,
                visitdate,
+               generalmentalcondition,
                diastolicpressure,
                systolicpressure,
                breast,
@@ -2711,14 +2962,22 @@ export default class Person {
                lochiasmell,
                perinealincision,
                other,
+               guide,
+               treatmentviews,
                doctor,
                operatetime,
                operatorid,
                operateorganization,
+               updateoperatorid,
+               updatetime,
+               isdelete,
+               deleteoperatorid,
+               deletetime,
                created_at,
                updated_at
         from mch_examine_42th_day
         where id = ?
+          and isdelete = false
       `,
       code
     );
