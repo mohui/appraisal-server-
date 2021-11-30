@@ -2815,7 +2815,10 @@ export default class Person {
       `,
       code
     );
-    return result[0];
+    return result.map(it => ({
+      ...it,
+      nextappointmentdate: dayjs(it.nextappointmentdate)
+    }))[0];
   }
 
   /**
