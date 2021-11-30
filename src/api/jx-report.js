@@ -4,7 +4,7 @@ import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import {KatoCommonError, should, validate} from 'kato-server';
 
-import {getAreaTree} from './group';
+import {getAreaTree} from './group/common';
 import {getBasicData, getMarks, percentString} from './group/score';
 import * as dayjs from 'dayjs';
 import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
