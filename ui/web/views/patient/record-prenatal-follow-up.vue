@@ -67,7 +67,11 @@
             </tr>
             <tr>
               <td colspan="4">血压（mmHg）</td>
-              <td colspan="20">{{ detailDate.assertpressure }}</td>
+              <td colspan="20">
+                {{ detailDate.systolicpressure }}/{{
+                  detailDate.assertpressure
+                }}
+              </td>
             </tr>
             <tr>
               <td colspan="4">血红蛋白（g/L）</td>

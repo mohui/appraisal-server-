@@ -138,7 +138,12 @@
               </td>
               <td colspan="4">血压</td>
               <td colspan="8">
-                <em>{{ firstPrenatalCheckDate.systolicpressure }}</em> mmHg
+                <em
+                  >{{ firstPrenatalCheckDate.systolicpressure }}/{{
+                    firstPrenatalCheckDate.assertpressure
+                  }}</em
+                >
+                mmHg
               </td>
             </tr>
             <tr>
