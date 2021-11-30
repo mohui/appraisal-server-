@@ -80,40 +80,6 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
 }
 
 /**
- * 获取地区对应的原始数据的机构
- *
- * @param codes 地区code数据
- */
-export async function getOriginalArray(
-  codes: string[]
-): Promise<{id: string; code: string; region: string}[]> {
-  const result = [];
-  for (const code of codes) {
-    try {
-      // language=PostgreSQL
-      const idArray: {
-        id: string;
-        code: string;
-        region: string;
-      }[] = await appDB.execute(
-        `
-          select hishospid as id, h_id as code, h.region
-          from hospital_mapping m
-                 inner join hospital h on m.h_id = h.id
-          where h_id = ?`,
-        code
-      );
-      if (idArray[0]) {
-        result.push(idArray[0]);
-      }
-    } catch (e) {
-      // 无所谓
-    }
-  }
-  return result;
-}
-
-/**
  * 获取地区树
  *
  * @param code 地区code
