@@ -333,7 +333,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/.guide-name {
+::v-deep .guide-name {
   cursor: pointer;
   :hover {
     color: #1a95d7;
@@ -343,7 +343,7 @@ export default {
   display: flex;
   flex-direction: column;
 }
-/deep/ .pdf-dialog {
+::v-deep .pdf-dialog {
   .el-dialog {
     height: calc(100% - 140px);
     .el-dialog__header {
