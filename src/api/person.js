@@ -2687,7 +2687,7 @@ export default class Person {
                n.urine,
                n.ketone,
                n.urineoccultblood,
-               n.bloodtype,
+               (select name from mch_dict where code = n.bloodtype and category = '004') bloodtype,
                n.sgpt_fastingplasmaglucose,
                n.fullhypoglycemia,
                n.sgpt_alt,
@@ -2731,7 +2731,10 @@ export default class Person {
       `,
       code
     );
-    return newlyDiagnosed[0];
+    return newlyDiagnosed.map(it => ({
+      ...it,
+      referral: !!Number(it.referral)
+    }))[0];
   }
 
   /**
@@ -2817,7 +2820,8 @@ export default class Person {
     );
     return result.map(it => ({
       ...it,
-      nextappointmentdate: dayjs(it.nextappointmentdate)
+      nextappointmentdate: dayjs(it.nextappointmentdate),
+      referral: !!Number(it.referral)
     }))[0];
   }
 
