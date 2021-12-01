@@ -355,6 +355,27 @@ router.beforeEach(async (to, from, next) => {
       if (
         !to.meta.permission.some(mp => rolePermissions.some(rp => rp === mp))
       ) {
+        //根据权限判断,公卫首页优先级高
+        if (rolePermissions.includes(Permission.APPRAISAL_RESULT)) {
+          next('/appraisal-result');
+          return;
+        }
+        //没有公卫权限则判断医疗考核权限
+        if (rolePermissions.includes(Permission.MEDICAL_PERFORMANCE)) {
+          next('/medical-performance');
+          return;
+        }
+        //以上都没有,则判断当前用户拥有权限的第一个页面
+        const firstRouter = router.options.routes[0]?.children?.find(
+          c =>
+            !c?.meta?.permission || //没有配置permission谁都可以访问的路由
+            c.meta.permission.some(p => rolePermissions.includes(p)) //或者当前用户拥有权限的路由
+        );
+        if (firstRouter) {
+          next(firstRouter.path);
+          return;
+        }
+        //再没有权限,则跳转401
         next('/401');
         return;
       }
