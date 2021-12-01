@@ -145,7 +145,7 @@
         <el-table-column
           align="center"
           prop="staffName"
-          label="His用户"
+          label="HIS用户"
           min-width="80"
         ></el-table-column>
         <el-table-column
