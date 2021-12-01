@@ -120,7 +120,13 @@
             <tr>
               <td colspan="4">转 诊</td>
               <td colspan="20">
-                <em>{{ detailData.referral }}</em>
+                <em>{{ detailData.referral ? '有' : '无' }}</em
+                ><br />
+                原因:
+                <em>{{ detailData.referralreason }}</em
+                ><br />
+                机构及科室:
+                <em>{{ detailData.referralorg }}</em>
               </td>
             </tr>
             <tr>
