@@ -112,7 +112,7 @@
           :xl="17"
           style="margin-bottom: 10px"
         >
-          <div class="card staff-container">
+          <div class="card staff-container" v-hidden-scroll>
             <div v-sticky style="z-index:999">
               <div class="staff-tabs">
                 <div
@@ -128,7 +128,7 @@
                   员工质量系数排名
                 </div>
               </div>
-              <div class="top-container" v-sticky>
+              <div class="top-container">
                 <div
                   v-if="staffFlag === 'workPoint'"
                   v-loading="$asyncComputed.overviewServerData.updating"
@@ -146,7 +146,7 @@
               v-hidden-scroll
             >
               <div v-if="staffFlag === 'workPoint'">
-                <div class="rank-box" v-hidden-scroll>
+                <div class="rank-box">
                   <div
                     v-for="(i, index) of staffCheckListData.sort(
                       (a, b) => b.correctionScore - a.correctionScore
@@ -202,7 +202,7 @@
                 </div>
               </div>
               <div v-if="staffFlag === 'rate'">
-                <div class="rank-box" v-hidden-scroll>
+                <div class="rank-box">
                   <div
                     v-for="(i, index) of staffCheckListData.sort((a, b) => {
                       if (a.rate === null && b.rate === null) {
