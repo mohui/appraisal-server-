@@ -7,7 +7,9 @@ import {KatoLogicError} from 'kato-server';
  */
 export enum UserType {
   //员工
-  STAFF = 'STAFF'
+  STAFF = 'STAFF',
+  //管理者
+  ADMIN = 'ADMIN'
 }
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
@@ -144,7 +146,11 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             .reduce((result, next) => result.concat(next), [])
         )
       ];
-      ctx.user = user;
+      //补充用户类型字段
+      ctx.user = {
+        type: UserType.ADMIN,
+        ...user
+      };
       await next();
       return;
     }
