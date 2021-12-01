@@ -2687,7 +2687,7 @@ export default class Person {
                n.urine,
                n.ketone,
                n.urineoccultblood,
-               n.bloodtype,
+               (select name from mch_dict where code = n.bloodtype and category = '004') bloodtype,
                n.sgpt_fastingplasmaglucose,
                n.fullhypoglycemia,
                n.sgpt_alt,
