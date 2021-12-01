@@ -11,7 +11,7 @@ import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 import {imageSync} from 'qr-image';
-import {UserType} from './middleware/user';
+import {UserType} from '../../common/user';
 
 function countUserRender(params) {
   return sqlRender(

@@ -1,16 +1,7 @@
 import {Context} from '../context';
 import {appDB, originalDB} from '../../app';
 import {KatoLogicError} from 'kato-server';
-
-/**
- * 用户类型枚举
- */
-export enum UserType {
-  //员工
-  STAFF = 'STAFF',
-  //管理者
-  ADMIN = 'ADMIN'
-}
+import {UserType} from '../../../common/user';
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   //region 免登录接口逻辑
