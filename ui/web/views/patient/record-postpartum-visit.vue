@@ -68,11 +68,8 @@
             <tr>
               <td colspan="4">血 压(mmHg)</td>
               <td colspan="20">
-                <em
-                  >{{ detailDate.systolicpressure }}/{{
-                    detailDate.diastolicpressure
-                  }}</em
-                >
+                <em>{{ detailDate.systolicpressure }}</em
+                >/<em>{{ detailDate.diastolicpressure }}</em>
               </td>
             </tr>
             <tr>
