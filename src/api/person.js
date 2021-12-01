@@ -2731,10 +2731,7 @@ export default class Person {
       `,
       code
     );
-    return newlyDiagnosed.map(it => ({
-      ...it,
-      referral: it.referral ? '有' : '无'
-    }))[0];
+    return newlyDiagnosed[0];
   }
 
   /**
@@ -2820,8 +2817,7 @@ export default class Person {
     );
     return result.map(it => ({
       ...it,
-      nextappointmentdate: dayjs(it.nextappointmentdate),
-      referral: it.referral ? '有' : '无'
+      nextappointmentdate: dayjs(it.nextappointmentdate)
     }))[0];
   }
 
@@ -2910,10 +2906,7 @@ export default class Person {
       `,
       code
     );
-    return result.map(it => ({
-      ...it,
-      referral: it.referral ? '有' : '无'
-    }))[0];
+    return result[0];
   }
 
   /**
