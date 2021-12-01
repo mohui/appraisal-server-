@@ -1,5 +1,7 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
+import {appDB} from '../../app';
+import {v4 as uuid} from 'uuid';
 
 export class AddStaffMappingMigration implements IMigration {
   name = '增加员工和地区绑定表,员工和his员工绑定表,员工和公卫员工绑定表';
@@ -66,6 +68,53 @@ export class AddStaffMappingMigration implements IMigration {
         COMMENT ON COLUMN "staff_his_mapping"."his_staff" IS 'HIS员工id';;
       `
     );
+
+    appDB.transaction(async () => {
+      const staffModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from staff
+        `
+      );
+      for (const staffIt of staffModels) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            insert into staff_area_mapping(id, staff, area, department)
+            values (?, ?, ?, ?)
+          `,
+          uuid(),
+          staffIt.id,
+          staffIt.hospital,
+          staffIt.department
+        );
+        if (staffIt.staff) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              insert into staff_his_mapping(id, staff, his_staff)
+              values (?, ?, ?)
+            `,
+            uuid(),
+            staffIt.id,
+            staffIt.staff
+          );
+        }
+        if (staffIt.ph_staff) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              insert into staff_ph_mapping(id, staff, ph_staff)
+              values (?, ?, ?)
+            `,
+            uuid(),
+            staffIt.id,
+            staffIt.ph_staff
+          );
+        }
+      }
+    });
   }
 
   async down(client: ExtendedSequelize): Promise<void> {
