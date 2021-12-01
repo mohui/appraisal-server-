@@ -1,5 +1,6 @@
 import {Context} from '../context';
 import {appDB, originalDB} from '../../app';
+import {KatoLogicError} from 'kato-server';
 
 /**
  * 用户类型枚举
@@ -33,20 +34,19 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           token
         )
       )[0];
-      if (staffModel) {
-        ctx.user = {
-          type: UserType.STAFF,
-          id: staffModel.id,
-          name: staffModel.name,
-          hospitals: [{id: staffModel.hospital}],
-          department: staffModel.department_id
-            ? {
-                id: staffModel.department_id,
-                name: staffModel.department_name
-              }
-            : null
-        };
-      }
+      if (!staffModel) throw new Error('无效的token');
+      ctx.user = {
+        type: UserType.STAFF,
+        id: staffModel.id,
+        name: staffModel.name,
+        hospitals: [{id: staffModel.hospital}],
+        department: staffModel.department_id
+          ? {
+              id: staffModel.department_id,
+              name: staffModel.department_name
+            }
+          : null
+      };
       await next();
       return;
     }
@@ -68,10 +68,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
            where id = ?`,
         token
       );
-      if (userModels.length === 0) {
-        await next();
-        return;
-      }
+      if (userModels.length === 0) throw new Error('无效的token');
       const user = userModels[0];
 
       // 根据用户权限id查询下属机构
@@ -144,9 +141,11 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         )
       ];
       ctx.user = user;
+      await next();
+      return;
     }
+    throw new Error('无效的token');
   } catch (e) {
-    console.log(e);
+    throw new KatoLogicError('用户登录状态有误, 请重新登录', 10000);
   }
-  await next();
 }
