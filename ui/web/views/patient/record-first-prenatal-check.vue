@@ -371,6 +371,7 @@ export default {
       data.birth = data.birth?.$format('YYYY-MM-DD');
       data.lastmenstrual = data.lastmenstrual?.$format('YYYY-MM-DD');
       data.bmi = Number(data.bmi)?.toFixed(4);
+      data.bodymassindex = Number(data.bodymassindex)?.toFixed(2);
       return data;
     }
   },
