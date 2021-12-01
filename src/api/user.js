@@ -112,12 +112,12 @@ export default class User {
     const models = await appDB.execute(
       //language=PostgreSQL
       `
-        select id
+        select 1
         from "user"
         where account = ?
           and password = ?
         union
-        select id
+        select 1
         from staff
         where account = ?
           and password = ?
