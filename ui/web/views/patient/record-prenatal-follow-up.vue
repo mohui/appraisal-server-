@@ -203,10 +203,10 @@ export default {
     detailData() {
       return {
         ...this.detailServerDate,
-        checkdate: this.detailServerDate.checkdate?.$format('YYYY-MM-DD')
-        // nextappointmentdate: this.detailServerDate.nextappointmentdate?.$format(
-        //   'YYYY-MM-DD'
-        // )
+        checkdate: this.detailServerDate.checkdate?.$format('YYYY-MM-DD'),
+        nextappointmentdate: this.detailServerDate.nextappointmentdate?.$format(
+          'YYYY-MM-DD'
+        )
       };
     }
   },
