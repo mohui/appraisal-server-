@@ -69,52 +69,56 @@ export class AddStaffMappingMigration implements IMigration {
       `
     );
 
-    appDB.transaction(async () => {
-      const staffModels = await appDB.execute(
+    const staffModels = await client.execute(
+      // language=PostgreSQL
+      `
+        select *
+        from staff
+      `
+    );
+    for (const staffIt of staffModels) {
+      await client.execute(
         // language=PostgreSQL
         `
-          select *
-          from staff
-        `
+          insert into staff_area_mapping(id, staff, area, department)
+          values (?, ?, ?, ?)
+          on conflict (staff,area)
+            do update set updated_at = now()
+        `,
+        uuid(),
+        staffIt.id,
+        staffIt.hospital,
+        staffIt.department
       );
-      for (const staffIt of staffModels) {
-        await appDB.execute(
+      if (staffIt.staff) {
+        await client.execute(
           // language=PostgreSQL
           `
-            insert into staff_area_mapping(id, staff, area, department)
-            values (?, ?, ?, ?)
+            insert into staff_his_mapping(id, staff, his_staff)
+            values (?, ?, ?)
+            on conflict (staff,his_staff)
+              do update set updated_at = now()
           `,
           uuid(),
           staffIt.id,
-          staffIt.hospital,
-          staffIt.department
+          staffIt.staff
         );
-        if (staffIt.staff) {
-          await appDB.execute(
-            // language=PostgreSQL
-            `
-              insert into staff_his_mapping(id, staff, his_staff)
-              values (?, ?, ?)
-            `,
-            uuid(),
-            staffIt.id,
-            staffIt.staff
-          );
-        }
-        if (staffIt.ph_staff) {
-          await appDB.execute(
-            // language=PostgreSQL
-            `
-              insert into staff_ph_mapping(id, staff, ph_staff)
-              values (?, ?, ?)
-            `,
-            uuid(),
-            staffIt.id,
-            staffIt.ph_staff
-          );
-        }
       }
-    });
+      if (staffIt.ph_staff) {
+        await client.execute(
+          // language=PostgreSQL
+          `
+            insert into staff_ph_mapping(id, staff, ph_staff)
+            values (?, ?, ?)
+            on conflict (staff,ph_staff)
+              do update set updated_at = now()
+          `,
+          uuid(),
+          staffIt.id,
+          staffIt.ph_staff
+        );
+      }
+    }
   }
 
   async down(client: ExtendedSequelize): Promise<void> {
