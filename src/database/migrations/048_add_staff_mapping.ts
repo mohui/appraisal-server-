@@ -9,12 +9,27 @@ export class AddStaffMappingMigration implements IMigration {
     // language=PostgreSQL
     await client.execute(
       `
+        comment on column staff.hospital is '主机构';
+        comment on column staff.staff is '(绑定的HIS员工)弃用';
+        comment on column staff.account is '登录名';
+        comment on column staff.password is '密码';
+        comment on column staff.name is '名称';
+        comment on column staff.remark is '备注';
+        comment on column staff.department is '主机构科室';
+        comment on column staff.ph_staff is '(绑定的公卫员工)弃用';
+        comment on column staff.phone is '联系电话';
+        comment on column staff.gender is '性别; 男,女,未说明的性别,未知的性别';
+        comment on column staff.major is '专业类别';
+        comment on column staff.title is '职称名称';
+        comment on column staff.education is '学历';
+        comment on column staff."isGP" is '是否为全科医师';
+
         CREATE TABLE IF NOT EXISTS "staff_area_mapping" -- 用户地区关联表
         (
           "id"         VARCHAR(36)                                        NOT NULL primary key,
           "staff"      VARCHAR(36)                                        NOT NULL,
           "area"       VARCHAR(36)                                        NOT NULL,
-          "department" VARCHAR(36)                                        NOT NULL,
+          "department" VARCHAR(36),
           "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           UNIQUE ("staff", "area")
