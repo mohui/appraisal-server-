@@ -43,7 +43,7 @@ export class AddStaffMappingMigration implements IMigration {
         (
           "id"         VARCHAR(36)                                        NOT NULL primary key,
           "staff"      VARCHAR(36)                                        NOT NULL,
-          "ph_staff"   VARCHAR(36)                                        NOT NULL,
+          "ph_staff"   VARCHAR(64)                                        NOT NULL,
           "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           UNIQUE ("staff", "ph_staff")
@@ -56,7 +56,7 @@ export class AddStaffMappingMigration implements IMigration {
         (
           "id"         VARCHAR(36)                                        NOT NULL primary key,
           "staff"      VARCHAR(36)                                        NOT NULL,
-          "his_staff"  VARCHAR(36)                                        NOT NULL,
+          "his_staff"  VARCHAR(64)                                        NOT NULL,
           "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           UNIQUE ("staff", "his_staff")
