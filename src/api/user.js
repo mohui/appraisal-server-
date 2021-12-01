@@ -1,10 +1,4 @@
-import {
-  KatoCommonError,
-  KatoLogicError,
-  KatoRuntimeError,
-  should,
-  validate
-} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
 import {
   RoleModel,
@@ -114,7 +108,59 @@ export default class User {
       .description('密码')
   )
   async login(account, password) {
-    // 查询账号密码是否正确
+    //region 验证账号是否重复, 用户名密码是否正确
+    const models = await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id
+        from "user"
+        where account = ?
+          and password = ?
+        union
+        select id
+        from staff
+        where account = ?
+          and password = ?
+      `,
+      account,
+      password,
+      account,
+      password
+    );
+    if (models.length > 1)
+      throw new KatoRuntimeError('用户信息有误, 请联系管理员');
+    if (models.length === 0) throw new KatoCommonError('用户名密码错误');
+    //endregion
+    //region 查询员工表
+    const staffModel = (
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
+          from staff s
+                 left join his_department d on s.department = d.id
+          where s.id = ?
+        `,
+        account,
+        password
+      )
+    )[0];
+    if (staffModel)
+      return {
+        type: UserType.STAFF,
+        id: staffModel.id,
+        name: staffModel.name,
+        hospitals: [{id: staffModel.hospital}],
+        department: staffModel.department_id
+          ? {
+              id: staffModel.department_id,
+              name: staffModel.department_name
+            }
+          : null
+      };
+    //endregion
+    //region 查询管理员表
+    //查询账号密码是否正确
     const userModels = await appDB.execute(
       `select "user".id,
                     "user".account,
@@ -137,9 +183,9 @@ export default class User {
       account,
       password
     );
-    //是否查询出结果
-    if (userModels.length === 0) throw new KatoLogicError('账户密码有误', 1002);
     const user = {
+      type: UserType.ADMIN,
+      token: userModels[0]?.id,
       id: userModels[0]?.id,
       account: userModels[0]?.account,
       name: userModels[0]?.name,
@@ -172,6 +218,7 @@ export default class User {
         )
       )[0] ?? null;
     return user;
+    //endregion
   }
 
   @validate(
