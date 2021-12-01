@@ -13,6 +13,15 @@ export enum UserType {
 }
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
+  //region 免登录接口逻辑
+  let isWhite = false;
+  for (const white of ['login.ac', 'title.ac'])
+    isWhite = isWhite || ctx.req.url.endsWith(white);
+  if (isWhite) {
+    await next();
+    return;
+  }
+  //endregion
   try {
     const token = ctx.req.header('token');
     const type = ctx.req.header('type');
