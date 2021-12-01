@@ -60,8 +60,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       };
       await next();
       return;
-    }
-    if (token) {
+    } else if (token) {
       // 查询用户表
       // language=PostgreSQL
       const userModels = await appDB.execute(
@@ -162,8 +161,9 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       };
       await next();
       return;
+    } else {
+      throw new Error('无效的token');
     }
-    throw new Error('无效的token');
   } catch (e) {
     throw new KatoLogicError('用户登录状态有误, 请重新登录', 10000);
   }
