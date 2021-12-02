@@ -8,7 +8,7 @@
           style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
           @click="toggleMenu"
         ></i>
-        {{ $settings.user.region.name }}基本公共卫生服务两卡制绩效考核系统</span
+        {{ headerName }}基本公共卫生服务两卡制绩效考核系统</span
       >
       <div>
         <kn-back-job></kn-back-job>
@@ -113,6 +113,9 @@ export default {
       const {meta} = this.$route;
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
+    },
+    headerName() {
+      return this.$settings.user?.region?.name || this.$settings.user.name;
     }
   },
   watch: {

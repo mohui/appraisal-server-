@@ -103,7 +103,8 @@ export default {
               duration: 1000
             });
             setToken(result.id);
-            console.log(result);
+            //TODO: 临时存下用户类型
+            localStorage.setItem('user-type', result.type);
             if (result.type === UserType.ADMIN) {
               await this.$router.push('/');
             }

@@ -46,6 +46,9 @@ export async function getApiClient() {
           }
 
           token && (ctx.req.headers['token'] = token);
+          //TODO: 临时使用user-type
+          token &&
+            (ctx.req.headers['type'] = localStorage.getItem('user-type'));
           await next();
           const res = ctx.res;
           const contentType = res.headers['content-type'];
