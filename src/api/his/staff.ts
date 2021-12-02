@@ -27,6 +27,126 @@ type AssessModel = {
 };
 
 export default class HisStaff {
+  // region 员工的增删改查新版
+
+  /**
+   * 员工绑定关系的修改
+   * @param params {
+   *   id: 员工id,
+   *   phStaff: 公卫员工id,
+   *   hisStaff: his员工id
+   *   hospital: 机构id
+   * }
+   */
+  @validate(
+    should
+      .object({
+        id: should.string().required(),
+        hospital: should.string().required(),
+        phStaffs: should.array(),
+        hisStaffs: should.array()
+      })
+      .required()
+  )
+  async updateStaffMapping(params) {
+    // 取出所有的变量
+    const {id, hospital, phStaffs, hisStaffs} = params;
+    // 机构下的所有公卫员工
+    const phStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name username, states
+        from ph_user
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 所有的公卫员工id
+    const phStaffIds = phStaffModels.map(it => it.id);
+    // 机构下的所有his员工
+    const hisStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 所有的his员工id
+    const hisStaffIds = hisStaffModels.map(it => it.id);
+
+    return appDB.transaction(async () => {
+      if (hisStaffIds.length > 0) {
+        // 先删除关联的his员工
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from staff_his_mapping
+            where staff = ?
+              and his_staff in (${hisStaffIds.map(() => '?')})
+          `,
+          id,
+          ...hisStaffIds
+        );
+      }
+
+      if (phStaffIds.length > 0) {
+        // 先删除关联的公卫员工
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from staff_ph_mapping
+            where staff = ?
+              and ph_staff in (${phStaffIds.map(() => '?')})
+          `,
+          id,
+          ...phStaffIds
+        );
+      }
+
+      // 修改员工和his员工关联表
+      if (hisStaffs.length > 0) {
+        // 添加员工和his员工关联表
+        for (const hisIt of hisStaffs) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              insert into staff_his_mapping(id, staff, his_staff)
+              values (?, ?, ?)
+            `,
+            uuid(),
+            id,
+            hisIt
+          );
+        }
+      }
+
+      // 修改员工和公卫员工关联表
+      if (phStaffs.length > 0) {
+        for (const phIt of phStaffs) {
+          // 修改员工和公卫员工关联表
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              insert into staff_ph_mapping(id, staff, ph_staff)
+              values (?, ?, ?)
+              on conflict (staff,ph_staff)
+                do update set updated_at = now()
+            `,
+            uuid(),
+            id,
+            phIt
+          );
+        }
+      }
+    });
+  }
+
+  // endregion
+
   // region 员工的增删改查
   /**
    * 查询his员工
