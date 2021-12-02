@@ -180,7 +180,11 @@ export default class HisStaff {
     // 根据绑定关系查询公卫机构下的所有员工
     // language=PostgreSQL
     const sysUserList = await originalDB.execute(
-      `select id, name username, states from ph_user where hospital = ?`,
+      `
+        select id, name username, states
+        from ph_user
+        where hospital = ?
+      `,
       hospital
     );
 
@@ -372,27 +376,25 @@ export default class HisStaff {
       const staffId = uuid();
       // language=PostgreSQL
       return await appDB.execute(
-        `insert into
-            staff(
-              id,
-              hospital,
-              staff,
-              ph_staff,
-              account,
-              password,
-              name,
-              remark,
-              department,
-              phone,
-              gender,
-              major,
-              title,
-              education,
-              "isGP",
-              created_at,
-              updated_at
-              )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `
+          insert into staff(id,
+                            hospital,
+                            staff,
+                            ph_staff,
+                            account,
+                            password,
+                            name,
+                            remark,
+                            department,
+                            phone,
+                            gender,
+                            major,
+                            title,
+                            education,
+                            "isGP",
+                            created_at,
+                            updated_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         staffId,
         hospital,
         staff,
@@ -507,20 +509,20 @@ export default class HisStaff {
     // language=PostgreSQL
     return await appDB.execute(
       `
-        update staff set
-          name = ?,
-          password = ?,
-          staff = ?,
-          ph_staff = ?,
-          remark = ?,
-          department = ?,
-          phone = ?,
-          gender = ?,
-          major = ?,
-          title = ?,
-          education = ?,
-          "isGP" = ?,
-          updated_at = ?
+        update staff
+        set name       = ?,
+            password   = ?,
+            staff      = ?,
+            ph_staff   = ?,
+            remark     = ?,
+            department = ?,
+            phone      = ?,
+            gender     = ?,
+            major      = ?,
+            title      = ?,
+            education  = ?,
+            "isGP"     = ?,
+            updated_at = ?
         where id = ?`,
       name,
       password,
@@ -634,7 +636,11 @@ export default class HisStaff {
     // 根据绑定关系查询公卫机构下的所有员工
     // language=PostgreSQL
     const sysUserList = await originalDB.execute(
-      `select id, name username from ph_user where hospital = ?`,
+      `
+        select id, name username
+        from ph_user
+        where hospital = ?
+      `,
       hospital
     );
 

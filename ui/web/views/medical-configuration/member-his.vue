@@ -1,7 +1,7 @@
 <template>
   <div class="flex-column-layout">
     <div class="jx-header">
-      <span class="header-title">His员工绑定列表</span>
+      <span class="header-title">HIS员工绑定列表</span>
       <div>
         <el-button size="small" type="primary" @click="openAddUserDialog"
           >新建用户
@@ -145,7 +145,7 @@
         <el-table-column
           align="center"
           prop="staffName"
-          label="His用户"
+          label="HIS用户"
           min-width="80"
         ></el-table-column>
         <el-table-column
@@ -416,7 +416,7 @@
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-form-item
-              label="his用户"
+              label="HIS用户"
               prop="his"
               :label-width="formLabelWidth"
             >

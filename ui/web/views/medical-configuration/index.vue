@@ -60,7 +60,7 @@
         >
           <template slot="title">
             <div
-              style="padding:20px;display: flex;justify-content: space-between;width: 100%"
+              style="padding:0 20px;display: flex;justify-content: space-between;width: 100%"
             >
               <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
