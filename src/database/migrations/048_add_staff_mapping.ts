@@ -1,6 +1,5 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {appDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 
 export class AddStaffMappingMigration implements IMigration {
@@ -83,11 +82,13 @@ export class AddStaffMappingMigration implements IMigration {
           insert into staff_area_mapping(id, staff, area, department)
           values (?, ?, ?, ?)
           on conflict (staff,area)
-            do update set updated_at = now()
+            do update set updated_at = now(),
+                          department = ?
         `,
         uuid(),
         staffIt.id,
         staffIt.hospital,
+        staffIt.department,
         staffIt.department
       );
       if (staffIt.staff) {
