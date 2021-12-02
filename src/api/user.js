@@ -139,7 +139,8 @@ export default class User {
           select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
           from staff s
                  left join his_department d on s.department = d.id
-          where s.id = ?
+          where s.account = ?
+            and s.password = ?
         `,
         account,
         password
