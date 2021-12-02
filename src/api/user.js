@@ -185,42 +185,45 @@ export default class User {
       account,
       password
     );
-    const user = {
-      type: UserType.ADMIN,
-      token: userModels[0]?.id,
-      id: userModels[0]?.id,
-      account: userModels[0]?.account,
-      name: userModels[0]?.name,
-      password: userModels[0]?.password,
-      areaCode: userModels[0]?.areaCode,
-      regionId: userModels[0]?.regionId,
-      creatorId: userModels[0]?.creatorId,
-      editorId: userModels[0]?.editorId,
-      created_at: userModels[0]?.created_at,
-      roles: [],
-      region: null
-    };
-    userModels.forEach(it => {
-      const index = user.roles.find(item => item.id === it.roleId);
-      if (!index) {
-        user.roles.push({
-          id: it.roleId,
-          name: it.roleName,
-          creator: it.roleCreator,
-          permissions: it.permissions
-        });
-      }
-    });
+    if (userModels.length > 0) {
+      const user = {
+        type: UserType.ADMIN,
+        token: userModels[0]?.id,
+        id: userModels[0]?.id,
+        account: userModels[0]?.account,
+        name: userModels[0]?.name,
+        password: userModels[0]?.password,
+        areaCode: userModels[0]?.areaCode,
+        regionId: userModels[0]?.regionId,
+        creatorId: userModels[0]?.creatorId,
+        editorId: userModels[0]?.editorId,
+        created_at: userModels[0]?.created_at,
+        roles: [],
+        region: null
+      };
+      userModels.forEach(it => {
+        const index = user.roles.find(item => item.id === it.roleId);
+        if (!index) {
+          user.roles.push({
+            id: it.roleId,
+            name: it.roleName,
+            creator: it.roleCreator,
+            permissions: it.permissions
+          });
+        }
+      });
 
-    user.region =
-      (
-        await originalDB.execute(
-          `select code, name, parent, label, path from area where code = ?`,
-          user.areaCode
-        )
-      )[0] ?? null;
-    return user;
+      user.region =
+        (
+          await originalDB.execute(
+            `select code, name, parent, label, path from area where code = ?`,
+            user.areaCode
+          )
+        )[0] ?? null;
+      return user;
+    }
     //endregion
+    throw new KatoRuntimeError('用户数据异常, 请联系管理员');
   }
 
   @validate(
