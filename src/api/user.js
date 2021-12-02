@@ -149,6 +149,7 @@ export default class User {
     if (staffModel)
       return {
         type: UserType.STAFF,
+        token: staffModel.id,
         id: staffModel.id,
         name: staffModel.name,
         hospitals: [{id: staffModel.hospital}],
