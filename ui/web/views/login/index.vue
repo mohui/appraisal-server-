@@ -55,8 +55,6 @@
 
 <script>
 import {setToken} from '../../utils/cache';
-import {UserType} from '../../../../common/user.ts';
-import dayjs from 'dayjs';
 export default {
   name: 'Index',
   data() {
@@ -105,19 +103,7 @@ export default {
             setToken(result.id);
             //TODO: 临时存下用户类型
             localStorage.setItem('user-type', result.type);
-            if (result.type === UserType.ADMIN) {
-              await this.$router.push('/');
-            }
-            if (result.type === UserType.STAFF) {
-              const currentDate = dayjs()
-                .startOf('M')
-                .toDate();
-              await this.$router.push(
-                `/personal-appraisal-results?id=${
-                  result.id
-                }&date=${JSON.stringify(currentDate)}`
-              );
-            }
+            await this.$router.push('/');
             this.btnLoading = false;
           } catch (e) {
             this.btnLoading = false;

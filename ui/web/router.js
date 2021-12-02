@@ -8,6 +8,12 @@ Vue.use(Router);
 //静态路由
 const constRouter = [
   {
+    path: 'home',
+    name: 'home',
+    meta: {},
+    component: () => import('./views/home/index')
+  },
+  {
     path: 'profile',
     name: 'profile',
     component: () => import('./views/profile/index')
@@ -25,12 +31,6 @@ const constRouter = [
 ];
 //需要权限检索的动态路由
 const permissionRouter = [
-  {
-    path: 'home',
-    name: 'home',
-    meta: {permission: [Permission.HOME, Permission.APPRAISAL_RESULT]},
-    component: () => import('./views/home/index')
-  },
   {
     path: 'role',
     name: 'role',
