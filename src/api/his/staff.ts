@@ -419,101 +419,70 @@ export default class HisStaff {
   /**
    * 修改员工信息
    *
-   * @param id 主键
-   * @param name 名称
-   * @param password 密码
-   * @param staff his员工
-   * @param remark 备注
-   * @param department 科室
-   * @param phStaff 公卫员工
-   * @param phone 联系电话
-   * @param gender 性别
-   * @param major 专业类别
-   * @param title 职称名称
-   * @param education 学历
-   * @param isGP 是否为全科医师
+   * @param params {
+   *   id 主键
+   *   name 名称
+   *   password 密码
+   *   major 专业类别
+   *   staff his员工
+   *   remark 备注
+   *   department 科室
+   *   phStaff 公卫员工
+   *   phone 联系电话
+   *   gender 性别
+   *   title 职称名称
+   *   education 学历
+   *   isGP 是否为全科医师
+   * }
    */
   @validate(
     should
-      .string()
+      .object({
+        id: should.required(),
+        name: should.required(),
+        password: should.required(),
+        isGP: should.boolean().required(),
+        education: should
+          .string()
+          .only(
+            Education.COLLEGE,
+            Education.BACHELOR,
+            Education.MASTER,
+            Education.DOCTOR
+          )
+          .required(),
+        major: should.string().allow(null),
+        remark: should.string().allow(null),
+        department: should.string().allow(null),
+        phone: should.string().allow(null),
+        gender: should
+          .string()
+          .only(Gender[0], Gender[1], Gender[2], Gender[3])
+          .required(),
+        title: should.string().allow(null)
+      })
       .required()
-      .description('主键'),
-    should
-      .string()
-      .required()
-      .description('名称'),
-    should
-      .string()
-      .required()
-      .description('密码'),
-    should
-      .string()
-      .allow(null)
-      .description('his员工'),
-    should
-      .string()
-      .allow(null)
-      .description('备注'),
-    should
-      .string()
-      .allow(null)
-      .description('科室'),
-    should
-      .string()
-      .allow(null)
-      .description('公卫员工'),
-    should.string().allow(null),
-    should
-      .string()
-      .only(Gender[0], Gender[1], Gender[2], Gender[3])
-      .required(),
-    should.string().allow(null),
-    should.string().allow(null),
-    should
-      .string()
-      .only(
-        Education.COLLEGE,
-        Education.BACHELOR,
-        Education.MASTER,
-        Education.DOCTOR
-      )
-      .required()
-      .description('学历'),
-    should.boolean().required()
   )
-  async update(
-    id,
-    name,
-    password,
-    staff,
-    remark,
-    department,
-    phStaff,
-    phone,
-    gender,
-    major,
-    title,
-    education,
-    isGP
-  ) {
-    // 如果his员工不为空,判断该his员工是否绑定过员工,如果绑定过不让再绑了
-    if (staff) {
-      const selStaff = await appDB.execute(
-        `select * from staff where id != ? and staff = ?`,
-        id,
-        staff
-      );
-      if (selStaff.length > 0)
-        throw new KatoRuntimeError(`该his用户已绑定过员工`);
-    }
+  async update(params) {
+    const {
+      id,
+      name,
+      password,
+      isGP,
+      education,
+      major,
+      remark,
+      department,
+      phone,
+      gender,
+      title
+    } = params;
     // language=PostgreSQL
     return await appDB.execute(
       `
         update staff
         set name       = ?,
             password   = ?,
-            staff      = ?,
-            ph_staff   = ?,
             remark     = ?,
             department = ?,
             phone      = ?,
@@ -526,8 +495,6 @@ export default class HisStaff {
         where id = ?`,
       name,
       password,
-      staff,
-      phStaff,
       remark,
       department,
       phone,
