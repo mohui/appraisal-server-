@@ -262,7 +262,11 @@ export default class HisStaff {
     // 添加之前先排查账号是否已经存在
     const findAccounts = await appDB.execute(
       // language=PostgreSQL
-      `select account from staff where account = ?`,
+      `
+        select account
+        from staff
+        where account = ?
+      `,
       account
     );
     if (findAccounts.length > 0) throw new KatoRuntimeError(`账号已经存在`);
