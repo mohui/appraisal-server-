@@ -146,7 +146,7 @@ export default class HisStaff {
   }
 
   /**
-   * 修改员工和机构绑定表
+   * 添加员工和机构绑定表
    *
    * @param params {
    *   id: 员工id,
@@ -156,47 +156,30 @@ export default class HisStaff {
    */
   @validate(
     should
-      .object({
+      .array()
+      .items({
         id: should.string().required(),
-        areas: should
-          .array()
-          .items({
-            hospital: should.string().required(),
-            department: should.string().allow(null)
-          })
-          .allow(null)
+        hospital: should.string().required(),
+        department: should.string().allow(null)
       })
+      .min(1)
       .required()
   )
-  async updateAreaMapping(params) {
+  async addAreaMapping(params) {
     // 取出变量
-    const {id, areas} = params;
     return appDB.transaction(async () => {
-      // 先删除
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          delete
-          from staff_area_mapping
-          where staff = ?
-        `,
-        id
-      );
-      // 添加
-      if (areas && areas.length > 0) {
-        for (const areaIt of areas) {
-          await appDB.execute(
-            // language=PostgreSQL
-            `
+      for (const it of params) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
               insert into staff_area_mapping(id, staff, area, department)
               values (?, ?, ?, ?)
             `,
-            uuid(),
-            id,
-            areaIt.hospital,
-            areaIt.department
-          );
-        }
+          uuid(),
+          it.id,
+          it.hospital,
+          it.department
+        );
       }
     });
   }
