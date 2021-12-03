@@ -24,7 +24,7 @@
               }}{{ workScore.rate ? '%' : null }}
             </div>
           </div>
-          <div>
+          <div v-if="$settings.user.type === UserType.ADMIN">
             <el-button size="small" type="primary" @click="$router.go(-1)"
               >返回</el-button
             >
@@ -290,7 +290,8 @@ export default {
         '#fc8452',
         '#9a60b4',
         '#ea7ccc'
-      ]
+      ],
+      UserType: require('../../../../../common/user.ts').UserType
     };
   },
   directives: {
