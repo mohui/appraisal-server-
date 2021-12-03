@@ -172,9 +172,9 @@ export default class HisStaff {
         await appDB.execute(
           // language=PostgreSQL
           `
-              insert into staff_area_mapping(id, staff, area, department)
-              values (?, ?, ?, ?)
-            `,
+            insert into staff_area_mapping(id, staff, area, department)
+            values (?, ?, ?, ?)
+          `,
           uuid(),
           it.id,
           it.hospital,
