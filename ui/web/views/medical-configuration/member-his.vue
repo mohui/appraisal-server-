@@ -30,12 +30,7 @@
         :is-collapsed="isCollapsed"
         @toggle="is => (isCollapsed = is)"
       >
-        <el-form
-          ref="ruleForm"
-          :model="searchForm"
-          label-width="100px"
-          size="mini"
-        >
+        <el-form :model="searchForm" label-width="100px" size="mini">
           <el-row>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
               <el-form-item label="登录名:">
@@ -211,7 +206,6 @@
       :title="userForm.id ? '修改用户' : '新建用户'"
       :visible.sync="dialogFormAddUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
-      @close="beforeClose"
     >
       <el-form
         class="staff-form"
@@ -495,10 +489,11 @@
       </span>
     </el-dialog>
     <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
-      <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
+      <el-form ref="departmentForm" :model="departmentForm">
         <el-form-item
           label="科室名称"
           prop="name"
+          :rules="[{required: true, message: '科室名不能为空'}]"
           :label-width="formLabelWidth"
         >
           <el-input
@@ -568,9 +563,6 @@ export default {
         gender: [{required: true, message: '请选择性别', trigger: 'change'}],
         education: [{required: true, message: '请选择学历', trigger: 'change'}],
         title: [{required: true, message: '请选择职称名称', trigger: 'change'}]
-      },
-      rulesEdit: {
-        name: [{required: true, message: '请输入姓名', trigger: 'change'}]
       },
       tableLoading: false,
       addBtnLoading: false,
@@ -711,9 +703,6 @@ export default {
     }
   },
   methods: {
-    beforeClose() {
-      this.$refs.ruleForm.resetFields();
-    },
     majorsChange() {
       const titleSelector = this.$refs.titleSelector;
       titleSelector.$emit('input', '');
@@ -745,6 +734,7 @@ export default {
         phStaff: '',
         remark: null
       };
+      this.$refs.userFormAdd.resetFields();
     },
     //保存新建用户
     async addUser() {
