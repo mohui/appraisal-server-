@@ -206,6 +206,8 @@
       :title="userForm.id ? '修改用户' : '新建用户'"
       :visible.sync="dialogFormAddUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
+      :close-on-click-modal="false"
+      :before-close="beforeClose"
     >
       <el-form
         class="staff-form"
@@ -703,6 +705,25 @@ export default {
     }
   },
   methods: {
+    beforeClose() {
+      this.userForm = {
+        account: '',
+        password: '',
+        name: '',
+        gender: '',
+        phone: '',
+        isGP: false,
+        his: '',
+        phStaff: '',
+        education: '',
+        major: '',
+        title: '',
+        remark: null,
+        department: null
+      };
+      this.dialogFormAddUsersVisible = false;
+      this.$refs.userFormAdd.resetFields();
+    },
     majorsChange() {
       const titleSelector = this.$refs.titleSelector;
       titleSelector.$emit('input', '');
