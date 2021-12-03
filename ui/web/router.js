@@ -276,7 +276,7 @@ const permissionRouter = [
     path: 'personal-appraisal-results',
     name: 'personal-appraisal-results',
     meta: {
-      permission: [Permission.APPRAISAL_RESULT],
+      permission: [Permission.MEDICAL_PERFORMANCE],
       activeMenu: 'medical-performance'
     },
     component: () =>

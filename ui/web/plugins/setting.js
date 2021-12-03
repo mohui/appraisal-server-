@@ -18,7 +18,7 @@ export const settingPlugin = {
           this.user.permissions = this.user.permissions || [];
           if (this.user.type === UserType.STAFF) {
             this.user.permissions.push(
-              Permission.APPRAISAL_RESULT,
+              Permission.MEDICAL_PERFORMANCE,
               Permission.MEDICAL_WORK
             );
             this.permissions = this.user.permissions;
