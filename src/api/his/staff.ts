@@ -706,23 +706,69 @@ export default class HisStaff {
   async delete(id) {
     // 先查询是否绑定过工分项
     const itemMapping = await appDB.execute(
-      `select * from his_staff_work_item_mapping where staff = ?`,
+      // language=PostgreSQL
+      `
+        select *
+        from his_staff_work_item_mapping
+        where staff = ?
+      `,
       id
     );
     if (itemMapping.length > 0) throw new KatoRuntimeError(`员工已绑定工分项`);
 
     // 查询员工是否绑定过方案
     const checkMapping = await appDB.execute(
-      `select * from his_staff_check_mapping where staff = ?`,
+      // language=PostgreSQL
+      `
+        select *
+        from his_staff_check_mapping
+        where staff = ?
+      `,
       id
     );
     if (checkMapping.length > 0) throw new KatoRuntimeError(`员工已绑定方案`);
 
-    return await appDB.execute(
-      `
-        delete from staff where id = ?`,
-      id
-    );
+    return appDB.transaction(async () => {
+      // 删除员工和地区关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?`,
+        id
+      );
+
+      // 删除员工和公卫员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_ph_mapping
+          where staff = ?`,
+        id
+      );
+
+      // 删除员工和his员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_his_mapping
+          where staff = ?`,
+        id
+      );
+
+      // 删除员工主表
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff
+          where id = ?`,
+        id
+      );
+    });
   }
 
   /**
