@@ -11,6 +11,11 @@ export default {
   name: 'Home',
   created() {
     const user = this.$settings.user;
+    if (user.permissions.includes(Permission.SUPER_ADMIN)) {
+      //超级管理员默认进入考核结果页
+      this.$router.replace({path: 'appraisal-result'});
+      return;
+    }
     if (user.type === UserType.STAFF) {
       //进入该员工的考核结果详情页
       this.$router.replace(
@@ -40,6 +45,7 @@ export default {
     if (filterMenu) {
       this.$router.replace(filterMenu.router || filterMenu.children[0].router);
     }
+    if (!filterMenu) this.$router.replace({path: 'page401'});
   }
 };
 </script>
