@@ -201,6 +201,101 @@ export default class HisStaff {
     });
   }
 
+  /**
+   * 注册员工
+   *
+   * @param params {
+   *   name 名称
+   *   password 密码
+   *   major 专业类别
+   *   staff his员工
+   *   remark 备注
+   *   department 科室
+   *   phStaff 公卫员工
+   *   phone 联系电话
+   *   gender 性别
+   *   title 职称名称
+   *   education 学历
+   *   isGP 是否为全科医师
+   * }
+   */
+  @validate(
+    should
+      .object({
+        account: should.string().required(),
+        name: should.string().required(),
+        password: should.string().required(),
+        isGP: should.boolean().required(),
+        education: should
+          .string()
+          .only(
+            Education.COLLEGE,
+            Education.BACHELOR,
+            Education.MASTER,
+            Education.DOCTOR
+          )
+          .required(),
+        gender: should
+          .string()
+          .only(Gender[0], Gender[1], Gender[2], Gender[3])
+          .required(),
+        major: should.string().allow(null),
+        remark: should.string().allow(null),
+        phone: should.string().allow(null),
+        title: should.string().allow(null)
+      })
+      .required()
+  )
+  async register(params) {
+    const {
+      account,
+      name,
+      password,
+      isGP,
+      education,
+      gender,
+      major,
+      remark,
+      phone,
+      title
+    } = params;
+    // 添加之前先排查账号是否已经存在
+    const findAccounts = await appDB.execute(
+      // language=PostgreSQL
+      `select account from staff where account = ?`,
+      account
+    );
+    if (findAccounts.length > 0) throw new KatoRuntimeError(`账号已经存在`);
+
+    return await appDB.execute(
+      // language=PostgreSQL
+      `
+        insert into staff(id,
+                          account,
+                          password,
+                          name,
+                          remark,
+                          phone,
+                          gender,
+                          major,
+                          title,
+                          education,
+                          "isGP")
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      uuid(),
+      account,
+      password,
+      name,
+      remark,
+      phone,
+      gender,
+      major,
+      title,
+      education,
+      isGP
+    );
+  }
+
   // endregion
 
   // region 员工的增删改查
