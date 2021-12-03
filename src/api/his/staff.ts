@@ -300,6 +300,37 @@ export default class HisStaff {
     );
   }
 
+  /**
+   * 非本机构员工列表
+   */
+  async staffList() {
+    const hospital = await getHospital();
+    // 获取非本机构的员工
+    return appDB.execute(
+      // language=PostgreSQL
+      `
+        select id,
+               hospital,
+               account,
+               password,
+               name,
+               remark,
+               department,
+               phone,
+               gender,
+               major,
+               title,
+               education,
+               "isGP",
+               created_at,
+               updated_at
+        from staff
+        where COALESCE(hospital, '') != ?
+      `,
+      hospital
+    );
+  }
+
   // endregion
 
   // region 员工的增删改查
