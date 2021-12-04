@@ -793,32 +793,33 @@ export default class HisStaff {
     const [sql, params] = sqlRender(
       `
         select
-          id,
-          hospital,
-          staff,
-          ph_staff "phStaff",
-          account,
-          password,
-          name,
-          remark,
-          department,
-          phone,
-          gender,
-          major,
-          title,
-          education,
-          "isGP",
-          created_at,
-          updated_at
+          staff.id,
+          staff.account,
+          staff.password,
+          staff.name,
+          staff.remark,
+          staff.phone,
+          staff.gender,
+          staff.major,
+          staff.title,
+          staff.education,
+          staff."isGP",
+          staff.created_at,
+          staff.updated_at,
+          area.area hospital,
+          area.department,
+          dept.name "departmentName"
         from staff
-        where hospital = {{? hospital}}
+        left join staff_area_mapping area on staff.id = area.staff
+        left join his_department dept on area.department = dept.id
+        where area.area = {{? hospital}}
         {{#if account}}
-            AND account like {{? account}}
+            AND staff.account like {{? account}}
         {{/if}}
         {{#if name}}
-            AND name like {{? name}}
+            AND staff.name like {{? name}}
         {{/if}}
-        order by created_at
+        order by staff.created_at
       `,
       {
         hospital,
@@ -826,44 +827,93 @@ export default class HisStaff {
         name
       }
     );
-    const staffList = await appDB.execute(sql, ...params);
+    const staffList = (await appDB.execute(sql, ...params))?.map(it => ({
+      ...it,
+      hisStaff: [],
+      phStaff: []
+    }));
+
     const hisStaffs = await originalDB.execute(
-      `select id, name from his_staff where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select id, name
+        from his_staff
+        where hospital = ?
+      `,
       hospital
     );
 
     // 根据绑定关系查询公卫机构下的所有员工
-    // language=PostgreSQL
     const sysUserList = await originalDB.execute(
+      // language=PostgreSQL
       `
-        select id, name username
+        select id, name
         from ph_user
         where hospital = ?
       `,
       hospital
     );
 
-    const dept = await appDB.execute(
-      `
-        select id, hospital, name, created_at
-        from his_department
-        where hospital = ?
-        order by created_at
-      `,
-      hospital
-    );
-    return staffList.map(it => {
-      const index = hisStaffs.find(item => it.staff === item.id);
-      const deptIndex = dept.find(item => item.id === it.department);
-      // 公卫员工
-      const phStaffIndex = sysUserList.find(item => it.phStaff === item.id);
+    // 公卫员工列表
+    const phStaffList = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select ph.staff, ph.ph_staff
+          from staff_area_mapping area
+                 inner join staff_ph_mapping ph on area.staff = ph.staff
+          where area.area = ?
+        `,
+        hospital
+      )
+    )?.map(it => {
+      const phFind = sysUserList.find(phIt => phIt.id === it.ph_staff);
       return {
-        ...it,
-        staffName: index?.name ?? '',
-        departmentName: deptIndex?.name ?? '',
-        phStaffName: phStaffIndex?.username ?? ''
+        staff: it.staff,
+        phStaff: it.ph_staff,
+        phStaffName: phFind?.name ?? ''
       };
     });
+
+    // HIS员工列表
+    const hisStaffList = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select his.staff, his.his_staff
+          from staff_area_mapping area
+                 inner join staff_his_mapping his on area.staff = his.staff
+          where area.area = ?
+        `,
+        hospital
+      )
+    )?.map(it => {
+      const hisFind = hisStaffs.find(hisIt => hisIt.id === it.his_staff);
+      return {
+        staff: it.staff,
+        hisStaff: it.his_staff,
+        hisStaffName: hisFind?.name ?? ''
+      };
+    });
+
+    for (const it of hisStaffList) {
+      const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
+      if (findIndex)
+        findIndex.hisStaff.push({
+          id: it.hisStaff,
+          name: it.hisStaffName
+        });
+    }
+
+    for (const it of phStaffList) {
+      const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
+      if (findIndex)
+        findIndex.phStaff.push({
+          id: it.phStaff,
+          name: it.phStaffName
+        });
+    }
+    return staffList;
   }
 
   async staffTree() {
