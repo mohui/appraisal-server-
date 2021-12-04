@@ -224,7 +224,7 @@ export default class HisHospital {
           hospital
         )
       ).map(async it => {
-        const result = await staffApi.findWorkScoreList(it.id, month);
+        const result = await staffApi.findWorkScoreList(it.id, month, hospital);
         return {
           ...it,
           rate: result.rate,
@@ -258,7 +258,11 @@ export default class HisHospital {
 
     const staffList = [];
     for (const staffIt of staffs) {
-      const workScoreList = await staffApi.findWorkScoreList(staffIt.id, month);
+      const workScoreList = await staffApi.findWorkScoreList(
+        staffIt.id,
+        month,
+        hospital
+      );
       const gets = await staffApi.get(staffIt.id, month);
       staffList.push({
         extra: gets?.extra,
