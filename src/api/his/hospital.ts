@@ -213,10 +213,13 @@ export default class HisHospital {
         await appDB.execute(
           // language=PostgreSQL
           `
-            select id, name
+            select staff.id,
+                   staff.name,
+                   areaMapping.area
             from staff
-            where hospital = ?
-            order by created_at
+                   left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+            where areaMapping.area = ?
+            order by staff.created_at
           `,
           hospital
         )
