@@ -1095,40 +1095,43 @@ export default class HisStaff {
    * 员工考核详情之质量系数详情
    * @param staff 考核员工
    * @param month 时间
+   * @param hospital 机构
    */
   @validate(
-    should
-      .string()
-      .required()
-      .description('考核员工id'),
-    should
-      .date()
-      .required()
-      .description('时间')
+    should.string().required(),
+    should.date().required(),
+    should.string().required()
   )
-  async staffCheck(staff, month) {
-    // 查询员工和方案绑定
-    const checks = await appDB.execute(
-      `select "check" "checkId",  staff from his_staff_check_mapping where staff = ?`,
-      staff
-    );
-    if (checks.length === 0) throw new KatoRuntimeError(`该员工没有考核方案`);
-    const checkId = checks[0]?.checkId;
-
-    // 查询方案是否存在
+  async staffCheck(staff, month, hospital) {
+    // 查询员工和方案绑定是否存在
     const hisSystems = await appDB.execute(
-      `select id, name
-            from his_check_system
-            where id = ?`,
-      checkId
+      // language=PostgreSQL
+      `
+        select checkMapping."check" "checkId",
+               checkMapping.staff,
+               system.id,
+               system.name
+        from his_staff_check_mapping checkMapping
+               inner join his_check_system system on checkMapping."check" = system.id
+        where staff = ?
+          and system.hospital = ?
+      `,
+      staff,
+      hospital
     );
-    if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
+    if (hisSystems.length === 0)
+      throw new KatoRuntimeError(`该员工没有考核方案`);
+
+    const checkId = hisSystems[0]?.id;
 
     // 根据方案查询细则
     const checkRuleModels = await appDB.execute(
-      `select * from his_check_rule
-              where "check" = ?
-        `,
+      // language=PostgreSQL
+      `
+        select *
+        from his_check_rule
+        where "check" = ?
+      `,
       checkId
     );
     if (checkRuleModels.length === 0)
@@ -1139,22 +1142,26 @@ export default class HisStaff {
     // 当天的开始时间和结束时间
     const {start, end} = dayToRange(monthTime.start);
     // 开始之前先查询此员工本月是否打过分
-    // language=PostgreSQL
     const assessResultModel: AssessModel[] = await appDB.execute(
-      `select id,
-                staff_id    "staffId",
-                time,
-                system_id   "systemId",
-                system_name "systemName",
-                rule_id     "ruleId",
-                rule_name   "ruleName",
-                score,
-                total
-         from his_staff_assess_result
-         where staff_id = ?
-           and time >= ?
-           and time < ?`,
+      // language=PostgreSQL
+      `
+        select result.id,
+               result.staff_id    "staffId",
+               result.time,
+               result.system_id   "systemId",
+               result.system_name "systemName",
+               result.rule_id     "ruleId",
+               result.rule_name   "ruleName",
+               result.score,
+               result.total
+        from his_staff_assess_result result
+               left join his_check_system system on result.system_id = system.id
+        where result.staff_id = ?
+          and system.hospital = ?
+          and result.time >= ?
+          and result.time < ?`,
       staff,
+      hospital,
       start,
       end
     );
