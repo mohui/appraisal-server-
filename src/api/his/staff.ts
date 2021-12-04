@@ -976,6 +976,8 @@ export default class HisStaff {
    *
    * @param id 员工id
    * @param month 月份
+   * @param hospital 机构
+   *
    * @return {
    *   items: 工分项目列表 [
    *     {
@@ -991,7 +993,8 @@ export default class HisStaff {
   @validate(should.string().required(), should.date().required())
   async findWorkScoreList(
     id,
-    month
+    month,
+    hospital
   ): Promise<{
     day: Date;
     items: {id: string; name: string; score: number}[];
@@ -1020,11 +1023,14 @@ export default class HisStaff {
                result."order",
                result.score
         from his_staff_work_result result
+               left join his_work_item item on result.item_id = item.id
         where result.staff_id = ?
+          and item.hospital = ?
           and result.time >= ?
           and result.time < ?
       `,
       id,
+      hospital,
       start,
       end
     );
@@ -1032,20 +1038,25 @@ export default class HisStaff {
     // 查询质量系数
     // language=PostgreSQL
     const assessResultModel: AssessModel[] = await appDB.execute(
-      `select id,
-                staff_id    "staffId",
-                time,
-                system_id   "systemId",
-                system_name "systemName",
-                rule_id     "ruleId",
-                rule_name   "ruleName",
-                score,
-                total
-         from his_staff_assess_result
-         where staff_id = ?
-           and time >= ?
-           and time < ?`,
+      `
+        select result.id,
+               result.staff_id    "staffId",
+               result.time,
+               result.system_id   "systemId",
+               result.system_name "systemName",
+               result.rule_id     "ruleId",
+               result.rule_name   "ruleName",
+               result.score,
+               result.total
+        from his_staff_assess_result result
+               left join his_check_system system on result.system_id = system.id
+        where result.staff_id = ?
+          and system.hospital = ?
+          and result.time >= ?
+          and result.time < ?
+      `,
       id,
+      hospital,
       start,
       end
     );
