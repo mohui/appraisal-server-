@@ -213,15 +213,18 @@ export default class HisHospital {
         await appDB.execute(
           // language=PostgreSQL
           `
-            select id, name
+            select staff.id,
+                   staff.name,
+                   areaMapping.area
             from staff
-            where hospital = ?
-            order by created_at
+                   left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+            where areaMapping.area = ?
+            order by staff.created_at
           `,
           hospital
         )
       ).map(async it => {
-        const result = await staffApi.findWorkScoreList(it.id, month);
+        const result = await staffApi.findWorkScoreList(it.id, month, hospital);
         return {
           ...it,
           rate: result.rate,
@@ -255,7 +258,11 @@ export default class HisHospital {
 
     const staffList = [];
     for (const staffIt of staffs) {
-      const workScoreList = await staffApi.findWorkScoreList(staffIt.id, month);
+      const workScoreList = await staffApi.findWorkScoreList(
+        staffIt.id,
+        month,
+        hospital
+      );
       const gets = await staffApi.get(staffIt.id, month);
       staffList.push({
         extra: gets?.extra,
