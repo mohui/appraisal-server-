@@ -396,71 +396,6 @@
               <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
             </el-form-item>
           </el-col>
-          <el-col>
-            <el-divider></el-divider>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">账户关联</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="HIS用户"
-              prop="his"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.his"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="h in hisList"
-                  :key="h.id"
-                  :label="h.name"
-                  :value="h.id"
-                  :disabled="!h.usable"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="公卫用户"
-              prop="phStaff"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.phStaff"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="h in phStaffList"
-                  :key="h.id"
-                  :label="h.username"
-                  :value="h.id"
-                  :disabled="!h.usable"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="24">
-            <el-form-item
-              label="备注"
-              prop="remark"
-              :label-width="formLabelWidth"
-            >
-              <el-input
-                v-model="userForm.remark"
-                type="textarea"
-                autocomplete="off"
-              ></el-input>
-            </el-form-item>
-          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -813,21 +748,19 @@ export default {
     //更新保存用户信息
     async updateUser() {
       try {
-        await this.$api.HisStaff.update(
-          this.userForm.id,
-          this.userForm.name.trim(),
-          this.userForm.password.trim(),
-          this.userForm.his || null,
-          this.userForm.remark?.trim() || null,
-          this.userForm.department?.trim() || null,
-          this.userForm.phStaff?.trim() || null,
-          this.userForm.phone?.trim() || null,
-          this.userForm.gender?.trim() || null,
-          this.userForm.major?.trim() || null,
-          this.userForm.title?.trim() || null,
-          this.userForm.education?.trim() || null,
-          this.userForm.isGP || false
-        );
+        await this.$api.HisStaff.update({
+          id: this.userForm.id,
+          name: this.userForm.name.trim(),
+          password: this.userForm.password.trim(),
+          remark: this.userForm.remark?.trim() || null,
+          department: this.userForm.department?.trim() || null,
+          phone: this.userForm.phone?.trim() || null,
+          gender: this.userForm.gender?.trim() || null,
+          major: this.userForm.major?.trim() || null,
+          title: this.userForm.title?.trim() || null,
+          education: this.userForm.education?.trim() || null,
+          isGP: this.userForm.isGP || false
+        });
         this.$message({
           type: 'success',
           message: '保存成功!'
