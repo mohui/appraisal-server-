@@ -680,6 +680,7 @@ export default class HisStaff {
             Education.DOCTOR
           )
           .required(),
+        hospital: should.string().required(),
         major: should.string().allow(null),
         remark: should.string().allow(null),
         department: should.string().allow(null),
@@ -699,6 +700,7 @@ export default class HisStaff {
       password,
       isGP,
       education,
+      hospital,
       major,
       remark,
       department,
@@ -707,13 +709,12 @@ export default class HisStaff {
       title
     } = params;
     // language=PostgreSQL
-    return await appDB.execute(
+    await appDB.execute(
       `
         update staff
         set name       = ?,
             password   = ?,
             remark     = ?,
-            department = ?,
             phone      = ?,
             gender     = ?,
             major      = ?,
@@ -725,7 +726,6 @@ export default class HisStaff {
       name,
       password,
       remark,
-      department,
       phone,
       gender,
       major,
@@ -735,6 +735,23 @@ export default class HisStaff {
       dayjs().toDate(),
       id
     );
+    // 如果传了科室,修改科室
+    if (department) {
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff_area_mapping
+          set department = ?,
+              updated_at = ?
+          where staff = ?
+            and area = ?
+        `,
+        department,
+        dayjs().toDate(),
+        id,
+        hospital
+      );
+    }
   }
 
   /**
