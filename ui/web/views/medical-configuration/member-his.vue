@@ -801,6 +801,7 @@ export default {
           name: this.userForm.name.trim(),
           password: this.userForm.password.trim(),
           remark: this.userForm.remark?.trim() || null,
+          hospital: this.hospitalId,
           department: this.userForm.department?.trim() || null,
           phone: this.userForm.phone?.trim() || null,
           gender: this.userForm.gender?.trim() || null,
