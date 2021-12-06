@@ -337,19 +337,32 @@ export default class HisStaff {
   /**
    * 查询his员工
    */
-  async listHisStaffs() {
-    const hospital = await getHospital();
-
+  async listHisStaffs(hospital) {
+    // 查询所有的his员工
     const hisStaffs = await originalDB.execute(
-      `select id, name, hospital from his_staff where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
       hospital
     );
+
+    const hisStaffIds = hisStaffs.map(it => it.id);
+
+    // 查询所有已经绑定过的his员工
     const staffs = await appDB.execute(
-      `select staff from staff where hospital = ?`,
-      hospital
+      // language=PostgreSQL
+      `
+        select his_staff
+        from staff_his_mapping
+        where his_staff in (${hisStaffIds.map(() => '?')})
+      `,
+      ...hisStaffIds
     );
     return hisStaffs.map(it => {
-      const index = staffs.find(item => it.id === item.staff);
+      const index = staffs.find(item => it.id === item.his_staff);
       return {
         ...it,
         usable: !index
@@ -432,7 +445,7 @@ export default class HisStaff {
                hisMapping.his_staff
         from staff
                left join staff_area_mapping area on staff.id = area.staff
-        left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
+               left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
         where staff.id = ?
           and area.area = ?
       `,
