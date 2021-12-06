@@ -336,7 +336,9 @@ export default class HisStaff {
   // region 员工的增删改查
   /**
    * 查询his员工
+   * @param hospital 机构
    */
+  @validate(should.string().required())
   async listHisStaffs(hospital) {
     // 查询所有的his员工
     const hisStaffs = await originalDB.execute(
@@ -372,7 +374,9 @@ export default class HisStaff {
 
   /**
    * 查询公卫员工
+   * @param hospital 机构
    */
+  @validate(should.string().required())
   async listPhStaffs(hospital) {
     // 根据绑定关系查询公卫机构下的所有员工
     const sysUserList = await originalDB.execute(
