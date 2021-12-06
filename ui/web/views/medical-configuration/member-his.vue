@@ -169,12 +169,6 @@
         ></el-table-column>
         <el-table-column
           align="center"
-          prop="phStaffName"
-          label="公卫用户"
-          min-width="80"
-        ></el-table-column>
-        <el-table-column
-          align="center"
           prop="remark"
           label="备注"
           min-width="100"
@@ -587,6 +581,8 @@ export default {
         .map(it => ({
           ...it,
           removeLoading: false,
+          staffName: it.hisStaff.map(it => it.name).join(','),
+          phStaffName: it.phStaff.map(it => it.name).join(','),
           created_at: it.created_at?.$format() || '',
           updated_at: it.updated_at?.$format() || ''
         }))
