@@ -449,6 +449,7 @@
       title="选择员工"
       :visible.sync="dialogSelectUsersVisible"
       v-hidden-scroll
+      :before-close="cleanSelected"
     >
       <div
         style="display: flex;
@@ -458,6 +459,7 @@
           v-hidden-scroll
           class="extend-staff-table"
           :data="extendStaffList"
+          ref="extendStaffList"
           border
           stripe
           size="mini"
@@ -493,9 +495,7 @@
         </el-table>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="dialogSelectUsersVisible = false"
-          >取 消</el-button
-        >
+        <el-button size="small" @click="cleanSelected">取 消</el-button>
         <el-button
           size="small"
           type="primary"
@@ -690,6 +690,12 @@ export default {
     //勾选非本机构人员
     handleSelectionChange(selected) {
       this.selectedStaff = selected.map(it => it.id);
+    },
+    cleanSelected(done) {
+      this.selectedStaff = [];
+      this.$refs.extendStaffList.clearSelection();
+      this.dialogSelectUsersVisible = false;
+      done();
     },
     beforeClose() {
       this.userForm = {
