@@ -740,23 +740,23 @@ export default class HisStaff {
 
   /**
    * 删除员工信息
+   * @param id 员工id
+   * @param hospital 员工所在机构
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('主键')
-  )
-  async delete(id) {
+  @validate(should.string().required(), should.string().required())
+  async delete(id, hospital) {
     // 先查询是否绑定过工分项
     const itemMapping = await appDB.execute(
       // language=PostgreSQL
       `
-        select *
-        from his_staff_work_item_mapping
-        where staff = ?
+        select mapping.id, mapping.staff
+        from his_staff_work_item_mapping mapping
+               left join his_work_item item on mapping.item = item.id
+        where mapping.staff = ?
+          and item.hospital = ?
       `,
-      id
+      id,
+      hospital
     );
     if (itemMapping.length > 0) throw new KatoRuntimeError(`员工已绑定工分项`);
 
@@ -764,13 +764,42 @@ export default class HisStaff {
     const checkMapping = await appDB.execute(
       // language=PostgreSQL
       `
-        select *
-        from his_staff_check_mapping
+        select checkMapping.staff, checkMapping."check"
+        from his_staff_check_mapping checkMapping
+               inner join his_check_system system on checkMapping."check" = system.id
         where staff = ?
+          and system.hospital = ?
       `,
-      id
+      id,
+      hospital
     );
     if (checkMapping.length > 0) throw new KatoRuntimeError(`员工已绑定方案`);
+
+    const hisStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
+      hospital
+    );
+
+    // 所有的his员工id
+    const hisStaffIds = hisStaffModels.map(it => it.id);
+
+    // 机构下的所有公卫员工
+    const phStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name username, states
+        from ph_user
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 所有的公卫员工id
+    const phStaffIds = phStaffModels.map(it => it.id);
 
     return appDB.transaction(async () => {
       // 删除员工和地区关联表
@@ -779,39 +808,41 @@ export default class HisStaff {
         `
           delete
           from staff_area_mapping
-          where staff = ?`,
-        id
+          where staff = ?
+            and area = ?`,
+        id,
+        hospital
       );
 
-      // 删除员工和公卫员工关联表
-      await appDB.execute(
-        // language=PostgreSQL
-        `
+      if (phStaffIds.length > 0) {
+        // 删除员工和公卫员工关联表
+        await appDB.execute(
+          // language=PostgreSQL
+          `
           delete
           from staff_ph_mapping
-          where staff = ?`,
-        id
-      );
+          where staff = ?
+            and ph_staff in (${phStaffIds.map(() => '?')})
+          `,
+          id,
+          ...phStaffIds
+        );
+      }
 
-      // 删除员工和his员工关联表
-      await appDB.execute(
-        // language=PostgreSQL
-        `
+      if (hisStaffIds.length > 0) {
+        // 删除员工和his员工关联表
+        return await appDB.execute(
+          // language=PostgreSQL
+          `
           delete
           from staff_his_mapping
-          where staff = ?`,
-        id
-      );
-
-      // 删除员工主表
-      return await appDB.execute(
-        // language=PostgreSQL
-        `
-          delete
-          from staff
-          where id = ?`,
-        id
-      );
+          where staff = ?
+          and his_staff in (${hisStaffIds.map(() => '?')})
+          `,
+          id,
+          ...hisStaffIds
+        );
+      }
     });
   }
 
