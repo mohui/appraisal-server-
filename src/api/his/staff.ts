@@ -288,8 +288,19 @@ export default class HisStaff {
    */
   async staffList() {
     const hospital = await getHospital();
+    // 先查询本机构的地区
+    const staffList = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select staff.id
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+      `,
+      hospital
+    );
     // 获取非本机构的员工
-    return appDB.execute(
+    const areaStaff = await appDB.execute(
       // language=PostgreSQL
       `
         select staff.id,
@@ -313,6 +324,11 @@ export default class HisStaff {
       `,
       hospital
     );
+    return areaStaff.filter(it => {
+      // 如果能查找到,说明此人已经被本机构绑定过
+      const findIndex = staffList.find(staffIt => staffIt.id === it.id);
+      if (!findIndex) return it;
+    });
   }
 
   // endregion
