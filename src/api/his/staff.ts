@@ -990,7 +990,11 @@ export default class HisStaff {
    *   rate?: 质量系数
    * }
    */
-  @validate(should.string().required(), should.date().required())
+  @validate(
+    should.string().required(),
+    should.date().required(),
+    should.string().required()
+  )
   async findWorkScoreList(
     id,
     month,
