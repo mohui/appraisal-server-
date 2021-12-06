@@ -373,12 +373,10 @@ export default class HisStaff {
   /**
    * 查询公卫员工
    */
-  async listPhStaffs() {
-    const hospital = await getHospital();
-
+  async listPhStaffs(hospital) {
     // 根据绑定关系查询公卫机构下的所有员工
-    // language=PostgreSQL
     const sysUserList = await originalDB.execute(
+      // language=PostgreSQL
       `
         select id, name username, states
         from ph_user
@@ -386,10 +384,16 @@ export default class HisStaff {
       `,
       hospital
     );
+    const phStaffIds = sysUserList.map(it => it.id);
 
     const staffs = await appDB.execute(
-      `select ph_staff "phStaff" from staff where hospital = ?`,
-      hospital
+      // language=PostgreSQL
+      `
+        select ph_staff "phStaff"
+        from staff_ph_mapping
+        where ph_staff in (${phStaffIds.map(() => '?')})
+      `,
+      ...phStaffIds
     );
     return sysUserList.map(it => {
       const index = staffs.find(item => it.id === item.phStaff);
