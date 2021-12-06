@@ -455,10 +455,12 @@
         style="display: flex;
         flex-direction: column;height: 60vh;overflow-y: scroll"
       >
+        <div style="margin:0 0 20px 0">员工列表:</div>
         <el-table
           v-hidden-scroll
           class="extend-staff-table"
           :data="extendStaffList"
+          style="flex:1"
           ref="extendStaffList"
           border
           stripe
@@ -493,6 +495,21 @@
             }}</template>
           </el-table-column>
         </el-table>
+        <div style="margin: 20px 0 5px 0">分配科室</div>
+        <el-select
+          style="width:100%"
+          v-model="selectedDepartment"
+          clearable
+          filterable
+          size="mini"
+        >
+          <el-option
+            v-for="h in departmentList"
+            :key="h.id"
+            :label="h.name"
+            :value="h.id"
+          ></el-option>
+        </el-select>
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="cleanSelected">取 消</el-button>
@@ -568,7 +585,9 @@ export default {
       // 绑定码变量
       QRCode: '',
       //选中的员工
-      selectedStaff: []
+      selectedStaff: [],
+      //选中员工的机构
+      selectedDepartment: ''
     };
   },
   computed: {
@@ -695,6 +714,7 @@ export default {
       this.selectedStaff = [];
       this.$refs.extendStaffList.clearSelection();
       this.dialogSelectUsersVisible = false;
+      this.selectedDepartment = '';
       done();
     },
     beforeClose() {
@@ -745,7 +765,8 @@ export default {
       try {
         const params = this.selectedStaff.map(it => ({
           id: it,
-          hospital: this.hospitalId
+          hospital: this.hospitalId,
+          department: this.selectedDepartment || null
         }));
         await this.$api.HisStaff.addAreaMapping(params);
         this.$asyncComputed.listMember.update(); //刷新系统员工列表
