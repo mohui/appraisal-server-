@@ -263,7 +263,7 @@ export default class HisHospital {
         month,
         hospital
       );
-      const gets = await staffApi.get(staffIt.id, month);
+      const gets = await staffApi.get(staffIt.id, month, hospital);
       staffList.push({
         extra: gets?.extra,
         id: staffIt.id,

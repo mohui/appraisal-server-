@@ -309,23 +309,24 @@ export default class HisStaff {
     return appDB.execute(
       // language=PostgreSQL
       `
-        select id,
-               hospital,
-               account,
-               password,
-               name,
-               remark,
-               department,
-               phone,
-               gender,
-               major,
-               title,
-               education,
-               "isGP",
-               created_at,
-               updated_at
+        select staff.id,
+               staff.hospital,
+               staff.account,
+               staff.password,
+               staff.name,
+               staff.remark,
+               staff.department,
+               staff.phone,
+               staff.gender,
+               staff.major,
+               staff.title,
+               staff.education,
+               staff."isGP",
+               staff.created_at,
+               staff.updated_at
         from staff
-        where COALESCE(hospital, '') != ?
+               left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where COALESCE(areaMapping.area, '') != ?
       `,
       hospital
     );
@@ -336,20 +337,35 @@ export default class HisStaff {
   // region 员工的增删改查
   /**
    * 查询his员工
+   * @param hospital 机构
    */
-  async listHisStaffs() {
-    const hospital = await getHospital();
-
+  @validate(should.string().required())
+  async listHisStaffs(hospital) {
+    // 查询所有的his员工
     const hisStaffs = await originalDB.execute(
-      `select id, name, hospital from his_staff where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
       hospital
     );
+
+    const hisStaffIds = hisStaffs.map(it => it.id);
+
+    // 查询所有已经绑定过的his员工
     const staffs = await appDB.execute(
-      `select staff from staff where hospital = ?`,
-      hospital
+      // language=PostgreSQL
+      `
+        select his_staff
+        from staff_his_mapping
+        where his_staff in (${hisStaffIds.map(() => '?')})
+      `,
+      ...hisStaffIds
     );
     return hisStaffs.map(it => {
-      const index = staffs.find(item => it.id === item.staff);
+      const index = staffs.find(item => it.id === item.his_staff);
       return {
         ...it,
         usable: !index
@@ -359,13 +375,13 @@ export default class HisStaff {
 
   /**
    * 查询公卫员工
+   * @param hospital 机构
    */
-  async listPhStaffs() {
-    const hospital = await getHospital();
-
+  @validate(should.string().required())
+  async listPhStaffs(hospital) {
     // 根据绑定关系查询公卫机构下的所有员工
-    // language=PostgreSQL
     const sysUserList = await originalDB.execute(
+      // language=PostgreSQL
       `
         select id, name username, states
         from ph_user
@@ -373,10 +389,16 @@ export default class HisStaff {
       `,
       hospital
     );
+    const phStaffIds = sysUserList.map(it => it.id);
 
     const staffs = await appDB.execute(
-      `select ph_staff "phStaff" from staff where hospital = ?`,
-      hospital
+      // language=PostgreSQL
+      `
+        select ph_staff "phStaff"
+        from staff_ph_mapping
+        where ph_staff in (${phStaffIds.map(() => '?')})
+      `,
+      ...phStaffIds
     );
     return sysUserList.map(it => {
       const index = staffs.find(item => it.id === item.phStaff);
@@ -392,6 +414,8 @@ export default class HisStaff {
    *
    * @param id 员工id
    * @param month 月份
+   * @param hospital 机构
+   *
    * @return {
    *   id: 员工id
    *   name: 员工姓名
@@ -402,34 +426,58 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), dateValid)
-  async get(id, month) {
+  @validate(should.string().required(), dateValid, should.string().required())
+  async get(id, month, hospital) {
+    const hisStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
+      hospital
+    );
     //查询员工
-    // language=PostgreSQL
-    const staffModel: {id: string; name: string; staff: string} = (
-      await appDB.execute(
-        `
-          select id, name, staff
-          from staff
-          where id = ?
-        `,
-        id
-      )
-    )[0];
-    if (!staffModel) throw new KatoRuntimeError(`该员工不存在`);
-    //查询his信息
-    // language=PostgreSQL
-    const hisModel = (
-      await originalDB.execute(
-        `
-          select d.name as sex, phone, birth
-          from his_staff s
-                 left join his_dict d on s.sex = d.code and d.category_code = '10101001'
-          where s.id = ?
-        `,
-        staffModel.staff
-      )
-    )[0];
+    const staffModels: {
+      id: string;
+      name: string;
+      gender: string;
+      phone: string;
+      his_staff: string;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select staff.id,
+               staff.name,
+               staff.phone,
+               staff.gender,
+               hisMapping.his_staff
+        from staff
+               left join staff_area_mapping area on staff.id = area.staff
+               left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
+        where staff.id = ?
+          and area.area = ?
+      `,
+      id,
+      hospital
+    );
+    if (staffModels.length === 0) throw new KatoRuntimeError(`该员工不存在`);
+
+    const staffObj = {
+      id: staffModels[0]?.id ?? null,
+      name: staffModels[0]?.name ?? null,
+      phone: staffModels[0]?.phone ?? null,
+      sex: staffModels[0]?.gender ?? null,
+      staff: [],
+      birth: null
+    };
+    for (const it of hisStaffModels) {
+      const findIndex = staffModels.find(findIt => findIt.his_staff === it.id);
+      if (findIndex) {
+        staffObj.staff.push(it.id);
+      }
+    }
+
     //查询附加分
     const {start} = monthToRange(month);
     // language=PostgreSQL
@@ -446,13 +494,9 @@ export default class HisStaff {
       )
     )[0]?.score;
     //查询结算状态
-    const hospital = await getHospital();
     const settle = await getSettle(hospital, start);
     return {
-      ...staffModel,
-      sex: hisModel?.sex ?? null,
-      phone: hisModel?.phone ?? null,
-      birth: hisModel?.birth ?? null,
+      ...staffObj,
       extra: score ?? null,
       settle
     };
