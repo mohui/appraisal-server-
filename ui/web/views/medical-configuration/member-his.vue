@@ -469,6 +469,8 @@
         >
           <el-table-column type="selection" align="center" width="55">
           </el-table-column>
+          <el-table-column type="index" align="center" width="55">
+          </el-table-column>
           <el-table-column
             align="center"
             label="姓名"
@@ -834,7 +836,8 @@ export default {
         row.removeLoading = true;
         if (row.departmentId)
           await this.$api.HisDepartment.delete(row.departmentId);
-        if (!row.departmentId) await this.$api.HisStaff.delete(row.id);
+        if (!row.departmentId)
+          await this.$api.HisStaff.delete(row.id, this.hospitalId);
         this.$message({
           type: 'success',
           message: '删除成功!'
