@@ -4,7 +4,7 @@
       <span class="header-title">HIS员工绑定列表</span>
       <div>
         <el-button size="small" type="primary" @click="openAddUserDialog"
-          >新建用户
+          >新添员工
         </el-button>
         <el-button
           size="small"
@@ -197,8 +197,8 @@
       </el-table>
     </el-card>
     <el-dialog
-      :title="userForm.id ? '修改用户' : '新建用户'"
-      :visible.sync="dialogFormAddUsersVisible"
+      title="修改用户"
+      :visible.sync="dialogFormEditUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
       :close-on-click-modal="false"
       :before-close="beforeClose"
@@ -399,8 +399,8 @@
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
-        <el-button v-loading="addBtnLoading" type="primary" @click="addUser">
+        <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
+        <el-button v-loading="addBtnLoading" type="primary" @click="updateUser">
           确 定
         </el-button>
       </div>
@@ -445,6 +445,67 @@
         >
       </div>
     </el-dialog>
+    <el-dialog
+      title="选择员工"
+      :visible.sync="dialogSelectUsersVisible"
+      v-hidden-scroll
+    >
+      <div
+        style="display: flex;
+        flex-direction: column;height: 60vh;overflow-y: scroll"
+      >
+        <el-table
+          v-hidden-scroll
+          class="extend-staff-table"
+          :data="extendStaffList"
+          border
+          stripe
+          size="mini"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" align="center" width="55">
+          </el-table-column>
+          <el-table-column
+            align="center"
+            label="姓名"
+            prop="name"
+          ></el-table-column>
+          <el-table-column
+            align="center"
+            label="性别"
+            prop="gender"
+          ></el-table-column>
+          <el-table-column
+            align="center"
+            label="职业"
+            prop="major"
+          ></el-table-column>
+          <el-table-column
+            align="center"
+            label="教育经历"
+            prop="education"
+          ></el-table-column>
+          <el-table-column align="center" label="是否全科医生" prop="isGap">
+            <template slot-scope="{row}">{{
+              row.isGap ? '是' : '否'
+            }}</template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="dialogSelectUsersVisible = false"
+          >取 消</el-button
+        >
+        <el-button
+          size="small"
+          type="primary"
+          v-loading="addBtnLoading"
+          :disabled="selectedStaff.length < 1"
+          @click="addUser()"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -462,8 +523,8 @@ export default {
       educations: Education,
       genders: Gender,
       majors: Occupation,
-      dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
+      dialogSelectUsersVisible: false,
       formLabelWidth: '100px',
       userForm: {
         account: '',
@@ -472,8 +533,6 @@ export default {
         gender: '',
         phone: '',
         isGP: false,
-        his: '',
-        phStaff: '',
         education: '',
         major: '',
         title: '',
@@ -507,7 +566,9 @@ export default {
       mouseEnterId: '',
       symbolKey: Symbol(this.$dayjs().toString()),
       // 绑定码变量
-      QRCode: ''
+      QRCode: '',
+      //选中的员工
+      selectedStaff: []
     };
   },
   computed: {
@@ -547,16 +608,13 @@ export default {
             : ''
         }));
     },
-    hisList() {
-      return this.serverHisData;
-    },
     // 科室列表
     departmentList() {
       return this.serverDepartment;
     },
-    // 公卫医生列表
-    phStaffList() {
-      return this.serverPhStaffData.map(it => ({
+    //非本机构的外部员工
+    extendStaffList() {
+      return this.serverExtendStaff.map(it => ({
         ...it,
         username: `${it.username}${it.states ? '' : ' (禁用)'}`
       }));
@@ -566,6 +624,10 @@ export default {
       const occ = this.majors.find(oc => oc.name === this.userForm.major);
       if (occ) return occ.children;
       return [];
+    },
+    //当前机构的id
+    hospitalId() {
+      return this.$settings.user.hospitals[0]?.id;
     }
   },
   watch: {
@@ -601,17 +663,6 @@ export default {
         return [];
       }
     },
-    serverHisData: {
-      async get() {
-        try {
-          return await this.$api.HisStaff.listHisStaffs();
-        } catch (e) {
-          this.$message.error(e.message);
-          return [];
-        }
-      },
-      default: []
-    },
     serverDepartment: {
       async get() {
         try {
@@ -623,10 +674,10 @@ export default {
       },
       default: []
     },
-    serverPhStaffData: {
+    serverExtendStaff: {
       async get() {
         try {
-          return await this.$api.HisStaff.listPhStaffs();
+          return await this.$api.HisStaff.staffList();
         } catch (e) {
           this.$message.error(e.message);
           return [];
@@ -636,6 +687,10 @@ export default {
     }
   },
   methods: {
+    //勾选非本机构人员
+    handleSelectionChange(selected) {
+      this.selectedStaff = selected.map(it => it.id);
+    },
     beforeClose() {
       this.userForm = {
         account: '',
@@ -652,7 +707,7 @@ export default {
         remark: null,
         department: null
       };
-      this.dialogFormAddUsersVisible = false;
+      this.dialogFormEditUsersVisible = false;
       this.$refs.userFormAdd.resetFields();
     },
     majorsChange() {
@@ -677,58 +732,24 @@ export default {
     },
     //打开新建用户对话框
     openAddUserDialog() {
-      this.dialogFormAddUsersVisible = true;
-      this.userForm = {
-        account: '',
-        password: '',
-        name: '',
-        his: '',
-        phStaff: '',
-        remark: null
-      };
-      this.$refs.userFormAdd.resetFields();
+      this.dialogSelectUsersVisible = true;
     },
     //保存新建用户
     async addUser() {
-      this.$refs.userFormAdd.validate(async valid => {
-        if (valid) {
-          try {
-            if (this.userForm.id) await this.updateUser();
-            else {
-              this.addBtnLoading = true;
-              await this.$api.HisStaff.add(
-                this.userForm.his || null,
-                this.userForm.account.trim(),
-                this.userForm.password.trim(),
-                this.userForm.name.trim(),
-                this.userForm.remark?.trim() || null,
-                this.userForm.department?.trim() || null,
-                this.userForm.phStaff?.trim() || null,
-                this.userForm.phone?.trim() || null,
-                this.userForm.gender?.trim() || null,
-                this.userForm.major?.trim() || null,
-                this.userForm.title?.trim() || null,
-                this.userForm.education?.trim() || null,
-                this.userForm.isGP || false
-              );
-              this.$message({
-                type: 'success',
-                message: '新建用户成功!'
-              });
-            }
-            this.$asyncComputed.listMember.update(); //刷新系统员工列表
-            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
-            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
-            this.dialogFormAddUsersVisible = false;
-          } catch (e) {
-            this.$message.error(e.message);
-          } finally {
-            this.addBtnLoading = false;
-          }
-        } else {
-          return false;
-        }
-      });
+      try {
+        const params = this.selectedStaff.map(it => ({
+          id: it,
+          hospital: this.hospitalId
+        }));
+        await this.$api.HisStaff.addAreaMapping(params);
+        this.$asyncComputed.listMember.update(); //刷新系统员工列表
+        this.$asyncComputed.serverExtendStaff.update(); //刷新非本机构员工列表
+        this.dialogSelectUsersVisible = false;
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.addBtnLoading = false;
+      }
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
@@ -743,7 +764,7 @@ export default {
         return;
       }
       this.userForm = Object.assign({}, row);
-      this.dialogFormAddUsersVisible = true;
+      this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
     async updateUser() {
@@ -766,13 +787,12 @@ export default {
           message: '保存成功!'
         });
         this.$asyncComputed.listMember.update();
-        this.$asyncComputed.serverHisData.update(); //刷新his员工列表
-        this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
+        this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
       } catch (e) {
         this.$message.error(e.message);
       } finally {
-        this.dialogFormAddUsersVisible = false;
+        this.dialogFormEditUsersVisible = false;
       }
     },
     //删除用户
@@ -862,6 +882,18 @@ export default {
 };
 </script>
 <style lang="scss">
+.extend-staff-table {
+  display: flex;
+  flex-direction: column;
+
+  .el-table__body-wrapper {
+    flex: 1;
+    overflow-y: scroll;
+  }
+  .el-table__header-wrapper .el-checkbox {
+    display: none;
+  }
+}
 .table-staff-department {
   .el-table__row--level-1 {
     background: #f8f8ff;
