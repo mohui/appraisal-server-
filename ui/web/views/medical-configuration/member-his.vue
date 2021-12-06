@@ -715,7 +715,7 @@ export default {
       this.$refs.extendStaffList.clearSelection();
       this.dialogSelectUsersVisible = false;
       this.selectedDepartment = '';
-      done();
+      done || done();
     },
     beforeClose() {
       this.userForm = {
