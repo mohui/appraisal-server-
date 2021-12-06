@@ -309,23 +309,24 @@ export default class HisStaff {
     return appDB.execute(
       // language=PostgreSQL
       `
-        select id,
-               hospital,
-               account,
-               password,
-               name,
-               remark,
-               department,
-               phone,
-               gender,
-               major,
-               title,
-               education,
-               "isGP",
-               created_at,
-               updated_at
+        select staff.id,
+               staff.hospital,
+               staff.account,
+               staff.password,
+               staff.name,
+               staff.remark,
+               staff.department,
+               staff.phone,
+               staff.gender,
+               staff.major,
+               staff.title,
+               staff.education,
+               staff."isGP",
+               staff.created_at,
+               staff.updated_at
         from staff
-        where COALESCE(hospital, '') != ?
+               left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where COALESCE(areaMapping.area, '') != ?
       `,
       hospital
     );
