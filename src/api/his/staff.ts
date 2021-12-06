@@ -185,23 +185,6 @@ export default class HisStaff {
   }
 
   /**
-   * 删除员工和机构的绑定
-   *
-   * @param id 主键id
-   */
-  async delAreaMapping(id) {
-    return await appDB.execute(
-      // language=PostgreSQL
-      `
-        delete
-        from staff_area_mapping
-        where id = ?
-      `,
-      id
-    );
-  }
-
-  /**
    * 注册员工
    *
    * @param params {
