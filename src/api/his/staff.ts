@@ -392,6 +392,8 @@ export default class HisStaff {
    *
    * @param id 员工id
    * @param month 月份
+   * @param hospital 机构
+   *
    * @return {
    *   id: 员工id
    *   name: 员工姓名
@@ -402,34 +404,58 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), dateValid)
-  async get(id, month) {
+  @validate(should.string().required(), dateValid, should.string().required())
+  async get(id, month, hospital) {
+    const hisStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
+      hospital
+    );
     //查询员工
-    // language=PostgreSQL
-    const staffModel: {id: string; name: string; staff: string} = (
-      await appDB.execute(
-        `
-          select id, name, staff
-          from staff
-          where id = ?
-        `,
-        id
-      )
-    )[0];
-    if (!staffModel) throw new KatoRuntimeError(`该员工不存在`);
-    //查询his信息
-    // language=PostgreSQL
-    const hisModel = (
-      await originalDB.execute(
-        `
-          select d.name as sex, phone, birth
-          from his_staff s
-                 left join his_dict d on s.sex = d.code and d.category_code = '10101001'
-          where s.id = ?
-        `,
-        staffModel.staff
-      )
-    )[0];
+    const staffModels: {
+      id: string;
+      name: string;
+      gender: string;
+      phone: string;
+      his_staff: string;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select staff.id,
+               staff.name,
+               staff.phone,
+               staff.gender,
+               hisMapping.his_staff
+        from staff
+               left join staff_area_mapping area on staff.id = area.staff
+        left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
+        where staff.id = ?
+          and area.area = ?
+      `,
+      id,
+      hospital
+    );
+    if (staffModels.length === 0) throw new KatoRuntimeError(`该员工不存在`);
+
+    const staffObj = {
+      id: staffModels[0]?.id ?? null,
+      name: staffModels[0]?.name ?? null,
+      phone: staffModels[0]?.phone ?? null,
+      sex: staffModels[0]?.gender ?? null,
+      staff: [],
+      birth: null
+    };
+    for (const it of hisStaffModels) {
+      const findIndex = staffModels.find(findIt => findIt.his_staff === it.id);
+      if (findIndex) {
+        staffObj.staff.push(it.id);
+      }
+    }
+
     //查询附加分
     const {start} = monthToRange(month);
     // language=PostgreSQL
@@ -446,13 +472,9 @@ export default class HisStaff {
       )
     )[0]?.score;
     //查询结算状态
-    const hospital = await getHospital();
     const settle = await getSettle(hospital, start);
     return {
-      ...staffModel,
-      sex: hisModel?.sex ?? null,
-      phone: hisModel?.phone ?? null,
-      birth: hisModel?.birth ?? null,
+      ...staffObj,
       extra: score ?? null,
       settle
     };
