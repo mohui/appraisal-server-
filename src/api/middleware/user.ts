@@ -71,15 +71,25 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       );
 
       ctx.user = {
+        //类型
         type: UserType.STAFF,
+        //id
         id: staffModel.id,
+        //姓名
         name: staffModel.name,
+        //性别
         gender: staffModel.gender,
+        //联系方式
         phone: staffModel.phone,
+        //专业
         major: staffModel.major,
+        //职称
         title: staffModel.title,
+        //学历
         education: staffModel.education,
+        //是否是全科医生
         isGP: staffModel.isGP,
+        //绑定机构数组
         hospitals: areaModels.map(it => ({
           primary: it.id === staffModel.hospital_id,
           id: it.id,
