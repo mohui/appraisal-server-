@@ -6,7 +6,7 @@ import {UserType} from '../../../common/user';
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   //region 免登录接口逻辑
   let isWhite = false;
-  for (const white of ['login.ac', 'title.ac'])
+  for (const white of ['login.ac', 'title.ac', 'register.ac'])
     isWhite = isWhite || ctx.req.url.endsWith(white);
   if (isWhite) {
     await next();
