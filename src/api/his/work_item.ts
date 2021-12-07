@@ -1872,14 +1872,15 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const mappingModels = await appDB.execute(
       `
-        select mapping.id
-             , mapping.staff
-             , mapping.item
-             , mapping.rate
-             , mapping.remark
+        select mapping.id,
+               mapping.staff,
+               mapping.item,
+               mapping.rate,
+               mapping.remark
         from his_staff_work_item_mapping mapping
                left join staff on mapping.staff = staff.id
-        where staff.hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
