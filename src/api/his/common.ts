@@ -38,18 +38,19 @@ export async function getStaffList(hospital, date) {
   const staffModels = await appDB.execute(
     // language=PostgreSQL
     `
-      select id,
-             account,
-             staff,
-             name,
-             major,
-             title,
-             education,
-             "isGP",
-             created_at
+      select staff.id,
+             staff.account,
+             staff.staff,
+             staff.name,
+             staff.major,
+             staff.title,
+             staff.education,
+             staff."isGP",
+             staff.created_at
       from staff
-      where hospital in (${hospitalIds.map(() => '?')})
-        and created_at <= ?
+             inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+      where areaMapping.area in (${hospitalIds.map(() => '?')})
+        and staff.created_at <= ?
     `,
     ...hospitalIds,
     monthEnd
