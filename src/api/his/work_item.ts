@@ -1924,15 +1924,24 @@ export default class HisWorkItem {
     let workStaff = [];
     if (item) {
       workStaff = await appDB.execute(
-        `select staff from  his_staff_work_item_mapping where item = ?`,
+        // language=PostgreSQL
+        `
+          select staff
+          from his_staff_work_item_mapping
+          where item = ?
+        `,
         item
       );
     }
     // 获取可选择的员工列表
     const staffList = await appDB.execute(
-      `select id, account, name
-            from staff
-            where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select staff.id, staff.account, staff.name
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+      `,
       hospital
     );
 
