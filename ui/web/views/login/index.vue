@@ -363,7 +363,7 @@ export default {
       try {
         const valid = await this.$refs.userFormAdd.validate();
         if (valid) {
-          console.log(this.userForm);
+          if (!this.userForm.phone) this.userForm.phone = null; //手机号没填就设置为null
           await this.$api.HisStaff.register(this.userForm);
           this.$message.success('注册成功');
           this.$refs.userFormAdd.resetFields();
