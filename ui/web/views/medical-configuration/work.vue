@@ -392,6 +392,9 @@
                 size="mini"
                 v-model="newWork.score"
               ></el-input-number>
+              <el-button size="mini" @click="gradientVisible = true"
+                >按梯度计算</el-button
+              >
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -444,7 +447,6 @@
           :value="data.id"
         ></el-option>
       </el-select>
-
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="resetConfig('workForm')"
           >取 消</el-button
@@ -460,6 +462,11 @@
         </el-button>
       </div>
     </el-dialog>
+    <el-dialog title="梯度计算"></el-dialog>
+    <work-gradient-dialog
+      :visible="gradientVisible"
+      :gradient="newWork.gradient"
+    ></work-gradient-dialog>
   </div>
 </template>
 
@@ -474,11 +481,12 @@ import {
 import {strToPinyin} from '../../utils/pinyin';
 import WorkPreview from './component/work-preview';
 import WorkTypeDialog from './component/work-type-dialog';
+import WorkGradientDialog from './component/work-gradient-dialog';
 import Sortable from 'sortablejs';
 
 export default {
   name: 'Work',
-  components: {WorkPreview, WorkTypeDialog},
+  components: {WorkPreview, WorkTypeDialog, WorkGradientDialog},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (this.newWork.projectsSelected.length < 1) {
@@ -499,7 +507,8 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff,
         remark: '',
-        itemType: ''
+        itemType: '',
+        gradient: []
       },
       addWorkVisible: false,
       workRules: {
@@ -531,6 +540,7 @@ export default {
       staffFilterText: '',
       isPreView: false,
       itemTypeVisible: false,
+      gradientVisible: false,
       itemType: {
         id: '',
         name: '',
@@ -828,9 +838,13 @@ export default {
           scope: row.scope,
           score: row.score,
           remark: row.remark,
-          itemType: row.itemType
+          itemType: row.itemType,
+          gradient: row.gradient || []
         })
       );
+      if (this.newWork.gradient.length < 1) {
+        this.newWork.gradient.push({min: 0, max: 0, score: 0});
+      }
       this.addWorkVisible = true;
     },
     findItem(id, arr) {
@@ -885,7 +899,8 @@ export default {
         projectsSelected: [],
         score: 0,
         scope: HisStaffDeptType.Staff,
-        itemType: ''
+        itemType: '',
+        gradient: []
       };
       //重置搜索关键词
       this.filterText = '';
@@ -985,6 +1000,11 @@ export default {
       this.itemTypeVisible = false;
       //重置分类数据
       this.itemType = {id: '', name: '', sort: 1};
+    },
+    resetGradient() {
+      this.gradientVisible = false;
+      //重置分类数据
+      this.newWork.gradient = [];
     },
     //移动工分项类型
     moveRow(row) {
