@@ -35,7 +35,7 @@ export async function getApiClient() {
           const token = getToken();
 
           let isWhite = false;
-          for (let white of ['login.ac', 'title.ac'])
+          for (let white of ['login.ac', 'title.ac', 'register.ac'])
             isWhite = isWhite || ctx.req.url.endsWith(white);
           // 判断token是否失效
           if (!isWhite && !token) {
