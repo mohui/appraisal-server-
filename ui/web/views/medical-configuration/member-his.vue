@@ -213,189 +213,55 @@
         <el-row>
           <el-col :span="24">
             <el-form-item
-              ><span style="font-weight: bold">账户信息</span></el-form-item
+              ><span style="font-weight: bold">账户关联</span></el-form-item
             >
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-form-item
-              label="登录名"
-              prop="account"
-              :label-width="formLabelWidth"
-            >
-              <el-input
-                v-model="userForm.account"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="密码"
-              prop="password"
-              :label-width="formLabelWidth"
-            >
-              <el-input
-                v-model="userForm.password"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">个人信息</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              :label-width="formLabelWidth"
-              label="姓名"
-              prop="name"
-            >
-              <el-input
-                v-model="userForm.name"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="4" :xs="12" :sm="4" :md="4" :lg="4" :xl="4">
-            <el-form-item
-              required
-              label="性别"
-              prop="gender"
+              label="HIS用户"
+              prop="his"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.gender"
-                placeholder="请选择"
-                clearable
-                size="mini"
-              >
-                <el-option
-                  v-for="g in genders"
-                  :key="g"
-                  :value="g"
-                  :label="g"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
-            <el-form-item label="联系电话" :label-width="formLabelWidth">
-              <el-input
-                v-model="userForm.phone"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">职业信息</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              required
-              label="专业类别"
-              prop="major"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.major"
+                v-model="userForm.his"
                 style="width:100%"
                 clearable
                 filterable
-                size="mini"
-                @change="majorsChange"
-              >
-                <el-option
-                  v-for="h in majors"
-                  :key="h.name"
-                  :label="h.name"
-                  :value="h.name"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              required
-              label="职称名称"
-              prop="title"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                ref="titleSelector"
-                v-model="userForm.title"
-                style="width:100%"
-                clearable
-                filterable
+                multiple
                 size="mini"
               >
                 <el-option
-                  v-for="p in titles"
-                  :key="p.name"
-                  :label="p.name"
-                  :value="p.name"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              required
-              label="学历"
-              prop="education"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.education"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="e in educations"
-                  :key="e"
-                  :label="e"
-                  :value="e"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              label="科室"
-              prop="department"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.department"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="h in departmentList"
+                  v-for="h in hisList"
                   :key="h.id"
                   :label="h.name"
                   :value="h.id"
+                  :disabled="!h.usable"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col :span="24">
-            <el-form-item style="margin-top: 10px" prop="isGP">
-              <el-switch
-                v-model="userForm.isGP"
-                inactive-text="是否为全科医师"
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="公卫用户"
+              prop="phStaff"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.phStaff"
+                style="width:100%"
+                clearable
+                filterable
+                multiple
                 size="mini"
               >
-              </el-switch>
-              <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
-            </el-form-item>
-          </el-col>
+                <el-option
+                  v-for="h in phStaffList"
+                  :key="h.id"
+                  :label="h.username"
+                  :value="h.id"
+                  :disabled="!h.usable"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -546,17 +412,8 @@ export default {
       dialogSelectUsersVisible: false,
       formLabelWidth: '100px',
       userForm: {
-        account: '',
-        password: '',
-        name: '',
-        gender: '',
-        phone: '',
-        isGP: false,
-        education: '',
-        major: '',
-        title: '',
-        remark: null,
-        department: null
+        his: [],
+        phStaff: []
       },
       searchForm: {
         account: '',
@@ -640,6 +497,16 @@ export default {
         username: `${it.username}${it.states ? '' : ' (禁用)'}`
       }));
     },
+    hisList() {
+      return this.serverHisData;
+    },
+    // 公卫医生列表
+    phStaffList() {
+      return this.serverPhStaffData.map(it => ({
+        ...it,
+        username: `${it.username}${it.states ? '' : ' (禁用)'}`
+      }));
+    },
     //职称名称
     titles() {
       const occ = this.majors.find(oc => oc.name === this.userForm.major);
@@ -695,10 +562,32 @@ export default {
       },
       default: []
     },
+    serverHisData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listHisStaffs(this.hospitalId);
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
     serverExtendStaff: {
       async get() {
         try {
           return await this.$api.HisStaff.staffList();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
+    serverPhStaffData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listPhStaffs(this.hospitalId);
         } catch (e) {
           this.$message.error(e.message);
           return [];
@@ -792,25 +681,24 @@ export default {
         this.addDepartmentVisible = true;
         return;
       }
-      this.userForm = Object.assign({}, row);
+      this.userForm = Object.assign(
+        {},
+        {
+          id: row.id,
+          his: row.hisStaff.map(it => it.id),
+          phStaff: row.phStaff.map(it => it.id)
+        }
+      );
       this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
     async updateUser() {
       try {
-        await this.$api.HisStaff.update({
+        await this.$api.HisStaff.updateStaffMapping({
           id: this.userForm.id,
-          name: this.userForm.name.trim(),
-          password: this.userForm.password.trim(),
-          remark: this.userForm.remark?.trim() || null,
           hospital: this.hospitalId,
-          department: this.userForm.department?.trim() || null,
-          phone: this.userForm.phone?.trim() || null,
-          gender: this.userForm.gender?.trim() || null,
-          major: this.userForm.major?.trim() || null,
-          title: this.userForm.title?.trim() || null,
-          education: this.userForm.education?.trim() || null,
-          isGP: this.userForm.isGP || false
+          hisStaffs: this.userForm.his,
+          phStaffs: this.userForm.phStaff
         });
         this.$message({
           type: 'success',
