@@ -177,6 +177,32 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
+          <el-col :span="24">
+            <el-form-item>
+              <span style="font-weight: bold">所属机构</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-form-item
+              label="机构"
+              prop="hospital"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="staff.hospital.id"
+                style="width:100%"
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in staff.hospitals"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
             <el-form-item
               label="科室"
@@ -184,7 +210,7 @@
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="staff.department"
+                v-model="staff.department.id"
                 style="width:100%"
                 clearable
                 filterable
@@ -196,8 +222,9 @@
                   :label="h.name"
                   :value="h.id"
                 ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="24">
             <el-form-item style="margin-top: 10px" prop="isGP">
               <el-switch
@@ -315,6 +342,7 @@ export default {
         type: '',
         id: '',
         name: '',
+        hospital: null,
         hospitals: [],
         department: {
           id: '',
@@ -353,10 +381,16 @@ export default {
     // 科室列表
     departmentList() {
       return this.serverDepartment;
-    },
-    //当前机构的id
-    hospitalId() {
-      return this.$settings.user.hospitals[0]?.id;
+    }
+  },
+  watch: {
+    ['staff.hospital']: {
+      handler() {
+        this.staff.department = this.staff.hospitals.filter(
+          it => it.id === this.staff.hospital.id
+        )[0]?.department || {id: '', name: ''};
+      },
+      deep: true
     }
   },
   async created() {
@@ -367,11 +401,12 @@ export default {
       this.userForm = user;
     }
   },
+
   asyncComputed: {
     serverDepartment: {
       async get() {
         try {
-          return await this.$api.HisDepartment.list();
+          return await this.$api.HisDepartment.list(this.staff.hospital.id);
         } catch (e) {
           this.$message.error(e.message);
           return [];
@@ -397,8 +432,8 @@ export default {
           name: staff.name.trim(),
           password: staff.password.trim(),
           remark: staff.remark?.trim() || null,
-          hospital: this.hospitalId,
-          department: staff.department?.trim() || null,
+          hospital: staff.hospital.id,
+          department: staff.department.id || null,
           phone: staff.phone?.trim() || null,
           gender: staff.gender?.trim() || null,
           major: staff.major?.trim() || null,
@@ -412,8 +447,6 @@ export default {
         });
       } catch (e) {
         this.$message.error(e.message);
-      } finally {
-        this.dialogFormEditUsersVisible = false;
       }
     },
     async saveUser() {
