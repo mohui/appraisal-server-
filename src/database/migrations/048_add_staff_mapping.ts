@@ -31,6 +31,7 @@ export class AddStaffMappingMigration implements IMigration {
           "staff"      VARCHAR(36)                                        NOT NULL,
           "area"       VARCHAR(36)                                        NOT NULL,
           "department" VARCHAR(36),
+          remark       VARCHAR(500),
           "created_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP NOT NULL,
           UNIQUE ("staff", "area")
@@ -38,7 +39,8 @@ export class AddStaffMappingMigration implements IMigration {
         COMMENT ON COLUMN "staff_area_mapping"."id" IS '主键';
         COMMENT ON COLUMN "staff_area_mapping"."staff" IS '员工id';
         COMMENT ON COLUMN "staff_area_mapping"."area" IS '地区id';
-        COMMENT ON COLUMN "staff_area_mapping"."area" IS '科室id';
+        COMMENT ON COLUMN "staff_area_mapping"."department" IS '科室id';
+        COMMENT ON COLUMN "staff_area_mapping"."remark" IS '备注';
 
         CREATE TABLE IF NOT EXISTS "staff_ph_mapping"
         (
@@ -76,21 +78,26 @@ export class AddStaffMappingMigration implements IMigration {
       `
     );
     for (const staffIt of staffModels) {
-      await client.execute(
-        // language=PostgreSQL
-        `
-          insert into staff_area_mapping(id, staff, area, department)
-          values (?, ?, ?, ?)
-          on conflict (staff,area)
-            do update set updated_at = now(),
-                          department = ?
-        `,
-        uuid(),
-        staffIt.id,
-        staffIt.hospital,
-        staffIt.department,
-        staffIt.department
-      );
+      if (staffIt.hospital) {
+        await client.execute(
+          // language=PostgreSQL
+          `
+            insert into staff_area_mapping(id, staff, area, department, remark)
+            values (?, ?, ?, ?, ?)
+            on conflict (staff,area)
+              do update set updated_at = now(),
+                            department = ?,
+                            remark     = ?
+          `,
+          uuid(),
+          staffIt.id,
+          staffIt.hospital,
+          staffIt.department,
+          staffIt.remark,
+          staffIt.department,
+          staffIt.remark
+        );
+      }
       if (staffIt.staff) {
         await client.execute(
           // language=PostgreSQL
