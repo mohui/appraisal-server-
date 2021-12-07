@@ -395,19 +395,12 @@
 </template>
 
 <script>
-import {Permission} from '../../../../common/permission.ts';
-import {Gender, Occupation, Education} from '../../../../common/his.ts';
-
 export default {
   name: 'User',
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
-      permission: Permission,
-      educations: Education,
-      genders: Gender,
-      majors: Occupation,
       dialogFormEditUsersVisible: false,
       dialogSelectUsersVisible: false,
       formLabelWidth: '100px',
@@ -506,12 +499,6 @@ export default {
         ...it,
         username: `${it.username}${it.states ? '' : ' (禁用)'}`
       }));
-    },
-    //职称名称
-    titles() {
-      const occ = this.majors.find(oc => oc.name === this.userForm.major);
-      if (occ) return occ.children;
-      return [];
     },
     //当前机构的id
     hospitalId() {
@@ -626,13 +613,6 @@ export default {
       };
       this.dialogFormEditUsersVisible = false;
       this.$refs.userFormAdd.resetFields();
-    },
-    majorsChange() {
-      const titleSelector = this.$refs.titleSelector;
-      titleSelector.$emit('input', '');
-      titleSelector.emitChange('');
-      titleSelector.visible = false;
-      titleSelector.$emit('clear');
     },
     isShowPwd() {
       this.inputType = this.inputType === 'password' ? '' : 'password';
