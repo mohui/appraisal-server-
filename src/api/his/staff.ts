@@ -696,9 +696,9 @@ export default class HisStaff {
   @validate(
     should
       .object({
-        id: should.required(),
-        name: should.required(),
-        password: should.required(),
+        id: should.string().required(),
+        name: should.string().required(),
+        password: should.string().required(),
         isGP: should.boolean().required(),
         education: should
           .string()
