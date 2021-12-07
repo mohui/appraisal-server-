@@ -112,7 +112,7 @@
           :xl="17"
           style="margin-bottom: 10px"
         >
-          <div class="card staff-container">
+          <div class="card staff-container" v-hidden-scroll>
             <div v-sticky style="z-index:999">
               <div class="staff-tabs">
                 <div
@@ -128,7 +128,7 @@
                   员工质量系数排名
                 </div>
               </div>
-              <div class="top-container" v-sticky>
+              <div class="top-container">
                 <div
                   v-if="staffFlag === 'workPoint'"
                   v-loading="$asyncComputed.overviewServerData.updating"
@@ -146,7 +146,7 @@
               v-hidden-scroll
             >
               <div v-if="staffFlag === 'workPoint'">
-                <div class="rank-box" v-hidden-scroll>
+                <div class="rank-box">
                   <div
                     v-for="(i, index) of staffCheckListData.sort(
                       (a, b) => b.correctionScore - a.correctionScore
@@ -185,6 +185,7 @@
                       <div
                         class="text"
                         :style="{
+                          width: rankScoreWidth,
                           color:
                             index === 0
                               ? '#4458fe'
@@ -202,7 +203,7 @@
                 </div>
               </div>
               <div v-if="staffFlag === 'rate'">
-                <div class="rank-box" v-hidden-scroll>
+                <div class="rank-box">
                   <div
                     v-for="(i, index) of staffCheckListData.sort((a, b) => {
                       if (a.rate === null && b.rate === null) {
@@ -439,6 +440,15 @@ export default {
     this.initParams(this.$route);
   },
   computed: {
+    rankScoreWidth() {
+      return (
+        this.$widthCompute(
+          this.staffCheckListData.map(it => it.score + '/' + it.correctionScore)
+        ) -
+        15 +
+        'px'
+      );
+    },
     overviewData() {
       return {
         ...this.overviewServerData,
@@ -1495,7 +1505,7 @@ export default {
           }
 
           .text {
-            width: 100px;
+            width: 50px;
             text-align: right;
           }
         }
