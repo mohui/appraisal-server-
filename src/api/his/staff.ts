@@ -335,29 +335,8 @@ export default class HisStaff {
   /**
    * 员工绑定机构列表
    */
-  async staffAreaList() {
-    const staff = Context.current.user.id;
-
-    const staffHospital = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select id, staff, area
-        from staff_area_mapping
-        where staff = ?
-      `,
-      staff
-    );
-    const hospitalId = staffHospital.map(it => it.area);
-    if (hospitalId.length === 0) return [];
-    return originalDB.execute(
-      // language=PostgreSQL
-      `
-        select code, name
-        from area
-        where code in (${hospitalId.map(() => '?')})
-      `,
-      ...hospitalId
-    );
+  async areaMapping() {
+    return Context.current.user.hospitals;
   }
 
   // endregion
