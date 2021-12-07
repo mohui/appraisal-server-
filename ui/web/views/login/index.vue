@@ -1,7 +1,7 @@
 <template>
   <div class="container-full">
     <div class="page-container bg-blue-grey-900">
-      <div v-if="!isRegister" class="login-card">
+      <div v-show="!isRegister" class="login-card">
         <el-card class="box-card">
           <div slot="header" class="clearfix"><span>登录</span></div>
           <el-form
@@ -51,7 +51,7 @@
           </div>
         </el-card>
       </div>
-      <div v-else class="register-card">
+      <div v-show="isRegister" class="register-card">
         <el-card class="box-register-card">
           <div slot="header" class="clearfix"><span>注册</span></div>
           <el-form
