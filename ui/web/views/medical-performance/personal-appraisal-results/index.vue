@@ -260,6 +260,7 @@ export default {
     return {
       id: this.$route.query.id,
       curDate: new Date(JSON.parse(this.$route.query.date)),
+      area: this.$route.query.area,
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       // 弹出工分列表的类型:校正前（before）、校正后(after)
@@ -357,20 +358,25 @@ export default {
       async get() {
         return await this.$api.HisStaff.findWorkScoreList(
           this.id,
-          this.curDate
+          this.curDate,
+          this.area
         );
       },
       default: {items: [], rate: 0}
     },
     personInfoServerData: {
       async get() {
-        return await this.$api.HisStaff.get(this.id, this.curDate);
+        return await this.$api.HisStaff.get(this.id, this.curDate, this.area);
       },
       default: {}
     },
     staffCheckServerData: {
       async get() {
-        return await this.$api.HisStaff.staffCheck(this.id, this.curDate);
+        return await this.$api.HisStaff.staffCheck(
+          this.id,
+          this.curDate,
+          this.area
+        );
       },
       default: {manuals: [], automations: []}
     }
