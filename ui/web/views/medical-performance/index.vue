@@ -153,7 +153,7 @@
                     )"
                     :key="index"
                     class="cell"
-                    @click="onGotoStaffDetail(i.id)"
+                    @click="onGotoStaffDetail(i.id, i.area)"
                   >
                     <div v-if="index < 3" class="top_three_ranking">
                       <img class="icon" :src="topThreeIcon[index]" alt="" />
@@ -217,7 +217,7 @@
                     })"
                     :key="index"
                     class="cell"
-                    @click="onGotoStaffDetail(i.id)"
+                    @click="onGotoStaffDetail(i.id, i.area)"
                   >
                     <div v-if="index < 3" class="top_three_ranking">
                       <img class="icon" :src="topThreeIcon[index]" alt="" />
@@ -986,11 +986,12 @@ export default {
       this.dialogStaffTableVisible = true;
     },
     // 跳转到员工详情页
-    onGotoStaffDetail(id) {
+    onGotoStaffDetail(id, area) {
       this.$router.push({
         name: 'personal-appraisal-results',
         query: {
           id: id,
+          area: area,
           date: JSON.stringify(this.currentDate)
         }
       });
