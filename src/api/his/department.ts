@@ -71,17 +71,30 @@ export default class HisDepartment {
       // language=PostgreSQL
       await appDB.execute(
         `
-        update staff set
-          department = null,
-          updated_at = ?
-        where department = ?`,
+          update staff
+          set department = null,
+              updated_at = ?
+          where department = ?`,
+        new Date(),
+        id
+      );
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff_area_mapping
+          set department = null,
+              updated_at = ?
+          where department = ?
+        `,
         new Date(),
         id
       );
       // language=PostgreSQL
       return await appDB.execute(
         `
-          delete from his_department where id = ?`,
+          delete
+          from his_department
+          where id = ?`,
         id
       );
     });
