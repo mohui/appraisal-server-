@@ -1,11 +1,5 @@
 <template>
-  <el-dialog
-    title="梯度计算配置"
-    :visible.sync="visible"
-    :width="$settings.isMobile ? '99%' : '40%'"
-    :before-close="() => reset()"
-    :close-on-click-modal="false"
-  >
+  <div>
     <div v-for="(it, index) of gradientData" :key="index">
       <div class="gradient-row">
         <div style="margin-right: 10px">{{ `第${index + 1}梯度` }}:</div>
@@ -36,20 +30,8 @@
         icon="el-icon-plus"
       ></el-button>
     </div>
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="cleanData" type="danger" size="mini">重 置</el-button>
-      <el-button size="mini" @click="reset()">取 消</el-button>
-      <el-button
-        v-loading="btnLoading"
-        class="work-submit-loading"
-        size="mini"
-        type="primary"
-        @click="submit()"
-      >
-        确 定
-      </el-button>
-    </div>
-  </el-dialog>
+    <el-button @click="cleanData" type="danger" size="mini">重 置</el-button>
+  </div>
 </template>
 
 <script>
@@ -62,11 +44,6 @@ export default {
     };
   },
   props: {
-    visible: {
-      type: Boolean,
-      required: true,
-      default: false
-    },
     gradient: {
       type: Array,
       required: false

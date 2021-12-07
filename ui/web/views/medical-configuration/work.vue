@@ -186,6 +186,7 @@
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
+      v-hidden-scroll
     >
       <el-form
         ref="workForm"
@@ -388,13 +389,40 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="单个工分项标准工作量" prop="score">
-              <el-input-number
-                size="mini"
-                v-model="newWork.score"
-              ></el-input-number>
-              <el-button size="mini" @click="gradientVisible = true"
-                >按梯度计算</el-button
-              >
+              <el-button-group>
+                <el-button
+                  :class="{
+                    'el-button--primary': newWork.computedType === 'standard',
+                    'work-method-btn': true
+                  }"
+                  plain
+                  size="small"
+                  @click="newWork.computedType = 'standard'"
+                >
+                  按标准计算
+                </el-button>
+                <el-button
+                  :class="{
+                    'el-button--primary': newWork.computedType === 'gradient',
+                    'work-method-btn': true
+                  }"
+                  plain
+                  size="small"
+                  @click="newWork.computedType = 'gradient'"
+                >
+                  按梯度计算
+                </el-button>
+              </el-button-group>
+              <work-gradient-dialog
+                v-if="newWork.computedType === 'gradient'"
+                :gradient="newWork.gradient"
+              ></work-gradient-dialog>
+              <div v-else-if="newWork.computedType === 'standard'">
+                <el-input-number
+                  size="mini"
+                  v-model="newWork.score"
+                ></el-input-number>
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -462,11 +490,6 @@
         </el-button>
       </div>
     </el-dialog>
-    <el-dialog title="梯度计算"></el-dialog>
-    <work-gradient-dialog
-      :visible="gradientVisible"
-      :gradient="newWork.gradient"
-    ></work-gradient-dialog>
   </div>
 </template>
 
@@ -508,6 +531,7 @@ export default {
         scope: HisStaffDeptType.Staff,
         remark: '',
         itemType: '',
+        computedType: 'standard',
         gradient: []
       },
       addWorkVisible: false,
@@ -540,7 +564,6 @@ export default {
       staffFilterText: '',
       isPreView: false,
       itemTypeVisible: false,
-      gradientVisible: false,
       itemType: {
         id: '',
         name: '',
@@ -900,6 +923,7 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff,
         itemType: '',
+        computedType: 'standard',
         gradient: []
       };
       //重置搜索关键词
@@ -1002,7 +1026,6 @@ export default {
       this.itemType = {id: '', name: '', sort: 1};
     },
     resetGradient() {
-      this.gradientVisible = false;
       //重置分类数据
       this.newWork.gradient = [];
     },
