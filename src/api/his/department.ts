@@ -101,8 +101,8 @@ export default class HisDepartment {
   }
 
   // 科室列表
-  async list() {
-    const hospital = await getHospital();
+  async list(hospital) {
+    if (!hospital) hospital = await getHospital();
     // language=PostgreSQL
     return await appDB.execute(
       `
