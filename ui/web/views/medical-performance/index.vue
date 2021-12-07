@@ -185,6 +185,7 @@
                       <div
                         class="text"
                         :style="{
+                          width: rankScoreWidth,
                           color:
                             index === 0
                               ? '#4458fe'
@@ -439,6 +440,15 @@ export default {
     this.initParams(this.$route);
   },
   computed: {
+    rankScoreWidth() {
+      return (
+        this.$widthCompute(
+          this.staffCheckListData.map(it => it.score + '/' + it.correctionScore)
+        ) -
+        15 +
+        'px'
+      );
+    },
     overviewData() {
       return {
         ...this.overviewServerData,
@@ -1495,7 +1505,7 @@ export default {
           }
 
           .text {
-            width: 100px;
+            width: 50px;
             text-align: right;
           }
         }
