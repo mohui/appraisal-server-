@@ -44,8 +44,8 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
                    s.education,
                    s."isGP",
                    s.hospital as hospital_id,
-                   d.id as department_id,
-                   d.name as department_name
+                   d.id       as department_id,
+                   d.name     as department_name
             from staff s
                    left join his_department d on s.department = d.id
             where s.id = ?
