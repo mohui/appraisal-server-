@@ -23,6 +23,18 @@
               质量系数：{{ workScore.rateFormat
               }}{{ workScore.rate ? '%' : null }}
             </div>
+            <div v-if="$settings.user.type === UserType.STAFF">
+              机构选择:
+              <el-select v-model="area" placeholder="请选择" size="mini">
+                <el-option
+                  v-for="item in staffAreaListData"
+                  :key="item.code"
+                  :label="item.name"
+                  :value="item.code"
+                >
+                </el-option>
+              </el-select>
+            </div>
           </div>
           <div v-if="$settings.user.type === UserType.ADMIN">
             <el-button size="small" type="primary" @click="$router.go(-1)"
@@ -260,7 +272,7 @@ export default {
     return {
       id: this.$route.query.id,
       curDate: new Date(JSON.parse(this.$route.query.date)),
-      area: this.$route.query.area,
+      area: this.$route.query.area ?? this.$settings.user.hospital.id,
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       // 弹出工分列表的类型:校正前（before）、校正后(after)
@@ -351,6 +363,9 @@ export default {
         ...this.staffCheckServerData,
         list: list
       };
+    },
+    staffAreaListData() {
+      return this.staffAreaListSeverData;
     }
   },
   asyncComputed: {
@@ -379,6 +394,12 @@ export default {
         );
       },
       default: {manuals: [], automations: []}
+    },
+    staffAreaListSeverData: {
+      async get() {
+        return await this.$api.HisStaff.staffAreaList();
+      },
+      default: []
     }
   },
   methods: {
