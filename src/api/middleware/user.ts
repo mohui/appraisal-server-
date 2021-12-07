@@ -93,6 +93,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             )
           )[0]?.name;
           return {
+            primary: it.id === staffModel.hospital_id,
             id: it.id,
             name: name,
             department: it.department_id
