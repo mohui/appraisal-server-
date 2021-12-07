@@ -36,7 +36,7 @@
 
 <script>
 export default {
-  name: 'WorkGradientDialog',
+  name: 'WorkGradientView',
   data() {
     return {
       btnLoading: false,

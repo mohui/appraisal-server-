@@ -413,10 +413,10 @@
                   按梯度计算
                 </el-button>
               </el-button-group>
-              <work-gradient-dialog
+              <work-gradient-view
                 v-if="newWork.computedType === 'gradient'"
                 :gradient="newWork.gradient"
-              ></work-gradient-dialog>
+              ></work-gradient-view>
               <div v-else-if="newWork.computedType === 'standard'">
                 <el-input-number
                   size="mini"
@@ -504,12 +504,12 @@ import {
 import {strToPinyin} from '../../utils/pinyin';
 import WorkPreview from './component/work-preview';
 import WorkTypeDialog from './component/work-type-dialog';
-import WorkGradientDialog from './component/work-gradient-dialog';
+import WorkGradientView from './component/work-gradient-view';
 import Sortable from 'sortablejs';
 
 export default {
   name: 'Work',
-  components: {WorkPreview, WorkTypeDialog, WorkGradientDialog},
+  components: {WorkPreview, WorkTypeDialog, WorkGradientView},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (this.newWork.projectsSelected.length < 1) {
