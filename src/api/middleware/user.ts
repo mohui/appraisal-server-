@@ -87,13 +87,25 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             ? {id: it.department_id, name: it.department_name}
             : null
         })),
+        //主机构
+        hospital: staffModel.hospital_id
+          ? {
+              id: staffModel.hospital_id,
+              department: staffModel.department_id
+                ? {
+                    id: staffModel.department_id,
+                    name: staffModel.department_name
+                  }
+                : null
+            }
+          : null,
+        //主机构科室 TODO: 兼容字段, jx-app依赖, 稍后删除
         department: staffModel.department_id
           ? {
               id: staffModel.department_id,
               name: staffModel.department_name
             }
-          : null,
-        hospital: {id: staffModel.id}
+          : null
       };
     } else if (token) {
       // 查询用户表
