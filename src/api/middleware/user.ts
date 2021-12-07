@@ -19,16 +19,33 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
     //加入staff逻辑
     if (token && type == UserType.STAFF) {
       const staffModel: {
-        hospital: string;
+        hospital_id: string;
         id: string;
         name: string;
+        gender: string;
+        phone: string;
+        major: string;
+        title: string;
+        education: string;
+        isGP: boolean;
         department_id: string | null;
         department_name: string | null;
       } = (
         await appDB.execute(
           //language=PostgreSQL
           `
-            select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
+            select s.id,
+                   s.account,
+                   s.name,
+                   s.gender,
+                   s.phone,
+                   s.major,
+                   s.title,
+                   s.education,
+                   s."isGP",
+                   s.hospital as hospital_id,
+                   d.id as department_id,
+                   d.name as department_name
             from staff s
                    left join his_department d on s.department = d.id
             where s.id = ?
@@ -37,17 +54,46 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         )
       )[0];
       if (!staffModel) throw new Error('无效的token');
+      //补充area绑定关系
+      const areaModels: {
+        id: string;
+        department_id: string;
+        department_name: string;
+      }[] = await appDB.execute(
+        //language=PostgreSQL
+        `
+          select area as id, department as department_id, d.name as department_name
+          from staff_area_mapping m
+                 left join his_department d on m.department = d.id
+          where staff = ?
+        `,
+        staffModel.id
+      );
+
       ctx.user = {
         type: UserType.STAFF,
         id: staffModel.id,
         name: staffModel.name,
-        hospitals: [{id: staffModel.hospital}],
+        gender: staffModel.gender,
+        phone: staffModel.phone,
+        major: staffModel.major,
+        title: staffModel.title,
+        education: staffModel.education,
+        isGP: staffModel.isGP,
+        hospitals: areaModels.map(it => ({
+          primary: it.id === staffModel.hospital_id,
+          id: it.id,
+          department: it.department_id
+            ? {id: it.department_id, name: it.department_name}
+            : null
+        })),
         department: staffModel.department_id
           ? {
               id: staffModel.department_id,
               name: staffModel.department_name
             }
-          : null
+          : null,
+        hospital: {id: staffModel.id}
       };
     } else if (token) {
       // 查询用户表
