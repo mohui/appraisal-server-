@@ -21,6 +21,8 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       const staffModel: {
         hospital_id: string;
         id: string;
+        account: string;
+        password: string;
         name: string;
         gender: string;
         phone: string;
@@ -36,6 +38,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           `
             select s.id,
                    s.account,
+                   s.password,
                    s.name,
                    s.gender,
                    s.phone,
@@ -54,27 +57,62 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         )
       )[0];
       if (!staffModel) throw new Error('无效的token');
+      //查询主机构名称, 用以补充用户信息
+      let primaryHospitalName = null;
+      if (staffModel.hospital_id) {
+        primaryHospitalName =
+          (
+            await originalDB.execute(
+              `select name from area where code = ?`,
+              staffModel.hospital_id
+            )
+          )[0]?.name ?? null;
+      }
       //补充area绑定关系
       const areaModels: {
         id: string;
-        department_id: string;
-        department_name: string;
-      }[] = await appDB.execute(
-        //language=PostgreSQL
-        `
-          select area as id, department as department_id, d.name as department_name
-          from staff_area_mapping m
-                 left join his_department d on m.department = d.id
-          where staff = ?
-        `,
-        staffModel.id
+        name: string;
+        department: {id: string; name: string} | null;
+      }[] = await Promise.all(
+        (
+          await appDB.execute(
+            //language=PostgreSQL
+            `
+              select area as id, department as department_id, d.name as department_name
+              from staff_area_mapping m
+                     left join his_department d on m.department = d.id
+              where staff = ?
+            `,
+            staffModel.id
+          )
+        ).map(async it => {
+          const name = (
+            await originalDB.execute(
+              `select name from area where code = ?`,
+              it.id
+            )
+          )[0]?.name;
+          return {
+            id: it.id,
+            name: name,
+            department: it.department_id
+              ? {
+                  id: it.department_id,
+                  name: it.department_name
+                }
+              : null
+          };
+        })
       );
-
       ctx.user = {
         //类型
         type: UserType.STAFF,
         //id
         id: staffModel.id,
+        //登录名
+        account: staffModel.account,
+        //密码
+        password: staffModel.password,
         //姓名
         name: staffModel.name,
         //性别
@@ -90,17 +128,12 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         //是否是全科医生
         isGP: staffModel.isGP,
         //绑定机构数组
-        hospitals: areaModels.map(it => ({
-          primary: it.id === staffModel.hospital_id,
-          id: it.id,
-          department: it.department_id
-            ? {id: it.department_id, name: it.department_name}
-            : null
-        })),
+        hospitals: areaModels,
         //主机构
         hospital: staffModel.hospital_id
           ? {
               id: staffModel.hospital_id,
+              name: primaryHospitalName,
               department: staffModel.department_id
                 ? {
                     id: staffModel.department_id,
