@@ -129,8 +129,9 @@ export default class HisHospital {
                result.score
         from his_staff_work_result result
                inner join staff on result.staff_id = staff.id
-          and staff.hospital = ?
-        where result.time >= ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+          and result.time >= ?
           and result.time < ?
       `,
       hospital,
