@@ -650,7 +650,13 @@ export default class HisCheck {
     const hospital = await getHospital();
     // 查询所有员工
     const staffs = await appDB.execute(
-      `select id, account, name from staff where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select staff.id, staff.account, staff.name
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+      `,
       hospital
     );
     // 未绑定过考核的员工
