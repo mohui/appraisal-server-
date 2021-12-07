@@ -1235,9 +1235,10 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const staffModels = await appDB.execute(
       `
-        select id, name, department
+        select staff.id, staff.name, areaMapping.department
         from staff
-        where hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
