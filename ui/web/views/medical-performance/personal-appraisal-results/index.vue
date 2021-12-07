@@ -270,7 +270,6 @@ export default {
       originExtraScore: 0,
       personInfo: {
         name: '姓名',
-        staff: '员工号',
         sex: '性别',
         department: '所在科室',
         birth: '出生日期',
