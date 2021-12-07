@@ -251,8 +251,9 @@ export default class HisHospital {
       `
         select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
-               left join his_department dept on staff.department = dept.id
-        where staff.hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+               left join his_department dept on areaMapping.department = dept.id
+        where areaMapping.area = ?
       `,
       hospital
     );
