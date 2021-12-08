@@ -369,13 +369,17 @@
         >
           <el-table-column type="selection" align="center" width="55">
           </el-table-column>
-          <el-table-column type="index" align="center" width="55">
+          <el-table-column type="index" align="center" width="50">
           </el-table-column>
-          <el-table-column
-            align="center"
-            label="姓名"
-            prop="name"
-          ></el-table-column>
+          <el-table-column align="center" label="姓名" prop="name">
+            <template slot="header">
+              <el-input
+                v-model="keyword"
+                size="mini"
+                placeholder="输入名字搜索"
+              />
+            </template>
+          </el-table-column>
           <el-table-column
             align="center"
             label="性别"
@@ -474,7 +478,8 @@ export default {
       //选中的员工
       selectedStaff: [],
       //选中员工的机构
-      selectedDepartment: ''
+      selectedDepartment: '',
+      keyword: ''
     };
   },
   computed: {
@@ -520,10 +525,12 @@ export default {
     },
     //非本机构的外部员工
     extendStaffList() {
-      return this.serverExtendStaff.map(it => ({
-        ...it,
-        username: `${it.username}${it.states ? '' : ' (禁用)'}`
-      }));
+      return this.serverExtendStaff
+        .map(it => ({
+          ...it,
+          username: `${it.username}${it.states ? '' : ' (禁用)'}`
+        }))
+        .filter(it => !this.keyword || it.name.indexOf(this.keyword) > -1);
     },
     hisList() {
       return this.serverHisData;
