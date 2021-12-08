@@ -1823,16 +1823,19 @@ export default class HisScore {
     // language=PostgreSQL
     const staffs: {id: string; name: string}[] = await appDB.execute(
       `
-        select id, name
+        select staff.id, staff.name
         from staff
-        where hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
     // 获取所传月份的开始时间
     const {start} = monthToRange(month);
 
-    await Promise.all(staffs.map(staff => this.scoreStaff(staff.id, start)));
+    await Promise.all(
+      staffs.map(staff => this.scoreStaff(staff.id, hospital, start))
+    );
     log(`结束计算 ${hospital} 工分`);
   }
 
@@ -1841,8 +1844,9 @@ export default class HisScore {
    *
    * @param id 员工id
    * @param day 日期
+   * @param hospital 机构
    */
-  async scoreStaff(id, day) {
+  async scoreStaff(id, hospital, day) {
     // 获取月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
     //查询员工信息
@@ -1851,11 +1855,22 @@ export default class HisScore {
       name: string;
       department?: string;
       hospital: string;
-      staff?: string;
     } = (
       await appDB.execute(
-        `select id, name, staff, hospital, department from staff where id = ?`,
-        id
+        //language=PostgreSQL
+        `
+          select staff.id,
+                 staff.name,
+                 staff.staff,
+                 areaMapping.area hospital,
+                 areaMapping.department
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where staff.id = ?
+            and areaMapping.area = ?
+        `,
+        id,
+        hospital
       )
     )[0];
     //员工不存在, 直接返回
