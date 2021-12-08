@@ -680,7 +680,7 @@ export const TagAlgorithmUsages = {
  * @param num 工作量
  */
 export function multistep(
-  rules: {start: number; end: number; unit: number}[],
+  rules: {start: number | null; end: number | null; unit: number}[],
   num: number
 ): {start: number; end: number; unit: number; num: number; total: number}[] {
   return [];
