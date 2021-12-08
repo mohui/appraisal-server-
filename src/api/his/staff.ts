@@ -149,12 +149,12 @@ export default class HisStaff {
   /**
    * 添加员工和机构绑定表
    *
-   * @param params {
+   * @param params [{
    *   id: 员工id,
    *   area: 地区编码,
    *   department: 科室,
    *   remark: 备注
-   * }
+   * }]
    */
   @validate(
     should
