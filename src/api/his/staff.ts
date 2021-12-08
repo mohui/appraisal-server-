@@ -310,22 +310,25 @@ export default class HisStaff {
 
   /**
    * 非本机构员工列表
+   *
+   * @param params {
+   *   name: 名称
+   * }
    */
-  async staffList() {
+  @validate(
+    should
+      .object({
+        name: should.string().allow(null)
+      })
+      .allow(null)
+  )
+  async staffList(params) {
     const hospital = await getHospital();
-    // 先查询本机构的地区
-    const staffList = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select staff.id
-        from staff
-               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where areaMapping.area = ?
-      `,
-      hospital
-    );
+
+    let param = '';
+    if (params?.name) param = `and staff.name like '%${params.name}%'`;
     // 获取非本机构的员工
-    const areaStaff = await appDB.execute(
+    return await appDB.execute(
       // language=PostgreSQL
       `
         select staff.id,
@@ -345,15 +348,15 @@ export default class HisStaff {
                staff.updated_at
         from staff
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where COALESCE(areaMapping.area, '') != ?
+        where COALESCE(areaMapping.staff, '') not in (
+          select staff.id
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+        ) ${param}
       `,
       hospital
     );
-    return areaStaff.filter(it => {
-      // 如果能查找到,说明此人已经被本机构绑定过
-      const findIndex = staffList.find(staffIt => staffIt.id === it.id);
-      if (!findIndex) return it;
-    });
   }
 
   /**
