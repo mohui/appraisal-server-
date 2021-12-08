@@ -6,7 +6,7 @@
         <div class="scope-row">
           <el-input
             style="width: 130px"
-            v-if="it.min === 'infinityMin'"
+            v-if="it.min === null"
             size="mini"
             disabled
             placeholder="无穷小"
@@ -17,13 +17,13 @@
             :ref="`min_${index}`"
             size="mini"
             :value="getMinValue(it, index)"
-            :max="it.max === 'infinityMax' ? Infinity : it.max"
+            :max="it.max === null ? Infinity : it.max"
             disabled
           ></el-input-number>
           &nbsp;&nbsp;~&nbsp;&nbsp;
           <el-input
             style="width: 130px"
-            v-if="it.max === 'infinityMax'"
+            v-if="it.max === null"
             size="mini"
             disabled
             placeholder="无穷大"
@@ -32,7 +32,7 @@
             v-else
             size="mini"
             v-model="it.max"
-            :min="it.min === 'infinityMin' ? -Infinity : it.min + 1"
+            :min="it.min === null ? -Infinity : it.min + 1"
             :max="getMaxValue(it, index)"
           ></el-input-number>
         </div>
@@ -60,7 +60,7 @@ export default {
     return {
       num: 1,
       btnLoading: false,
-      gradientData: [{min: 'infinityMin', max: 'infinityMax', score: 0}]
+      gradientData: [{min: null, max: null, score: 0}]
     };
   },
   props: {
@@ -76,7 +76,7 @@ export default {
   },
   methods: {
     cleanData() {
-      this.gradientData = [{min: 'infinityMin', max: 'infinityMax', score: 0}];
+      this.gradientData = [{min: null, max: null, score: 0}];
     },
     //动态返回每个梯度的最低分值
     getMinValue(row, index) {
@@ -87,11 +87,11 @@ export default {
           this.$refs[`min_${index}`][0].handleInput(row.min);
         });
         return row.min;
-      } else return 'infinityMin';
+      } else return null;
     },
     //动态设置每个梯度的最大值
     getMaxValue(row, index) {
-      return this.gradientData[index + 1]?.max === 'infinityMax'
+      return this.gradientData[index + 1]?.max === null
         ? Infinity
         : this.gradientData[index + 1].max - 1 || Infinity;
     },
@@ -108,17 +108,17 @@ export default {
     },
     addRow() {
       if (
-        this.gradientData[0].min === 'infinityMin' &&
-        this.gradientData[0].max === 'infinityMax'
+        this.gradientData[0].min === null &&
+        this.gradientData[0].max === null
       ) {
         this.gradientData[0].max = 0;
-        this.gradientData.push({min: 0, max: 'infinityMax', score: 0});
+        this.gradientData.push({min: 0, max: null, score: 0});
       } else {
         //当前最后一级数据
         const last = this.gradientData[this.gradientData.length - 1];
         last.max = last.min + 1;
         //将last的max改为数值
-        this.gradientData.push({min: last.max, max: 'infinityMax', score: 0});
+        this.gradientData.push({min: last.max, max: null, score: 0});
       }
     }
   }
