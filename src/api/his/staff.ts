@@ -152,7 +152,8 @@ export default class HisStaff {
    * @param params {
    *   id: 员工id,
    *   area: 地区编码,
-   *   department: 科室
+   *   department: 科室,
+   *   remark: 备注
    * }
    */
   @validate(
@@ -161,7 +162,8 @@ export default class HisStaff {
       .items({
         id: should.string().required(),
         hospital: should.string().required(),
-        department: should.string().allow(null)
+        department: should.string().allow(null),
+        remark: should.string().allow(null)
       })
       .min(1)
       .required()
@@ -173,13 +175,14 @@ export default class HisStaff {
         await appDB.execute(
           // language=PostgreSQL
           `
-            insert into staff_area_mapping(id, staff, area, department)
-            values (?, ?, ?, ?)
+            insert into staff_area_mapping(id, staff, area, department, remark)
+            values (?, ?, ?, ?, ?)
           `,
           uuid(),
           it.id,
           it.hospital,
-          it.department
+          it.department,
+          it.remark
         );
       }
     });
