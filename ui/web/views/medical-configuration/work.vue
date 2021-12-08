@@ -754,7 +754,13 @@ export default {
         if (valid) {
           this.addBtnLoading = true;
           //获取配置的梯度设置数据
-          this.newWork.gradient = this.$refs.gradientView.$data.gradientData;
+          this.newWork.gradient = this.$refs.gradientView.$data.gradientData.map(
+            it => ({
+              start: it.min,
+              end: it.max,
+              unit: it.score
+            })
+          );
           //没有配置取值范围则员工方法是"固定",否则为"动态"
           this.newWork.staffMethod = !this.newWork.scope
             ? HisStaffMethod.STATIC
