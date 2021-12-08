@@ -388,41 +388,10 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="单个工分项标准工作量" prop="score">
-              <el-button-group>
-                <el-button
-                  :class="{
-                    'el-button--primary': newWork.computedType === 'standard',
-                    'work-method-btn': true
-                  }"
-                  plain
-                  size="small"
-                  @click="newWork.computedType = 'standard'"
-                >
-                  按标准计算
-                </el-button>
-                <el-button
-                  :class="{
-                    'el-button--primary': newWork.computedType === 'gradient',
-                    'work-method-btn': true
-                  }"
-                  plain
-                  size="small"
-                  @click="newWork.computedType = 'gradient'"
-                >
-                  按梯度计算
-                </el-button>
-              </el-button-group>
+            <el-form-item prop="score">
               <work-gradient-view
-                v-if="newWork.computedType === 'gradient'"
                 :gradient="newWork.gradient"
               ></work-gradient-view>
-              <div v-else-if="newWork.computedType === 'standard'">
-                <el-input-number
-                  size="mini"
-                  v-model="newWork.score"
-                ></el-input-number>
-              </div>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -531,10 +500,9 @@ export default {
         scope: HisStaffDeptType.Staff,
         remark: '',
         itemType: '',
-        computedType: 'standard',
         gradient: []
       },
-      addWorkVisible: false,
+      addWorkVisible: true,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
         projectsSelected: [{validator: validaProjects, trigger: 'blur'}]
@@ -923,7 +891,6 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff,
         itemType: '',
-        computedType: 'standard',
         gradient: []
       };
       //重置搜索关键词
