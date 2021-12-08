@@ -491,17 +491,16 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), dateValid, should.string().required())
+  @validate(should.string().required(), dateValid, should.string().allow(null))
   async get(id, month, hospital) {
-    const hisStaffModels = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select id, name, hospital
-        from his_staff
-        where hospital = ?
-      `,
-      hospital
-    );
+    /**
+     * 查询员工,因为有没有绑定机构的员工情况
+     *
+     * 1: 先查询出此账号的所有信息
+     * 2: 如果机构不为空,筛选此机构下是否有该员工信息
+     * 2.1: 如果没有,返回throw
+     * 2.2: 如果有,把此员工信息放到新数组中
+     * */
     //查询员工
     const staffModels: {
       id: string;
@@ -509,6 +508,7 @@ export default class HisStaff {
       gender: string;
       phone: string;
       his_staff: string;
+      area: string;
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
@@ -516,17 +516,23 @@ export default class HisStaff {
                staff.name,
                staff.phone,
                staff.gender,
-               hisMapping.his_staff
+               hisMapping.his_staff,
+               area.area
         from staff
                left join staff_area_mapping area on staff.id = area.staff
                left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
         where staff.id = ?
-          and area.area = ?
       `,
-      id,
-      hospital
+      id
     );
     if (staffModels.length === 0) throw new KatoRuntimeError(`该员工不存在`);
+
+    let staffInfos = [];
+    if (hospital) {
+      staffInfos = staffModels.filter(it => it.area === hospital);
+      if (staffInfos.length === 0)
+        throw new KatoRuntimeError(`此机构下该员工不存在`);
+    }
 
     const staffObj = {
       id: staffModels[0]?.id ?? null,
@@ -536,6 +542,19 @@ export default class HisStaff {
       staff: [],
       birth: null
     };
+
+    const hisStaffModels = hospital
+      ? await originalDB.execute(
+          // language=PostgreSQL
+          `
+          select id, name, hospital
+          from his_staff
+          where hospital = ?
+        `,
+          hospital
+        )
+      : [];
+
     for (const it of hisStaffModels) {
       const findIndex = staffModels.find(findIt => findIt.his_staff === it.id);
       if (findIndex) {
@@ -559,7 +578,7 @@ export default class HisStaff {
       )
     )[0]?.score;
     //查询结算状态
-    const settle = await getSettle(hospital, start);
+    const settle = hospital ? await getSettle(hospital, start) : null;
     return {
       ...staffObj,
       extra: score ?? null,
