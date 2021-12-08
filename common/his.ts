@@ -676,8 +676,19 @@ export const TagAlgorithmUsages = {
 /**
  * 工作量阶梯式算分
  *
- * @param rules 阶梯式规则
- * @param num 工作量
+ * @param rules 阶梯式规则 [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ * }]
+ * @param num 总工作量
+ * @return [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ *   num: 工作量
+ *   total: 工分
+ * }]
  */
 export function multistep(
   rules: {start: number | null; end: number | null; unit: number}[],
