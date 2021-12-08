@@ -17,6 +17,7 @@
         v-if="staff.type"
         :model="staff"
         class="staff-form"
+        ref="staffForm"
         :rules="rulesStaff"
         label-position="top"
       >
@@ -196,7 +197,15 @@
               <span style="font-weight: bold">主机构</span>
             </el-form-item>
           </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12" v-if="staff.hospital">
+          <el-col
+            :span="12"
+            :xs="24"
+            :sm="12"
+            :md="12"
+            :lg="12"
+            :xl="12"
+            v-if="staff.hospital"
+          >
             <el-form-item
               label="机构"
               prop="hospital"
@@ -217,7 +226,15 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6" v-if="staff.hospital">
+          <el-col
+            :span="12"
+            :xs="12"
+            :sm="6"
+            :md="6"
+            :lg="6"
+            :xl="6"
+            v-if="staff.hospital"
+          >
             <el-form-item
               label="科室"
               prop="department"
@@ -404,29 +421,40 @@ export default {
     },
     //保存医生信息
     async saveStaff() {
+      if (this.saveStaffLoading) return;
+      this.saveStaffLoading = true;
       const staff = this.staff;
-      try {
-        await this.$api.HisStaff.update({
-          id: staff.id,
-          name: staff.name.trim(),
-          password: staff.password.trim(),
-          remark: staff.remark?.trim() || null,
-          hospital: staff.hospital.id,
-          department: staff.department.id || null,
-          phone: staff.phone?.trim() || null,
-          gender: staff.gender?.trim() || null,
-          major: staff.major?.trim() || null,
-          title: staff.title?.trim() || null,
-          education: staff.education?.trim() || null,
-          isGP: staff.isGP || false
-        });
-        this.$message({
-          type: 'success',
-          message: '保存成功!'
-        });
-      } catch (e) {
-        this.$message.error(e.message);
-      }
+      this.$refs.staffForm.validate(async valid => {
+        if (valid) {
+          try {
+            await this.$api.HisStaff.update({
+              id: staff.id,
+              name: staff.name.trim(),
+              password: staff.password.trim(),
+              remark: staff.remark?.trim() || null,
+              hospital: staff.hospital?.id || null,
+              department: staff.department?.id || null,
+              phone: staff.phone?.trim() || null,
+              gender: staff.gender?.trim() || null,
+              major: staff.major?.trim() || null,
+              title: staff.title?.trim() || null,
+              education: staff.education?.trim() || null,
+              isGP: staff.isGP || false
+            });
+            this.$message({
+              type: 'success',
+              message: '保存成功!'
+            });
+          } catch (e) {
+            this.$message.error(e.message);
+          } finally {
+            this.saveStaffLoading = false;
+          }
+        } else {
+          this.saveStaffLoading = false;
+          return false;
+        }
+      });
     },
     async saveUser() {
       const {name} = this.userForm;
@@ -473,9 +501,12 @@ export default {
 
   ::v-deep .staff-form {
     .el-form-item__label {
-      margin-bottom: -10px;
+      margin-bottom: -5px;
       padding: 0;
       line-height: 25px;
+    }
+    .el-form-item {
+      margin-bottom: 10px;
     }
   }
 }
