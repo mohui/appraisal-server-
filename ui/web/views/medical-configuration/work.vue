@@ -390,6 +390,7 @@
           <el-col :span="24">
             <el-form-item prop="score">
               <work-gradient-view
+                ref="gradientView"
                 :gradient="newWork.gradient"
               ></work-gradient-view>
             </el-form-item>
@@ -752,6 +753,8 @@ export default {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
+          //获取配置的梯度设置数据
+          this.newWork.gradient = this.$refs.gradientView.$data.gradientData;
           //没有配置取值范围则员工方法是"固定",否则为"动态"
           this.newWork.staffMethod = !this.newWork.scope
             ? HisStaffMethod.STATIC
@@ -775,6 +778,7 @@ export default {
               : [],
             this.newWork.score,
             this.newWork.scope,
+            this.newWork.gradient,
             this.newWork.remark || null,
             this.newWork.itemType || null
           ];

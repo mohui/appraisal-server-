@@ -26,14 +26,14 @@
             v-if="it.max === 'infinityMax'"
             size="mini"
             disabled
-            :max="getMaxValue(it, index)"
             placeholder="无穷大"
           ></el-input>
           <el-input-number
             v-else
             size="mini"
             v-model="it.max"
-            :min="it.min === 'infinityMin' ? -Infinity : it.min"
+            :min="it.min === 'infinityMin' ? -Infinity : it.min + 1"
+            :max="getMaxValue(it, index)"
           ></el-input-number>
         </div>
         <span style="margin-right: 10px">单个工分项标准工作量得分:</span>
@@ -91,14 +91,9 @@ export default {
     },
     //动态设置每个梯度的最大值
     getMaxValue(row, index) {
-      console.log('maxv', index, row);
-      if (
-        index > 0 &&
-        row.max !== 'infinityMax' &&
-        this.gradientData[index + 1]?.max !== 'infinityMax'
-      ) {
-        return this.gradientData[index + 1].max;
-      } else return 'infinity';
+      return this.gradientData[index + 1]?.max === 'infinityMax'
+        ? Infinity
+        : this.gradientData[index + 1].max - 1 || Infinity;
     },
     async submit() {
       try {
