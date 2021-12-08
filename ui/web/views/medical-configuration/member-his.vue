@@ -179,15 +179,15 @@
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
-              <el-button
-                :disabled="row.removeLoading"
-                :icon="row.removeLoading ? 'el-icon-loading' : ''"
-                size="small"
-                type="danger"
-                @click="delUser(row)"
-              >
-                删除
-              </el-button>
+              <!--              <el-button-->
+              <!--                :disabled="row.removeLoading"-->
+              <!--                :icon="row.removeLoading ? 'el-icon-loading' : ''"-->
+              <!--                size="small"-->
+              <!--                type="danger"-->
+              <!--                @click="delUser(row)"-->
+              <!--              >-->
+              <!--                删除-->
+              <!--              </el-button>-->
               <el-button type="primary" size="mini" @click="QRImage(row)">
                 绑定码
               </el-button>
