@@ -17,7 +17,7 @@
             :ref="`min_${index}`"
             size="mini"
             :value="getMinValue(it, index)"
-            :max="it.max === 'infinityMax' ? null : it.max"
+            :max="it.max === 'infinityMax' ? Infinity : it.max"
             disabled
           ></el-input-number>
           &nbsp;&nbsp;~&nbsp;&nbsp;
@@ -33,7 +33,7 @@
             v-else
             size="mini"
             v-model="it.max"
-            :min="it.min === 'infinityMin' ? 0 : it.min"
+            :min="it.min === 'infinityMin' ? -Infinity : it.min"
           ></el-input-number>
         </div>
         <span style="margin-right: 10px">单个工分项标准工作量得分:</span>
