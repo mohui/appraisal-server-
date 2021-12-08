@@ -712,7 +712,7 @@ export default class HisStaff {
             Education.DOCTOR
           )
           .required(),
-        hospital: should.string().required(),
+        hospital: should.string().allow(null),
         major: should.string().allow(null),
         remark: should.string().allow(null),
         department: should.string().allow(null),
@@ -740,6 +740,20 @@ export default class HisStaff {
       gender,
       title
     } = params;
+    // 如果机构传空,查询此用户是否绑定过机构,如果绑定过机构,不能传空
+    if (!hospital) {
+      const staffMappings = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from staff_area_mapping
+          where staff = ?
+        `,
+        id
+      );
+      if (staffMappings.length > 0)
+        throw new KatoRuntimeError(`员工机构不能为空`);
+    }
     // language=PostgreSQL
     await appDB.execute(
       `
