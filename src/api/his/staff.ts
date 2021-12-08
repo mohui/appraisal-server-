@@ -943,6 +943,20 @@ export default class HisStaff {
           ...hisStaffIds
         );
       }
+
+      // 把主机构,主科室为空
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+              update staff
+              set hospital   = null,
+                  department = null,
+                  updated_at = ?
+              where id = ?
+            `,
+        dayjs().toDate(),
+        id
+      );
     });
   }
 
