@@ -692,7 +692,8 @@ export default {
           id: row.id,
           his: row.hisStaff.map(it => it.id),
           phStaff: row.phStaff.map(it => it.id),
-          department: row.department
+          department: row.department,
+          remark: row.remark
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -706,7 +707,7 @@ export default {
           hisStaffs: this.userForm.his,
           phStaffs: this.userForm.phStaff,
           department: this.userForm.department,
-          remark: this.userForm.remark
+          remark: this.userForm.remark || null
         });
         this.$message({
           type: 'success',
