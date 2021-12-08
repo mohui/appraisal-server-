@@ -407,6 +407,10 @@ export default {
     const user = this.$settings.user;
     if (user.type === 'STAFF') {
       this.staff = user;
+      if (!user.hospital && user.hospitals.length) {
+        this.staff.hospital = user.hospitals[0];
+        this.staff.department = user.hospitals[0].department;
+      }
     } else {
       this.userForm = user;
     }
