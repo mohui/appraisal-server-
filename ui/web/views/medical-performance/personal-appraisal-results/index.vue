@@ -28,9 +28,9 @@
               <el-select v-model="area" placeholder="请选择" size="mini">
                 <el-option
                   v-for="item in staffAreaListData"
-                  :key="item.code"
+                  :key="item.id"
                   :label="item.name"
-                  :value="item.code"
+                  :value="item.id"
                 >
                 </el-option>
               </el-select>
@@ -397,7 +397,7 @@ export default {
     },
     staffAreaListSeverData: {
       async get() {
-        return await this.$api.HisStaff.staffAreaList();
+        return await this.$api.HisStaff.areaMapping();
       },
       default: []
     }
