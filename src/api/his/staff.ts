@@ -37,6 +37,8 @@ export default class HisStaff {
    *   phStaff: 公卫员工id,
    *   hisStaff: his员工id
    *   hospital: 机构id
+   *   department: 科室
+   *   remark: 备注
    * }
    */
   @validate(
@@ -45,13 +47,15 @@ export default class HisStaff {
         id: should.string().required(),
         hospital: should.string().required(),
         phStaffs: should.array(),
-        hisStaffs: should.array()
+        hisStaffs: should.array(),
+        department: should.string().allow(null),
+        remark: should.string().allow(null)
       })
       .required()
   )
   async updateStaffMapping(params) {
     // 取出所有的变量
-    const {id, hospital, phStaffs, hisStaffs} = params;
+    const {id, hospital, phStaffs, hisStaffs, department, remark} = params;
     // 机构下的所有公卫员工
     const phStaffModels = await originalDB.execute(
       // language=PostgreSQL
@@ -143,6 +147,23 @@ export default class HisStaff {
           );
         }
       }
+
+      // 修改员工科室和备注
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff_area_mapping
+          set department = ?,
+              remark     = ?,
+              updated_at = ?
+          where staff = ?
+            and area = ?`,
+        department,
+        remark,
+        dayjs().toDate(),
+        id,
+        hospital
+      );
     });
   }
 
