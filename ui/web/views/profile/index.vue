@@ -178,8 +178,22 @@
               </el-select> </el-form-item
           ></el-col>
           <el-col :span="24">
+            <el-form-item style="margin-top: 10px" prop="isGP">
+              <el-switch
+                v-model="staff.isGP"
+                inactive-text="是否为全科医师"
+                size="mini"
+              >
+              </el-switch>
+              <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <p style="border-bottom: 1px solid #eee;">&nbsp;</p>
+          </el-col>
+          <el-col :span="24">
             <el-form-item>
-              <span style="font-weight: bold">所属机构</span>
+              <span style="font-weight: bold">主机构</span>
             </el-form-item>
           </el-col>
           <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
@@ -209,32 +223,15 @@
               prop="department"
               :label-width="formLabelWidth"
             >
-              <el-select
-                v-model="staff.department.id"
-                style="width:100%"
-                clearable
-                filterable
+              <el-input
+                v-model="staff.department.name"
+                autocomplete="off"
                 size="mini"
-              >
-                <el-option
-                  v-for="h in departmentList"
-                  :key="h.id"
-                  :label="h.name"
-                  :value="h.id"
-                ></el-option>
-              </el-select>
+                disabled
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item style="margin-top: 10px" prop="isGP">
-              <el-switch
-                v-model="staff.isGP"
-                inactive-text="是否为全科医师"
-                size="mini"
-              >
-              </el-switch>
-              <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
-            </el-form-item>
             <p>&nbsp;</p>
             <el-button
               v-loading="saveStaffLoading"
@@ -377,10 +374,6 @@ export default {
       const occ = this.majors.find(oc => oc.name === this.staff.major);
       if (occ) return occ.children;
       return [];
-    },
-    // 科室列表
-    departmentList() {
-      return this.serverDepartment;
     }
   },
   watch: {
@@ -388,7 +381,7 @@ export default {
       handler() {
         this.staff.department = this.staff.hospitals.filter(
           it => it.id === this.staff.hospital.id
-        )[0]?.department || {id: '', name: ''};
+        )[0]?.department || {id: '', name: '未分配科室'};
       },
       deep: true
     }
@@ -399,20 +392,6 @@ export default {
       this.staff = user;
     } else {
       this.userForm = user;
-    }
-  },
-
-  asyncComputed: {
-    serverDepartment: {
-      async get() {
-        try {
-          return await this.$api.HisDepartment.list(this.staff.hospital.id);
-        } catch (e) {
-          this.$message.error(e.message);
-          return [];
-        }
-      },
-      default: []
     }
   },
   methods: {
