@@ -105,16 +105,19 @@ export async function workPointCalculation(
   } = (
     await appDB.execute(
       // language=PostgreSQL
-      `select staff.id,
-                staff.name,
-                staff.staff,
-                staff.hospital,
-                staff.department,
-                staff.ph_staff,
-                area.name as "hospitalName"
-         from staff
-                left join area on staff.hospital = area.code
-         where staff.id = ?`,
+      `
+        select staff.id,
+               staff.name,
+               staff.staff,
+               areaMapping.area hospital,
+               areaMapping.department,
+               staff.ph_staff,
+               area.name as     "hospitalName"
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+               left join area on areaMapping.area = area.code
+        where staff.id = ?
+      `,
       staff
     )
   )[0];
