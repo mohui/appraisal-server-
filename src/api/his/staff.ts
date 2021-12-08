@@ -802,6 +802,7 @@ export default class HisStaff {
             education  = ?,
             "isGP"     = ?,
             hospital   = ?,
+            department = ?,
             updated_at = ?
         where id = ?`,
       name,
@@ -814,6 +815,7 @@ export default class HisStaff {
       education,
       isGP,
       hospital,
+      department,
       dayjs().toDate(),
       id
     );
