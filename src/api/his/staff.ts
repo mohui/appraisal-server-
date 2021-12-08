@@ -922,7 +922,6 @@ export default class HisStaff {
           staff.account,
           staff.password,
           staff.name,
-          staff.remark,
           staff.phone,
           staff.gender,
           staff.major,
@@ -933,6 +932,7 @@ export default class HisStaff {
           staff.updated_at,
           area.area hospital,
           area.department,
+          area.remark,
           dept.name "departmentName"
         from staff
         left join staff_area_mapping area on staff.id = area.staff
