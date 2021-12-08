@@ -191,12 +191,12 @@
           <el-col :span="24">
             <p style="border-bottom: 1px solid #eee;">&nbsp;</p>
           </el-col>
-          <el-col :span="24">
+          <el-col :span="24" v-if="staff.hospital">
             <el-form-item>
               <span style="font-weight: bold">主机构</span>
             </el-form-item>
           </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12" v-if="staff.hospital">
             <el-form-item
               label="机构"
               prop="hospital"
@@ -217,7 +217,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6" v-if="staff.hospital">
             <el-form-item
               label="科室"
               prop="department"
