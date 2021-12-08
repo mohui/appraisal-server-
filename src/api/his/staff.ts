@@ -931,7 +931,7 @@ export default class HisStaff {
 
       if (hisStaffIds.length > 0) {
         // 删除员工和his员工关联表
-        return await appDB.execute(
+        await appDB.execute(
           // language=PostgreSQL
           `
           delete
@@ -945,7 +945,7 @@ export default class HisStaff {
       }
 
       // 把主机构,主科室为空
-      await appDB.execute(
+      return await appDB.execute(
         // language=PostgreSQL
         `
               update staff
