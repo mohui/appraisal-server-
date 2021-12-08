@@ -193,6 +193,37 @@ export default class HisStaff {
     // 取出变量
     return appDB.transaction(async () => {
       for (const it of params) {
+        /**
+         * 先查询此员工是否已经绑定过机构
+         * 如果没有绑定过:把此机构当成主机构.如果绑定过:略过
+         * 绑定员工和机构
+         */
+        const areaMappings = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select *
+            from staff_area_mapping
+            where staff = ?
+          `,
+          it.id
+        );
+        // 查询结果为空,说明没有绑定过机构
+        if (areaMappings.length === 0) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              update staff
+              set hospital   = ?,
+                  department = ?,
+                  updated_at = ?
+              where id = ?
+            `,
+            it.hospital,
+            it.department,
+            dayjs().toDate(),
+            it.id
+          );
+        }
         await appDB.execute(
           // language=PostgreSQL
           `
