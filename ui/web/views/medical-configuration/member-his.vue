@@ -4,7 +4,7 @@
       <span class="header-title">HIS员工绑定列表</span>
       <div>
         <el-button size="small" type="primary" @click="openAddUserDialog"
-          >新添员工
+          >绑定员工
         </el-button>
         <el-button
           size="small"
@@ -216,7 +216,7 @@
               ><span style="font-weight: bold">账户关联</span></el-form-item
             >
           </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
               label="HIS用户"
               prop="his"
@@ -239,7 +239,7 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
               label="公卫用户"
               prop="phStaff"
@@ -262,6 +262,40 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
+          <el-col :span="12" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
+            <el-form-item
+              label="科室"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="备注"
+              prop="remark"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.remark"
+                type="textarea"
+                autocomplete="off"
+              ></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -406,7 +440,8 @@ export default {
       formLabelWidth: '100px',
       userForm: {
         his: [],
-        phStaff: []
+        phStaff: [],
+        department: ''
       },
       searchForm: {
         account: '',
@@ -597,19 +632,9 @@ export default {
     },
     beforeClose() {
       this.userForm = {
-        account: '',
-        password: '',
-        name: '',
-        gender: '',
-        phone: '',
-        isGP: false,
-        his: '',
-        phStaff: '',
-        education: '',
-        major: '',
-        title: '',
-        remark: null,
-        department: null
+        his: [],
+        phStaff: [],
+        department: ''
       };
       this.dialogFormEditUsersVisible = false;
       this.$refs.userFormAdd.resetFields();
@@ -666,7 +691,8 @@ export default {
         {
           id: row.id,
           his: row.hisStaff.map(it => it.id),
-          phStaff: row.phStaff.map(it => it.id)
+          phStaff: row.phStaff.map(it => it.id),
+          department: row.department
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -678,7 +704,9 @@ export default {
           id: this.userForm.id,
           hospital: this.hospitalId,
           hisStaffs: this.userForm.his,
-          phStaffs: this.userForm.phStaff
+          phStaffs: this.userForm.phStaff,
+          department: this.userForm.department,
+          remark: this.userForm.remark
         });
         this.$message({
           type: 'success',
@@ -687,10 +715,9 @@ export default {
         this.$asyncComputed.listMember.update();
         this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
+        this.dialogFormEditUsersVisible = false;
       } catch (e) {
         this.$message.error(e.message);
-      } finally {
-        this.dialogFormEditUsersVisible = false;
       }
     },
     //删除用户
