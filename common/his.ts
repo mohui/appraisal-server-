@@ -715,8 +715,10 @@ export function multistep(
           rule.start
         ).toNumber();
       } else if (rule.start < 0 && num < rule.start) {
-        //当区间最小值小于0 且num小于此值时 工作量为0-最小值
-        thisNum = 0 - rule.start;
+        //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
+        thisNum = Decimal.abs(
+          Decimal.sub(rule.end < 0 ? rule.end : 0, rule.start)
+        ).toNumber();
       }
     }
     return {
