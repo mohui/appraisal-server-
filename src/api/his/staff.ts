@@ -540,6 +540,7 @@ export default class HisStaff {
       const phStaffIndex = sysUserList.find(item => it.phStaff === item.id);
       return {
         ...it,
+        his: index?.id ?? '',
         staffName: index?.name ?? '',
         departmentName: deptIndex?.name ?? '',
         phStaffName: phStaffIndex?.username ?? ''
