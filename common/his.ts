@@ -698,7 +698,10 @@ export function multistep(
   return rules.map(rule => {
     let thisNum = 0;
     if (rule.start == null) {
-      if (num == rule.end) {
+      //全范围 正无穷到负无穷
+      if (rule.end == null) {
+        thisNum = Decimal.abs(num).toNumber();
+      } else if (num == rule.end) {
         //最小区间的最大值特殊处理
         thisNum = 1;
       } else if (num < rule.end) {
@@ -708,16 +711,23 @@ export function multistep(
         thisNum = rule.end - 0;
       }
     } else {
-      if (num > rule.start) {
+      //检查数据正向交集
+      if (
+        num > rule.start &&
+        (rule.end === null || num < 0 || (num > 0 && rule.end >= 0))
+      ) {
         //当num大于区间的最大值时 以最大值结算 否则以num结算
         thisNum = Decimal.sub(
-          num > rule.end ? rule.end : num,
-          rule.start
+          rule.end !== null && num > rule.end ? rule.end : num,
+          num >= 0 && rule.start < 0 ? 0 : rule.start
         ).toNumber();
       } else if (rule.start < 0 && num < rule.start) {
         //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
         thisNum = Decimal.abs(
-          Decimal.sub(rule.end < 0 ? rule.end : 0, rule.start)
+          Decimal.sub(
+            rule.end !== null && rule.end < 0 ? rule.end : 0,
+            rule.start
+          )
         ).toNumber();
       }
     }
