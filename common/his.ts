@@ -696,21 +696,20 @@ export function multistep(
   num: number
 ): {start: number; end: number; unit: number; num: number; total: number}[] {
   return rules.map(rule => {
-    let thisNum = 0;
+    let stepNum = 0;
     //0不参与计算
     if (num !== 0) {
       if (rule.start == null) {
         //全范围 正无穷到负无穷
         if (rule.end == null) {
-          thisNum = Decimal.abs(num).toNumber();
+          stepNum = num;
         } else if (num == rule.end) {
-          //最小区间的最大值特殊处理
-          thisNum = 1;
+          if (num > 0) stepNum = num;
         } else if (num < rule.end) {
-          thisNum = Decimal.sub(rule.end, num).toNumber();
+          stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0).toNumber();
         } else if (rule.end > 0 && num > rule.end) {
           //当最小区间的最大值大于0 且num大于此值时 工作量为最大值-0
-          thisNum = rule.end - 0;
+          stepNum = rule.end - 0;
         }
       } else {
         //检查数据正向交集
@@ -720,27 +719,25 @@ export function multistep(
         ) {
           //当num大于区间的最大值时 以最大值结算 否则以num作为终点
           //当num为负数时区间最大值为非负数 或 num为正数区间最小值为非正数 以0作为计算起点 否则以区间最小值结算
-          thisNum = Decimal.sub(
+          stepNum = Decimal.sub(
             rule.end !== null && num > rule.end ? rule.end : num,
             (num < 0 && rule.end >= 0) || (num > 0 && rule.start <= 0)
               ? 0
               : rule.start
           ).toNumber();
         } else if (rule.start < 0 && num < rule.start) {
-          //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
-          thisNum = Decimal.abs(
-            Decimal.sub(
-              rule.end !== null && rule.end < 0 ? rule.end : 0,
-              rule.start
-            )
+          //当区间最小值小于0 且num小于此值时 工作量为最小值-(最大值小于0时以最大值计算 否则以0计算)
+          stepNum = Decimal.sub(
+            rule.start,
+            rule.end !== null && rule.end < 0 ? rule.end : 0
           ).toNumber();
         }
       }
     }
     return {
       ...rule,
-      num: thisNum,
-      total: thisNum * rule.unit
+      num: stepNum,
+      total: stepNum * rule.unit
     };
   });
 }
