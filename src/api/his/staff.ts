@@ -1201,7 +1201,7 @@ export default class HisStaff {
   @validate(
     should.string().required(),
     should.date().required(),
-    should.string().required()
+    should.string().allow(null)
   )
   async findWorkScoreList(
     id,
@@ -1219,13 +1219,14 @@ export default class HisStaff {
 
     // 工分只存储在一号那一天,所以只查询一号
     // language=PostgreSQL
-    const workItems: {
+    let workItems: {
       id: string;
       name: string;
       typeId: string;
       typeName: string;
       order: number;
       score: number;
+      hospital: string;
     }[] = await appDB.execute(
       `
         select result.item_id   "id",
@@ -1233,19 +1234,28 @@ export default class HisStaff {
                result.type_id   "typeId",
                result.type_name "typeName",
                result."order",
-               result.score
+               result.score,
+               item.hospital
         from his_staff_work_result result
                left join his_work_item item on result.item_id = item.id
         where result.staff_id = ?
-          and item.hospital = ?
           and result.time >= ?
           and result.time < ?
       `,
       id,
-      hospital,
       start,
       end
     );
+    // 如果机构为空,查询此员工的所有公分项,return结果
+    if (!hospital) {
+      return {
+        day: start,
+        rate: null,
+        items: workItems
+      };
+    }
+    // 如果机构不为空,筛选出此机构的公分项
+    workItems = workItems.filter(it => it.hospital === hospital);
 
     // 查询质量系数
     // language=PostgreSQL
