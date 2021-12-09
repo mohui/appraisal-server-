@@ -708,11 +708,15 @@ export function multistep(
         thisNum = rule.end - 0;
       }
     } else {
-      if (num > rule.start) {
+      //检查数据正向交集
+      if (
+        num > rule.start &&
+        (rule.end === null || num < 0 || (num > 0 && rule.end >= 0))
+      ) {
         //当num大于区间的最大值时 以最大值结算 否则以num结算
         thisNum = Decimal.sub(
           rule.end !== null && num > rule.end ? rule.end : num,
-          rule.start
+          num >= 0 && rule.start < 0 ? 0 : rule.start
         ).toNumber();
       } else if (rule.start < 0 && num < rule.start) {
         //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
