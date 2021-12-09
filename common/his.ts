@@ -705,7 +705,7 @@ export function multistep(
           thisNum = Decimal.abs(num).toNumber();
         } else if (num == rule.end) {
           //最小区间的最大值特殊处理
-          thisNum = 1;
+          // thisNum = 1;
         } else if (num < rule.end) {
           thisNum = Decimal.sub(rule.end, num).toNumber();
         } else if (rule.end > 0 && num > rule.end) {
@@ -725,7 +725,9 @@ export function multistep(
             (num < 0 && rule.end >= 0) || (num > 0 && rule.start <= 0)
               ? 0
               : rule.start
-          ).toNumber();
+          )
+            .abs()
+            .toNumber();
         } else if (rule.start < 0 && num < rule.start) {
           //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
           thisNum = Decimal.abs(
