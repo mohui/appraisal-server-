@@ -215,3 +215,30 @@ export function divisionOperation(
 ): number {
   return denominator > 0 ? numerator / denominator : 0;
 }
+
+/**
+ * 获取附加分
+ *
+ * @param staff
+ * @param hospital
+ * @param month
+ */
+export async function getStaffExtraScore(staff, hospital, month) {
+  const {start} = monthToRange(month);
+
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+          select score
+          from his_staff_extra_score
+          where staff = ?
+            and area = ?
+            and month = ?
+        `,
+      staff,
+      hospital,
+      start
+    )
+  )[0]?.score;
+}
