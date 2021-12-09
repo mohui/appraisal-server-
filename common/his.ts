@@ -698,7 +698,10 @@ export function multistep(
   return rules.map(rule => {
     let thisNum = 0;
     if (rule.start == null) {
-      if (num == rule.end) {
+      //全范围 正无穷到负无穷
+      if (rule.end == null) {
+        thisNum = Decimal.abs(num).toNumber();
+      } else if (num == rule.end) {
         //最小区间的最大值特殊处理
         thisNum = 1;
       } else if (num < rule.end) {
