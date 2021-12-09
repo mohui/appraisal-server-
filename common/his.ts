@@ -715,7 +715,9 @@ export function multistep(
         //检查数据正向交集
         if (
           num >= rule.start &&
-          (rule.end === null || num < 0 || (num > 0 && rule.end >= 0))
+          (rule.end === null ||
+            (num < 0 && num < rule.end) ||
+            (num > 0 && rule.end >= 0))
         ) {
           //当num大于区间的最大值时 以最大值结算 否则以num作为终点
           //当num为负数时区间最大值为非负数 或 num为正数区间最小值为非正数 以0作为计算起点 否则以区间最小值结算
