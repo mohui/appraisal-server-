@@ -704,8 +704,7 @@ export function multistep(
         if (rule.end == null) {
           stepNum = num;
         } else if (num == rule.end) {
-          //最小区间的最大值特殊处理
-          // thisNum = 1;
+          if (num > 0) stepNum = num;
         } else if (num < rule.end) {
           stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0).toNumber();
         } else if (rule.end > 0 && num > rule.end) {
