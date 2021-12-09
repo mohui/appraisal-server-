@@ -702,14 +702,12 @@ export function multistep(
       if (rule.start == null) {
         //全范围 正无穷到负无穷
         if (rule.end == null) {
-          stepNum = Decimal.abs(num).toNumber();
+          stepNum = num;
         } else if (num == rule.end) {
           //最小区间的最大值特殊处理
           // thisNum = 1;
         } else if (num < rule.end) {
-          stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0)
-            .abs()
-            .toNumber();
+          stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0).toNumber();
         } else if (rule.end > 0 && num > rule.end) {
           //当最小区间的最大值大于0 且num大于此值时 工作量为最大值-0
           stepNum = rule.end - 0;
@@ -727,17 +725,13 @@ export function multistep(
             (num < 0 && rule.end >= 0) || (num > 0 && rule.start <= 0)
               ? 0
               : rule.start
-          )
-            .abs()
-            .toNumber();
+          ).toNumber();
         } else if (rule.start < 0 && num < rule.start) {
-          //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
+          //当区间最小值小于0 且num小于此值时 工作量为最小值-(最大值小于0时以最大值计算 否则以0计算)
           stepNum = Decimal.sub(
-            rule.end !== null && rule.end < 0 ? rule.end : 0,
-            rule.start
-          )
-            .abs()
-            .toNumber();
+            rule.start,
+            rule.end !== null && rule.end < 0 ? rule.end : 0
+          ).toNumber();
         }
       }
     }
