@@ -272,7 +272,7 @@ export default {
     return {
       id: this.$route.query.id,
       curDate: new Date(JSON.parse(this.$route.query.date)),
-      area: this.$route.query.area ?? this.$settings.user.hospital.id,
+      area: this.$route.query.area ?? this.$settings.user.hospital?.id,
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       // 弹出工分列表的类型:校正前（before）、校正后(after)
