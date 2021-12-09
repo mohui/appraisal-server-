@@ -2055,10 +2055,15 @@ export default class HisScore {
    * @param id 员工id
    * @param month 月份
    * @param score 附加分数
+   * @param hospital 机构
    */
-  @validate(should.string().required(), dateValid, should.number().required())
-  async setExtraScore(id, month, score) {
-    const hospital = await getHospital();
+  @validate(
+    should.string().required(),
+    dateValid,
+    should.number().required(),
+    should.string().required()
+  )
+  async setExtraScore(id, month, score, hospital) {
     const {start} = monthToRange(month);
     const settle = await getSettle(hospital, start);
     if (settle) {
@@ -2068,13 +2073,14 @@ export default class HisScore {
     // language=PostgreSQL
     await appDB.execute(
       `
-        insert into his_staff_extra_score(staff, month, score)
-        values (?, ?, ?)
-        on conflict (staff, month)
+        insert into his_staff_extra_score(staff, area, month, score)
+        values (?, ?, ?, ?)
+        on conflict (staff, month, area)
           do update set score      = ?,
                         updated_at = now()
       `,
       id,
+      hospital,
       start,
       score,
       score
