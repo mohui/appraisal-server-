@@ -1312,9 +1312,10 @@ export default class HisStaff {
   @validate(
     should.string().required(),
     should.date().required(),
-    should.string().required()
+    should.string().allow(null)
   )
   async staffCheck(staff, month, hospital) {
+    if (!hospital) throw new KatoRuntimeError(`该员工没有考核方案`);
     // 查询员工和方案绑定是否存在
     const hisSystems = await appDB.execute(
       // language=PostgreSQL
