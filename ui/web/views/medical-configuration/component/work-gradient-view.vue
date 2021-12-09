@@ -32,7 +32,7 @@
             v-else
             size="mini"
             v-model="it.max"
-            :min="it.min === null ? -Infinity : it.min + 1"
+            :min="it.min === null ? -Infinity : it.min + 0.0001"
             :max="getMaxValue(it, index)"
           ></el-input-number>
         </div>

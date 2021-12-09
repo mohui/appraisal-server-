@@ -665,6 +665,14 @@ export default {
           newMappings.push(sourceIt);
         }
       }
+      //配置好的梯度数据
+      const preview_gradient = this.$refs.gradientView.$data.gradientData.map(
+        it => ({
+          start: it.min,
+          end: it.max,
+          unit: it.score
+        })
+      );
       config = {
         name: this.newWork.work,
         method: this.newWork.scoreMethod,
@@ -672,7 +680,8 @@ export default {
         staffMethod: staffMethod,
         staffs: checkedStaffs,
         score: this.newWork.score,
-        scope: this.newWork.scope
+        scope: this.newWork.scope,
+        gradient: preview_gradient
       };
       return config;
     }

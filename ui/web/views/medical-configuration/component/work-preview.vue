@@ -89,17 +89,56 @@
       "
     >
     </el-pagination>
+    <span>得分详情:</span>
+    <el-table
+      v-hidden-scroll
+      class="gradient-table"
+      size="mini"
+      :data="gradientScore"
+      border
+      align="center"
+    >
+      <el-table-column align="center" type="index" label="梯度" width="80">
+        <template slot-scope="{$index}">
+          {{ `第${$index + 1}梯度` }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="梯度范围">
+        <template slot-scope="{row}">
+          <div v-if="row.start === null && row.end === null">
+            --
+          </div>
+          <div v-else>
+            <span v-if="row.start === null">无穷小</span>
+            <span v-else>{{ row.start }}</span>
+            ~
+            <span v-if="row.end === null">无穷大</span>
+            <span v-else>{{ row.end }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="unit"
+        align="center"
+        label="单位得分"
+      ></el-table-column>
+      <el-table-column
+        prop="num"
+        align="center"
+        label="该区间工作量"
+      ></el-table-column>
+      <el-table-column
+        prop="total"
+        align="center"
+        label="该区间总得分"
+      ></el-table-column>
+    </el-table>
     <div class="preview-score">
       <div class="work-score">
-        <span>工作量</span><el-tag>{{ total }}</el-tag>
+        <span>总工作量</span><el-tag>{{ reduceResult.num }}</el-tag>
       </div>
-      <i class="el-icon-close"></i>
       <div class="work-score">
-        <span>单位得分</span><el-tag>{{ config.score }}</el-tag>
-      </div>
-      =
-      <div class="work-score">
-        <span>预计总得分</span><el-tag>{{ previewScore }}</el-tag>
+        <span>预计总得分</span><el-tag>{{ reduceResult.total }}</el-tag>
       </div>
     </div>
   </div>
@@ -109,6 +148,8 @@
 import {Decimal} from 'decimal.js';
 import {PreviewType, HisWorkMethod} from '../../../../../common/his.ts';
 import {strToPinyin} from '../../../utils/pinyin';
+import {multistep} from '../../../../../common/his.ts';
+
 export default {
   name: 'WorkPreview',
   props: {
@@ -165,6 +206,26 @@ export default {
       return new Decimal(this.total)
         .mul(new Decimal(this.config.score))
         .toNumber();
+    },
+    //梯度分计算
+    gradientScore() {
+      return multistep(this.config.gradient, this.total);
+    },
+    reduceResult() {
+      const reduceResult = this.gradientScore.reduce(
+        (pre, next) => {
+          pre.total = Decimal.add(pre.total, next.total);
+          pre.num = Decimal.add(pre.num, next.num);
+          return pre;
+        },
+        {
+          num: new Decimal(0),
+          total: new Decimal(0)
+        }
+      );
+      reduceResult.total = reduceResult.total.toNumber();
+      reduceResult.num = reduceResult.num.toNumber();
+      return reduceResult;
     }
   },
   data() {
@@ -260,16 +321,20 @@ export default {
 .preview-score {
   width: 60%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   float: right;
-  margin: 20px 0;
+  margin: 5px 0 0 0;
 }
 </style>
 <style lang="scss">
+.gradient-table {
+  margin: 5px 0;
+  overflow-y: scroll;
+}
 .work-config-table {
   display: flex;
   flex-direction: column;
+  flex: 3;
 
   .el-table__body-wrapper {
     flex: 1;
