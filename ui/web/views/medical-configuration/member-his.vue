@@ -592,6 +592,7 @@ export default {
       return this.listMember
         .map(it => ({
           ...it,
+          his: it.staff,
           removeLoading: false,
           created_at: it.created_at?.$format() || '',
           updated_at: it.updated_at?.$format() || ''
