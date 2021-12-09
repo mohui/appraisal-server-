@@ -503,7 +503,7 @@ export default {
         itemType: '',
         gradient: []
       },
-      addWorkVisible: true,
+      addWorkVisible: false,
       workRules: {
         work: [{required: true, message: '填写工分项', trigger: 'change'}],
         projectsSelected: [{validator: validaProjects, trigger: 'blur'}]
@@ -843,9 +843,6 @@ export default {
           gradient: row.gradient || []
         })
       );
-      if (this.newWork.gradient.length < 1) {
-        this.newWork.gradient.push({min: 0, max: 0, score: 0});
-      }
       this.addWorkVisible = true;
     },
     findItem(id, arr) {
