@@ -1,4 +1,5 @@
 import * as dayjs from 'dayjs';
+import Decimal from 'decimal.js';
 
 /**
  * 获取时间区间(前闭后开)
@@ -672,3 +673,58 @@ export const TagAlgorithmUsages = {
 };
 
 //endregion
+
+/**
+ * 工作量阶梯式算分
+ *
+ * @param rules 阶梯式规则 [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ * }]
+ * @param num 总工作量
+ * @return [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ *   num: 工作量
+ *   total: 工分
+ * }]
+ */
+export function multistep(
+  rules: {start: number | null; end: number | null; unit: number}[],
+  num: number
+): {start: number; end: number; unit: number; num: number; total: number}[] {
+  return rules.map(rule => {
+    let thisNum = 0;
+    if (rule.start == null) {
+      if (num == rule.end) {
+        //最小区间的最大值特殊处理
+        thisNum = 1;
+      } else if (num < rule.end) {
+        thisNum = Decimal.sub(rule.end, num).toNumber();
+      } else if (rule.end > 0 && num > rule.end) {
+        //当最小区间的最大值大于0 且num大于此值时 工作量为最大值-0
+        thisNum = rule.end - 0;
+      }
+    } else {
+      if (num > rule.start) {
+        //当num大于区间的最大值时 以最大值结算 否则以num结算
+        thisNum = Decimal.sub(
+          num > rule.end ? rule.end : num,
+          rule.start
+        ).toNumber();
+      } else if (rule.start < 0 && num < rule.start) {
+        //当区间最小值小于0 且num小于此值时 工作量为(最大值小于0时以最大值计算 否则以0计算)-最小值
+        thisNum = Decimal.abs(
+          Decimal.sub(rule.end < 0 ? rule.end : 0, rule.start)
+        ).toNumber();
+      }
+    }
+    return {
+      ...rule,
+      num: thisNum,
+      total: thisNum * rule.unit
+    };
+  });
+}
