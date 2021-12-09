@@ -66,7 +66,17 @@ export class AddStaffMappingMigration implements IMigration {
         );
         COMMENT ON COLUMN "staff_his_mapping"."id" IS '主键';
         COMMENT ON COLUMN "staff_his_mapping"."staff" IS '员工id';
-        COMMENT ON COLUMN "staff_his_mapping"."his_staff" IS 'HIS员工id';;
+        COMMENT ON COLUMN "staff_his_mapping"."his_staff" IS 'HIS员工id';
+
+        -- 添加地区字段
+        ALTER table his_staff_extra_score
+          ADD COLUMN area varchar(36) DEFAULT null;
+        COMMENT ON COLUMN his_staff_extra_score."area" IS '地区id';
+
+        update his_staff_extra_score
+        set area=s.hospital
+        from staff s
+        where his_staff_extra_score.staff = s.id;
       `
     );
 
