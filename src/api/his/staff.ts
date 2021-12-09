@@ -12,6 +12,7 @@ import {
   dayToRange
 } from './service';
 import {Context} from '../context';
+import {getStaffExtraScore} from './common';
 
 // 质量系数
 type AssessModel = {
@@ -562,21 +563,13 @@ export default class HisStaff {
       }
     }
 
-    //查询附加分
+    // 获取月份开始时间
     const {start} = monthToRange(month);
-    // language=PostgreSQL
-    const score = (
-      await appDB.execute(
-        `
-          select score
-          from his_staff_extra_score
-          where staff = ?
-            and month = ?
-        `,
-        id,
-        start
-      )
-    )[0]?.score;
+
+    // 查询附加分
+    const score = hospital
+      ? await getStaffExtraScore(id, hospital, month)
+      : null;
     //查询结算状态
     const settle = hospital ? await getSettle(hospital, start) : null;
     return {
