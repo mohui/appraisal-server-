@@ -2321,7 +2321,6 @@ export default class Person {
           and a.isdelete = false
           and r.PregnancyBooksId is null
           and r.isdelete = false
-        order by a.visitdate
       `,
       idCardNo
     );
@@ -2340,7 +2339,6 @@ export default class Person {
           and a.isdelete = false
           and r.PregnancyBooksId is null
           and r.isdelete = false
-        order by a.visitdate
       `,
       idCardNo
     );
@@ -2359,7 +2357,6 @@ export default class Person {
           and a.isdelete = false
           and d.isdelete = false
           and r.isdelete = false
-        order by a.visitdate
       `,
       idCardNo
     );
