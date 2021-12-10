@@ -1063,7 +1063,7 @@ export default class Person {
                vh.temperature as "temperature",
                vh.symptom     as "symptom",
                vh.bc_abnormal as "bc_abnormal",
-               vh.operatetime as "updateAt"
+               vh.checkupdate as "updateAt"
         from ph_healthy vh
         where vh.personnum = ?
           and vh.isdelete = false
