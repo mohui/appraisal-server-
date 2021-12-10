@@ -1775,6 +1775,7 @@ export default class Person {
                  updated_at
           from mch_new_born_visit
           where mothervisitno = ?
+          order by visitdate
         `,
         i.id
       );
@@ -1789,7 +1790,7 @@ export default class Person {
     // language=PostgreSQL
     const childHealthBooksNo = (
       await originalDB.execute(
-        'select id from mch_child_health_books where motheridcardno = ?',
+        'select id from mch_child_health_books where motheridcardno = ? order by constructionlistdate',
         idCardNo
       )
     ).map(it => it.id);
@@ -1900,6 +1901,7 @@ export default class Person {
                updated_at
         from mch_new_born_visit
         where id = ?
+        order by visitdate
       `,
       code
     );
@@ -1953,6 +1955,7 @@ export default class Person {
         from mch_child_check cc
                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
         where cc.id = ?
+        order by cc.checkdate
       `,
       code
     );
@@ -1977,7 +1980,7 @@ export default class Person {
         from mch_child_check cc
                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
         where cc.childhealthbooksno = ?
-        order by chronologicalage
+        order by cc.checkdate
       `,
       childHealthBookNo
     );
@@ -2318,6 +2321,7 @@ export default class Person {
           and a.isdelete = false
           and r.PregnancyBooksId is null
           and r.isdelete = false
+        order by a.visitdate
       `,
       idCardNo
     );
@@ -2336,6 +2340,7 @@ export default class Person {
           and a.isdelete = false
           and r.PregnancyBooksId is null
           and r.isdelete = false
+        order by a.visitdate
       `,
       idCardNo
     );
@@ -2354,6 +2359,7 @@ export default class Person {
           and a.isdelete = false
           and d.isdelete = false
           and r.isdelete = false
+        order by a.visitdate
       `,
       idCardNo
     );
