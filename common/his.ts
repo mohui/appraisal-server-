@@ -714,9 +714,7 @@ export function multistep(
         if (
           num >= rule.start &&
           (rule.end === null ||
-            //负区间 前开后闭
             (num < 0 && num < rule.end) ||
-            //正区间 前闭后开
             (num > 0 && rule.end >= 0))
         ) {
           if (num > 0) {
