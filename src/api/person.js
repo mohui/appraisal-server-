@@ -857,7 +857,7 @@ export default class Person {
           where vd.personnum = ?
             and vd.isdelete = false
             and vdv.isdelete = false
-          order by vdv.operatetime desc
+          order by vdv.followupdate desc
         `,
         id
       )
@@ -3182,6 +3182,7 @@ export default class Person {
                  left join ph_healthy vh on vh.id = vhc.incrementno
           where vh.personnum = ?
             and vh.isdelete = false
+          order by vh.checkupDate desc, vhc.operatetime desc
         `,
         id
       )
@@ -3337,6 +3338,7 @@ export default class Person {
                left join ph_person vp on vq.personnum = vp.id
                left join area on vp.operateorganization = area.code
         where vp.id = ?
+        order by vq.questionnairemaindate desc
       `,
       id
     );
