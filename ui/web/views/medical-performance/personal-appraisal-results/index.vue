@@ -28,9 +28,9 @@
               <el-select v-model="area" placeholder="请选择" size="mini">
                 <el-option
                   v-for="item in staffAreaListData"
-                  :key="item.code"
+                  :key="item.id"
                   :label="item.name"
-                  :value="item.code"
+                  :value="item.id"
                 >
                 </el-option>
               </el-select>
@@ -272,7 +272,7 @@ export default {
     return {
       id: this.$route.query.id,
       curDate: new Date(JSON.parse(this.$route.query.date)),
-      area: this.$route.query.area ?? this.$settings.user.hospital.id,
+      area: this.$route.query.area ?? this.$settings.user.hospital?.id,
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       // 弹出工分列表的类型:校正前（before）、校正后(after)
@@ -397,7 +397,7 @@ export default {
     },
     staffAreaListSeverData: {
       async get() {
-        return await this.$api.HisStaff.staffAreaList();
+        return await this.$api.HisStaff.areaMapping();
       },
       default: []
     }

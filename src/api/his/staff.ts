@@ -12,6 +12,7 @@ import {
   dayToRange
 } from './service';
 import {Context} from '../context';
+import {getStaffExtraScore} from './common';
 
 // 质量系数
 type AssessModel = {
@@ -37,6 +38,8 @@ export default class HisStaff {
    *   phStaff: 公卫员工id,
    *   hisStaff: his员工id
    *   hospital: 机构id
+   *   department: 科室
+   *   remark: 备注
    * }
    */
   @validate(
@@ -45,13 +48,15 @@ export default class HisStaff {
         id: should.string().required(),
         hospital: should.string().required(),
         phStaffs: should.array(),
-        hisStaffs: should.array()
+        hisStaffs: should.array(),
+        department: should.string().allow(null),
+        remark: should.string().allow(null)
       })
       .required()
   )
   async updateStaffMapping(params) {
     // 取出所有的变量
-    const {id, hospital, phStaffs, hisStaffs} = params;
+    const {id, hospital, phStaffs, hisStaffs, department, remark} = params;
     // 机构下的所有公卫员工
     const phStaffModels = await originalDB.execute(
       // language=PostgreSQL
@@ -143,18 +148,35 @@ export default class HisStaff {
           );
         }
       }
+
+      // 修改员工科室和备注
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff_area_mapping
+          set department = ?,
+              remark     = ?,
+              updated_at = ?
+          where staff = ?
+            and area = ?`,
+        department,
+        remark,
+        dayjs().toDate(),
+        id,
+        hospital
+      );
     });
   }
 
   /**
    * 添加员工和机构绑定表
    *
-   * @param params {
+   * @param params [{
    *   id: 员工id,
    *   area: 地区编码,
    *   department: 科室,
    *   remark: 备注
-   * }
+   * }]
    */
   @validate(
     should
@@ -172,6 +194,37 @@ export default class HisStaff {
     // 取出变量
     return appDB.transaction(async () => {
       for (const it of params) {
+        /**
+         * 先查询此员工是否已经绑定过机构
+         * 如果没有绑定过:把此机构当成主机构.如果绑定过:略过
+         * 绑定员工和机构
+         */
+        const areaMappings = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select *
+            from staff_area_mapping
+            where staff = ?
+          `,
+          it.id
+        );
+        // 查询结果为空,说明没有绑定过机构
+        if (areaMappings.length === 0) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              update staff
+              set hospital   = ?,
+                  department = ?,
+                  updated_at = ?
+              where id = ?
+            `,
+            it.hospital,
+            it.department,
+            dayjs().toDate(),
+            it.id
+          );
+        }
         await appDB.execute(
           // language=PostgreSQL
           `
@@ -289,22 +342,25 @@ export default class HisStaff {
 
   /**
    * 非本机构员工列表
+   *
+   * @param params {
+   *   name: 名称
+   * }
    */
-  async staffList() {
+  @validate(
+    should
+      .object({
+        name: should.string().allow(null)
+      })
+      .allow(null)
+  )
+  async staffList(params) {
     const hospital = await getHospital();
-    // 先查询本机构的地区
-    const staffList = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select staff.id
-        from staff
-               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where areaMapping.area = ?
-      `,
-      hospital
-    );
+
+    let param = '';
+    if (params?.name) param = `and staff.name like '%${params.name}%'`;
     // 获取非本机构的员工
-    const areaStaff = await appDB.execute(
+    return await appDB.execute(
       // language=PostgreSQL
       `
         select staff.id,
@@ -324,15 +380,15 @@ export default class HisStaff {
                staff.updated_at
         from staff
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where COALESCE(areaMapping.area, '') != ?
+        where COALESCE(areaMapping.staff, '') not in (
+          select staff.id
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+        ) ${param}
       `,
       hospital
     );
-    return areaStaff.filter(it => {
-      // 如果能查找到,说明此人已经被本机构绑定过
-      const findIndex = staffList.find(staffIt => staffIt.id === it.id);
-      if (!findIndex) return it;
-    });
   }
 
   /**
@@ -436,17 +492,16 @@ export default class HisStaff {
    *   settle: 结算状态
    * }
    */
-  @validate(should.string().required(), dateValid, should.string().required())
+  @validate(should.string().required(), dateValid, should.string().allow(null))
   async get(id, month, hospital) {
-    const hisStaffModels = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select id, name, hospital
-        from his_staff
-        where hospital = ?
-      `,
-      hospital
-    );
+    /**
+     * 查询员工,因为有没有绑定机构的员工情况
+     *
+     * 1: 先查询出此账号的所有信息
+     * 2: 如果机构不为空,筛选此机构下是否有该员工信息
+     * 2.1: 如果没有,返回throw
+     * 2.2: 如果有,把此员工信息放到新数组中
+     * */
     //查询员工
     const staffModels: {
       id: string;
@@ -454,6 +509,7 @@ export default class HisStaff {
       gender: string;
       phone: string;
       his_staff: string;
+      area: string;
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
@@ -461,17 +517,23 @@ export default class HisStaff {
                staff.name,
                staff.phone,
                staff.gender,
-               hisMapping.his_staff
+               hisMapping.his_staff,
+               area.area
         from staff
                left join staff_area_mapping area on staff.id = area.staff
                left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
         where staff.id = ?
-          and area.area = ?
       `,
-      id,
-      hospital
+      id
     );
     if (staffModels.length === 0) throw new KatoRuntimeError(`该员工不存在`);
+
+    let staffInfos = [];
+    if (hospital) {
+      staffInfos = staffModels.filter(it => it.area === hospital);
+      if (staffInfos.length === 0)
+        throw new KatoRuntimeError(`此机构下该员工不存在`);
+    }
 
     const staffObj = {
       id: staffModels[0]?.id ?? null,
@@ -481,6 +543,19 @@ export default class HisStaff {
       staff: [],
       birth: null
     };
+
+    const hisStaffModels = hospital
+      ? await originalDB.execute(
+          // language=PostgreSQL
+          `
+          select id, name, hospital
+          from his_staff
+          where hospital = ?
+        `,
+          hospital
+        )
+      : [];
+
     for (const it of hisStaffModels) {
       const findIndex = staffModels.find(findIt => findIt.his_staff === it.id);
       if (findIndex) {
@@ -488,23 +563,15 @@ export default class HisStaff {
       }
     }
 
-    //查询附加分
+    // 获取月份开始时间
     const {start} = monthToRange(month);
-    // language=PostgreSQL
-    const score = (
-      await appDB.execute(
-        `
-          select score
-          from his_staff_extra_score
-          where staff = ?
-            and month = ?
-        `,
-        id,
-        start
-      )
-    )[0]?.score;
+
+    // 查询附加分
+    const score = hospital
+      ? await getStaffExtraScore(id, hospital, month)
+      : null;
     //查询结算状态
-    const settle = await getSettle(hospital, start);
+    const settle = hospital ? await getSettle(hospital, start) : null;
     return {
       ...staffObj,
       extra: score ?? null,
@@ -691,7 +758,7 @@ export default class HisStaff {
             Education.DOCTOR
           )
           .required(),
-        hospital: should.string().required(),
+        hospital: should.string().allow(null),
         major: should.string().allow(null),
         remark: should.string().allow(null),
         department: should.string().allow(null),
@@ -719,6 +786,20 @@ export default class HisStaff {
       gender,
       title
     } = params;
+    // 如果机构传空,查询此用户是否绑定过机构,如果绑定过机构,不能传空
+    if (!hospital) {
+      const staffMappings = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from staff_area_mapping
+          where staff = ?
+        `,
+        id
+      );
+      if (staffMappings.length > 0)
+        throw new KatoRuntimeError(`员工机构不能为空`);
+    }
     // language=PostgreSQL
     await appDB.execute(
       `
@@ -733,6 +814,7 @@ export default class HisStaff {
             education  = ?,
             "isGP"     = ?,
             hospital   = ?,
+            department = ?,
             updated_at = ?
         where id = ?`,
       name,
@@ -745,6 +827,7 @@ export default class HisStaff {
       education,
       isGP,
       hospital,
+      department,
       dayjs().toDate(),
       id
     );
@@ -860,7 +943,7 @@ export default class HisStaff {
 
       if (hisStaffIds.length > 0) {
         // 删除员工和his员工关联表
-        return await appDB.execute(
+        await appDB.execute(
           // language=PostgreSQL
           `
           delete
@@ -872,6 +955,20 @@ export default class HisStaff {
           ...hisStaffIds
         );
       }
+
+      // 把主机构,主科室为空
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+              update staff
+              set hospital   = null,
+                  department = null,
+                  updated_at = ?
+              where id = ?
+            `,
+        dayjs().toDate(),
+        id
+      );
     });
   }
 
@@ -901,7 +998,6 @@ export default class HisStaff {
           staff.account,
           staff.password,
           staff.name,
-          staff.remark,
           staff.phone,
           staff.gender,
           staff.major,
@@ -912,6 +1008,7 @@ export default class HisStaff {
           staff.updated_at,
           area.area hospital,
           area.department,
+          area.remark,
           dept.name "departmentName"
         from staff
         left join staff_area_mapping area on staff.id = area.staff
@@ -1104,7 +1201,7 @@ export default class HisStaff {
   @validate(
     should.string().required(),
     should.date().required(),
-    should.string().required()
+    should.string().allow(null)
   )
   async findWorkScoreList(
     id,
@@ -1122,13 +1219,14 @@ export default class HisStaff {
 
     // 工分只存储在一号那一天,所以只查询一号
     // language=PostgreSQL
-    const workItems: {
+    let workItems: {
       id: string;
       name: string;
       typeId: string;
       typeName: string;
       order: number;
       score: number;
+      hospital: string;
     }[] = await appDB.execute(
       `
         select result.item_id   "id",
@@ -1136,19 +1234,28 @@ export default class HisStaff {
                result.type_id   "typeId",
                result.type_name "typeName",
                result."order",
-               result.score
+               result.score,
+               item.hospital
         from his_staff_work_result result
                left join his_work_item item on result.item_id = item.id
         where result.staff_id = ?
-          and item.hospital = ?
           and result.time >= ?
           and result.time < ?
       `,
       id,
-      hospital,
       start,
       end
     );
+    // 如果机构为空,查询此员工的所有公分项,return结果
+    if (!hospital) {
+      return {
+        day: start,
+        rate: null,
+        items: workItems
+      };
+    }
+    // 如果机构不为空,筛选出此机构的公分项
+    workItems = workItems.filter(it => it.hospital === hospital);
 
     // 查询质量系数
     // language=PostgreSQL
@@ -1215,9 +1322,10 @@ export default class HisStaff {
   @validate(
     should.string().required(),
     should.date().required(),
-    should.string().required()
+    should.string().allow(null)
   )
   async staffCheck(staff, month, hospital) {
+    if (!hospital) throw new KatoRuntimeError(`该员工没有考核方案`);
     // 查询员工和方案绑定是否存在
     const hisSystems = await appDB.execute(
       // language=PostgreSQL

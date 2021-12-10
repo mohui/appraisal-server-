@@ -4,7 +4,7 @@
       <span class="header-title">HIS员工绑定列表</span>
       <div>
         <el-button size="small" type="primary" @click="openAddUserDialog"
-          >新添员工
+          >绑定员工
         </el-button>
         <el-button
           size="small"
@@ -179,15 +179,15 @@
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
-              <el-button
-                :disabled="row.removeLoading"
-                :icon="row.removeLoading ? 'el-icon-loading' : ''"
-                size="small"
-                type="danger"
-                @click="delUser(row)"
-              >
-                删除
-              </el-button>
+              <!--              <el-button-->
+              <!--                :disabled="row.removeLoading"-->
+              <!--                :icon="row.removeLoading ? 'el-icon-loading' : ''"-->
+              <!--                size="small"-->
+              <!--                type="danger"-->
+              <!--                @click="delUser(row)"-->
+              <!--              >-->
+              <!--                删除-->
+              <!--              </el-button>-->
               <el-button type="primary" size="mini" @click="QRImage(row)">
                 绑定码
               </el-button>
@@ -216,7 +216,7 @@
               ><span style="font-weight: bold">账户关联</span></el-form-item
             >
           </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
               label="HIS用户"
               prop="his"
@@ -239,7 +239,7 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
               label="公卫用户"
               prop="phStaff"
@@ -262,6 +262,40 @@
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
+          <el-col :span="12" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
+            <el-form-item
+              label="科室"
+              prop="department"
+              :label-width="formLabelWidth"
+            >
+              <el-select
+                v-model="userForm.department"
+                style="width:100%"
+                clearable
+                filterable
+                size="mini"
+              >
+                <el-option
+                  v-for="h in departmentList"
+                  :key="h.id"
+                  :label="h.name"
+                  :value="h.id"
+                ></el-option>
+              </el-select> </el-form-item
+          ></el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="备注"
+              prop="remark"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.remark"
+                type="textarea"
+                autocomplete="off"
+              ></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -335,13 +369,17 @@
         >
           <el-table-column type="selection" align="center" width="55">
           </el-table-column>
-          <el-table-column type="index" align="center" width="55">
+          <el-table-column type="index" align="center" width="50">
           </el-table-column>
-          <el-table-column
-            align="center"
-            label="姓名"
-            prop="name"
-          ></el-table-column>
+          <el-table-column align="center" label="姓名" prop="name">
+            <template slot="header">
+              <el-input
+                v-model="keyword"
+                size="mini"
+                placeholder="输入名字搜索"
+              />
+            </template>
+          </el-table-column>
           <el-table-column
             align="center"
             label="性别"
@@ -406,7 +444,8 @@ export default {
       formLabelWidth: '100px',
       userForm: {
         his: [],
-        phStaff: []
+        phStaff: [],
+        department: ''
       },
       searchForm: {
         account: '',
@@ -439,7 +478,8 @@ export default {
       //选中的员工
       selectedStaff: [],
       //选中员工的机构
-      selectedDepartment: ''
+      selectedDepartment: '',
+      keyword: ''
     };
   },
   computed: {
@@ -447,6 +487,7 @@ export default {
       return this.listMember
         .map(it => ({
           ...it,
+          his: it.staff,
           removeLoading: false,
           staffName: it.hisStaff.map(it => it.name).join(','),
           phStaffName: it.phStaff.map(it => it.name).join(','),
@@ -485,10 +526,12 @@ export default {
     },
     //非本机构的外部员工
     extendStaffList() {
-      return this.serverExtendStaff.map(it => ({
-        ...it,
-        username: `${it.username}${it.states ? '' : ' (禁用)'}`
-      }));
+      return this.serverExtendStaff
+        .map(it => ({
+          ...it,
+          username: `${it.username}${it.states ? '' : ' (禁用)'}`
+        }))
+        .filter(it => !this.keyword || it.name.indexOf(this.keyword) > -1);
     },
     hisList() {
       return this.serverHisData;
@@ -597,19 +640,9 @@ export default {
     },
     beforeClose() {
       this.userForm = {
-        account: '',
-        password: '',
-        name: '',
-        gender: '',
-        phone: '',
-        isGP: false,
-        his: '',
-        phStaff: '',
-        education: '',
-        major: '',
-        title: '',
-        remark: null,
-        department: null
+        his: [],
+        phStaff: [],
+        department: ''
       };
       this.dialogFormEditUsersVisible = false;
       this.$refs.userFormAdd.resetFields();
@@ -666,7 +699,9 @@ export default {
         {
           id: row.id,
           his: row.hisStaff.map(it => it.id),
-          phStaff: row.phStaff.map(it => it.id)
+          phStaff: row.phStaff.map(it => it.id),
+          department: row.department,
+          remark: row.remark
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -678,7 +713,9 @@ export default {
           id: this.userForm.id,
           hospital: this.hospitalId,
           hisStaffs: this.userForm.his,
-          phStaffs: this.userForm.phStaff
+          phStaffs: this.userForm.phStaff,
+          department: this.userForm.department,
+          remark: this.userForm.remark || null
         });
         this.$message({
           type: 'success',
@@ -687,10 +724,9 @@ export default {
         this.$asyncComputed.listMember.update();
         this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
+        this.dialogFormEditUsersVisible = false;
       } catch (e) {
         this.$message.error(e.message);
-      } finally {
-        this.dialogFormEditUsersVisible = false;
       }
     },
     //删除用户
