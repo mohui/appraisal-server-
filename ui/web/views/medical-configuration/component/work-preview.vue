@@ -106,10 +106,7 @@
       </el-table-column>
       <el-table-column align="center" label="梯度范围">
         <template slot-scope="{row}">
-          <div v-if="row.start === null && row.end === null">
-            --
-          </div>
-          <div v-else>
+          <div>
             <span v-if="row.start === null">无穷小</span>
             <span v-else>{{ row.start }}</span>
             ~
