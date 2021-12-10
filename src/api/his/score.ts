@@ -27,7 +27,8 @@ import {
   getStaffList,
   getMarkMetric,
   divisionOperation,
-  getHisStaff
+  getHisStaff,
+  getPhStaff
 } from './common';
 
 function log(...args) {
@@ -262,46 +263,46 @@ export async function workPointCalculation(
   let phStaff;
   let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
+    // 取出本机构下的所有ph员工
+    const phStaffs = await getPhStaff(staffModel.hospital);
     // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联公卫员工的员工
     if (
       staffMethod === HisStaffMethod.DYNAMIC &&
       scope === HisStaffDeptType.HOSPITAL
     ) {
-      // language=PostgreSQL
-      phUserList = await originalDB.execute(
-        `
-          select id, name username
-          from ph_user
-          where hospital = ?
-        `,
-        staffModel.hospital
-      );
+      // 公卫员工列表
+      phUserList = phStaffs.map(it => ({
+        id: it.id,
+        username: it.name
+      }));
+
+      // 所有的公卫员工id
       phStaff = phUserList.map(it => it.id);
     } else {
-      // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
+      // 如果有公卫数据, 并且是绑定到员工层, 根据员工id找到他的ph的员工id,找到的可能有其他机构下的ph员工id,所以需要筛选出本机构的
       const phStaffModels = await appDB.execute(
         // language=PostgreSQL
         `
-          select ph_staff
-          from staff
-          where ph_staff is not null
-              and id in (${staffIds.map(() => '?')})
+          select staff, ph_staff
+          from staff_ph_mapping
+          where staff in (${staffIds.map(() => '?')})
         `,
         ...staffIds
       );
-      phStaff = phStaffModels.map(it => it.ph_staff);
-      if (phStaff.length > 0) {
-        // 查询这些公卫员工的名称
-        // language=PostgreSQL
-        phUserList = await originalDB.execute(
-          `
-            select id, name username
-            from ph_user
-            where id in (${phStaff.map(() => '?')})
-          `,
-          ...phStaff
-        );
-      }
+      // 从机构下的所有PH员工中筛选出绑定了以上员工的ph员工
+      phUserList = phStaffs
+        .filter(phIt => {
+          const mappingFind = phStaffModels.find(
+            mappingIt => mappingIt.ph_staff === phIt.id
+          );
+          return !!mappingFind;
+        })
+        .map(it => ({
+          id: it.id,
+          username: it.name
+        }));
+      // 公卫员工id列表
+      phStaff = phUserList.map(it => it.id);
     }
   }
   // endregion
