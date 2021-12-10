@@ -703,12 +703,10 @@ export function multistep(
         //全范围 正无穷到负无穷
         if (rule.end == null) {
           stepNum = num;
-        } else if (num == rule.end) {
-          if (num > 0) stepNum = num;
         } else if (num < rule.end) {
           stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0).toNumber();
-        } else if (rule.end > 0 && num > rule.end) {
-          //当最小区间的最大值大于0 且num大于此值时 工作量为最大值-0
+        } else if (rule.end > 0 && num >= rule.end) {
+          //当最小区间的最大值大于0 且num大于等于此值时 工作量为最大值-0
           stepNum = rule.end - 0;
         }
       } else {
@@ -716,17 +714,23 @@ export function multistep(
         if (
           num >= rule.start &&
           (rule.end === null ||
+            //负区间 前开后闭
             (num < 0 && num < rule.end) ||
+            //正区间 前闭后开
             (num > 0 && rule.end >= 0))
         ) {
-          //当num大于区间的最大值时 以最大值结算 否则以num作为终点
-          //当num为负数时区间最大值为非负数 或 num为正数区间最小值为非正数 以0作为计算起点 否则以区间最小值结算
-          stepNum = Decimal.sub(
-            rule.end !== null && num > rule.end ? rule.end : num,
-            (num < 0 && rule.end >= 0) || (num > 0 && rule.start <= 0)
-              ? 0
-              : rule.start
-          ).toNumber();
+          if (num > 0) {
+            //当num大于区间的最大值时以最大值结算 否则以num作为终点
+            //当区间最小值为非正数以0结算 否则以区间最小值结算
+            stepNum = Decimal.sub(
+              rule.end !== null && num > rule.end ? rule.end : num,
+              rule.start <= 0 ? 0 : rule.start
+            ).toNumber();
+          }
+          if (num < 0) {
+            //当区间最大值为非负数以0结算 否则以区间最大值结算
+            stepNum = Decimal.sub(num, rule.end >= 0 ? 0 : rule.end).toNumber();
+          }
         } else if (rule.start < 0 && num < rule.start) {
           //当区间最小值小于0 且num小于此值时 工作量为最小值-(最大值小于0时以最大值计算 否则以0计算)
           stepNum = Decimal.sub(
@@ -739,7 +743,7 @@ export function multistep(
     return {
       ...rule,
       num: stepNum,
-      total: stepNum * rule.unit
+      total: Decimal.mul(stepNum, rule.unit).toNumber()
     };
   });
 }
