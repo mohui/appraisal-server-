@@ -23,7 +23,12 @@ import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
 import {getBasicData} from '../group/score';
-import {getStaffList, getMarkMetric, divisionOperation} from './common';
+import {
+  getStaffList,
+  getMarkMetric,
+  divisionOperation,
+  getHisStaff
+} from './common';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -188,6 +193,7 @@ export async function workPointCalculation(
           where areaMapping.area = ?
             and ((areaMapping.department is not null and areaMapping.department = ?)
             or staff.id = ?)`,
+        hospital,
         staffModel.department,
         staffModel.id
       );
@@ -220,35 +226,34 @@ export async function workPointCalculation(
       it => it.source.startsWith('门诊') || it.source.startsWith('住院')
     ).length > 0
   ) {
+    // 查询本机构下HIS员工的id
+    const hisStaffModels = await getHisStaff(staffModel.hospital);
     // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
     if (
       staffMethod === HisStaffMethod.DYNAMIC &&
       scope === HisStaffDeptType.HOSPITAL
     ) {
-      // 查询his机构id
-      // language=PostgreSQL
-      const hisStaffModels = await originalDB.execute(
-        `
-          select id, name
-          from his_staff
-          where hospital = ?
-        `,
-        staffModel.hospital
-      );
       doctorIds = hisStaffModels.map(it => it.id);
     } else {
-      // 根据员工id找到他的his的员工id
-      // language=PostgreSQL
+      // 根据员工id找到他的his的员工id,找到的可能有其他机构下的his员工id,所以需要筛选出本机构的
       const staffList = await appDB.execute(
+        // language=PostgreSQL
         `
-          select staff, name
-          from staff
-          where staff is not null
-            and id in (${staffIds.map(() => '?')})
+          select staff, his_staff
+          from staff_his_mapping
+          where staff in (${staffIds.map(() => '?')})
         `,
         ...staffIds
       );
-      doctorIds = staffList.map(it => it.staff);
+      doctorIds = staffList
+        .filter(hisStaffIt => {
+          // 在本机构的所有his员工账号中查找此his员工是否存在,如果存在,是本机构的,如果不存在,是其他机构的
+          const hisFind = hisStaffModels.find(
+            hisIt => hisIt.id === hisStaffIt.his_staff
+          );
+          return !!hisFind;
+        })
+        .map(it => it.his_staff);
     }
   }
   // endregion
@@ -585,6 +590,7 @@ type AssessModel = {
   // 满分
   total: number;
 };
+
 // endregion
 
 /**
@@ -622,6 +628,7 @@ async function getChargeMasters(hospital, day) {
   }
   return obj;
 }
+
 export default class HisScore {
   // region 自动打分
   /**
