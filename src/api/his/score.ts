@@ -691,10 +691,12 @@ export default class HisScore {
    */
   async autoScoreHospital(day, id) {
     const hospital = await appDB.execute(
+      // language=PostgreSQL
       `
-          select id, name, hospital
+          select staff.id, staff.name, areaMapping.area hospital
           from staff
-          where hospital = ?
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
         `,
       id
     );
