@@ -93,6 +93,7 @@
     <el-table
       v-hidden-scroll
       class="gradient-table"
+      height="250"
       size="mini"
       :data="gradientScore"
       border
@@ -316,7 +317,7 @@ export default {
 .preview-container {
   display: flex;
   flex-direction: column;
-  height: 50vh;
+  height: 60vh;
 }
 .preview-score {
   width: 60%;
@@ -328,13 +329,17 @@ export default {
 </style>
 <style lang="scss">
 .gradient-table {
+  flex: 1;
   margin: 5px 0;
   overflow-y: scroll;
+  .gutter {
+    display: none;
+  }
 }
 .work-config-table {
   display: flex;
   flex-direction: column;
-  flex: 3;
+  flex: 2;
 
   .el-table__body-wrapper {
     flex: 1;
