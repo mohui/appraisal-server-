@@ -1045,25 +1045,31 @@ export default class Person {
 
   /**
    * 获取体检表
+   *
+   * @param id 个人id
+   * @return [{
+   * id: 体检编号
+   * checkDate: 检查时间
    * stature: 身高
    * weight: 体重
    * temperature: 体温
    * symptom: 症状
    * bc_abnormal: B超说明
    * updateAt: 更新时间
-   * @param id 个人id
+   * }]
    */
   async healthy(id) {
     // language=PostgreSQL
     return originalDB.execute(
       `
         select vh.id,
+               vh.checkupdate as "checkDate",
                vh.stature     as "stature",
                vh.weight      as "weight",
                vh.temperature as "temperature",
                vh.symptom     as "symptom",
                vh.bc_abnormal as "bc_abnormal",
-               vh.checkupdate as "updateAt"
+               vh.operatetime as "updateAt"
         from ph_healthy vh
         where vh.personnum = ?
           and vh.isdelete = false
