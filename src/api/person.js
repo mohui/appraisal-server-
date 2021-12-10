@@ -1067,7 +1067,7 @@ export default class Person {
         from ph_healthy vh
         where vh.personnum = ?
           and vh.isdelete = false
-        order by vh.operatetime desc
+        order by vh.checkupdate desc
       `,
       id
     );
