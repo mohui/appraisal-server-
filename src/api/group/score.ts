@@ -1952,7 +1952,7 @@ export default class Score {
       await ReportAreaModel.upsert({
         checkId: check,
         areaCode: checkAreaModel.areaCode,
-        budget: budgetModel.budget
+        budget: budgetModel.budget ?? 0
       });
       // TODO: 历史功能暂时禁用 3. 保存地区报告历史金额
       // await ReportAreaHistoryModel.upsert({

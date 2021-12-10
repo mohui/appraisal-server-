@@ -487,6 +487,7 @@ export default {
       return this.listMember
         .map(it => ({
           ...it,
+          his: it.staff,
           removeLoading: false,
           staffName: it.hisStaff.map(it => it.name).join(','),
           phStaffName: it.phStaff.map(it => it.name).join(','),
