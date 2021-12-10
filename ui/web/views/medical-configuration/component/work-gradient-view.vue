@@ -36,7 +36,6 @@
             :max="getMaxValue(it, index)"
           ></el-input-number>
         </div>
-        <span style="margin-right: 10px">单个工分项标准工作量得分:</span>
         <el-input-number v-model="it.score" size="mini"></el-input-number>
       </div>
     </div>

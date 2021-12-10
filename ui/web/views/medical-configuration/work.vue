@@ -358,7 +358,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="工分项计算方式" prop="scoreMethod">
+            <el-form-item
+              class="score-method-item"
+              label="工分项计算方式"
+              prop="scoreMethod"
+            >
               <el-button-group>
                 <el-button
                   :class="{
@@ -385,6 +389,7 @@
                   {{ HisWorkMethod.AMOUNT }}
                 </el-button>
               </el-button-group>
+              <span style="float: right">单个工分项标准工作量得分</span>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -1134,7 +1139,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .long-tree {
   max-height: 20vh;
   overflow-y: auto;
@@ -1179,5 +1184,10 @@ export default {
 }
 .drag-row:hover {
   cursor: move;
+}
+.score-method-item {
+  &.el-form-item {
+    margin-bottom: 0;
+  }
 }
 </style>
