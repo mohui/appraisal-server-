@@ -52,6 +52,7 @@ type WorkItemDetail = {
  * 工分计算
  *
  * @param staff 员工id
+ * @param hospital 员工机构
  * @param start 开始时间
  * @param end 结束时间
  * @param name 工分名称
@@ -73,6 +74,7 @@ type WorkItemDetail = {
  */
 export async function workPointCalculation(
   staff,
+  hospital,
   start,
   end,
   name,
@@ -99,26 +101,24 @@ export async function workPointCalculation(
     name: string;
     department?: string;
     hospital: string;
-    staff?: string;
     hospitalName?: string;
-    ph_staff?: string;
   } = (
     await appDB.execute(
       // language=PostgreSQL
       `
         select staff.id,
                staff.name,
-               staff.staff,
                areaMapping.area hospital,
                areaMapping.department,
-               staff.ph_staff,
                area.name as     "hospitalName"
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
                left join area on areaMapping.area = area.code
         where staff.id = ?
+          and areaMapping.area = ?
       `,
-      staff
+      staff,
+      hospital
     )
   )[0];
   //员工不存在, 直接返回
@@ -161,8 +161,12 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const deptStaffList = await appDB.execute(
         `
-            select id from staff
-                where department in (${depIds.map(() => '?')})`,
+          select staff.id
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+            and areaMapping.department in (${depIds.map(() => '?')})`,
+        hospital,
         ...depIds
       );
       staffIds.push(...deptStaffList.map(it => it.id));
@@ -178,10 +182,12 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-          select id
+          select staff.id
           from staff
-          where (department is not null and department = ?)
-             or id = ?`,
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+            and ((areaMapping.department is not null and areaMapping.department = ?)
+            or staff.id = ?)`,
         staffModel.department,
         staffModel.id
       );
@@ -192,9 +198,10 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-          select id
+          select staff.id
           from staff
-          where hospital = ?
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
         `,
         staffModel.hospital
       );
@@ -1977,6 +1984,7 @@ export default class HisScore {
       // 根据工分项获取工分项目的公分
       const work = await workPointCalculation(
         it.staff,
+        hospital,
         start,
         end,
         it.name,
