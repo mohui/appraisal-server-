@@ -799,7 +799,16 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    should.number().required(),
+    // should.number().required(),
+    should
+      .array()
+      .items({
+        start: should.number().allow(null),
+        end: should.number().allow(null),
+        score: should.number().required()
+      })
+      .min(1)
+      .required(),
     should
       .string()
       .only(
@@ -882,19 +891,28 @@ export default class HisWorkItem {
       const hisWorkItemId = uuid();
       // 添加工分项目
       await appDB.execute(
-        ` insert into
-              his_work_item(id, hospital, name, method, type, score, remark, item_type, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        // language=PostgreSQL
+        `
+          insert into his_work_item(id,
+                                    hospital,
+                                    name,
+                                    method,
+                                    type,
+                                    score,
+                                    remark,
+                                    item_type,
+                                    scores)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
         hisWorkItemId,
         hospital,
         name,
         method,
         staffMethod,
-        score,
+        1, //score,
         remark,
         itemType,
-        dayjs().toDate(),
-        dayjs().toDate()
+        JSON.stringify(score)
       );
       // 如果是固定时候,需要把绑定员工放到数据中
       if (staffMethod === HisStaffMethod.STATIC) {
