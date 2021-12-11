@@ -70,13 +70,27 @@ export class AddStaffMappingMigration implements IMigration {
 
         -- 添加地区字段
         ALTER table his_staff_extra_score
-          ADD COLUMN area varchar(36) DEFAULT null;
+          ADD COLUMN area varchar(36);
         COMMENT ON COLUMN his_staff_extra_score."area" IS '地区id';
 
         update his_staff_extra_score
         set area=s.hospital
         from staff s
         where his_staff_extra_score.staff = s.id;
+
+        -- 删除语句
+        delete from his_staff_extra_score where area is null;
+
+        --area字段设置非空
+        alter table his_staff_extra_score alter area drop not null;
+
+        --修改联合主键
+        alter table his_staff_extra_score
+          drop constraint his_staff_extra_score_pkey;
+
+        alter table his_staff_extra_score
+          add constraint his_staff_extra_score_pkey
+            primary key (staff, month, area);
       `
     );
 
