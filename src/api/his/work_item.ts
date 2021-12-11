@@ -1001,7 +1001,16 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    should.number().required(),
+    // should.number().required(),
+    should
+      .array()
+      .items({
+        start: should.number().allow(null),
+        end: should.number().allow(null),
+        score: should.number().required()
+      })
+      .min(1)
+      .required(),
     should
       .string()
       .only(
@@ -1093,19 +1102,21 @@ export default class HisWorkItem {
     return appDB.transaction(async () => {
       // 添加工分项目
       await appDB.execute(
-        ` update his_work_item
-              set name = ?,
-                method = ?,
-                type = ?,
-                score = ?,
-                remark = ?,
-                item_type = ?,
-                updated_at = ?
-              where id = ?`,
+        // language=PostgreSQL
+        `
+          update his_work_item
+          set name       = ?,
+              method     = ?,
+              type       = ?,
+              scores     = ?,
+              remark     = ?,
+              item_type  = ?,
+              updated_at = ?
+          where id = ?`,
         name,
         method,
         staffMethod,
-        score,
+        JSON.stringify(score),
         remark,
         itemType,
         dayjs().toDate(),
