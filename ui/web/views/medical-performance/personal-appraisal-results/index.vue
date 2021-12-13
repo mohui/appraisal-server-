@@ -152,7 +152,7 @@
                       <el-button
                         class="operation"
                         type="text"
-                        :disabled="personInfoData.settle"
+                        :disabled="personInfoData.settle || !area"
                         @click="saveEditorAdditionalPoints"
                       >
                         {{ isEditor ? '完成' : '编辑' }}
@@ -432,7 +432,8 @@ export default {
             row.id,
             this.id,
             this.curDate,
-            row.staffScore
+            row.staffScore,
+            this.area
           );
           row.isRating = !row.isRating;
           this.$message.success('打分成功');
