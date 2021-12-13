@@ -1,10 +1,10 @@
-import {appDB, unifs} from '../app';
+import {appDB, unifs} from '../../app';
 import * as dayjs from 'dayjs';
 import * as path from 'path';
-import {getAreaTree, getHospitals} from './group/common';
+import {getAreaTree, getHospitals} from './common';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-import {getBasicData, getMarks, percentString} from './group/score';
+import {BasicTagUsages, MarkTagUsages} from '../../../common/rule-score';
+import {getBasicData, getMarks, percentString} from './score';
 import {promises as fs} from 'fs';
 import * as PizZip from 'pizzip';
 
@@ -1100,7 +1100,7 @@ async function render(data) {
   }
 }
 
-export default class Report {
+export default class PHReport {
   /**
    * 获取报告列表
    *
