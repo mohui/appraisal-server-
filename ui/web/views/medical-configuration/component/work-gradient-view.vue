@@ -68,6 +68,15 @@ export default {
       required: false
     }
   },
+  watch: {
+    gradient() {
+      if (this.gradient.length > 0) {
+        this.gradientData = this.gradient;
+      } else {
+        this.cleanData();
+      }
+    }
+  },
   created() {
     if (this.gradient.length > 0) {
       this.gradientData = this.gradient;

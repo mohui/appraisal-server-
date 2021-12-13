@@ -783,7 +783,7 @@ export default {
         if (valid) {
           this.addBtnLoading = true;
           //获取配置的梯度设置数据
-          this.newWork.gradient = this.$refs.gradientView.$data.gradientData.map(
+          const newWorkGradient = this.$refs.gradientView.$data.gradientData.map(
             it => ({
               start: it.min,
               end: it.max,
@@ -811,7 +811,7 @@ export default {
                   type: it.type
                 }))
               : [],
-            this.newWork.gradient,
+            newWorkGradient,
             this.newWork.scope,
             this.newWork.remark || null,
             this.newWork.itemType || null
@@ -868,7 +868,12 @@ export default {
           score: row.score,
           remark: row.remark,
           itemType: row.itemType,
-          gradient: row.gradient || []
+          gradient:
+            row?.steps?.map(it => ({
+              min: it.start,
+              max: it.end,
+              score: it.unit
+            })) || []
         })
       );
       this.addWorkVisible = true;
