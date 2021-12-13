@@ -114,7 +114,7 @@
         >
         </el-table-column>
         <el-table-column
-          prop="score"
+          prop="stepsScore"
           align="center"
           label="单位量得分"
           width="90"
@@ -559,20 +559,34 @@ export default {
             );
             if (itemType) {
               const items = pre.find(p => p.id === itemType.id);
-              if (items) items.children.push(next);
-              if (!items)
+              if (items)
+                items.children.push({
+                  ...next,
+                  stepsScore: this.stepsScore(next.steps)
+                });
+              if (!items) {
                 pre.push({
                   id: itemType.id,
                   itemTypeId: itemType.id,
                   name: itemType.name,
                   work: itemType.name,
                   sort: itemType.sort,
-                  children: [next],
+                  children: [
+                    {
+                      ...next,
+                      stepsScore: this.stepsScore(next.steps)
+                    }
+                  ],
                   hasChildren: true
                 });
+              }
             } else {
               //没有类型的工分项单独一列
-              pre.push({...next, hasChildren: false});
+              pre.push({
+                ...next,
+                stepsScore: this.stepsScore(next.steps),
+                hasChildren: false
+              });
             }
             return pre;
           },
@@ -613,7 +627,8 @@ export default {
         score: d.score || 0,
         remark: d.remark,
         itemType: d.itemType,
-        itemTypeName: d.itemTypeName
+        itemTypeName: d.itemTypeName,
+        steps: d.steps
       }));
     },
     treeData() {
@@ -796,9 +811,8 @@ export default {
                   type: it.type
                 }))
               : [],
-            this.newWork.score,
-            this.newWork.scope,
             this.newWork.gradient,
+            this.newWork.scope,
             this.newWork.remark || null,
             this.newWork.itemType || null
           ];
@@ -1134,6 +1148,14 @@ export default {
         return [1, 0];
       }
       return [1, 1];
+    },
+    //处理单位量得分数组
+    stepsScore(steps) {
+      if (steps) {
+        if (steps.length === 1) return steps[0].unit;
+        else return `${steps[0].unit} ~ ${steps[steps.length - 1].unit}`;
+      }
+      return null;
     }
   }
 };
