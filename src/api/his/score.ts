@@ -7,9 +7,9 @@ import {
   HisStaffMethod,
   HisWorkMethod,
   MarkTagUsages,
-  PreviewType
+  PreviewType,
+  multistep
 } from '../../../common/his';
-import Decimal from 'decimal.js';
 import {
   dateValid,
   dayToRange,
@@ -1876,6 +1876,7 @@ export default class HisScore {
       item_type: string; //工分项分类id
       item_type_name: string; //工分项分类名称
       order: number; //排序
+      steps: object; //梯度
     }[] = await appDB.execute(
       `
         select wi.id,
@@ -1885,6 +1886,7 @@ export default class HisScore {
                wim.source,
                wi.type                   as staff_type,
                wi.item_type,
+               wi.steps,
                type.name                 as item_type_name,
                type."order",
                wism.source               as staff_id,
@@ -1945,6 +1947,7 @@ export default class HisScore {
               ? [{code: it.staff_id, type: it.staff_level}]
               : [],
           score: it.score,
+          steps: it.steps,
           // 范围, 动态的时候才有值
           scope:
             it.staff_type === HisStaffMethod.DYNAMIC ? it.staff_level : null,
@@ -1970,23 +1973,24 @@ export default class HisScore {
         it.scope
       );
 
-      let works;
+      // 单位量
+      let unitage = 0;
       // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
       if (it.method === HisWorkMethod.AMOUNT) {
-        works = work.map(workIt => ({
-          ...workIt,
-          score: it.score
-        }));
+        // 计数的单位量是总条数
+        unitage = work.length;
       } else if (it.method === HisWorkMethod.SUM) {
-        // 如果是总和 金额 * 标准工作量
-        works = work.map(workIt => ({
-          ...workIt,
-          score: new Decimal(workIt.value).mul(it.score).toNumber()
-        }));
+        // 总和的单位量是所有数量的和
+        unitage = work.reduce(
+          (prev, curr) => Number(prev) + Number(curr.value),
+          0
+        );
       }
-      // 累加
+      // 梯度得分
+      const works = multistep(it.steps, unitage);
+      // 累加梯度得分
       const sum = works.reduce(
-        (prev, curr) => Number(prev) + Number(curr.score),
+        (prev, curr) => Number(prev) + Number(curr.total),
         0
       );
       workItems = workItems.concat([
