@@ -677,7 +677,7 @@ export const TagAlgorithmUsages = {
 export function validMultistepRules(
   rules: {start: number | null; end: number | null; unit: number}[]
 ): boolean {
-  if (
+  return (
     rules.filter((rule, index) => {
       return (
         (index == 0 && rule.start !== null) ||
@@ -685,10 +685,8 @@ export function validMultistepRules(
         (index !== 0 && rule.start !== rules[index - 1].end) ||
         rule.unit === null
       );
-    }).length > 0
-  )
-    return false;
-  else return true;
+    }).length <= 0
+  );
 }
 
 /**
