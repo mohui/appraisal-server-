@@ -138,7 +138,7 @@ export default {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 0 0 10px 0;
+  padding: 0;
 }
 .scope-row {
   flex: 1;
