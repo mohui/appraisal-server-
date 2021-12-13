@@ -165,7 +165,7 @@ export class Application {
       // 自动生成公卫报告
       cron.schedule(config.get('generate.cron'), async () => {
         try {
-          const api = new (require('./api/jx-report').default)();
+          const api = new (require('./api/group/report').default)();
           await api.generateAll();
           console.log('生成公卫报告完成');
         } catch (e) {
