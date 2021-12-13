@@ -6,7 +6,8 @@ import {
   HisStaffDeptType,
   HisStaffMethod,
   HisWorkMethod,
-  HisWorkSource
+  HisWorkSource,
+  validMultistepRules
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital, monthToRange} from './service';
@@ -805,7 +806,7 @@ export default class HisWorkItem {
       .items({
         start: should.number().allow(null),
         end: should.number().allow(null),
-        score: should.number().required()
+        unit: should.number().required()
       })
       .min(1)
       .required(),
@@ -854,6 +855,10 @@ export default class HisWorkItem {
         );
     });
 
+    if (!validMultistepRules(score)) {
+      throw new KatoRuntimeError(`梯度传值有误`);
+    }
+
     const mappingSorts = mappings
       .map(it => it.id)
       .sort((a, b) => a.length - b.length);
@@ -901,7 +906,7 @@ export default class HisWorkItem {
                                     score,
                                     remark,
                                     item_type,
-                                    scores)
+                                    steps)
           values (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         hisWorkItemId,
@@ -981,6 +986,7 @@ export default class HisWorkItem {
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
    * @param score 分值
+   * @param steps 梯度分值
    * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
    * @param itemType 公分项分类
@@ -1007,7 +1013,7 @@ export default class HisWorkItem {
       .items({
         start: should.number().allow(null),
         end: should.number().allow(null),
-        score: should.number().required()
+        unit: should.number().required()
       })
       .min(1)
       .required(),
@@ -1056,6 +1062,10 @@ export default class HisWorkItem {
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
+
+    if (!validMultistepRules(score)) {
+      throw new KatoRuntimeError(`梯度传值有误`);
+    }
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
@@ -1108,7 +1118,7 @@ export default class HisWorkItem {
           set name       = ?,
               method     = ?,
               type       = ?,
-              scores     = ?,
+              steps     = ?,
               remark     = ?,
               item_type  = ?,
               updated_at = ?
@@ -1236,7 +1246,7 @@ export default class HisWorkItem {
                item.method,
                item.type,
                item.score,
-               item.scores,
+               item.steps,
                item.remark,
                item.item_type,
                type.name    item_type_name,
@@ -1320,7 +1330,8 @@ export default class HisWorkItem {
           name: it.name,
           method: it.method,
           type: it.type,
-          score: it.scores,
+          score: it.score,
+          steps: it.steps,
           remark: it.remark,
           itemType: it.item_type,
           typeName: it.item_type_name,
