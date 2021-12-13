@@ -674,6 +674,23 @@ export const TagAlgorithmUsages = {
 
 //endregion
 
+export function validMultistepRules(
+  rules: {start: number | null; end: number | null; unit: number}[]
+): boolean {
+  if (
+    rules.filter((rule, index) => {
+      return (
+        (index == 0 && rule.start !== null) ||
+        (index == rules.length - 1 && rule.end !== null) ||
+        (index !== 0 && rule.start !== rules[index - 1].end) ||
+        rule.unit === null
+      );
+    }).length > 0
+  )
+    return false;
+  else return true;
+}
+
 /**
  * 工作量阶梯式算分
  *
