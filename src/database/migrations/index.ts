@@ -48,7 +48,7 @@ import {UpdateStaffMigration} from './045_update_staff';
 import {AddStaffOccupationMigration} from './046_add_staff_occupation';
 import {AddHisCheckRuleFieldLengthMigration} from './047_add_his_check_rule_field_length';
 import {AddBasicDataUniqueMigration} from './048_add_basic_data_unique';
-import {AddStaffMappingMigration} from './048_add_staff_mapping';
+import {AddStaffMappingMigration} from './049_add_staff_mapping';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
