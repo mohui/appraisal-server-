@@ -780,7 +780,7 @@ export default class HisWorkItem {
    * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
-   * @param score 分值
+   * @param steps 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
    * @param itemType 公分项分类
@@ -828,7 +828,7 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
+    steps,
     scope,
     remark,
     itemType
@@ -855,7 +855,7 @@ export default class HisWorkItem {
         );
     });
 
-    if (!validMultistepRules(score)) {
+    if (!validMultistepRules(steps)) {
       throw new KatoRuntimeError(`梯度传值有误`);
     }
 
@@ -917,7 +917,7 @@ export default class HisWorkItem {
         1, //score,
         remark,
         itemType,
-        JSON.stringify(score)
+        JSON.stringify(steps)
       );
       // 如果是固定时候,需要把绑定员工放到数据中
       if (staffMethod === HisStaffMethod.STATIC) {
@@ -985,7 +985,6 @@ export default class HisWorkItem {
    * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
-   * @param score 分值
    * @param steps 梯度分值
    * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
@@ -1007,7 +1006,6 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    // should.number().required(),
     should
       .array()
       .items({
@@ -1036,7 +1034,7 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
+    steps,
     scope,
     remark,
     itemType
@@ -1063,7 +1061,7 @@ export default class HisWorkItem {
         );
     });
 
-    if (!validMultistepRules(score)) {
+    if (!validMultistepRules(steps)) {
       throw new KatoRuntimeError(`梯度传值有误`);
     }
 
@@ -1126,7 +1124,7 @@ export default class HisWorkItem {
         name,
         method,
         staffMethod,
-        JSON.stringify(score),
+        JSON.stringify(steps),
         remark,
         itemType,
         dayjs().toDate(),
