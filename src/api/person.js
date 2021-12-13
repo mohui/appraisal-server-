@@ -36,7 +36,6 @@ export async function getPersonExcelBuffer(params) {
     documentOr = false,
     year
   } = params;
-  const his = '340203';
   let {name} = params;
   if (name) name = `%${name}%`;
   let hospitals = [];
@@ -50,7 +49,6 @@ export async function getPersonExcelBuffer(params) {
   if (hospitals.length === 0) return {count: 0, rows: []};
 
   const sqlRenderResult = listRenderForExcel({
-    his,
     name,
     hospitals,
     idCard,
@@ -325,7 +323,6 @@ export default class Person {
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
-    const his = '340203';
     let {name} = params;
     if (name) name = `%${name}%`;
     let hospitals = [];
@@ -352,7 +349,6 @@ export default class Person {
     if (hospitals.length === 0) return {count: 0, rows: []};
 
     const sqlRenderResult = listRender({
-      his,
       name,
       hospitals,
       idCard,
