@@ -320,7 +320,7 @@ export default {
 </style>
 <style lang="scss">
 .gradient-table {
-  flex: 1;
+  flex: 2;
   margin: 5px 0;
   overflow-y: scroll;
   .gutter {
@@ -330,7 +330,7 @@ export default {
 .work-config-table {
   display: flex;
   flex-direction: column;
-  flex: 2;
+  flex: 3;
 
   .el-table__body-wrapper {
     flex: 1;
