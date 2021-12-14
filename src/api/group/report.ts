@@ -1,7 +1,7 @@
-import {appDB, unifs} from '../../app';
+import {originalDB, unifs} from '../../app';
 import * as dayjs from 'dayjs';
 import * as path from 'path';
-import {getAreaTree, getHospitals} from './common';
+import {getAreaTree, getHospitals, info} from './common';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {BasicTagUsages, MarkTagUsages} from '../../../common/rule-score';
 import {getBasicData, getMarks, percentString} from './score';
@@ -1154,39 +1154,33 @@ export default class PHReport {
 
   /**
    * 自动生成公卫报告
+   *
+   * @param time 报告时间. 格式: YYYYMM
    */
-  async generateAll() {
-    // 自动获取上月的,格式为年月
-    const time = dayjs()
-      .subtract(1, 'month')
-      .format('YYYYMM');
-
-    // 生成所有地区的公卫报告
-    const allTree = await appDB.execute(`select code, name from area`);
+  async generateAll(time) {
+    //查询所有地区
+    const allTree = await originalDB.execute(`select code, name from area`);
     // 生成所有的地区
     for (const it of allTree) {
-      await this.generate(time, it.code);
+      try {
+        info(`生成 ${it.name} ${time} 公卫报告 - 开始`);
+        await this.generate(time, it.code);
+        info(`生成 ${it.name} ${time} 公卫报告 - 完成`);
+      } catch (e) {
+        info(`生成 ${it.name} ${time} 公卫报告 - 失败`, e);
+      }
     }
   }
 
   /**
-   * 生成公卫报告
-   * @param time 年份加月份
-   * @param code 地区code或机构id
-   * @returns {Promise<void>}
+   * 生成指定时间和数据节点的公卫报告
+   *
+   * @param time 报告时间. 格式: YYYYMM
+   * @param code 数据节点id
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('年份加月份比如202003'),
-    should
-      .string()
-      .required()
-      .description('地区code或机构id')
-  )
+  @validate(should.string().required(), should.string().required())
   async generate(time, code) {
     const data = await getExponent(code, time);
-    return await render(data);
+    await render(data);
   }
 }
