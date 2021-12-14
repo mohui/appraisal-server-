@@ -1967,21 +1967,21 @@ export default class HisScore {
         it.scope
       );
 
-      // 单位量
-      let unitage = 0;
+      // 工作量
+      let workload = 0;
       // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
       if (it.method === HisWorkMethod.AMOUNT) {
         // 计数的单位量是总条数
-        unitage = work.length;
+        workload = work.length;
       } else if (it.method === HisWorkMethod.SUM) {
         // 总和的单位量是所有数量的和
-        unitage = work.reduce(
+        workload = work.reduce(
           (prev, curr) => Number(prev) + Number(curr.value),
           0
         );
       }
       // 梯度得分
-      const works = multistep(it.steps, unitage);
+      const works = multistep(it.steps, workload);
       // 累加梯度得分
       const sum = works.reduce(
         (prev, curr) => Number(prev) + Number(curr.total),
