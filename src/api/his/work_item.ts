@@ -1893,7 +1893,7 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const workItemModes = await appDB.execute(
       `
-        select id, name, method, score
+        select id, name, method
         from his_work_item
         where hospital = ?
       `,
