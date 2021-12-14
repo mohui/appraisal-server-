@@ -113,13 +113,6 @@
           width="80"
         >
         </el-table-column>
-        <el-table-column
-          prop="stepsScore"
-          align="center"
-          label="单位量得分"
-          width="90"
-        >
-        </el-table-column>
         <el-table-column prop="remark" align="center" label="备注" width="100">
           <template slot-scope="{row}">
             <el-tooltip
@@ -561,8 +554,7 @@ export default {
               const items = pre.find(p => p.id === itemType.id);
               if (items)
                 items.children.push({
-                  ...next,
-                  stepsScore: this.stepsScore(next.steps)
+                  ...next
                 });
               if (!items) {
                 pre.push({
@@ -573,8 +565,7 @@ export default {
                   sort: itemType.sort,
                   children: [
                     {
-                      ...next,
-                      stepsScore: this.stepsScore(next.steps)
+                      ...next
                     }
                   ],
                   hasChildren: true
@@ -584,7 +575,6 @@ export default {
               //没有类型的工分项单独一列
               pre.push({
                 ...next,
-                stepsScore: this.stepsScore(next.steps),
                 hasChildren: false
               });
             }
@@ -1153,14 +1143,6 @@ export default {
         return [1, 0];
       }
       return [1, 1];
-    },
-    //处理单位量得分数组
-    stepsScore(steps) {
-      if (steps) {
-        if (steps.length === 1) return steps[0].unit;
-        else return `${steps[0].unit} ~ ${steps[steps.length - 1].unit}`;
-      }
-      return null;
     }
   }
 };
