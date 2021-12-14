@@ -117,7 +117,7 @@ async function getExponent(code, time) {
       // 获取机构id
       const hospitalIds = hospitals.map(it => it.code);
 
-      // 建档率
+      // 建档率(建立电子健康档案人数 / 辖区内常住居民数)
       if (MarkTagUsages[markItem].code === 'S01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -708,7 +708,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 健康教育讲座次数合格率 HE07(一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数)
+      // 健康教育讲座次数合格率(一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数)
       if (MarkTagUsages[markItem].code === 'HE07') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -757,7 +757,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 健康教育咨询次数的合格率 HE09
+      // 健康教育咨询次数的合格率(一年内举办健康教育咨询的次数 / 一年内应举办健康教育咨询的次数)
       if (MarkTagUsages[markItem].code === 'HE09') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -806,7 +806,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 高危人群规范管理率 CH01
+      // 高危人群规范管理率(规范管理的高危人群数 / 高危人群档案数)
       if (MarkTagUsages[markItem].code === 'CH01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -855,7 +855,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 其他慢病规范管理率 CO01
+      // 其他慢病规范管理率(规范管理的其他慢性病档案 / 其他慢病管理人数档案数)
       if (MarkTagUsages[markItem].code === 'CO01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
