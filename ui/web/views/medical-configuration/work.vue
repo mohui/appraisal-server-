@@ -553,7 +553,7 @@ export default {
             if (itemType) {
               const items = pre.find(p => p.id === itemType.id);
               if (items) items.children.push(next);
-              if (!items) {
+              if (!items)
                 pre.push({
                   id: itemType.id,
                   itemTypeId: itemType.id,
@@ -563,7 +563,6 @@ export default {
                   children: [next],
                   hasChildren: true
                 });
-              }
             } else {
               //没有类型的工分项单独一列
               pre.push({...next, hasChildren: false});
