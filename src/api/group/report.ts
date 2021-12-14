@@ -1,16 +1,37 @@
-import {promises as fs} from 'fs';
-import path from 'upath';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import {KatoCommonError, should, validate} from 'kato-server';
-
-import {getAreaTree} from './group/common';
-import {getBasicData, getMarks, percentString} from './group/score';
+import {originalDB, unifs} from '../../app';
 import * as dayjs from 'dayjs';
-import {BasicTagUsages, MarkTagUsages} from '../../common/rule-score';
-import {appDB, unifs} from '../app';
-import {displayTime, reportDir} from './report';
-import {getHospitals} from './group/common';
+import * as path from 'path';
+import {getAreaTree, getHospitals, info} from './common';
+import {KatoCommonError, should, validate} from 'kato-server';
+import {BasicTagUsages, MarkTagUsages} from '../../../common/rule-score';
+import {getBasicData, getMarks, percentString} from './score';
+import {promises as fs} from 'fs';
+import * as PizZip from 'pizzip';
+
+//这个库的导出声明方式有问题, 只能require或者设置esModuleInterop
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Docxtemplater = require('docxtemplater');
+
+/**
+ * 公卫报告存储路径
+ */
+export const reportDir = '/report/appraisal/report';
+
+/**
+ * 语义化时间
+ *
+ * @param time 时间字符串, '202001'
+ */
+export async function displayTime(time) {
+  const year = dayjs(time).year();
+  const month = dayjs(time).month() + 1;
+  let dateLabel = `${year}年${month}月报告`;
+  if (month === 3) dateLabel = `${year}年第一季度报告`;
+  if (month === 6) dateLabel = `${year}年上半年报告`;
+  if (month === 9) dateLabel = `${year}第三季度报告`;
+  if (month === 12) dateLabel = `${year}年度报告`;
+  return dateLabel;
+}
 
 /**
  * 获取指标数据
@@ -24,7 +45,7 @@ async function getExponent(code, time) {
   const dateLabel = await displayTime(time);
 
   // 获取所有权限[1:省,2:市,3:区,4:中心,5:卫生室/站]
-  const allTree = await getAreaTree();
+  const allTree = await getAreaTree(null);
   // 判断当前权限是否在权限树中,如果在,数据几级权限
   const findObj = allTree.find(it => it.code === code);
   if (!findObj) throw new KatoCommonError(`code为 [${code}] 不合法`);
@@ -96,7 +117,7 @@ async function getExponent(code, time) {
       // 获取机构id
       const hospitalIds = hospitals.map(it => it.code);
 
-      // 建档率
+      // 建档率(建立电子健康档案人数 / 辖区内常住居民数)
       if (MarkTagUsages[markItem].code === 'S01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -687,7 +708,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 健康教育讲座次数合格率 HE07(一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数)
+      // 健康教育讲座次数合格率(一年内举办健康知识讲座的次数 / 一年内应举办健康知识讲座的次数)
       if (MarkTagUsages[markItem].code === 'HE07') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -736,7 +757,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 健康教育咨询次数的合格率 HE09
+      // 健康教育咨询次数的合格率(一年内举办健康教育咨询的次数 / 一年内应举办健康教育咨询的次数)
       if (MarkTagUsages[markItem].code === 'HE09') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -785,7 +806,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 高危人群规范管理率 CH01
+      // 高危人群规范管理率(规范管理的高危人群数 / 高危人群档案数)
       if (MarkTagUsages[markItem].code === 'CH01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -834,7 +855,7 @@ async function getExponent(code, time) {
           }
         }
       }
-      // 其他慢病规范管理率 CO01
+      // 其他慢病规范管理率(规范管理的其他慢性病档案 / 其他慢病管理人数档案数)
       if (MarkTagUsages[markItem].code === 'CO01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
@@ -883,16 +904,700 @@ async function getExponent(code, time) {
           }
         }
       }
+      // 早孕建册率(辖区内孕13周之前建册并进行第1次产前检查的产妇人数 / 该地该时间内活产数)
+      if (MarkTagUsages[markItem].code === 'MCH01') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.MCH01,
+          basic: mark?.MCH00,
+          rate: `${percentString(mark?.MCH01, mark?.MCH00)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH01,
+              basic: hospitalMark?.MCH00,
+              rate: `${percentString(hospitalMark?.MCH01, hospitalMark?.MCH00)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH01,
+              basic: hospitalMark?.MCH00,
+              rate: `${percentString(hospitalMark?.MCH01, hospitalMark?.MCH00)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 产后访视率(辖区内产妇出院后7天内接受过产后访视的产妇人数 / 该地该时间内活产数)
+      if (MarkTagUsages[markItem].code === 'MCH02') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.MCH02,
+          basic: mark?.MCH00,
+          rate: `${percentString(mark?.MCH02, mark?.MCH00)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH02,
+              basic: hospitalMark?.MCH00,
+              rate: `${percentString(hospitalMark?.MCH02, hospitalMark?.MCH00)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH02,
+              basic: hospitalMark?.MCH00,
+              rate: `${percentString(hospitalMark?.MCH02, hospitalMark?.MCH00)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 新生儿访视率(年度辖区内按照规范要求接受1次及以上访视的新生儿人数 / 年度辖区内活产数)
+      if (MarkTagUsages[markItem].code === 'MCH03') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.Children00,
+          year
+        );
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.MCH03,
+          basic: basicData,
+          rate: `${percentString(mark?.MCH03, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital.code],
+            BasicTagUsages.Children00,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH03,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH03,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 儿童健康管理率(年度辖区内接受1次及以上随访的0-3岁儿童数 / 年度辖区内0-6岁儿童数)
+      if (MarkTagUsages[markItem].code === 'MCH04') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.Children01,
+          year
+        );
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.MCH04,
+          basic: basicData,
+          rate: `${percentString(mark?.MCH04, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital.code],
+            BasicTagUsages.Children01,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH04,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.MCH04,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 签约服务覆盖率(总签约人群数 / 服务人口数)
+      if (MarkTagUsages[markItem].code === 'SN00') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.DocPeople,
+          year
+        );
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN00,
+          basic: basicData,
+          rate: `${percentString(mark?.SN00, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital.code],
+            BasicTagUsages.DocPeople,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN00,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN00,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 重点人群签约服务覆盖率(重点人群签约数 / 重点人群总数)
+      if (MarkTagUsages[markItem].code === 'SN01') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData =
+          (
+            await originalDB.execute(
+              // language=PostgreSQL
+              `
+                select count(1) count
+                from mark_person mp
+                       inner join ph_person vp on mp.id = vp.id
+                where mp.year = ?
+                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
+                  and (
+                      mp."C01" = true or mp."C02" = true or mp."C03" = true or
+                      mp."C04" = true or mp."C05" = true or mp."C06" = true or
+                      mp."C07" = true or mp."C08" = true or mp."C09" = true or
+                      mp."C10" = true or mp."C11" = true
+                  )
+              `,
+              year,
+              ...hospitalIds
+            )
+          )[0]?.count ?? 0;
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN01,
+          basic: basicData,
+          rate: `${percentString(mark?.SN01, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData =
+            (
+              await originalDB.execute(
+                // language=PostgreSQL
+                `
+                  select count(1) count
+                  from mark_person mp
+                         inner join ph_person vp on mp.id = vp.id
+                  where mp.year = ?
+                    and vp.adminorganization = ?
+                    and (
+                        mp."C01" = true or mp."C02" = true or mp."C03" = true or
+                        mp."C04" = true or mp."C05" = true or mp."C06" = true or
+                        mp."C07" = true or mp."C08" = true or mp."C09" = true or
+                        mp."C10" = true or mp."C11" = true
+                    )
+                `,
+                year,
+                hospital.code
+              )
+            )[0]?.count ?? 0;
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN01,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 计划生育特扶人员签约率(计划生育特扶人员签约数 / 计划生育特扶人员数)
+      if (MarkTagUsages[markItem].code === 'SN02') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData =
+          (
+            await originalDB.execute(
+              // language=PostgresSQL
+              `
+                select count(1) count
+                from mark_person mp
+                       inner join ph_person vp on mp.id = vp.id
+                where mp.year = ?
+                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
+                  and mp."C07" = true
+              `,
+              year,
+              ...hospitalIds
+            )
+          )[0]?.count ?? 0;
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN02,
+          basic: basicData,
+          rate: `${percentString(mark?.SN02, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData =
+            (
+              await originalDB.execute(
+                // language=PostgreSQL
+                `
+                  select count(1) count
+                  from mark_person mp
+                         inner join ph_person vp on mp.id = vp.id
+                  where mp.year = ?
+                    and vp.adminorganization = ?
+                    and mp."C07" = true
+                `,
+                year,
+                hospital.code
+              )
+            )[0]?.count ?? 0;
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN02,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN02,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 有偿签约率(有偿签约人数 / 服务人口数)
+      if (MarkTagUsages[markItem].code === 'SN03') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData = await getBasicData(
+          hospitalIds,
+          BasicTagUsages.DocPeople,
+          year
+        );
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN03,
+          basic: basicData,
+          rate: `${percentString(mark?.SN03, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData = await getBasicData(
+            [hospital.code],
+            BasicTagUsages.DocPeople,
+            year
+          );
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN03,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN03,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 高血压病人有偿签约率(高血压有偿签约人数 / 高血压在管患者总数)
+      if (MarkTagUsages[markItem].code === 'SN04') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData =
+          (
+            await originalDB.execute(
+              // language=PostgresSQL
+              `
+                select count(1) count
+                from mark_person mp
+                       inner join ph_person vp on mp.id = vp.id
+                where mp.year = ?
+                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
+                  and mp."C02" = true
+              `,
+              year,
+              ...hospitalIds
+            )
+          )[0]?.count ?? 0;
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN04,
+          basic: basicData,
+          rate: `${percentString(mark?.SN04, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData =
+            (
+              await originalDB.execute(
+                // language=PostgreSQL
+                `
+                  select count(1) count
+                  from mark_person mp
+                         inner join ph_person vp on mp.id = vp.id
+                  where mp.year = ?
+                    and vp.adminorganization = ?
+                    and mp."C02" = true
+                `,
+                year,
+                hospital.code
+              )
+            )[0]?.count ?? 0;
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN04,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN04,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 糖尿病人有偿签约率(糖尿病有偿签约人数 / 糖尿病在管患者总数)
+      if (MarkTagUsages[markItem].code === 'SN05') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        const basicData =
+          (
+            await originalDB.execute(
+              // language=PostgresSQL
+              `
+                select count(1) count
+                from mark_person mp
+                       inner join ph_person vp on mp.id = vp.id
+                where mp.year = ?
+                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
+                  and mp."C03" = true
+              `,
+              year,
+              ...hospitalIds
+            )
+          )[0]?.count ?? 0;
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN05,
+          basic: basicData,
+          rate: `${percentString(mark?.SN05, basicData)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          const hospitalBasicData =
+            (
+              await originalDB.execute(
+                // language=PostgreSQL
+                `
+                  select count(1) count
+                  from mark_person mp
+                         inner join ph_person vp on mp.id = vp.id
+                  where mp.year = ?
+                    and vp.adminorganization = ?
+                    and mp."C03" = true
+                `,
+                year,
+                hospital.code
+              )
+            )[0]?.count ?? 0;
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN05,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN05,
+              basic: hospitalBasicData,
+              rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 续约率(明年继续签约的人数 / 今年签约的居民总数)
+      if (MarkTagUsages[markItem].code === 'SN07') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN07,
+          basic: mark?.SN00,
+          rate: `${percentString(mark?.SN07, mark?.SN00)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN07,
+              basic: hospitalMark?.SN00,
+              rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN07,
+              basic: hospitalMark?.SN00,
+              rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 有偿续约率(明年继续有偿签约人数 / 今年度有偿签约居民总数)
+      if (MarkTagUsages[markItem].code === 'SN08') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN08,
+          basic: mark?.SN03,
+          rate: `${percentString(mark?.SN08, mark?.SN03)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN08,
+              basic: hospitalMark?.SN03,
+              rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN08,
+              basic: hospitalMark?.SN03,
+              rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
+            });
+            j++;
+          }
+        }
+      }
+      // 履约率(履约的项目数 / 签约的项目总数)
+      if (MarkTagUsages[markItem].code === 'SN10') {
+        // 表一: 中心机构总体
+        const mark = await getMarks(it.code, year);
+        dataRow1.push({
+          index: i,
+          name: `${it?.name}`,
+          value: mark?.SN10,
+          basic: mark?.SN09,
+          rate: `${percentString(mark?.SN10, mark?.SN09)}`
+        });
+        // 表二表三只显示机构本身的
+        for (const hospital of hospitals) {
+          // 仅仅返回中心这一个机构的数据
+          const hospitalMark = await getMarks(hospital.code, year);
+
+          // 表二: 中心/卫生院机构（不含下属机构）
+          if (hospital?.name === it?.name) {
+            dataRow2.push({
+              index: i,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN10,
+              basic: hospitalMark?.SN09,
+              rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
+            });
+          } else {
+            // 表三: 卫生站/卫生室
+            dataRow3.push({
+              index: j,
+              name: `${hospital?.name}`,
+              value: hospitalMark?.SN10,
+              basic: hospitalMark?.SN09,
+              rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
+            });
+            j++;
+          }
+        }
+      }
       i++;
     }
     // 区分数据列表是率还是数
-    let type = {
-      is_num: true
+    const type = {
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      is_num: true,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      is_rate: false
     };
     if (isRate) {
-      type = {
-        is_rate: true
-      };
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      type.is_num = false;
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      type.is_rate = true;
     }
     // 计算合计2021-04-13
     // 如果数组为空,也没必要合计
@@ -902,7 +1607,7 @@ async function getExponent(code, time) {
         (prev, curr) => Number(prev) + curr.value,
         0
       );
-      let dataRow1Obj = {
+      const dataRow1Obj = {
         index: '',
         name: '合计',
         value: dataRow1Value
@@ -926,7 +1631,7 @@ async function getExponent(code, time) {
         (prev, curr) => Number(prev) + curr.value,
         0
       );
-      let dataRow2Obj = {
+      const dataRow2Obj = {
         index: '',
         name: '合计',
         value: dataRow2Value
@@ -950,7 +1655,7 @@ async function getExponent(code, time) {
         (prev, curr) => Number(prev) + curr.value,
         0
       );
-      let dataRow3Obj = {
+      const dataRow3Obj = {
         index: '',
         name: '合计',
         value: dataRow3Value
@@ -1033,9 +1738,13 @@ async function getExponent(code, time) {
 
   return {
     file: `${title.fileName}`,
+    // eslint-disable-next-line @typescript-eslint/camelcase
     date_label: `${title.dateLabel}`,
+    // eslint-disable-next-line @typescript-eslint/camelcase
     start_date: `${title.startDate}`,
+    // eslint-disable-next-line @typescript-eslint/camelcase
     end_date: `${title.endDate}`,
+    // eslint-disable-next-line @typescript-eslint/camelcase
     area_name: `${title.areaName}`,
     data: dataList
   };
@@ -1071,42 +1780,87 @@ async function render(data) {
   }
 }
 
-export default class JxReport {
+export default class PHReport {
+  /**
+   * 获取报告列表
+   *
+   * @param id 地区或机构id
+   * @return {
+   *   id: 文件id
+   *   name: 文件名
+   *   url: 文件下载地址
+   * }
+   */
+  async list(id) {
+    const urlList = await unifs.list(reportDir);
+
+    const urlList1 = await Promise.all(
+      urlList
+        .filter(it => it.isDirectory === false)
+        .map(async it => {
+          const areaTimeStr = path.parse(it.name)?.name;
+          const strLength = areaTimeStr.length;
+          const areaId = areaTimeStr.substr(0, strLength - 7);
+          const time = areaTimeStr.split('-').pop();
+          const timeTitle = await displayTime(time);
+          return {
+            id: it.name,
+            name: `${timeTitle}`,
+            url: await this.sign(it.name),
+            area: areaId,
+            time: time
+          };
+        })
+    );
+    return urlList1
+      .filter(it => it.area === id)
+      .map(it => {
+        return {
+          id: it.id,
+          name: it.name,
+          url: it.url
+        };
+      });
+  }
+
+  /**
+   * unifs文件地址
+   *
+   * @param file 签名
+   */
+  async sign(file) {
+    return await unifs.getExternalUrl(file);
+  }
+
   /**
    * 自动生成公卫报告
+   *
+   * @param time 报告时间. 格式: YYYYMM
    */
-  async generateAll() {
-    // 自动获取上月的,格式为年月
-    const time = dayjs()
-      .subtract(1, 'month')
-      .format('YYYYMM');
-
-    // 生成所有地区的公卫报告
-    const allTree = await appDB.execute(`select code, name from area`);
+  async generateAll(time) {
+    //查询所有地区
+    const allTree = await originalDB.execute(`select code, name from area`);
     // 生成所有的地区
     for (const it of allTree) {
-      await this.generate(time, it.code);
+      try {
+        info(`生成 ${it.name} ${time} 公卫报告 - 开始`);
+        await this.generate(time, it.code);
+        info(`生成 ${it.name} ${time} 公卫报告 - 完成`);
+      } catch (e) {
+        info(`生成 ${it.name} ${time} 公卫报告 - 失败`, e);
+      }
     }
   }
 
   /**
-   * 生成公卫报告
-   * @param time 年份加月份
-   * @param code 地区code或机构id
-   * @returns {Promise<void>}
+   * 生成指定时间和数据节点的公卫报告
+   *
+   * @param time 报告时间. 格式: YYYYMM
+   * @param code 数据节点id
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('年份加月份比如202003'),
-    should
-      .string()
-      .required()
-      .description('地区code或机构id')
-  )
+  @validate(should.string().required(), should.string().required())
   async generate(time, code) {
     const data = await getExponent(code, time);
-    return await render(data);
+    await render(data);
   }
 }

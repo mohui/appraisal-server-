@@ -25,6 +25,7 @@ import {
   OverlayFileSystem,
   UnionFileSystem
 } from './unifs';
+import * as dayjs from 'dayjs';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -165,8 +166,12 @@ export class Application {
       // 自动生成公卫报告
       cron.schedule(config.get('generate.cron'), async () => {
         try {
-          const api = new (require('./api/jx-report').default)();
-          await api.generateAll();
+          //获取上月的时间字符串, 格式为年月
+          const time = dayjs()
+            .subtract(1, 'month')
+            .format('YYYYMM');
+          const api = new (require('./api/group/report').default)();
+          await api.generateAll(time);
           console.log('生成公卫报告完成');
         } catch (e) {
           console.log(`生成公卫报告失败: ${e}`);
