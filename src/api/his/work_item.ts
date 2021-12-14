@@ -800,7 +800,6 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    // should.number().required(),
     should
       .array()
       .items({
@@ -903,18 +902,16 @@ export default class HisWorkItem {
                                     name,
                                     method,
                                     type,
-                                    score,
                                     remark,
                                     item_type,
                                     steps)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          values (?, ?, ?, ?, ?, ?, ?, ?)
         `,
         hisWorkItemId,
         hospital,
         name,
         method,
         staffMethod,
-        1, //score,
         remark,
         itemType,
         JSON.stringify(steps)
@@ -1243,7 +1240,6 @@ export default class HisWorkItem {
                item.name,
                item.method,
                item.type,
-               item.score,
                item.steps,
                item.remark,
                item.item_type,
@@ -1328,7 +1324,6 @@ export default class HisWorkItem {
           name: it.name,
           method: it.method,
           type: it.type,
-          score: it.score,
           steps: it.steps,
           remark: it.remark,
           itemType: it.item_type,
