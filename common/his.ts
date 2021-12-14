@@ -1,4 +1,5 @@
 import * as dayjs from 'dayjs';
+import Decimal from 'decimal.js';
 
 /**
  * 获取时间区间(前闭后开)
@@ -672,3 +673,90 @@ export const TagAlgorithmUsages = {
 };
 
 //endregion
+
+export function validMultistepRules(
+  rules: {start: number | null; end: number | null; unit: number}[]
+): boolean {
+  return (
+    rules.filter((rule, index) => {
+      return (
+        (index == 0 && rule.start !== null) ||
+        (index == rules.length - 1 && rule.end !== null) ||
+        (index !== 0 && rule.start !== rules[index - 1].end) ||
+        rule.unit === null
+      );
+    }).length <= 0
+  );
+}
+
+/**
+ * 工作量阶梯式算分
+ *
+ * @param rules 阶梯式规则 [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ * }]
+ * @param num 总工作量
+ * @return [{
+ *   start: 开始
+ *   end: 结束
+ *   unit: 工作量分值
+ *   num: 工作量
+ *   total: 工分
+ * }]
+ */
+export function multistep(
+  rules: {start: number | null; end: number | null; unit: number}[],
+  num: number
+): {start: number; end: number; unit: number; num: number; total: number}[] {
+  return rules.map(rule => {
+    let stepNum = new Decimal(0);
+    //0不参与计算
+    if (num !== 0) {
+      if (rule.start == null) {
+        //全范围 正无穷到负无穷
+        if (rule.end == null) {
+          stepNum = new Decimal(num);
+        } else if (num < rule.end) {
+          stepNum = Decimal.sub(num, rule.end < 0 ? rule.end : 0);
+        } else if (rule.end > 0 && num >= rule.end) {
+          //当最小区间的最大值大于0 且num大于等于此值时 工作量为最大值-0
+          stepNum = Decimal.sub(rule.end, 0);
+        }
+      } else {
+        //检查数据正向交集
+        if (
+          num >= rule.start &&
+          (rule.end === null ||
+            (num < 0 && num < rule.end) ||
+            (num > 0 && rule.end >= 0))
+        ) {
+          if (num > 0) {
+            //当num大于区间的最大值时以最大值结算 否则以num作为终点
+            //当区间最小值为非正数以0结算 否则以区间最小值结算
+            stepNum = Decimal.sub(
+              rule.end !== null && num > rule.end ? rule.end : num,
+              rule.start <= 0 ? 0 : rule.start
+            );
+          }
+          if (num < 0) {
+            //当区间最大值为非负数以0结算 否则以区间最大值结算
+            stepNum = Decimal.sub(num, rule.end >= 0 ? 0 : rule.end);
+          }
+        } else if (rule.start < 0 && num < rule.start) {
+          //当区间最小值小于0 且num小于此值时 工作量为最小值-(最大值小于0时以最大值计算 否则以0计算)
+          stepNum = Decimal.sub(
+            rule.start,
+            rule.end !== null && rule.end < 0 ? rule.end : 0
+          );
+        }
+      }
+    }
+    return {
+      ...rule,
+      num: stepNum.toNumber(),
+      total: Decimal.mul(stepNum, rule.unit).toNumber()
+    };
+  });
+}
