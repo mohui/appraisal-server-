@@ -10,6 +10,7 @@ import {
   PreviewType,
   multistep
 } from '../../../common/his';
+import Decimal from 'decimal.js';
 import {
   dateValid,
   dayToRange,
@@ -1968,24 +1969,24 @@ export default class HisScore {
       );
 
       // 工作量
-      let workload = 0;
-      // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
+      let workload = new Decimal(0);
+      // 判断是计数还是总和
       if (it.method === HisWorkMethod.AMOUNT) {
         // 计数的单位量是总条数
-        workload = work.length;
+        workload = new Decimal(work.length);
       } else if (it.method === HisWorkMethod.SUM) {
         // 总和的单位量是所有数量的和
         workload = work.reduce(
-          (prev, curr) => Number(prev) + Number(curr.value),
-          0
+          (prev, curr) => new Decimal(prev).add(curr.value),
+          new Decimal(0)
         );
       }
       // 梯度得分
-      const works = multistep(it.steps, workload);
+      const works = multistep(it.steps, workload.toNumber());
       // 累加梯度得分
       const sum = works.reduce(
-        (prev, curr) => Number(prev) + Number(curr.total),
-        0
+        (prev, curr) => new Decimal(prev).add(curr.total),
+        new Decimal(0)
       );
       workItems = workItems.concat([
         {
@@ -1993,7 +1994,7 @@ export default class HisScore {
           name: it.name,
           typeId: it.typeId,
           typeName: it.typeName,
-          score: sum * it.rate,
+          score: new Decimal(sum).mul(new Decimal(it.rate)).toNumber(),
           order: it.order
         }
       ]);
