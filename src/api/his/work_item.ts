@@ -1542,7 +1542,6 @@ export default class HisWorkItem {
       mappings,
       staffMethod,
       staffs,
-      score,
       scope
     );
     return workItems

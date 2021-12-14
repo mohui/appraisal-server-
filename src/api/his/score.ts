@@ -59,7 +59,6 @@ type WorkItemDetail = {
  * @param mappings 工分项目
  * @param staffMethod 医疗工分项目和员工绑定方式 固定, 动态
  * @param staffs 员工数组[{code: 员工/科室id, type: 员工/科室}]
- * @param score 计数单位
  * @param scope 范围 员工, 科室, 机构
  * @return [{
  *   value: 单位量;
@@ -80,7 +79,6 @@ export async function workPointCalculation(
   mappings,
   staffMethod,
   staffs,
-  score,
   scope
 ): Promise<
   {
@@ -133,7 +131,6 @@ export async function workPointCalculation(
     return {
       name,
       method,
-      score,
       source: it,
       sourceName: item?.name,
       scope: item?.scope
@@ -1882,7 +1879,6 @@ export default class HisScore {
         select wi.id,
                wi.name,
                wi.method,
-               wi.score,
                wim.source,
                wi.type                   as staff_type,
                wi.item_type,
@@ -1946,7 +1942,6 @@ export default class HisScore {
             it.staff_type === HisStaffMethod.STATIC
               ? [{code: it.staff_id, type: it.staff_level}]
               : [],
-          score: it.score,
           steps: it.steps,
           // 范围, 动态的时候才有值
           scope:
@@ -1969,7 +1964,6 @@ export default class HisScore {
         it.mappings,
         it.staffMethod,
         it.staffs,
-        it.score,
         it.scope
       );
 
