@@ -603,7 +603,6 @@ export default {
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
         scope: d.scope,
-        score: d.score || 0,
         remark: d.remark,
         itemType: d.itemType,
         itemTypeName: d.itemTypeName,
@@ -678,7 +677,6 @@ export default {
         mappings: newMappings,
         staffMethod: staffMethod,
         staffs: checkedStaffs,
-        score: this.newWork.score,
         scope: this.newWork.scope,
         gradient: preview_gradient
       };
@@ -844,7 +842,6 @@ export default {
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
           scope: row.scope,
-          score: row.score,
           remark: row.remark,
           itemType: row.itemType,
           gradient:
@@ -1033,7 +1030,6 @@ export default {
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
           scope: row.scope,
-          score: row.score,
           remark: row.remark,
           itemType: row.itemType
         })
