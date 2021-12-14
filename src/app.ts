@@ -165,12 +165,17 @@ export class Application {
     if (config.get('generate.cron')) {
       // 自动生成公卫报告
       cron.schedule(config.get('generate.cron'), async () => {
-        //获取上月的时间字符串, 格式为年月
-        const time = dayjs()
-          .subtract(1, 'month')
-          .format('YYYYMM');
-        const api = new (require('./api/group/report').default)();
-        await api.generateAll(time);
+        try {
+          //获取上月的时间字符串, 格式为年月
+          const time = dayjs()
+            .subtract(1, 'month')
+            .format('YYYYMM');
+          const api = new (require('./api/group/report').default)();
+          await api.generateAll(time);
+          console.log('生成公卫报告完成');
+        } catch (e) {
+          console.log(`生成公卫报告失败: ${e}`);
+        }
       });
     }
     //医疗绩效的每日打分
