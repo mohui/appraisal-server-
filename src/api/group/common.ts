@@ -1,4 +1,14 @@
 import {originalDB} from '../../app';
+import * as dayjs from 'dayjs';
+
+/**
+ * 带时间的日志输出
+ *
+ * @param args 输出内容
+ */
+export function info(...args): void {
+  console.info(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
+}
 
 // 获取地区下的所有机构, 如果本身是机构返回自己
 export async function getHospitals(code: string) {
