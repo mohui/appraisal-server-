@@ -200,11 +200,6 @@ export default {
         return this.workData.length;
       return 0;
     },
-    previewScore() {
-      return new Decimal(this.total)
-        .mul(new Decimal(this.config.score))
-        .toNumber();
-    },
     //梯度分计算
     gradientScore() {
       return multistep(this.config.gradient, this.total);
@@ -266,7 +261,6 @@ export default {
               code: it.value,
               type: it.type
             })),
-            this.config.score,
             this.config.scope || null,
             this.staff,
             this.$dayjs(this.date).toDate()

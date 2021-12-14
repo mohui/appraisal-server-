@@ -1526,7 +1526,6 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
     scope,
     staff,
     day
