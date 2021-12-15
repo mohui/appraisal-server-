@@ -145,7 +145,7 @@ export default {
       this.showPopover = this.jobDataShow.length > 0;
     },
     async downloadFile(file) {
-      const fileUrl = await this.$api.Report.sign(file);
+      const fileUrl = await this.$api.PHReport.sign(file);
       if (fileUrl) {
         const fileName = file.split('/')[2];
         FileSaver.saveAs(fileUrl, fileName);

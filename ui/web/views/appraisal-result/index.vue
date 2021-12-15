@@ -1205,7 +1205,7 @@ export default {
     //报告下载列表服务器数据
     reportListSeverData: {
       async get() {
-        return await this.$api.Report.list(this.params.id);
+        return await this.$api.PHReport.list(this.params.id);
       },
       default() {
         return [];
