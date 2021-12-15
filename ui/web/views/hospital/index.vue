@@ -454,7 +454,7 @@ export default {
     },
     async getImageUrl(url) {
       try {
-        return await this.$api.Report.sign(url);
+        return await this.$api.PHReport.sign(url);
       } catch (e) {
         console.log(e);
       }
