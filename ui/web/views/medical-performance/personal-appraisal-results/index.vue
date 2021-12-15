@@ -410,7 +410,8 @@ export default {
           await this.$api.HisScore.setExtraScore(
             this.id,
             this.curDate,
-            this.personInfoData.extra
+            this.personInfoData.extra,
+            this.area
           );
           this.isEditor = !this.isEditor;
           this.$message.success('打分成功');
