@@ -4,7 +4,7 @@ import {v4 as uuid} from 'uuid';
 
 export class AddStaffMappingMigration implements IMigration {
   name = '增加员工和地区绑定表,员工和his员工绑定表,员工和公卫员工绑定表';
-  version = 49;
+  version = 50;
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
