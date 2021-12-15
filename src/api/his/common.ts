@@ -230,15 +230,58 @@ export async function getStaffExtraScore(staff, hospital, month) {
     await appDB.execute(
       // language=PostgreSQL
       `
-          select score
-          from his_staff_extra_score
-          where staff = ?
-            and area = ?
-            and month = ?
-        `,
+        select score
+        from his_staff_extra_score
+        where staff = ?
+          and area = ?
+          and month = ?
+      `,
       staff,
       hospital,
       start
     )
   )[0]?.score;
+}
+
+/**
+ * 获取HIS员工列表
+ *
+ * @param hospital 机构id
+ */
+export async function getHisStaff(hospital) {
+  return await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id,
+             department,
+             hospital,
+             name,
+             sex,
+             phone,
+             birth
+      from his_staff
+      where hospital = ?
+    `,
+    hospital
+  );
+}
+
+/**
+ * 获取公卫员工
+ *
+ * @param hospital 机构id
+ */
+export async function getPhStaff(hospital) {
+  return await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id,
+             hospital,
+             name,
+             states
+      from ph_user
+      where hospital = ?
+    `,
+    hospital
+  );
 }

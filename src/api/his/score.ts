@@ -24,7 +24,13 @@ import {HisWorkItemSources} from './work_item';
 import {sql as sqlRender} from '../../database';
 import * as uuid from 'uuid';
 import {getBasicData} from '../group/score';
-import {getStaffList, getMarkMetric, divisionOperation} from './common';
+import {
+  getStaffList,
+  getMarkMetric,
+  divisionOperation,
+  getHisStaff,
+  getPhStaff
+} from './common';
 
 function log(...args) {
   console.log(dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'), ...args);
@@ -53,6 +59,7 @@ type WorkItemDetail = {
  * 工分计算
  *
  * @param staff 员工id
+ * @param hospital 员工机构
  * @param start 开始时间
  * @param end 结束时间
  * @param name 工分名称
@@ -73,6 +80,7 @@ type WorkItemDetail = {
  */
 export async function workPointCalculation(
   staff,
+  hospital,
   start,
   end,
   name,
@@ -98,23 +106,24 @@ export async function workPointCalculation(
     name: string;
     department?: string;
     hospital: string;
-    staff?: string;
     hospitalName?: string;
-    ph_staff?: string;
   } = (
     await appDB.execute(
       // language=PostgreSQL
-      `select staff.id,
-                staff.name,
-                staff.staff,
-                staff.hospital,
-                staff.department,
-                staff.ph_staff,
-                area.name as "hospitalName"
-         from staff
-                left join area on staff.hospital = area.code
-         where staff.id = ?`,
-      staff
+      `
+        select staff.id,
+               staff.name,
+               areaMapping.area hospital,
+               areaMapping.department,
+               area.name as     "hospitalName"
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+               left join area on areaMapping.area = area.code
+        where staff.id = ?
+          and areaMapping.area = ?
+      `,
+      staff,
+      hospital
     )
   )[0];
   //员工不存在, 直接返回
@@ -156,8 +165,12 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const deptStaffList = await appDB.execute(
         `
-            select id from staff
-                where department in (${depIds.map(() => '?')})`,
+          select staff.id
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+            and areaMapping.department in (${depIds.map(() => '?')})`,
+        hospital,
         ...depIds
       );
       staffIds.push(...deptStaffList.map(it => it.id));
@@ -173,10 +186,13 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-          select id
+          select staff.id
           from staff
-          where (department is not null and department = ?)
-             or id = ?`,
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+            and ((areaMapping.department is not null and areaMapping.department = ?)
+            or staff.id = ?)`,
+        hospital,
         staffModel.department,
         staffModel.id
       );
@@ -187,9 +203,10 @@ export async function workPointCalculation(
       // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
         `
-          select id
+          select staff.id
           from staff
-          where hospital = ?
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
         `,
         staffModel.hospital
       );
@@ -208,35 +225,34 @@ export async function workPointCalculation(
       it => it.source.startsWith('门诊') || it.source.startsWith('住院')
     ).length > 0
   ) {
+    // 查询本机构下HIS员工的id
+    const hisStaffModels = await getHisStaff(staffModel.hospital);
     // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联his的员工
     if (
       staffMethod === HisStaffMethod.DYNAMIC &&
       scope === HisStaffDeptType.HOSPITAL
     ) {
-      // 查询his机构id
-      // language=PostgreSQL
-      const hisStaffModels = await originalDB.execute(
-        `
-          select id, name
-          from his_staff
-          where hospital = ?
-        `,
-        staffModel.hospital
-      );
       doctorIds = hisStaffModels.map(it => it.id);
     } else {
-      // 根据员工id找到他的his的员工id
-      // language=PostgreSQL
+      // 根据员工id找到他的his的员工id,找到的可能有其他机构下的his员工id,所以需要筛选出本机构的
       const staffList = await appDB.execute(
+        // language=PostgreSQL
         `
-          select staff, name
-          from staff
-          where staff is not null
-            and id in (${staffIds.map(() => '?')})
+          select staff, his_staff
+          from staff_his_mapping
+          where staff in (${staffIds.map(() => '?')})
         `,
         ...staffIds
       );
-      doctorIds = staffList.map(it => it.staff);
+      doctorIds = staffList
+        .filter(hisStaffIt => {
+          // 在本机构的所有his员工账号中查找此his员工是否存在,如果存在,是本机构的,如果不存在,是其他机构的
+          const hisFind = hisStaffModels.find(
+            hisIt => hisIt.id === hisStaffIt.his_staff
+          );
+          return !!hisFind;
+        })
+        .map(it => it.his_staff);
     }
   }
   // endregion
@@ -245,46 +261,46 @@ export async function workPointCalculation(
   let phStaff;
   let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
+    // 取出本机构下的所有ph员工
+    const phStaffs = await getPhStaff(staffModel.hospital);
     // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联公卫员工的员工
     if (
       staffMethod === HisStaffMethod.DYNAMIC &&
       scope === HisStaffDeptType.HOSPITAL
     ) {
-      // language=PostgreSQL
-      phUserList = await originalDB.execute(
-        `
-          select id, name username
-          from ph_user
-          where hospital = ?
-        `,
-        staffModel.hospital
-      );
+      // 公卫员工列表
+      phUserList = phStaffs.map(it => ({
+        id: it.id,
+        username: it.name
+      }));
+
+      // 所有的公卫员工id
       phStaff = phUserList.map(it => it.id);
     } else {
-      // 如果有公卫数据, 并且是绑定到员工层, 取出所有的员工id
+      // 如果有公卫数据, 并且是绑定到员工层, 根据员工id找到他的ph的员工id,找到的可能有其他机构下的ph员工id,所以需要筛选出本机构的
       const phStaffModels = await appDB.execute(
         // language=PostgreSQL
         `
-          select ph_staff
-          from staff
-          where ph_staff is not null
-              and id in (${staffIds.map(() => '?')})
+          select staff, ph_staff
+          from staff_ph_mapping
+          where staff in (${staffIds.map(() => '?')})
         `,
         ...staffIds
       );
-      phStaff = phStaffModels.map(it => it.ph_staff);
-      if (phStaff.length > 0) {
-        // 查询这些公卫员工的名称
-        // language=PostgreSQL
-        phUserList = await originalDB.execute(
-          `
-            select id, name username
-            from ph_user
-            where id in (${phStaff.map(() => '?')})
-          `,
-          ...phStaff
-        );
-      }
+      // 从机构下的所有PH员工中筛选出绑定了以上员工的ph员工
+      phUserList = phStaffs
+        .filter(phIt => {
+          const mappingFind = phStaffModels.find(
+            mappingIt => mappingIt.ph_staff === phIt.id
+          );
+          return !!mappingFind;
+        })
+        .map(it => ({
+          id: it.id,
+          username: it.name
+        }));
+      // 公卫员工id列表
+      phStaff = phUserList.map(it => it.id);
     }
   }
   // endregion
@@ -573,6 +589,7 @@ type AssessModel = {
   // 满分
   total: number;
 };
+
 // endregion
 
 /**
@@ -610,6 +627,7 @@ async function getChargeMasters(hospital, day) {
   }
   return obj;
 }
+
 export default class HisScore {
   // region 自动打分
   /**
@@ -671,10 +689,12 @@ export default class HisScore {
    */
   async autoScoreHospital(day, id) {
     const hospital = await appDB.execute(
+      // language=PostgreSQL
       `
-          select id, name, hospital
+          select staff.id, staff.name, areaMapping.area hospital
           from staff
-          where hospital = ?
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
         `,
       id
     );
@@ -1818,16 +1838,19 @@ export default class HisScore {
     // language=PostgreSQL
     const staffs: {id: string; name: string}[] = await appDB.execute(
       `
-        select id, name
+        select staff.id, staff.name
         from staff
-        where hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
     // 获取所传月份的开始时间
     const {start} = monthToRange(month);
 
-    await Promise.all(staffs.map(staff => this.scoreStaff(staff.id, start)));
+    await Promise.all(
+      staffs.map(staff => this.scoreStaff(staff.id, hospital, start))
+    );
     log(`结束计算 ${hospital} 工分`);
   }
 
@@ -1836,8 +1859,9 @@ export default class HisScore {
    *
    * @param id 员工id
    * @param day 日期
+   * @param hospital 机构
    */
-  async scoreStaff(id, day) {
+  async scoreStaff(id, hospital, day) {
     // 获取月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
     //查询员工信息
@@ -1846,11 +1870,22 @@ export default class HisScore {
       name: string;
       department?: string;
       hospital: string;
-      staff?: string;
     } = (
       await appDB.execute(
-        `select id, name, staff, hospital, department from staff where id = ?`,
-        id
+        //language=PostgreSQL
+        `
+          select staff.id,
+                 staff.name,
+                 staff.staff,
+                 areaMapping.area hospital,
+                 areaMapping.department
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where staff.id = ?
+            and areaMapping.area = ?
+        `,
+        id,
+        hospital
       )
     )[0];
     //员工不存在, 直接返回
@@ -1958,6 +1993,7 @@ export default class HisScore {
       // 根据工分项获取工分项目的公分
       const work = await workPointCalculation(
         it.staff,
+        hospital,
         start,
         end,
         it.name,

@@ -1531,10 +1531,12 @@ export default class HisWorkItem {
     staff,
     day
   ) {
+    const hospital = await getHospital();
     // 时间转化为月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
     const workItems = await workPointCalculation(
       staff,
+      hospital,
       start,
       end,
       name,
