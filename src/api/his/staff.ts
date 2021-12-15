@@ -12,7 +12,7 @@ import {
   dayToRange
 } from './service';
 import {Context} from '../context';
-import {getStaffExtraScore} from './common';
+import {getStaffExtraScore, getHisStaff, getPhStaff} from './common';
 
 // 质量系数
 type AssessModel = {
@@ -1034,26 +1034,16 @@ export default class HisStaff {
       phStaff: []
     }));
 
-    const hisStaffs = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select id, name
-        from his_staff
-        where hospital = ?
-      `,
-      hospital
-    );
+    const hisStaffs = await getHisStaff(hospital);
 
     // 根据绑定关系查询公卫机构下的所有员工
-    const sysUserList = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select id, name
-        from ph_user
-        where hospital = ?
-      `,
-      hospital
-    );
+    const sysUserList = await getPhStaff(hospital);
+
+    // his员工id
+    const hisStaffIds = hisStaffs.map(it => it.id);
+
+    // 公卫员工id
+    const phStaffIds = sysUserList.map(it => it.id);
 
     // 公卫员工列表
     const phStaffList = (
@@ -1064,8 +1054,10 @@ export default class HisStaff {
           from staff_area_mapping area
                  inner join staff_ph_mapping ph on area.staff = ph.staff
           where area.area = ?
+            and ph.ph_staff in (${phStaffIds.map(() => '?')})
         `,
-        hospital
+        hospital,
+        ...phStaffIds
       )
     )?.map(it => {
       const phFind = sysUserList.find(phIt => phIt.id === it.ph_staff);
@@ -1085,8 +1077,10 @@ export default class HisStaff {
           from staff_area_mapping area
                  inner join staff_his_mapping his on area.staff = his.staff
           where area.area = ?
+            and his.his_staff in (${hisStaffIds.map(() => '?')})
         `,
-        hospital
+        hospital,
+        ...hisStaffIds
       )
     )?.map(it => {
       const hisFind = hisStaffs.find(hisIt => hisIt.id === it.his_staff);
