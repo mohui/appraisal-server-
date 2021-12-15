@@ -113,13 +113,6 @@
           width="80"
         >
         </el-table-column>
-        <el-table-column
-          prop="score"
-          align="center"
-          label="单位量得分"
-          width="90"
-        >
-        </el-table-column>
         <el-table-column prop="remark" align="center" label="备注" width="100">
           <template slot-scope="{row}">
             <el-tooltip
@@ -186,6 +179,7 @@
       :before-close="() => resetConfig('workForm')"
       :close-on-press-escape="false"
       :close-on-click-modal="false"
+      v-hidden-scroll
     >
       <el-form
         ref="workForm"
@@ -357,7 +351,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="工分项计算方式" prop="scoreMethod">
+            <el-form-item
+              class="score-method-item"
+              label="工分项计算方式"
+              prop="scoreMethod"
+            >
               <el-button-group>
                 <el-button
                   :class="{
@@ -384,14 +382,15 @@
                   {{ HisWorkMethod.AMOUNT }}
                 </el-button>
               </el-button-group>
+              <span style="float: right">单个工分项标准工作量得分</span>
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="单个工分项标准工作量" prop="score">
-              <el-input-number
-                size="mini"
-                v-model="newWork.score"
-              ></el-input-number>
+            <el-form-item prop="score">
+              <work-gradient-view
+                ref="gradientView"
+                :gradient="newWork.gradient"
+              ></work-gradient-view>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -444,7 +443,6 @@
           :value="data.id"
         ></el-option>
       </el-select>
-
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="resetConfig('workForm')"
           >取 消</el-button
@@ -474,11 +472,12 @@ import {
 import {strToPinyin} from '../../utils/pinyin';
 import WorkPreview from './component/work-preview';
 import WorkTypeDialog from './component/work-type-dialog';
+import WorkGradientView from './component/work-gradient-view';
 import Sortable from 'sortablejs';
 
 export default {
   name: 'Work',
-  components: {WorkPreview, WorkTypeDialog},
+  components: {WorkPreview, WorkTypeDialog, WorkGradientView},
   data() {
     const validaProjects = (rule, value, callback) => {
       if (this.newWork.projectsSelected.length < 1) {
@@ -499,7 +498,8 @@ export default {
         score: 0,
         scope: HisStaffDeptType.Staff,
         remark: '',
-        itemType: ''
+        itemType: '',
+        gradient: []
       },
       addWorkVisible: false,
       workRules: {
@@ -603,10 +603,10 @@ export default {
             ? d.staffMappings
             : [HisStaffMethod.DYNAMIC],
         scope: d.scope,
-        score: d.score || 0,
         remark: d.remark,
         itemType: d.itemType,
-        itemTypeName: d.itemTypeName
+        itemTypeName: d.itemTypeName,
+        steps: d.steps
       }));
     },
     treeData() {
@@ -663,14 +663,22 @@ export default {
           newMappings.push(sourceIt);
         }
       }
+      //配置好的梯度数据
+      const preview_gradient = this.$refs.gradientView.$data.gradientData.map(
+        it => ({
+          start: it.min,
+          end: it.max,
+          unit: it.score
+        })
+      );
       config = {
         name: this.newWork.work,
         method: this.newWork.scoreMethod,
         mappings: newMappings,
         staffMethod: staffMethod,
         staffs: checkedStaffs,
-        score: this.newWork.score,
-        scope: this.newWork.scope
+        scope: this.newWork.scope,
+        gradient: preview_gradient
       };
       return config;
     }
@@ -751,6 +759,14 @@ export default {
         const valid = await this.$refs['workForm'].validate();
         if (valid) {
           this.addBtnLoading = true;
+          //获取配置的梯度设置数据
+          const newWorkGradient = this.$refs.gradientView.$data.gradientData.map(
+            it => ({
+              start: it.min,
+              end: it.max,
+              unit: it.score
+            })
+          );
           //没有配置取值范围则员工方法是"固定",否则为"动态"
           this.newWork.staffMethod = !this.newWork.scope
             ? HisStaffMethod.STATIC
@@ -772,7 +788,7 @@ export default {
                   type: it.type
                 }))
               : [],
-            this.newWork.score,
+            newWorkGradient,
             this.newWork.scope,
             this.newWork.remark || null,
             this.newWork.itemType || null
@@ -826,9 +842,14 @@ export default {
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
           scope: row.scope,
-          score: row.score,
           remark: row.remark,
-          itemType: row.itemType
+          itemType: row.itemType,
+          gradient:
+            row?.steps?.map(it => ({
+              min: it.start,
+              max: it.end,
+              score: it.unit
+            })) || []
         })
       );
       this.addWorkVisible = true;
@@ -885,7 +906,8 @@ export default {
         projectsSelected: [],
         score: 0,
         scope: HisStaffDeptType.Staff,
-        itemType: ''
+        itemType: '',
+        gradient: []
       };
       //重置搜索关键词
       this.filterText = '';
@@ -986,6 +1008,10 @@ export default {
       //重置分类数据
       this.itemType = {id: '', name: '', sort: 1};
     },
+    resetGradient() {
+      //重置分类数据
+      this.newWork.gradient = [];
+    },
     //移动工分项类型
     moveRow(row) {
       this.newWork = JSON.parse(
@@ -1004,7 +1030,6 @@ export default {
           staffMethod: row.staffMethod,
           staffs: row.staffIdMappings,
           scope: row.scope,
-          score: row.score,
           remark: row.remark,
           itemType: row.itemType
         })
@@ -1108,7 +1133,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .long-tree {
   max-height: 20vh;
   overflow-y: auto;
@@ -1153,5 +1178,10 @@ export default {
 }
 .drag-row:hover {
   cursor: move;
+}
+.score-method-item {
+  &.el-form-item {
+    margin-bottom: 0;
+  }
 }
 </style>

@@ -6,7 +6,8 @@ import {
   HisStaffDeptType,
   HisStaffMethod,
   HisWorkMethod,
-  HisWorkSource
+  HisWorkSource,
+  validMultistepRules
 } from '../../../common/his';
 import {sql as sqlRender} from '../../database/template';
 import {getHospital, monthToRange} from './service';
@@ -779,7 +780,7 @@ export default class HisWorkItem {
    * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定 固定: , 动态:员工,科室
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}]绑定的员工或者科室,动态的时候才有值
-   * @param score 分值
+   * @param steps 分值
    * @param scope 关联员工为动态的时候, 有三种情况 本人/本人所在科室/本人所在机构
    * @param remark 备注
    * @param itemType 公分项分类
@@ -799,7 +800,15 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    should.number().required(),
+    should
+      .array()
+      .items({
+        start: should.number().allow(null),
+        end: should.number().allow(null),
+        unit: should.number().required()
+      })
+      .min(1)
+      .required(),
     should
       .string()
       .only(
@@ -818,7 +827,7 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
+    steps,
     scope,
     remark,
     itemType
@@ -844,6 +853,10 @@ export default class HisWorkItem {
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
+
+    if (!validMultistepRules(steps)) {
+      throw new KatoRuntimeError(`梯度传值有误`);
+    }
 
     const mappingSorts = mappings
       .map(it => it.id)
@@ -882,19 +895,26 @@ export default class HisWorkItem {
       const hisWorkItemId = uuid();
       // 添加工分项目
       await appDB.execute(
-        ` insert into
-              his_work_item(id, hospital, name, method, type, score, remark, item_type, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        // language=PostgreSQL
+        `
+          insert into his_work_item(id,
+                                    hospital,
+                                    name,
+                                    method,
+                                    type,
+                                    remark,
+                                    item_type,
+                                    steps)
+          values (?, ?, ?, ?, ?, ?, ?, ?)
+        `,
         hisWorkItemId,
         hospital,
         name,
         method,
         staffMethod,
-        score,
         remark,
         itemType,
-        dayjs().toDate(),
-        dayjs().toDate()
+        JSON.stringify(steps)
       );
       // 如果是固定时候,需要把绑定员工放到数据中
       if (staffMethod === HisStaffMethod.STATIC) {
@@ -962,7 +982,7 @@ export default class HisWorkItem {
    * @param mappings 来源[{id:工分项id,scope:取值范围}]
    * @param staffMethod 指定方式; 动态/固定
    * @param staffs [{id:科室id/员工id,type:类型: 科室/员工}] 绑定的员工或者科室
-   * @param score 分值
+   * @param steps 梯度分值
    * @param scope 固定的时候的范围, 员工/科室/机构
    * @param remark 备注
    * @param itemType 公分项分类
@@ -983,7 +1003,15 @@ export default class HisWorkItem {
       code: should.string(),
       type: should.string()
     }),
-    should.number().required(),
+    should
+      .array()
+      .items({
+        start: should.number().allow(null),
+        end: should.number().allow(null),
+        unit: should.number().required()
+      })
+      .min(1)
+      .required(),
     should
       .string()
       .only(
@@ -1003,7 +1031,7 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
+    steps,
     scope,
     remark,
     itemType
@@ -1029,6 +1057,10 @@ export default class HisWorkItem {
           `公卫数据和其他范围选择必须是${HisStaffDeptType.HOSPITAL}`
         );
     });
+
+    if (!validMultistepRules(steps)) {
+      throw new KatoRuntimeError(`梯度传值有误`);
+    }
 
     // 修改之前查询公分项是否存在
     const find = await appDB.execute(
@@ -1075,19 +1107,21 @@ export default class HisWorkItem {
     return appDB.transaction(async () => {
       // 添加工分项目
       await appDB.execute(
-        ` update his_work_item
-              set name = ?,
-                method = ?,
-                type = ?,
-                score = ?,
-                remark = ?,
-                item_type = ?,
-                updated_at = ?
-              where id = ?`,
+        // language=PostgreSQL
+        `
+          update his_work_item
+          set name       = ?,
+              method     = ?,
+              type       = ?,
+              steps     = ?,
+              remark     = ?,
+              item_type  = ?,
+              updated_at = ?
+          where id = ?`,
         name,
         method,
         staffMethod,
-        score,
+        JSON.stringify(steps),
         remark,
         itemType,
         dayjs().toDate(),
@@ -1206,7 +1240,7 @@ export default class HisWorkItem {
                item.name,
                item.method,
                item.type,
-               item.score,
+               item.steps,
                item.remark,
                item.item_type,
                type.name    item_type_name,
@@ -1291,7 +1325,7 @@ export default class HisWorkItem {
           name: it.name,
           method: it.method,
           type: it.type,
-          score: it.score,
+          steps: it.steps,
           remark: it.remark,
           itemType: it.item_type,
           typeName: it.item_type_name,
@@ -1493,7 +1527,6 @@ export default class HisWorkItem {
     mappings,
     staffMethod,
     staffs,
-    score,
     scope,
     staff,
     day,
@@ -1511,7 +1544,6 @@ export default class HisWorkItem {
       mappings,
       staffMethod,
       staffs,
-      score,
       scope
     );
     return workItems
@@ -1863,7 +1895,7 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const workItemModes = await appDB.execute(
       `
-        select id, name, method, score
+        select id, name, method
         from his_work_item
         where hospital = ?
       `,

@@ -7,7 +7,8 @@ import {
   HisStaffMethod,
   HisWorkMethod,
   MarkTagUsages,
-  PreviewType
+  PreviewType,
+  multistep
 } from '../../../common/his';
 import Decimal from 'decimal.js';
 import {
@@ -66,7 +67,6 @@ type WorkItemDetail = {
  * @param mappings 工分项目
  * @param staffMethod 医疗工分项目和员工绑定方式 固定, 动态
  * @param staffs 员工数组[{code: 员工/科室id, type: 员工/科室}]
- * @param score 计数单位
  * @param scope 范围 员工, 科室, 机构
  * @return [{
  *   value: 单位量;
@@ -88,7 +88,6 @@ export async function workPointCalculation(
   mappings,
   staffMethod,
   staffs,
-  score,
   scope
 ): Promise<
   {
@@ -142,7 +141,6 @@ export async function workPointCalculation(
     return {
       name,
       method,
-      score,
       source: it,
       sourceName: item?.name,
       scope: item?.scope
@@ -1911,15 +1909,16 @@ export default class HisScore {
       item_type: string; //工分项分类id
       item_type_name: string; //工分项分类名称
       order: number; //排序
+      steps: object; //梯度
     }[] = await appDB.execute(
       `
         select wi.id,
                wi.name,
                wi.method,
-               wi.score,
                wim.source,
                wi.type                   as staff_type,
                wi.item_type,
+               wi.steps,
                type.name                 as item_type_name,
                type."order",
                wism.source               as staff_id,
@@ -1979,7 +1978,7 @@ export default class HisScore {
             it.staff_type === HisStaffMethod.STATIC
               ? [{code: it.staff_id, type: it.staff_level}]
               : [],
-          score: it.score,
+          steps: it.steps,
           // 范围, 动态的时候才有值
           scope:
             it.staff_type === HisStaffMethod.DYNAMIC ? it.staff_level : null,
@@ -2002,28 +2001,28 @@ export default class HisScore {
         it.mappings,
         it.staffMethod,
         it.staffs,
-        it.score,
         it.scope
       );
 
-      let works;
-      // 判断是技术还是总和, 如果是技术, 条数 * 标准工作量
+      // 工作量
+      let workload = new Decimal(0);
+      // 判断是计数还是总和
       if (it.method === HisWorkMethod.AMOUNT) {
-        works = work.map(workIt => ({
-          ...workIt,
-          score: it.score
-        }));
+        // 计数的单位量是总条数
+        workload = new Decimal(work.length);
       } else if (it.method === HisWorkMethod.SUM) {
-        // 如果是总和 金额 * 标准工作量
-        works = work.map(workIt => ({
-          ...workIt,
-          score: new Decimal(workIt.value).mul(it.score).toNumber()
-        }));
+        // 总和的单位量是所有数量的和
+        workload = work.reduce(
+          (prev, curr) => new Decimal(prev).add(curr.value),
+          new Decimal(0)
+        );
       }
-      // 累加
+      // 梯度得分
+      const works = multistep(it.steps, workload.toNumber());
+      // 累加梯度得分
       const sum = works.reduce(
-        (prev, curr) => Number(prev) + Number(curr.score),
-        0
+        (prev, curr) => new Decimal(prev).add(curr.total),
+        new Decimal(0)
       );
       workItems = workItems.concat([
         {
@@ -2031,7 +2030,7 @@ export default class HisScore {
           name: it.name,
           typeId: it.typeId,
           typeName: it.typeName,
-          score: sum * it.rate,
+          score: new Decimal(sum).mul(new Decimal(it.rate)).toNumber(),
           order: it.order
         }
       ]);

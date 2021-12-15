@@ -366,7 +366,7 @@
                       "
                     >
                       <div class="notes-date">
-                        {{ items.updateAt }}
+                        {{ items.checkDate }}
                       </div>
                       <div class="notes-content">
                         <div>
@@ -873,7 +873,7 @@ export default {
     },
     healthyList() {
       return this.healthy.map(it => {
-        it.updateAt = it.updateAt ? it.updateAt.$format() : '';
+        it.checkDate = it.checkDate ? it.checkDate.$format('YYYY-MM-DD') : '';
         return it;
       });
     },

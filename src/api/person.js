@@ -36,7 +36,6 @@ export async function getPersonExcelBuffer(params) {
     documentOr = false,
     year
   } = params;
-  const his = '340203';
   let {name} = params;
   if (name) name = `%${name}%`;
   let hospitals = [];
@@ -50,7 +49,6 @@ export async function getPersonExcelBuffer(params) {
   if (hospitals.length === 0) return {count: 0, rows: []};
 
   const sqlRenderResult = listRenderForExcel({
-    his,
     name,
     hospitals,
     idCard,
@@ -325,7 +323,6 @@ export default class Person {
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
-    const his = '340203';
     let {name} = params;
     if (name) name = `%${name}%`;
     let hospitals = [];
@@ -352,7 +349,6 @@ export default class Person {
     if (hospitals.length === 0) return {count: 0, rows: []};
 
     const sqlRenderResult = listRender({
-      his,
       name,
       hospitals,
       idCard,
@@ -857,7 +853,7 @@ export default class Person {
           where vd.personnum = ?
             and vd.isdelete = false
             and vdv.isdelete = false
-          order by vdv.operatetime desc
+          order by vdv.followupdate desc
         `,
         id
       )
@@ -1045,19 +1041,25 @@ export default class Person {
 
   /**
    * 获取体检表
+   *
+   * @param id 个人id
+   * @return [{
+   * id: 体检编号
+   * checkDate: 检查时间
    * stature: 身高
    * weight: 体重
    * temperature: 体温
    * symptom: 症状
    * bc_abnormal: B超说明
    * updateAt: 更新时间
-   * @param id 个人id
+   * }]
    */
   async healthy(id) {
     // language=PostgreSQL
     return originalDB.execute(
       `
         select vh.id,
+               vh.checkupdate as "checkDate",
                vh.stature     as "stature",
                vh.weight      as "weight",
                vh.temperature as "temperature",
@@ -1067,7 +1069,7 @@ export default class Person {
         from ph_healthy vh
         where vh.personnum = ?
           and vh.isdelete = false
-        order by vh.operatetime desc
+        order by vh.checkupdate desc
       `,
       id
     );
@@ -1769,6 +1771,7 @@ export default class Person {
                  updated_at
           from mch_new_born_visit
           where mothervisitno = ?
+          order by visitdate
         `,
         i.id
       );
@@ -1783,7 +1786,7 @@ export default class Person {
     // language=PostgreSQL
     const childHealthBooksNo = (
       await originalDB.execute(
-        'select id from mch_child_health_books where motheridcardno = ?',
+        'select id from mch_child_health_books where motheridcardno = ? order by constructionlistdate',
         idCardNo
       )
     ).map(it => it.id);
@@ -1894,6 +1897,7 @@ export default class Person {
                updated_at
         from mch_new_born_visit
         where id = ?
+        order by visitdate
       `,
       code
     );
@@ -1947,6 +1951,7 @@ export default class Person {
         from mch_child_check cc
                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
         where cc.id = ?
+        order by cc.checkdate
       `,
       code
     );
@@ -1971,7 +1976,7 @@ export default class Person {
         from mch_child_check cc
                inner join mch_child_health_books cb on cc.childhealthbooksno = cb.id
         where cc.childhealthbooksno = ?
-        order by chronologicalage
+        order by cc.checkdate
       `,
       childHealthBookNo
     );
@@ -3182,6 +3187,7 @@ export default class Person {
                  left join ph_healthy vh on vh.id = vhc.incrementno
           where vh.personnum = ?
             and vh.isdelete = false
+          order by vh.checkupDate desc, vhc.operatetime desc
         `,
         id
       )
@@ -3337,6 +3343,7 @@ export default class Person {
                left join ph_person vp on vq.personnum = vp.id
                left join area on vp.operateorganization = area.code
         where vp.id = ?
+        order by vq.questionnairemaindate desc
       `,
       id
     );
