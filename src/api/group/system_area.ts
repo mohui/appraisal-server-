@@ -357,78 +357,25 @@ export default class SystemArea {
 
     // 如果没有传年份获取年份
     year = getYear(year);
-    // 签约人数
-    const signedSqlRenderResult = sqlRender(
+    const sql = sqlRender(
       `
-            select count(distinct vsr.personnum) as "Number"
-            from ph_sign_register vsr
-                   inner join ph_person vp on vp.id = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-              and vp.WriteOff = false
-              and vsr.YearDegree = {{? YearDegree}}
-          `,
+        select sum("SN00") as signed,
+               sum("SN06") as execute,
+               sum("SN07") as renew
+        from mark_organization
+        where id in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
+          and year = {{? YearDegree}}
+      `,
       {
         hospitalIds,
         YearDegree: year
       }
     );
-    // 履约人数
-    const exeSqlRenderResult = sqlRender(
-      `
-            select count(distinct vsr.PersonNum) as "Number"
-            from ph_sign_check_main main
-                   inner join ph_sign_register vsr on vsr.id = main.register
-            where main.ExeOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-              and main.ExeTime >= {{? startTime}}
-              and main.ExeTime < {{? endTime}}
-          `,
-      {
-        hospitalIds,
-        startTime: dayjs()
-          .year(year)
-          .startOf('y')
-          .toDate(),
-        endTime: dayjs()
-          .year(year)
-          .startOf('y')
-          .add(1, 'y')
-          .toDate()
-      }
-    );
-    // 续约人数
-    const renewSqlRenderResult = sqlRender(
-      `
-            select count(distinct vsr.PersonNum) as "Number"
-            from ph_sign_register vsr
-                   inner join ph_sign_register a on a.PersonNum = vsr.PersonNum and a.YearDegree = {{? YearDegree}}
-                   inner join ph_Person vp on vp.id = vsr.PersonNum
-            where vp.AdminOrganization in ({{#each hospitalIds}}{{? this}}{{#sep}},{{/sep}}{{/ each}})
-              and vp.WriteOff = false
-              and vsr.YearDegree = {{? vsrYearDegree}}
-          `,
-      {
-        YearDegree: dayjs()
-          .year(year)
-          .add(-1, 'y')
-          .year(),
-        hospitalIds,
-        vsrYearDegree: year
-      }
-    );
-    const sqlResults = await Promise.all(
-      [
-        signedSqlRenderResult,
-        exeSqlRenderResult,
-        renewSqlRenderResult
-      ].map(it => originalDB.execute(it[0], ...it[1]))
-    );
-    const signedNumber = sqlResults[0][0]?.Number ?? 0;
-    const exeNumber = sqlResults[1][0]?.Number ?? 0;
-    const renewNumber = sqlResults[2][0]?.Number ?? 0;
+    const sqlResults = await originalDB.execute(sql[0], ...sql[1]);
     return {
-      signedNumber: Number(signedNumber),
-      exeNumber: Number(exeNumber),
-      renewNumber: Number(renewNumber)
+      signedNumber: Number(sqlResults[0]?.signed ?? 0),
+      exeNumber: Number(sqlResults[0]?.execute ?? 0),
+      renewNumber: Number(sqlResults[0]?.renew ?? 0)
     };
   }
 
