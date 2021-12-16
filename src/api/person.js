@@ -330,19 +330,8 @@ export default class Person {
     if (!region || region === '')
       hospitals = Context.current.user.hospitals.map(it => it.id);
     else {
-      const areaModels = await originalDB.execute(
-        // language=PostgreSQL
-        `
-          select code id,
-                 name
-          from area
-          where label in ('hospital.center', 'hospital.station')
-            and (code = ? or path like ?)
-        `,
-        region,
-        `%${region}%`
-      );
-      hospitals = areaModels.map(it => it.id);
+      const areaModels = await getHospitals(region);
+      hospitals = areaModels.map(it => it.code);
     }
 
     //如果查询出来的机构列表为空,则数据都为空
