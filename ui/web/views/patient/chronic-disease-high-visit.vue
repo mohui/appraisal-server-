@@ -140,13 +140,21 @@
               </td>
             </tr>
             <tr>
-              <td rowspan="1" colspan="2">是否失防</td>
-              <td colspan="2">是否失防</td>
-              <td colspan="9">
-                <em>{{ detailDate.isVisit ? '是' : '否' }}</em>
+              <td rowspan="2" colspan="2">是否失访</td>
+              <td colspan="2">是否失访</td>
+              <td colspan="20">
+                <em>{{
+                  detailDate.isVisit === true
+                    ? '是'
+                    : detailDate.isVisit === false
+                    ? '否'
+                    : ''
+                }}</em>
               </td>
+            </tr>
+            <tr>
               <td colspan="2">失防描述</td>
-              <td colspan="9">
+              <td colspan="20">
                 <em>{{ detailDate.visitReason }}</em>
               </td>
             </tr>
