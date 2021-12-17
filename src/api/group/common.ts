@@ -50,6 +50,7 @@ export type AreaTreeNode = {
   name: string;
   code: string;
   parent: string;
+  label: string;
   level: number;
   root: string;
   path: string[];
@@ -72,6 +73,7 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
                           name,
                           code,
                           parent,
+                          label,
                           level,
                           self_path,
                           root,
@@ -79,7 +81,8 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
         ) as (
         select name,
                code                          as code,
-               parent                        as code,
+               parent                        as parent,
+               label                         as label,
                1                             as level,
                (array [code])::varchar(36)[] as self_path,
                code                          as root,
@@ -90,6 +93,7 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
         select c.name,
                c.code                                    as code,
                c.parent                                  as parent,
+               c.label                                   as label,
                level + 1                                 as level,
                (tree.self_path || c.code)::varchar(36)[] as self_path,
                tree.root                                 as root,
@@ -102,6 +106,7 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
       select name,                                                       -- 名称
              code,                                                       -- code
              tree.parent,                                                -- 父级code
+             tree.label,                                                 -- 类型
              level,                                                      -- 层级
              root,                                                       -- 路径
              self_path,                                                  -- 根节点
@@ -115,6 +120,7 @@ export async function getAreaTree(code): Promise<AreaTreeNode[]> {
     name: it.name,
     code: it.code,
     parent: it.parent,
+    label: it.label,
     level: it.level,
     path: it.self_path,
     root: it.root,
