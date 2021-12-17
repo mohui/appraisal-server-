@@ -153,7 +153,7 @@
               </td>
             </tr>
             <tr>
-              <td colspan="2">失防描述</td>
+              <td colspan="2">失访描述</td>
               <td colspan="20">
                 <em>{{ detailDate.visitReason }}</em>
               </td>
