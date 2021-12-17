@@ -7,6 +7,7 @@ import {BasicTagUsages, MarkTagUsages} from '../../../common/rule-score';
 import {getBasicData, getMarks, percentString} from './score';
 import {promises as fs} from 'fs';
 import * as PizZip from 'pizzip';
+import Decimal from 'decimal.js';
 
 //这个库的导出声明方式有问题, 只能require或者设置esModuleInterop
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -1979,8 +1980,8 @@ async function getExponent(code, time) {
     if (dataRow1.length > 0) {
       // 这个必有
       const dataRow1Value = dataRow1.reduce(
-        (prev, curr) => Number(prev) + curr.value,
-        0
+        (prev, curr) => new Decimal(prev).add(curr.value),
+        new Decimal(0)
       );
       const dataRow1Obj = {
         index: '',
@@ -1990,8 +1991,8 @@ async function getExponent(code, time) {
       // 这个可能存在没有的情况
       if (dataRow1[0]?.basic || dataRow1[0]?.basic === 0) {
         const dataRow1Basic = dataRow1.reduce(
-          (prev, curr) => Number(prev) + curr.basic,
-          0
+          (prev, curr) => new Decimal(prev).add(curr.basic),
+          new Decimal(0)
         );
         dataRow1Obj['basic'] = dataRow1Basic;
         dataRow1Obj['rate'] = `${percentString(dataRow1Value, dataRow1Basic)}`;
@@ -2003,8 +2004,8 @@ async function getExponent(code, time) {
     if (dataRow2.length > 0) {
       // 这个必有
       const dataRow2Value = dataRow2.reduce(
-        (prev, curr) => Number(prev) + curr.value,
-        0
+        (prev, curr) => new Decimal(prev).add(curr.value),
+        new Decimal(0)
       );
       const dataRow2Obj = {
         index: '',
@@ -2014,8 +2015,8 @@ async function getExponent(code, time) {
       // 这个可能存在没有的情况
       if (dataRow2[0]?.basic || dataRow2[0]?.basic === 0) {
         const dataRow2Basic = dataRow2.reduce(
-          (prev, curr) => Number(prev) + curr.basic,
-          0
+          (prev, curr) => new Decimal(prev).add(curr.basic),
+          new Decimal(0)
         );
         dataRow2Obj['basic'] = dataRow2Basic;
         dataRow2Obj['rate'] = `${percentString(dataRow2Value, dataRow2Basic)}`;
@@ -2027,8 +2028,8 @@ async function getExponent(code, time) {
     if (dataRow3.length > 0) {
       // 这个必有
       const dataRow3Value = dataRow3.reduce(
-        (prev, curr) => Number(prev) + curr.value,
-        0
+        (prev, curr) => new Decimal(prev).add(curr.value),
+        new Decimal(0)
       );
       const dataRow3Obj = {
         index: '',
@@ -2038,8 +2039,8 @@ async function getExponent(code, time) {
       // 这个可能存在没有的情况
       if (dataRow3[0]?.basic || dataRow3[0]?.basic === 0) {
         const dataRow3Basic = dataRow3.reduce(
-          (prev, curr) => Number(prev) + curr.basic,
-          0
+          (prev, curr) => new Decimal(prev).add(curr.basic),
+          new Decimal(0)
         );
         dataRow3Obj['basic'] = dataRow3Basic;
         dataRow3Obj['rate'] = `${percentString(dataRow3Value, dataRow3Basic)}`;
