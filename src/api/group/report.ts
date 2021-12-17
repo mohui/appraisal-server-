@@ -126,44 +126,55 @@ async function getExponent(code, time) {
           BasicTagUsages.DocPeople,
           year
         );
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.S00,
+            basic: basicData,
+            rate: `${percentString(mark?.S00, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.S00,
+            basic: basicData,
+            rate: `${percentString(mark?.S00, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.S00,
-          basic: basicData,
-          rate: `${percentString(mark?.S00, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.DocPeople,
+              year
+            );
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.DocPeople,
-            year
-          );
-
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.S00, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.S00, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.S00, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.S00, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -172,38 +183,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.S23,
-          basic: mark?.S00,
-          rate: `${percentString(mark?.S23, mark?.S00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.S23,
+            basic: mark?.S00,
+            rate: `${percentString(mark?.S23, mark?.S00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.S23,
+            basic: mark?.S00,
+            rate: `${percentString(mark?.S23, mark?.S00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S23,
-              basic: hospitalMark?.S00,
-              rate: `${percentString(hospitalMark?.S23, hospitalMark?.S00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S23,
-              basic: hospitalMark?.S00,
-              rate: `${percentString(hospitalMark?.S23, hospitalMark?.S00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S23,
+                basic: hospitalMark?.S00,
+                rate: `${percentString(hospitalMark?.S23, hospitalMark?.S00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S23,
+                basic: hospitalMark?.S00,
+                rate: `${percentString(hospitalMark?.S23, hospitalMark?.S00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -212,38 +235,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.S03,
-          basic: mark?.S00,
-          rate: `${percentString(mark?.S03, mark?.S00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.S03,
+            basic: mark?.S00,
+            rate: `${percentString(mark?.S03, mark?.S00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.S03,
+            basic: mark?.S00,
+            rate: `${percentString(mark?.S03, mark?.S00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S03,
-              basic: hospitalMark?.S00,
-              rate: `${percentString(hospitalMark?.S03, hospitalMark?.S00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.S03,
-              basic: hospitalMark?.S00,
-              rate: `${percentString(hospitalMark?.S03, hospitalMark?.S00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S03,
+                basic: hospitalMark?.S00,
+                rate: `${percentString(hospitalMark?.S03, hospitalMark?.S00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.S03,
+                basic: hospitalMark?.S00,
+                rate: `${percentString(hospitalMark?.S03, hospitalMark?.S00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -256,43 +291,55 @@ async function getExponent(code, time) {
           BasicTagUsages.OldPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.O00,
-          basic: basicData,
-          rate: `${percentString(mark?.O00, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.O00,
+            basic: basicData,
+            rate: `${percentString(mark?.O00, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.O00,
+            basic: basicData,
+            rate: `${percentString(mark?.O00, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.OldPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.OldPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.O00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.O00, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.O00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.O00, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.O00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.O00, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.O00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.O00, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -305,43 +352,55 @@ async function getExponent(code, time) {
           BasicTagUsages.OldPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.O02,
-          basic: basicData,
-          rate: `${percentString(mark?.O02, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.O02,
+            basic: basicData,
+            rate: `${percentString(mark?.O02, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.O02,
+            basic: basicData,
+            rate: `${percentString(mark?.O02, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.OldPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.OldPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.O02,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.O02, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.O02,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.O02, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.O02,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.O02, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.O02,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.O02, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -354,43 +413,55 @@ async function getExponent(code, time) {
           BasicTagUsages.HypertensionPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.H00,
-          basic: basicData,
-          rate: `${percentString(mark?.H00, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.H00,
+            basic: basicData,
+            rate: `${percentString(mark?.H00, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.H00,
+            basic: basicData,
+            rate: `${percentString(mark?.H00, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.HypertensionPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.HypertensionPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.H00, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.H00, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.H00, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.H00, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -399,38 +470,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.H01,
-          basic: mark?.H00,
-          rate: `${percentString(mark?.H01, mark?.H00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.H01,
+            basic: mark?.H00,
+            rate: `${percentString(mark?.H01, mark?.H00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.H01,
+            basic: mark?.H00,
+            rate: `${percentString(mark?.H01, mark?.H00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H01,
-              basic: hospitalMark?.H00,
-              rate: `${percentString(hospitalMark?.H01, hospitalMark?.H00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H01,
-              basic: hospitalMark?.H00,
-              rate: `${percentString(hospitalMark?.H01, hospitalMark?.H00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H01,
+                basic: hospitalMark?.H00,
+                rate: `${percentString(hospitalMark?.H01, hospitalMark?.H00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H01,
+                basic: hospitalMark?.H00,
+                rate: `${percentString(hospitalMark?.H01, hospitalMark?.H00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -439,38 +522,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.H02,
-          basic: mark?.H00,
-          rate: `${percentString(mark?.H02, mark?.H00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.H02,
+            basic: mark?.H00,
+            rate: `${percentString(mark?.H02, mark?.H00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.H02,
+            basic: mark?.H00,
+            rate: `${percentString(mark?.H02, mark?.H00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H02,
-              basic: hospitalMark?.H00,
-              rate: `${percentString(hospitalMark?.H02, hospitalMark?.H00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.H02,
-              basic: hospitalMark?.H00,
-              rate: `${percentString(hospitalMark?.H02, hospitalMark?.H00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H02,
+                basic: hospitalMark?.H00,
+                rate: `${percentString(hospitalMark?.H02, hospitalMark?.H00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.H02,
+                basic: hospitalMark?.H00,
+                rate: `${percentString(hospitalMark?.H02, hospitalMark?.H00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -483,43 +578,55 @@ async function getExponent(code, time) {
           BasicTagUsages.DiabetesPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.D00,
-          basic: basicData,
-          rate: `${percentString(mark?.D00, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.D00,
+            basic: basicData,
+            rate: `${percentString(mark?.D00, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.D00,
+            basic: basicData,
+            rate: `${percentString(mark?.D00, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.DiabetesPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.DiabetesPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.D00, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -528,38 +635,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.D01,
-          basic: mark?.D00,
-          rate: `${percentString(mark?.D01, mark?.D00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.D01,
+            basic: mark?.D00,
+            rate: `${percentString(mark?.D01, mark?.D00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.D01,
+            basic: mark?.D00,
+            rate: `${percentString(mark?.D01, mark?.D00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D01,
-              basic: hospitalMark?.D00,
-              rate: `${percentString(hospitalMark?.D01, hospitalMark?.D00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D01,
-              basic: hospitalMark?.D00,
-              rate: `${percentString(hospitalMark?.D01, hospitalMark?.D00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D01,
+                basic: hospitalMark?.D00,
+                rate: `${percentString(hospitalMark?.D01, hospitalMark?.D00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D01,
+                basic: hospitalMark?.D00,
+                rate: `${percentString(hospitalMark?.D01, hospitalMark?.D00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -568,38 +687,50 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.D02,
-          basic: mark?.D00,
-          rate: `${percentString(mark?.D02, mark?.D00)}`
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.D02,
+            basic: mark?.D00,
+            rate: `${percentString(mark?.D02, mark?.D00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.D02,
+            basic: mark?.D00,
+            rate: `${percentString(mark?.D02, mark?.D00)}`
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D02,
-              basic: hospitalMark?.D00,
-              rate: `${percentString(hospitalMark?.D02, hospitalMark?.D00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.D02,
-              basic: hospitalMark?.D00,
-              rate: `${percentString(hospitalMark?.D02, hospitalMark?.D00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D02,
+                basic: hospitalMark?.D00,
+                rate: `${percentString(hospitalMark?.D02, hospitalMark?.D00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.D02,
+                basic: hospitalMark?.D00,
+                rate: `${percentString(hospitalMark?.D02, hospitalMark?.D00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -609,32 +740,42 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.HE00
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.HE00
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.HE00
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE00
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE00
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE00
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE00
+              });
+              j++;
+            }
           }
         }
       }
@@ -644,32 +785,42 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.HE02
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.HE02
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.HE02
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE02
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE02
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE02
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE02
+              });
+              j++;
+            }
           }
         }
       }
@@ -679,32 +830,42 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         // 获取分子,分母
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.HE06
-        });
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.HE06
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.HE06
+          });
 
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE06
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE06
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE06
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE06
+              });
+              j++;
+            }
           }
         }
       }
@@ -717,43 +878,55 @@ async function getExponent(code, time) {
           BasicTagUsages.HE07,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.HE07,
-          basic: basicData,
-          rate: `${percentString(mark?.HE07, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.HE07,
+            basic: basicData,
+            rate: `${percentString(mark?.HE07, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.HE07,
+            basic: basicData,
+            rate: `${percentString(mark?.HE07, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.HE07,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.HE07,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE07,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.HE07, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE07,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.HE07, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE07,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.HE07, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE07,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.HE07, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -766,43 +939,55 @@ async function getExponent(code, time) {
           BasicTagUsages.HE09,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.HE09,
-          basic: basicData,
-          rate: `${percentString(mark?.HE09, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.HE09,
+            basic: basicData,
+            rate: `${percentString(mark?.HE09, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.HE09,
+            basic: basicData,
+            rate: `${percentString(mark?.HE09, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.HE09,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.HE09,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE09,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.HE09, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.HE09,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.HE09, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE09,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.HE09, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.HE09,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.HE09, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -815,43 +1000,55 @@ async function getExponent(code, time) {
           BasicTagUsages.HR00,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.CH01,
-          basic: basicData,
-          rate: `${percentString(mark?.CH01, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.CH01,
+            basic: basicData,
+            rate: `${percentString(mark?.CH01, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.CH01,
+            basic: basicData,
+            rate: `${percentString(mark?.CH01, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.HR00,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.HR00,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.CH01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.CH01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.CH01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.CH01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.CH01, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -864,43 +1061,55 @@ async function getExponent(code, time) {
           BasicTagUsages.OCD00,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.CO01,
-          basic: basicData,
-          rate: `${percentString(mark?.CO01, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.CO01,
+            basic: basicData,
+            rate: `${percentString(mark?.CO01, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.CO01,
+            basic: basicData,
+            rate: `${percentString(mark?.CO01, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.OCD00,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.OCD00,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.CO01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.CO01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.CO01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.CO01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.CO01, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -908,37 +1117,55 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'MCH01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.MCH01,
-          basic: mark?.MCH00,
-          rate: `${percentString(mark?.MCH01, mark?.MCH00)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.MCH01,
+            basic: mark?.MCH00,
+            rate: `${percentString(mark?.MCH01, mark?.MCH00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.MCH01,
+            basic: mark?.MCH00,
+            rate: `${percentString(mark?.MCH01, mark?.MCH00)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH01,
-              basic: hospitalMark?.MCH00,
-              rate: `${percentString(hospitalMark?.MCH01, hospitalMark?.MCH00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH01,
-              basic: hospitalMark?.MCH00,
-              rate: `${percentString(hospitalMark?.MCH01, hospitalMark?.MCH00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH01,
+                basic: hospitalMark?.MCH00,
+                rate: `${percentString(
+                  hospitalMark?.MCH01,
+                  hospitalMark?.MCH00
+                )}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH01,
+                basic: hospitalMark?.MCH00,
+                rate: `${percentString(
+                  hospitalMark?.MCH01,
+                  hospitalMark?.MCH00
+                )}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -946,37 +1173,55 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'MCH02') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.MCH02,
-          basic: mark?.MCH00,
-          rate: `${percentString(mark?.MCH02, mark?.MCH00)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.MCH02,
+            basic: mark?.MCH00,
+            rate: `${percentString(mark?.MCH02, mark?.MCH00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.MCH02,
+            basic: mark?.MCH00,
+            rate: `${percentString(mark?.MCH02, mark?.MCH00)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH02,
-              basic: hospitalMark?.MCH00,
-              rate: `${percentString(hospitalMark?.MCH02, hospitalMark?.MCH00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH02,
-              basic: hospitalMark?.MCH00,
-              rate: `${percentString(hospitalMark?.MCH02, hospitalMark?.MCH00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH02,
+                basic: hospitalMark?.MCH00,
+                rate: `${percentString(
+                  hospitalMark?.MCH02,
+                  hospitalMark?.MCH00
+                )}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH02,
+                basic: hospitalMark?.MCH00,
+                rate: `${percentString(
+                  hospitalMark?.MCH02,
+                  hospitalMark?.MCH00
+                )}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -989,43 +1234,55 @@ async function getExponent(code, time) {
           BasicTagUsages.Children00,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.MCH03,
-          basic: basicData,
-          rate: `${percentString(mark?.MCH03, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.MCH03,
+            basic: basicData,
+            rate: `${percentString(mark?.MCH03, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.MCH03,
+            basic: basicData,
+            rate: `${percentString(mark?.MCH03, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.Children00,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.Children00,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH03,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH03,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH03,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH03,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.MCH03, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1038,43 +1295,55 @@ async function getExponent(code, time) {
           BasicTagUsages.Children01,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.MCH04,
-          basic: basicData,
-          rate: `${percentString(mark?.MCH04, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.MCH04,
+            basic: basicData,
+            rate: `${percentString(mark?.MCH04, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.MCH04,
+            basic: basicData,
+            rate: `${percentString(mark?.MCH04, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.Children01,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.Children01,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH04,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.MCH04,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH04,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.MCH04,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.MCH04, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1087,43 +1356,55 @@ async function getExponent(code, time) {
           BasicTagUsages.DocPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN00,
-          basic: basicData,
-          rate: `${percentString(mark?.SN00, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN00,
+            basic: basicData,
+            rate: `${percentString(mark?.SN00, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN00,
+            basic: basicData,
+            rate: `${percentString(mark?.SN00, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.DocPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.DocPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN00,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN00,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN00, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1152,23 +1433,34 @@ async function getExponent(code, time) {
               ...hospitalIds
             )
           )[0]?.count ?? 0;
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN01,
-          basic: basicData,
-          rate: `${percentString(mark?.SN01, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN01,
+            basic: basicData,
+            rate: `${percentString(mark?.SN01, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN01,
+            basic: basicData,
+            rate: `${percentString(mark?.SN01, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData =
-            (
-              await originalDB.execute(
-                // language=PostgreSQL
-                `
+            const hospitalBasicData =
+              (
+                await originalDB.execute(
+                  // language=PostgreSQL
+                  `
                   select count(1) count
                   from mark_person mp
                          inner join ph_person vp on mp.id = vp.id
@@ -1181,30 +1473,31 @@ async function getExponent(code, time) {
                         mp."C10" = true or mp."C11" = true
                     )
                 `,
-                year,
-                hospital.code
-              )
-            )[0]?.count ?? 0;
+                  year,
+                  hospital.code
+                )
+              )[0]?.count ?? 0;
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN01,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN01,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1228,23 +1521,34 @@ async function getExponent(code, time) {
               ...hospitalIds
             )
           )[0]?.count ?? 0;
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN02,
-          basic: basicData,
-          rate: `${percentString(mark?.SN02, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN02,
+            basic: basicData,
+            rate: `${percentString(mark?.SN02, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN02,
+            basic: basicData,
+            rate: `${percentString(mark?.SN02, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData =
-            (
-              await originalDB.execute(
-                // language=PostgreSQL
-                `
+            const hospitalBasicData =
+              (
+                await originalDB.execute(
+                  // language=PostgreSQL
+                  `
                   select count(1) count
                   from mark_person mp
                          inner join ph_person vp on mp.id = vp.id
@@ -1252,30 +1556,31 @@ async function getExponent(code, time) {
                     and vp.adminorganization = ?
                     and mp."C07" = true
                 `,
-                year,
-                hospital.code
-              )
-            )[0]?.count ?? 0;
+                  year,
+                  hospital.code
+                )
+              )[0]?.count ?? 0;
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN02,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN02,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN02,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN02,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1288,43 +1593,55 @@ async function getExponent(code, time) {
           BasicTagUsages.DocPeople,
           year
         );
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN03,
-          basic: basicData,
-          rate: `${percentString(mark?.SN03, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN03,
+            basic: basicData,
+            rate: `${percentString(mark?.SN03, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN03,
+            basic: basicData,
+            rate: `${percentString(mark?.SN03, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData = await getBasicData(
-            [hospital.code],
-            BasicTagUsages.DocPeople,
-            year
-          );
+            const hospitalBasicData = await getBasicData(
+              [hospital.code],
+              BasicTagUsages.DocPeople,
+              year
+            );
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN03,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN03,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN03,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN03,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN03, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1348,23 +1665,34 @@ async function getExponent(code, time) {
               ...hospitalIds
             )
           )[0]?.count ?? 0;
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN04,
-          basic: basicData,
-          rate: `${percentString(mark?.SN04, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN04,
+            basic: basicData,
+            rate: `${percentString(mark?.SN04, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN04,
+            basic: basicData,
+            rate: `${percentString(mark?.SN04, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData =
-            (
-              await originalDB.execute(
-                // language=PostgreSQL
-                `
+            const hospitalBasicData =
+              (
+                await originalDB.execute(
+                  // language=PostgreSQL
+                  `
                   select count(1) count
                   from mark_person mp
                          inner join ph_person vp on mp.id = vp.id
@@ -1372,30 +1700,31 @@ async function getExponent(code, time) {
                     and vp.adminorganization = ?
                     and mp."C02" = true
                 `,
-                year,
-                hospital.code
-              )
-            )[0]?.count ?? 0;
+                  year,
+                  hospital.code
+                )
+              )[0]?.count ?? 0;
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN04,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN04,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN04,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN04,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1419,23 +1748,34 @@ async function getExponent(code, time) {
               ...hospitalIds
             )
           )[0]?.count ?? 0;
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN05,
-          basic: basicData,
-          rate: `${percentString(mark?.SN05, basicData)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        // 如果是高校的机构,放到表三中
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN05,
+            basic: basicData,
+            rate: `${percentString(mark?.SN05, basicData)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN05,
+            basic: basicData,
+            rate: `${percentString(mark?.SN05, basicData)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          const hospitalBasicData =
-            (
-              await originalDB.execute(
-                // language=PostgreSQL
-                `
+            const hospitalBasicData =
+              (
+                await originalDB.execute(
+                  // language=PostgreSQL
+                  `
                   select count(1) count
                   from mark_person mp
                          inner join ph_person vp on mp.id = vp.id
@@ -1443,30 +1783,31 @@ async function getExponent(code, time) {
                     and vp.adminorganization = ?
                     and mp."C03" = true
                 `,
-                year,
-                hospital.code
-              )
-            )[0]?.count ?? 0;
+                  year,
+                  hospital.code
+                )
+              )[0]?.count ?? 0;
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN05,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN05,
-              basic: hospitalBasicData,
-              rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN05,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN05,
+                basic: hospitalBasicData,
+                rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1474,37 +1815,48 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN07') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN07,
-          basic: mark?.SN00,
-          rate: `${percentString(mark?.SN07, mark?.SN00)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN07,
+            basic: mark?.SN00,
+            rate: `${percentString(mark?.SN07, mark?.SN00)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN07,
+            basic: mark?.SN00,
+            rate: `${percentString(mark?.SN07, mark?.SN00)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN07,
-              basic: hospitalMark?.SN00,
-              rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN07,
-              basic: hospitalMark?.SN00,
-              rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN07,
+                basic: hospitalMark?.SN00,
+                rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN07,
+                basic: hospitalMark?.SN00,
+                rate: `${percentString(hospitalMark?.SN07, hospitalMark?.SN00)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1512,37 +1864,48 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN08') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN08,
-          basic: mark?.SN03,
-          rate: `${percentString(mark?.SN08, mark?.SN03)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN08,
+            basic: mark?.SN03,
+            rate: `${percentString(mark?.SN08, mark?.SN03)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN08,
+            basic: mark?.SN03,
+            rate: `${percentString(mark?.SN08, mark?.SN03)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN08,
-              basic: hospitalMark?.SN03,
-              rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN08,
-              basic: hospitalMark?.SN03,
-              rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
-            });
-            j++;
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN08,
+                basic: hospitalMark?.SN03,
+                rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN08,
+                basic: hospitalMark?.SN03,
+                rate: `${percentString(hospitalMark?.SN08, hospitalMark?.SN03)}`
+              });
+              j++;
+            }
           }
         }
       }
@@ -1550,37 +1913,49 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN10') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        dataRow1.push({
-          index: i,
-          name: `${it?.name}`,
-          value: mark?.SN10,
-          basic: mark?.SN09,
-          rate: `${percentString(mark?.SN10, mark?.SN09)}`
-        });
-        // 表二表三只显示机构本身的
-        for (const hospital of hospitals) {
-          // 仅仅返回中心这一个机构的数据
-          const hospitalMark = await getMarks(hospital.code, year);
 
-          // 表二: 中心/卫生院机构（不含下属机构）
-          if (hospital?.name === it?.name) {
-            dataRow2.push({
-              index: i,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN10,
-              basic: hospitalMark?.SN09,
-              rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
-            });
-          } else {
-            // 表三: 卫生站/卫生室
-            dataRow3.push({
-              index: j,
-              name: `${hospital?.name}`,
-              value: hospitalMark?.SN10,
-              basic: hospitalMark?.SN09,
-              rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
-            });
-            j++;
+        if (it.label === 'hospital.school') {
+          dataRow3.push({
+            index: j,
+            name: `${it?.name}`,
+            value: mark?.SN10,
+            basic: mark?.SN09,
+            rate: `${percentString(mark?.SN10, mark?.SN09)}`
+          });
+          j++;
+        } else {
+          dataRow1.push({
+            index: i,
+            name: `${it?.name}`,
+            value: mark?.SN10,
+            basic: mark?.SN09,
+            rate: `${percentString(mark?.SN10, mark?.SN09)}`
+          });
+          // 表二表三只显示机构本身的
+          for (const hospital of hospitals) {
+            // 仅仅返回中心这一个机构的数据
+            const hospitalMark = await getMarks(hospital.code, year);
+
+            // 表二: 中心/卫生院机构（不含下属机构）
+            if (hospital?.name === it?.name) {
+              dataRow2.push({
+                index: i,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN10,
+                basic: hospitalMark?.SN09,
+                rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
+              });
+            } else {
+              // 表三: 卫生站/卫生室
+              dataRow3.push({
+                index: j,
+                name: `${hospital?.name}`,
+                value: hospitalMark?.SN10,
+                basic: hospitalMark?.SN09,
+                rate: `${percentString(hospitalMark?.SN10, hospitalMark?.SN09)}`
+              });
+              j++;
+            }
           }
         }
       }
