@@ -38,18 +38,19 @@ export async function getStaffList(hospital, date) {
   const staffModels = await appDB.execute(
     // language=PostgreSQL
     `
-      select id,
-             account,
-             staff,
-             name,
-             major,
-             title,
-             education,
-             "isGP",
-             created_at
+      select staff.id,
+             staff.account,
+             staff.staff,
+             staff.name,
+             staff.major,
+             staff.title,
+             staff.education,
+             staff."isGP",
+             staff.created_at
       from staff
-      where hospital in (${hospitalIds.map(() => '?')})
-        and created_at <= ?
+             inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+      where areaMapping.area in (${hospitalIds.map(() => '?')})
+        and staff.created_at <= ?
     `,
     ...hospitalIds,
     monthEnd
@@ -213,4 +214,74 @@ export function divisionOperation(
   denominator: number
 ): number {
   return denominator > 0 ? numerator / denominator : 0;
+}
+
+/**
+ * 获取附加分
+ *
+ * @param staff
+ * @param hospital
+ * @param month
+ */
+export async function getStaffExtraScore(staff, hospital, month) {
+  const {start} = monthToRange(month);
+
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select score
+        from his_staff_extra_score
+        where staff = ?
+          and area = ?
+          and month = ?
+      `,
+      staff,
+      hospital,
+      start
+    )
+  )[0]?.score;
+}
+
+/**
+ * 获取HIS员工列表
+ *
+ * @param hospital 机构id
+ */
+export async function getHisStaff(hospital) {
+  return await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id,
+             department,
+             hospital,
+             name,
+             sex,
+             phone,
+             birth
+      from his_staff
+      where hospital = ?
+    `,
+    hospital
+  );
+}
+
+/**
+ * 获取公卫员工
+ *
+ * @param hospital 机构id
+ */
+export async function getPhStaff(hospital) {
+  return await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id,
+             hospital,
+             name,
+             states
+      from ph_user
+      where hospital = ?
+    `,
+    hospital
+  );
 }

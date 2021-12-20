@@ -129,8 +129,9 @@ export default class HisHospital {
                result.score
         from his_staff_work_result result
                inner join staff on result.staff_id = staff.id
-          and staff.hospital = ?
-        where result.time >= ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+          and result.time >= ?
           and result.time < ?
       `,
       hospital,
@@ -213,15 +214,18 @@ export default class HisHospital {
         await appDB.execute(
           // language=PostgreSQL
           `
-            select id, name
+            select staff.id,
+                   staff.name,
+                   areaMapping.area
             from staff
-            where hospital = ?
-            order by created_at
+                   left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+            where areaMapping.area = ?
+            order by staff.created_at
           `,
           hospital
         )
       ).map(async it => {
-        const result = await staffApi.findWorkScoreList(it.id, month);
+        const result = await staffApi.findWorkScoreList(it.id, month, hospital);
         return {
           ...it,
           rate: result.rate,
@@ -247,16 +251,21 @@ export default class HisHospital {
       `
         select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
-               left join his_department dept on staff.department = dept.id
-        where staff.hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+               left join his_department dept on areaMapping.department = dept.id
+        where areaMapping.area = ?
       `,
       hospital
     );
 
     const staffList = [];
     for (const staffIt of staffs) {
-      const workScoreList = await staffApi.findWorkScoreList(staffIt.id, month);
-      const gets = await staffApi.get(staffIt.id, month);
+      const workScoreList = await staffApi.findWorkScoreList(
+        staffIt.id,
+        month,
+        hospital
+      );
+      const gets = await staffApi.get(staffIt.id, month, hospital);
       staffList.push({
         extra: gets?.extra,
         id: staffIt.id,

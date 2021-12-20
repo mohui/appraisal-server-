@@ -4,7 +4,7 @@
       <span class="header-title">HIS员工绑定列表</span>
       <div>
         <el-button size="small" type="primary" @click="openAddUserDialog"
-          >新建用户
+          >绑定员工
         </el-button>
         <el-button
           size="small"
@@ -30,12 +30,7 @@
         :is-collapsed="isCollapsed"
         @toggle="is => (isCollapsed = is)"
       >
-        <el-form
-          ref="ruleForm"
-          :model="searchForm"
-          label-width="100px"
-          size="mini"
-        >
+        <el-form :model="searchForm" label-width="100px" size="mini">
           <el-row>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
               <el-form-item label="登录名:">
@@ -174,12 +169,6 @@
         ></el-table-column>
         <el-table-column
           align="center"
-          prop="phStaffName"
-          label="公卫用户"
-          min-width="80"
-        ></el-table-column>
-        <el-table-column
-          align="center"
           prop="remark"
           label="备注"
           min-width="100"
@@ -190,15 +179,15 @@
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
-              <el-button
-                :disabled="row.removeLoading"
-                :icon="row.removeLoading ? 'el-icon-loading' : ''"
-                size="small"
-                type="danger"
-                @click="delUser(row)"
-              >
-                删除
-              </el-button>
+              <!--              <el-button-->
+              <!--                :disabled="row.removeLoading"-->
+              <!--                :icon="row.removeLoading ? 'el-icon-loading' : ''"-->
+              <!--                size="small"-->
+              <!--                type="danger"-->
+              <!--                @click="delUser(row)"-->
+              <!--              >-->
+              <!--                删除-->
+              <!--              </el-button>-->
               <el-button type="primary" size="mini" @click="QRImage(row)">
                 绑定码
               </el-button>
@@ -208,10 +197,11 @@
       </el-table>
     </el-card>
     <el-dialog
-      :title="userForm.id ? '修改用户' : '新建用户'"
-      :visible.sync="dialogFormAddUsersVisible"
+      title="修改用户"
+      :visible.sync="dialogFormEditUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
-      @close="beforeClose"
+      :close-on-click-modal="false"
+      :before-close="beforeClose"
     >
       <el-form
         class="staff-form"
@@ -223,158 +213,56 @@
         <el-row>
           <el-col :span="24">
             <el-form-item
-              ><span style="font-weight: bold">账户信息</span></el-form-item
+              ><span style="font-weight: bold">账户关联</span></el-form-item
             >
           </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
-              label="登录名"
-              prop="account"
-              :label-width="formLabelWidth"
-            >
-              <el-input
-                v-model="userForm.account"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="密码"
-              prop="password"
-              :label-width="formLabelWidth"
-            >
-              <el-input
-                v-model="userForm.password"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">个人信息</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              :label-width="formLabelWidth"
-              label="姓名"
-              prop="name"
-            >
-              <el-input
-                v-model="userForm.name"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="4" :xs="12" :sm="4" :md="4" :lg="4" :xl="4">
-            <el-form-item
-              required
-              label="性别"
-              prop="gender"
+              label="HIS用户"
+              prop="his"
               :label-width="formLabelWidth"
             >
               <el-select
-                v-model="userForm.gender"
-                placeholder="请选择"
-                clearable
-                size="mini"
-              >
-                <el-option
-                  v-for="g in genders"
-                  :key="g"
-                  :value="g"
-                  :label="g"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
-            <el-form-item label="联系电话" :label-width="formLabelWidth">
-              <el-input
-                v-model="userForm.phone"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">职业信息</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              required
-              label="专业类别"
-              prop="major"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.major"
+                v-model="userForm.his"
                 style="width:100%"
                 clearable
                 filterable
+                multiple
                 size="mini"
-                @change="majorsChange"
               >
                 <el-option
-                  v-for="h in majors"
-                  :key="h.name"
+                  v-for="h in hisList"
+                  :key="h.id"
                   :label="h.name"
-                  :value="h.name"
+                  :value="h.id"
+                  :disabled="!h.usable"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+          <el-col :span="12" :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
-              required
-              label="职称名称"
-              prop="title"
+              label="公卫用户"
+              prop="phStaff"
               :label-width="formLabelWidth"
             >
               <el-select
-                ref="titleSelector"
-                v-model="userForm.title"
+                v-model="userForm.phStaff"
                 style="width:100%"
                 clearable
                 filterable
+                multiple
                 size="mini"
               >
                 <el-option
-                  v-for="p in titles"
-                  :key="p.name"
-                  :label="p.name"
-                  :value="p.name"
+                  v-for="h in phStaffList"
+                  :key="h.id"
+                  :label="h.username"
+                  :value="h.id"
+                  :disabled="!h.usable"
                 ></el-option>
               </el-select> </el-form-item
           ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-            <el-form-item
-              required
-              label="学历"
-              prop="education"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.education"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="e in educations"
-                  :key="e"
-                  :label="e"
-                  :value="e"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+          <el-col :span="12" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
             <el-form-item
               label="科室"
               prop="department"
@@ -396,69 +284,6 @@
               </el-select> </el-form-item
           ></el-col>
           <el-col :span="24">
-            <el-form-item style="margin-top: 10px" prop="isGP">
-              <el-switch
-                v-model="userForm.isGP"
-                inactive-text="是否为全科医师"
-                size="mini"
-              >
-              </el-switch>
-              <span>(是否注册为全科医学专业或取得全科医生培训合格证)</span>
-            </el-form-item>
-          </el-col>
-          <el-col>
-            <el-divider></el-divider>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item
-              ><span style="font-weight: bold">账户关联</span></el-form-item
-            >
-          </el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="HIS用户"
-              prop="his"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.his"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="h in hisList"
-                  :key="h.id"
-                  :label="h.name"
-                  :value="h.id"
-                  :disabled="!h.usable"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="12" :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-            <el-form-item
-              label="公卫用户"
-              prop="phStaff"
-              :label-width="formLabelWidth"
-            >
-              <el-select
-                v-model="userForm.phStaff"
-                style="width:100%"
-                clearable
-                filterable
-                size="mini"
-              >
-                <el-option
-                  v-for="h in phStaffList"
-                  :key="h.id"
-                  :label="h.username"
-                  :value="h.id"
-                  :disabled="!h.usable"
-                ></el-option>
-              </el-select> </el-form-item
-          ></el-col>
-          <el-col :span="24">
             <el-form-item
               label="备注"
               prop="remark"
@@ -474,8 +299,8 @@
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormAddUsersVisible = false">取 消</el-button>
-        <el-button v-loading="addBtnLoading" type="primary" @click="addUser">
+        <el-button @click="dialogFormEditUsersVisible = false">取 消</el-button>
+        <el-button v-loading="addBtnLoading" type="primary" @click="updateUser">
           确 定
         </el-button>
       </div>
@@ -495,10 +320,11 @@
       </span>
     </el-dialog>
     <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
-      <el-form ref="departmentForm" :model="departmentForm" :rules="rulesAdd">
+      <el-form ref="departmentForm" :model="departmentForm">
         <el-form-item
           label="科室名称"
           prop="name"
+          :rules="[{required: true, message: '科室名不能为空'}]"
           :label-width="formLabelWidth"
         >
           <el-input
@@ -519,40 +345,107 @@
         >
       </div>
     </el-dialog>
+    <el-dialog
+      title="选择员工"
+      :visible.sync="dialogSelectUsersVisible"
+      v-hidden-scroll
+      :before-close="cleanSelected"
+    >
+      <div
+        style="display: flex;
+        flex-direction: column;height: 60vh;overflow-y: scroll"
+      >
+        <div style="margin:0 0 20px 0">员工列表:</div>
+        <el-table
+          v-hidden-scroll
+          class="extend-staff-table"
+          :data="extendStaffList"
+          style="flex:1"
+          ref="extendStaffList"
+          border
+          stripe
+          size="mini"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" align="center" width="55">
+          </el-table-column>
+          <el-table-column type="index" align="center" width="50">
+          </el-table-column>
+          <el-table-column align="center" label="姓名" prop="name">
+            <template slot="header">
+              <el-input
+                v-model="keyword"
+                size="mini"
+                placeholder="输入名字搜索"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column
+            align="center"
+            label="性别"
+            prop="gender"
+          ></el-table-column>
+          <el-table-column
+            align="center"
+            label="职业"
+            prop="major"
+          ></el-table-column>
+          <el-table-column
+            align="center"
+            label="教育经历"
+            prop="education"
+          ></el-table-column>
+          <el-table-column align="center" label="是否全科医生" prop="isGap">
+            <template slot-scope="{row}">{{
+              row.isGap ? '是' : '否'
+            }}</template>
+          </el-table-column>
+        </el-table>
+        <div style="margin: 20px 0 5px 0">分配科室</div>
+        <el-select
+          style="width:100%"
+          v-model="selectedDepartment"
+          clearable
+          filterable
+          size="mini"
+        >
+          <el-option
+            v-for="h in departmentList"
+            :key="h.id"
+            :label="h.name"
+            :value="h.id"
+          ></el-option>
+        </el-select>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="cleanSelected">取 消</el-button>
+        <el-button
+          size="small"
+          type="primary"
+          v-loading="addBtnLoading"
+          :disabled="selectedStaff.length < 1"
+          @click="addUser()"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {Permission} from '../../../../common/permission.ts';
-import {Gender, Occupation, Education} from '../../../../common/his.ts';
-
 export default {
   name: 'User',
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
-      permission: Permission,
-      educations: Education,
-      genders: Gender,
-      majors: Occupation,
-      dialogFormAddUsersVisible: false,
       dialogFormEditUsersVisible: false,
+      dialogSelectUsersVisible: false,
       formLabelWidth: '100px',
       userForm: {
-        account: '',
-        password: '',
-        name: '',
-        gender: '',
-        phone: '',
-        isGP: false,
-        his: '',
-        phStaff: '',
-        education: '',
-        major: '',
-        title: '',
-        remark: null,
-        department: null
+        his: [],
+        phStaff: [],
+        department: ''
       },
       searchForm: {
         account: '',
@@ -569,9 +462,6 @@ export default {
         education: [{required: true, message: '请选择学历', trigger: 'change'}],
         title: [{required: true, message: '请选择职称名称', trigger: 'change'}]
       },
-      rulesEdit: {
-        name: [{required: true, message: '请输入姓名', trigger: 'change'}]
-      },
       tableLoading: false,
       addBtnLoading: false,
       addDepartmentVisible: false,
@@ -584,7 +474,12 @@ export default {
       mouseEnterId: '',
       symbolKey: Symbol(this.$dayjs().toString()),
       // 绑定码变量
-      QRCode: ''
+      QRCode: '',
+      //选中的员工
+      selectedStaff: [],
+      //选中员工的机构
+      selectedDepartment: '',
+      keyword: ''
     };
   },
   computed: {
@@ -594,6 +489,8 @@ export default {
           ...it,
           his: it.staff,
           removeLoading: false,
+          staffName: it.hisStaff.map(it => it.name).join(','),
+          phStaffName: it.phStaff.map(it => it.name).join(','),
           created_at: it.created_at?.$format() || '',
           updated_at: it.updated_at?.$format() || ''
         }))
@@ -623,12 +520,21 @@ export default {
             : ''
         }));
     },
-    hisList() {
-      return this.serverHisData;
-    },
     // 科室列表
     departmentList() {
       return this.serverDepartment;
+    },
+    //非本机构的外部员工
+    extendStaffList() {
+      return this.serverExtendStaff
+        .map(it => ({
+          ...it,
+          username: `${it.username}${it.states ? '' : ' (禁用)'}`
+        }))
+        .filter(it => !this.keyword || it.name.indexOf(this.keyword) > -1);
+    },
+    hisList() {
+      return this.serverHisData;
     },
     // 公卫医生列表
     phStaffList() {
@@ -637,11 +543,9 @@ export default {
         username: `${it.username}${it.states ? '' : ' (禁用)'}`
       }));
     },
-    //职称名称
-    titles() {
-      const occ = this.majors.find(oc => oc.name === this.userForm.major);
-      if (occ) return occ.children;
-      return [];
+    //当前机构的id
+    hospitalId() {
+      return this.$settings.user.hospitals[0]?.id;
     }
   },
   watch: {
@@ -677,17 +581,6 @@ export default {
         return [];
       }
     },
-    serverHisData: {
-      async get() {
-        try {
-          return await this.$api.HisStaff.listHisStaffs();
-        } catch (e) {
-          this.$message.error(e.message);
-          return [];
-        }
-      },
-      default: []
-    },
     serverDepartment: {
       async get() {
         try {
@@ -699,10 +592,32 @@ export default {
       },
       default: []
     },
+    serverHisData: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.listHisStaffs(this.hospitalId);
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
+    serverExtendStaff: {
+      async get() {
+        try {
+          return await this.$api.HisStaff.staffList();
+        } catch (e) {
+          this.$message.error(e.message);
+          return [];
+        }
+      },
+      default: []
+    },
     serverPhStaffData: {
       async get() {
         try {
-          return await this.$api.HisStaff.listPhStaffs();
+          return await this.$api.HisStaff.listPhStaffs(this.hospitalId);
         } catch (e) {
           this.$message.error(e.message);
           return [];
@@ -712,15 +627,25 @@ export default {
     }
   },
   methods: {
-    beforeClose() {
-      this.$refs.ruleForm.resetFields();
+    //勾选非本机构人员
+    handleSelectionChange(selected) {
+      this.selectedStaff = selected.map(it => it.id);
     },
-    majorsChange() {
-      const titleSelector = this.$refs.titleSelector;
-      titleSelector.$emit('input', '');
-      titleSelector.emitChange('');
-      titleSelector.visible = false;
-      titleSelector.$emit('clear');
+    cleanSelected(done) {
+      this.selectedStaff = [];
+      this.$refs.extendStaffList.clearSelection();
+      this.dialogSelectUsersVisible = false;
+      this.selectedDepartment = '';
+      done || done();
+    },
+    beforeClose() {
+      this.userForm = {
+        his: [],
+        phStaff: [],
+        department: ''
+      };
+      this.dialogFormEditUsersVisible = false;
+      this.$refs.userFormAdd.resetFields();
     },
     isShowPwd() {
       this.inputType = this.inputType === 'password' ? '' : 'password';
@@ -737,57 +662,25 @@ export default {
     },
     //打开新建用户对话框
     openAddUserDialog() {
-      this.dialogFormAddUsersVisible = true;
-      this.userForm = {
-        account: '',
-        password: '',
-        name: '',
-        his: '',
-        phStaff: '',
-        remark: null
-      };
+      this.dialogSelectUsersVisible = true;
     },
     //保存新建用户
     async addUser() {
-      this.$refs.userFormAdd.validate(async valid => {
-        if (valid) {
-          try {
-            if (this.userForm.id) await this.updateUser();
-            else {
-              this.addBtnLoading = true;
-              await this.$api.HisStaff.add(
-                this.userForm.his || null,
-                this.userForm.account.trim(),
-                this.userForm.password.trim(),
-                this.userForm.name.trim(),
-                this.userForm.remark?.trim() || null,
-                this.userForm.department?.trim() || null,
-                this.userForm.phStaff?.trim() || null,
-                this.userForm.phone?.trim() || null,
-                this.userForm.gender?.trim() || null,
-                this.userForm.major?.trim() || null,
-                this.userForm.title?.trim() || null,
-                this.userForm.education?.trim() || null,
-                this.userForm.isGP || false
-              );
-              this.$message({
-                type: 'success',
-                message: '新建用户成功!'
-              });
-            }
-            this.$asyncComputed.listMember.update(); //刷新系统员工列表
-            this.$asyncComputed.serverHisData.update(); //刷新his员工列表
-            this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
-            this.dialogFormAddUsersVisible = false;
-          } catch (e) {
-            this.$message.error(e.message);
-          } finally {
-            this.addBtnLoading = false;
-          }
-        } else {
-          return false;
-        }
-      });
+      try {
+        const params = this.selectedStaff.map(it => ({
+          id: it,
+          hospital: this.hospitalId,
+          department: this.selectedDepartment || null
+        }));
+        await this.$api.HisStaff.addAreaMapping(params);
+        this.$asyncComputed.listMember.update(); //刷新系统员工列表
+        this.$asyncComputed.serverExtendStaff.update(); //刷新非本机构员工列表
+        this.dialogSelectUsersVisible = false;
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        this.addBtnLoading = false;
+      }
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
@@ -801,39 +694,39 @@ export default {
         this.addDepartmentVisible = true;
         return;
       }
-      this.userForm = Object.assign({}, row);
-      this.dialogFormAddUsersVisible = true;
+      this.userForm = Object.assign(
+        {},
+        {
+          id: row.id,
+          his: row.hisStaff.map(it => it.id),
+          phStaff: row.phStaff.map(it => it.id),
+          department: row.department,
+          remark: row.remark
+        }
+      );
+      this.dialogFormEditUsersVisible = true;
     },
     //更新保存用户信息
     async updateUser() {
       try {
-        await this.$api.HisStaff.update(
-          this.userForm.id,
-          this.userForm.name.trim(),
-          this.userForm.password.trim(),
-          this.userForm.his || null,
-          this.userForm.remark?.trim() || null,
-          this.userForm.department?.trim() || null,
-          this.userForm.phStaff?.trim() || null,
-          this.userForm.phone?.trim() || null,
-          this.userForm.gender?.trim() || null,
-          this.userForm.major?.trim() || null,
-          this.userForm.title?.trim() || null,
-          this.userForm.education?.trim() || null,
-          this.userForm.isGP || false
-        );
+        await this.$api.HisStaff.updateStaffMapping({
+          id: this.userForm.id,
+          hospital: this.hospitalId,
+          hisStaffs: this.userForm.his,
+          phStaffs: this.userForm.phStaff,
+          department: this.userForm.department,
+          remark: this.userForm.remark || null
+        });
         this.$message({
           type: 'success',
           message: '保存成功!'
         });
         this.$asyncComputed.listMember.update();
-        this.$asyncComputed.serverHisData.update(); //刷新his员工列表
-        this.$asyncComputed.serverPhStaffData.update(); //刷新公卫员工列表
+        this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
+        this.dialogFormEditUsersVisible = false;
       } catch (e) {
         this.$message.error(e.message);
-      } finally {
-        this.dialogFormAddUsersVisible = false;
       }
     },
     //删除用户
@@ -847,7 +740,8 @@ export default {
         row.removeLoading = true;
         if (row.departmentId)
           await this.$api.HisDepartment.delete(row.departmentId);
-        if (!row.departmentId) await this.$api.HisStaff.delete(row.id);
+        if (!row.departmentId)
+          await this.$api.HisStaff.delete(row.id, this.hospitalId);
         this.$message({
           type: 'success',
           message: '删除成功!'
@@ -923,6 +817,18 @@ export default {
 };
 </script>
 <style lang="scss">
+.extend-staff-table {
+  display: flex;
+  flex-direction: column;
+
+  .el-table__body-wrapper {
+    flex: 1;
+    overflow-y: scroll;
+  }
+  .el-table__header-wrapper .el-checkbox {
+    display: none;
+  }
+}
 .table-staff-department {
   .el-table__row--level-1 {
     background: #f8f8ff;

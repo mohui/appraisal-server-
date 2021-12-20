@@ -8,7 +8,7 @@
           style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
           @click="toggleMenu"
         ></i>
-        {{ $settings.user.region.name }}基本公共卫生服务两卡制绩效考核系统</span
+        {{ headerName }}基本公共卫生服务两卡制绩效考核系统</span
       >
       <div>
         <kn-back-job></kn-back-job>
@@ -57,7 +57,7 @@
             :unique-opened="true"
           >
             <multi-menu
-              v-for="menu of menus"
+              v-for="menu of asyncMenus"
               :key="menu.router"
               :menu="menu"
             ></multi-menu>
@@ -92,6 +92,8 @@
 import {removeToken} from '../../utils/cache';
 import MultiMenu from '../../components/multi-menu.vue';
 import KnBackJob from '../../components/kn-back-job';
+import {UserType} from '../../../../common/user.ts';
+import dayjs from 'dayjs';
 const WIDTH = 992;
 export default {
   name: 'Layout',
@@ -109,10 +111,34 @@ export default {
     };
   },
   computed: {
+    //根据用户类型处理一下,动态的菜单router
+    asyncMenus() {
+      //如果是员工类型的用户,修改菜单的考核结果router
+      if (this.$settings.user.type === UserType.STAFF) {
+        return this.menus.map(it => {
+          if (it.index === 'medical-performance') {
+            //修改员工的默认router
+            it.router = `/personal-appraisal-results?id=${
+              this.$settings.user.id
+            }&date=${JSON.stringify(
+              dayjs()
+                .startOf('M')
+                .toDate()
+            )}`;
+            console.log(it);
+          }
+          return it;
+        });
+      }
+      return this.menus;
+    },
     activeMenu() {
       const {meta} = this.$route;
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
+    },
+    headerName() {
+      return this.$settings.user?.region?.name || this.$settings.user.name;
     }
   },
   watch: {

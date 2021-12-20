@@ -23,8 +23,20 @@
               质量系数：{{ workScore.rateFormat
               }}{{ workScore.rate ? '%' : null }}
             </div>
+            <div v-if="$settings.user.type === UserType.STAFF">
+              机构选择:
+              <el-select v-model="area" placeholder="请选择" size="mini">
+                <el-option
+                  v-for="item in staffAreaListData"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </div>
           </div>
-          <div>
+          <div v-if="$settings.user.type === UserType.ADMIN">
             <el-button size="small" type="primary" @click="$router.go(-1)"
               >返回</el-button
             >
@@ -140,7 +152,7 @@
                       <el-button
                         class="operation"
                         type="text"
-                        :disabled="personInfoData.settle"
+                        :disabled="personInfoData.settle || !area"
                         @click="saveEditorAdditionalPoints"
                       >
                         {{ isEditor ? '完成' : '编辑' }}
@@ -260,6 +272,7 @@ export default {
     return {
       id: this.$route.query.id,
       curDate: new Date(JSON.parse(this.$route.query.date)),
+      area: this.$route.query.area ?? this.$settings.user.hospital?.id,
       isEditor: false,
       dialogWorkScoreTableVisible: false,
       // 弹出工分列表的类型:校正前（before）、校正后(after)
@@ -269,7 +282,6 @@ export default {
       originExtraScore: 0,
       personInfo: {
         name: '姓名',
-        staff: '员工号',
         sex: '性别',
         department: '所在科室',
         birth: '出生日期',
@@ -290,7 +302,8 @@ export default {
         '#fc8452',
         '#9a60b4',
         '#ea7ccc'
-      ]
+      ],
+      UserType: require('../../../../../common/user.ts').UserType
     };
   },
   directives: {
@@ -350,6 +363,9 @@ export default {
         ...this.staffCheckServerData,
         list: list
       };
+    },
+    staffAreaListData() {
+      return this.staffAreaListSeverData;
     }
   },
   asyncComputed: {
@@ -357,22 +373,33 @@ export default {
       async get() {
         return await this.$api.HisStaff.findWorkScoreList(
           this.id,
-          this.curDate
+          this.curDate,
+          this.area
         );
       },
       default: {items: [], rate: 0}
     },
     personInfoServerData: {
       async get() {
-        return await this.$api.HisStaff.get(this.id, this.curDate);
+        return await this.$api.HisStaff.get(this.id, this.curDate, this.area);
       },
       default: {}
     },
     staffCheckServerData: {
       async get() {
-        return await this.$api.HisStaff.staffCheck(this.id, this.curDate);
+        return await this.$api.HisStaff.staffCheck(
+          this.id,
+          this.curDate,
+          this.area
+        );
       },
       default: {manuals: [], automations: []}
+    },
+    staffAreaListSeverData: {
+      async get() {
+        return await this.$api.HisStaff.areaMapping();
+      },
+      default: []
     }
   },
   methods: {
@@ -383,7 +410,8 @@ export default {
           await this.$api.HisScore.setExtraScore(
             this.id,
             this.curDate,
-            this.personInfoData.extra
+            this.personInfoData.extra,
+            this.area
           );
           this.isEditor = !this.isEditor;
           this.$message.success('打分成功');
@@ -405,7 +433,8 @@ export default {
             row.id,
             this.id,
             this.curDate,
-            row.staffScore
+            row.staffScore,
+            this.area
           );
           row.isRating = !row.isRating;
           this.$message.success('打分成功');
