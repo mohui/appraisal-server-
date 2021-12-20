@@ -109,20 +109,19 @@ export async function getMarks(
   SN09: number;
   SN10: number;
 }> {
+  // 获取权限下所有机构
+  const hospitals = await getHospitals(group);
+  // 获取机构id
+  const hospitalIds = hospitals.map(it => it.code);
   // language=PostgreSQL
   const result = await originalDB.execute(
     `
       select *
       from mark_organization
-      where id in (
-        select code
-        from area
-        where label in ('hospital.center', 'hospital.station')
-          and (code = ? or path like ?))
+      where id in (${hospitalIds.map(() => '?')})
         and year = ?
     `,
-    group,
-    `%${group}%`,
+    ...hospitalIds,
     year
   );
 

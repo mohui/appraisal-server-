@@ -2,6 +2,7 @@ import {Context} from '../context';
 import {appDB, originalDB} from '../../app';
 import {KatoLogicError} from 'kato-server';
 import {UserType} from '../../../common/user';
+import {getHospitals} from '../group/common';
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
   //region 免登录接口逻辑
@@ -190,6 +191,15 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         user.areaCode,
         `%${user.areaCode}%`
       );
+      user.hospitals = (await getHospitals(user.areaCode)).map(it => ({
+        id: it.code,
+        name: it.name,
+        parent: it.parent,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        created_at: it.created_at,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        updated_at: it.updated_at
+      }));
 
       // 根据地区查询当前地区信息[少了 budget]
       // language=PostgreSQL
@@ -218,11 +228,11 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       // 该用户的默认code
       user.code = user.areaCode;
       //用户是否为地区权限
-      user.isRegion =
+      user.isRegion = !(
         user.region.label === 'hospital.center' ||
-        user.region.label === 'hospital.station'
-          ? false
-          : true;
+        user.region.label === 'hospital.station' ||
+        user.region.label === 'hospital.school'
+      );
 
       // 查询role相关
       // language=PostgreSQL
