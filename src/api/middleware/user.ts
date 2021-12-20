@@ -1,5 +1,6 @@
 import {Context} from '../context';
 import {appDB, originalDB} from '../../app';
+import {getHospitals} from '../group/common';
 
 /**
  * 用户类型枚举
@@ -75,19 +76,15 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       const user = userModels[0];
 
       // 根据用户权限id查询下属机构
-      user.hospitals = await originalDB.execute(
-        // language=PostgreSQL
-        `select code id,
-                  name,
-                  parent,
-                  created_at,
-                  updated_at
-           from area
-           where label in ('hospital.center', 'hospital.station')
-             and (code = ? or path like ?)`,
-        user.areaCode,
-        `%${user.areaCode}%`
-      );
+      user.hospitals = (await getHospitals(user.areaCode)).map(it => ({
+        id: it.code,
+        name: it.name,
+        parent: it.parent,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        created_at: it.created_at,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        updated_at: it.updated_at
+      }));
 
       // 根据地区查询当前地区信息[少了 budget]
       // language=PostgreSQL
