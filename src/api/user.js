@@ -1,10 +1,4 @@
-import {
-  KatoCommonError,
-  KatoLogicError,
-  KatoRuntimeError,
-  should,
-  validate
-} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
 import {
   RoleModel,
@@ -17,7 +11,7 @@ import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 import {imageSync} from 'qr-image';
-import {UserType} from './middleware/user';
+import {UserType} from '../../common/user';
 
 function countUserRender(params) {
   return sqlRender(
@@ -114,7 +108,61 @@ export default class User {
       .description('密码')
   )
   async login(account, password) {
-    // 查询账号密码是否正确
+    //region 验证账号是否重复, 用户名密码是否正确
+    const models = await appDB.execute(
+      //language=PostgreSQL
+      `
+        select 1
+        from "user"
+        where account = ?
+          and password = ?
+        union
+        select 1
+        from staff
+        where account = ?
+          and password = ?
+      `,
+      account,
+      password,
+      account,
+      password
+    );
+    if (models.length > 1)
+      throw new KatoRuntimeError('用户信息有误, 请联系管理员');
+    if (models.length === 0) throw new KatoCommonError('用户名密码错误');
+    //endregion
+    //region 查询员工表
+    const staffModel = (
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          select s.id, s.name, s.hospital, d.id as department_id, d.name as department_name
+          from staff s
+                 left join his_department d on s.department = d.id
+          where s.account = ?
+            and s.password = ?
+        `,
+        account,
+        password
+      )
+    )[0];
+    if (staffModel)
+      return {
+        type: UserType.STAFF,
+        token: staffModel.id,
+        id: staffModel.id,
+        name: staffModel.name,
+        hospitals: [{id: staffModel.hospital}],
+        department: staffModel.department_id
+          ? {
+              id: staffModel.department_id,
+              name: staffModel.department_name
+            }
+          : null
+      };
+    //endregion
+    //region 查询管理员表
+    //查询账号密码是否正确
     const userModels = await appDB.execute(
       `select "user".id,
                     "user".account,
@@ -137,41 +185,45 @@ export default class User {
       account,
       password
     );
-    //是否查询出结果
-    if (userModels.length === 0) throw new KatoLogicError('账户密码有误', 1002);
-    const user = {
-      id: userModels[0]?.id,
-      account: userModels[0]?.account,
-      name: userModels[0]?.name,
-      password: userModels[0]?.password,
-      areaCode: userModels[0]?.areaCode,
-      regionId: userModels[0]?.regionId,
-      creatorId: userModels[0]?.creatorId,
-      editorId: userModels[0]?.editorId,
-      created_at: userModels[0]?.created_at,
-      roles: [],
-      region: null
-    };
-    userModels.forEach(it => {
-      const index = user.roles.find(item => item.id === it.roleId);
-      if (!index) {
-        user.roles.push({
-          id: it.roleId,
-          name: it.roleName,
-          creator: it.roleCreator,
-          permissions: it.permissions
-        });
-      }
-    });
+    if (userModels.length > 0) {
+      const user = {
+        type: UserType.ADMIN,
+        token: userModels[0]?.id,
+        id: userModels[0]?.id,
+        account: userModels[0]?.account,
+        name: userModels[0]?.name,
+        password: userModels[0]?.password,
+        areaCode: userModels[0]?.areaCode,
+        regionId: userModels[0]?.regionId,
+        creatorId: userModels[0]?.creatorId,
+        editorId: userModels[0]?.editorId,
+        created_at: userModels[0]?.created_at,
+        roles: [],
+        region: null
+      };
+      userModels.forEach(it => {
+        const index = user.roles.find(item => item.id === it.roleId);
+        if (!index) {
+          user.roles.push({
+            id: it.roleId,
+            name: it.roleName,
+            creator: it.roleCreator,
+            permissions: it.permissions
+          });
+        }
+      });
 
-    user.region =
-      (
-        await originalDB.execute(
-          `select code, name, parent, label, path from area where code = ?`,
-          user.areaCode
-        )
-      )[0] ?? null;
-    return user;
+      user.region =
+        (
+          await originalDB.execute(
+            `select code, name, parent, label, path from area where code = ?`,
+            user.areaCode
+          )
+        )[0] ?? null;
+      return user;
+    }
+    //endregion
+    throw new KatoRuntimeError('用户数据异常, 请联系管理员');
   }
 
   @validate(

@@ -1269,9 +1269,10 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const staffModels = await appDB.execute(
       `
-        select id, name, department
+        select staff.id, staff.name, areaMapping.department
         from staff
-        where hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
@@ -1530,10 +1531,12 @@ export default class HisWorkItem {
     staff,
     day
   ) {
+    const hospital = await getHospital();
     // 时间转化为月份的开始时间和结束时间
     const {start, end} = monthToRange(day);
     const workItems = await workPointCalculation(
       staff,
+      hospital,
       start,
       end,
       name,
@@ -1880,9 +1883,10 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const staffModes = await appDB.execute(
       `
-        select id, name, account
+        select staff.id, staff.name, staff.account
         from staff
-        where hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
@@ -1902,14 +1906,15 @@ export default class HisWorkItem {
     // language=PostgreSQL
     const mappingModels = await appDB.execute(
       `
-        select mapping.id
-             , mapping.staff
-             , mapping.item
-             , mapping.rate
-             , mapping.remark
+        select mapping.id,
+               mapping.staff,
+               mapping.item,
+               mapping.rate,
+               mapping.remark
         from his_staff_work_item_mapping mapping
                left join staff on mapping.staff = staff.id
-        where staff.hospital = ?
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
       `,
       hospital
     );
@@ -1954,15 +1959,24 @@ export default class HisWorkItem {
     let workStaff = [];
     if (item) {
       workStaff = await appDB.execute(
-        `select staff from  his_staff_work_item_mapping where item = ?`,
+        // language=PostgreSQL
+        `
+          select staff
+          from his_staff_work_item_mapping
+          where item = ?
+        `,
         item
       );
     }
     // 获取可选择的员工列表
     const staffList = await appDB.execute(
-      `select id, account, name
-            from staff
-            where hospital = ?`,
+      // language=PostgreSQL
+      `
+        select staff.id, staff.account, staff.name
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+      `,
       hospital
     );
 

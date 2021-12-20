@@ -259,7 +259,13 @@ export default class HisManualData {
     const rows: ManualPropDataReturnValue[] = (
       await appDB.execute(
         // language=PostgreSQL
-        `select id, name from staff where hospital = ? order by created_at`,
+        `
+          select staff.id, staff.name
+          from staff
+                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+          where areaMapping.area = ?
+          order by staff.created_at
+        `,
         hospital
       )
     ).map<ManualPropDataReturnValue>(it => ({

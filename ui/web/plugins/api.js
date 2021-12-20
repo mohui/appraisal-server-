@@ -3,6 +3,7 @@ import {getToken, setToken} from '../utils/cache';
 import ContentDisposition from 'content-disposition';
 import FileSaver from 'file-saver';
 import axios from 'axios';
+
 export const apiUrl = '/api';
 
 const Dispatcher = async req => {
@@ -32,22 +33,33 @@ export async function getApiClient() {
     install(Vue, {router}) {
       if (client.inited) {
         client.use(async (ctx, next) => {
+          /**
+           * 警告框提示并跳转至登录页面
+           *
+           * @param message? 提示信息
+           */
+          const goLogin = message => {
+            if (message) Vue.prototype.$message.warning(message);
+            router.push('/login');
+          };
           const token = getToken();
 
           let isWhite = false;
-          for (let white of ['login.ac', 'title.ac'])
+          for (let white of ['login.ac', 'title.ac', 'register.ac'])
             isWhite = isWhite || ctx.req.url.endsWith(white);
           // 判断token是否失效
           if (!isWhite && !token) {
-            // 失效, 跳转至login页面
-            router.push('/login');
-            console.warn('token失效...');
+            goLogin();
             return;
           }
 
           token && (ctx.req.headers['token'] = token);
+          //TODO: 临时使用user-type
+          token &&
+            (ctx.req.headers['type'] = localStorage.getItem('user-type'));
           await next();
           const res = ctx.res;
+          //region 下载处理
           const contentType = res.headers['content-type'];
           if (
             ['application/octet-stream', 'application/vnd.ms-excel'].includes(
@@ -67,6 +79,21 @@ export async function getApiClient() {
             }
             ctx.res.data = '';
           }
+          //endregion
+          //region kato错误处理
+          try {
+            //解析返回值
+            let resp = JSON.parse(res.data);
+            //用户数据无效, 重新登录
+            if (resp['_KatoErrorCode_'] === 10000) {
+              goLogin(resp['_KatoErrorMessage_']);
+              return;
+            }
+          } catch (e) {
+            //json解析失败, 该异常不必处理
+            console.warn('kato错误处理异常', e);
+          }
+          //endregion
           // 请求成功后, 刷新token
           token && setToken(token);
         });
