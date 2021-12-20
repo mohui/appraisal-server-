@@ -684,7 +684,8 @@ export default class SystemArea {
       const newHospitals = hospitals.map(it => {
         const index = childrenTree.find(child =>
           child.label === 'hospital.center' ||
-          child.label === 'hospital.station'
+          child.label === 'hospital.station' ||
+          child.label === 'hospital.school'
             ? it.path.includes(`.${child.code}`)
             : it.path.includes(`.${child.code}.`)
         );

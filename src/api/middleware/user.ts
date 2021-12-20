@@ -115,7 +115,8 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       //用户是否为地区权限
       user.isRegion =
         user.region.label === 'hospital.center' ||
-        user.region.label === 'hospital.station'
+        user.region.label === 'hospital.station' ||
+        user.region.label === 'hospital.school'
           ? false
           : true;
 
