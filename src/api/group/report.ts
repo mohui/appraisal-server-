@@ -80,6 +80,29 @@ async function getExponent(code, time) {
     streetList = tree;
   }
 
+  /**
+   * 获取人群划分数据
+   */
+  const personCrowData = await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select vp.adminorganization                             as organization,
+             sum(case
+                   when (mp."C01" = true or mp."C02" = true or mp."C03" = true or
+                         mp."C04" = true or mp."C05" = true or mp."C06" = true or
+                         mp."C07" = true or mp."C08" = true or mp."C09" = true or
+                         mp."C10" = true or mp."C11" = true) then 1
+                   else 0 end)                                as "keyCount",
+             sum(case when mp."C07" = true then 1 else 0 end) as count07,
+             sum(case when mp."C02" = true then 1 else 0 end) as count02,
+             sum(case when mp."C03" = true then 1 else 0 end) as count03
+      from mark_person mp
+             inner join ph_person vp on mp.id = vp.id
+      where mp.year = ?
+      group by vp.adminorganization
+    `,
+    year
+  );
   // 获取考核指标
   const markList = Object.keys(MarkTagUsages).filter(
     it =>
@@ -1414,26 +1437,15 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgreSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and (
-                      mp."C01" = true or mp."C02" = true or mp."C03" = true or
-                      mp."C04" = true or mp."C05" = true or mp."C06" = true or
-                      mp."C07" = true or mp."C08" = true or mp."C09" = true or
-                      mp."C10" = true or mp."C11" = true
-                  )
-              `,
-              year,
-              ...hospitalIds
+          personCrowData
+            .filter(
+              p => hospitalIds.filter(h => h === p.organization).length > 0
             )
-          )[0]?.count ?? 0;
+            .reduce(
+              (result, current) => new Decimal(result).add(current.keyCount),
+              0
+            )
+            .toNumber() ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
@@ -1458,26 +1470,8 @@ async function getExponent(code, time) {
             const hospitalMark = await getMarks(hospital.code, year);
 
             const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and (
-                        mp."C01" = true or mp."C02" = true or mp."C03" = true or
-                        mp."C04" = true or mp."C05" = true or mp."C06" = true or
-                        mp."C07" = true or mp."C08" = true or mp."C09" = true or
-                        mp."C10" = true or mp."C11" = true
-                    )
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
+              personCrowData.filter(p => hospital.code === p.organization)[0]
+                ?.keyCount ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1507,21 +1501,15 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C07" = true
-              `,
-              year,
-              ...hospitalIds
+          personCrowData
+            .filter(
+              p => hospitalIds.filter(h => h === p.organization).length > 0
             )
-          )[0]?.count ?? 0;
+            .reduce(
+              (result, current) => new Decimal(result).add(current.count07),
+              0
+            )
+            .toNumber() ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
@@ -1546,21 +1534,8 @@ async function getExponent(code, time) {
             const hospitalMark = await getMarks(hospital.code, year);
 
             const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C07" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
+              personCrowData.filter(p => hospital.code === p.organization)[0]
+                ?.count07 ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1651,21 +1626,15 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C02" = true
-              `,
-              year,
-              ...hospitalIds
+          personCrowData
+            .filter(
+              p => hospitalIds.filter(h => h === p.organization).length > 0
             )
-          )[0]?.count ?? 0;
+            .reduce(
+              (result, current) => new Decimal(result).add(current.count02),
+              0
+            )
+            .toNumber() ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
@@ -1690,21 +1659,8 @@ async function getExponent(code, time) {
             const hospitalMark = await getMarks(hospital.code, year);
 
             const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C02" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
+              personCrowData.filter(p => hospital.code === p.organization)[0]
+                ?.count02 ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1734,21 +1690,15 @@ async function getExponent(code, time) {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
         const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C03" = true
-              `,
-              year,
-              ...hospitalIds
+          personCrowData
+            .filter(
+              p => hospitalIds.filter(h => h === p.organization).length > 0
             )
-          )[0]?.count ?? 0;
+            .reduce(
+              (result, current) => new Decimal(result).add(current.count03),
+              0
+            )
+            .toNumber() ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
@@ -1773,21 +1723,8 @@ async function getExponent(code, time) {
             const hospitalMark = await getMarks(hospital.code, year);
 
             const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C03" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
+              personCrowData.filter(p => hospital.code === p.organization)[0]
+                ?.count03 ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -2215,7 +2152,8 @@ export default class PHReport {
    */
   async generateAll(time) {
     //查询所有地区
-    const allTree = await originalDB.execute(`select code, name from area`);
+    const allTree = await originalDB.execute(`select code, name
+                                              from area`);
     // 生成所有的地区
     for (const it of allTree) {
       try {
