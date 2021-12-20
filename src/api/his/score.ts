@@ -617,13 +617,13 @@ async function getChargeMasters(hospital, day) {
     const TCMVisit = await originalDB.execute(
       // language=PostgreSQL
       `
-              select count(distinct treat) count
-              from his_charge_master
-              where operate_time >= ?
-                and operate_time < ?
-                and charge_type = '门诊'
-                and doctor in (${TCMList.map(() => '?')})
-            `,
+        select count(distinct treat) count
+        from his_charge_master
+        where operate_time >= ?
+          and operate_time < ?
+          and charge_type = '门诊'
+          and doctor in (${TCMList.map(() => '?')})
+      `,
       start,
       end,
       ...TCMList
