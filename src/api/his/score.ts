@@ -131,7 +131,12 @@ export async function workPointCalculation(
 
   // 查询机构信息,下面显示要用
   const hospitalModels = await originalDB.execute(
-    `select code, name from area where code = ?`,
+    // language=PostgreSQL
+    `
+      select code, name
+      from area
+      where code = ?
+    `,
     staffModel.hospital
   );
 
@@ -162,8 +167,8 @@ export async function workPointCalculation(
 
     // 如果科室长度大于0, 查询科室下的所有员工
     if (depIds.length > 0) {
-      // language=PostgreSQL
       const deptStaffList = await appDB.execute(
+        // language=PostgreSQL
         `
           select staff.id
           from staff
@@ -183,8 +188,8 @@ export async function workPointCalculation(
     }
     // 如果是本人所在科室
     if (scope === HisStaffDeptType.DEPT) {
-      // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
+        // language=PostgreSQL
         `
           select staff.id
           from staff
@@ -200,8 +205,8 @@ export async function workPointCalculation(
     }
     // 如果是本人所在机构
     if (scope === HisStaffDeptType.HOSPITAL) {
-      // language=PostgreSQL
       const staffDeptModels = await appDB.execute(
+        // language=PostgreSQL
         `
           select staff.id
           from staff
@@ -328,21 +333,21 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select detail.total_price as value,
-                 detail.operate_time as date,
-                 detail.item "itemId",
-                 detail.item_name "itemName",
-                 detail.doctor "staffId",
-                 staff.name as "staffName",
-                 '${PreviewType.HIS_STAFF}' as type
-          from his_charge_detail detail
-          inner join his_staff staff on detail.doctor = staff.id
-          where detail.operate_time > ?
-            and detail.operate_time < ?
-            and (detail.item like ? or detail.item = ?)
-            and ${doctorCondition}
-          order by detail.operate_time
-        `,
+        select detail.total_price         as value,
+               detail.operate_time        as date,
+               detail.item                as "itemId",
+               detail.item_name           as "itemName",
+               detail.doctor              as "staffId",
+               staff.name                 as "staffName",
+               '${PreviewType.HIS_STAFF}' as type
+        from his_charge_detail detail
+               inner join his_staff staff on detail.doctor = staff.id
+        where detail.operate_time > ?
+          and detail.operate_time < ?
+          and (detail.item like ? or detail.item = ?)
+          and ${doctorCondition}
+        order by detail.operate_time
+      `,
       start,
       end,
       `${param.source}.%`,
@@ -373,23 +378,23 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select detail.total_price as value,
-                 detail.operate_time as date,
-                 detail.item "itemId",
-                 detail.item_name "itemName",
-                 detail.doctor "staffId",
-                 staff.name as "staffName",
-                 '${PreviewType.HIS_STAFF}' as type
-          from his_charge_detail detail
-              inner join his_charge_master master on detail.main = master.id
-              inner join his_inpatient inpatient on master.treat = inpatient.id
-              inner join his_staff staff on detail.doctor = staff.id
-          where inpatient.out_date > ?
-            and inpatient.out_date < ?
-            and (detail.item like ? or detail.item = ?)
-            and ${doctorCondition}
-          order by detail.operate_time
-        `,
+        select detail.total_price         as value,
+               detail.operate_time        as date,
+               detail.item                as "itemId",
+               detail.item_name           as "itemName",
+               detail.doctor              as "staffId",
+               staff.name                 as "staffName",
+               '${PreviewType.HIS_STAFF}' as type
+        from his_charge_detail detail
+               inner join his_charge_master master on detail.main = master.id
+               inner join his_inpatient inpatient on master.treat = inpatient.id
+               inner join his_staff staff on detail.doctor = staff.id
+        where inpatient.out_date > ?
+          and inpatient.out_date < ?
+          and (detail.item like ? or detail.item = ?)
+          and ${doctorCondition}
+        order by detail.operate_time
+      `,
       start,
       end,
       `${param.source}.%`,
@@ -414,22 +419,22 @@ export async function workPointCalculation(
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-          select date,
-                 value,
-                 smdd.staff "staffId",
-                 staff.name "staffName",
-                 manual.id "itemId",
-                 manual.name "itemName",
-                 '${PreviewType.STAFF}' as type
-          from his_staff_manual_data_detail smdd
-                 inner join his_manual_data manual on smdd.item = manual.id
-                 inner join staff  on staff.id = smdd.staff
-          where smdd.item = ?
-            and smdd.date >= ?
-            and smdd.date < ?
-            and staff.id in (${staffIds.map(() => '?')})
-          order by smdd.date
-        `,
+        select date,
+               value,
+               smdd.staff             as "staffId",
+               staff.name             as "staffName",
+               manual.id              as "itemId",
+               manual.name            as "itemName",
+               '${PreviewType.STAFF}' as type
+        from his_staff_manual_data_detail smdd
+               inner join his_manual_data manual on smdd.item = manual.id
+               inner join staff on staff.id = smdd.staff
+        where smdd.item = ?
+          and smdd.date >= ?
+          and smdd.date < ?
+          and staff.id in (${staffIds.map(() => '?')})
+        order by smdd.date
+      `,
       //手工数据的source转id, 默认是只能必须选id
       param.source.split('.')[1],
       start,
@@ -612,13 +617,13 @@ async function getChargeMasters(hospital, day) {
     const TCMVisit = await originalDB.execute(
       // language=PostgreSQL
       `
-              select count(distinct treat) count
-              from his_charge_master
-              where operate_time >= ?
-                and operate_time < ?
-                and charge_type = '门诊'
-                and doctor in (${TCMList.map(() => '?')})
-            `,
+        select count(distinct treat) count
+        from his_charge_master
+        where operate_time >= ?
+          and operate_time < ?
+          and charge_type = '门诊'
+          and doctor in (${TCMList.map(() => '?')})
+      `,
       start,
       end,
       ...TCMList
@@ -691,11 +696,11 @@ export default class HisScore {
     const hospital = await appDB.execute(
       // language=PostgreSQL
       `
-          select staff.id, staff.name, areaMapping.area hospital
-          from staff
-                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-          where areaMapping.area = ?
-        `,
+        select staff.id, staff.name, areaMapping.area hospital
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+      `,
       id
     );
     for (const staffIt of hospital) {
@@ -742,11 +747,13 @@ export default class HisScore {
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
-      // language=PostgreSQL
       const mapping = await appDB.execute(
-        `select staff, "check"
-           from his_staff_check_mapping
-           where staff = ?`,
+        // language=PostgreSQL
+        `
+          select staff, "check"
+          from his_staff_check_mapping
+          where staff = ?
+        `,
         staff
       );
       if (mapping.length === 0) {
@@ -757,11 +764,13 @@ export default class HisScore {
       const check = mapping[0]?.check;
 
       // 查询方案
-      // language=PostgreSQL
       const checkSystemModels = await appDB.execute(
-        `select id, name, hospital
-           from his_check_system
-           where id = ?`,
+        // language=PostgreSQL
+        `
+          select id, name, hospital
+          from his_check_system
+          where id = ?
+        `,
         check
       );
       if (checkSystemModels.length === 0) {
@@ -770,19 +779,21 @@ export default class HisScore {
       }
 
       // 根据考核方案id查询考核细则
-      // language=PostgreSQL
       const ruleModels: CheckRuleModel[] = await appDB.execute(
-        `select id,
-                  "check",
-                  auto,
-                  name,
-                  detail,
-                  metric,
-                  operator,
-                  value,
-                  score
-           from his_check_rule
-           where "check" = ?`,
+        // language=PostgreSQL
+        `
+          select id,
+                 "check",
+                 auto,
+                 name,
+                 detail,
+                 metric,
+                 operator,
+                 value,
+                 score
+          from his_check_rule
+          where "check" = ?
+        `,
         check
       );
       if (ruleModels.length === 0) {
@@ -801,21 +812,23 @@ export default class HisScore {
       // 当天的开始时间和结束时间
       const {start, end} = dayToRange(monthTime.start);
       // 开始之前先查询此员工本月是否打过分
-      // language=PostgreSQL
       const assessResultModel: AssessModel[] = await appDB.execute(
-        `select id,
-                  staff_id    "staffId",
-                  time,
-                  system_id   "systemId",
-                  system_name "systemName",
-                  rule_id     "ruleId",
-                  rule_name   "ruleName",
-                  score,
-                  total
-           from his_staff_assess_result
-           where staff_id = ?
-             and time >= ?
-             and time < ?`,
+        // language=PostgreSQL
+        `
+          select id,
+                 staff_id    "staffId",
+                 time,
+                 system_id   "systemId",
+                 system_name "systemName",
+                 rule_id     "ruleId",
+                 rule_name   "ruleName",
+                 score,
+                 total
+          from his_staff_assess_result
+          where staff_id = ?
+            and time >= ?
+            and time < ?
+        `,
         staff,
         start,
         end
@@ -1616,44 +1629,45 @@ export default class HisScore {
         // 过滤已经删除的细则 和 自动打分的细则, 先删除,后添加
         const delRuleScoreId = assessResultModel.map(delIt => delIt.id);
         // 删除已经不存在的细则打分
-        // language=PostgreSQL
         await appDB.execute(
+          // language=PostgreSQL
           `
-              delete from his_staff_assess_result
-              where id in (${delRuleScoreId.map(() => '?')})
-            `,
+            delete
+            from his_staff_assess_result
+            where id in (${delRuleScoreId.map(() => '?')})
+          `,
           ...delRuleScoreId
         );
       }
       // 插入打分结果
       for (const insertIt of addRuleScore) {
-        // language=PostgreSQL
         await appDB.execute(
-          `insert into his_staff_assess_result(id,
-                                                 staff_id,
-                                                 time,
-                                                 system_id,
-                                                 system_name,
-                                                 rule_id,
-                                                 rule_name,
-                                                 score,
-                                                 total,
-                                                 created_at,
-                                                 updated_at)
-             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          ...[
-            uuid.v4(),
-            insertIt.staffId,
-            insertIt.time,
-            insertIt.systemId,
-            insertIt.systemName,
-            insertIt.ruleId,
-            insertIt.ruleName,
-            insertIt.score,
-            insertIt.total,
-            new Date(),
-            new Date()
-          ]
+          // language=PostgreSQL
+          `
+            insert into his_staff_assess_result(id,
+                                                staff_id,
+                                                time,
+                                                system_id,
+                                                system_name,
+                                                rule_id,
+                                                rule_name,
+                                                score,
+                                                total,
+                                                created_at,
+                                                updated_at)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          uuid.v4(),
+          insertIt.staffId,
+          insertIt.time,
+          insertIt.systemId,
+          insertIt.systemName,
+          insertIt.ruleId,
+          insertIt.ruleName,
+          insertIt.score,
+          insertIt.total,
+          new Date(),
+          new Date()
         );
       }
       // endregion
@@ -1702,14 +1716,24 @@ export default class HisScore {
     // region 校验合法性
     // 根据员工id查询出该员工是否有考核
     const staffSystem = await appDB.execute(
-      `select staff, "check" from his_staff_check_mapping where staff = ?`,
+      // language=PostgreSQL
+      `
+        select staff, "check"
+        from his_staff_check_mapping
+        where staff = ?
+      `,
       staff
     );
     if (staffSystem.length === 0) throw new KatoRuntimeError(`该员工无考核`);
 
     // 查询方案
     const checkSystemModels = await appDB.execute(
-      `select id, name, hospital from his_check_system where id = ?`,
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_check_system
+        where id = ?
+      `,
       staffSystem[0].check
     );
 
@@ -1717,19 +1741,21 @@ export default class HisScore {
       throw new KatoRuntimeError(`考核方案不存在`);
 
     // 查询考核细则
-    // language=PostgreSQL
     const ruleModels: CheckRuleModel[] = await appDB.execute(
-      `select id,
-                name,
-                detail,
-                auto,
-                "check",
-                metric,
-                operator,
-                value,
-                score
-         from his_check_rule
-         where "check" = ?`,
+      // language=PostgreSQL
+      `
+        select id,
+               name,
+               detail,
+               auto,
+               "check",
+               metric,
+               operator,
+               value,
+               score
+        from his_check_rule
+        where "check" = ?
+      `,
       staffSystem[0].check
     );
 
@@ -1748,22 +1774,24 @@ export default class HisScore {
     // endregion
 
     // 查询该细则本月是否有分值
-    // language=PostgreSQL
     const assessResultModel: AssessModel[] = await appDB.execute(
-      `select id,
-                staff_id    "staffId",
-                time,
-                system_id   "systemId",
-                system_name "systemName",
-                rule_id     "ruleId",
-                rule_name   "ruleName",
-                score,
-                total
-         from his_staff_assess_result
-         where staff_id = ?
-           and rule_id = ?
-           and time >= ?
-           and time < ?`,
+      // language=PostgreSQL
+      `
+        select id,
+               staff_id    "staffId",
+               time,
+               system_id   "systemId",
+               system_name "systemName",
+               rule_id     "ruleId",
+               rule_name   "ruleName",
+               score,
+               total
+        from his_staff_assess_result
+        where staff_id = ?
+          and rule_id = ?
+          and time >= ?
+          and time < ?
+      `,
       staff,
       ruleId,
       start,
@@ -1792,33 +1820,33 @@ export default class HisScore {
       );
     } else {
       // 该手工细则本月没有打过分, 执行添加语句
-      // language=PostgreSQL
       return await appDB.execute(
-        `insert into his_staff_assess_result(id,
-                                               staff_id,
-                                               time,
-                                               system_id,
-                                               system_name,
-                                               rule_id,
-                                               rule_name,
-                                               score,
-                                               total,
-                                               created_at,
-                                               updated_at)
-           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ...[
-          uuid.v4(),
-          staff,
-          start,
-          checkSystemModels[0]?.id,
-          checkSystemModels[0]?.name,
-          ruleId,
-          ruleOneModels?.name,
-          score,
-          ruleOneModels?.score,
-          new Date(),
-          new Date()
-        ]
+        // language=PostgreSQL
+        `
+          insert into his_staff_assess_result(id,
+                                              staff_id,
+                                              time,
+                                              system_id,
+                                              system_name,
+                                              rule_id,
+                                              rule_name,
+                                              score,
+                                              total,
+                                              created_at,
+                                              updated_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        uuid.v4(),
+        staff,
+        start,
+        checkSystemModels[0]?.id,
+        checkSystemModels[0]?.name,
+        ruleId,
+        ruleOneModels?.name,
+        score,
+        ruleOneModels?.score,
+        new Date(),
+        new Date()
       );
     }
   }
@@ -1835,8 +1863,8 @@ export default class HisScore {
   async workScoreHospital(month, hospital) {
     log(`开始计算 ${hospital} 工分`);
     // 查询员工
-    // language=PostgreSQL
     const staffs: {id: string; name: string}[] = await appDB.execute(
+      // language=PostgreSQL
       `
         select staff.id, staff.name
         from staff
@@ -1891,7 +1919,6 @@ export default class HisScore {
     //员工不存在, 直接返回
     if (!staffModel) return;
     //查询绑定关系
-    //language=PostgreSQL
     const bindings: {
       //工分项自身
       id: string; //工分项id
@@ -1911,6 +1938,7 @@ export default class HisScore {
       order: number; //排序
       steps: object; //梯度
     }[] = await appDB.execute(
+      // language=PostgreSQL
       `
         select wi.id,
                wi.name,
@@ -2038,8 +2066,8 @@ export default class HisScore {
     // region 写入结果表
     await appDB.transaction(async () => {
       // 写入之前先清除掉老数据
-      // language=PostgreSQL
       await appDB.execute(
+        // language=PostgreSQL
         `
           delete
           from his_staff_work_result
