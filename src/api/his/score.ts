@@ -1943,12 +1943,12 @@ export default class HisScore {
                wi.name,
                wi.method,
                wim.source,
-               wi.type                   as staff_type,
+               wi.type                    as staff_type,
                wi.item_type,
                wi.steps,
-               type.name                 as item_type_name,
+               type.name                  as item_type_name,
                type."order",
-               wism.source               as staff_id,
+               wism.source                as staff_id,
                coalesce(wism.type, '员工') as staff_level,
                swim.rate
         from his_staff_work_item_mapping swim
