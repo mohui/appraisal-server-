@@ -36,10 +36,11 @@ import {getHospitals} from './common';
  * @param denominator 分母
  */
 export function percentString(numerator: number, denominator: number): string {
-  if (denominator) {
-    const rate = numerator / denominator;
-    if (rate > 1) return '100%';
-    return ((numerator / denominator) * 100).toFixed(2) + '%';
+  // 如果不用number,传个字符串的零也会进来
+  if (Number(denominator)) {
+    const rate = new Decimal(numerator).div(new Decimal(denominator));
+    if (rate.toNumber() > 1) return '100%';
+    return new Decimal(rate).mul(100).toFixed(2) + '%';
   } else {
     return '0';
   }
