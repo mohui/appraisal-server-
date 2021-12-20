@@ -333,21 +333,21 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select detail.total_price as value,
-                 detail.operate_time as date,
-                 detail.item "itemId",
-                 detail.item_name "itemName",
-                 detail.doctor "staffId",
-                 staff.name as "staffName",
-                 '${PreviewType.HIS_STAFF}' as type
-          from his_charge_detail detail
-          inner join his_staff staff on detail.doctor = staff.id
-          where detail.operate_time > ?
-            and detail.operate_time < ?
-            and (detail.item like ? or detail.item = ?)
-            and ${doctorCondition}
-          order by detail.operate_time
-        `,
+        select detail.total_price         as value,
+               detail.operate_time        as date,
+               detail.item                as "itemId",
+               detail.item_name           as "itemName",
+               detail.doctor              as "staffId",
+               staff.name                 as "staffName",
+               '${PreviewType.HIS_STAFF}' as type
+        from his_charge_detail detail
+               inner join his_staff staff on detail.doctor = staff.id
+        where detail.operate_time > ?
+          and detail.operate_time < ?
+          and (detail.item like ? or detail.item = ?)
+          and ${doctorCondition}
+        order by detail.operate_time
+      `,
       start,
       end,
       `${param.source}.%`,
@@ -378,23 +378,23 @@ export async function workPointCalculation(
     }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-          select detail.total_price as value,
-                 detail.operate_time as date,
-                 detail.item "itemId",
-                 detail.item_name "itemName",
-                 detail.doctor "staffId",
-                 staff.name as "staffName",
-                 '${PreviewType.HIS_STAFF}' as type
-          from his_charge_detail detail
-              inner join his_charge_master master on detail.main = master.id
-              inner join his_inpatient inpatient on master.treat = inpatient.id
-              inner join his_staff staff on detail.doctor = staff.id
-          where inpatient.out_date > ?
-            and inpatient.out_date < ?
-            and (detail.item like ? or detail.item = ?)
-            and ${doctorCondition}
-          order by detail.operate_time
-        `,
+        select detail.total_price         as value,
+               detail.operate_time        as date,
+               detail.item                as "itemId",
+               detail.item_name           as "itemName",
+               detail.doctor              as "staffId",
+               staff.name                 as "staffName",
+               '${PreviewType.HIS_STAFF}' as type
+        from his_charge_detail detail
+               inner join his_charge_master master on detail.main = master.id
+               inner join his_inpatient inpatient on master.treat = inpatient.id
+               inner join his_staff staff on detail.doctor = staff.id
+        where inpatient.out_date > ?
+          and inpatient.out_date < ?
+          and (detail.item like ? or detail.item = ?)
+          and ${doctorCondition}
+        order by detail.operate_time
+      `,
       start,
       end,
       `${param.source}.%`,
@@ -419,22 +419,22 @@ export async function workPointCalculation(
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-          select date,
-                 value,
-                 smdd.staff "staffId",
-                 staff.name "staffName",
-                 manual.id "itemId",
-                 manual.name "itemName",
-                 '${PreviewType.STAFF}' as type
-          from his_staff_manual_data_detail smdd
-                 inner join his_manual_data manual on smdd.item = manual.id
-                 inner join staff  on staff.id = smdd.staff
-          where smdd.item = ?
-            and smdd.date >= ?
-            and smdd.date < ?
-            and staff.id in (${staffIds.map(() => '?')})
-          order by smdd.date
-        `,
+        select date,
+               value,
+               smdd.staff             as "staffId",
+               staff.name             as "staffName",
+               manual.id              as "itemId",
+               manual.name            as "itemName",
+               '${PreviewType.STAFF}' as type
+        from his_staff_manual_data_detail smdd
+               inner join his_manual_data manual on smdd.item = manual.id
+               inner join staff on staff.id = smdd.staff
+        where smdd.item = ?
+          and smdd.date >= ?
+          and smdd.date < ?
+          and staff.id in (${staffIds.map(() => '?')})
+        order by smdd.date
+      `,
       //手工数据的source转id, 默认是只能必须选id
       param.source.split('.')[1],
       start,
