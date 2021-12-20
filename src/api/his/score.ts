@@ -647,7 +647,7 @@ export default class HisScore {
     const {start} = monthToRange(month);
     const settle = await getSettle(hospital, start);
     if (settle) throw new KatoRuntimeError('该月已结算, 不能打分');
-    await createBackJob('HisSCore', '', {
+    await createBackJob('HisSCore', dayjs(month).format('YYYY-MM'), {
       days: [day],
       hospital
     });

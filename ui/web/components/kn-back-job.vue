@@ -14,15 +14,19 @@
     >
       <el-table-column align="center" label="状态" width="100">
         <template slot-scope="{row}">
+          <div
+            v-show="
+              row.status === 'success' &&
+                (row.job === 'scoreCheck' || row.job === 'HisSCore')
+            "
+            class="el-icon-check"
+          ></div>
           <el-button
-            v-show="row.status === 'success' && row.job === 'scoreCheck'"
-            size="mini"
-            type="success"
-            icon="el-icon-check"
-            circle
-          ></el-button>
-          <el-button
-            v-show="row.status === 'success' && row.job !== 'scoreCheck'"
+            v-show="
+              row.status === 'success' &&
+                row.job !== 'scoreCheck' &&
+                row.job !== 'HisSCore'
+            "
             size="mini"
             type="success"
             icon="el-icon-download"
