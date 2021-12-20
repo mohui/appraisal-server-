@@ -113,12 +113,11 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       // 该用户的默认code
       user.code = user.areaCode;
       //用户是否为地区权限
-      user.isRegion =
+      user.isRegion = !(
         user.region.label === 'hospital.center' ||
         user.region.label === 'hospital.station' ||
         user.region.label === 'hospital.school'
-          ? false
-          : true;
+      );
 
       // 查询role相关
       // language=PostgreSQL
