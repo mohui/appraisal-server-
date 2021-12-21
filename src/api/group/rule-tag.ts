@@ -115,10 +115,20 @@ export default class RuleTag {
       return await appDB.execute(
         // language=PostgreSQL
         `
-          insert into rule_tag(id, rule, tag, algorithm, baseline, score, created_at, updated_at, attach_start_date, attach_end_date)
-          values ${insertParams
-            .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            .join()}
+          insert into rule_tag(
+                               id,
+                               rule,
+                               tag,
+                               algorithm,
+                               baseline,
+                               score,
+                               created_at,
+                               updated_at,
+                               attach_start_date,
+                               attach_end_date
+                               ) values ${insertParams
+                                 .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                                 .join()}
         `,
         ...insertParams.reduce((prev, current) => {
           return [...prev, ...current];
