@@ -1363,37 +1363,16 @@ export default class Score {
 
               // 重点人群签约服务覆盖率
               if (tagModel.tag === MarkTagUsages.SN01.code) {
-                // 重点人群数
-                const basicData =
-                  (
-                    await originalDB.execute(
-                      // language=PostgreSQL
-                      `
-                        select count(1) count
-                        from mark_person mp
-                               inner join ph_person vp on mp.id = vp.id
-                        where mp.year = ?
-                          and vp.adminorganization in (${hospitalIds.map(
-                            () => '?'
-                          )})
-                          and (
-                            mp."C01" = true or mp."C02" = true or mp."C03" = true or
-                            mp."C04" = true or mp."C05" = true or mp."C06" = true or
-                            mp."C07" = true or mp."C08" = true or mp."C09" = true or
-                            mp."C10" = true or mp."C11" = true
-                          )
-                      `,
-                      year,
-                      ...hospitalIds
-                    )
-                  )[0]?.count ?? 0;
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN01.name
-                  } = 重点人群签约数 / 重点人群总数 x 100% = ${
+                  } = 重点人群签约数 / 重点人群总数 x 100% = ${mark?.SN01} / ${
                     mark?.SN01
-                  } / ${basicData} = ${percentString(mark?.SN01, basicData)}`
+                  } / ${mark?.focused} = ${percentString(
+                    mark?.SN01,
+                    mark?.focused
+                  )}`
                 );
 
                 // 结果为”是“时，得满分
@@ -1415,7 +1394,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SN01
                 ) {
-                  const rate = mark.SN01 / basicData / tagModel.baseline;
+                  const rate = mark.SN01 / mark?.focused / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
