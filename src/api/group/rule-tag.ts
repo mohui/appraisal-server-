@@ -1,7 +1,7 @@
 import {KatoCommonError, should, validate} from 'kato-server';
-import {appDB} from '../app';
+import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
-import {MarkTagUsages} from '../../common/rule-score';
+import {MarkTagUsages} from '../../../common/rule-score';
 import Decimal from 'decimal.js';
 import * as uuid from 'uuid';
 
