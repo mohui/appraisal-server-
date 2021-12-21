@@ -260,7 +260,7 @@ export default class HisManualData {
           and d.date < {{? end}}
           {{#if staff}}
           AND d.staff = {{? staff}}
-          {{/ if}}
+          {{/if}}
           order by d.date, created_at
       `,
       {
