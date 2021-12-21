@@ -87,7 +87,7 @@ async function getExponent(code, time) {
     // language=PostgreSQL
     `
       select vp.adminorganization as organization,
-             count(mp.id)             as "keyCount"
+             count(mp.id)         as "keyCount"
       from mark_person mp
              inner join ph_person vp on mp.id = vp.id
       where mp.year = ?
