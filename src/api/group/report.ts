@@ -1413,35 +1413,14 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN01') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgreSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and (
-                      mp."C01" = true or mp."C02" = true or mp."C03" = true or
-                      mp."C04" = true or mp."C05" = true or mp."C06" = true or
-                      mp."C07" = true or mp."C08" = true or mp."C09" = true or
-                      mp."C10" = true or mp."C11" = true
-                  )
-              `,
-              year,
-              ...hospitalIds
-            )
-          )[0]?.count ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
             index: j,
             name: `${it?.name}`,
             value: mark?.SN01,
-            basic: basicData,
-            rate: `${percentString(mark?.SN01, basicData)}`
+            basic: mark?.focused,
+            rate: `${percentString(mark?.SN01, mark?.focused)}`
           });
           j++;
         } else {
@@ -1449,44 +1428,24 @@ async function getExponent(code, time) {
             index: i,
             name: `${it?.name}`,
             value: mark?.SN01,
-            basic: basicData,
-            rate: `${percentString(mark?.SN01, basicData)}`
+            basic: mark?.focused,
+            rate: `${percentString(mark?.SN01, mark?.focused)}`
           });
           // 表二表三只显示机构本身的
           for (const hospital of hospitals) {
             // 仅仅返回中心这一个机构的数据
             const hospitalMark = await getMarks(hospital.code, year);
-
-            const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and (
-                        mp."C01" = true or mp."C02" = true or mp."C03" = true or
-                        mp."C04" = true or mp."C05" = true or mp."C06" = true or
-                        mp."C07" = true or mp."C08" = true or mp."C09" = true or
-                        mp."C10" = true or mp."C11" = true
-                    )
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
-
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
               dataRow2.push({
                 index: i,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN01,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+                basic: hospitalMark?.focused,
+                rate: `${percentString(
+                  hospitalMark?.SN01,
+                  hospitalMark?.focused
+                )}`
               });
             } else {
               // 表三: 卫生站/卫生室
@@ -1494,8 +1453,11 @@ async function getExponent(code, time) {
                 index: j,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN01,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN01, hospitalBasicData)}`
+                basic: hospitalMark?.focused,
+                rate: `${percentString(
+                  hospitalMark?.SN01,
+                  hospitalMark?.focused
+                )}`
               });
               j++;
             }
@@ -1506,30 +1468,14 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN02') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C07" = true
-              `,
-              year,
-              ...hospitalIds
-            )
-          )[0]?.count ?? 0;
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
             index: j,
             name: `${it?.name}`,
             value: mark?.SN02,
-            basic: basicData,
-            rate: `${percentString(mark?.SN02, basicData)}`
+            basic: mark?.C07,
+            rate: `${percentString(mark?.SN02, mark?.C07)}`
           });
           j++;
         } else {
@@ -1537,30 +1483,13 @@ async function getExponent(code, time) {
             index: i,
             name: `${it?.name}`,
             value: mark?.SN02,
-            basic: basicData,
-            rate: `${percentString(mark?.SN02, basicData)}`
+            basic: mark?.C07,
+            rate: `${percentString(mark?.SN02, mark?.C07)}`
           });
           // 表二表三只显示机构本身的
           for (const hospital of hospitals) {
             // 仅仅返回中心这一个机构的数据
             const hospitalMark = await getMarks(hospital.code, year);
-
-            const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C07" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1568,8 +1497,8 @@ async function getExponent(code, time) {
                 index: i,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN02,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+                basic: hospitalMark?.C07,
+                rate: `${percentString(hospitalMark?.SN02, hospitalMark?.C07)}`
               });
             } else {
               // 表三: 卫生站/卫生室
@@ -1577,8 +1506,8 @@ async function getExponent(code, time) {
                 index: j,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN02,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN02, hospitalBasicData)}`
+                basic: hospitalMark?.C07,
+                rate: `${percentString(hospitalMark?.SN02, hospitalMark?.C07)}`
               });
               j++;
             }
@@ -1650,30 +1579,15 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN04') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C02" = true
-              `,
-              year,
-              ...hospitalIds
-            )
-          )[0]?.count ?? 0;
+
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
             index: j,
             name: `${it?.name}`,
             value: mark?.SN04,
-            basic: basicData,
-            rate: `${percentString(mark?.SN04, basicData)}`
+            basic: mark?.C02,
+            rate: `${percentString(mark?.SN04, mark?.C02)}`
           });
           j++;
         } else {
@@ -1681,30 +1595,13 @@ async function getExponent(code, time) {
             index: i,
             name: `${it?.name}`,
             value: mark?.SN04,
-            basic: basicData,
-            rate: `${percentString(mark?.SN04, basicData)}`
+            basic: mark?.C02,
+            rate: `${percentString(mark?.SN04, mark?.C02)}`
           });
           // 表二表三只显示机构本身的
           for (const hospital of hospitals) {
             // 仅仅返回中心这一个机构的数据
             const hospitalMark = await getMarks(hospital.code, year);
-
-            const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C02" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1712,8 +1609,8 @@ async function getExponent(code, time) {
                 index: i,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN04,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+                basic: hospitalMark?.C02,
+                rate: `${percentString(hospitalMark?.SN04, hospitalMark?.C02)}`
               });
             } else {
               // 表三: 卫生站/卫生室
@@ -1721,8 +1618,8 @@ async function getExponent(code, time) {
                 index: j,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN04,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN04, hospitalBasicData)}`
+                basic: hospitalMark?.C02,
+                rate: `${percentString(hospitalMark?.SN04, hospitalMark?.C02)}`
               });
               j++;
             }
@@ -1733,30 +1630,15 @@ async function getExponent(code, time) {
       if (MarkTagUsages[markItem].code === 'SN05') {
         // 表一: 中心机构总体
         const mark = await getMarks(it.code, year);
-        const basicData =
-          (
-            await originalDB.execute(
-              // language=PostgresSQL
-              `
-                select count(1) count
-                from mark_person mp
-                       inner join ph_person vp on mp.id = vp.id
-                where mp.year = ?
-                  and vp.adminorganization in (${hospitalIds.map(() => '?')})
-                  and mp."C03" = true
-              `,
-              year,
-              ...hospitalIds
-            )
-          )[0]?.count ?? 0;
+
         // 如果是高校的机构,放到表三中
         if (it.label === 'hospital.school') {
           dataRow3.push({
             index: j,
             name: `${it?.name}`,
             value: mark?.SN05,
-            basic: basicData,
-            rate: `${percentString(mark?.SN05, basicData)}`
+            basic: mark?.C03,
+            rate: `${percentString(mark?.SN05, mark?.C03)}`
           });
           j++;
         } else {
@@ -1764,30 +1646,13 @@ async function getExponent(code, time) {
             index: i,
             name: `${it?.name}`,
             value: mark?.SN05,
-            basic: basicData,
-            rate: `${percentString(mark?.SN05, basicData)}`
+            basic: mark?.C03,
+            rate: `${percentString(mark?.SN05, mark?.C03)}`
           });
           // 表二表三只显示机构本身的
           for (const hospital of hospitals) {
             // 仅仅返回中心这一个机构的数据
             const hospitalMark = await getMarks(hospital.code, year);
-
-            const hospitalBasicData =
-              (
-                await originalDB.execute(
-                  // language=PostgreSQL
-                  `
-                  select count(1) count
-                  from mark_person mp
-                         inner join ph_person vp on mp.id = vp.id
-                  where mp.year = ?
-                    and vp.adminorganization = ?
-                    and mp."C03" = true
-                `,
-                  year,
-                  hospital.code
-                )
-              )[0]?.count ?? 0;
 
             // 表二: 中心/卫生院机构（不含下属机构）
             if (hospital?.name === it?.name) {
@@ -1795,8 +1660,8 @@ async function getExponent(code, time) {
                 index: i,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN05,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+                basic: hospitalMark?.C03,
+                rate: `${percentString(hospitalMark?.SN05, hospitalMark?.C03)}`
               });
             } else {
               // 表三: 卫生站/卫生室
@@ -1804,8 +1669,8 @@ async function getExponent(code, time) {
                 index: j,
                 name: `${hospital?.name}`,
                 value: hospitalMark?.SN05,
-                basic: hospitalBasicData,
-                rate: `${percentString(hospitalMark?.SN05, hospitalBasicData)}`
+                basic: hospitalMark?.C03,
+                rate: `${percentString(hospitalMark?.SN05, hospitalMark?.C03)}`
               });
               j++;
             }
