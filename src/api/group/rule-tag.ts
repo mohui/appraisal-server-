@@ -3,7 +3,7 @@ import {appDB} from '../../app';
 import * as dayjs from 'dayjs';
 import {MarkTagUsages} from '../../../common/rule-score';
 import Decimal from 'decimal.js';
-import * as uuid from 'uuid';
+import {v4 as uuid} from 'uuid';
 
 export default class RuleTag {
   @validate(
@@ -104,7 +104,7 @@ export default class RuleTag {
           throw new KatoCommonError('定性指标的附件上传起始时间有误');
         // 5: 汇总需要添加的数组
         insertParams.push([
-          uuid.v4(),
+          uuid(),
           ruleId,
           tag.tag,
           tag.algorithm,
