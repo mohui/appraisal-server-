@@ -108,6 +108,9 @@ export async function getMarks(
   SN08: number;
   SN09: number;
   SN10: number;
+  C07: number;
+  C02: number;
+  C03: number;
 }> {
   // language=PostgreSQL
   const result = await originalDB.execute(
@@ -184,7 +187,10 @@ export async function getMarks(
       SN07: 0,
       SN08: 0,
       SN09: 0,
-      SN10: 0
+      SN10: 0,
+      C07: 0,
+      C02: 0,
+      C03: 0
     }
   );
   return {...obj, id: group};
