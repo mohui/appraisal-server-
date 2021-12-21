@@ -1421,32 +1421,13 @@ export default class Score {
 
               // 计划生育特扶人员签约率
               if (tagModel.tag === MarkTagUsages.SN02.code) {
-                // 计划生育人口数
-                const basicData =
-                  (
-                    await originalDB.execute(
-                      // language=PostgreSQL
-                      `
-                        select count(1) count
-                        from mark_person mp
-                               inner join ph_person vp on mp.id = vp.id
-                        where mp.year = ?
-                          and vp.adminorganization in (${hospitalIds.map(
-                            () => '?'
-                          )})
-                          and mp."C07" = true
-                      `,
-                      year,
-                      ...hospitalIds
-                    )
-                  )[0]?.count ?? 0;
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN02.name
                   } =  计划生育特扶人员签约数 / 计划生育特扶人员数 x 100% = ${
                     mark?.SN02
-                  } / ${basicData} = ${percentString(mark?.SN02, basicData)}`
+                  } / ${mark?.C07} = ${percentString(mark?.SN02, mark?.C07)}`
                 );
 
                 // 结果为”是“时，得满分
@@ -1468,7 +1449,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SN02
                 ) {
-                  const rate = mark.SN02 / basicData / tagModel.baseline;
+                  const rate = mark.SN02 / mark?.C07 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -1518,32 +1499,13 @@ export default class Score {
 
               // 高血压病人有偿签约率
               if (tagModel.tag === MarkTagUsages.SN04.code) {
-                // 高血压患者人数
-                const basicData =
-                  (
-                    await originalDB.execute(
-                      // language=PostgreSQL
-                      `
-                        select count(1) count
-                        from mark_person mp
-                               inner join ph_person vp on mp.id = vp.id
-                        where mp.year = ?
-                          and vp.adminorganization in (${hospitalIds.map(
-                            () => '?'
-                          )})
-                          and mp."C02" = true
-                      `,
-                      year,
-                      ...hospitalIds
-                    )
-                  )[0]?.count ?? 0;
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN04.name
                   } = 高血压有偿签约人数 / 高血压在管患者总数 x 100% = ${
                     mark?.SN04
-                  } / ${basicData} = ${percentString(mark?.SN04, basicData)}`
+                  } / ${mark?.C02} = ${percentString(mark?.SN04, mark?.C02)}`
                 );
 
                 // 结果为”是“时，得满分
@@ -1565,7 +1527,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SN04
                 ) {
-                  const rate = mark.SN04 / basicData / tagModel.baseline;
+                  const rate = mark.SN04 / mark?.C02 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
@@ -1573,32 +1535,13 @@ export default class Score {
 
               // 糖尿病人有偿签约率
               if (tagModel.tag === MarkTagUsages.SN05.code) {
-                // 糖尿病患者人数
-                const basicData =
-                  (
-                    await originalDB.execute(
-                      // language=PostgreSQL
-                      `
-                        select count(1) count
-                        from mark_person mp
-                               inner join ph_person vp on mp.id = vp.id
-                        where mp.year = ?
-                          and vp.adminorganization in (${hospitalIds.map(
-                            () => '?'
-                          )})
-                          and mp."C03" = true
-                      `,
-                      year,
-                      ...hospitalIds
-                    )
-                  )[0]?.count ?? 0;
                 // 添加指标解释数组
                 ruleAreaScoreModel.details.push(
                   `${
                     MarkTagUsages.SN05.name
                   } = 糖尿病有偿签约人数 / 糖尿病在管患者总数 x 100% = ${
                     mark?.SN05
-                  } / ${basicData} = ${percentString(mark?.SN05, basicData)}`
+                  } / ${mark?.C03} = ${percentString(mark?.SN05, mark?.C03)}`
                 );
 
                 // 结果为”是“时，得满分
@@ -1620,7 +1563,7 @@ export default class Score {
                   tagModel.algorithm === TagAlgorithmUsages.egt.code &&
                   mark?.SN05
                 ) {
-                  const rate = mark.SN05 / basicData / tagModel.baseline;
+                  const rate = mark.SN05 / mark?.C03 / tagModel.baseline;
                   ruleAreaScoreModel.score +=
                     tagModel.score * (rate > 1 ? 1 : rate);
                 }
