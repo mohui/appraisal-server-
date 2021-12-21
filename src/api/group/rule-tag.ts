@@ -6,45 +6,40 @@ import Decimal from 'decimal.js';
 import {v4 as uuid} from 'uuid';
 
 export default class RuleTag {
+  /**
+   * 指标修改
+   *
+   * @param params {
+   *   ruleId: 规则id
+   *   tags: 指标相关数据[
+   *     {
+   *        tag: 指标code,
+   *        algorithm: 指标算法,
+   *        baseline: 参考值,
+   *        score: 得分,
+   *        attachStartDate: 定性指标上传附件的开始时间,
+   *        attachEndDate: 定性指标上传附件的结束时间
+   *     }
+   *   ]
+   * }
+   */
   @validate(
     should.object({
-      ruleId: should
-        .string()
-        .required()
-        .description('规则id'),
+      ruleId: should.string().required(),
       tags: should
         .array()
         .items(
           should.object({
-            tag: should
-              .string()
-              .required()
-              .description('指标code'),
-            algorithm: should
-              .string()
-              .required()
-              .description('指标算法'),
-            baseline: should
-              .number()
-              .allow(null)
-              .description('参考值'),
-            score: should
-              .number()
-              .required()
-              .description('得分'),
-            attachStartDate: should
-              .date()
-              .allow(null)
-              .description('定性指标上传附件的开始时间'),
-            attachEndDate: should
-              .date()
-              .allow(null)
-              .description('定性指标上传附件的结束时间')
+            tag: should.string().required(),
+            algorithm: should.string().required(),
+            baseline: should.number().allow(null),
+            score: should.number().required(),
+            attachStartDate: should.date().allow(null),
+            attachEndDate: should.date().allow(null)
           })
         )
         .required()
         .allow([])
-        .description('指标相关数据')
     })
   )
   async upsert(params) {
@@ -58,7 +53,7 @@ export default class RuleTag {
        * 5: 汇总需要添加的数组
        * 6: 新增指标
        */
-      const checkRule = await appDB.execute(
+      const checkRules = await appDB.execute(
         // language=PostgreSQL
         `
           select rule_id    "ruleId",
@@ -70,10 +65,10 @@ export default class RuleTag {
         ruleId
       );
       // 1: 查询考核小项是否存在
-      if (checkRule.length === 0) throw new KatoCommonError('考核小项不存在');
+      if (checkRules.length === 0) throw new KatoCommonError('考核小项不存在');
       // 2: 判断指标分数不能大于规则总分数
       if (
-        checkRule[0]?.ruleScore <
+        checkRules[0]?.ruleScore <
         tags.reduce(
           (result, current) =>
             new Decimal(result).add(current.score).toNumber(),
