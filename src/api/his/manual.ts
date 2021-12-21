@@ -51,7 +51,15 @@ export default class HisManualData {
   async get(id, month) {
     const hospital = await getHospital();
     const result = (
-      await appDB.execute(`select * from his_manual_data where id = ?`, id)
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from his_manual_data
+          where id = ?
+        `,
+        id
+      )
     )[0];
     if (!result) return null;
     //月份转开始结束时间
@@ -59,7 +67,13 @@ export default class HisManualData {
     const settle =
       (
         await appDB.execute(
-          `select settle from his_hospital_settle where hospital = ? and month = ?`,
+          // language=PostgreSQL
+          `
+            select settle
+            from his_hospital_settle
+            where hospital = ?
+              and month = ?
+          `,
           hospital,
           start
         )
@@ -75,12 +89,14 @@ export default class HisManualData {
    */
   async list() {
     const hospital = await getHospital();
-    // language=PostgreSQL
     return await appDB.execute(
-      `select id, name, input, created_at, updated_at
-         from his_manual_data
-         where hospital = ?
-         order by created_at`,
+      // language=PostgreSQL
+      `
+        select id, name, input, created_at, updated_at
+        from his_manual_data
+        where hospital = ?
+        order by created_at
+      `,
       hospital
     );
   }
@@ -98,7 +114,11 @@ export default class HisManualData {
   async add(name, input) {
     const hospital = await getHospital();
     await appDB.execute(
-      `insert into his_manual_data(id, hospital, name, input) values (?, ?, ?, ?)`,
+      // language=PostgreSQL
+      `
+        insert into his_manual_data(id, hospital, name, input)
+        values (?, ?, ?, ?)
+      `,
       uuid(),
       hospital,
       name,
@@ -117,9 +137,9 @@ export default class HisManualData {
     const data = await this.get(id, Date.now());
     if (!data) throw new KatoRuntimeError(`参数不合法`);
     //查询结算历史
-    //language=PostgreSQL
     const counts = (
       await appDB.execute(
+        // language=PostgreSQL
         `
           select count(1) as counts
           from his_staff_manual_data_detail d
@@ -133,12 +153,14 @@ export default class HisManualData {
     )[0].counts;
     if (Number(counts)) throw new KatoRuntimeError(`${data.name} 存在结算历史`);
     //查询是否关联工分项
-    //language=PostgreSQL
     const mappings = await appDB.execute(
-      `select item.name
-         from his_work_item_mapping mapping
-                left join his_work_item item on mapping.item = item.id
-         where mapping.source = ?`,
+      //language=PostgreSQL
+      `
+        select item.name
+        from his_work_item_mapping mapping
+               left join his_work_item item on mapping.item = item.id
+        where mapping.source = ?
+      `,
       `手工数据.${id}`
     );
     if (mappings.length) {
@@ -159,7 +181,15 @@ export default class HisManualData {
         id
       );
       //删除主表
-      await appDB.execute(`delete from his_manual_data where id = ?`, id);
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from his_manual_data
+          where id = ?
+        `,
+        id
+      );
     });
   }
 
@@ -178,7 +208,14 @@ export default class HisManualData {
   async update(id, name, input) {
     const hospital = await getHospital();
     await appDB.execute(
-      `update his_manual_data set name = ?, input = ? where id = ? and hospital = ?`,
+      // language=PostgreSQL
+      `
+        update his_manual_data
+        set name  = ?,
+            input = ?
+        where id = ?
+          and hospital = ?
+      `,
       name,
       input,
       id,
@@ -207,23 +244,23 @@ export default class HisManualData {
     const [sql, params] = sqlRender(
       `
         select d.id,
-                 d.item,
-                 d.staff,
-                 s.name,
-                 d.value,
-                 d.date,
-                 d.files,
-                 d.remark,
-                 d.created_at,
-                 d.updated_at
-          from his_staff_manual_data_detail d
-                 inner join staff s on d.staff = s.id and s.hospital = {{? hospitalId}}
-          where d.item = {{? id}}
-            and d.date >= {{? start}}
-            and d.date < {{? end}}
-            {{#if staff}}
-              AND d.staff = {{? staff}}
-            {{/if}}
+               d.item,
+               d.staff,
+               s.name,
+               d.value,
+               d.date,
+               d.files,
+               d.remark,
+               d.created_at,
+               d.updated_at
+        from his_staff_manual_data_detail d
+               inner join staff s on d.staff = s.id and s.hospital = {{? hospitalId}}
+        where d.item = {{? id}}
+          and d.date >= {{? start}}
+          and d.date < {{? end}}
+          {{#if staff}}
+          AND d.staff = {{? staff}}
+          {{/ if}}
           order by d.date, created_at
       `,
       {
@@ -459,9 +496,9 @@ export default class HisManualData {
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-          select id, staff, item, date, files, remark
-          from his_staff_manual_data_detail
-          where staff = ?
+        select id, staff, item, date, files, remark
+        from his_staff_manual_data_detail
+        where staff = ?
           and item = ?
           and date >= ?
           and date < ?
