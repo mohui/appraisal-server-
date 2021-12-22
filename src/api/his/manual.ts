@@ -494,9 +494,12 @@ export default class HisManualData {
   )
   async setAllData(params) {
     return appDB.joinTx(async () => {
-      for (const it of params) {
-        await this.setData(it.staff, it.id, it.value, it.date, [], null);
-      }
+      // 设置手工数据属性值
+      await Promise.all(
+        params.map(it =>
+          this.setData(it.staff, it.id, it.value, it.date, [], null)
+        )
+      );
     });
   }
 
