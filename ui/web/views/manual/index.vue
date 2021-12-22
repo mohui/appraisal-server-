@@ -2,9 +2,21 @@
   <div class="flex-column-layout">
     <div class="jx-header">
       <span class="header-title">手工数据维护</span>
-      <el-button size="small" type="primary" @click="addManual"
-        >添加项目
-      </el-button>
+      <div>
+        <el-button
+          size="small"
+          type="primary"
+          @click="
+            $router.push({
+              name: 'manual-table'
+            })
+          "
+          >表格输入
+        </el-button>
+        <el-button size="small" type="primary" @click="addManual"
+          >添加项目
+        </el-button>
+      </div>
     </div>
     <el-table
       v-loading="$asyncComputed.serverData.updating"
