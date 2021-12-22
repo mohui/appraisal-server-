@@ -471,6 +471,29 @@ export default class HisManualData {
   }
 
   /**
+   * 批量设置手工数据属性值
+   *
+   * @param params [{
+   *   id
+   * }]
+   */
+  @validate(
+    should
+      .array()
+      .items({
+        staff: should.string().required(),
+        id: should.string().required(),
+        value: should.number().required(),
+        date: should.date().required()
+      })
+      .min(1)
+      .required()
+  )
+  async setDataAllData(params) {
+    return [];
+  }
+
+  /**
    * 按月删除手工数据流水
    *
    * @param staff 人员id
