@@ -747,7 +747,7 @@ export default {
         }
       ];
     },
-    // 计算时间
+    // 报表弹窗计算时间
     computingTime() {
       for (const it of this.reportData) {
         if (it?.updatedAt) {
