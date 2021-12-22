@@ -323,6 +323,10 @@
             "
             >导出
           </el-button>
+          <div style="margin-left: 20px">
+            绩效考核月份: {{ currentDate.$format('YYYY-MM') }}
+          </div>
+          <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
         </div>
         <el-table
           id="reportTable"
@@ -742,6 +746,15 @@ export default {
           ]
         }
       ];
+    },
+    // 计算时间
+    computingTime() {
+      for (const it of this.reportData) {
+        if (it?.updatedAt) {
+          return it.updatedAt.$format('YYYY-MM-DD HH:mm');
+        }
+      }
+      return null;
     }
   },
   asyncComputed: {
@@ -1065,6 +1078,7 @@ export default {
               item.totalScore = item.afterCorrectionScore + item.extra;
               item.typeId = it.typeId;
               item.typeName = it.typeName || '-';
+              item.updatedAt = it.updatedAt;
               result.push(item);
             }
           } else {
