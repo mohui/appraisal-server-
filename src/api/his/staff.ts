@@ -1221,7 +1221,7 @@ export default class HisStaff {
       order: number;
       score: number;
       hospital: string;
-      updatedAt: Date;
+      updated_at: Date;
     }[] = await appDB.execute(
       `
         select result.item_id   "id",
@@ -1230,7 +1230,7 @@ export default class HisStaff {
                result.type_name "typeName",
                result."order",
                result.score,
-               result.updated_at "updatedAt",
+               result.updated_at,
                item.hospital
         from his_staff_work_result result
                left join his_work_item item on result.item_id = item.id

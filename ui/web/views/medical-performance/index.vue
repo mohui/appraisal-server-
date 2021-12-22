@@ -750,8 +750,8 @@ export default {
     // 报表弹窗计算时间
     computingTime() {
       for (const it of this.reportData) {
-        if (it?.updatedAt) {
-          return it.updatedAt.$format('YYYY-MM-DD HH:mm');
+        if (it.updated_at) {
+          return it.updated_at.$format('YYYY-MM-DD HH:mm');
         }
       }
       return null;
@@ -1078,7 +1078,7 @@ export default {
               item.totalScore = item.afterCorrectionScore + item.extra;
               item.typeId = it.typeId;
               item.typeName = it.typeName || '-';
-              item.updatedAt = it.updatedAt;
+              item.updated_at = it.updated_at;
               result.push(item);
             }
           } else {
