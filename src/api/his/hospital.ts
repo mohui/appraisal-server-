@@ -9,6 +9,7 @@ import {
   monthToRange
 } from './service';
 import Decimal from 'decimal.js';
+import {getStaffExtraScore} from './common';
 
 /**
  * 机构模块
@@ -265,9 +266,10 @@ export default class HisHospital {
         month,
         hospital
       );
-      const gets = await staffApi.get(staffIt.id, month, hospital);
+      const score = await getStaffExtraScore(staffIt.id, hospital, month);
+
       staffList.push({
-        extra: gets?.extra,
+        extra: score,
         id: staffIt.id,
         name: staffIt.name,
         deptId: staffIt.deptId,
