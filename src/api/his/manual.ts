@@ -474,7 +474,10 @@ export default class HisManualData {
    * 批量设置手工数据属性值
    *
    * @param params [{
-   *   id
+   *   staff: 员工id,
+   *   id: 手工数据id,
+   *   value: 值,
+   *   date: 时间
    * }]
    */
   @validate(
@@ -489,8 +492,12 @@ export default class HisManualData {
       .min(1)
       .required()
   )
-  async setDataAllData(params) {
-    return [];
+  async setAllData(params) {
+    return appDB.joinTx(async () => {
+      for (const it of params) {
+        await this.setData(it.staff, it.id, it.value, it.date, [], null);
+      }
+    });
   }
 
   /**
