@@ -259,24 +259,23 @@ export default class HisHospital {
       hospital
     );
 
-    const staffList = [];
-    for (const staffIt of staffs) {
-      const workScoreList = await staffApi.findWorkScoreList(
-        staffIt.id,
-        month,
-        hospital
-      );
-      const score = await getStaffExtraScore(staffIt.id, hospital, month);
-
-      staffList.push({
-        extra: score,
-        id: staffIt.id,
-        name: staffIt.name,
-        deptId: staffIt.deptId,
-        deptName: staffIt.deptName,
-        ...workScoreList
-      });
-    }
-    return staffList;
+    return await Promise.all(
+      staffs.map(async staffIt => {
+        const workScoreList = await staffApi.findWorkScoreList(
+          staffIt.id,
+          month,
+          hospital
+        );
+        const score = await getStaffExtraScore(staffIt.id, hospital, month);
+        return {
+          extra: score,
+          id: staffIt.id,
+          name: staffIt.name,
+          deptId: staffIt.deptId,
+          deptName: staffIt.deptName,
+          ...workScoreList
+        };
+      })
+    );
   }
 }
