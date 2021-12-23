@@ -219,9 +219,10 @@ export function divisionOperation(
 /**
  * 获取附加分
  *
- * @param staff
- * @param hospital
- * @param month
+ * @param staff 员工id
+ * @param hospital 机构id
+ * @param month 时间
+ * @return number || null
  */
 export async function getStaffExtraScore(
   staff,
