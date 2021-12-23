@@ -223,7 +223,11 @@ export function divisionOperation(
  * @param hospital
  * @param month
  */
-export async function getStaffExtraScore(staff, hospital, month) {
+export async function getStaffExtraScore(
+  staff,
+  hospital,
+  month
+): Promise<number> {
   const {start} = monthToRange(month);
 
   return (
