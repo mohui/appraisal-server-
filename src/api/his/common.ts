@@ -219,28 +219,36 @@ export function divisionOperation(
 /**
  * 获取附加分
  *
- * @param staff
- * @param hospital
- * @param month
+ * @param staff 员工id
+ * @param hospital 机构id
+ * @param month 时间
+ * @return number || null
  */
-export async function getStaffExtraScore(staff, hospital, month) {
+export async function getStaffExtraScore(
+  staff,
+  hospital,
+  month
+): Promise<number | null> {
   const {start} = monthToRange(month);
 
+  // 获取员工所在机构的附加分,如果查询结果为空返回null
   return (
-    await appDB.execute(
-      // language=PostgreSQL
-      `
-        select score
-        from his_staff_extra_score
-        where staff = ?
-          and area = ?
-          and month = ?
-      `,
-      staff,
-      hospital,
-      start
-    )
-  )[0]?.score;
+    (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select score
+          from his_staff_extra_score
+          where staff = ?
+            and area = ?
+            and month = ?
+        `,
+        staff,
+        hospital,
+        start
+      )
+    )[0]?.score ?? null
+  );
 }
 
 /**
