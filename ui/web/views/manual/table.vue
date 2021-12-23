@@ -60,12 +60,36 @@
         min-width="150"
       >
         <template slot-scope="scope">
+          <span v-show="!scope.row.item[field.id].edit">
+            {{ scope.row.item[field.id].value }}
+          </span>
+          <i
+            v-show="!scope.row.item[field.id].edit && !editable[field.id]"
+            class="el-icon-edit manual-icon-edit"
+            @click="editManual(scope.row.item[field.id])"
+          ></i>
           <el-input
-            v-model="scope.row.item[field.id]"
+            v-show="scope.row.item[field.id].edit"
+            v-model="scope.row.item[field.id].value"
             :disabled="editable[field.id]"
-            size="small"
+            class="manual-input-edit"
+            size="mini"
             placeholder="请输入"
+            @blur="updateManual(scope.row.item[field.id])"
           ></el-input>
+          <i
+            v-show="scope.row.item[field.id].edit"
+            class="el-icon-circle-close"
+            @click="cancelEdit(scope.row.item[field.id])"
+          ></i>
+          <el-tooltip
+            v-show="editable[field.id]"
+            effect="dark"
+            content="已结算"
+            placement="top-start"
+          >
+            <i class="el-icon-s-claim manual-settle"></i>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -91,7 +115,14 @@ export default {
         ...it,
         item: Object.assign(
           {},
-          ...this.manualData.map(ii => ({[ii.id]: ii.users[it.id]}))
+          ...this.manualData.map(ii => ({
+            [ii.id]: ii.users[it.id] || {
+              value: null,
+              edit: false,
+              update: false,
+              original: null
+            }
+          }))
         )
       }));
     }
@@ -112,7 +143,14 @@ export default {
               await this.getSettle(it.id);
               const list = Object.assign(
                 {},
-                ...result_.map(ii => ({[ii.staff.id]: ii.value}))
+                ...result_.map(ii => ({
+                  [ii.staff.id]: {
+                    value: ii.value,
+                    edit: false,
+                    update: false,
+                    original: ii.value
+                  }
+                }))
               );
               return {
                 ...it,
@@ -145,6 +183,18 @@ export default {
     }
   },
   methods: {
+    // 编辑工分项
+    editManual(row) {
+      row.edit = true;
+    },
+    // 取消编辑
+    cancelEdit(row) {
+      row.edit = false;
+      row.value = row.original;
+    },
+    updateManual(row) {
+      if (row.original !== row.value) row.update = true;
+    },
     //获取结算状态
     async getSettle(id) {
       const {settle} = await this.$api.HisManualData.get(id, this.query.month);
@@ -161,11 +211,11 @@ export default {
         const arr = this.list
           .map(it => {
             return Object.keys(it.item)
-              .filter(i => it.item[i] !== null)
+              .filter(i => it.item[i].value !== null && it.item[i].update)
               .map(i => ({
                 staff: it.id,
                 id: i,
-                value: +it.item[i],
+                value: +it.item[i].value,
                 date: this.query.month
               }));
           })
@@ -188,4 +238,14 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.manual-icon-edit {
+  cursor: pointer;
+}
+.manual-input-edit {
+  width: calc(100% - 20px);
+}
+.manual-settle {
+  cursor: not-allowed;
+}
+</style>
