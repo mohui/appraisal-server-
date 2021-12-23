@@ -36,6 +36,34 @@
         </el-button>
       </div>
     </div>
+    <div style="text-align: right;">
+      <el-popover
+        ref="popoverCheck"
+        placement="bottom"
+        width="500"
+        trigger="click"
+      >
+        <el-table :data="manualList" height="400px">
+          <el-table-column
+            label="序号"
+            type="index"
+            width="70"
+            align="center"
+          ></el-table-column>
+          <el-table-column property="show" label="名称">
+            <template slot-scope="scope">
+              <el-checkbox v-model="scope.row.show">
+                {{ scope.row.name }}
+              </el-checkbox>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-button type="primary" @click="getManualList">保存设置</el-button>
+        <el-button slot="reference" size="small" type="primary">
+          选择工分项
+        </el-button>
+      </el-popover>
+    </div>
     <el-table
       v-hidden-scroll
       :data="list"
@@ -50,10 +78,17 @@
         align="center"
         fixed="left"
       ></el-table-column>
-      <el-table-column prop="name" label="医生姓名" fixed="left">
+      <el-table-column
+        prop="name"
+        label="医生姓名"
+        fixed="left"
+        column-key="name"
+        :filters="list.map(it => ({text: it.name, value: it.name}))"
+        :filter-method="filterHandler"
+      >
       </el-table-column>
       <el-table-column
-        v-for="(field, index) of manualData"
+        v-for="(field, index) of manualList_"
         :key="index"
         :label="field.name"
         align="center"
@@ -70,7 +105,7 @@
           ></i>
           <el-input
             v-show="scope.row.item[field.id].edit"
-            v-model="scope.row.item[field.id].value"
+            v-model.lazy="scope.row.item[field.id].value"
             :disabled="editable[field.id]"
             class="manual-input-edit"
             size="mini"
@@ -105,11 +140,24 @@ export default {
       query: {
         month: new Date()
       },
+      mList: [],
       editable: {}
     };
   },
   computed: {
-    //
+    // 过滤后的工分项列表
+    manualList_() {
+      const MList = this.mList;
+      return MList.length ? MList : this.manualList.filter(it => it.show);
+    },
+    // 初始工分项列表
+    manualList() {
+      return this.manualData.map((it, i) => ({
+        ...it,
+        show: i < 5
+      }));
+    },
+    // 医生列表
     list() {
       return this.membersData.map(it => ({
         ...it,
@@ -183,6 +231,18 @@ export default {
     }
   },
   methods: {
+    //过滤工分项列表
+    getManualList() {
+      this.isLoading = true;
+      this.$refs.popoverCheck?.doClose();
+      this.mList = this.manualList.filter(it => it.show);
+      this.isLoading = false;
+    },
+    //过滤医生
+    filterHandler(value, row, column) {
+      const property = column['property'];
+      return row[property] === value;
+    },
     // 编辑工分项
     editManual(row) {
       row.edit = true;
