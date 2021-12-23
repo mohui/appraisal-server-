@@ -197,6 +197,7 @@ export default class User {
         regionId: userModels[0]?.regionId,
         creatorId: userModels[0]?.creatorId,
         editorId: userModels[0]?.editorId,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         created_at: userModels[0]?.created_at,
         roles: [],
         region: null
@@ -240,7 +241,8 @@ export default class User {
   async list(params) {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
-    let sqlParams = {pageSize, pageNo: (pageNo - 1) * pageSize};
+    // TODO: let改为了const
+    const sqlParams = {pageSize, pageNo: (pageNo - 1) * pageSize};
 
     //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
@@ -284,7 +286,8 @@ export default class User {
     const rows = (await appDB.execute(sqlObject[0], ...sqlObject[1])).reduce(
       //1个用户多个角色的情况,将角色信息折叠进该用户信息内
       (pre, next) => {
-        let current = pre.find(p => p.id === next.id);
+        // TODO: let改为了const
+        const current = pre.find(p => p.id === next.id);
         //查找出有过这个用户,并发现有另一个角色信息,push进该用户的roles数组内
         if (current) {
           current.roles.push({
@@ -300,7 +303,9 @@ export default class User {
             name: next.name,
             password: next.password,
             regionId: next.regionId,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             created_at: next.created_at,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             updated_at: next.updated_at,
             roles: [
               {
@@ -394,8 +399,8 @@ export default class User {
   )
   update(user) {
     return appDB.joinTx(async () => {
-      //查询用户,并锁定
-      let userModel = await UserModel.findOne({
+      // TODO: let改为了const 查询用户,并锁定
+      const userModel = await UserModel.findOne({
         where: {id: user.id},
         lock: true
       });
@@ -566,7 +571,9 @@ export default class User {
           id: it.id,
           name: it.name,
           creator: it.creator,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           created_at: it.created_at,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           updated_at: it.updated_at,
           permissions: it.permissions
             .map(key => getPermission(key))
@@ -603,10 +610,10 @@ export default class User {
   )
   async remove(id) {
     return appDB.transaction(async () => {
-      //查询用户是否存在,并锁定
+      // TODO: 去掉lock: {of: UserModel}, 查询用户是否存在,并锁定
       const result = await UserModel.findOne({
         where: {id: id},
-        lock: {of: UserModel},
+        lock: true,
         include: [{model: RoleModel}]
       });
       if (!result) throw new KatoCommonError('该用户不存在');
@@ -631,11 +638,10 @@ export default class User {
   )
   async removeRole(id) {
     return appDB.transaction(async () => {
-      //查询该角色,并锁定
+      // TODO: lock: {of: RoleModel} 查询该角色,并锁定
       const result = await RoleModel.findOne({
         where: {id},
-        include: [UserModel],
-        lock: {of: RoleModel}
+        include: [UserModel]
       });
       if (result.users.length > 0)
         throw new KatoCommonError('该角色下绑定了用户,无法删除');
@@ -647,20 +653,33 @@ export default class User {
     return Context.current.user;
   }
 
+  /**
+   * 个人中心,基本设置,修改真实姓名
+   *
+   * @param params {
+   *   name: 个人名次
+   * }
+   */
   @validate(
     should.object({
-      name: should
-        .string()
-        .required()
-        .description('个人名称')
+      name: should.string().required()
     })
   )
   async updateProfile(params) {
     return appDB.transaction(async () => {
-      let user = Context.current.user;
+      const user = Context.current.user;
       if (!user) throw new KatoCommonError('该用户不存在');
       user.name = params.name;
-      return UserModel.update(user, {where: {id: user.id}});
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          update "user"
+          set name = ?
+          where id = ?
+        `,
+        user.name,
+        user.id
+      );
     });
   }
 
