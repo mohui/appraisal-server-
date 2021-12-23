@@ -273,10 +273,10 @@ export default class User {
         await appDB.execute(
           // language=PostgreSQL
           `
-          select user_id, role_id
-          from user_role_mapping
-          where role_id = ?
-        `,
+            select user_id, role_id
+            from user_role_mapping
+            where role_id = ?
+          `,
           roleId
         )
       ).map(r => r.user_id);
