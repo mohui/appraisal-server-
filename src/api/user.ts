@@ -379,57 +379,74 @@ export default class User {
     });
   }
 
+  /**
+   * 修改用户
+   *
+   * @param user {
+   *   id: 用户id
+   *   roles: 角色数组,
+   *   areaCode: 地区code
+   * }
+   */
   @validate(
     should.object({
-      id: should
-        .string()
-        .required()
-        .description('用户id'),
+      id: should.string().required(),
       name: should.string(),
       roles: should
         .array()
         .items(should.string())
-        .allow([])
-        .description('角色数组'),
-      areaCode: should
-        .string()
-        .required()
-        .description('地区code')
+        .allow([]),
+      areaCode: should.string().required()
     })
   )
   update(user) {
     return appDB.joinTx(async () => {
-      // TODO: let改为了const 查询用户,并锁定
-      const userModel = await UserModel.findOne({
-        where: {id: user.id},
-        lock: true
-      });
-      if (!userModel) throw new KatoCommonError('该用户不存在');
-      //查询该用户所有的角色
-      const roleList = await UserRoleModel.findAll({
-        where: {userId: user.id},
-        lock: true
-      });
-      //删除解除的角色关系
-      await Promise.all(
-        roleList
-          .filter(it => !user.roles.includes(it.roleId)) //筛选出需要解除的role
-          .map(async item => await item.destroy({force: true}))
+      // 查询用户是否存在
+      const userModel = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select id, account, name
+          from "user"
+          where id = ?
+        `,
+        user.id
       );
-      //添加新的角色关系
-      await UserRoleModel.bulkCreate(
-        user.roles
-          .filter(id => !roleList.find(role => role.roleId === id)) //筛选出需要新增的role
-          .map(roleId => ({userId: user.id, roleId: roleId}))
+      if (userModel.length === 0) throw new KatoCommonError('该用户不存在');
+      // 先删除,再添加
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from user_role_mapping
+          where user_id = ?
+        `,
+        user.id
       );
-      //修改操作
-      user.editorId = Context.current.user.id;
-
-      // 修改用户和机构绑定
-      await UserHospitalModel.destroy({where: {userId: user.id}});
-
-      // 修改用户信息
-      await UserModel.update(user, {where: {id: user.id}});
+      // 添加新的角色关系
+      for (const it of user.roles) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            insert into user_role_mapping(user_id, role_id, updated_at, created_at)
+            VALUES (?, ?, ?, ?)
+          `,
+          user.id,
+          it,
+          new Date(),
+          new Date()
+        );
+      }
+      // 修改用户
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+            update "user" set name = ?, area = ?, updated_at = ? where id = ?
+          `,
+        user.name,
+        user.areaCode,
+        new Date(),
+        user.id
+      );
     });
   }
 
