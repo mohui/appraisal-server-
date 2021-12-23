@@ -440,11 +440,17 @@ export default class User {
       await appDB.execute(
         // language=PostgreSQL
         `
-            update "user" set name = ?, area = ?, updated_at = ? where id = ?
-          `,
+          update "user"
+          set name = ?,
+              area = ?,
+              updated_at = ?,
+              editor = ?
+          where id = ?
+        `,
         user.name,
         user.areaCode,
         new Date(),
+        Context.current.user.id,
         user.id
       );
     });
