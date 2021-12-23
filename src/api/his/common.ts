@@ -227,9 +227,10 @@ export async function getStaffExtraScore(
   staff,
   hospital,
   month
-): Promise<number> {
+): Promise<number | null> {
   const {start} = monthToRange(month);
 
+  // 获取员工所在机构的附加分,如果查询结果为空返回null
   return (
     (
       await appDB.execute(
