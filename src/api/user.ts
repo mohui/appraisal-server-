@@ -241,13 +241,12 @@ export default class User {
   async list(params) {
     const {pageNo = 1, pageSize = 20, account = '', name = '', roleId = ''} =
       params || {};
-    // TODO: let改为了const
     const sqlParams = {pageSize, pageNo: (pageNo - 1) * pageSize};
 
     //如果不是超级管理权限,则要进行用户权限判断,只允许查询当前权限以下(不包括自己)的用户
     if (!Context.current.user.permissions.includes(Permission.SUPER_ADMIN)) {
-      //递归查询用户所属地区的所有下属地区
-      const childrenCode = (
+      // 递归查询用户所属地区的所有下属地区,添加权限方面的查询条件
+      sqlParams['regions'] = (
         await originalDB.query(
           `
             with recursive r as (
@@ -268,17 +267,23 @@ export default class User {
           }
         )
       ).map(it => it.code);
-      //添加权限方面的查询条件
-      sqlParams['regions'] = childrenCode;
     }
     //构成条件
     if (account) sqlParams['account'] = `%${account}%`;
     if (name) sqlParams['name'] = `%${name}%`;
     //如果传递roleId则从用户角色关系表中查询该角色的用户id
     if (roleId)
-      sqlParams['roleUsers'] = await UserRoleModel.findAll({
-        where: {roleId}
-      }).map(r => r.userId);
+      sqlParams['roleUsers'] = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          select user_id, role_id
+          from user_role_mapping
+          where role_id = ?
+        `,
+          roleId
+        )
+      ).map(r => r.user_id);
 
     //生成SQL语句和参数数组
     const sqlObject = userListRender(sqlParams);
@@ -286,7 +291,6 @@ export default class User {
     const rows = (await appDB.execute(sqlObject[0], ...sqlObject[1])).reduce(
       //1个用户多个角色的情况,将角色信息折叠进该用户信息内
       (pre, next) => {
-        // TODO: let改为了const
         const current = pre.find(p => p.id === next.id);
         //查找出有过这个用户,并发现有另一个角色信息,push进该用户的roles数组内
         if (current) {
