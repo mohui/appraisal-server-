@@ -602,31 +602,44 @@ export default class User {
     });
   }
 
-  @validate(
-    should
-      .string()
-      .required()
-      .description('用户id')
-  )
+  /**
+   * 删除用户
+   *
+   * @param id 用户id
+   */
+  @validate(should.string().required())
   async remove(id) {
-    return appDB.transaction(async () => {
-      // TODO: 去掉lock: {of: UserModel}, 查询用户是否存在,并锁定
-      const result = await UserModel.findOne({
-        where: {id: id},
-        lock: true,
-        include: [{model: RoleModel}]
-      });
-      if (!result) throw new KatoCommonError('该用户不存在');
-      //删除机构关系
-      await UserHospitalModel.destroy({where: {userId: id}});
-      //删除角色关系
-      await Promise.all(
-        result.roles.map(
-          async role => await role.UserRole.destroy({force: true})
-        )
+    return appDB.joinTx(async () => {
+      const userModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select id, account, name
+          from "user"
+          where id = ?
+        `,
+        id
       );
-      //删除该用户
-      await result.destroy({force: true});
+      if (userModels.length === 0) throw new KatoCommonError('该用户不存在');
+      // 删除用户和角色的关联
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from user_role_mapping
+          where user_id = ?
+        `,
+        id
+      );
+      // 删除用户
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from "user"
+          where id = ?
+        `,
+        id
+      );
     });
   }
 
