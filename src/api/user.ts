@@ -97,16 +97,12 @@ function userListRender(params) {
 }
 
 export default class User {
-  @validate(
-    should
-      .string()
-      .required()
-      .description('用户名'),
-    should
-      .string()
-      .required()
-      .description('密码')
-  )
+  /**
+   * 登录接口
+   * @param account 用户名
+   * @param password 密码
+   */
+  @validate(should.string().required(), should.string().required())
   async login(account, password) {
     //region 验证账号是否重复, 用户名密码是否正确
     const models = await appDB.execute(
