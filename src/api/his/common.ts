@@ -227,20 +227,22 @@ export async function getStaffExtraScore(staff, hospital, month) {
   const {start} = monthToRange(month);
 
   return (
-    await appDB.execute(
-      // language=PostgreSQL
-      `
-        select score
-        from his_staff_extra_score
-        where staff = ?
-          and area = ?
-          and month = ?
-      `,
-      staff,
-      hospital,
-      start
-    )
-  )[0]?.score;
+    (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select score
+          from his_staff_extra_score
+          where staff = ?
+            and area = ?
+            and month = ?
+        `,
+        staff,
+        hospital,
+        start
+      )
+    )[0]?.score ?? null
+  );
 }
 
 /**
