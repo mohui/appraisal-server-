@@ -8,7 +8,7 @@
           type="primary"
           @click="
             $router.push({
-              name: 'manual-vxe-table'
+              name: 'manual-table'
             })
           "
           >表格输入
