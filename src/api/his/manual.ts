@@ -634,15 +634,15 @@ export default class HisManualData {
    * @param month 月份
    * @return {
    *   settle: 是否结算 true/false
-   *   manualList: 手工数据列表[{
+   *   manuals: 手工数据列表[{
    *     id: 手工数据id,
    *     name: 手工数据名称
    *   }]
-   *   staffList: 员工列表[{
+   *   staffs: 员工列表[{
    *     id: 员工id
    *     name: 员工名称
    *   }],
-   *   scoreDetail: 得分列表[{
+   *   details: 得分列表[{
    *     staff: 员工id,
    *     id: 手工数据id
    *     score: 手工数据分数
@@ -657,10 +657,10 @@ export default class HisManualData {
     const {start, end} = monthToRange(month);
 
     // 获取手工数据列表
-    const manualList = await this.list();
+    const manuals = await this.list();
 
     // 获取员工列表
-    const staffList = await appDB.execute(
+    const staffs = await appDB.execute(
       // language=PostgreSQL
       `
         select staff.id, staff.name
@@ -673,16 +673,16 @@ export default class HisManualData {
     );
 
     // 获取员工的手工数据得分
-    const scoreDetail = await appDB.execute(
+    const details = await appDB.execute(
       // language=PostgreSQL
       `
-        select manualDetail.staff, manualData.id, manualData.name, sum(value) score
+        select manualDetail.staff, manualData.id, sum(value) score
         from his_manual_data manualData
                inner join his_staff_manual_data_detail manualDetail on manualData.id = manualDetail.item
         where manualData.hospital = ?
           and manualDetail.date >= ?
           and manualDetail.date < ?
-        group by manualDetail.staff, manualData.id, manualData.name
+        group by manualDetail.staff, manualData.id
       `,
       hospital,
       start,
@@ -693,9 +693,9 @@ export default class HisManualData {
 
     return {
       settle,
-      manualList,
-      staffList,
-      scoreDetail
+      manuals,
+      staffs,
+      details
     };
   }
 }
