@@ -254,8 +254,10 @@ export default class HisManualData {
                d.created_at,
                d.updated_at
         from his_staff_manual_data_detail d
-               inner join staff s on d.staff = s.id and s.hospital = {{? hospitalId}}
-        where d.item = {{? id}}
+               inner join staff s on d.staff = s.id
+               inner join staff_area_mapping areaMapping on s.id = areaMapping.staff
+        where areaMapping.area = {{? hospitalId}}
+          and d.item = {{? id}}
           and d.date >= {{? start}}
           and d.date < {{? end}}
           {{#if staff}}
