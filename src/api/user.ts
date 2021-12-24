@@ -12,6 +12,7 @@ import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
 import {imageSync} from 'qr-image';
 import {UserType} from '../../common/user';
+import {v4 as uuid} from 'uuid';
 
 function countUserRender(params) {
   return sqlRender(
@@ -329,52 +330,85 @@ export default class User {
     return {count: Number(count[0].count), rows};
   }
 
+  /**
+   * 添加用户
+   *
+   * @param user {
+   *   account: 账户名,
+   *   name: 用户名,
+   *   password: 密码,
+   *   roles: 角色数组[],
+   *   areaCode: 地区code,
+   * }
+   */
   @validate(
     should.object({
-      account: should
-        .string()
-        .required()
-        .description('账户名'),
-      name: should
-        .string()
-        .required()
-        .description('用户名'),
-      password: should
-        .string()
-        .required()
-        .description('密码'),
+      account: should.string().required(),
+      name: should.string().required(),
+      password: should.string().required(),
       roles: should
         .array()
         .items(should.string())
         .required()
-        .allow([])
-        .description('角色数组'),
-      areaCode: should
-        .string()
-        .required()
-        .description('地区code')
+        .allow([]),
+      areaCode: should.string().required()
     })
   )
   async addUser(user) {
     return appDB.transaction(async () => {
       //查询该账户是否存在
-      const result = await UserModel.findOne({where: {account: user.account}});
-      if (result) throw new KatoCommonError('该账户已存在');
-      //操作者id
+      const userModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select id, account, name
+          from "user"
+          where account = ?
+        `,
+        user.account
+      );
+      if (userModels.length > 0) throw new KatoCommonError('该账户已存在');
+      // 操作者id
       const currentId = Context.current.user.id;
-      const newUser = await UserModel.create({
-        ...user,
-        creatorId: currentId,
-        editorId: currentId
-      });
-      //绑定角色关系
-      const roleUser = user.roles.map(roleId => ({
-        userId: newUser.id,
-        roleId: roleId
-      }));
-      //批量设置用户角色关系
-      await UserRoleModel.bulkCreate(roleUser);
-
+      // 用户id
+      const userId = uuid();
+      const newUser = await appDB.execute(
+        // language=PostgreSQL
+        `
+          insert into "user"(id,
+                             account,
+                             name,
+                             password,
+                             created_at,
+                             updated_at,
+                             creator,
+                             editor,
+                             area)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        userId,
+        user.account,
+        user.name,
+        user.password,
+        new Date(),
+        new Date(),
+        currentId,
+        currentId,
+        user.areaCode
+      );
+      // 绑定角色关系
+      for (const it of user.roles) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            insert into user_role_mapping(user_id, role_id, created_at, updated_at)
+            values (?, ?, ?, ?)
+          `,
+          userId,
+          it,
+          new Date(),
+          new Date()
+        );
+      }
       return newUser;
     });
   }
