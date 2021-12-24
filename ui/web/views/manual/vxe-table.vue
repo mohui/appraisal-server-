@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="isLoading" class="flex-column-layout">
+  <div v-loading="$asyncComputed.tableList.updating" class="flex-column-layout">
     <div class="jx-header">
       <div>
         <span class="header-title">手工数据维护 — — 表格输入</span>
@@ -39,7 +39,7 @@
         v-hidden-scroll
         border
         show-header-overflow
-        :data="list_"
+        :data="list"
         :mouse-config="{selected: true}"
         :keyboard-config="{
           isArrow: true,
@@ -69,9 +69,7 @@
           :edit-render="{autofocus: '.vxe-input--inner'}"
         >
           <template #default="{ row }">
-            <span v-if="!editable[field.id]">{{
-              row.item[field.id].value
-            }}</span>
+            <span v-if="!editable">{{ row.item[field.id].value }}</span>
             <el-tooltip
               v-else
               effect="dark"
@@ -85,7 +83,7 @@
             <vxe-input
               v-model="row.item[field.id].value"
               type="number"
-              :disabled="editable[field.id]"
+              :disabled="editable"
               size="mini"
               placeholder="请输入数值"
               @blur="updateManual(row.item[field.id])"
@@ -102,90 +100,55 @@ export default {
   name: 'Vxe-table',
   data() {
     return {
-      isLoading: false,
       query: {
         month: new Date()
       },
-      list: [],
-      editable: {}
+      editable: false
     };
   },
   computed: {
     // 初始工分项列表
-    manualList() {
-      return this.manualData;
-    },
-    // 医生列表
-    list_() {
-      return this.membersData.map(it => ({
+    list() {
+      if (!this.tableList) return;
+      const {manuals, staffs, details} = this.tableList;
+
+      return staffs?.map(it => ({
         ...it,
         item: Object.assign(
           {},
-          ...this.manualData.map(ii => ({
-            [ii.id]: ii.users[it.id] || {
-              value: null,
-              edit: false,
-              update: false,
-              original: null
-            }
-          }))
+          ...manuals?.map(ii => {
+            const value = details?.find(
+              i => i.staff === it.id && i.id === ii.id
+            )?.score;
+            return {
+              [ii.id]: {
+                value: value || null,
+                edit: false,
+                update: false,
+                original: value || null
+              }
+            };
+          })
         )
       }));
+    },
+    manualList() {
+      if (!this.tableList) return;
+      return this.tableList.manuals;
     }
   },
   asyncComputed: {
     //获取手工工分项列表
-    manualData: {
+    tableList: {
       async get() {
         try {
-          this.isLoading = true;
           const month = this.query.month;
-          const result = await this.$api.HisManualData.list();
-          return await Promise.all(
-            result.map(async it => {
-              const result_ = await this.$api.HisManualData.listData(
-                it.id,
-                month
-              );
-              await this.getSettle(it.id);
-              const list = Object.assign(
-                {},
-                ...result_.map(ii => ({
-                  [ii.staff.id]: {
-                    value: ii.value,
-                    edit: false,
-                    update: false,
-                    original: ii.value
-                  }
-                }))
-              );
-              return {
-                ...it,
-                users: list
-              };
-            })
-          );
-        } catch (e) {
-          console.error(e.message);
-        } finally {
-          this.isLoading = false;
-        }
-      },
-      default() {
-        return [];
-      }
-    },
-    //获取员工列表
-    membersData: {
-      async get() {
-        try {
-          return this.$api.HisStaff.list();
+          const result = await this.$api.HisManualData.tableList(month);
+          this.editable = result.settle;
+          return result;
         } catch (e) {
           console.error(e.message);
         }
-      },
-      default() {
-        return [];
       }
     }
   },
@@ -194,16 +157,10 @@ export default {
     updateManual(row) {
       if (row.original !== row.value) row.update = true;
     },
-    //获取结算状态
-    async getSettle(id) {
-      const {settle} = await this.$api.HisManualData.get(id, this.query.month);
-      this.editable[id] = settle;
-    },
     //保存数据
     async saveManual() {
-      this.isLoading = true;
       try {
-        const arr = this.list_
+        const arr = this.list
           .map(it => {
             return Object.keys(it.item)
               .filter(i => it.item[i].value !== null && it.item[i].update)
@@ -221,12 +178,10 @@ export default {
           return;
         }
         await this.$api.HisManualData.setAllData(arr);
-        this.$asyncComputed.manualData.update();
+        this.$asyncComputed.tableList.update();
         this.$message.success('保存成功!');
       } catch (e) {
         this.$message.error(e.message);
-      } finally {
-        this.isLoading = false;
       }
     }
   }
