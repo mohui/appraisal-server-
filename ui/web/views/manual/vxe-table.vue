@@ -10,7 +10,6 @@
           type="month"
           placeholder="选择月"
           :clearable="false"
-          @change="monthChanged"
         >
         </el-date-picker>
       </div>
@@ -36,16 +35,31 @@
         </el-button>
       </div>
     </div>
-    <div style="flex-grow: 1;">
+    <div style="flex-grow: 1;height: 100%;">
       <vxe-table
         v-hidden-scroll
         border
         :data="list_"
+        :mouse-config="{selected: true}"
+        :keyboard-config="{
+          isArrow: true,
+          isDel: true,
+          isEnter: true,
+          isTab: true,
+          isEdit: true,
+          isChecked: true
+        }"
         :edit-config="{trigger: 'click', mode: 'cell'}"
         max-height="100%"
       >
-        <vxe-column type="seq" title="序号" width="70"></vxe-column>
-        <vxe-column field="name" title="医生姓名" min-width="150"> </vxe-column>
+        <vxe-column
+          type="seq"
+          title="序号"
+          width="70"
+          fixed="left"
+        ></vxe-column>
+        <vxe-column field="name" title="医生姓名" min-width="150" fixed="left">
+        </vxe-column>
 
         <vxe-column
           v-for="(field, index) of manualList"
@@ -55,13 +69,25 @@
           :edit-render="{autofocus: '.vxe-input--inner'}"
         >
           <template #default="{ row }">
-            <span>{{ row.item[field.id].value }}</span>
+            <span v-if="!editable[field.id]">{{
+              row.item[field.id].value
+            }}</span>
+            <el-tooltip
+              v-else
+              effect="dark"
+              content="已结算"
+              placement="top-start"
+            >
+              <i class="el-icon-s-claim manual-settle"></i>
+            </el-tooltip>
           </template>
           <template #edit="{ row }">
             <vxe-input
               v-model="row.item[field.id].value"
               type="number"
+              :disabled="editable[field.id]"
               placeholder="请输入数值"
+              @blur="updateManual(row.item[field.id])"
             ></vxe-input>
           </template>
         </vxe-column>
@@ -86,7 +112,6 @@ export default {
   computed: {
     // 初始工分项列表
     manualList() {
-      console.log(this.manualData);
       return this.manualData;
     },
     // 医生列表
@@ -113,12 +138,13 @@ export default {
       async get() {
         try {
           this.isLoading = true;
+          const month = this.query.month;
           const result = await this.$api.HisManualData.list();
           return await Promise.all(
             result.map(async it => {
               const result_ = await this.$api.HisManualData.listData(
                 it.id,
-                this.query.month
+                month
               );
               await this.getSettle(it.id);
               const list = Object.assign(
@@ -163,31 +189,7 @@ export default {
     }
   },
   methods: {
-    // doctor
-    getList() {
-      this.list = this.list_();
-    },
-    //过滤工分项列表
-    getManualList() {
-      this.isLoading = true;
-      this.$refs.popoverCheck?.doClose();
-      this.mList = this.manualList.filter(it => it.show);
-      this.isLoading = false;
-    },
-    //过滤医生
-    filterHandler(value, row, column) {
-      const property = column['property'];
-      return row[property] === value;
-    },
-    // 编辑工分项
-    editManual(row) {
-      row.edit = true;
-    },
-    // 取消编辑
-    cancelEdit(row) {
-      row.edit = false;
-      row.value = row.original;
-    },
+    // 更新状态
     updateManual(row) {
       if (row.original !== row.value) row.update = true;
     },
@@ -196,15 +198,11 @@ export default {
       const {settle} = await this.$api.HisManualData.get(id, this.query.month);
       this.editable[id] = settle;
     },
-    //切换月份
-    async monthChanged() {
-      this.$asyncComputed.manualData.update();
-    },
     //保存数据
     async saveManual() {
       this.isLoading = true;
       try {
-        const arr = this.list
+        const arr = this.list_
           .map(it => {
             return Object.keys(it.item)
               .filter(i => it.item[i].value !== null && it.item[i].update)
