@@ -1,12 +1,6 @@
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../app';
-import {
-  RoleModel,
-  UserHospitalModel,
-  UserModel,
-  UserRoleModel,
-  sql as sqlRender
-} from '../database';
+import {sql as sqlRender} from '../database';
 import {QueryTypes} from 'sequelize';
 import {getPermission, Permission} from '../../common/permission';
 import {Context} from './context';
