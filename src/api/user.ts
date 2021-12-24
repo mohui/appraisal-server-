@@ -475,10 +475,10 @@ export default class User {
         // language=PostgreSQL
         `
           update "user"
-          set name = ?,
-              area = ?,
+          set name       = ?,
+              area       = ?,
               updated_at = ?,
-              editor = ?
+              editor     = ?
           where id = ?
         `,
         user.name,
