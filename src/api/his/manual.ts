@@ -3,7 +3,7 @@ import {KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB, unifs} from '../../app';
-import {getHospital, monthToRange} from './service';
+import {getHospital, getSettle, monthToRange} from './service';
 import {sql as sqlRender} from '../../database/template';
 
 /**
@@ -626,5 +626,76 @@ export default class HisManualData {
     const data = await this.get(id, month);
     if (!data) throw new KatoRuntimeError(`该数据项目不存在`);
     if (data.settle) throw new KatoRuntimeError(`该数据项目当前月份已经结算`);
+  }
+
+  /**
+   * 手工数据表格输入列表
+   *
+   * @param month 月份
+   * @return {
+   *   settle: 是否结算 true/false
+   *   manualList: 手工数据列表[{
+   *     id: 手工数据id,
+   *     name: 手工数据名称
+   *   }]
+   *   staffList: 员工列表[{
+   *     id: 员工id
+   *     name: 员工名称
+   *   }],
+   *   scoreDetail: 得分列表[{
+   *     staff: 员工id,
+   *     id: 手工数据id
+   *     score: 手工数据分数
+   *   }]
+   * }
+   */
+  @validate(should.date().required())
+  async tableList(month) {
+    // 获取机构
+    const hospital = await getHospital();
+    //月份转开始结束时间
+    const {start, end} = monthToRange(month);
+
+    // 获取手工数据列表
+    const manualList = await this.list();
+
+    // 获取员工列表
+    const staffList = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select staff.id, staff.name
+        from staff
+               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+        where areaMapping.area = ?
+        order by staff.created_at
+      `,
+      hospital
+    );
+
+    // 获取员工的手工数据得分
+    const scoreDetail = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select manualDetail.staff, manualData.id, manualData.name, sum(value) score
+        from his_manual_data manualData
+               inner join his_staff_manual_data_detail manualDetail on manualData.id = manualDetail.item
+        where manualData.hospital = ?
+          and manualDetail.date >= ?
+          and manualDetail.date < ?
+        group by manualDetail.staff, manualData.id, manualData.name
+      `,
+      hospital,
+      start,
+      end
+    );
+    // 查询结算状态
+    const settle = await getSettle(hospital, start);
+
+    return {
+      settle,
+      manualList,
+      staffList,
+      scoreDetail
+    };
   }
 }
