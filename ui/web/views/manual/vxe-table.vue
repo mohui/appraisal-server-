@@ -2,7 +2,7 @@
   <div v-loading="isLoading" class="flex-column-layout">
     <div class="jx-header">
       <div>
-        <span class="header-title">手工数据维护——表格输入</span>
+        <span class="header-title">手工数据维护 — — 表格输入</span>
         <el-date-picker
           v-model="query.month"
           style="margin: 0 20px"
@@ -18,7 +18,6 @@
           style="margin: -4px 0 0 20px;"
           size="small"
           type="primary"
-          plain
           @click="saveManual"
           >保存
         </el-button>
@@ -39,6 +38,7 @@
       <vxe-table
         v-hidden-scroll
         border
+        show-header-overflow
         :data="list_"
         :mouse-config="{selected: true}"
         :keyboard-config="{
@@ -49,7 +49,7 @@
           isEdit: true,
           isChecked: true
         }"
-        :edit-config="{trigger: 'click', mode: 'cell'}"
+        :edit-config="{trigger: 'click', mode: 'cell', showIcon: false}"
         max-height="100%"
       >
         <vxe-column
@@ -86,6 +86,7 @@
               v-model="row.item[field.id].value"
               type="number"
               :disabled="editable[field.id]"
+              size="mini"
               placeholder="请输入数值"
               @blur="updateManual(row.item[field.id])"
             ></vxe-input>
