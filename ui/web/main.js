@@ -13,6 +13,9 @@ import * as echarts from 'echarts';
 import './directive';
 import KnDebounceInputComponent from './components/kn-debounce-input';
 import KnCollapse from './components/kn-collapse';
+import 'xe-utils';
+import VXETable from 'vxe-table';
+import 'vxe-table/lib/style.css';
 
 (async () => {
   Vue.config.productionTip = false;
@@ -22,6 +25,7 @@ import KnCollapse from './components/kn-collapse';
   Vue.use(settingPlugin);
   Vue.use(WidthCompute);
   Vue.use(dayjs);
+  Vue.use(VXETable);
   Vue.prototype.$echarts = echarts;
   Vue.component('kn-debounce-input', KnDebounceInputComponent);
   Vue.component('kn-collapse', KnCollapse);
