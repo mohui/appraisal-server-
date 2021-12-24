@@ -520,31 +520,48 @@ export default class User {
     });
   }
 
+  /**
+   * 新增权限
+   *
+   * @param name 权限名
+   * @param permissions 权限数组
+   */
   @validate(
-    should
-      .string()
-      .required()
-      .description('权限名'),
+    should.string().required(),
     should
       .array()
       .items(should.string())
       .allow([])
       .required()
-      .description('权限数组')
   )
   async addRole(name, permissions) {
     //检查权限是否在描述文件里有配置
     const res = permissions.find(it => !getPermission(it));
     if (res) throw new KatoCommonError(`'${res}'权限不存在`);
     //查询是否存在该角色
-    const role = await RoleModel.findOne({where: {name}});
-    if (role) throw new KatoCommonError('该角色已存在');
-    //角色新增操作
-    return RoleModel.create({
+    const role = await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id, name
+        from role
+        where name = ?
+      `,
+      name
+    );
+    if (role.length > 0) throw new KatoCommonError('该角色已存在');
+    return await appDB.execute(
+      //language=PostgreSQL
+      `
+        insert into role(id, name, permissions, created_at, updated_at, creator)
+        values (?, ?, ?, ?, ?, ?)
+      `,
+      uuid(),
       name,
-      permissions,
-      creator: Context.current.user.id
-    });
+      `{${permissions?.map(item => `"${item}"`).join()}}`,
+      new Date(),
+      new Date(),
+      Context.current.user.id
+    );
   }
 
   @validate(
