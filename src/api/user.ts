@@ -738,22 +738,39 @@ export default class User {
     });
   }
 
-  @validate(
-    should
-      .string()
-      .required()
-      .description('角色id')
-  )
+  /**
+   * 删除角色
+   *
+   * @param id 角色id
+   */
+  @validate(should.string().required())
   async removeRole(id) {
     return appDB.transaction(async () => {
-      // TODO: lock: {of: RoleModel} 查询该角色,并锁定
-      const result = await RoleModel.findOne({
-        where: {id},
-        include: [UserModel]
-      });
-      if (result.users.length > 0)
+      // 查询该角色是否绑定了用户
+      const roleModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select "user".id
+          from role
+                 inner join user_role_mapping roleMapping
+                            on role.id = roleMapping.role_id
+                 inner join "user" on roleMapping.user_id = "user".id
+          where role.id = ?
+        `,
+        id
+      );
+      if (roleModels.length > 0 && roleModels[0]?.id)
         throw new KatoCommonError('该角色下绑定了用户,无法删除');
-      result.destroy({force: true});
+      // 删除角色
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from role
+          where id = ?
+        `,
+        id
+      );
     });
   }
 
