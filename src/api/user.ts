@@ -794,10 +794,30 @@ export default class User {
   @validate(should.string().description('用户id'))
   async resetPassword(id) {
     return appDB.transaction(async () => {
-      const user = await UserModel.findOne({where: {id}, lock: true});
-      if (!user) throw new KatoCommonError('该用户不存在');
-      user.password = '666666';
-      await user.save();
+      const userModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select id, account, name
+          from "user"
+          where id = ?
+        `,
+        id
+      );
+      if (userModels.length === 0) throw new KatoCommonError('该用户不存在');
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          update "user"
+          set password   = ?,
+              updated_at = ?,
+              editor     = ?
+          where id = ?
+        `,
+        '666666',
+        new Date(),
+        Context.current.user.id,
+        id
+      );
     });
   }
 
