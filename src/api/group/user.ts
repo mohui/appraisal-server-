@@ -1,11 +1,11 @@
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
-import {appDB, originalDB} from '../app';
-import {sql as sqlRender} from '../database';
+import {appDB, originalDB} from '../../app';
+import {sql as sqlRender} from '../../database';
 import {QueryTypes} from 'sequelize';
-import {getPermission, Permission} from '../../common/permission';
-import {Context} from './context';
+import {getPermission, Permission} from '../../../common/permission';
+import {Context} from '../context';
 import {imageSync} from 'qr-image';
-import {UserType} from '../../common/user';
+import {UserType} from '../../../common/user';
 import {v4 as uuid} from 'uuid';
 
 function countUserRender(params) {
