@@ -302,14 +302,17 @@ export default class User {
             created_at: next.created_at,
             // eslint-disable-next-line @typescript-eslint/camelcase
             updated_at: next.updated_at,
-            roles: [
-              {
-                id: next.rolesId,
-                name: next.rolesName,
-                creator: next.rolesCreator,
-                permissions: next.rolesPermissions
-              }
-            ],
+            // 有可能没有给他分配角色, 如果没角色,就是空数组
+            roles: next.rolesId
+              ? [
+                  {
+                    id: next.rolesId,
+                    name: next.rolesName,
+                    creator: next.rolesCreator,
+                    permissions: next.rolesPermissions
+                  }
+                ]
+              : [],
             region: next.region,
             editorName: next.editorName,
             creatorName: next.creatorName,
