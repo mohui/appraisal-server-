@@ -2,9 +2,9 @@ import {originalDB} from '../app';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {sql as sqlRender} from '../database/template';
 import {Context} from './context';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import {getTagsList} from '../../common/person-tag';
-import Excel from 'exceljs';
+import * as Excel from 'exceljs';
 import {createBackJob} from '../utils/back-job';
 import {getHospitals} from './group/common';
 
@@ -19,6 +19,75 @@ async function dictionaryQuery(category) {
       where category = ?
     `,
     category
+  );
+}
+
+/**
+ * 查询档案列表,并列出问题档案原因sql
+ *
+ * @param params {
+ *   name: '姓名',
+ *   hospitals: 机构数组,
+ *   idCard: 身份证
+ *   tags: 指标...,
+ *   personOr: 是否有人群分类,
+ *   documentOr: 档案问题
+ *   year: 年份
+ * }
+ * @return [sql语句, [条件]]
+ */
+function listRenderForExcel(params) {
+  return sqlRender(
+    `
+      from mark_person mp
+             inner join ph_person vp on mp.id = vp.id and mp.year = {{? year}}
+             inner join area on vp.adminorganization = area.code
+             left join mark_content mc on mc.id = vp.id
+      where 1 = 1
+        {{#if name}} and vp.name like {{? name}} {{/if}}
+        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
+        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        and
+          (
+            1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
+            {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
+            {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
+            {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
+            {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
+            {{#compare H00}}{{#if documentOr}} or {{else}} and {{/if}} mp."H00"={{? H00}} {{/compare}}
+            {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
+            {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
+            {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
+            {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
+            {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
+            {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
+            {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
+            {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
+            {{#compare MCH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH01"={{? MCH01}} {{/compare}}
+            {{#compare MCH02}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH02"={{? MCH02}} {{/compare}}
+          )
+          and
+          (
+            1 = {{#if personOr}} 0 {{else}} 1 {{/if}}
+            {{#compare C01}}{{#if personOr}} or {{else}} and {{/if}} mp."C01"={{? C01}} {{/compare}}
+            {{#compare C02}}{{#if personOr}} or {{else}} and {{/if}} mp."C02"={{? C02}} {{/compare}}
+            {{#compare C03}}{{#if personOr}} or {{else}} and {{/if}} mp."C03"={{? C03}} {{/compare}}
+            {{#compare C04}}{{#if personOr}} or {{else}} and {{/if}} mp."C04"={{? C04}} {{/compare}}
+            {{#compare C05}}{{#if personOr}} or {{else}} and {{/if}} mp."C05"={{? C05}} {{/compare}}
+            {{#compare C00}}{{#if personOr}} or {{else}} and {{/if}} mp."C00"={{? C00}} {{/compare}}
+            {{#compare C06}}{{#if personOr}} or {{else}} and {{/if}} mp."C06"={{? C06}} {{/compare}}
+            {{#compare C07}}{{#if personOr}} or {{else}} and {{/if}} mp."C07"={{? C07}} {{/compare}}
+            {{#compare C08}}{{#if personOr}} or {{else}} and {{/if}} mp."C08"={{? C08}} {{/compare}}
+            {{#compare C09}}{{#if personOr}} or {{else}} and {{/if}} mp."C09"={{? C09}} {{/compare}}
+            {{#compare C10}}{{#if personOr}} or {{else}} and {{/if}} mp."C10"={{? C10}} {{/compare}}
+            {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
+            {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
+            {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
+            {{#compare ai_2dm}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_2dm"={{? ai_2dm}} {{/compare}}
+            {{#compare ai_hua}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_hua"={{? ai_hua}} {{/compare}}
+          )
+    `,
+    params
   );
 }
 
@@ -100,7 +169,7 @@ export async function getPersonExcelBuffer(params) {
     ...sqlRenderResult[1]
   );
   person.forEach(p => {
-    for (let i in p) {
+    for (const i in p) {
       //空的指标 或 正常的档案指标、不是人群分类的指标 都不要
       if ((p[i] === null || p[i] === true) && i.indexOf('C') < 0) delete p[i];
     }
@@ -110,7 +179,7 @@ export async function getPersonExcelBuffer(params) {
     .reduce((pre, next) => {
       const current = pre.find(p => p.id === next.id);
       if (current) {
-        let tag = current.tags.find(t => t.code === next.markName);
+        const tag = current.tags.find(t => t.code === next.markName);
         if (tag) {
           if (tag.content.indexOf(next.markContent) < 0)
             tag.content.push(next.markContent);
@@ -121,7 +190,7 @@ export async function getPersonExcelBuffer(params) {
             content: [current.markContent]
           });
       } else {
-        let tags = next.tags.map(t => ({
+        const tags = next.tags.map(t => ({
           ...t,
           content: t.code === next.markName ? [next.markContent] : []
         }));
@@ -158,8 +227,8 @@ export async function getPersonExcelBuffer(params) {
     '档案问题'
   ]);
   const rows = person.map((it, index) => {
-    let current = [index + 1];
-    for (let k in it) {
+    const current = [index + 1];
+    for (const k in it) {
       current.push(it[k]);
     }
     return current;
@@ -179,62 +248,6 @@ function listRender(params) {
              inner join area on vp.adminorganization = area.code
       where 1 = 1
         and vp.WriteOff = false
-        {{#if name}} and vp.name like {{? name}} {{/if}}
-        {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
-        {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
-        and
-          (
-            1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
-            {{#compare S03}}{{#if documentOr}} or {{else}} and {{/if}} mp."S03"={{? S03}} {{/compare}}
-            {{#compare S23}}{{#if documentOr}} or {{else}} and {{/if}} mp."S23"={{? S23}} {{/compare}}
-            {{#compare O00}}{{#if documentOr}} or {{else}} and {{/if}} mp."O00"={{? O00}} {{/compare}}
-            {{#compare O02}}{{#if documentOr}} or {{else}} and {{/if}} mp."O02"={{? O02}} {{/compare}}
-            {{#compare H00}}{{#if documentOr}} or {{else}} and {{/if}} mp."H00"={{? H00}} {{/compare}}
-            {{#compare H01}}{{#if documentOr}} or {{else}} and {{/if}} mp."H01"={{? H01}} {{/compare}}
-            {{#compare H02}}{{#if documentOr}} or {{else}} and {{/if}} mp."H02"={{? H02}} {{/compare}}
-            {{#compare D00}}{{#if documentOr}} or {{else}} and {{/if}} mp."D00"={{? D00}} {{/compare}}
-            {{#compare D01}}{{#if documentOr}} or {{else}} and {{/if}} mp."D01"={{? D01}} {{/compare}}
-            {{#compare D02}}{{#if documentOr}} or {{else}} and {{/if}} mp."D02"={{? D02}} {{/compare}}
-            {{#compare E00}}{{#if documentOr}} or {{else}} and {{/if}} mp."E00"={{? E00}} {{/compare}}
-            {{#compare CH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CH01"={{? CH01}} {{/compare}}
-            {{#compare CO01}}{{#if documentOr}} or {{else}} and {{/if}} mp."CO01"={{? CO01}} {{/compare}}
-            {{#compare MCH01}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH01"={{? MCH01}} {{/compare}}
-            {{#compare MCH02}}{{#if documentOr}} or {{else}} and {{/if}} mp."MCH02"={{? MCH02}} {{/compare}}
-          )
-          and
-          (
-            1 = {{#if personOr}} 0 {{else}} 1 {{/if}}
-            {{#compare C01}}{{#if personOr}} or {{else}} and {{/if}} mp."C01"={{? C01}} {{/compare}}
-            {{#compare C02}}{{#if personOr}} or {{else}} and {{/if}} mp."C02"={{? C02}} {{/compare}}
-            {{#compare C03}}{{#if personOr}} or {{else}} and {{/if}} mp."C03"={{? C03}} {{/compare}}
-            {{#compare C04}}{{#if personOr}} or {{else}} and {{/if}} mp."C04"={{? C04}} {{/compare}}
-            {{#compare C05}}{{#if personOr}} or {{else}} and {{/if}} mp."C05"={{? C05}} {{/compare}}
-            {{#compare C00}}{{#if personOr}} or {{else}} and {{/if}} mp."C00"={{? C00}} {{/compare}}
-            {{#compare C06}}{{#if personOr}} or {{else}} and {{/if}} mp."C06"={{? C06}} {{/compare}}
-            {{#compare C07}}{{#if personOr}} or {{else}} and {{/if}} mp."C07"={{? C07}} {{/compare}}
-            {{#compare C08}}{{#if personOr}} or {{else}} and {{/if}} mp."C08"={{? C08}} {{/compare}}
-            {{#compare C09}}{{#if personOr}} or {{else}} and {{/if}} mp."C09"={{? C09}} {{/compare}}
-            {{#compare C10}}{{#if personOr}} or {{else}} and {{/if}} mp."C10"={{? C10}} {{/compare}}
-            {{#compare C11}}{{#if personOr}} or {{else}} and {{/if}} mp."C11"={{? C11}} {{/compare}}
-            {{#compare C13}}{{#if personOr}} or {{else}} and {{/if}} mp."C13"={{? C13}} {{/compare}}
-            {{#compare C14}}{{#if personOr}} or {{else}} and {{/if}} mp."C14"={{? C14}} {{/compare}}
-            {{#compare ai_2dm}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_2dm"={{? ai_2dm}} {{/compare}}
-            {{#compare ai_hua}}{{#if personOr}} or {{else}} and {{/if}} mp."ai_hua"={{? ai_hua}} {{/compare}}
-          )
-    `,
-    params
-  );
-}
-
-//查询档案列表,并列出问题档案原因sql
-function listRenderForExcel(params) {
-  return sqlRender(
-    `
-      from mark_person mp
-             inner join ph_person vp on mp.id = vp.id and mp.year = {{? year}}
-             inner join area on vp.adminorganization = area.code
-             left join mark_content mc on mc.id = vp.id
-      where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
@@ -2107,10 +2120,11 @@ export default class Person {
         `,
         pregnancyBook.id
       );
-      const newlyDiagnosed = {};
-      newlyDiagnosed.name = '第一次产前检查信息表';
-      newlyDiagnosed.type = 'newlyDiagnosed';
-      newlyDiagnosed.records = newlyDiagnosedRecords;
+      const newlyDiagnosed = {
+        name: '第一次产前检查信息表',
+        type: 'newlyDiagnosed',
+        records: newlyDiagnosedRecords
+      };
       maternalData.push(newlyDiagnosed);
 
       // 第2~5次产前随访服务信息表
@@ -2147,10 +2161,11 @@ export default class Person {
         `,
         pregnancyBook.id
       );
-      const prenatalCare = {};
-      prenatalCare.name = '第2~5次产前随访服务信息表';
-      prenatalCare.type = 'prenatalCare';
-      prenatalCare.records = prenatalCareRecords;
+      const prenatalCare = {
+        name: '第2~5次产前随访服务信息表',
+        type: 'prenatalCare',
+        records: prenatalCareRecords
+      };
       maternalData.push(prenatalCare);
       // 产后访视记录表
       // 按孕册表匹配
@@ -2215,12 +2230,11 @@ export default class Person {
         `,
         pregnancyBook.id
       );
-      const maternalVisits = {};
-      maternalVisits.name = '产后访视记录表';
-      maternalVisits.type = 'maternalVisits';
-      maternalVisits.records = pregnancyBookVisitRecords.concat(
-        maternalVisitRecords
-      );
+      const maternalVisits = {
+        name: '产后访视记录表',
+        type: 'maternalVisits',
+        records: pregnancyBookVisitRecords.concat(maternalVisitRecords)
+      };
       maternalData.push(maternalVisits);
 
       // 产后42天健康检查记录表
@@ -2283,12 +2297,11 @@ export default class Person {
           order by a.visitdate`,
         pregnancyBook.id
       );
-      const examine42thDay = {};
-      examine42thDay.name = '产后42天健康检查记录表';
-      examine42thDay.type = 'examine42thDay';
-      examine42thDay.records = bookExamine42thDayRecords.concat(
-        maternalExamine42thDayRecords
-      );
+      const examine42thDay = {
+        name: '产后42天健康检查记录表',
+        type: 'examine42thDay',
+        records: bookExamine42thDayRecords.concat(maternalExamine42thDayRecords)
+      };
       maternalData.push(examine42thDay);
 
       result.push(maternalData);
@@ -2391,7 +2404,11 @@ export default class Person {
         `,
         delivery.id
       );
-      const maternalVisits = {};
+      const maternalVisits = {
+        name: '产后访视记录表',
+        type: 'maternalVisits',
+        records: maternalVisitRecords
+      };
       maternalVisits.name = '产后访视记录表';
       maternalVisits.type = 'maternalVisits';
       maternalVisits.records = maternalVisitRecords;
@@ -2424,10 +2441,11 @@ export default class Person {
         `,
         delivery.id
       );
-      const examine42thDay = {};
-      examine42thDay.name = '产后42天健康检查记录表';
-      examine42thDay.type = 'examine42thDay';
-      examine42thDay.records = maternalExamine42thDayRecords;
+      const examine42thDay = {
+        name: '产后42天健康检查记录表',
+        type: 'examine42thDay',
+        records: maternalExamine42thDayRecords
+      };
       deliveryData.push(examine42thDay);
 
       result.push(deliveryData);
@@ -3390,7 +3408,7 @@ export default class Person {
       id
     );
     const questionnaire = questionnaireModels.reduce((res, next) => {
-      let current = res.find(it => it.questionCode === next.questionCode);
+      const current = res.find(it => it.questionCode === next.questionCode);
       // 如果查找到, 说明这个答案得分有两次
       if (current) {
         //有反向分数(1 -> 5 [选1得5分])和正向分数(选几得几分)之分
