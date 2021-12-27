@@ -5,15 +5,19 @@ import {UserType} from '../../../common/user';
 import {getHospitals} from '../group/common';
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
-  //region 免登录接口逻辑
-  let isWhite = false;
-  for (const white of ['login.ac', 'title.ac', 'register.ac'])
-    isWhite = isWhite || ctx.req.url.endsWith(white);
-  if (isWhite) {
+  //免登录接口判断
+  if (
+    [
+      'login.ac',
+      'title.ac',
+      'register.ac',
+      'AppUser/validPhone.ac', //app用户手机号码验证
+      'AppUser/register.ac' //app用户注册
+    ].some(it => ctx.req.url.endsWith(it))
+  ) {
     await next();
     return;
   }
-  //endregion
   try {
     const token = ctx.req.header('token');
     const type = ctx.req.header('type');
