@@ -326,8 +326,6 @@ export default {
               duration: 1000
             });
             setToken(result.id);
-            //TODO: 临时存下用户类型
-            localStorage.setItem('user-type', result.type);
             await this.$router.push('/');
             this.btnLoading = false;
           } catch (e) {
