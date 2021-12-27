@@ -1,0 +1,102 @@
+import {should, validate} from 'kato-server';
+
+const phoneValidate = should.string().regex(/^1\d{10}$/);
+/**
+ * App用户模块
+ */
+export default class AppUser {
+  /**
+   * 校验手机号码是否合法
+   *
+   * @param phone 手机号码
+   * @return {
+   *   valid: 是否合法
+   *   usable: 是否可用
+   * }
+   */
+  @validate(phoneValidate)
+  async validPhone(phone) {
+    return {
+      valid: true,
+      usable: true
+    };
+  }
+
+  /**
+   * 验证码短信发送
+   *
+   * @param phone 手机号码
+   * @param module 功能模块
+   */
+  @validate(phoneValidate, should.string().required())
+  async sendSMS(phone, module) {
+    return;
+  }
+
+  /**
+   * 注册
+   *
+   * @param phone 手机号码
+   * @param code 验证码
+   */
+  @validate(phoneValidate, should.string().required())
+  async register(phone, code) {
+    return;
+  }
+
+  /**
+   * 更新用户信息
+   *
+   * @param params {
+   *   name: 姓名
+   *   gender: 性别
+   *   major: 专业
+   *   title: 职称
+   *   education: 学历
+   *   isGP: 是否为全科医师
+   * }
+   */
+  async update(params) {
+    return;
+  }
+
+  /**
+   * 重置密码
+   *
+   * @param password 密码
+   * @param code 验证码
+   */
+  async resetPassword(password, code) {
+    return;
+  }
+
+  /**
+   * 更新密码
+   *
+   * @param oldPassword 旧密码
+   * @param newPassword 新密码
+   */
+  async updatePassword(oldPassword, newPassword) {
+    return;
+  }
+
+  /**
+   * 更换手机号码
+   *
+   * @param phone 手机号码
+   */
+  @validate(phoneValidate)
+  async updatePhone(phone) {
+    return;
+  }
+
+  /**
+   * 注销机构
+   *
+   * @param area 机构id
+   */
+  @validate(should.string().required())
+  async unbind(area) {
+    return;
+  }
+}
