@@ -24,6 +24,7 @@
       <el-table
         :data="tableData"
         v-loading="$asyncComputed.serverData.updating"
+        v-hidden-scroll
         style="width: 100%; flex-grow: 1 "
         height="100%"
         border
@@ -107,6 +108,7 @@
         title="拥有的权限"
         :visible.sync="dialogPermissionsListTableViewVisible"
         :width="$settings.isMobile ? '99%' : '50%'"
+        v-hidden-scroll
       >
         <el-tag
           style="margin: 8px 10px"
@@ -121,6 +123,7 @@
         :visible.sync="dialogVisible"
         :title="dialogType === 'edit' ? '编辑角色' : '新增角色'"
         :width="$settings.isMobile ? '99%' : '50%'"
+        v-hidden-scroll
       >
         <el-form
           ref="ruleForm"

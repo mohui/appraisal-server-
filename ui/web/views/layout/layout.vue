@@ -8,35 +8,41 @@
           style="vertical-align: bottom;font-size: 22px;cursor: pointer;"
           @click="toggleMenu"
         ></i>
-        {{ $settings.user.region.name }}基本公共卫生服务两卡制绩效考核系统</span
+        {{ headerName }}基本公共卫生服务两卡制绩效考核系统</span
       >
       <div>
         <kn-back-job></kn-back-job>
         <el-dropdown
+          style="line-height: normal;"
           class="dropdown"
           @command="handCommand"
           @visible-change="v => (dropdownVisible = v)"
         >
           <div>
             <i style="padding: 0 6px" class="el-icon-user"></i>
-            {{ $settings.user.name }}
-            <i
-              :class="
-                dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-              "
-            ></i>
+            <span v-if="!$settings.isMobile">
+              {{ $settings.user.name }}
+              <i
+                :class="
+                  dropdownVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                "
+              ></i>
+            </span>
           </div>
 
           <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="QRImage">绑定码</el-dropdown-item>
             <el-dropdown-item command="profile">个人中心</el-dropdown-item>
             <el-dropdown-item command="logout">退出</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
     </el-header>
-    <el-container>
+    <el-container
+      :style="{'flex-direction': $settings.isMobile ? 'column' : 'row'}"
+    >
       <el-aside
-        width="270px"
+        :width="$settings.isMobile ? '100%' : '250px'"
         :class="{mobile: device === 'mobile', hiddenMenu: hiddenMenu}"
       >
         <div
@@ -51,7 +57,7 @@
             :unique-opened="true"
           >
             <multi-menu
-              v-for="menu of menus"
+              v-for="menu of asyncMenus"
               :key="menu.router"
               :menu="menu"
             ></multi-menu>
@@ -65,6 +71,20 @@
         </transition>
       </el-main>
     </el-container>
+    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
+      <div>
+        <img
+          style="width: 245px;margin: 0 auto;display: block;"
+          :src="QRCode"
+          alt=""
+        />
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="QRDialogVisible = false"
+          >关 闭</el-button
+        >
+      </span>
+    </el-dialog>
   </el-container>
 </template>
 
@@ -72,6 +92,8 @@
 import {removeToken} from '../../utils/cache';
 import MultiMenu from '../../components/multi-menu.vue';
 import KnBackJob from '../../components/kn-back-job';
+import {UserType} from '../../../../common/user.ts';
+import dayjs from 'dayjs';
 const WIDTH = 992;
 export default {
   name: 'Layout',
@@ -82,14 +104,41 @@ export default {
       device: 'desktop',
       hiddenMenu: false,
       timer: null,
-      dropdownVisible: false
+      dropdownVisible: false,
+      QRDialogVisible: false,
+      // 二维码
+      QRCode: ''
     };
   },
   computed: {
+    //根据用户类型处理一下,动态的菜单router
+    asyncMenus() {
+      //如果是员工类型的用户,修改菜单的考核结果router
+      if (this.$settings.user.type === UserType.STAFF) {
+        return this.menus.map(it => {
+          if (it.index === 'medical-performance') {
+            //修改员工的默认router
+            it.router = `/personal-appraisal-results?id=${
+              this.$settings.user.id
+            }&date=${JSON.stringify(
+              dayjs()
+                .startOf('M')
+                .toDate()
+            )}`;
+            console.log(it);
+          }
+          return it;
+        });
+      }
+      return this.menus;
+    },
     activeMenu() {
       const {meta} = this.$route;
       //返回router配置里指定的菜单激活项,若没有默认使用路由名
       return meta?.activeMenu || this.$route.name;
+    },
+    headerName() {
+      return this.$settings.user?.region?.name || this.$settings.user.name;
     }
   },
   watch: {
@@ -107,9 +156,26 @@ export default {
     this.resizeHandler();
   },
   methods: {
-    handCommand(command) {
+    async handCommand(command) {
       if (command === 'profile') this.profile();
       if (command === 'logout') this.logout();
+      if (command === 'QRImage') {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在生成二维码',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        try {
+          // 打开弹窗
+          this.QRCode = (await this.$api.User.getQRCode()).image;
+          this.QRDialogVisible = true;
+        } catch (e) {
+          this.$message.error(e.message);
+        } finally {
+          loading.close();
+        }
+      }
     },
     logout() {
       removeToken();
@@ -158,7 +224,7 @@ export default {
   padding: 0;
   border-bottom: solid 1px #e6e6e6;
   display: flex;
-  background: $color-primary;
+  background: $color-header;
   box-sizing: content-box;
   align-items: center;
   justify-content: space-between;
@@ -171,74 +237,77 @@ export default {
   cursor: pointer;
 }
 .mobile {
-  position: absolute;
-  height: 100%;
+  max-height: 100%;
   z-index: 2002;
+  transition: max-height 1s ease;
 }
-.hiddenMenu {
-  display: none;
+.mobile.hiddenMenu {
+  max-height: 0;
 }
 .mask {
-  position: fixed;
   width: 100%;
   height: 100%;
   background-color: rgba(100, 100, 100, 0.5);
   z-index: 9;
-  ul {
-    width: 200px;
-  }
 }
 ::v-deep .el-menu {
+  color: $color-menu-dark;
   & > li {
+    border-radius: 30px;
+
     &.el-menu-item,
     > .el-submenu__title {
+      color: $color-menu-dark;
       height: 46px !important;
       line-height: 46px !important;
       &:hover {
-        background-color: #ecf5ff;
+        background-color: #fff;
       }
+    }
+    &.is-active.parent-menu.el-menu-item {
+      background-image: linear-gradient(to right, $color-left, $color-right);
+      color: #fff;
+      border-radius: 30px;
+    }
+    &.is-active.el-menu-item {
+      background-color: #fff;
     }
     &.is-active > .el-submenu__title {
-      box-shadow: inset 3px 0 0 #2198f3;
-      background-color: #ecf5ff;
-    }
-    > ul {
-      background-color: rgba(0, 0, 0, 0.02);
-      &:before {
-        border-left: 1px dotted rgba(0, 0, 0, 0.2);
-        content: '';
-        display: block;
-        position: absolute;
-        z-index: 1;
-        left: 2rem;
-        top: 0;
-        bottom: 0;
+      i {
+        color: inherit;
       }
+      background-image: linear-gradient(to right, $color-left, $color-right);
+      color: #fff;
+      border-radius: 30px;
+    }
+
+    > ul {
       > li {
-        padding-left: 54px !important;
-        &:hover {
-          color: #409eff;
-          background-color: rgba(255, 255, 255, 0.1);
+        padding-left: 60px !important;
+        color: $color-menu-dark;
+        &.is-active {
+          color: $color-primary;
         }
         &:after {
+          margin-left: 10px !important;
           content: '';
           display: block;
           position: absolute;
           width: 0.3rem;
           height: 0.3rem;
-          background-color: rgba(91, 91, 91, 0.2);
           left: 1.8rem;
-          top: calc(50% - 0.2rem);
+          top: calc(50% - 0.1rem);
           border: 1px solid rgba(91, 91, 91, 0.7);
           border-radius: 50%;
           z-index: 1;
         }
         &.is-active:after {
           background-color: #409eff;
-          width: 0.4rem;
-          height: 0.4rem;
-          left: 1.75rem;
-          top: calc(50% - 0.25rem);
+          width: 0.5rem;
+          height: 0.5rem;
+          left: 1.8rem;
+          top: calc(50% - 0.2rem);
+          border: 0;
         }
       }
     }

@@ -13,7 +13,7 @@ import {
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {Op} from 'sequelize';
 import {appDB} from '../../app';
-import {getAreaTree} from '../group';
+import {getAreaTree} from './common';
 import {Context} from '../context';
 import * as dayjs from 'dayjs';
 import * as uuid from 'uuid';

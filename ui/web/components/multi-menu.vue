@@ -6,9 +6,19 @@
         (!menu.permission || findPermission(menu.permission))
     "
     :index="menu.index"
+    :style="{
+      display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
+    }"
   >
     <template slot="title">
-      <i :class="menu.icon"></i>
+      <img
+        v-if="menu.iconActive"
+        class="menu-img"
+        :style="{
+          '--icon': `url(${menu.icon})`,
+          '--iconActive': `url(${menu.iconActive})`
+        }"
+      />
       <span>{{ menu.label }}</span>
     </template>
     <multi-menu
@@ -22,8 +32,19 @@
     v-else-if="!menu.permission || findPermission(menu.permission)"
     :route="menu.router"
     :index="menu.index"
+    :class="menu.icon ? 'parent-menu' : ''"
+    :style="{
+      display: $settings.isMobile && menu.sign !== 'show' ? 'none' : 'block'
+    }"
   >
-    <i :class="menu.icon"></i>
+    <img
+      v-if="menu.iconActive"
+      :style="{
+        '--icon': `url(${menu.icon})`,
+        '--iconActive': `url(${menu.iconActive})`
+      }"
+      class="menu-img"
+    />
     <span>{{ menu.label }}</span>
   </el-menu-item>
 </template>
@@ -49,4 +70,17 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.menu-img {
+  width: 18px;
+  height: 18px;
+  margin-right: 15px;
+  content: var(--icon);
+}
+
+.is-active {
+  .menu-img {
+    content: var(--iconActive);
+  }
+}
+</style>

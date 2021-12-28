@@ -1,167 +1,6 @@
-import {appDB} from '../app';
-import {AreaModel} from '../database';
+import {appDB, originalDB} from '../app';
 import {Context} from './context';
 import {KatoRuntimeError} from 'kato-server';
-
-export type AreaTreeNode = {
-  name: string;
-  code: string;
-  parent: string;
-  level: number;
-  root: string;
-  path: string[];
-  cycle: boolean;
-  leaf: boolean;
-};
-
-/**
- * 获取地区树, 包括自己
- *
- * @param code 地区code
- */
-export async function getAreaTree(code): Promise<AreaTreeNode[]> {
-  const condition = code ? `code = '${code}'` : 'parent is null';
-  // language=PostgreSQL
-  return await appDB.execute(`
-    with recursive tree(
-                        name,
-                        code,
-                        parent,
-                        level,
-                        path,
-                        root,
-                        cycle
-      ) as (
-      select name,
-             code                          as code,
-             parent                        as code,
-             1                             as level,
-             (array [code])::varchar(36)[] as path,
-             code                          as root,
-             false                         as cycle
-      from area
-      where ${condition}
-      union all
-      select c.name,
-             c.code                               as code,
-             c.parent                             as parent,
-             level + 1                            as level,
-             (tree.path || c.code)::varchar(36)[] as path,
-             tree.root                            as root,
-             c.code = any (path)                  as cycle
-      from tree,
-           area c
-      where tree.code = c.parent
-        and not cycle
-    )
-    select name,                                                       -- 名称
-           code,                                                       -- code
-           tree.parent,                                                -- 父级code
-           level,                                                      -- 层级
-           root,                                                       -- 路径
-           path,                                                       -- 根节点
-           cycle,                                                      -- 是否循环
-           case when t.parent is null then true else false end as leaf -- 是否是叶子节点
-    from tree
-           left join (select parent from area group by parent) t on tree.code = t.parent
-  `);
-}
-
-/**
- * 获取当前节点下的所有叶子节点
- *
- * @param code 地区code
- */
-export async function getLeaves(code: string): Promise<AreaTreeNode[]> {
-  return (await getAreaTree(code)).filter(it => it.leaf);
-}
-
-/**
- * 获取地区对应的原始数据的机构
- *
- * @param codes 地区code数据
- */
-export async function getOriginalArray(
-  codes: string[]
-): Promise<{id: string; code: string; region: string}[]> {
-  const result = [];
-  for (const code of codes) {
-    try {
-      // language=PostgreSQL
-      const idArray: {
-        id: string;
-        code: string;
-        region: string;
-      }[] = await appDB.execute(
-        `
-          select hishospid as id, h_id as code, h.region
-          from hospital_mapping m
-                 inner join hospital h on m.h_id = h.id
-          where h_id = ?`,
-        code
-      );
-      if (idArray[0]) {
-        result.push(idArray[0]);
-      }
-    } catch (e) {
-      // 无所谓
-    }
-  }
-  return result;
-}
-
-/**
- * 获取地区树
- *
- * @param code 地区code
- */
-export async function getGroupTree(code): Promise<AreaTreeNode[]> {
-  const condition = code ? `parent = '${code}'` : 'parent is null';
-  // language=PostgreSQL
-  return await appDB.execute(`
-    with recursive tree(
-                        name,
-                        code,
-                        parent,
-                        level,
-                        path,
-                        root,
-                        cycle
-      ) as (
-      select name,
-             code                          as code,
-             parent                        as code,
-             1                             as level,
-             (array [code])::varchar(36)[] as path,
-             code                          as root,
-             false                         as cycle
-      from area
-      where ${condition}
-      union all
-      select c.name,
-             c.code                               as code,
-             c.parent                             as parent,
-             level + 1                            as level,
-             (tree.path || c.code)::varchar(36)[] as path,
-             tree.root                            as root,
-             c.code = any (path)                  as cycle
-      from tree,
-           area c
-      where tree.code = c.parent
-        and not cycle
-    )
-    select name,                                                       -- 名称
-           code,                                                       -- code
-           tree.parent,                                                -- 父级code
-           level,                                                      -- 层级
-           root,                                                       -- 路径
-           path,                                                       -- 根节点
-           cycle,                                                      -- 是否循环
-           case when t.parent is null then true else false end as leaf -- 是否是叶子节点
-    from tree
-           left join (select parent from area group by parent) t on tree.code = t.parent
-  `);
-}
 
 /**
  * group实体类型
@@ -271,21 +110,29 @@ export default class Group {
   /**
    * 地区列表
    * @param code
+   * @param checkId
    * return usable: true:可选, false: 不可选
    */
   async list(code, checkId) {
     let where;
     // 判断code是否为空,如果传值,查询下级,如果没有传值,查询自身权限
     if (code) {
-      where = {parent: code};
+      where = `parent = ?`;
     } else {
-      where = {code: Context.current.user.regionId};
+      code = Context.current.user.regionId;
+      where = `code = ?`;
     }
     // 地区列表
-    const list = await AreaModel.findAll({
-      where,
-      attributes: ['code', 'name']
-    });
+    const list = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+        where
+        ${where}
+      `,
+      code
+    );
 
     // 根据checkId获取年份
     const checkSystem = await appDB.execute(
@@ -336,6 +183,12 @@ export default class Group {
     if (!code) {
       code = Context.current.user.code;
     }
-    return AreaModel.findAll({where: {parent: code}});
+    // language=PostgreSQL
+    return await originalDB.execute(
+      ` select code, name, parent
+          from area
+          where parent = ? `,
+      code
+    );
   }
 }

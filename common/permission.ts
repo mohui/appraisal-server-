@@ -96,10 +96,6 @@ export const PermissionDetail = [
     name: '管理所有考核'
   },
   {
-    key: 'etl-hospital',
-    name: '机构同步'
-  },
-  {
     key: 'super-admin',
     name: '超级管理'
   },
@@ -122,6 +118,42 @@ export const PermissionDetail = [
   {
     key: 'guidelines',
     name: '医学指南'
+  },
+  {
+    key: 'medical-configuration-list',
+    name: '医疗绩效配置列表'
+  },
+  {
+    key: 'medical-configuration-work',
+    name: '工分项设置'
+  },
+  {
+    key: 'medical-configuration-member',
+    name: '员工配置'
+  },
+  {
+    key: 'medical-configuration-member-his',
+    name: '员工管理'
+  },
+  {
+    key: 'medical-performance',
+    name: '医疗绩效'
+  },
+  {
+    key: 'medical-manual',
+    name: '手工数据维护'
+  },
+  {
+    key: 'medical-plan',
+    name: '医疗考核方案'
+  },
+  {
+    key: 'medical-work',
+    name: '医疗工作列表'
+  },
+  {
+    key: 'medical-configuration-department',
+    name: '科室管理'
   }
 ];
 
@@ -150,13 +182,20 @@ export const Permission = {
   RULE_REMOVE: 'rule-remove',
   PROFILE: 'profile',
   ALL_CHECK: 'all-check',
-  ETL_HOSPITAL: 'etl-hospital',
   SUPER_ADMIN: 'super-admin',
   TAGS_DETAIL: 'tags-detail',
   PERSON_EXCEL: 'person-excel',
   AUDIT_LOG: 'audit-log',
   AI: 'ai',
-  GUIDELINES: 'guidelines'
+  GUIDELINES: 'guidelines',
+  MEDICAL_CONFIGURATION_LIST: 'medical-configuration-list',
+  MEDICAL_CONFIGURATION_WORK: 'medical-configuration-work',
+  MEDICAL_CONFIGURATION_MEMBER_HIS: 'medical-configuration-member-his',
+  MEDICAL_PERFORMANCE: 'medical-performance',
+  MEDICAL_MANUAL: 'medical-manual',
+  MEDICAL_PLAN: 'medical-plan',
+  MEDICAL_WORK: 'medical-work',
+  MEDICAL_CONFIGURATION_DEPARTMENT: 'medical-configuration-department'
 };
 export const PermissionTree = [
   {
@@ -304,10 +343,6 @@ export const PermissionTree = [
     ]
   },
   {
-    key: Permission.ETL_HOSPITAL,
-    label: '机构同步'
-  },
-  {
     key: Permission.AUDIT_LOG,
     label: '操作日志'
   },
@@ -318,6 +353,44 @@ export const PermissionTree = [
   {
     key: Permission.GUIDELINES,
     label: '医学指南'
+  },
+  {
+    key: Permission.MEDICAL_PERFORMANCE,
+    label: '医疗绩效'
+  },
+  {
+    key: 'medical-configuration',
+    label: '医疗绩效配置',
+    children: [
+      {
+        key: Permission.MEDICAL_CONFIGURATION_LIST,
+        label: '配置列表'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_WORK,
+        label: '工分项设置'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
+        label: '员工管理'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_DEPARTMENT,
+        label: '科室管理'
+      }
+    ]
+  },
+  {
+    key: Permission.MEDICAL_MANUAL,
+    label: '手工数据维护'
+  },
+  {
+    key: Permission.MEDICAL_PLAN,
+    label: '医疗考核方案'
+  },
+  {
+    key: Permission.MEDICAL_WORK,
+    label: '医疗工作列表'
   }
 ];
 export function getPermission(key) {

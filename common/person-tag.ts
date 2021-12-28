@@ -181,7 +181,35 @@ export const documentTags = {
       code: 'D00'
     };
   },
-  E00: {label: '人群标记错误', type: false, code: 'E00'}
+  E00: {label: '人群标记错误', type: false, code: 'E00'},
+  CH01(value) {
+    return {
+      label: `高危人群管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'CH01'
+    };
+  },
+  CO01(value) {
+    return {
+      label: `其他慢病管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'CO01'
+    };
+  },
+  MCH01(value) {
+    return {
+      label: `孕早期管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'MCH01'
+    };
+  },
+  MCH02(value) {
+    return {
+      label: `产后健康管理${value ? '' : '不'}规范`,
+      type: !!value,
+      code: 'MCH02'
+    };
+  }
 };
 
 /**
@@ -231,6 +259,22 @@ export const documentTagList = [
   {
     id: 'E00',
     name: documentTags.E00.label
+  },
+  {
+    id: 'CH01',
+    name: '高危人群管理不规范'
+  },
+  {
+    id: 'CO01',
+    name: '其他慢病管理不规范'
+  },
+  {
+    id: 'MCH01',
+    name: '孕早期管理不规范'
+  },
+  {
+    id: 'MCH02',
+    name: '产后健康管理不规范'
   }
 ];
 
@@ -273,5 +317,13 @@ export function getTagsList(it) {
   if (it.D00 != undefined) it.tags.push(documentTags.D00(it.D00));
   if (it.D01 != undefined) it.tags.push(documentTags.D01(it.D01));
   if (it.D02 != undefined) it.tags.push(documentTags.D02(it.D02));
+  // 高危人群规范管理标记
+  if (it.CH01 != undefined) it.tags.push(documentTags.CH01(it.CH01));
+  // 其它慢病规范管理标记
+  if (it.CO01 != undefined) it.tags.push(documentTags.CO01(it.CO01));
+  // 孕产妇管理标记
+  if (it.MCH01 != undefined) it.tags.push(documentTags.MCH01(it.MCH01));
+  // 产后健康管理不规范
+  if (it.MCH02 != undefined) it.tags.push(documentTags.MCH02(it.MCH02));
   return it;
 }

@@ -17,22 +17,6 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
-  etl: {
-    dialect: 'mssql',
-    host: 'localhost',
-    port: '123456',
-    username: 'root',
-    password: 'root',
-    database: 'appraisal-etl',
-    dialectOptions: {
-      options: {
-        useUTC: false,
-        requestTimeout: 300000
-      }
-    },
-    logging: false,
-    timezone: '+8:00'
-  },
   original: {
     dialect: 'postgres',
     host: 'localhost',
@@ -48,18 +32,25 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  mapping: {
+    dialect: 'postgres',
+    host: 'localhost',
+    port: '123456',
+    username: 'root',
+    password: 'root',
+    database: 'mapping',
+    define: {
+      underscored: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    },
+    timezone: '+8:00',
+    logging: false
+  },
   // 定时任务
   queue: {
-    cron: '00 00 04 * * *'
-  },
-  oss: {
-    accessKeyId: '',
-    accessKeySecret: '',
-    region: '',
-    bucket: ''
-  },
-  report: {
-    prefix: '' // 报告存储key的前缀
+    cron: '00 00 04 * * *',
+    his: '' // 医疗绩效打分任务的cron配置
   },
   unifs: [
     // {
@@ -128,23 +119,22 @@ module.exports = {
     //       key: 'default'
     //     }
     //   }
+    // },
+    // 医疗绩效手工数据附件
+    // {
+    //   path: '/his/manual',
+    //   type: 'local',
+    //   options: {
+    //     // 本机存储路径
+    //     base: '/tmp/his',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/his/manual',
+    //       key: ''
+    //     }
+    //   }
     // }
   ],
-  // etl检查任务的配置
-  checkETL: {
-    cron: '00 00 07 * * *',
-    email: {
-      // 发件人配置
-      sender: {
-        host: '',
-        port: '',
-        email: '',
-        password: ''
-      },
-      // 收件人配置
-      receivers: ['']
-    }
-  },
   // 生成公卫报告定时任务
   generate: {
     cron: ''

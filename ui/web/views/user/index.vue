@@ -88,6 +88,7 @@
       </kn-collapse>
       <el-table
         stripe
+        v-hidden-scroll
         size="small"
         :data="userList"
         height="100%"
@@ -189,6 +190,7 @@
     </el-card>
     <el-dialog
       title="新建用户"
+      v-hidden-scroll
       :visible.sync="dialogFormAddUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >
@@ -250,6 +252,7 @@
     </el-dialog>
     <el-dialog
       title="修改用户"
+      v-hidden-scroll
       :visible.sync="dialogFormEditUsersVisible"
       :width="$settings.isMobile ? '99%' : '50%'"
     >

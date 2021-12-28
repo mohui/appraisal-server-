@@ -38,6 +38,18 @@ import {CheckYearMigration} from './035_check_year';
 import {CleanTableMigration} from './036_table_clean';
 import {AreaBudgetMigration} from './037_area_budget';
 import {AuditMigration} from './038_audit';
+import {HisMigration} from './039_his';
+import {DropStaffVirtualMigration} from './040_drop_staff_virtual';
+import {AddWorkRemarkMigration} from './041_add_work_remark';
+import {IncreaseSourceSizeMigration} from './042_change_source_size';
+import {AddWorkItemTypeMigration} from './043_add_work_item_type';
+import {AddStaffPhStaffMigration} from './044_add_staff_ph_staff';
+import {UpdateStaffMigration} from './045_update_staff';
+import {AddStaffOccupationMigration} from './046_add_staff_occupation';
+import {AddHisCheckRuleFieldLengthMigration} from './047_add_his_check_rule_field_length';
+import {AddBasicDataUniqueMigration} from './048_add_basic_data_unique';
+import {AddHisWorkItemStepsMigration} from './049_his_work_item_steps';
+import {AddStaffMappingMigration} from './050_add_staff_mapping';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -79,5 +91,17 @@ export const migrations: IMigration[] = [
   new CheckYearMigration(),
   new CleanTableMigration(),
   new AreaBudgetMigration(),
-  new AuditMigration()
+  new AuditMigration(),
+  new HisMigration(),
+  new DropStaffVirtualMigration(),
+  new AddWorkRemarkMigration(),
+  new IncreaseSourceSizeMigration(),
+  new AddWorkItemTypeMigration(),
+  new AddStaffPhStaffMigration(),
+  new UpdateStaffMigration(),
+  new AddStaffOccupationMigration(),
+  new AddHisCheckRuleFieldLengthMigration(),
+  new AddBasicDataUniqueMigration(),
+  new AddHisWorkItemStepsMigration(),
+  new AddStaffMappingMigration()
 ];

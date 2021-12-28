@@ -25,6 +25,7 @@ import {
   OverlayFileSystem,
   UnionFileSystem
 } from './unifs';
+import * as dayjs from 'dayjs';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -32,8 +33,9 @@ export class Application {
   express = express();
   server = http.createServer(this.express);
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
-  etlDB = createExtendedSequelize(new Sequelize(config.get('etl')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
+  //TODO: 临时需要, 等待公卫etl完成后即可弃用
+  mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
 
   constructor() {
@@ -100,7 +102,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(37);
+      await migrate.migrate(50);
     }
   }
 
@@ -158,27 +160,35 @@ export class Application {
         console.log(`定时任务失败: ${e}`);
       }
     });
-    // 数据同步和数据标记的邮件报警
-    cron.schedule(config.get('checkETL.cron'), async () => {
-      try {
-        const api = new (require('./api/report').default)();
-        await api.checkTimming();
-        console.log('数据同步检查任务完成');
-      } catch (e) {
-        console.log(`数据同步检查任务失败: ${e}`);
-      }
-    });
 
     // 只需要生成一份,正式版才有值
     if (config.get('generate.cron')) {
       // 自动生成公卫报告
       cron.schedule(config.get('generate.cron'), async () => {
         try {
-          const api = new (require('./api/jx-report').default)();
-          await api.generateAll();
+          //获取上月的时间字符串, 格式为年月
+          const time = dayjs()
+            .subtract(1, 'month')
+            .format('YYYYMM');
+          const api = new (require('./api/group/report').default)();
+          await api.generateAll(time);
           console.log('生成公卫报告完成');
         } catch (e) {
           console.log(`生成公卫报告失败: ${e}`);
+        }
+      });
+    }
+    //医疗绩效的每日打分
+    const hisConfig = config.get<string>('queue.his');
+    if (hisConfig) {
+      cron.schedule(hisConfig, async () => {
+        try {
+          console.log('医疗绩效打分开始');
+          const api = new (require('./api/his/score').default)();
+          await api.autoScoreAll();
+          console.log('医疗绩效打分完成');
+        } catch (e) {
+          console.log(`医疗绩效打分失败: ${e}`);
         }
       });
     }
@@ -219,7 +229,7 @@ export const app = new Application();
 
 //导出各种便捷属性
 export const appDB = app.appDB;
-export const etlDB = app.etlDB;
 export const originalDB = app.originalDB;
+export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;

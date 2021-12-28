@@ -20,7 +20,7 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1; height: 0; overflow-y: auto;">
+      <div v-hidden-scroll style="flex-grow: 1; height: 0; overflow-y: auto;">
         <el-row type="flex" justify="space-between" class="record-head">
           <el-col :span="6">
             姓名：<strong>{{ detailDate.newbornname }}</strong>
@@ -283,86 +283,6 @@
               <td colspan="4">下次随访地点</td>
               <td colspan="8">
                 暂无数据
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="4">下次随访日期</td>
-              <td colspan="8">
-                暂无数据
-              </td>
-              <td colspan="4">随访医生签名</td>
-              <td colspan="8">
-                {{ detailDate.doctor }}
               </td>
             </tr>
             <tr>

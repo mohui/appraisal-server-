@@ -1,6 +1,11 @@
 <template>
-  <el-card shadow="never" style="margin-bottom:20px;">
-    <div slot="header" class="clearfix">
+  <el-card shadow="never" class="resident">
+    <div slot="header" class="title">
+      <img
+        class="icon"
+        :src="require('../../../../assets/residentInformation.png').default"
+        alt="居民信息"
+      />
       <span>居民信息</span>
     </div>
 
@@ -18,13 +23,23 @@
     <div class="patient-info">
       <p><span>户籍地址: </span>{{ patient.census }}</p>
       <p><span>联系电话: </span>{{ patient.phone }}</p>
-      <p><span>建档机构: </span>{{ patient.operateOrganization.name }}</p>
+      <p>
+        <span>建档机构: </span
+        ><span v-if="patient.operateOrganization">{{
+          patient.operateOrganization.name
+        }}</span>
+      </p>
       <p><span>建档日期: </span>{{ patient.fileDate.toLocaleString() }}</p>
       <p><span>管理机构: </span>{{ patient.organization.name }}</p>
     </div>
 
     <div class="patient-tag">
       <div class="patient-tag-header">
+        <img
+          class="icon"
+          :src="require('../../../../assets/crowdClassification.png').default"
+          alt="人群分类"
+        />
         <span>人群分类</span>
       </div>
       <div class="patient-tag-body">
@@ -38,8 +53,13 @@
         </el-tag>
       </div>
     </div>
-    <div class="patient-tag">
+    <div class="patient-tag" style="margin-bottom: 40px;">
       <div class="patient-tag-header">
+        <img
+          class="icon"
+          :src="require('../../../../assets/residentLabel.png').default"
+          alt="居民标签"
+        />
         <span>居民标签</span>
       </div>
       <div class="patient-tag-body">
@@ -88,6 +108,14 @@
         </el-tag>
       </div>
     </div>
+    <el-alert
+      title="注意: 档案内容为最近一次同步数据, 与年度无关!"
+      type="warning"
+      center
+      :closable="false"
+      show-icon
+    >
+    </el-alert>
   </el-card>
 </template>
 
@@ -174,6 +202,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.resident {
+  margin-bottom: 20px;
+  .icon {
+    width: 26px;
+    margin-right: 10px;
+  }
+  ::v-deep .el-card__header {
+    border: none;
+  }
+  .title {
+    display: flex;
+    align-items: center;
+  }
+}
 .box-center {
   text-align: center;
   margin: 0 auto;
@@ -209,17 +251,13 @@ export default {
 .patient-tag {
   margin-top: 20px;
   color: #606266;
-  font-size: 14px;
   padding: 15px 0;
-  span {
-    padding-left: 4px;
-  }
   .patient-medicine-header,
   .patient-tag-header {
-    border-bottom: 1px solid #dfe6ec;
     padding-bottom: 10px;
     margin-bottom: 10px;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
   }
 }
 </style>

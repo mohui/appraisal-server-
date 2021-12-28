@@ -33,7 +33,7 @@
 | HospitalID | bigint | 所属医院 |
 | DeptID | bigint | 所属科室 |
 | PeoName | varchar(20) | 姓名 |
-| Sex | varchar(8) | 性别 |
+| Sex | varchar(8) | 性别; 字典编码: 10101001 |
 | Age | int | 年龄 |
 | Tel | varchar(13) | 联系方式 |
 | BirthDate | datetime | 出生日期 |

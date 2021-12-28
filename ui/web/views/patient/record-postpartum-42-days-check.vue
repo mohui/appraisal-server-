@@ -20,74 +20,96 @@
           >返回
         </el-button>
       </div>
-      <div style="flex-grow: 1;height: 0; overflow-y: auto;">
+      <div v-hidden-scroll style="flex-grow: 1;height: 0; overflow-y: auto;">
         <el-row type="flex" class="record-head" justify="space-between">
           <el-col :span="6">
             姓名：<strong>{{ detailDate.pregnantwomenname }}</strong>
           </el-col>
-          <el-col :span="6">编号：{{ detailDate.examineno }}</el-col>
+          <el-col :span="6">编号：</el-col>
         </el-row>
         <table class="record-postpartum-42-days-check">
           <tbody>
             <tr>
               <td colspan="4">随访日期</td>
               <td colspan="20">
-                {{ detailDate.visitdate }}
+                <em>{{ detailDate.visitdate }}</em>
               </td>
             </tr>
             <tr>
               <td colspan="4">分娩日期</td>
-              <td colspan="8">暂无数据</td>
+              <td colspan="8"><em></em></td>
               <td colspan="4">出院日期</td>
-              <td colspan="8">暂无数据</td>
+              <td colspan="8"><em></em></td>
             </tr>
             <tr>
               <td colspan="4">一般健康情况</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20"><em></em></td>
             </tr>
             <tr>
               <td colspan="4">一般心理状况</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">
+                <em>{{ detailDate.generalmentalcondition }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">血 压(mmHg)</td>
-              <td colspan="20">{{ detailDate.diastolicpressure }}</td>
+              <td colspan="20">
+                <em
+                  >{{ detailDate.systolicpressure }}/{{
+                    detailDate.diastolicpressure
+                  }}</em
+                >
+              </td>
             </tr>
             <tr>
               <td colspan="4">乳 房</td>
-              <td colspan="20">{{ detailDate.breast }}</td>
+              <td colspan="20">
+                <em>{{ detailDate.breast }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">恶 露</td>
-              <td colspan="20">{{ detailDate.lochia }}</td>
+              <td colspan="20">
+                <em>{{ detailDate.lochia }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">子 宫</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20"><em></em></td>
             </tr>
             <tr>
               <td colspan="4">伤 口</td>
-              <td colspan="20">{{ detailDate.perinealincision }}</td>
+              <td colspan="20">
+                <em>{{ detailDate.perinealincision }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">其 他</td>
-              <td colspan="20">{{ detailDate.other }}</td>
+              <td colspan="20">
+                <em>{{ detailDate.other }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">分 类</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20"><em></em></td>
             </tr>
             <tr>
               <td colspan="4">指 导</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">
+                <em>{{ detailDate.guide }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">处 理</td>
-              <td colspan="20">暂无数据</td>
+              <td colspan="20">
+                <em>{{ detailDate.treatmentviews }}</em>
+              </td>
             </tr>
             <tr>
               <td colspan="4">随访医生签名</td>
-              <td colspan="20">{{ detailDate.doctor }}</td>
+              <td colspan="20">
+                <em>{{ detailDate.doctor }}</em>
+              </td>
             </tr>
           </tbody>
         </table>
