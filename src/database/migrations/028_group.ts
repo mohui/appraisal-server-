@@ -1,6 +1,6 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {ManualScoreHistoryModel, UserHospitalModel, UserModel} from '../model';
+import {UserHospitalModel, UserModel} from '../model';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 
@@ -402,8 +402,9 @@ export class GroupMigration implements IMigration {
     // 用户表添加area字段
     await client.execute(
       `
-      alter table "user" add column if not exists area varchar(36);
-      -- 清理用户表region字段不合理的数
+        alter table "user"
+          add column if not exists area varchar (36);
+        -- 清理用户表region字段不合理的数
         delete
         from "user"
         where id in (
@@ -422,7 +423,9 @@ export class GroupMigration implements IMigration {
     await Promise.all(
       userHospitals.map(async it =>
         client.execute(
-          `update "user" set "area" = ? where id = ?`,
+          `update "user"
+           set "area" = ?
+           where id = ?`,
           it.hospitalId,
           it.userId
         )
