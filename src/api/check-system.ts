@@ -13,6 +13,7 @@ import {Projects} from '../../common/project';
 import {Context} from './context';
 import * as dayjs from 'dayjs';
 import {AuditLog} from './middleware/audit-log';
+import {v4 as uuid} from 'uuid';
 
 export default class CheckSystem {
   /**
@@ -271,41 +272,30 @@ export default class CheckSystem {
     });
   }
 
-  //添加考核细则
+  /**
+   * 添加考核细则
+   *
+   * @param params {
+   *   checkId: 考核系统id,
+   *   ruleName: 规则名称,
+   *   parentRuleId: 所属分组id,
+   *   ruleScore: 得分,
+   *   checkStandard: 考核标准,
+   *   checkMethod: 考核方法,
+   *   status: 状态,
+   *   evaluateStandard: 评分标准
+   * }
+   */
   @validate(
     should.object({
-      checkId: should
-        .string()
-        .required()
-        .description('考核系统id'),
-      ruleName: should
-        .string()
-        .required()
-        .description('规则名称'),
-      parentRuleId: should
-        .string()
-        .required()
-        .description('所属分组id'),
-      ruleScore: should
-        .number()
-        .required()
-        .description('得分'),
-      checkStandard: should
-        .string()
-        .required()
-        .description('考核标准'),
-      checkMethod: should
-        .string()
-        .required()
-        .description('考核方法'),
-      status: should
-        .boolean()
-        .required()
-        .description('状态'),
-      evaluateStandard: should
-        .string()
-        .required()
-        .description('评分标准')
+      checkId: should.string().required(),
+      ruleName: should.string().required(),
+      parentRuleId: should.string().required(),
+      ruleScore: should.number().required(),
+      checkStandard: should.string().required(),
+      checkMethod: should.string().required(),
+      status: should.boolean().required(),
+      evaluateStandard: should.string().required()
     })
   )
   @AuditLog(async () => {
@@ -318,7 +308,38 @@ export default class CheckSystem {
   })
   async addRule(params) {
     const result = await appDB.transaction(async () => {
-      return CheckRuleModel.create(params);
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          insert into check_rule(rule_id,
+                                 check_id,
+                                 parent_rule_id,
+                                 rule_name,
+                                 rule_score,
+                                 check_standard,
+                                 check_method,
+                                 evaluate_standard,
+                                 create_by,
+                                 update_by,
+                                 status,
+                                 created_at,
+                                 updated_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        uuid(),
+        params.checkId,
+        params.parentRuleId,
+        params.ruleName,
+        params.ruleScore,
+        params.checkStandard,
+        params.checkMethod,
+        params.evaluateStandard,
+        Context.current.user.id,
+        Context.current.user.id,
+        params.status,
+        new Date(),
+        new Date()
+      );
     });
     // 写入日志
     Context.current.auditLog = {};
