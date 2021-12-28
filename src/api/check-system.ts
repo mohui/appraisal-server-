@@ -7,7 +7,7 @@ import {
 } from '../database/model';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
-import {Op} from 'sequelize';
+import {LOCK, Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
@@ -222,6 +222,7 @@ export default class CheckSystem {
           select *
           from check_system
           where check_id = ?
+            FOR UPDATE
         `,
         params.checkId
       );
@@ -476,7 +477,7 @@ export default class CheckSystem {
       const sys = await CheckSystemModel.findOne({
         where: {checkId: id},
         paranoid: false,
-        // lock: {of: CheckSystemModel},
+        lock: {of: CheckSystemModel, level: LOCK.UPDATE},
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
