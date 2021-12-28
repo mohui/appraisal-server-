@@ -184,21 +184,21 @@ export default class CheckSystem {
     return addCheck;
   }
 
-  //更新考核系统名称
+  /**
+   * 更新考核系统名称
+   *
+   * @param params {
+   *   checkId: 考核体系id,
+   *   checkName: 考核系统名称,
+   *   status: 状态值:true||false,
+   *   checkYear: 年份
+   * }
+   */
   @validate(
     should.object({
-      checkId: should
-        .string()
-        .required()
-        .description('考核体系id'),
-      checkName: should
-        .string()
-        .required()
-        .description('考核系统名称'),
-      status: should
-        .boolean()
-        .required()
-        .description('状态值:true||false'),
+      checkId: should.string().required(),
+      checkName: should.string().required(),
+      status: should.boolean().required(),
       checkYear: should.number().required()
     })
   )
@@ -215,16 +215,22 @@ export default class CheckSystem {
     Context.current.auditLog.checkId = params?.checkId;
     Context.current.auditLog.checkName = params?.checkName;
     return appDB.transaction(async () => {
-      const sys = await CheckSystemModel.findOne({
-        where: {checkId: params.checkId},
-        lock: true
-      });
-      if (!sys) throw new KatoCommonError('该考核不存在');
+      const CheckSystemModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from check_system
+          where check_id = ?
+        `,
+        params.checkId
+      );
+      if (CheckSystemModels.length === 0)
+        throw new KatoCommonError('该考核不存在');
 
       Context.current.auditLog.checkYear = params?.checkYear;
       // 现有考核体系
-      // language=PostgreSQL
       const checkAreaModels = await appDB.execute(
+        // language=PostgreSQL
         `
           select a.name
           from check_area ca
@@ -244,15 +250,23 @@ export default class CheckSystem {
         throw new KatoCommonError(
           `${checkAreaModels.map(it => it.name).join()} 已被其他考核体系绑定`
         );
-      await CheckSystemModel.update(
-        {
-          checkName: params.checkName,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          update_by: Context.current.user.id,
-          status: params.status,
-          checkYear: params.checkYear
-        },
-        {where: {checkId: params.checkId}}
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update check_system
+          set check_name = ?,
+              status     = ?,
+              check_year = ?,
+              updated_at = ?,
+              update_by  = ?
+          where check_id = ?
+        `,
+        params.checkName,
+        params.status,
+        params.checkYear,
+        new Date(),
+        Context.current.user.id,
+        params.checkId
       );
     });
   }
