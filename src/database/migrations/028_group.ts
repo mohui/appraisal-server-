@@ -1,11 +1,6 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {
-  ManualScoreHistoryModel,
-  ScoreRemarkHistoryModel,
-  UserHospitalModel,
-  UserModel
-} from '../model';
+import {ManualScoreHistoryModel, UserHospitalModel, UserModel} from '../model';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 
@@ -377,16 +372,16 @@ export class GroupMigration implements IMigration {
     // debug('3.2.2 考核细则数据');
 
     // 3.2.3 手动打分备注
-    const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
-    await Promise.all(
-      scoreRemarkModels.map(model =>
-        ManualScoreHistoryModel.upsert({
-          ...model.toJSON(),
-          code: model.hospitalId
-        })
-      )
-    );
-    debug('3.2.3 手动打分备注');
+    // const scoreRemarkModels: ScoreRemarkHistoryModel[] = await ScoreRemarkHistoryModel.findAll();
+    // await Promise.all(
+    //   scoreRemarkModels.map(model =>
+    //     ManualScoreHistoryModel.upsert({
+    //       ...model.toJSON(),
+    //       code: model.hospitalId
+    //     })
+    //   )
+    // );
+    // debug('3.2.3 手动打分备注');
 
     // // 3.2.4 考核历史
     // const reportHospitalModels: ReportHospitalHistoryModel[] = await ReportHospitalHistoryModel.findAll();
