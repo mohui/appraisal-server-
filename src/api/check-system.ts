@@ -11,7 +11,7 @@ import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import {AuditLog} from './middleware/audit-log';
 
 export default class CheckSystem {
@@ -70,7 +70,9 @@ export default class CheckSystem {
         ruleName: pRule.rule_name,
         checkId: pRule.check_id,
         budget: pRule.budget,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         created_at: pRule.created_at,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         updated_at: pRule.updated_at,
         projects: pRule.ruleProjects.map(it =>
           Projects.find(p => p.id === it.projectId)
@@ -82,7 +84,9 @@ export default class CheckSystem {
               checkId: cRule.check_id,
               checkMethod: cRule.check_method,
               checkStandard: cRule.check_standard,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               create_by: cRule.create_by,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               created_at: cRule.created_at,
               evaluateStandard: cRule.evaluate_standard,
               parentRuleId: cRule.parent_rule_id,
@@ -100,7 +104,9 @@ export default class CheckSystem {
                 name: MarkTagUsages[it.tag].name
               })),
               status: cRule.status,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               update_by: cRule.update_by,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               updated_at: cRule.updated_at
             }))
             .sort((a, b) =>
@@ -136,7 +142,9 @@ export default class CheckSystem {
     const addCheck = await CheckSystemModel.create({
       ...params,
       checkType: 1,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       create_by: Context.current.user.id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       update_by: Context.current.user.id
     });
 
@@ -212,6 +220,7 @@ export default class CheckSystem {
       await CheckSystemModel.update(
         {
           checkName: params.checkName,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           update_by: Context.current.user.id,
           status: params.status,
           checkYear: params.checkYear
@@ -352,7 +361,7 @@ export default class CheckSystem {
     });
     if (!group) throw new KatoCommonError('该规则组不存在');
     if (group.parent) throw new KatoCommonError('该规则是一个细则');
-    let options = {};
+    const options = {};
     if (params?.ruleName) options['ruleName'] = params.ruleName;
     if (params?.budget || params?.budget === 0)
       options['budget'] = params.budget;
@@ -405,7 +414,7 @@ export default class CheckSystem {
       const sys = await CheckSystemModel.findOne({
         where: {checkId: id},
         paranoid: false,
-        lock: {of: CheckSystemModel},
+        // lock: {of: CheckSystemModel},
         include: [CheckRuleModel]
       });
       if (!sys) throw new KatoCommonError('该考核系统不存在');
@@ -507,7 +516,7 @@ export default class CheckSystem {
 
     return appDB.transaction(async () => {
       //查询规则,并锁定
-      let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
+      const rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
       //判断指标汇总是否超标ruleScore
       if (
