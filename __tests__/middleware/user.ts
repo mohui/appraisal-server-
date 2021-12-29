@@ -6,7 +6,7 @@ import {
   RoleModel,
   UserModel
 } from '../../src/database';
-import {getLeaves} from '../../src/api/group';
+import {getHospitals} from '../../src/api/group/common';
 import {Op} from 'sequelize';
 
 let api;
@@ -66,7 +66,7 @@ async function getUser(token) {
   ];
   //如果是地区级别的用户重新配置其所属的机构 TODO: 有点苟且
   if (user.hospitals.length === 0) {
-    const children = await getLeaves(user.areaCode);
+    const children = await getHospitals(user.areaCode);
     //查询该用户所属地区下的所有机构
     user.hospitals = (
       await HospitalModel.findAll({
