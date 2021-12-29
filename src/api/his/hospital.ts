@@ -297,4 +297,15 @@ export default class HisHospital {
   async listOffers(status) {
     return [];
   }
+
+  /**
+   * 修改指定申请
+   *
+   * @param id id
+   * @param status 状态
+   * @param reason? 原因
+   */
+  async updateOffer(id, status, reason) {
+    return;
+  }
 }
