@@ -113,4 +113,24 @@ export default class AppUser {
   async getOffer(id) {
     return {};
   }
+
+  /**
+   * 公卫概览
+   *
+   * @param area 机构编码
+   * @return {
+   *   name: 名称
+   *   workpoints?: 参与校正工分
+   *   rate?: 质量系数
+   *   date: 更新时间
+   *   people: [{
+   *     id: 人群分类编码
+   *     name: 人群名称
+   *     amount: 不规范人数
+   *   }]
+   * }
+   */
+  async phOverview(area) {
+    return {};
+  }
 }
