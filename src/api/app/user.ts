@@ -96,7 +96,21 @@ export default class AppUser {
    * @param area 机构id
    */
   @validate(should.string().required())
-  async unbind(area) {
+  async resign(area) {
     return;
+  }
+
+  /**
+   * 获取申请状态
+   *
+   * @param id 申请id
+   * @return {
+   *   id: id
+   *   status: 状态
+   *   reason?: 拒绝原因
+   * }
+   */
+  async getOffer(id) {
+    return {};
   }
 }

@@ -278,4 +278,23 @@ export default class HisHospital {
       })
     );
   }
+
+  /**
+   * 生成机构邀请码
+   *
+   * 格式: {area: ${area}}
+   * @return 二维码地址
+   */
+  async invite() {
+    return '';
+  }
+
+  /**
+   * 获取指定状态的申请列表
+   *
+   * @param status 状态
+   */
+  async listOffers(status) {
+    return [];
+  }
 }
