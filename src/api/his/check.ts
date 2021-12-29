@@ -86,17 +86,9 @@ async function upsertStaff(id, staffs) {
 
     if (addStaffs?.length > 0) {
       await appDB.execute(
-        // language=PostgreSQL
         `
-        insert into
-        his_staff_check_mapping(
-                                staff,
-                                "check",
-                                created_at,
-                                updated_at
-                                ) values ${addStaffs
-                                  .map(() => '(?, ?, ?, ?)')
-                                  .join()}
+          insert into his_staff_check_mapping(staff, "check", created_at, updated_at)
+          values ${addStaffs.map(() => '(?, ?, ?, ?)').join()}
         `,
         ...addStaffs
           .map(it => [it, id, dayjs().toDate(), dayjs().toDate()])
@@ -508,17 +500,9 @@ export default class HisCheck {
       );
       // 添加考核员工
       await appDB.execute(
-        // language=PostgreSQL
         `
-        insert into
-        his_staff_check_mapping(
-                                staff,
-                                "check",
-                                created_at,
-                                updated_at
-                                ) values ${staffs
-                                  .map(() => '(?, ?, ?, ?)')
-                                  .join()}
+          insert into his_staff_check_mapping(staff, "check", created_at, updated_at)
+          values ${staffs.map(() => '(?, ?, ?, ?)').join()}
         `,
         ...staffs
           .map(it => [it, checkId, dayjs().toDate(), dayjs().toDate()])
