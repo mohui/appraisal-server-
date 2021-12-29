@@ -262,6 +262,7 @@ export default class HisCheck {
       `,
       hospital
     );
+    if (systemList.length === 0) return [];
     // 获取员工id
     const staffs = systemList.map(it => it.staff);
 
