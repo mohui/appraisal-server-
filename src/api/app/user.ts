@@ -133,4 +133,29 @@ export default class AppUser {
   async phOverview(area) {
     return {};
   }
+
+  /**
+   * 医疗概览
+   *
+   * @param area 机构编码
+   * @return {
+   *   work?: {
+   *     value: 工作量
+   *     rank: 排名
+   *   }
+   *   rate?: {
+   *     value: 质量系数
+   *     rank: 排名
+   *   }
+   *   items: [{
+   *     id: id
+   *     name: 名称
+   *     value: 工作量
+   *   }],
+   *   checks: []
+   * }
+   */
+  async hisOverview(area) {
+    return {};
+  }
 }
