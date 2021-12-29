@@ -14,8 +14,9 @@ export default class AppArea {
     return '';
   }
 
+  //region 智慧公卫相关
   /**
-   * 机构概览
+   * 公卫概览
    *
    * @param area 机构编码
    * @return {
@@ -30,7 +31,7 @@ export default class AppArea {
    *   }]
    * }
    */
-  overview(area) {
+  async phOverview(area) {
     return {};
   }
 
@@ -53,6 +54,19 @@ export default class AppArea {
   }
 
   /**
+   * 公卫医生列表
+   *
+   * @param area 机构编码
+   * @return [{
+   *   id: id
+   *   name: 姓名
+   * }]
+   */
+  async phDoctors(area) {
+    return [];
+  }
+
+  /**
    * 问题档案列表
    *
    * 目前只考虑机构
@@ -69,4 +83,5 @@ export default class AppArea {
   async archives(params) {
     return [];
   }
+  //endregion
 }
