@@ -112,8 +112,47 @@ export default class AppArea {
    * }
    * @return []
    */
+  @validate(
+    should.object({
+      status: should
+        .string()
+        .only(
+          RequestStatus.PENDING,
+          RequestStatus.REJECTED,
+          RequestStatus.SUCCESS
+        )
+        .allow(null),
+      name: should.string().allow(null)
+    })
+  )
   async requests(params) {
-    return [];
+    let where = '';
+    // 如果审核状态有值
+    if (params?.status) where += ` and request.status = '${params.status}'`;
+    if (params?.name) where += ` and staff.name like '%${params.name}%'`;
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.staff,
+               request.area,
+               request.status,
+               request.updated_at,
+               request.created_at,
+               staff.name,
+               staff.gender,
+               staff.phone,
+               staff.major,
+               staff.title,
+               staff.education,
+               staff."isGP",
+               staff.created_at "staffCreatedAt"
+        from staff_request request
+               left join staff on request.staff = staff.id
+        where 1 = 1 ${where}
+      `
+    );
+    return staffRequests;
   }
 
   /**
