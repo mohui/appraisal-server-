@@ -34,6 +34,16 @@ export default class AppUser {
   }
 
   /**
+   * 登录
+   *
+   * @param phone 手机号码
+   * @param password 密码
+   */
+  async login(phone, password) {
+    return '';
+  }
+
+  /**
    * 注册
    *
    * @param phone 手机号码
