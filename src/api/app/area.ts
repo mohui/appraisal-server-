@@ -28,9 +28,13 @@ export default class AppArea {
   /**
    * 获取指定状态的申请列表
    *
-   * @param status? 状态
+   * @param params {
+   *   status? 状态
+   *   name? 姓名
+   * }
+   * @return []
    */
-  async requests(status) {
+  async requests(params) {
     return [];
   }
 
