@@ -1,4 +1,5 @@
-import {should, validate} from 'kato-server';
+import {KatoRuntimeError, should, validate} from 'kato-server';
+import {appDB} from '../../app';
 
 const phoneValidate = should.string().regex(/^1\d{10}$/);
 /**
@@ -107,11 +108,22 @@ export default class AppUser {
    * @return {
    *   id: id
    *   status: 状态
-   *   reason?: 拒绝原因
    * }
    */
+  @validate(should.string().required())
   async getRequest(id) {
-    return {};
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.status
+        from staff_request request
+        where request.id = ?
+      `,
+      id
+    );
+    if (staffRequests.length === 0) throw new KatoRuntimeError('申请id不合法');
+    return staffRequests[0];
   }
 
   /**
