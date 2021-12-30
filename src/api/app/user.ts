@@ -1,4 +1,5 @@
-import {should, validate} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
+import {appDB} from '../../app';
 
 const phoneValidate = should.string().regex(/^1\d{10}$/);
 /**
@@ -38,9 +39,30 @@ export default class AppUser {
    *
    * @param phone 手机号码
    * @param password 密码
+   * @return {
+   *   token: token
+   * }
    */
+  @validate(phoneValidate, should.string().required())
   async login(phone, password) {
-    return '';
+    const token = (
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          select *
+          from staff
+          where phone = ?
+            and password = ?
+        `,
+        phone,
+        password
+      )
+    )[0]?.id;
+    if (token) {
+      return {token};
+    } else {
+      throw new KatoCommonError('密码错误');
+    }
   }
 
   /**
