@@ -32,6 +32,7 @@
 
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="QRImage">绑定码</el-dropdown-item>
+            <el-dropdown-item command="QRInstitution">机构码</el-dropdown-item>
             <el-dropdown-item command="profile">个人中心</el-dropdown-item>
             <el-dropdown-item command="logout">退出</el-dropdown-item>
           </el-dropdown-menu>
@@ -169,6 +170,23 @@ export default {
         try {
           // 打开弹窗
           this.QRCode = (await this.$api.User.getQRCode()).image;
+          this.QRDialogVisible = true;
+        } catch (e) {
+          this.$message.error(e.message);
+        } finally {
+          loading.close();
+        }
+      }
+      if (command === 'QRInstitution') {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在生成二维码',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        try {
+          // 打开弹窗
+          this.QRCode = (await this.$api.AppArea.invite()).image;
           this.QRDialogVisible = true;
         } catch (e) {
           this.$message.error(e.message);
