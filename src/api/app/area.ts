@@ -159,11 +159,71 @@ export default class AppArea {
   /**
    * 修改指定申请
    *
-   * @param id id
+   * @param id 申请id
    * @param status 状态
    */
+  @validate(
+    should.string().required(),
+    should
+      .string()
+      .only(RequestStatus.REJECTED, RequestStatus.SUCCESS)
+      .required()
+  )
   async updateRequest(id, status) {
-    return;
+    const hospital = await getHospital();
+
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.staff,
+               request.area,
+               request.status,
+               request.updated_at,
+               request.created_at
+        from staff_request request
+        where request.id = ?
+      `,
+      id
+    );
+    if (staffRequests.length === 0) throw new KatoCommonError('申请id不存在');
+
+    if (staffRequests[0].status !== RequestStatus.PENDING)
+      throw new KatoCommonError('已审核');
+
+    if (staffRequests[0].area !== hospital)
+      throw new KatoCommonError('没有审核权限');
+
+    const staffs = await getStaff(staffRequests[0].staff);
+    if (staffs.length === 0) throw new KatoCommonError('此员工账号不存在');
+
+    // 先修改状态,通过需要在mapping表中添加一条
+    return await appDB.joinTx(async () => {
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff_request
+          set status = ?,
+              updated_at = ?
+          where id = ?
+        `,
+        status,
+        new Date(),
+        id
+      );
+      // 如果通过, 在 staff_area_mapping 表中添加一条
+      if (status === RequestStatus.SUCCESS)
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            insert into staff_area_mapping(id, staff, area)
+            values (?, ?, ?)
+          `,
+          uuid(),
+          staffRequests[0].staff,
+          staffRequests[0].area
+        );
+    });
   }
 
   //endregion
