@@ -120,7 +120,7 @@ export default class AppUser {
    *   reason?: 拒绝原因
    * }
    */
-  async getOffer(id) {
+  async getRequest(id) {
     return {};
   }
 
