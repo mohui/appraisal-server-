@@ -6,6 +6,7 @@ import {getStaff} from '../his/common';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
+import {RequestStatus} from '../../../common/user';
 
 /**
  * App机构模块
@@ -79,9 +80,11 @@ export default class AppArea {
         from staff_request
         where staff = ?
           and area = ?
+          and status != ?
       `,
       staffId,
-      ticket.area
+      ticket.area,
+      RequestStatus.REJECTED
     );
     if (staffRequests.length > 0) throw new KatoCommonError('已在申请列表');
 
