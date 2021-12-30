@@ -7,7 +7,7 @@ const phoneValidate = should.string().regex(/^1\d{10}$/);
  */
 export default class AppUser {
   /**
-   * 校验手机号码是否合法
+   * 校验手机号码是否合法可用
    *
    * @param phone 手机号码
    * @return {
@@ -17,9 +17,18 @@ export default class AppUser {
    */
   @validate(phoneValidate)
   async validPhone(phone) {
+    //language=PostgreSQL
+    const userModels = await appDB.execute(
+      `
+        select 1
+        from staff
+        where phone = ?
+      `,
+      phone
+    );
     return {
       valid: true,
-      usable: true
+      usable: userModels.length == 0
     };
   }
 
