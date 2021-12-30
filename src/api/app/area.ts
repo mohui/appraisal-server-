@@ -54,7 +54,11 @@ export default class AppArea {
      * 2: 获取员工id
      * 3: 根据员工id获取员工信息
      * 4: 判断此员工信息是否合法, 判断员工是否绑定过此机构
-     * 5: 检查是否在申请列表,避免重复申请,
+     * 5: 检查是否在申请列表,如果在申请列表,查看最新一条的状态,有三种情况
+     * 5.1: 待审核: 直接返回id
+     * 5.2: 已通过: 直接返回id
+     * 5.3: 未通过: 接着往下进行,可以接着申请
+     *
      * 6: 添加申请
      * */
     // 申请码是否合法
@@ -69,24 +73,29 @@ export default class AppArea {
     const staffs = await getStaff(staffId);
     if (staffs.length === 0) throw new KatoCommonError('不是员工账号');
 
-    // 查找机构是否在数组中
-    const filterUser = staffs.filter(it => it.area === ticket.area);
-    if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
-
     const staffRequests = await appDB.execute(
       // language=PostgreSQL
       `
-        select id, staff
+        select id, staff, status, created_at
         from staff_request
         where staff = ?
           and area = ?
-          and status != ?
+        order by created_at desc
       `,
       staffId,
-      ticket.area,
-      RequestStatus.REJECTED
+      ticket.area
     );
-    if (staffRequests.length > 0) throw new KatoCommonError('已在申请列表');
+    // 如果查询结果大于0,并且不是未通过状态, 返回id
+    if (
+      staffRequests.length > 0 &&
+      staffRequests[0].status !== RequestStatus.REJECTED
+    ) {
+      return staffRequests[0].id;
+    }
+
+    // 查找机构是否在数组中
+    const filterUser = staffs.filter(it => it.area === ticket.area);
+    if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
 
     // 插入申请表中
     const requestId = uuid();
@@ -203,7 +212,7 @@ export default class AppArea {
         // language=PostgreSQL
         `
           update staff_request
-          set status = ?,
+          set status     = ?,
               updated_at = ?
           where id = ?
         `,
