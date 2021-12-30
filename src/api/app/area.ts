@@ -30,7 +30,7 @@ export default class AppArea {
    *
    * @param status? 状态
    */
-  async listRequest(status) {
+  async requests(status) {
     return [];
   }
 
