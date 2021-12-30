@@ -1,4 +1,5 @@
 import {KatoCommonError, should, validate} from 'kato-server';
+import {v4 as uuid} from 'uuid';
 import {appDB} from '../../app';
 
 const phoneValidate = should.string().regex(/^1\d{10}$/);
@@ -73,10 +74,34 @@ export default class AppUser {
    *
    * @param phone 手机号码
    * @param code 验证码
+   * @param password 密码
    */
-  @validate(phoneValidate, should.string().required())
-  async register(phone, code) {
-    return;
+  @validate(
+    phoneValidate,
+    should.string().required(),
+    should.string().required()
+  )
+  async register(phone, code, password) {
+    await appDB.transaction(async () => {
+      //校验手机是否可用
+      const usable = await this.validPhone(phone);
+      if (!usable) {
+        throw new KatoCommonError('该手机号码已被注册');
+      }
+      //校验验证码
+
+      //插入
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          insert into staff(id, phone, password)
+          values (?, ?, ?)
+        `,
+        uuid(),
+        phone,
+        password
+      );
+    });
   }
 
   /**
