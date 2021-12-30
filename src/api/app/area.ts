@@ -2,6 +2,17 @@
  * App机构模块
  */
 export default class AppArea {
+  //region 员工申请相关
+  /**
+   * 生成机构邀请码
+   *
+   * 格式: {area: ${area}}
+   * @return 二维码地址
+   */
+  async invite() {
+    return '';
+  }
+
   /**
    * 扫码申请加入
    *
@@ -13,6 +24,27 @@ export default class AppArea {
   async joinUs(ticket) {
     return '';
   }
+
+  /**
+   * 获取指定状态的申请列表
+   *
+   * @param status? 状态
+   */
+  async listRequest(status) {
+    return [];
+  }
+
+  /**
+   * 修改指定申请
+   *
+   * @param id id
+   * @param status 状态
+   */
+  async updateRequest(id, status) {
+    return;
+  }
+
+  //endregion
 
   //region 公卫相关
   /**
