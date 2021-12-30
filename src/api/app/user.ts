@@ -7,16 +7,13 @@ const phoneValidate = should.string().regex(/^1\d{10}$/);
  */
 export default class AppUser {
   /**
-   * 校验手机号码是否合法可用
+   * 校验手机号码是否可用
    *
    * @param phone 手机号码
-   * @return {
-   *   valid: 是否合法
-   *   usable: 是否可用
-   * }
+   * @return 是否可用
    */
   @validate(phoneValidate)
-  async validPhone(phone) {
+  async validPhone(phone): Promise<boolean> {
     //language=PostgreSQL
     const userModels = await appDB.execute(
       `
@@ -26,10 +23,7 @@ export default class AppUser {
       `,
       phone
     );
-    return {
-      valid: true,
-      usable: userModels.length == 0
-    };
+    return userModels.length == 0;
   }
 
   /**
