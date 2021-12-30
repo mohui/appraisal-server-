@@ -6,6 +6,7 @@ export class AddSMS implements IMigration {
   version = 53;
 
   async up(client: ExtendedSequelize): Promise<void> {
+    //language=PostgreSQL
     await client.execute(`
       --新建验证码表
       create table if not exists sms_code
@@ -14,6 +15,7 @@ export class AddSMS implements IMigration {
         usage      varchar(255),
         code       char(6),
         account    char(36),
+        status     varchar(255),
         expired_at timestamp with time zone not null default current_timestamp,
         created_at timestamp with time zone not null default current_timestamp,
         updated_at timestamp with time zone not null default current_timestamp,
@@ -24,6 +26,7 @@ export class AddSMS implements IMigration {
       comment on column sms_code.usage is '用途';
       comment on column sms_code.code is '验证码';
       comment on column sms_code.account is '用户id';
+      comment on column sms_code.status is '状态. 发送成功;发送失败;使用完成';
       comment on column sms_code.expired_at is '过期时间';
 
       --员工表添加手机号码唯一约束
