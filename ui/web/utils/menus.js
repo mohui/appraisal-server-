@@ -155,5 +155,13 @@ module.exports = [
     icon: require('../../assets/menu-icon/worklist.png').default,
     iconActive: require('../../assets/menu-icon/worklist-active.png').default,
     router: '/work'
+  },
+  {
+    index: 'approval',
+    permission: [Permission.STAFF_BINDING_APPROVAL],
+    label: '员工绑定审核',
+    icon: require('../../assets/menu-icon/worklist.png').default,
+    iconActive: require('../../assets/menu-icon/worklist-active.png').default,
+    router: '/approval'
   }
 ];
