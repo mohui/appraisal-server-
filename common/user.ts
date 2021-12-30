@@ -14,5 +14,5 @@ export enum UserType {
 export enum RequestStatus {
   PENDING = '待审核',
   SUCCESS = '已通过',
-  REJECT = '未通过'
+  REJECTED = '未通过'
 }
