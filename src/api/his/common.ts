@@ -293,3 +293,30 @@ export async function getPhStaff(hospital) {
     hospital
   );
 }
+
+/**
+ * 获取单个员工信息
+ * @param id
+ */
+export async function getStaff(id) {
+  return await appDB.execute(
+    // language=PostgreSQL
+    `
+      select staff.id,
+             staff.account,
+             staff.staff,
+             staff.name,
+             staff.major,
+             staff.title,
+             staff.education,
+             staff."isGP",
+             staff.created_at,
+             areaMapping.area,
+             areaMapping.department
+      from staff
+             left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+      where staff.id = ?
+    `,
+    id
+  );
+}
