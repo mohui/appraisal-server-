@@ -13,18 +13,24 @@ import {getHospital} from './service';
 async function upsetSystem(id, name) {
   return appDB.joinTx(async () => {
     const hisSystems = await appDB.execute(
-      `select id, name
-            from his_check_system
-            where id = ?`,
+      // language=PostgreSQL
+      `
+        select id, name
+        from his_check_system
+        where id = ?
+      `,
       id
     );
     if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
     if (hisSystems[0]?.name !== name)
       await appDB.execute(
-        `update his_check_system
-                set name = ?, updated_at = ?
-                where id = ?
-          `,
+        // language=PostgreSQL
+        `
+          update his_check_system
+          set name       = ?,
+              updated_at = ?
+          where id = ?
+        `,
         name,
         dayjs().toDate(),
         id
@@ -42,10 +48,12 @@ async function upsertStaff(id, staffs) {
   return appDB.joinTx(async () => {
     // 查询该考核下所有的
     const checkStaffs = await appDB.execute(
-      `select staff
-              from his_staff_check_mapping
-              where "check" = ?
-        `,
+      // language=PostgreSQL
+      `
+        select staff
+        from his_staff_check_mapping
+        where "check" = ?
+      `,
       id
     );
     // 取出需要删除的员工
@@ -66,8 +74,12 @@ async function upsertStaff(id, staffs) {
     // 如果存在要删除的员工,执行删除, 该员工的得分情况统一在打分表里处理
     if (delStaffs.length > 0) {
       await appDB.execute(
-        `delete from his_staff_check_mapping
-                where staff in (${delStaffs.map(() => '?')})`,
+        // language=PostgreSQL
+        `
+          delete
+          from his_staff_check_mapping
+          where staff in (${delStaffs.map(() => '?')})
+        `,
         ...delStaffs
       );
     }
@@ -75,9 +87,8 @@ async function upsertStaff(id, staffs) {
     if (addStaffs?.length > 0) {
       await appDB.execute(
         `
-        insert into
-        his_staff_check_mapping(staff, "check", created_at, updated_at)
-        values${addStaffs.map(() => '(?, ?, ?, ?)').join()}
+          insert into his_staff_check_mapping(staff, "check", created_at, updated_at)
+          values ${addStaffs.map(() => '(?, ?, ?, ?)').join()}
         `,
         ...addStaffs
           .map(it => [it, id, dayjs().toDate(), dayjs().toDate()])
@@ -98,9 +109,12 @@ async function upsertStaff(id, staffs) {
 async function upsertRule(id, automations, manuals) {
   return appDB.joinTx(async () => {
     const hisRules = await appDB.execute(
-      `select * from his_check_rule
-              where "check" = ?
-        `,
+      // language=PostgreSQL
+      `
+        select *
+        from his_check_rule
+        where "check" = ?
+      `,
       id
     );
     // 要添加的自动打分细则
@@ -147,8 +161,12 @@ async function upsertRule(id, automations, manuals) {
     // 如果有要删除的细则
     if (delRules.length > 0) {
       await appDB.execute(
-        `delete from his_check_rule
-                where id in (${delRules.map(() => '?')})`,
+        // language=PostgreSQL
+        `
+          delete
+          from his_check_rule
+          where id in (${delRules.map(() => '?')})
+        `,
         ...delRules
       );
     }
@@ -157,10 +175,12 @@ async function upsertRule(id, automations, manuals) {
       for (const ruleIt of addAutomations) {
         // 自动打分
         await appDB.execute(
-          `insert into
-              his_check_rule(id, "check", auto, name, metric,
-                operator, value, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          // language=PostgreSQL
+          `
+            insert into his_check_rule(id, "check", auto, name, metric,
+                                       operator, value, score, created_at, updated_at)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
           uuid.v4(),
           id,
           ruleIt.auto,
@@ -179,14 +199,17 @@ async function upsertRule(id, automations, manuals) {
       for (const ruleIt of updAutomations) {
         // 自动打分
         await appDB.execute(
-          `update his_check_rule set
-                name = ?,
-                metric = ?,
-                operator = ?,
-                value = ?,
-                score = ?,
+          // language=PostgreSQL
+          `
+            update his_check_rule
+            set name       = ?,
+                metric     = ?,
+                operator   = ?,
+                value      = ?,
+                score      = ?,
                 updated_at = ?
-              where id = ?`,
+            where id = ?
+          `,
           ruleIt.name,
           ruleIt.metric,
           ruleIt.operator,
@@ -203,9 +226,11 @@ async function upsertRule(id, automations, manuals) {
       for (const ruleIt of addManuals) {
         // 手动打分
         await appDB.execute(
-          `insert into
-              his_check_rule(id, "check", auto, name, detail, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+          // language=PostgreSQL
+          `
+            insert into his_check_rule(id, "check", auto, name, detail, score, created_at, updated_at)
+            values (?, ?, ?, ?, ?, ?, ?, ?)
+          `,
           uuid.v4(),
           id,
           ruleIt.auto,
@@ -222,13 +247,16 @@ async function upsertRule(id, automations, manuals) {
       for (const ruleIt of updManuals) {
         // 自动打分
         await appDB.execute(
-          `update his_check_rule set
-                name = ?,
-                detail = ?,
-                value = ?,
-                score = ?,
+          // language=PostgreSQL
+          `
+            update his_check_rule
+            set name       = ?,
+                detail     = ?,
+                value      = ?,
+                score      = ?,
                 updated_at = ?
-              where id = ?`,
+            where id = ?
+          `,
           ruleIt.name,
           ruleIt.detail,
           ruleIt.value,
@@ -247,16 +275,17 @@ export default class HisCheck {
     const hospital = await getHospital();
     // 获取考核方案名称
     const systemList = await appDB.execute(
-      `select
-              system.id,
-              system.hospital,
-              system.name,
-              mapping.staff,
-              staff.account,
-              staff.name "staffName"
+      // language=PostgreSQL
+      `
+        select system.id,
+               system.hospital,
+               system.name,
+               mapping.staff,
+               staff.account,
+               staff.name "staffName"
         from his_check_system system
-        left join his_staff_check_mapping mapping on system.id = mapping."check"
-        left join staff on mapping.staff = staff.id
+               left join his_staff_check_mapping mapping on system.id = mapping."check"
+               left join staff on mapping.staff = staff.id
         where system.hospital = ?
         order by system.created_at desc
       `,
@@ -268,19 +297,25 @@ export default class HisCheck {
 
     // 根据员工id获取负责项目
     const workItems = await appDB.execute(
-      `select item.id, item.name, item.method, mapping.staff
-            from his_staff_work_item_mapping mapping
-            left join his_work_item item on mapping.item = item.id
-            where mapping.staff in (${staffs.map(() => '?')})`,
+      // language=PostgreSQL
+      `
+        select item.id, item.name, item.method, mapping.staff
+        from his_staff_work_item_mapping mapping
+               left join his_work_item item on mapping.item = item.id
+        where mapping.staff in (${staffs.map(() => '?')})
+      `,
       ...staffs
     );
     // 获取医疗方案分值
     const systemScores = await appDB.execute(
-      `select checkRule."check" "checkId", sum(checkRule.score) score
-            from his_check_rule checkRule
-            left join his_check_system system on checkRule."check" = system.id
-            where system.hospital = ?
-            group by checkRule."check"`,
+      // language=PostgreSQL
+      `
+        select checkRule."check" "checkId", sum(checkRule.score) score
+        from his_check_rule checkRule
+               left join his_check_system system on checkRule."check" = system.id
+        where system.hospital = ?
+        group by checkRule."check"
+      `,
       hospital
     );
 
@@ -439,8 +474,12 @@ export default class HisCheck {
     const hospital = await getHospital();
     return appDB.transaction(async () => {
       const staffList = await appDB.execute(
-        `select * from his_staff_check_mapping
-              where staff in (${staffs.map(() => '?')})`,
+        // language=PostgreSQL
+        `
+          select *
+          from his_staff_check_mapping
+          where staff in (${staffs.map(() => '?')})
+        `,
         ...staffs
       );
       if (staffList.length > 0)
@@ -448,9 +487,11 @@ export default class HisCheck {
       // 添加考核方案名称
       const checkId = uuid.v4();
       await appDB.execute(
-        `insert into
-              his_check_system(id, hospital, name, created_at, updated_at)
-              values(?, ?, ?, ?, ?)`,
+        // language=PostgreSQL
+        `
+          insert into his_check_system(id, hospital, name, created_at, updated_at)
+          values (?, ?, ?, ?, ?)
+        `,
         checkId,
         hospital,
         name,
@@ -460,9 +501,8 @@ export default class HisCheck {
       // 添加考核员工
       await appDB.execute(
         `
-        insert into
-        his_staff_check_mapping(staff, "check", created_at, updated_at)
-        values${staffs.map(() => '(?, ?, ?, ?)').join()}
+          insert into his_staff_check_mapping(staff, "check", created_at, updated_at)
+          values ${staffs.map(() => '(?, ?, ?, ?)').join()}
         `,
         ...staffs
           .map(it => [it, checkId, dayjs().toDate(), dayjs().toDate()])
@@ -475,10 +515,12 @@ export default class HisCheck {
         for (const ruleIt of automations) {
           // 自动打分
           await appDB.execute(
-            `insert into
-              his_check_rule(id, "check", auto, name, metric,
-                operator, value, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            // language=PostgreSQL
+            `
+              insert into his_check_rule(id, "check", auto, name, metric,
+                                         operator, value, score, created_at, updated_at)
+              values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
             uuid.v4(),
             checkId,
             ruleIt.auto,
@@ -497,9 +539,11 @@ export default class HisCheck {
         for (const ruleIt of manuals) {
           // 手动打分
           await appDB.execute(
-            `insert into
-              his_check_rule(id, "check", auto, name, detail, score, created_at, updated_at)
-              values(?, ?, ?, ?, ?, ?, ?, ?)`,
+            // language=PostgreSQL
+            `
+              insert into his_check_rule(id, "check", auto, name, detail, score, created_at, updated_at)
+              values (?, ?, ?, ?, ?, ?, ?, ?)
+            `,
             uuid.v4(),
             checkId,
             ruleIt.auto,
@@ -530,17 +574,38 @@ export default class HisCheck {
     return appDB.transaction(async () => {
       // 检查考核方案是否绑定了员工
       const staffs = await appDB.execute(
-        `select * from his_staff_check_mapping where "check" = ?`,
+        // language=PostgreSQL
+        `
+          select *
+          from his_staff_check_mapping
+          where "check" = ?
+        `,
         id
       );
       if (staffs.length > 0)
         throw new KatoRuntimeError(`考核方案存在考核员工, 不能删`);
 
       // 删除医疗考核规则
-      await appDB.execute(`delete from his_check_rule where "check" = ?`, id);
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from his_check_rule
+          where "check" = ?
+        `,
+        id
+      );
 
       // 删除医疗考核方案
-      await appDB.execute(`delete from his_check_system where id = ?`, id);
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from his_check_system
+          where id = ?
+        `,
+        id
+      );
     });
   }
 
@@ -679,7 +744,12 @@ export default class HisCheck {
     let selectedStaffs = [];
     if (id) {
       selectedStaffs = await appDB.execute(
-        `select distinct staff from his_staff_check_mapping where "check" = ?`,
+        // language=PostgreSQL
+        `
+          select distinct staff
+          from his_staff_check_mapping
+          where "check" = ?
+        `,
         id
       );
     }
@@ -702,16 +772,22 @@ export default class HisCheck {
   async get(id) {
     // 根据id获取考核名称
     const hisSystems = await appDB.execute(
-      `select id, name
-            from his_check_system
-            where id = ?`,
+      // language=PostgreSQL
+      `
+        select id, name
+        from his_check_system
+        where id = ?
+      `,
       id
     );
     if (hisSystems.length === 0) throw new KatoRuntimeError(`方案不存在`);
     const hisRules = await appDB.execute(
-      `select * from his_check_rule
-              where "check" = ?
-        `,
+      // language=PostgreSQL
+      `
+        select *
+        from his_check_rule
+        where "check" = ?
+      `,
       id
     );
 
