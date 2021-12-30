@@ -1,3 +1,10 @@
+import {Context} from '../context';
+import {appDB} from '../../app';
+import {KatoRuntimeError} from 'kato-server';
+import {imageSync} from 'qr-image';
+import {UserType} from '../../../common/user';
+import {getHospital} from '../his/service';
+
 /**
  * App机构模块
  */
@@ -10,7 +17,17 @@ export default class AppArea {
    * @return 二维码地址
    */
   async invite() {
-    return '';
+    const hospital = await getHospital();
+    // 生成机构邀请码
+    const imageBuffer = imageSync(
+      JSON.stringify({
+        code: hospital
+      }),
+      {type: 'png'}
+    );
+    return {
+      image: `data:image/png;base64,${imageBuffer.toString('base64')}`
+    };
   }
 
   /**
