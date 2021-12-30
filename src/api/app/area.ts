@@ -126,6 +126,7 @@ export default class AppArea {
     })
   )
   async requests(params) {
+    const hospital = await getHospital();
     let where = '';
     // 如果审核状态有值
     if (params?.status) where += ` and request.status = '${params.status}'`;
@@ -149,8 +150,9 @@ export default class AppArea {
                staff.created_at "staffCreatedAt"
         from staff_request request
                left join staff on request.staff = staff.id
-        where 1 = 1 ${where}
-      `
+        where request.area = ? ${where}
+      `,
+      hospital
     );
   }
 
