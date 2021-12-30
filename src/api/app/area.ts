@@ -130,7 +130,7 @@ export default class AppArea {
     // 如果审核状态有值
     if (params?.status) where += ` and request.status = '${params.status}'`;
     if (params?.name) where += ` and staff.name like '%${params.name}%'`;
-    const staffRequests = await appDB.execute(
+    return await appDB.execute(
       // language=PostgreSQL
       `
         select request.id,
@@ -152,7 +152,6 @@ export default class AppArea {
         where 1 = 1 ${where}
       `
     );
-    return staffRequests;
   }
 
   /**
