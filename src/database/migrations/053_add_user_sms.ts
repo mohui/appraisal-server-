@@ -13,6 +13,7 @@ export class AddSMS implements IMigration {
       (
         phone      char(11),
         usage      varchar(255),
+        counts     int                      not null default 1,
         code       char(6),
         account    char(36),
         status     varchar(255),
@@ -23,6 +24,7 @@ export class AddSMS implements IMigration {
       );
       comment on table sms_code is '验证码表';
       comment on column sms_code.phone is '手机号码';
+      comment on column sms_code.counts is '每日发送次数';
       comment on column sms_code.usage is '用途';
       comment on column sms_code.code is '验证码';
       comment on column sms_code.account is '用户id';
