@@ -1,9 +1,11 @@
 import {Context} from '../context';
 import {appDB} from '../../app';
-import {KatoRuntimeError} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {imageSync} from 'qr-image';
-import {UserType} from '../../../common/user';
+import {getStaff} from '../his/common';
 import {getHospital} from '../his/service';
+import {getHospitals} from '../group/common';
+import {v4 as uuid} from 'uuid';
 
 /**
  * App机构模块
@@ -38,8 +40,64 @@ export default class AppArea {
    * }
    * @return 申请id
    */
+  @validate(
+    should
+      .object({
+        area: should.string().required()
+      })
+      .required()
+  )
   async joinUs(ticket) {
-    return '';
+    /**
+     * 1: 校验机构id是否合法
+     * 2: 获取员工id
+     * 3: 根据员工id获取员工信息
+     * 4: 判断此员工信息是否合法, 判断员工是否绑定过此机构
+     * 5: 检查是否在申请列表,避免重复申请,
+     * 6: 添加申请
+     * */
+    // 申请码是否合法
+    const hospitals = await getHospitals(ticket.area);
+
+    if (hospitals.length !== 1 && hospitals[0].code !== ticket.area)
+      throw new KatoRuntimeError('机构id不合法');
+
+    // 取出员工id
+    const staffId = Context.current.user.id;
+    // 获取员工信息
+    const staffs = await getStaff(staffId);
+    if (staffs.length === 0) throw new KatoCommonError('不是员工账号');
+
+    // 查找机构是否在数组中
+    const filterUser = staffs.filter(it => it.area === ticket.area);
+    if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
+
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select id, staff
+        from staff_request
+        where staff = ?
+          and area = ?
+      `,
+      staffId,
+      ticket.area
+    );
+    if (staffRequests.length > 0) throw new KatoCommonError('已在申请列表');
+
+    // 插入申请表中
+    const requestId = uuid();
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        insert into staff_request(id, staff, area)
+        VALUES (?, ?, ?)
+      `,
+      requestId,
+      staffId,
+      ticket.area
+    );
+    return requestId;
   }
 
   /**
