@@ -1,8 +1,43 @@
+import * as config from 'config';
+import * as dayjs from 'dayjs';
+import {OpUnitType} from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB} from '../../app';
 
+/**
+ * 手机号码参数校验
+ */
 const phoneValidate = should.string().regex(/^1\d{10}$/);
+
+/**
+ * 短信配置
+ */
+const smsConfig = config.get<{
+  enabled: boolean;
+  limit: number;
+  expired: {value: number; unit: OpUnitType};
+}>('sms');
+
+/**
+ * 验证码用途枚举
+ */
+enum CodeUsage {
+  register = '注册'
+}
+
+/**
+ * 短信数据库模型
+ */
+type SMSCodeDBModel = {
+  phone: string;
+  usage: CodeUsage;
+  code: string;
+  counts: number;
+  created_at: Date;
+  updated_at: Date;
+};
+
 /**
  * App用户模块
  */
