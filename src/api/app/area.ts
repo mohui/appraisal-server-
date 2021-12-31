@@ -66,48 +66,47 @@ export default class AppArea {
     if (hospitals.length !== 1 && hospitals[0].code !== ticket.area)
       throw new KatoRuntimeError('机构id不合法');
 
-    if (Context.current.user.type !== UserType.STAFF)
-      throw new KatoCommonError('不是员工账号');
-
-    const staffRequests = await appDB.execute(
-      // language=PostgreSQL
-      `
+    return await appDB.joinTx(async () => {
+      const staffRequests = await appDB.execute(
+        // language=PostgreSQL
+        `
         select id, staff, status, created_at
         from staff_request
         where staff = ?
           and area = ?
         order by created_at desc
       `,
-      Context.current.user.id,
-      ticket.area
-    );
-    // 如果查询结果大于0,并且不是未通过状态, 返回id
-    if (
-      staffRequests.length > 0 &&
-      staffRequests[0].status !== RequestStatus.REJECTED
-    ) {
-      return staffRequests[0].id;
-    }
+        Context.current.user.id,
+        ticket.area
+      );
+      // 如果查询结果大于0,并且不是未通过状态, 返回id
+      if (
+        staffRequests.length > 0 &&
+        staffRequests[0].status !== RequestStatus.REJECTED
+      ) {
+        return staffRequests[0].id;
+      }
 
-    // 查找机构是否在数组中
-    const filterUser = Context.current.user.hospitals.filter(
-      it => it.id === ticket.area
-    );
-    if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
+      // 查找机构是否在数组中
+      const filterUser = Context.current.user.hospitals.filter(
+        it => it.id === ticket.area
+      );
+      if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
 
-    // 插入申请表中
-    const requestId = uuid();
-    await appDB.execute(
-      // language=PostgreSQL
-      `
+      // 插入申请表中
+      const requestId = uuid();
+      await appDB.execute(
+        // language=PostgreSQL
+        `
         insert into staff_request(id, staff, area)
-        VALUES (?, ?, ?)
+        values (?, ?, ?)
       `,
-      requestId,
-      Context.current.user.id,
-      ticket.area
-    );
-    return requestId;
+        requestId,
+        Context.current.user.id,
+        ticket.area
+      );
+      return requestId;
+    });
   }
 
   /**
