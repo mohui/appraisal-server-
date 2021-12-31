@@ -246,6 +246,7 @@ function listRender(params) {
       from ph_person vp
              left join mark_person mp on mp.id = vp.id and mp.year = {{? year}}
              inner join area on vp.adminorganization = area.code
+             left join ph_user pu on pu.id = vp.operatorId
       where 1 = 1
         and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
@@ -373,6 +374,7 @@ export default class Person {
                vp.idcardno    as "idCard",
                vp.address     as "address",
                vp.sex         as "gender",
+               age(now(), vp.birth) as "age",
                vp.phone       as "phone",
                mp."S03",
                mp."S23",
@@ -406,6 +408,8 @@ export default class Person {
                mp.ai_2dm,
                mp.ai_hua,
                mp.year,
+               vp.operatorId  as "operatorId",
+               pu.name        as "operatorName",
                area.name      as "hospitalName",
                vp.operatetime as date
         ${sqlRenderResult[0]}

@@ -7,6 +7,7 @@ import {
   TagAlgorithmUsages
 } from '../../../common/rule-score';
 import Decimal from 'decimal.js';
+import Person from '../person';
 
 /**
  * App机构模块
@@ -1019,7 +1020,67 @@ export default class AppArea {
    * 档案问题标签列表
    */
   async tags() {
-    return [];
+    return [
+      {
+        id: 'S03',
+        name: '非动态使用',
+        value: false
+      },
+      {
+        id: 'S23',
+        name: '个人基本信息填写不规范',
+        value: false
+      },
+      {
+        id: 'O00',
+        name: '老年人健康管理不规范',
+        value: false
+      },
+      {
+        id: 'O02',
+        name: '无老年人中医药管理',
+        value: false
+      },
+      {
+        id: 'H00',
+        name: '未接受高血压管理',
+        value: false
+      },
+      {
+        id: 'H01',
+        name: '高血压管理不规范',
+        value: false
+      },
+      {
+        id: 'H02',
+        name: '高血压未控制',
+        value: false
+      },
+      {
+        id: 'D00',
+        name: '未接受糖尿病管理',
+        value: false
+      },
+      {
+        id: 'D01',
+        name: '糖尿病管理不规范',
+        value: false
+      },
+      {
+        id: 'D02',
+        name: '糖尿病未控制',
+        value: false
+      },
+      {
+        id: 'CH01',
+        name: '高危人群管理不规范',
+        value: false
+      },
+      {
+        id: 'CO01',
+        name: '其他慢病管理不规范'
+      }
+    ];
   }
 
   /**
@@ -1043,14 +1104,14 @@ export default class AppArea {
    *   area: 地区编码
    *   keyword: 姓名/身份证
    *   doctor: 录入医生
-   *   tags: []档案问题
+   *   tags: {}档案问题
    *   pageSize: 分页大小
    *   pageNo: 分页页码
    * }
    * @return 居民档案列表[]
    */
   async archives(params) {
-    return [];
+    return await new Person().list(params);
   }
 
   //endregion

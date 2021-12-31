@@ -290,7 +290,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       throw new Error('无效的用户类型');
     }
   } catch (e) {
-    throw new KatoLogicError('用户登录状态有误, 请重新登录', 10000);
+    //throw new KatoLogicError('用户登录状态有误, 请重新登录', 10000);
   }
   await next();
 }
