@@ -8,7 +8,19 @@ import {appDB} from '../../app';
 /**
  * 手机号码参数校验
  */
-const phoneValidate = should.string().regex(/^1\d{10}$/);
+const phoneValidate = should
+  .string()
+  .regex(/^1\d{10}$/)
+  .required();
+
+/**
+ * 密码校验
+ */
+const passwordValidate = should
+  .string()
+  .min(8)
+  .max(12)
+  .required();
 
 /**
  * 短信配置
@@ -140,7 +152,7 @@ export default class AppUser {
    *   token: token
    * }
    */
-  @validate(phoneValidate, should.string().required())
+  @validate(phoneValidate, passwordValidate)
   async login(phone, password) {
     const token = (
       await appDB.execute(
@@ -169,11 +181,7 @@ export default class AppUser {
    * @param code 验证码
    * @param password 密码
    */
-  @validate(
-    phoneValidate,
-    should.string().required(),
-    should.string().required()
-  )
+  @validate(phoneValidate, should.string().required(), passwordValidate)
   async register(phone, code, password) {
     await appDB.transaction(async () => {
       //region 校验验证码
@@ -259,6 +267,7 @@ export default class AppUser {
    * @param password 密码
    * @param code 验证码
    */
+  @validate(passwordValidate)
   async resetPassword(password, code) {
     return;
   }
@@ -269,6 +278,7 @@ export default class AppUser {
    * @param oldPassword 旧密码
    * @param newPassword 新密码
    */
+  @validate(should.string().required(), passwordValidate)
   async updatePassword(oldPassword, newPassword) {
     return;
   }
