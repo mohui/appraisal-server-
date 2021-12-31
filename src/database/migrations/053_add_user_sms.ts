@@ -16,8 +16,6 @@ export class AddSMS implements IMigration {
         counts     int                      not null default 1,
         code       char(6),
         account    char(36),
-        status     varchar(255),
-        expired_at timestamp with time zone not null default current_timestamp,
         created_at timestamp with time zone not null default current_timestamp,
         updated_at timestamp with time zone not null default current_timestamp,
         primary key (phone, usage)
@@ -28,8 +26,6 @@ export class AddSMS implements IMigration {
       comment on column sms_code.usage is '用途';
       comment on column sms_code.code is '验证码';
       comment on column sms_code.account is '用户id';
-      comment on column sms_code.status is '状态. 发送成功;发送失败;使用完成';
-      comment on column sms_code.expired_at is '过期时间';
 
       --员工表添加手机号码唯一约束
       alter table staff
