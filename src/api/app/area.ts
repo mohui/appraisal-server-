@@ -182,7 +182,6 @@ export default class AppArea {
                             r.parent_rule_id === rule.rule_id &&
                             r.rule_id === tag.rule
                         ).length > 0 &&
-                        tag.tag !== MarkTagUsages.Attach.code && //排除定性指标
                         tag.tag.indexOf('HE') !== 0 && //排除健康教育指标
                         tag.tag.indexOf('SC') !== 0 //排除卫生监管协查
                     )
