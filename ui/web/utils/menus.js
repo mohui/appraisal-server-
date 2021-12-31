@@ -162,6 +162,6 @@ module.exports = [
     label: '员工绑定审核',
     icon: require('../../assets/menu-icon/worklist.png').default,
     iconActive: require('../../assets/menu-icon/worklist-active.png').default,
-    router: '/approval'
+    router: '/staff-binding-approval'
   }
 ];
