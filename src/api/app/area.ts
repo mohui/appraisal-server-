@@ -6,7 +6,7 @@ import {getStaff} from '../his/common';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
-import {RequestStatus} from '../../../common/user';
+import {RequestStatus, UserType} from '../../../common/user';
 
 /**
  * App机构模块
@@ -58,7 +58,6 @@ export default class AppArea {
      * 5.1: 待审核: 直接返回id
      * 5.2: 已通过: 直接返回id
      * 5.3: 未通过: 接着往下进行,可以接着申请
-     *
      * 6: 添加申请
      * */
     // 申请码是否合法
@@ -67,11 +66,8 @@ export default class AppArea {
     if (hospitals.length !== 1 && hospitals[0].code !== ticket.area)
       throw new KatoRuntimeError('机构id不合法');
 
-    // 取出员工id
-    const staffId = Context.current.user.id;
-    // 获取员工信息
-    const staffs = await getStaff(staffId);
-    if (staffs.length === 0) throw new KatoCommonError('不是员工账号');
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('不是员工账号');
 
     const staffRequests = await appDB.execute(
       // language=PostgreSQL
@@ -82,7 +78,7 @@ export default class AppArea {
           and area = ?
         order by created_at desc
       `,
-      staffId,
+      Context.current.user.id,
       ticket.area
     );
     // 如果查询结果大于0,并且不是未通过状态, 返回id
@@ -94,7 +90,9 @@ export default class AppArea {
     }
 
     // 查找机构是否在数组中
-    const filterUser = staffs.filter(it => it.area === ticket.area);
+    const filterUser = Context.current.user.hospitals.filter(
+      it => it.id === ticket.area
+    );
     if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
 
     // 插入申请表中
@@ -106,7 +104,7 @@ export default class AppArea {
         VALUES (?, ?, ?)
       `,
       requestId,
-      staffId,
+      Context.current.user.id,
       ticket.area
     );
     return requestId;
