@@ -1107,7 +1107,7 @@ export default class AppArea {
    *
    * 目前只考虑机构
    * @param params {
-   *   area: 地区编码
+   *   region: 地区编码
    *   keyword: 姓名/身份证
    *   doctor: 录入医生
    *   tags: {}档案问题

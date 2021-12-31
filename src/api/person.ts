@@ -252,6 +252,8 @@ function listRender(params) {
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        {{#if keyword}} and (vp.idcardno like {{? keyword}} or vp.name like {{? keyword}}){{/if}}
+        {{#if doctor}} and vp.operatorId = {{? doctor}}{{/if}}
         and
           (
             1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
@@ -321,7 +323,17 @@ export default class Person {
       include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
-      year: should.number().allow(null)
+      year: should.number().allow(null),
+      keyword: should
+        .string()
+        .required()
+        .allow('', null)
+        .description('姓名/身份证'),
+      doctor: should
+        .string()
+        .required()
+        .allow('', null)
+        .description('录入医生编号')
     })
   )
   async list(params) {
@@ -333,12 +345,15 @@ export default class Person {
       tags,
       personOr = false,
       documentOr = false,
-      year = dayjs().year()
+      year = dayjs().year(),
+      doctor
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
     let {name} = params;
     if (name) name = `%${name}%`;
+    let {keyword} = params;
+    if (keyword) keyword = `%${keyword}%`;
     let hospitals = [];
     //没有选地区,则默认查询当前用户所拥有的机构
     if (!region || region === '')
@@ -358,7 +373,9 @@ export default class Person {
       ...tags,
       personOr,
       documentOr,
-      year
+      year,
+      keyword,
+      doctor
     });
     const count = (
       await originalDB.execute(
