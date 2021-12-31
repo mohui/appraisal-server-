@@ -123,19 +123,21 @@
 </template>
 
 <script>
+import {RequestStatus} from '../../../../common/user.ts';
+
 export default {
   name: 'StaffBindingApproval',
   data() {
     return {
       statusList: [
-        {value: 0, label: '全部'},
-        {value: 1, label: '未审核'},
-        {value: 2, label: '已通过'},
-        {value: 3, label: '未通过'}
+        {value: null, label: '全部'},
+        {value: RequestStatus.PENDING, label: '未审核'},
+        {value: RequestStatus.SUCCESS, label: '已通过'},
+        {value: RequestStatus.REJECTED, label: '未通过'}
       ],
       searchForm: {
         name: '',
-        status: 0,
+        status: null,
         pageSize: 20,
         pageNo: 1
       }
@@ -172,14 +174,14 @@ export default {
     reset() {
       this.searchForm = {
         name: '',
-        status: 0,
+        status: null,
         pageSize: 20,
         pageNo: 1
       };
     },
     async passBinding({row}) {
       try {
-        await this.$api.AppArea.updateRequest(row.id);
+        await this.$api.AppArea.updateRequest(row.id, RequestStatus.SUCCESS);
         this.$message({
           type: 'success',
           message: '通过申请!'
@@ -196,7 +198,10 @@ export default {
       })
         .then(async () => {
           try {
-            await this.$api.AppArea.updateRequest(row.id);
+            await this.$api.AppArea.updateRequest(
+              row.id,
+              RequestStatus.REJECTED
+            );
             this.$message({
               type: 'success',
               message: '已经拒绝申请!'
