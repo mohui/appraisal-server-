@@ -1092,7 +1092,14 @@ export default class AppArea {
    * }]
    */
   async phDoctors(area) {
-    return [];
+    return await originalDB.execute(
+      `
+        select id, name
+        from ph_user
+        where hospital = ?
+          and states = true`,
+      area
+    );
   }
 
   /**
