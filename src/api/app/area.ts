@@ -5,7 +5,7 @@ import {imageSync} from 'qr-image';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
-import {RequestStatus, UserType} from '../../../common/user';
+import {RequestStatus} from '../../../common/user';
 import {sql as sqlRender} from '../../database/template';
 
 /**
