@@ -70,12 +70,12 @@ export default class AppArea {
       const staffRequests = await appDB.execute(
         // language=PostgreSQL
         `
-        select id, staff, status, created_at
-        from staff_request
-        where staff = ?
-          and area = ?
-        order by created_at desc
-      `,
+          select id, staff, status, updated_at
+          from staff_request
+          where staff = ?
+            and area = ?
+          order by updated_at desc
+        `,
         Context.current.user.id,
         ticket.area
       );
@@ -88,19 +88,19 @@ export default class AppArea {
       }
 
       // 查找机构是否在数组中
-      const filterUser = Context.current.user.hospitals.filter(
-        it => it.id === ticket.area
+      const filterUser = staffRequests.filter(
+        it => it.status === RequestStatus.SUCCESS
       );
-      if (filterUser.length > 0) throw new KatoCommonError('员工已经在此机构');
+      if (filterUser.length > 0) return filterUser[0].id;
 
       // 插入申请表中
       const requestId = uuid();
       await appDB.execute(
         // language=PostgreSQL
         `
-        insert into staff_request(id, staff, area)
-        values (?, ?, ?)
-      `,
+          insert into staff_request(id, staff, area)
+          values (?, ?, ?)
+        `,
         requestId,
         Context.current.user.id,
         ticket.area
