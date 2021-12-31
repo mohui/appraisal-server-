@@ -66,11 +66,69 @@ export default class AppUser {
    * 验证码短信发送
    *
    * @param phone 手机号码
-   * @param module 功能模块
+   * @param usage 用途
+   * @return {
+   *   code: 验证码
+   *   counts: 今日次数
+   * }?
    */
   @validate(phoneValidate, should.string().required())
-  async sendSMS(phone, module) {
-    return;
+  async sendSMS(phone, usage) {
+    return appDB.transaction(async () => {
+      const now = dayjs();
+      const codeModel: SMSCodeDBModel = (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
+            select *
+            from sms_code
+            where phone = ?
+              and usage = ?
+              for update
+          `,
+          phone,
+          usage
+        )
+      )[0];
+      //今日次数是否超过限额
+      if (
+        now.diff(codeModel?.created_at, 'd') == 0 &&
+        codeModel?.counts >= smsConfig.limit
+      )
+        throw new KatoCommonError(`您已超过本日短信额度`);
+      //生成新的验证码
+      const code = Math.random()
+        .toString()
+        .slice(-6);
+      const counts = (codeModel?.counts ?? 0) + 1;
+      //upsert数据库
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          insert into sms_code(phone, usage, code, created_at, updated_at)
+          values (?, ?, ?, ?, ?)
+          on conflict (phone, usage) do update
+            set counts     = ?,
+                code       = excluded.code,
+                created_at = excluded.created_at,
+                updated_at = excluded.updated_at
+        `,
+        phone,
+        usage,
+        code,
+        now.toDate(),
+        now.toDate(),
+        counts
+      );
+      //TODO: 发送短信
+
+      return smsConfig.enabled
+        ? {
+            code,
+            counts
+          }
+        : null;
+    });
   }
 
   /**
