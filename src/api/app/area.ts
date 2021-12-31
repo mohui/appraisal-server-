@@ -152,12 +152,8 @@ export default class AppArea {
         from staff_request request
                left join staff on request.staff = staff.id
         where request.area = {{? hospital}}
-              {{#if status}}
-                and request.status = {{? status}}
-              {{/if}}
-              {{#if name}}
-                and staff.name like {{? name}}
-              {{/if}}
+              {{#if status}} and request.status = {{? status}} {{/if}}
+              {{#if name}}  and staff.name like {{? name}} {{/if}}
         order by (
             case when status = '${RequestStatus.PENDING}' then 1
                 when status = '${RequestStatus.SUCCESS}' then 2
