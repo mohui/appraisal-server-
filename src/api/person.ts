@@ -253,7 +253,7 @@ function listRender(params) {
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
         {{#if keyword}} and (vp.idcardno like {{? keyword}} or vp.name like {{? keyword}}){{/if}}
-        {{#if doctor}} and vp.operatorId = {{? doctor}}{{/if}}
+        {{#if doctor}} and pu.id = {{? doctor}}{{/if}}
         and
           (
             1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
