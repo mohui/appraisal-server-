@@ -2,7 +2,6 @@ import {Context} from '../context';
 import {appDB} from '../../app';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {imageSync} from 'qr-image';
-import {getStaff} from '../his/common';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
@@ -191,30 +190,33 @@ export default class AppArea {
   async updateRequest(id, status) {
     const hospital = await getHospital();
 
-    const staffRequests = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select request.id,
-               request.staff,
-               request.area,
-               request.status,
-               request.updated_at,
-               request.created_at
-        from staff_request request
-        where request.id = ?
-      `,
-      id
-    );
-    if (staffRequests.length === 0) throw new KatoCommonError('申请id不存在');
+    const staffRequest: {
+      id;
+      staff;
+      area;
+      status;
+    } = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select request.id,
+                 request.staff,
+                 request.area,
+                 request.status
+          from staff_request request
+                 inner join staff on request.staff = staff.id
+          where request.id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!staffRequest) throw new KatoCommonError('申请id不存在');
 
-    if (staffRequests[0].status !== RequestStatus.PENDING)
+    if (staffRequest.status !== RequestStatus.PENDING)
       throw new KatoCommonError('已审核');
 
-    if (staffRequests[0].area !== hospital)
+    if (staffRequest.area !== hospital)
       throw new KatoCommonError('没有审核权限');
-
-    const staffs = await getStaff(staffRequests[0].staff);
-    if (staffs.length === 0) throw new KatoCommonError('此员工账号不存在');
 
     // 先修改状态,通过需要在mapping表中添加一条
     return await appDB.joinTx(async () => {
@@ -237,10 +239,12 @@ export default class AppArea {
           `
             insert into staff_area_mapping(id, staff, area)
             values (?, ?, ?)
+            on conflict (staff, area)
+              do update set updated_at = now()
           `,
           uuid(),
-          staffRequests[0].staff,
-          staffRequests[0].area
+          staffRequest.staff,
+          staffRequest.area
         );
     });
   }
