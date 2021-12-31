@@ -137,7 +137,7 @@ export default class AppArea {
     const hospital = await getHospital();
     const [sql, sqlParams] = sqlRender(
       `
-              select request.id,
+        select request.id,
                request.staff,
                request.area,
                request.status,
@@ -165,7 +165,7 @@ export default class AppArea {
                 when status = '${RequestStatus.SUCCESS}' then 2
                 else 3 end
             ), created_at desc;
-          `,
+      `,
       {
         hospital,
         status: params?.status ? params.status : null,
