@@ -4,6 +4,8 @@ import {OpUnitType} from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB} from '../../app';
+import {Education, Gender} from '../../../common/his';
+import {Context} from '../context';
 
 /**
  * 手机号码参数校验
@@ -257,8 +259,46 @@ export default class AppUser {
    *   isGP: 是否为全科医师
    * }
    */
+  @validate(
+    should.object({
+      name: should.string().required(),
+      gender: should
+        .string()
+        .only(Gender.values())
+        .required(),
+      major: should.string().required(),
+      title: should.string().required(),
+      education: should
+        .string()
+        .only(Object.values(Education))
+        .required(),
+      isGP: should.boolean().required()
+    })
+  )
   async update(params) {
-    return;
+    const id = Context.current.user.id;
+    const {name, gender, major, title, education, isGP} = params;
+    //language=PostgreSQL
+    await appDB.execute(
+      `
+      update staff
+      set name      = ?,
+          gender    = ?,
+          major     = ?,
+          title     = ?,
+          education = ?,
+          "isGP"    = ?,
+          updated_at = now()
+      where id = ?
+    `,
+      name,
+      gender,
+      major,
+      title,
+      education,
+      isGP,
+      id
+    );
   }
 
   /**
