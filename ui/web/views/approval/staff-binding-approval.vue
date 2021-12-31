@@ -18,7 +18,6 @@
           <el-form-item label="审核状态:">
             <el-select
               v-model="searchForm.status"
-              multiple
               filterable
               placeholder="请选择"
               style="width: 100%"
@@ -103,22 +102,6 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      v-reset-scroll="'staffTable'"
-      background
-      :page-size="searchForm.pageSize"
-      :current-page="searchForm.pageNo"
-      layout="total, sizes, prev, pager, next"
-      :page-sizes="[50, 100, 200, 400]"
-      :total="$asyncComputed.serverData.count"
-      @current-change="n => (searchForm.pageNo = n)"
-      @size-change="
-        size => {
-          searchForm.pageSize = size;
-          searchForm.pageNo = 1;
-        }
-      "
-    ></el-pagination>
   </div>
 </template>
 
@@ -131,21 +114,17 @@ export default {
     return {
       statusList: [
         {value: null, label: '全部'},
-        {value: RequestStatus.PENDING, label: '未审核'},
-        {value: RequestStatus.SUCCESS, label: '已通过'},
-        {value: RequestStatus.REJECTED, label: '未通过'}
+        ...Object.values(RequestStatus).map(it => ({value: it, label: it}))
       ],
       searchForm: {
         name: '',
-        status: null,
-        pageSize: 20,
-        pageNo: 1
+        status: null
       }
     };
   },
   computed: {
     bindingList() {
-      return this.serverData.rows.map(it => ({
+      return this.serverData.map(it => ({
         ...it,
         createdAt: it.created_at.$format()
       }));
@@ -162,10 +141,7 @@ export default {
         }
       },
       default() {
-        return {
-          count: 0,
-          rows: []
-        };
+        return [];
       }
     }
   },
@@ -174,9 +150,7 @@ export default {
     reset() {
       this.searchForm = {
         name: '',
-        status: null,
-        pageSize: 20,
-        pageNo: 1
+        status: null
       };
     },
     async passBinding({row}) {
