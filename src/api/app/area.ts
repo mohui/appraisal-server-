@@ -166,7 +166,7 @@ export default class AppArea {
       `,
       {
         hospital,
-        status: params?.status ? params.status : null,
+        status: params?.status ?? null,
         name: params?.name ? `%${params.name}%` : null
       }
     );
