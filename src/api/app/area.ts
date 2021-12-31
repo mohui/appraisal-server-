@@ -7,6 +7,7 @@ import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
 import {RequestStatus, UserType} from '../../../common/user';
+import {sql as sqlRender} from '../../database/template';
 
 /**
  * App机构模块
@@ -134,14 +135,9 @@ export default class AppArea {
   )
   async requests(params) {
     const hospital = await getHospital();
-    let where = '';
-    // 如果审核状态有值
-    if (params?.status) where += ` and request.status = '${params.status}'`;
-    if (params?.name) where += ` and staff.name like '%${params.name}%'`;
-    return await appDB.execute(
-      // language=PostgreSQL
+    const [sql, sqlParams] = sqlRender(
       `
-        select request.id,
+              select request.id,
                request.staff,
                request.area,
                request.status,
@@ -157,10 +153,26 @@ export default class AppArea {
                staff.created_at "staffCreatedAt"
         from staff_request request
                left join staff on request.staff = staff.id
-        where request.area = ? ${where}
-      `,
-      hospital
+        where request.area = {{? hospital}}
+              {{#if status}}
+                and request.status = {{? status}}
+              {{/if}}
+              {{#if name}}
+                and staff.name like {{? name}}
+              {{/if}}
+        order by (
+            case when status = '${RequestStatus.PENDING}' then 1
+                when status = '${RequestStatus.SUCCESS}' then 2
+                else 3 end
+            ), created_at desc;
+          `,
+      {
+        hospital,
+        status: params?.status ? params.status : null,
+        name: params?.name ? `%${params.name}%` : null
+      }
     );
+    return await appDB.execute(sql, ...sqlParams);
   }
 
   /**
