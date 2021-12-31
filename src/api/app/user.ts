@@ -86,7 +86,13 @@ export default class AppUser {
    *   counts: 今日次数
    * }?
    */
-  @validate(phoneValidate, should.string().required())
+  @validate(
+    phoneValidate,
+    should
+      .string()
+      .only(Object.values(CodeUsage))
+      .required()
+  )
   async sendSMS(phone, usage) {
     return appDB.transaction(async () => {
       const now = dayjs();
