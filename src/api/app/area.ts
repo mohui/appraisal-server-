@@ -70,23 +70,14 @@ export default class AppArea {
    * @return 考核体系下的指标得分列表 [{
    *   rule_id: 考核项编号,
    *   rule_name: 考核项名称,
-   *   rule_score: 考核项满分,
-   *   tags: [
-   *   {
-   *      id: 主键,
-   *      rule: 规则,
+   *   tags: [{
    *      tag: 对应指标编码,
-   *      tag_name: 对应指标名称,
    *      tag_name: 对应指标名称,
    *      algorithm: 计算方式编码,
    *      algorithm_name: 计算方式解释,
    *      baseline: 指标值,
-   *      score: 指标得分,
-   *      current_score: 最终得分,
-   *      created_at: 创建时间,
-   *      updated_at: 修改时间,
-   *      attach_start_date: 附件的开始时间(定性指标),
-   *      attach_end_date: 附件的开始时间(定性指标),
+   *      score: 指标分值,
+   *      current_score: 得分,
    *   }]
    * }]
    */
