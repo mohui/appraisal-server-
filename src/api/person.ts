@@ -320,7 +320,7 @@ export default class Person {
       tags: should
         .object()
         .required()
-        .allow({}),
+        .allow([]),
       crowd: should.object().allow({}),
       include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
