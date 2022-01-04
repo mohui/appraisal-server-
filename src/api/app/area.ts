@@ -1184,7 +1184,8 @@ export default class AppArea {
    *   CO01: 其他慢病管理规范,
    *   E00: 人群标记错误,
    *   ai_2dm: ai检测糖尿病风险,
-   *   ai_hua: ai检测糖尿病患者高血酸风险
+   *   ai_hua: ai检测糖尿病患者高血酸风险,
+   *   operatorName: 录入人
    *   }]
    */
   @validate(
