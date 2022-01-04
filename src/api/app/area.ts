@@ -1159,10 +1159,10 @@ export default class AppArea {
    * }
    * @return 居民档案列表[{
    *   id: 编号,
-   *   name: 编号,
-   *   idCard: 编号,
-   *   address: 编号,
-   *   gender: 编号,
+   *   name: 名称,
+   *   idCard: 身份证号,
+   *   address: 地址,
+   *   gender: 性别,
    *   age: {year: 年龄},
    *   phone: 联系电话,
    *   S03: 有动态记录的档案,
