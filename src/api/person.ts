@@ -327,12 +327,12 @@ export default class Person {
       keyword: should
         .string()
         .required()
-        .allow('', null)
+        .allow(null)
         .description('姓名/身份证'),
       doctor: should
         .string()
         .required()
-        .allow('', null)
+        .allow(null)
         .description('录入医生编号')
     })
   )

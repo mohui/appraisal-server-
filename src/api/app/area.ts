@@ -1,5 +1,5 @@
 import {getYear} from '../group/system_area';
-import {KatoCommonError} from 'kato-server';
+import {should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {
   BasicTagUsages,
@@ -67,8 +67,30 @@ export default class AppArea {
    *
    * 目前只考虑机构
    * @param area 地区编码
-   * @return 考核体系下的指标得分列表[]
+   * @return 考核体系下的指标得分列表 [{
+   *   rule_id: 考核项编号,
+   *   rule_name: 考核项名称,
+   *   rule_score: 考核项满分,
+   *   tags: [
+   *   {
+   *      id: 主键,
+   *      rule: 规则,
+   *      tag: 对应指标编码,
+   *      tag_name: 对应指标名称,
+   *      tag_name: 对应指标名称,
+   *      algorithm: 计算方式编码,
+   *      algorithm_name: 计算方式解释,
+   *      baseline: 指标值,
+   *      score: 指标得分,
+   *      current_score: 最终得分,
+   *      created_at: 创建时间,
+   *      updated_at: 修改时间,
+   *      attach_start_date: 附件的开始时间(定性指标),
+   *      attach_end_date: 附件的开始时间(定性指标),
+   *   }]
+   * }]
    */
+  @validate(should.string().required())
   async indicators(area) {
     /**
      * 默认查询当前年份
@@ -79,6 +101,7 @@ export default class AppArea {
      */
     const checkSystem = (
       await appDB.execute(
+        //language=PostgreSQL
         `
           select s.*
           from check_system s
@@ -90,27 +113,31 @@ export default class AppArea {
         year
       )
     )[0];
-    if (!checkSystem) throw new KatoCommonError(`该地区未绑定考核`);
+    if (!checkSystem) return [];
     /**
      * 考核体系小项和细则
      */
     const checkRules = await appDB.execute(
+      //language=PostgreSQL
       `
         select *
         from check_rule
-        where check_id = ?`,
+        where check_id = ?
+      `,
       checkSystem.check_id
     );
     /**
      * 规则对应指标设置
      */
     const ruleTags = await appDB.execute(
+      //language=PostgreSQL
       `
         select t.*
         from rule_tag t
                inner join check_rule r on r.rule_id = t.rule
         where r.check_id = ?
-          and t.algorithm not in (?, ?)`,
+          and t.algorithm not in (?, ?)
+      `,
       checkSystem.check_id,
       TagAlgorithmUsages.empty.code,
       TagAlgorithmUsages.attach.code
@@ -119,22 +146,26 @@ export default class AppArea {
      * 机构细则打分设置
      */
     const ruleAreaScores = await appDB.execute(
+      //language=PostgreSQL
       `
         select ras.*
         from rule_area_score ras
                inner join check_rule r on r.rule_id = ras.rule
-        where r.check_id = ?`,
+        where r.check_id = ?
+      `,
       checkSystem.check_id
     );
     /**
      * 机构手工基础数据
      */
     const basicTagData = await appDB.execute(
+      //language=PostgreSQL
       `
         select *
         from basic_tag_data
         where hospital = ?
-          and year = ?`,
+          and year = ?
+      `,
       area,
       year
     );
@@ -143,11 +174,13 @@ export default class AppArea {
      */
     const markData = (
       await originalDB.execute(
+        //language=PostgreSQL
         `
           select *
           from mark_organization
           where id = ?
-            and year = ?`,
+            and year = ?
+        `,
         area,
         year
       )
@@ -1017,6 +1050,12 @@ export default class AppArea {
 
   /**
    * 档案问题标签列表
+   *
+   * @return 考核体系下的指标得分列表 [{
+   *   id: 问题标签编码,
+   *   name: 问题标签名称,
+   *   value: 问题标签的检索值,
+   *   }]
    */
   async tags() {
     return [
@@ -1077,7 +1116,8 @@ export default class AppArea {
       },
       {
         id: 'CO01',
-        name: '其他慢病管理不规范'
+        name: '其他慢病管理不规范',
+        value: false
       }
     ];
   }
@@ -1091,13 +1131,16 @@ export default class AppArea {
    *   name: 姓名
    * }]
    */
+  @validate(should.string().required())
   async phDoctors(area) {
     return await originalDB.execute(
+      //language=PostgreSQL
       `
         select id, name
         from ph_user
         where hospital = ?
-          and states = true`,
+          and states = true
+      `,
       area
     );
   }
@@ -1107,17 +1150,92 @@ export default class AppArea {
    *
    * 目前只考虑机构
    * @param params {
-   *   region: 地区编码
+   *   area: 地区编码
    *   keyword: 姓名/身份证
    *   doctor: 录入医生
-   *   tags: {}档案问题
+   *   tags: [{id: 问题标签编码, value: 问题标签的检索值}] 档案问题
    *   pageSize: 分页大小
    *   pageNo: 分页页码
    * }
-   * @return 居民档案列表[]
+   * @return 居民档案列表[{
+   *   id: 编号,
+   *   name: 编号,
+   *   idCard: 编号,
+   *   address: 编号,
+   *   gender: 编号,
+   *   age: {year: 年龄},
+   *   phone: 联系电话,
+   *   S03: 有动态记录的档案,
+   *   S23: 档案是否规范,
+   *   O00: 老年人,
+   *   O02: 老年人中医药健康管理,
+   *   H00: 高血压,
+   *   H01: 高血压患者规范管理,
+   *   H02: 高血压患者血压控制,
+   *   D00: 糖尿病,
+   *   D01: 糖尿病患者规范管理,
+   *   D02: 糖尿病患者血压控制,
+   *   MCH01: 孕早期健康管理,
+   *   MCH02: 产后访视健康管理,
+   *   C00: 普通人群,
+   *   C01: 老年人,
+   *   C02: 高血压,
+   *   C03: 糖尿病,
+   *   C04: 孕产妇,
+   *   C05: 0-6岁儿童,
+   *   C06: 脑卒中,
+   *   C07: 计划生育特殊家庭对象,
+   *   C08: 严重精神病患者,
+   *   C09: 肺结核,
+   *   C10: 残疾人,
+   *   C11: 其他慢病,
+   *   C13: 高危人群,
+   *   C14: 高校,
+   *   CH01: 高危管理规范,
+   *   CO01: 其他慢病管理规范,
+   *   E00: 人群标记错误,
+   *   ai_2dm: ai检测糖尿病风险,
+   *   ai_hua: ai检测糖尿病患者高血酸风险,
+   *   }]
    */
+  @validate(
+    should.object({
+      area: should
+        .string()
+        .required()
+        .allow(''),
+      keyword: should.string().allow(null),
+      doctor: should.string().allow(null),
+      tags: should
+        .array()
+        .items(
+          should.object({
+            id: should
+              .string()
+              .required()
+              .not(''),
+            value: should.required()
+          })
+        )
+        .allow(null),
+      pageSize: should.number().required(),
+      pageNo: should.number().required()
+    })
+  )
   async archives(params) {
-    return await new Person().list(params);
+    const tagsObject = {};
+    if (params.tags)
+      params.tags.map(tag => {
+        tagsObject[tag.id] = tag.value;
+      });
+    return await new Person().list({
+      region: params.area,
+      keyword: params.keyword,
+      doctor: params.doctor,
+      tags: tagsObject,
+      pageSize: params.pageSize,
+      pageNo: params.pageNo
+    });
   }
 
   //endregion
