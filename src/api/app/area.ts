@@ -1185,7 +1185,8 @@ export default class AppArea {
    *   E00: 人群标记错误,
    *   ai_2dm: ai检测糖尿病风险,
    *   ai_hua: ai检测糖尿病患者高血酸风险,
-   *   operatorName: 录入人
+   *   operatorName: 录入人,
+   *   content: [{id: 编号, tag: 问题标签编码, content: 不规范内容}] 不规范内容
    *   }]
    */
   @validate(
@@ -1207,25 +1208,48 @@ export default class AppArea {
             value: should.required()
           })
         )
-        .allow(null),
+        .required(),
       pageSize: should.number().required(),
-      pageNo: should.number().required()
+      pageNo: should.number().required(),
+      year: should.number().allow(null)
     })
   )
   async archives(params) {
     const tagsObject = {};
-    if (params.tags)
-      params.tags.map(tag => {
-        tagsObject[tag.id] = tag.value;
-      });
-    return await new Person().list({
+    params.tags.map(tag => {
+      tagsObject[tag.id] = tag.value;
+    });
+    const {count, rows} = await new Person().list({
       region: params.area,
       keyword: params.keyword,
       doctor: params.doctor,
       tags: tagsObject,
       pageSize: params.pageSize,
-      pageNo: params.pageNo
+      pageNo: params.pageNo,
+      year: params.year
     });
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    let mark_contents = [];
+    if (rows.length > 0)
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      mark_contents = await originalDB.execute(
+        `
+          select id, name as tag, content
+          from mark_content
+          where year = ?
+            and id in (${rows.map(() => '?')})
+        `,
+        params.year ?? getYear(null),
+        ...rows.map(p => p.id)
+      );
+    return {
+      count,
+      rows: rows.map(row => ({
+        ...row,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        content: mark_contents.filter(c => c.id === row.id)
+      }))
+    };
   }
 
   //endregion
