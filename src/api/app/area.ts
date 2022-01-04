@@ -1145,8 +1145,10 @@ export default class AppArea {
    *   keyword: 姓名/身份证
    *   doctor: 录入医生
    *   tags: [{id: 问题标签编码, value: 问题标签的检索值}] 档案问题
+   *   crowd: [{id: 人群分类编码, value: 人群分类的检索值}] 档案问题
    *   pageSize: 分页大小
    *   pageNo: 分页页码
+   *   year: 数据年度
    * }
    * @return 居民档案列表[{
    *   id: 编号,
