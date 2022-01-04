@@ -1152,10 +1152,8 @@ export default class AppArea {
    *   id: 编号,
    *   name: 名称,
    *   idCard: 身份证号,
-   *   address: 地址,
-   *   gender: 性别,
+   *   genderName: 性别,
    *   age: {year: 年龄},
-   *   phone: 联系电话,
    *   S03: 有动态记录的档案,
    *   S23: 档案是否规范,
    *   O00: 老年人,
@@ -1186,7 +1184,7 @@ export default class AppArea {
    *   CO01: 其他慢病管理规范,
    *   E00: 人群标记错误,
    *   ai_2dm: ai检测糖尿病风险,
-   *   ai_hua: ai检测糖尿病患者高血酸风险,
+   *   ai_hua: ai检测糖尿病患者高血酸风险
    *   }]
    */
   @validate(
