@@ -119,7 +119,7 @@ export async function getHospital(): Promise<string> {
 
     return Context.current.user.hospitals[0]['id'];
   } else {
-    throw new KatoRuntimeError(`账号未绑定地区权限`);
+    throw new KatoRuntimeError(`用户类型未知`);
   }
 }
 
