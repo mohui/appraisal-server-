@@ -328,13 +328,11 @@ export default class Person {
       year: should.number().allow(null),
       keyword: should
         .string()
-        .required()
-        .allow(null)
+        .allow('', null)
         .description('姓名/身份证'),
       doctor: should
         .string()
-        .required()
-        .allow(null)
+        .allow('', null)
         .description('录入医生编号')
     })
   )
