@@ -6,6 +6,8 @@ import {v4 as uuid} from 'uuid';
 import {appDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
+import HisHospital from '../his/hospital';
+import HisStaff from '../his/staff';
 
 /**
  * 手机号码参数校验
@@ -387,9 +389,10 @@ export default class AppUser {
    * 医疗概览
    *
    * @param area 机构编码
+   * @param month 时间
    * @return {
    *   work?: {
-   *     value: 工作量
+   *     value: 工作量  0
    *     rank: 排名
    *   }
    *   rate?: {
@@ -404,7 +407,97 @@ export default class AppUser {
    *   checks: []
    * }
    */
-  async hisOverview(area) {
-    return {};
+  @validate(should.string().required(), should.date().required())
+  async hisOverview(area, month) {
+    const staffId = Context.current.user.id;
+    // region 工分排名
+
+    const hospitalApi = new HisHospital();
+    // 员工考核结果列表
+    const works = await hospitalApi.findStaffCheckList(month);
+    // 定义初试分数
+    let rankScore = -1;
+    // 预定义排名
+    let rank = 0;
+    // 按照校正前工分排名
+    const checkScores = works
+      .sort((a, b) => b.score - a.score)
+      .map(it => {
+        if (it.score === rankScore) {
+          return {
+            ...it,
+            rank: rank
+          };
+        } else {
+          rank++;
+          rankScore = it.score;
+          return {
+            ...it,
+            rank: rank
+          };
+        }
+      });
+    // 查找此员工矫正前工分
+    const scoreFind = checkScores.find(it => it.id === staffId);
+
+    // 初始化分数
+    rankScore = -1;
+    // 初始化排名
+    rank = 0;
+    // 按照质量系数排名
+    const checkRates = works
+      .sort((a, b) => b.rate - a.rate)
+      .map(it => {
+        if (it.rate === rankScore) {
+          return {
+            ...it,
+            rank: rank
+          };
+        } else {
+          rank++;
+          rankScore = it.rate;
+          return {
+            ...it,
+            rank: rank
+          };
+        }
+      });
+    // 查找此员工占比
+    const rateFind = checkRates.find(it => it.id === staffId);
+    // endregion
+
+    // 实例化hisStaff接口
+    const staffApi = new HisStaff();
+    // 获取员工公分项详情
+    const workItems = await staffApi.findWorkScoreList(staffId, month, area);
+
+    let checkList;
+    try {
+      // 获取考核方案
+      const checks = await staffApi.staffCheck(staffId, month, area);
+      checkList = checks?.automations.concat(checks.manuals);
+    } catch (e) {
+      checkList = [];
+    }
+    return {
+      work: scoreFind
+        ? {
+            value: scoreFind.score,
+            rank: scoreFind.rank
+          }
+        : null,
+      rate: rateFind
+        ? {
+            value: rateFind.rate,
+            rank: rateFind.rank
+          }
+        : null,
+      items: workItems.items.map(it => ({
+        id: it?.id,
+        name: it?.name,
+        value: it?.score
+      })),
+      checks: checkList
+    };
   }
 }
