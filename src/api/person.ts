@@ -3338,7 +3338,6 @@ export default class Person {
         where year = ?
           and id = ?
           and name = ?
-        order by created_at, content
       `,
       year,
       id,
