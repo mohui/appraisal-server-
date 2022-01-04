@@ -12,6 +12,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       'title.ac',
       'register.ac',
       'AppUser/validPhone.ac', //app用户手机号码验证
+      'AppUser/sendSMS.ac', //app短信验证码发送
       'AppUser/register.ac' //app用户注册
     ].some(it => ctx.req.url.endsWith(it))
   ) {
