@@ -367,6 +367,7 @@ export default class AppUser {
    * 公卫概览
    *
    * @param area 机构编码
+   * @param year 年份
    * @return {
    *   name: 名称
    *   workpoints?: 参与校正工分
@@ -379,7 +380,8 @@ export default class AppUser {
    *   }]
    * }
    */
-  async phOverview(area) {
+  @validate(should.string().required(), should.number().required())
+  async phOverview(area, year) {
     return {};
   }
 
