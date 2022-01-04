@@ -1195,20 +1195,26 @@ export default class AppArea {
         .string()
         .required()
         .allow(''),
-      keyword: should.string().allow(null),
-      doctor: should.string().allow(null),
+      keyword: should.string().allow(null, ''),
+      doctor: should.string().allow(null, ''),
       tags: should
         .array()
         .items(
           should.object({
-            id: should
-              .string()
-              .required()
-              .not(''),
+            id: should.string().required(),
             value: should.required()
           })
         )
-        .required(),
+        .allow(null, []),
+      crowd: should
+        .array()
+        .items(
+          should.object({
+            id: should.string().required(),
+            value: should.required()
+          })
+        )
+        .allow(null, []),
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       year: should.number().allow(null)
@@ -1216,9 +1222,15 @@ export default class AppArea {
   )
   async archives(params) {
     const tagsObject = {};
-    params.tags.map(tag => {
-      tagsObject[tag.id] = tag.value;
-    });
+    if (params.tags)
+      params.tags.map(tag => {
+        tagsObject[tag.id] = tag.value;
+      });
+    const crowdObject = {};
+    if (params.crowd)
+      params.crowd.map(c => {
+        crowdObject[c.id] = c.value;
+      });
     const {count, rows} = await new Person().list({
       region: params.area,
       keyword: params.keyword,
@@ -1226,7 +1238,8 @@ export default class AppArea {
       tags: tagsObject,
       pageSize: params.pageSize,
       pageNo: params.pageNo,
-      year: params.year
+      year: params.year,
+      crowd: crowdObject
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];

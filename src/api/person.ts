@@ -320,7 +320,8 @@ export default class Person {
       tags: should
         .object()
         .required()
-        .allow([]),
+        .allow({}),
+      crowd: should.object().allow({}),
       include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
@@ -347,7 +348,8 @@ export default class Person {
       personOr = false,
       documentOr = false,
       year = dayjs().year(),
-      doctor
+      doctor,
+      crowd
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
@@ -376,7 +378,8 @@ export default class Person {
       documentOr,
       year,
       keyword,
-      doctor
+      doctor,
+      ...crowd
     });
     const count = (
       await originalDB.execute(
@@ -3337,6 +3340,7 @@ export default class Person {
         where year = ?
           and id = ?
           and name = ?
+        order by created_at, content
       `,
       year,
       id,
