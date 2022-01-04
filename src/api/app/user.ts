@@ -6,7 +6,7 @@ import {v4 as uuid} from 'uuid';
 import {appDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
-
+import SystemArea from '../group/system_area';
 /**
  * 手机号码参数校验
  */
@@ -370,19 +370,33 @@ export default class AppUser {
    * @param year 年份
    * @return {
    *   name: 名称
-   *   workpoints?: 参与校正工分
+   *   workPoints?: 参与校正工分
    *   rate?: 质量系数
    *   date: 更新时间
    *   people: [{
    *     id: 人群分类编码
    *     name: 人群名称
-   *     amount: 不规范人数
+   *     amount: 不规范人数,
+   *     tags: [{
+   *       id: 对应人员指标
+   *       name: 档案问题
+   *     }]
    *   }]
    * }
    */
   @validate(should.string().required(), should.number().required())
   async phOverview(area, year) {
-    return {};
+    // 实例化
+    const SystemAreaApi = new SystemArea();
+    // 调用total接口,获取机构公分等信息
+    const total = await SystemAreaApi.total(area, year);
+    return {
+      name: total.name,
+      workPoints: total.workPoint,
+      rate: total.rate,
+      date: new Date(),
+      people: []
+    };
   }
 
   /**
