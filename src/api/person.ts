@@ -247,7 +247,7 @@ function listRender(params) {
              left join mark_person mp on mp.id = vp.id and mp.year = {{? year}}
              inner join area on vp.adminorganization = area.code
              left join ph_user pu on pu.id = vp.operatorId
-             left join ph_dict pd_sex on pd_sex.category = '001' and vp.gender = pd_sex.code
+             left join ph_dict pd_sex on pd_sex.category = '001' and vp.sex = pd_sex.code
       where 1 = 1
         and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
