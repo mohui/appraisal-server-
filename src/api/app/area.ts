@@ -213,21 +213,6 @@ export default class AppArea {
                     .map(async tag => {
                       // eslint-disable-next-line @typescript-eslint/camelcase
                       let correct_score = 0;
-                      // eslint-disable-next-line @typescript-eslint/camelcase
-                      const algorithm_name =
-                        tag.algorithm === TagAlgorithmUsages.empty.code
-                          ? TagAlgorithmUsages.empty.name
-                          : tag.algorithm === TagAlgorithmUsages.Y01.code
-                          ? TagAlgorithmUsages.Y01.name
-                          : tag.algorithm === TagAlgorithmUsages.N01.code
-                          ? TagAlgorithmUsages.N01.name
-                          : tag.algorithm === TagAlgorithmUsages.egt.code
-                          ? TagAlgorithmUsages.egt.name
-                          : tag.algorithm === TagAlgorithmUsages.elt.code
-                          ? TagAlgorithmUsages.elt.name
-                          : tag.algorithm === TagAlgorithmUsages.attach.code
-                          ? TagAlgorithmUsages.attach.name
-                          : null;
                       const auto =
                         ruleAreaScores.filter(
                           ras => ras.area === area && ras.rule === tag.rule
@@ -1022,12 +1007,15 @@ export default class AppArea {
                       }
                       return {
                         id: tag.tag,
-                        name: tag.tag_name,
+                        name: MarkTagUsages[tag.tag].name,
                         value:
                           tags.filter(t => t.id === tag.tag)[0]?.value ?? false,
                         auto,
+                        algorithm: tag.algorithm,
                         // eslint-disable-next-line @typescript-eslint/camelcase
-                        algorithm_name,
+                        algorithm_name: TagAlgorithmUsages[tag.algorithm].name,
+                        baseline: tag.baseline,
+                        score: tag.score,
                         // eslint-disable-next-line @typescript-eslint/camelcase
                         correct_score
                       };
