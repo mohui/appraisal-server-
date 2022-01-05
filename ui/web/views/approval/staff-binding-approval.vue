@@ -79,7 +79,11 @@
       <el-table-column prop="status" label="状态"> </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
-          <el-tooltip content="通过" :enterable="false">
+          <el-tooltip
+            v-if="scope.row.status === status.PENDING"
+            content="通过"
+            :enterable="false"
+          >
             <el-button
               type="primary"
               icon="el-icon-check"
@@ -89,7 +93,11 @@
             >
             </el-button>
           </el-tooltip>
-          <el-tooltip content="拒绝" :enterable="false">
+          <el-tooltip
+            v-if="scope.row.status === status.PENDING"
+            content="拒绝"
+            :enterable="false"
+          >
             <el-button
               type="danger"
               icon="el-icon-close"
@@ -112,6 +120,7 @@ export default {
   name: 'StaffBindingApproval',
   data() {
     return {
+      status: RequestStatus,
       statusList: [
         {value: null, label: '全部'},
         ...Object.values(RequestStatus).map(it => ({value: it, label: it}))
@@ -160,6 +169,7 @@ export default {
           type: 'success',
           message: '通过申请!'
         });
+        this.$asyncComputed.serverData.update();
       } catch (e) {
         this.$message.error(e.message);
       }
@@ -180,6 +190,7 @@ export default {
               type: 'success',
               message: '已经拒绝申请!'
             });
+            this.$asyncComputed.serverData.update();
           } catch (e) {
             this.$message.error(e.message);
           }
