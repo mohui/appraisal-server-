@@ -392,7 +392,7 @@ export default class AppUser {
    * @param month 时间
    * @return {
    *   work?: {
-   *     value: 工作量  0
+   *     value: 工作量
    *     rank: 排名
    *   }
    *   rate?: {
@@ -415,7 +415,7 @@ export default class AppUser {
     const hospitalApi = new HisHospital();
     // 员工考核结果列表
     const works = await hospitalApi.findStaffCheckList(month);
-    // 定义初试分数
+    // 定义初始分数
     let rankScore = -1;
     // 预定义排名
     let rank = 0;
