@@ -404,7 +404,11 @@ export default class AppUser {
    *     name: 名称
    *     value: 工作量
    *   }],
-   *   checks: []
+   *   checks: [{
+   *     name: 方案名称,
+   *     staffScore: 员工得分,
+   *     score: 总分
+   *   }]
    * }
    */
   @validate(should.string().required(), should.date().required())
@@ -471,14 +475,18 @@ export default class AppUser {
     // 获取员工公分项详情
     const workItems = await staffApi.findWorkScoreList(staffId, month, area);
 
-    let checkList;
+    let checks = null;
     try {
       // 获取考核方案
-      const checks = await staffApi.staffCheck(staffId, month, area);
-      checkList = checks?.automations.concat(checks.manuals);
+      checks = await staffApi.staffCheck(staffId, month, area);
     } catch (e) {
-      checkList = [];
+      // 考核方案异常不处理
     }
+    const checkList = [
+      ...(checks?.automations ?? []),
+      ...(checks?.manuals ?? [])
+    ];
+
     return {
       work: scoreFind
         ? {
