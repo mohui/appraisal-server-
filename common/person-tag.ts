@@ -291,19 +291,19 @@ export const documentTagList = [
   {
     id: 'CO01',
     name: '其他慢病管理不规范',
-    crowd: 'C04',
+    crowd: 'C11',
     value: false
   },
   {
     id: 'MCH01',
     name: '孕早期管理不规范',
-    crowd: 'C07',
+    crowd: 'C04',
     value: false
   },
   {
     id: 'MCH02',
     name: '产后健康管理不规范',
-    crowd: 'C07',
+    crowd: 'C04',
     value: false
   }
 ];
