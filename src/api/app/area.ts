@@ -67,6 +67,7 @@ export default class AppArea {
    *
    * 目前只考虑机构
    * @param area 地区编码
+   * @param year 数据年份
    * @return 考核体系下的指标得分列表 [{
    *   id: 考核项编号,
    *   name: 考核项名称,
@@ -82,12 +83,8 @@ export default class AppArea {
    *   }]
    * }]
    */
-  @validate(should.string().required())
-  async indicators(area) {
-    /**
-     * 默认查询当前年份
-     */
-    const year = getYear(null);
+  @validate(should.string().required(), should.number().allow(null))
+  async indicators(area, year) {
     /**
      * 机构当前年度考核规则
      */
@@ -102,7 +99,7 @@ export default class AppArea {
             and s.check_year = ?
         `,
         area,
-        year
+        year ?? getYear(null)
       )
     )[0];
     if (!checkSystem) return [];
@@ -159,7 +156,7 @@ export default class AppArea {
           and year = ?
       `,
       area,
-      year
+      year ?? getYear(null)
     );
     /**
      * 机构标记数据
@@ -174,7 +171,7 @@ export default class AppArea {
             and year = ?
         `,
         area,
-        year
+        year ?? getYear(null)
       )
     )[0];
     const tags = await this.tags();
