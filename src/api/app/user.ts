@@ -379,8 +379,8 @@ export default class AppUser {
    *     name: 人群名称
    *     amount: 不规范人数,
    *     tags: [{
-   *       id: 对应人员指标
-   *       name: 档案问题
+   *       id: 对应指标
+   *       value: true(规范)/false(不规范)
    *     }]
    *   }]
    * }
@@ -392,34 +392,138 @@ export default class AppUser {
     // 调用total接口,获取机构公分等信息
     const total = await SystemAreaApi.total(area, year);
     // 智慧公卫人群列表
-    const markPersons = await originalDB.execute(
-      // language=PostgreSQL
-      `
-        select sum(case when ("O00" = false or "O02" = false) and "C01" = true then 1 else 0 end) as 老年人,
-               sum(case
-                     when ("H00" = false or "H01" = false or "H02" = false) and mp."C02" = true then 1
-                     else 0 end)                                                                  as 高血压患者,
-               sum(case
-                     when ("D00" = false or "D01" = false or "D02" = false) and mp."C03" = true then 1
-                     else 0 end)                                                                  as 糖尿病患者,
-               sum(case when "CH01" = false and mp."C13" = true then 1 else 0 end)                as 高危人群,
-               sum(case when "CO01" = false and mp."C11" = true then 1 else 0 end)                as 其他慢病患者,
-               sum(case
-                     when ("MCH01" = false or "MCH02" = false) and mp."C04" = true then 1
-                     else 0 end)                                                                  as 孕产妇人群
-        from ph_person vp
-               left join mark_person mp on mp.id = vp.id and mp.year = ?
-        where vp.adminorganization = ?
-      `,
-      year,
-      area
-    );
+    const markPersons: {
+      C01: number;
+      C02: number;
+      C03: number;
+      C13: number;
+      C11: number;
+      C04: number;
+    } = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select sum(case when ("O00" = false or "O02" = false) and "C01" = true then 1 else 0 end) as "C01",
+                 sum(case
+                       when ("H00" = false or "H01" = false or "H02" = false) and mp."C02" = true then 1
+                       else 0 end)                                                                  as "C02",
+                 sum(case
+                       when ("D00" = false or "D01" = false or "D02" = false) and mp."C03" = true then 1
+                       else 0 end)                                                                  as "C03",
+                 sum(case when "CH01" = false and mp."C13" = true then 1 else 0 end)                as "C13",
+                 sum(case when "CO01" = false and mp."C11" = true then 1 else 0 end)                as "C11",
+                 sum(case
+                       when ("MCH01" = false or "MCH02" = false) and mp."C04" = true then 1
+                       else 0 end)                                                                  as "C04"
+          from ph_person vp
+                 left join mark_person mp on mp.id = vp.id and mp.year = ?
+          where vp.adminorganization = ?
+        `,
+        year,
+        area
+      )
+    )[0];
     return {
       name: total.name,
       workPoints: total.workPoint,
       rate: total.rate,
-      date: new Date(),
-      people: []
+      date: dayjs()
+        .set('h', 3)
+        .set('m', 0)
+        .set('s', 0)
+        .toDate(),
+      people: [
+        {
+          id: 'CO1',
+          name: '老年人',
+          amount: markPersons.C01,
+          tags: [
+            {
+              id: 'O00',
+              value: false
+            },
+            {
+              id: 'O02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C02',
+          name: '高血压患者',
+          amount: markPersons.C02,
+          tags: [
+            {
+              id: 'H00',
+              value: false
+            },
+            {
+              id: 'H01',
+              value: false
+            },
+            {
+              id: 'H02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C03',
+          name: '糖尿病患者',
+          amount: markPersons.C03,
+          tags: [
+            {
+              id: 'D00',
+              value: false
+            },
+            {
+              id: 'D01',
+              value: false
+            },
+            {
+              id: 'D02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C13',
+          name: '高危人群',
+          amount: markPersons.C13,
+          tags: [
+            {
+              id: 'CH01',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C11',
+          name: '其他慢病患者',
+          amount: markPersons.C11,
+          tags: [
+            {
+              id: 'CO01',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C04',
+          name: '孕产妇人群',
+          amount: markPersons.C04,
+          tags: [
+            {
+              id: 'MCH01',
+              value: false
+            },
+            {
+              id: 'MCH02',
+              value: false
+            }
+          ]
+        }
+      ]
     };
   }
 
