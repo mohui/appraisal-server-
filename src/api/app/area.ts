@@ -240,8 +240,6 @@ export default class AppArea {
                             basicTagData.filter(
                               bd => bd.code === BasicTagUsages.DocPeople
                             )[0]?.value ?? 0;
-                          console.log(basicData);
-                          console.log(markData?.S00);
                           // 根据指标算法, 计算得分
                           if (
                             tag.algorithm === TagAlgorithmUsages.Y01.code &&
