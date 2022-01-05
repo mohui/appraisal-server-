@@ -117,7 +117,7 @@ export default {
         ...Object.values(RequestStatus).map(it => ({value: it, label: it}))
       ],
       searchForm: {
-        name: '',
+        name: null,
         status: null
       }
     };
