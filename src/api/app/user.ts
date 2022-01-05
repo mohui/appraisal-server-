@@ -7,6 +7,7 @@ import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
 import SystemArea from '../group/system_area';
+import Decimal from 'decimal.js';
 
 /**
  * 手机号码参数校验
@@ -436,7 +437,7 @@ export default class AppUser {
         {
           id: 'CO1',
           name: '老年人',
-          amount: markPersons.C01,
+          amount: new Decimal(markPersons.C01).toNumber(),
           tags: [
             {
               id: 'O00',
@@ -451,7 +452,7 @@ export default class AppUser {
         {
           id: 'C02',
           name: '高血压患者',
-          amount: markPersons.C02,
+          amount: new Decimal(markPersons.C02).toNumber(),
           tags: [
             {
               id: 'H00',
@@ -470,7 +471,7 @@ export default class AppUser {
         {
           id: 'C03',
           name: '糖尿病患者',
-          amount: markPersons.C03,
+          amount: new Decimal(markPersons.C03).toNumber(),
           tags: [
             {
               id: 'D00',
@@ -489,7 +490,7 @@ export default class AppUser {
         {
           id: 'C13',
           name: '高危人群',
-          amount: markPersons.C13,
+          amount: new Decimal(markPersons.C13).toNumber(),
           tags: [
             {
               id: 'CH01',
@@ -500,7 +501,7 @@ export default class AppUser {
         {
           id: 'C11',
           name: '其他慢病患者',
-          amount: markPersons.C11,
+          amount: new Decimal(markPersons.C11).toNumber(),
           tags: [
             {
               id: 'CO01',
@@ -511,7 +512,7 @@ export default class AppUser {
         {
           id: 'C04',
           name: '孕产妇人群',
-          amount: markPersons.C04,
+          amount: new Decimal(markPersons.C04).toNumber(),
           tags: [
             {
               id: 'MCH01',
