@@ -1,4 +1,3 @@
-import {getYear} from '../group/system_area';
 import {should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../../common/rule-score';
 import Decimal from 'decimal.js';
 import Person from '../person';
+import {documentTagList} from '../../../common/person-tag';
 
 /**
  * App机构模块
@@ -67,12 +67,14 @@ export default class AppArea {
    *
    * 目前只考虑机构
    * @param area 地区编码
+   * @param year 数据年份
    * @return 考核体系下的指标得分列表 [{
-   *   rule_id: 考核项编号,
-   *   rule_name: 考核项名称,
+   *   id: 考核项编号,
+   *   name: 考核项名称,
    *   tags: [{
-   *      tag: 对应指标编码,
-   *      tag_name: 对应指标名称,
+   *      id: 对应指标编码,
+   *      name: 对应指标名称,
+   *      value: 指标检索值,
    *      algorithm: 计算方式编码,
    *      algorithm_name: 计算方式解释,
    *      baseline: 指标值,
@@ -81,12 +83,8 @@ export default class AppArea {
    *   }]
    * }]
    */
-  @validate(should.string().required())
-  async indicators(area) {
-    /**
-     * 默认查询当前年份
-     */
-    const year = getYear(null);
+  @validate(should.string().required(), should.number().required())
+  async indicators(area, year) {
     /**
      * 机构当前年度考核规则
      */
@@ -176,6 +174,7 @@ export default class AppArea {
         year
       )
     )[0];
+    const tags = await this.tags();
     return (
       await Promise.all(
         checkRules
@@ -184,11 +183,11 @@ export default class AppArea {
           .map(async rule => {
             return {
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_id: rule.rule_id,
+              id: rule.rule_id,
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_name: rule.rule_name,
+              name: rule.rule_name,
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_score: checkRules
+              score: checkRules
                 .filter(r => r.parent_rule_id === rule.rule_id)
                 .reduce(
                   (result, current) => Decimal.add(result, current.rule_score),
@@ -213,21 +212,6 @@ export default class AppArea {
                     .map(async tag => {
                       // eslint-disable-next-line @typescript-eslint/camelcase
                       let correct_score = 0;
-                      // eslint-disable-next-line @typescript-eslint/camelcase
-                      const algorithm_name =
-                        tag.algorithm === TagAlgorithmUsages.empty.code
-                          ? TagAlgorithmUsages.empty.name
-                          : tag.algorithm === TagAlgorithmUsages.Y01.code
-                          ? TagAlgorithmUsages.Y01.name
-                          : tag.algorithm === TagAlgorithmUsages.N01.code
-                          ? TagAlgorithmUsages.N01.name
-                          : tag.algorithm === TagAlgorithmUsages.egt.code
-                          ? TagAlgorithmUsages.egt.name
-                          : tag.algorithm === TagAlgorithmUsages.elt.code
-                          ? TagAlgorithmUsages.elt.name
-                          : tag.algorithm === TagAlgorithmUsages.attach.code
-                          ? TagAlgorithmUsages.attach.name
-                          : null;
                       const auto =
                         ruleAreaScores.filter(
                           ras => ras.area === area && ras.rule === tag.rule
@@ -240,8 +224,6 @@ export default class AppArea {
                             basicTagData.filter(
                               bd => bd.code === BasicTagUsages.DocPeople
                             )[0]?.value ?? 0;
-                          console.log(basicData);
-                          console.log(markData?.S00);
                           // 根据指标算法, 计算得分
                           if (
                             tag.algorithm === TagAlgorithmUsages.Y01.code &&
@@ -1023,10 +1005,16 @@ export default class AppArea {
                         }
                       }
                       return {
-                        ...tag,
+                        id: tag.tag,
+                        name: MarkTagUsages[tag.tag].name,
+                        value:
+                          tags.filter(t => t.id === tag.tag)[0]?.value ?? false,
                         auto,
+                        algorithm: tag.algorithm,
                         // eslint-disable-next-line @typescript-eslint/camelcase
-                        algorithm_name,
+                        algorithm_name: TagAlgorithmUsages[tag.algorithm].name,
+                        baseline: tag.baseline,
+                        score: tag.score,
                         // eslint-disable-next-line @typescript-eslint/camelcase
                         correct_score
                       };
@@ -1045,72 +1033,12 @@ export default class AppArea {
    * @return 考核体系下的指标得分列表 [{
    *   id: 问题标签编码,
    *   name: 问题标签名称,
+   *   crowd: 所属人群,
    *   value: 问题标签的检索值,
    *   }]
    */
   async tags() {
-    return [
-      {
-        id: 'S03',
-        name: '非动态使用',
-        value: false
-      },
-      {
-        id: 'S23',
-        name: '个人基本信息填写不规范',
-        value: false
-      },
-      {
-        id: 'O00',
-        name: '老年人健康管理不规范',
-        value: false
-      },
-      {
-        id: 'O02',
-        name: '无老年人中医药管理',
-        value: false
-      },
-      {
-        id: 'H00',
-        name: '未接受高血压管理',
-        value: false
-      },
-      {
-        id: 'H01',
-        name: '高血压管理不规范',
-        value: false
-      },
-      {
-        id: 'H02',
-        name: '高血压未控制',
-        value: false
-      },
-      {
-        id: 'D00',
-        name: '未接受糖尿病管理',
-        value: false
-      },
-      {
-        id: 'D01',
-        name: '糖尿病管理不规范',
-        value: false
-      },
-      {
-        id: 'D02',
-        name: '糖尿病未控制',
-        value: false
-      },
-      {
-        id: 'CH01',
-        name: '高危人群管理不规范',
-        value: false
-      },
-      {
-        id: 'CO01',
-        name: '其他慢病管理不规范',
-        value: false
-      }
-    ];
+    return documentTagList;
   }
 
   /**
@@ -1219,7 +1147,7 @@ export default class AppArea {
         .allow(null, []),
       pageSize: should.number().required(),
       pageNo: should.number().required(),
-      year: should.number().allow(null)
+      year: should.number().required()
     })
   )
   async archives(params) {
@@ -1254,7 +1182,7 @@ export default class AppArea {
           where year = ?
             and id in (${rows.map(() => '?')})
         `,
-        params.year ?? getYear(null),
+        params.year,
         ...rows.map(p => p.id)
       );
     return {
