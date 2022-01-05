@@ -68,11 +68,12 @@ export default class AppArea {
    * 目前只考虑机构
    * @param area 地区编码
    * @return 考核体系下的指标得分列表 [{
-   *   rule_id: 考核项编号,
-   *   rule_name: 考核项名称,
+   *   id: 考核项编号,
+   *   name: 考核项名称,
    *   tags: [{
-   *      tag: 对应指标编码,
-   *      tag_name: 对应指标名称,
+   *      id: 对应指标编码,
+   *      name: 对应指标名称,
+   *      value: 指标检索值,
    *      algorithm: 计算方式编码,
    *      algorithm_name: 计算方式解释,
    *      baseline: 指标值,
@@ -176,6 +177,7 @@ export default class AppArea {
         year
       )
     )[0];
+    const tags = await this.tags();
     return (
       await Promise.all(
         checkRules
@@ -184,11 +186,11 @@ export default class AppArea {
           .map(async rule => {
             return {
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_id: rule.rule_id,
+              id: rule.rule_id,
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_name: rule.rule_name,
+              name: rule.rule_name,
               // eslint-disable-next-line @typescript-eslint/camelcase
-              rule_score: checkRules
+              score: checkRules
                 .filter(r => r.parent_rule_id === rule.rule_id)
                 .reduce(
                   (result, current) => Decimal.add(result, current.rule_score),
@@ -1023,7 +1025,10 @@ export default class AppArea {
                         }
                       }
                       return {
-                        ...tag,
+                        id: tag.tag,
+                        name: tag.tag_name,
+                        value:
+                          tags.filter(t => t.id === tag.tag)[0]?.value ?? false,
                         auto,
                         // eslint-disable-next-line @typescript-eslint/camelcase
                         algorithm_name,
