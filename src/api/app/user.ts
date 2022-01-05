@@ -3,10 +3,11 @@ import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
-import {appDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
 import SystemArea from '../group/system_area';
+
 /**
  * 手机号码参数校验
  */
@@ -390,6 +391,29 @@ export default class AppUser {
     const SystemAreaApi = new SystemArea();
     // 调用total接口,获取机构公分等信息
     const total = await SystemAreaApi.total(area, year);
+    // 智慧公卫人群列表
+    const markPersons = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select sum(case when ("O00" = false or "O02" = false) and "C01" = true then 1 else 0 end) as 老年人,
+               sum(case
+                     when ("H00" = false or "H01" = false or "H02" = false) and mp."C02" = true then 1
+                     else 0 end)                                                                  as 高血压患者,
+               sum(case
+                     when ("D00" = false or "D01" = false or "D02" = false) and mp."C03" = true then 1
+                     else 0 end)                                                                  as 糖尿病患者,
+               sum(case when "CH01" = false and mp."C13" = true then 1 else 0 end)                as 高危人群,
+               sum(case when "CO01" = false and mp."C11" = true then 1 else 0 end)                as 其他慢病患者,
+               sum(case
+                     when ("MCH01" = false or "MCH02" = false) and mp."C04" = true then 1
+                     else 0 end)                                                                  as 孕产妇人群
+        from ph_person vp
+               left join mark_person mp on mp.id = vp.id and mp.year = ?
+        where vp.adminorganization = ?
+      `,
+      year,
+      area
+    );
     return {
       name: total.name,
       workPoints: total.workPoint,
