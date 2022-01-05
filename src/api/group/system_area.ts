@@ -1240,11 +1240,32 @@ export async function getReportBuffer(code, year) {
 
   // 实例化导出方法
   const workBook = new Workbook();
+  // 把所有的sheet名字放到数组中,为了避免重复
+  const sheetNames = [];
   // 把每一个考核结果导入到一个sheet中
   for (const checkDetail of checkGroups) {
-    //开始创建Excel表格[设置sheet的名称]
-    const workSheet = workBook.addWorksheet(`${checkDetail.name}考核结果`);
+    let sheetName = checkDetail.name.substr(0, 25);
+    // 查找是否有重复
+    const sheetFind = sheetNames.findIndex(sheetIt => sheetIt === sheetName);
+    // 如果有重复的,需要查找有几个重复的,在后面补上(1)
+    if (sheetFind > -1) {
+      // 定义一个初始值i, 循环sheet名称数组,有几个重复的补充(n)
+      let i = 1;
+      for (let j = 0; j < sheetNames.length; j++) {
+        const sheetName1 = `${sheetName}(${i})`;
+        const sheetFind1 = sheetNames.findIndex(
+          sheetIt => sheetIt === sheetName1
+        );
+        if (sheetFind1 > -1) i++;
+        else {
+          sheetName = sheetName1;
+          break;
+        }
+      }
+    }
+    sheetNames.push(sheetName);
 
+    const workSheet = workBook.addWorksheet(`${sheetName}`);
     // 定义第一行的内容数组[小项标题]
     const firstRow = [''];
     // 定义第二行的内容数组[细则标题]
