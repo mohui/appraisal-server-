@@ -1,4 +1,3 @@
-import {getYear} from '../group/system_area';
 import {should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
 import {
@@ -84,7 +83,7 @@ export default class AppArea {
    *   }]
    * }]
    */
-  @validate(should.string().required(), should.number().allow(null))
+  @validate(should.string().required(), should.number().required())
   async indicators(area, year) {
     /**
      * 机构当前年度考核规则
@@ -100,7 +99,7 @@ export default class AppArea {
             and s.check_year = ?
         `,
         area,
-        year ?? getYear(null)
+        year
       )
     )[0];
     if (!checkSystem) return [];
@@ -157,7 +156,7 @@ export default class AppArea {
           and year = ?
       `,
       area,
-      year ?? getYear(null)
+      year
     );
     /**
      * 机构标记数据
@@ -172,7 +171,7 @@ export default class AppArea {
             and year = ?
         `,
         area,
-        year ?? getYear(null)
+        year
       )
     )[0];
     const tags = await this.tags();
@@ -1148,7 +1147,7 @@ export default class AppArea {
         .allow(null, []),
       pageSize: should.number().required(),
       pageNo: should.number().required(),
-      year: should.number().allow(null)
+      year: should.number().required()
     })
   )
   async archives(params) {
@@ -1183,7 +1182,7 @@ export default class AppArea {
           where year = ?
             and id in (${rows.map(() => '?')})
         `,
-        params.year ?? getYear(null),
+        params.year,
         ...rows.map(p => p.id)
       );
     return {
