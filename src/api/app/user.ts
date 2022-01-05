@@ -3,11 +3,13 @@ import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
-import {appDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
 import HisHospital from '../his/hospital';
 import HisStaff from '../his/staff';
+import SystemArea from '../group/system_area';
+import Decimal from 'decimal.js';
 
 /**
  * 手机号码参数校验
@@ -369,20 +371,163 @@ export default class AppUser {
    * 公卫概览
    *
    * @param area 机构编码
+   * @param year 年份
    * @return {
    *   name: 名称
-   *   workpoints?: 参与校正工分
+   *   workPoints?: 参与校正工分
    *   rate?: 质量系数
    *   date: 更新时间
    *   people: [{
    *     id: 人群分类编码
    *     name: 人群名称
-   *     amount: 不规范人数
+   *     amount: 不规范人数,
+   *     tags: [{
+   *       id: 对应指标
+   *       value: true(规范)/false(不规范)
+   *     }]
    *   }]
    * }
    */
-  async phOverview(area) {
-    return {};
+  @validate(should.string().required(), should.number().required())
+  async phOverview(area, year) {
+    // 实例化
+    const SystemAreaApi = new SystemArea();
+    // 调用total接口,获取机构公分等信息
+    const total = await SystemAreaApi.total(area, year);
+    // 智慧公卫人群列表
+    const markPersons: {
+      C01: number;
+      C02: number;
+      C03: number;
+      C13: number;
+      C11: number;
+      C04: number;
+    } = (
+      await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select sum(case when ("O00" = false or "O02" = false) and "C01" = true then 1 else 0 end) as "C01",
+                 sum(case
+                       when ("H00" = false or "H01" = false or "H02" = false) and mp."C02" = true then 1
+                       else 0 end)                                                                  as "C02",
+                 sum(case
+                       when ("D00" = false or "D01" = false or "D02" = false) and mp."C03" = true then 1
+                       else 0 end)                                                                  as "C03",
+                 sum(case when "CH01" = false and mp."C13" = true then 1 else 0 end)                as "C13",
+                 sum(case when "CO01" = false and mp."C11" = true then 1 else 0 end)                as "C11",
+                 sum(case
+                       when ("MCH01" = false or "MCH02" = false) and mp."C04" = true then 1
+                       else 0 end)                                                                  as "C04"
+          from ph_person vp
+                 left join mark_person mp on mp.id = vp.id and mp.year = ?
+          where vp.adminorganization = ?
+        `,
+        year,
+        area
+      )
+    )[0];
+    return {
+      name: total.name,
+      workPoints: total.workPoint,
+      rate: total.rate,
+      date: dayjs()
+        .set('h', 3)
+        .set('m', 0)
+        .set('s', 0)
+        .toDate(),
+      people: [
+        {
+          id: 'CO1',
+          name: '老年人',
+          amount: new Decimal(markPersons.C01).toNumber(),
+          tags: [
+            {
+              id: 'O00',
+              value: false
+            },
+            {
+              id: 'O02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C02',
+          name: '高血压患者',
+          amount: new Decimal(markPersons.C02).toNumber(),
+          tags: [
+            {
+              id: 'H00',
+              value: false
+            },
+            {
+              id: 'H01',
+              value: false
+            },
+            {
+              id: 'H02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C03',
+          name: '糖尿病患者',
+          amount: new Decimal(markPersons.C03).toNumber(),
+          tags: [
+            {
+              id: 'D00',
+              value: false
+            },
+            {
+              id: 'D01',
+              value: false
+            },
+            {
+              id: 'D02',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C13',
+          name: '高危人群',
+          amount: new Decimal(markPersons.C13).toNumber(),
+          tags: [
+            {
+              id: 'CH01',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C11',
+          name: '其他慢病患者',
+          amount: new Decimal(markPersons.C11).toNumber(),
+          tags: [
+            {
+              id: 'CO01',
+              value: false
+            }
+          ]
+        },
+        {
+          id: 'C04',
+          name: '孕产妇人群',
+          amount: new Decimal(markPersons.C04).toNumber(),
+          tags: [
+            {
+              id: 'MCH01',
+              value: false
+            },
+            {
+              id: 'MCH02',
+              value: false
+            }
+          ]
+        }
+      ]
+    };
   }
 
   /**
