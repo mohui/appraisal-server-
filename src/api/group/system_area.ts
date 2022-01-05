@@ -1241,10 +1241,11 @@ export async function getReportBuffer(code, year) {
   // 实例化导出方法
   const workBook = new Workbook();
   // 把每一个考核结果导入到一个sheet中
+  let i = 1;
   for (const checkDetail of checkGroups) {
     //开始创建Excel表格[设置sheet的名称]
-    const workSheet = workBook.addWorksheet(`${checkDetail.name}考核结果`);
-
+    const workSheet = workBook.addWorksheet(`${i}-${checkDetail.name}考核结果`);
+    i++;
     // 定义第一行的内容数组[小项标题]
     const firstRow = [''];
     // 定义第二行的内容数组[细则标题]
