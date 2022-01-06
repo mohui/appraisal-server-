@@ -216,7 +216,7 @@ export default class AppUser {
       );
       //TODO: 发送短信
 
-      return smsConfig.enabled
+      return !smsConfig.enabled
         ? {
             code,
             counts
