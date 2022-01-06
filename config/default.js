@@ -120,6 +120,18 @@ module.exports = {
     //     }
     //   }
     // },
+    // {
+    //   path: '/pathways', // 临床路径地址
+    //   type: 'local',
+    //   options: {
+    //     base: '/pathway',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/pathway',
+    //       key: 'default'
+    //     }
+    //   }
+    // },
     // 医疗绩效手工数据附件
     // {
     //   path: '/his/manual',
