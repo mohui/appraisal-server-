@@ -341,21 +341,8 @@ export default class AppUser {
   @validate(should.string().required(), passwordValidate, passwordValidate)
   async updatePassword(oldPassword, newPassword, confirmPassword) {
     await appDB.transaction(async () => {
-      const userModels: {
-        id: string;
-        password: string;
-      } = (
-        await appDB.execute(
-          // language=PostgreSQL
-          `
-            select id, password
-            from staff
-            where id = ?
-          `,
-          Context.current.user.id
-        )
-      )[0];
-      if (userModels.password !== oldPassword)
+      // 校验密码是否正确
+      if (Context.current.user.password !== oldPassword)
         throw new KatoCommonError(' 您的旧密码输入错误');
       if (newPassword !== confirmPassword)
         throw new KatoCommonError('您输入的新密码不一致');
@@ -364,11 +351,10 @@ export default class AppUser {
         `
           update staff
           set password   = ?,
-              updated_at = ?
+              updated_at = now()
           where id = ?
         `,
         newPassword,
-        new Date(),
         Context.current.user.id
       );
     });
