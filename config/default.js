@@ -127,7 +127,7 @@ module.exports = {
     //     base: '/pathway',
     //     external: {
     //       baseUrl: 'http://127.0.0.1:3000',
-    //       prefix: '/pathway',
+    //       prefix: '/pathways',
     //       key: 'default'
     //     }
     //   }
