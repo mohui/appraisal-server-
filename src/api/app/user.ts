@@ -1,7 +1,7 @@
 import * as config from 'config';
 import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
@@ -10,6 +10,7 @@ import HisHospital from '../his/hospital';
 import HisStaff from '../his/staff';
 import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
+import {documentTagList} from '../../../common/person-tag';
 
 /**
  * 手机号码参数校验
@@ -409,11 +410,22 @@ export default class AppUser {
    * @return {
    *   id: id
    *   status: 状态
-   *   reason?: 拒绝原因
    * }
    */
+  @validate(should.string().required())
   async getRequest(id) {
-    return {};
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.status
+        from staff_request request
+        where request.id = ?
+      `,
+      id
+    );
+    if (staffRequests.length === 0) throw new KatoRuntimeError('申请id不合法');
+    return staffRequests[0];
   }
 
   /**
@@ -475,107 +487,56 @@ export default class AppUser {
         area
       )
     )[0];
+    const people = [
+      {
+        id: 'C01',
+        name: '老年人',
+        amount: new Decimal(markPersons.C01).toNumber()
+      },
+      {
+        id: 'C02',
+        name: '高血压患者',
+        amount: new Decimal(markPersons.C02).toNumber()
+      },
+      {
+        id: 'C03',
+        name: '糖尿病患者',
+        amount: new Decimal(markPersons.C03).toNumber()
+      },
+      {
+        id: 'C13',
+        name: '高危人群',
+        amount: new Decimal(markPersons.C13).toNumber()
+      },
+      {
+        id: 'C11',
+        name: '其他慢病患者',
+        amount: new Decimal(markPersons.C11).toNumber()
+      },
+      {
+        id: 'C04',
+        name: '孕产妇人群',
+        amount: new Decimal(markPersons.C04).toNumber()
+      }
+    ].map(it => {
+      const tags = documentTagList
+        .filter(tagIt => tagIt.crowd === it.id)
+        .map(tagIt => ({
+          id: tagIt.id,
+          name: tagIt.name,
+          value: tagIt.value
+        }));
+      return {
+        ...it,
+        tags: tags
+      };
+    });
     return {
       name: total.name,
       workPoints: total.workPoint,
       rate: total.rate,
-      date: dayjs()
-        .set('h', 3)
-        .set('m', 0)
-        .set('s', 0)
-        .toDate(),
-      people: [
-        {
-          id: 'CO1',
-          name: '老年人',
-          amount: new Decimal(markPersons.C01).toNumber(),
-          tags: [
-            {
-              id: 'O00',
-              value: false
-            },
-            {
-              id: 'O02',
-              value: false
-            }
-          ]
-        },
-        {
-          id: 'C02',
-          name: '高血压患者',
-          amount: new Decimal(markPersons.C02).toNumber(),
-          tags: [
-            {
-              id: 'H00',
-              value: false
-            },
-            {
-              id: 'H01',
-              value: false
-            },
-            {
-              id: 'H02',
-              value: false
-            }
-          ]
-        },
-        {
-          id: 'C03',
-          name: '糖尿病患者',
-          amount: new Decimal(markPersons.C03).toNumber(),
-          tags: [
-            {
-              id: 'D00',
-              value: false
-            },
-            {
-              id: 'D01',
-              value: false
-            },
-            {
-              id: 'D02',
-              value: false
-            }
-          ]
-        },
-        {
-          id: 'C13',
-          name: '高危人群',
-          amount: new Decimal(markPersons.C13).toNumber(),
-          tags: [
-            {
-              id: 'CH01',
-              value: false
-            }
-          ]
-        },
-        {
-          id: 'C11',
-          name: '其他慢病患者',
-          amount: new Decimal(markPersons.C11).toNumber(),
-          tags: [
-            {
-              id: 'CO01',
-              value: false
-            }
-          ]
-        },
-        {
-          id: 'C04',
-          name: '孕产妇人群',
-          amount: new Decimal(markPersons.C04).toNumber(),
-          tags: [
-            {
-              id: 'MCH01',
-              value: false
-            },
-            {
-              id: 'MCH02',
-              value: false
-            }
-          ]
-        }
-      ]
+      date: dayjs(dayjs().format('YYYY-MM-DD 03:00:00')).toDate(),
+      people: people
     };
   }
 
