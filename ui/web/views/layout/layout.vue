@@ -72,7 +72,11 @@
         </transition>
       </el-main>
     </el-container>
-    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
+    <el-dialog
+      :title="QRDialogTitle"
+      :visible.sync="QRDialogVisible"
+      width="30%"
+    >
       <div>
         <img
           style="width: 245px;margin: 0 auto;display: block;"
@@ -107,6 +111,7 @@ export default {
       timer: null,
       dropdownVisible: false,
       QRDialogVisible: false,
+      QRDialogTitle: '绑定码',
       // 二维码
       QRCode: ''
     };
@@ -170,6 +175,7 @@ export default {
         try {
           // 打开弹窗
           this.QRCode = (await this.$api.User.getQRCode()).image;
+          this.QRDialogTitle = '绑定码';
           this.QRDialogVisible = true;
         } catch (e) {
           this.$message.error(e.message);
@@ -187,6 +193,7 @@ export default {
         try {
           // 打开弹窗
           this.QRCode = (await this.$api.AppArea.invite()).image;
+          this.QRDialogTitle = '机构码';
           this.QRDialogVisible = true;
         } catch (e) {
           this.$message.error(e.message);
