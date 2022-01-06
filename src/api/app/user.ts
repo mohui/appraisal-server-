@@ -373,7 +373,7 @@ export default class AppUser {
    * @param code 验证码
    * @param password 密码
    */
-  @validate(phoneValidate)
+  @validate(phoneValidate, should.string().required(), passwordValidate)
   async updatePhone(phone, code, password) {
     await appDB.transaction(async () => {
       const userModels: {
