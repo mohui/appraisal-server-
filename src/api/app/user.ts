@@ -340,10 +340,10 @@ export default class AppUser {
         await appDB.execute(
           // language=PostgreSQL
           `
-          select id, password
-          from staff
-          where id = ?
-        `,
+            select id, password
+            from staff
+            where id = ?
+          `,
           Context.current.user.id
         )
       )[0];
