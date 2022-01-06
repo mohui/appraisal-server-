@@ -42,7 +42,8 @@ const smsConfig = config.get<{
  * 验证码用途枚举
  */
 enum CodeUsage {
-  register = '注册'
+  Register = '用户注册',
+  UpdatePhone = '更换手机'
 }
 
 /**
@@ -56,6 +57,59 @@ type SMSCodeDBModel = {
   created_at: Date;
   updated_at: Date;
 };
+
+async function smsVerification(code, phone, usage) {
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const AppUserApi = new AppUser();
+  //校验手机是否可用
+  const usable = await AppUserApi.validPhone(phone);
+  if (!usable) {
+    throw new KatoCommonError('该手机号码已被注册');
+  }
+
+  //region 校验验证码
+  const codeModel: SMSCodeDBModel = (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+            select phone, usage, code, created_at, updated_at
+            from sms_code
+            where phone = ?
+              and usage = ?
+              and code = ?
+              for update
+          `,
+      phone,
+      usage,
+      code
+    )
+  )[0];
+  //code是否正确
+  if (!codeModel) throw new KatoCommonError('验证码错误');
+  //检验是否过期
+  if (
+    dayjs()
+      .subtract(smsConfig.expired.value, smsConfig.expired.unit)
+      .isAfter(codeModel.created_at)
+  )
+    throw new KatoCommonError('验证码已过期');
+  //检验验证码是否失效
+  if (codeModel.created_at.getTime() != codeModel.updated_at.getTime())
+    throw new KatoCommonError('验证码已失效');
+  //验证码校验通过, 更新updated_at字段, 表示验证码已失效
+  await appDB.execute(
+    //language=PostgreSQL
+    `
+          update sms_code
+          set updated_at = now()
+          where phone = ?
+            and usage = ?
+        `,
+    codeModel.phone,
+    codeModel.usage
+  );
+  //endregion
+}
 
 /**
  * App用户模块
@@ -197,53 +251,8 @@ export default class AppUser {
   @validate(phoneValidate, should.string().required(), passwordValidate)
   async register(phone, code, password) {
     await appDB.transaction(async () => {
-      //region 校验验证码
-      const codeModel: SMSCodeDBModel = (
-        await appDB.execute(
-          //language=PostgreSQL
-          `
-            select phone, usage, code, created_at, updated_at
-            from sms_code
-            where phone = ?
-              and usage = ?
-              and code = ?
-              for update
-          `,
-          phone,
-          CodeUsage.register,
-          code
-        )
-      )[0];
-      //code是否正确
-      if (!codeModel) throw new KatoCommonError('验证码错误');
-      //检验是否过期
-      if (
-        dayjs()
-          .subtract(smsConfig.expired.value, smsConfig.expired.unit)
-          .isAfter(codeModel.created_at)
-      )
-        throw new KatoCommonError('验证码已过期');
-      //检验验证码是否失效
-      if (codeModel.created_at.getTime() != codeModel.updated_at.getTime())
-        throw new KatoCommonError('验证码已失效');
-      //验证码校验通过, 更新updated_at字段, 表示验证码已失效
-      await appDB.execute(
-        //language=PostgreSQL
-        `
-          update sms_code
-          set updated_at = now()
-          where phone = ?
-            and usage = ?
-        `,
-        codeModel.phone,
-        codeModel.usage
-      );
-      //endregion
-      //校验手机是否可用
-      const usable = await this.validPhone(phone);
-      if (!usable) {
-        throw new KatoCommonError('该手机号码已被注册');
-      }
+      // 校验验证码是否正确,校验手机号是否已经注册
+      await smsVerification(code, phone, CodeUsage.Register);
       //注册用户
       await appDB.execute(
         //language=PostgreSQL
@@ -328,20 +337,60 @@ export default class AppUser {
    *
    * @param oldPassword 旧密码
    * @param newPassword 新密码
+   * @param confirmPassword 确认密码
    */
-  @validate(should.string().required(), passwordValidate)
-  async updatePassword(oldPassword, newPassword) {
-    return;
+  @validate(should.string().required(), passwordValidate, passwordValidate)
+  async updatePassword(oldPassword, newPassword, confirmPassword) {
+    await appDB.transaction(async () => {
+      // 校验密码是否正确
+      if (Context.current.user.password !== oldPassword)
+        throw new KatoCommonError(' 您的旧密码输入错误');
+      if (newPassword !== confirmPassword)
+        throw new KatoCommonError('您输入的新密码不一致');
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set password   = ?,
+              updated_at = now()
+          where id = ?
+        `,
+        newPassword,
+        Context.current.user.id
+      );
+    });
   }
 
   /**
    * 更换手机号码
    *
    * @param phone 手机号码
+   * @param code 验证码
+   * @param password 密码
    */
-  @validate(phoneValidate)
-  async updatePhone(phone) {
-    return;
+  @validate(phoneValidate, should.string().required(), passwordValidate)
+  async updatePhone(phone, code, password) {
+    await appDB.transaction(async () => {
+      // 校验密码是否正确
+      if (Context.current.user.password !== password)
+        throw new KatoCommonError(' 您的密码输入错误');
+
+      // 校验验证码是否正确,校验手机号是否已经注册
+      await smsVerification(code, phone, CodeUsage.UpdatePhone);
+
+      //注册用户
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set phone      = ?,
+              updated_at = now()
+          where id = ?
+        `,
+        phone,
+        Context.current.user.id
+      );
+    });
   }
 
   /**
