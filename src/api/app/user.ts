@@ -339,11 +339,12 @@ export default class AppUser {
   /**
    * 重置密码
    *
-   * @param password 密码
+   * @param phone 手机号
    * @param code 验证码
+   * @param password 密码
    */
-  @validate(passwordValidate)
-  async resetPassword(password, code) {
+  @validate(phoneValidate, should.string().required(), passwordValidate)
+  async resetPassword(phone, code, password) {
     return;
   }
 
