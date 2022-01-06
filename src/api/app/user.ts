@@ -58,11 +58,22 @@ type SMSCodeDBModel = {
   updated_at: Date;
 };
 
+async function validPhone(phone): Promise<boolean> {
+  //language=PostgreSQL
+  const userModels = await appDB.execute(
+    `
+        select 1
+        from staff
+        where phone = ?
+      `,
+    phone
+  );
+  return userModels.length == 0;
+}
+
 async function smsVerification(code, phone, usage) {
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const AppUserApi = new AppUser();
   //校验手机是否可用
-  const usable = await AppUserApi.validPhone(phone);
+  const usable = await validPhone(phone);
   if (!usable) {
     throw new KatoCommonError('该手机号码已被注册');
   }
@@ -123,16 +134,7 @@ export default class AppUser {
    */
   @validate(phoneValidate)
   async validPhone(phone): Promise<boolean> {
-    //language=PostgreSQL
-    const userModels = await appDB.execute(
-      `
-        select 1
-        from staff
-        where phone = ?
-      `,
-      phone
-    );
-    return userModels.length == 0;
+    return await validPhone(phone);
   }
 
   /**
