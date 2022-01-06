@@ -43,7 +43,8 @@ const smsConfig = config.get<{
  */
 enum CodeUsage {
   Register = '用户注册',
-  UpdatePhone = '更换手机'
+  UpdatePhone = '更换手机',
+  ResetPassword = '重置密码'
 }
 
 /**
@@ -68,10 +69,10 @@ async function validPhone(phone): Promise<boolean> {
   //language=PostgreSQL
   const userModels = await appDB.execute(
     `
-        select 1
-        from staff
-        where phone = ?
-      `,
+      select 1
+      from staff
+      where phone = ?
+    `,
     phone
   );
   return userModels.length == 0;
@@ -85,12 +86,6 @@ async function validPhone(phone): Promise<boolean> {
  * @param usage 验证码用途
  */
 async function smsVerification(code, phone, usage) {
-  //校验手机是否可用
-  const usable = await validPhone(phone);
-  if (!usable) {
-    throw new KatoCommonError('该手机号码已被注册');
-  }
-
   //region 校验验证码
   const codeModel: SMSCodeDBModel = (
     await appDB.execute(
@@ -266,7 +261,13 @@ export default class AppUser {
   @validate(phoneValidate, should.string().required(), passwordValidate)
   async register(phone, code, password) {
     await appDB.transaction(async () => {
-      // 校验验证码是否正确,校验手机号是否已经注册
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (!usable) {
+        throw new KatoCommonError('该手机号码已被注册');
+      }
+
+      // 校验验证码是否正确
       await smsVerification(code, phone, CodeUsage.Register);
       //注册用户
       await appDB.execute(
@@ -339,12 +340,35 @@ export default class AppUser {
   /**
    * 重置密码
    *
-   * @param password 密码
+   * @param phone 手机号
    * @param code 验证码
+   * @param password 密码
    */
-  @validate(passwordValidate)
-  async resetPassword(password, code) {
-    return;
+  @validate(phoneValidate, should.string().required(), passwordValidate)
+  async resetPassword(phone, code, password) {
+    await appDB.transaction(async () => {
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (usable) {
+        throw new KatoCommonError('手机号码不存在');
+      }
+
+      // 校验验证码是否正确
+      await smsVerification(code, phone, CodeUsage.ResetPassword);
+
+      // 重置密码
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set password   = ?,
+              updated_at = now()
+          where phone = ?
+        `,
+        password,
+        phone
+      );
+    });
   }
 
   /**
@@ -389,6 +413,12 @@ export default class AppUser {
       // 校验密码是否正确
       if (Context.current.user.password !== password)
         throw new KatoCommonError(' 您的密码输入错误');
+
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (!usable) {
+        throw new KatoCommonError('该手机号码已被注册');
+      }
 
       // 校验验证码是否正确,校验手机号是否已经注册
       await smsVerification(code, phone, CodeUsage.UpdatePhone);
