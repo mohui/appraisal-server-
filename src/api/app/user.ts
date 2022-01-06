@@ -327,9 +327,10 @@ export default class AppUser {
    *
    * @param oldPassword 旧密码
    * @param newPassword 新密码
+   * @param confirmPassword 确认密码
    */
-  @validate(should.string().required(), passwordValidate)
-  async updatePassword(oldPassword, newPassword) {
+  @validate(should.string().required(), passwordValidate, passwordValidate)
+  async updatePassword(oldPassword, newPassword, confirmPassword) {
     await appDB.transaction(async () => {
       const userModels: {
         id: string;
@@ -346,7 +347,9 @@ export default class AppUser {
         )
       )[0];
       if (userModels.password !== oldPassword)
-        throw new KatoCommonError('旧密码错误');
+        throw new KatoCommonError(' 您的旧密码输入错误');
+      if (newPassword !== confirmPassword)
+        throw new KatoCommonError('您输入的新密码不一致');
       await appDB.execute(
         // language=PostgreSQL
         `
