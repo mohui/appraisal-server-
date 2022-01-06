@@ -138,5 +138,18 @@ module.exports = {
   // 生成公卫报告定时任务
   generate: {
     cron: ''
+  },
+  //短信服务
+  sms: {
+    enabled: false, //是否启用
+    key: '', //短信服务key
+    secret: '', //短信服务secret
+    //过期策略
+    expired: {
+      value: 2,
+      unit: 'h'
+    },
+    //每日限额
+    limit: 3
   }
 };

@@ -3,6 +3,7 @@ import {KatoRuntimeError, should} from 'kato-server';
 import {getTimeRange} from '../../../common/his';
 import {appDB} from '../../app';
 import {Context} from '../context';
+import {UserType} from '../../../common/user';
 
 //region 时间相关
 /**
@@ -105,13 +106,21 @@ export async function getSettle(id, month): Promise<boolean> {
  * TODO: 苟且方案, 需要和数据权限一同调整
  */
 export async function getHospital(): Promise<string> {
-  if (
-    Context.current.user.hospitals &&
-    Context.current.user.hospitals.length > 1
-  )
-    throw new KatoRuntimeError(`没有查询his员工权限`);
+  // 如果是员工用户, 获取主机构
+  if (Context.current.user.type === UserType.STAFF) {
+    return Context.current.user.hospital?.id;
+  } else if (Context.current.user.type === UserType.ADMIN) {
+    // 如果是地区用户,判断是否是机构用户
+    if (
+      Context.current.user.hospitals &&
+      Context.current.user.hospitals.length > 1
+    )
+      throw new KatoRuntimeError(`没有查询his员工权限`);
 
-  return Context.current.user.hospitals[0]['id'];
+    return Context.current.user.hospitals[0]['id'];
+  } else {
+    throw new KatoRuntimeError(`用户类型未知`);
+  }
 }
 
 //region 类型定义

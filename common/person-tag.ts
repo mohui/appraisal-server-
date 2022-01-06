@@ -218,63 +218,93 @@ export const documentTags = {
 export const documentTagList = [
   {
     id: 'S03',
-    name: '非动态使用'
+    name: '非动态使用',
+    crowd: '',
+    value: false
   },
   {
     id: 'S23',
-    name: '个人基本信息填写不规范'
+    name: '个人基本信息填写不规范',
+    crowd: '',
+    value: false
   },
   {
     id: 'O00',
-    name: '老年人健康管理不规范'
+    name: '老年人健康管理不规范',
+    crowd: 'C01',
+    value: false
   },
   {
     id: 'O02',
-    name: '无老年人中医药管理'
+    name: '无老年人中医药管理',
+    crowd: 'C01',
+    value: false
   },
   {
     id: 'H00',
-    name: '未接受高血压管理'
+    name: '未接受高血压管理',
+    crowd: 'C02',
+    value: false
   },
   {
     id: 'H01',
-    name: '高血压管理不规范'
+    name: '高血压管理不规范',
+    crowd: 'C02',
+    value: false
   },
   {
     id: 'H02',
-    name: '高血压未控制'
+    name: '高血压未控制',
+    crowd: 'C02',
+    value: false
   },
   {
     id: 'D00',
-    name: '未接受糖尿病管理'
+    name: '未接受糖尿病管理',
+    crowd: 'C03',
+    value: false
   },
   {
     id: 'D01',
-    name: '糖尿病管理不规范'
+    name: '糖尿病管理不规范',
+    crowd: 'C03',
+    value: false
   },
   {
     id: 'D02',
-    name: '糖尿病未控制'
+    name: '糖尿病未控制',
+    crowd: 'C03',
+    value: false
   },
   {
     id: 'E00',
-    name: documentTags.E00.label
+    name: documentTags.E00.label,
+    crowd: '',
+    value: true
   },
   {
     id: 'CH01',
-    name: '高危人群管理不规范'
+    name: '高危人群管理不规范',
+    crowd: 'C13',
+    value: false
   },
   {
     id: 'CO01',
-    name: '其他慢病管理不规范'
+    name: '其他慢病管理不规范',
+    crowd: 'C11',
+    value: false
   },
   {
     id: 'MCH01',
-    name: '孕早期管理不规范'
+    name: '孕早期管理不规范',
+    crowd: 'C04',
+    value: false
   },
   {
     id: 'MCH02',
-    name: '产后健康管理不规范'
+    name: '产后健康管理不规范',
+    crowd: 'C04',
+    value: false
   }
 ];
 

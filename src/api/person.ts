@@ -246,11 +246,15 @@ function listRender(params) {
       from ph_person vp
              left join mark_person mp on mp.id = vp.id and mp.year = {{? year}}
              inner join area on vp.adminorganization = area.code
+             left join ph_user pu on pu.id = vp.operatorId
+             left join ph_dict pd_sex on pd_sex.category = '001' and vp.sex = pd_sex.code
       where 1 = 1
         and vp.WriteOff = false
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}
         {{#if idCard}} and vp.idcardno = {{? idCard}}{{/if}}
+        {{#if keyword}} and (vp.idcardno like {{? keyword}} or vp.name like {{? keyword}}){{/if}}
+        {{#if doctor}} and pu.id = {{? doctor}}{{/if}}
         and
           (
             1 = {{#if documentOr}} 0 {{else}} 1 {{/if}}
@@ -317,10 +321,19 @@ export default class Person {
         .object()
         .required()
         .allow([]),
+      crowd: should.object().allow({}),
       include: should.boolean().description('是否包含查询下级机构的个人档案'),
       personOr: should.boolean().description('人群分类是否or查询'),
       documentOr: should.boolean().description('档案问题是否or查询'),
-      year: should.number().allow(null)
+      year: should.number().allow(null),
+      keyword: should
+        .string()
+        .allow('', null)
+        .description('姓名/身份证'),
+      doctor: should
+        .string()
+        .allow('', null)
+        .description('录入医生编号')
     })
   )
   async list(params) {
@@ -332,12 +345,16 @@ export default class Person {
       tags,
       personOr = false,
       documentOr = false,
-      year = dayjs().year()
+      year = dayjs().year(),
+      doctor,
+      crowd
     } = params;
     const limit = pageSize;
     const offset = (pageNo - 1 ?? 0) * limit;
     let {name} = params;
     if (name) name = `%${name}%`;
+    let {keyword} = params;
+    if (keyword) keyword = `%${keyword}%`;
     let hospitals = [];
     //没有选地区,则默认查询当前用户所拥有的机构
     if (!region || region === '')
@@ -357,7 +374,10 @@ export default class Person {
       ...tags,
       personOr,
       documentOr,
-      year
+      year,
+      keyword,
+      doctor,
+      ...crowd
     });
     const count = (
       await originalDB.execute(
@@ -373,6 +393,8 @@ export default class Person {
                vp.idcardno    as "idCard",
                vp.address     as "address",
                vp.sex         as "gender",
+               pd_sex.name    as "genderName",
+               age(now(), vp.birth) as "age",
                vp.phone       as "phone",
                mp."S03",
                mp."S23",
@@ -406,6 +428,8 @@ export default class Person {
                mp.ai_2dm,
                mp.ai_hua,
                mp.year,
+               vp.operatorId  as "operatorId",
+               pu.name        as "operatorName",
                area.name      as "hospitalName",
                vp.operatetime as date
         ${sqlRenderResult[0]}

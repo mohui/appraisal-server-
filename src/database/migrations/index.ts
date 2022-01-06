@@ -52,6 +52,7 @@ import {AddHisWorkItemStepsMigration} from './049_his_work_item_steps';
 import {AddStaffMappingMigration} from './050_add_staff_mapping';
 import {RemoveScoreRemarkHistoryMigration} from './051_remove_score_remark_history';
 import {AddStaffRequest} from './052_add_staff_request';
+import {AddSMS} from './053_add_user_sms';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -107,5 +108,6 @@ export const migrations: IMigration[] = [
   new AddHisWorkItemStepsMigration(),
   new AddStaffMappingMigration(),
   new RemoveScoreRemarkHistoryMigration(),
-  new AddStaffRequest()
+  new AddStaffRequest(),
+  new AddSMS()
 ];
