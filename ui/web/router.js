@@ -295,6 +295,12 @@ const permissionRouter = [
     component: () => import('./views/medical-configuration/work')
   },
   {
+    path: 'staff-binding-approval',
+    name: 'staff-binding-approval',
+    meta: {permission: [Permission.STAFF_BINDING_APPROVAL]},
+    component: () => import('./views/approval/staff-binding-approval')
+  },
+  {
     path: 'medical-configuration-member-his',
     name: 'medical-configuration-member-his',
     meta: {permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS]},

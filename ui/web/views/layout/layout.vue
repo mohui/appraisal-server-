@@ -32,6 +32,7 @@
 
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="QRImage">绑定码</el-dropdown-item>
+            <el-dropdown-item command="QRInstitution">机构码</el-dropdown-item>
             <el-dropdown-item command="profile">个人中心</el-dropdown-item>
             <el-dropdown-item command="logout">退出</el-dropdown-item>
           </el-dropdown-menu>
@@ -71,7 +72,11 @@
         </transition>
       </el-main>
     </el-container>
-    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
+    <el-dialog
+      :title="QRDialogTitle"
+      :visible.sync="QRDialogVisible"
+      width="30%"
+    >
       <div>
         <img
           style="width: 245px;margin: 0 auto;display: block;"
@@ -106,6 +111,7 @@ export default {
       timer: null,
       dropdownVisible: false,
       QRDialogVisible: false,
+      QRDialogTitle: '绑定码',
       // 二维码
       QRCode: ''
     };
@@ -169,6 +175,25 @@ export default {
         try {
           // 打开弹窗
           this.QRCode = (await this.$api.User.getQRCode()).image;
+          this.QRDialogTitle = '绑定码';
+          this.QRDialogVisible = true;
+        } catch (e) {
+          this.$message.error(e.message);
+        } finally {
+          loading.close();
+        }
+      }
+      if (command === 'QRInstitution') {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在生成二维码',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        try {
+          // 打开弹窗
+          this.QRCode = (await this.$api.AppArea.invite()).image;
+          this.QRDialogTitle = '机构码';
           this.QRDialogVisible = true;
         } catch (e) {
           this.$message.error(e.message);

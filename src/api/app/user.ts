@@ -1,7 +1,7 @@
 import * as config from 'config';
 import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
-import {KatoCommonError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
@@ -361,11 +361,22 @@ export default class AppUser {
    * @return {
    *   id: id
    *   status: 状态
-   *   reason?: 拒绝原因
    * }
    */
+  @validate(should.string().required())
   async getRequest(id) {
-    return {};
+    const staffRequests = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.status
+        from staff_request request
+        where request.id = ?
+      `,
+      id
+    );
+    if (staffRequests.length === 0) throw new KatoRuntimeError('申请id不合法');
+    return staffRequests[0];
   }
 
   /**
