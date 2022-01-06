@@ -144,7 +144,11 @@ export default {
     serverData: {
       async get() {
         try {
-          return this.$api.AppArea.requests(this.searchForm);
+          const {name, status} = this.searchForm;
+          return this.$api.AppArea.requests({
+            name: name === '' ? null : name,
+            status
+          });
         } catch (e) {
           console.error(e.message);
         }
@@ -158,7 +162,7 @@ export default {
     //重置查询条件
     reset() {
       this.searchForm = {
-        name: '',
+        name: null,
         status: null
       };
     },
