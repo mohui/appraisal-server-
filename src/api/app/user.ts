@@ -85,12 +85,6 @@ async function validPhone(phone): Promise<boolean> {
  * @param usage 验证码用途
  */
 async function smsVerification(code, phone, usage) {
-  //校验手机是否可用
-  const usable = await validPhone(phone);
-  if (!usable) {
-    throw new KatoCommonError('该手机号码已被注册');
-  }
-
   //region 校验验证码
   const codeModel: SMSCodeDBModel = (
     await appDB.execute(
@@ -266,7 +260,13 @@ export default class AppUser {
   @validate(phoneValidate, should.string().required(), passwordValidate)
   async register(phone, code, password) {
     await appDB.transaction(async () => {
-      // 校验验证码是否正确,校验手机号是否已经注册
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (!usable) {
+        throw new KatoCommonError('该手机号码已被注册');
+      }
+
+      // 校验验证码是否正确
       await smsVerification(code, phone, CodeUsage.Register);
       //注册用户
       await appDB.execute(
@@ -390,6 +390,12 @@ export default class AppUser {
       // 校验密码是否正确
       if (Context.current.user.password !== password)
         throw new KatoCommonError(' 您的密码输入错误');
+
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (!usable) {
+        throw new KatoCommonError('该手机号码已被注册');
+      }
 
       // 校验验证码是否正确,校验手机号是否已经注册
       await smsVerification(code, phone, CodeUsage.UpdatePhone);
