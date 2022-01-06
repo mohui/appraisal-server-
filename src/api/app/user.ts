@@ -68,10 +68,10 @@ async function validPhone(phone): Promise<boolean> {
   //language=PostgreSQL
   const userModels = await appDB.execute(
     `
-        select 1
-        from staff
-        where phone = ?
-      `,
+      select 1
+      from staff
+      where phone = ?
+    `,
     phone
   );
   return userModels.length == 0;
