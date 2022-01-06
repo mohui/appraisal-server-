@@ -330,7 +330,36 @@ export default class AppUser {
    */
   @validate(should.string().required(), passwordValidate)
   async updatePassword(oldPassword, newPassword) {
-    return;
+    await appDB.transaction(async () => {
+      const userModels: {
+        id: string;
+        password: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          select id, password
+          from staff
+          where id = ?
+        `,
+          Context.current.user.id
+        )
+      )[0];
+      if (userModels.password !== oldPassword)
+        throw new KatoCommonError('旧密码错误');
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set password   = ?,
+              updated_at = ?
+          where id = ?
+        `,
+        newPassword,
+        new Date(),
+        Context.current.user.id
+      );
+    });
   }
 
   /**
