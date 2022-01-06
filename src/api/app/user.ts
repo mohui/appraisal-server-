@@ -11,7 +11,6 @@ import HisStaff from '../his/staff';
 import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
 import {documentTagList} from '../../../common/person-tag';
-import {Tag} from 'element-ui';
 
 /**
  * 手机号码参数校验
