@@ -57,6 +57,59 @@ type SMSCodeDBModel = {
   updated_at: Date;
 };
 
+async function smsVerification(code, phone, usage) {
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const AppUserApi = new AppUser();
+  //校验手机是否可用
+  const usable = await AppUserApi.validPhone(phone);
+  if (!usable) {
+    throw new KatoCommonError('该手机号码已被注册');
+  }
+
+  //region 校验验证码
+  const codeModel: SMSCodeDBModel = (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+            select phone, usage, code, created_at, updated_at
+            from sms_code
+            where phone = ?
+              and usage = ?
+              and code = ?
+              for update
+          `,
+      phone,
+      usage,
+      code
+    )
+  )[0];
+  //code是否正确
+  if (!codeModel) throw new KatoCommonError('验证码错误');
+  //检验是否过期
+  if (
+    dayjs()
+      .subtract(smsConfig.expired.value, smsConfig.expired.unit)
+      .isAfter(codeModel.created_at)
+  )
+    throw new KatoCommonError('验证码已过期');
+  //检验验证码是否失效
+  if (codeModel.created_at.getTime() != codeModel.updated_at.getTime())
+    throw new KatoCommonError('验证码已失效');
+  //验证码校验通过, 更新updated_at字段, 表示验证码已失效
+  await appDB.execute(
+    //language=PostgreSQL
+    `
+          update sms_code
+          set updated_at = now()
+          where phone = ?
+            and usage = ?
+        `,
+    codeModel.phone,
+    codeModel.usage
+  );
+  //endregion
+}
+
 /**
  * App用户模块
  */
