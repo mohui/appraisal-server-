@@ -41,8 +41,8 @@ const smsConfig = config.get<{
  * 验证码用途枚举
  */
 enum CodeUsage {
-  register = '注册',
-  updPhone = '修改手机号'
+  Register = '用户注册',
+  UpdatePhone = '更换手机'
 }
 
 /**
@@ -210,7 +210,7 @@ export default class AppUser {
               for update
           `,
           phone,
-          CodeUsage.register,
+          CodeUsage.Register,
           code
         )
       )[0];
@@ -405,7 +405,7 @@ export default class AppUser {
               for update
           `,
           phone,
-          CodeUsage.updPhone,
+          CodeUsage.UpdatePhone,
           code
         )
       )[0];
