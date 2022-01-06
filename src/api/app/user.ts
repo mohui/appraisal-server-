@@ -346,7 +346,29 @@ export default class AppUser {
    */
   @validate(phoneValidate, should.string().required(), passwordValidate)
   async resetPassword(phone, code, password) {
-    return;
+    await appDB.transaction(async () => {
+      //校验手机是否可用
+      const usable = await validPhone(phone);
+      if (usable) {
+        throw new KatoCommonError('手机号码不存在');
+      }
+
+      // 校验验证码是否正确
+      await smsVerification(code, phone, CodeUsage.ResetPassword);
+
+      // 重置密码
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set password   = ?,
+              updated_at = now()
+          where phone = ?
+        `,
+        password,
+        phone
+      );
+    });
   }
 
   /**
