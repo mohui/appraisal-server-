@@ -43,7 +43,8 @@ const smsConfig = config.get<{
  */
 enum CodeUsage {
   Register = '用户注册',
-  UpdatePhone = '更换手机'
+  UpdatePhone = '更换手机',
+  ResetPassword = '重置密码'
 }
 
 /**
