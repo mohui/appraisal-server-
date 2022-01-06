@@ -210,8 +210,8 @@ export default class AppUser {
               for update
           `,
           phone,
-          code,
-          CodeUsage.register
+          CodeUsage.register,
+          code
         )
       )[0];
       //code是否正确
