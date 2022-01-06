@@ -72,13 +72,13 @@ async function smsVerification(code, phone, usage) {
     await appDB.execute(
       //language=PostgreSQL
       `
-            select phone, usage, code, created_at, updated_at
-            from sms_code
-            where phone = ?
-              and usage = ?
-              and code = ?
-              for update
-          `,
+        select phone, usage, code, created_at, updated_at
+        from sms_code
+        where phone = ?
+          and usage = ?
+          and code = ?
+          for update
+      `,
       phone,
       usage,
       code
@@ -100,11 +100,11 @@ async function smsVerification(code, phone, usage) {
   await appDB.execute(
     //language=PostgreSQL
     `
-          update sms_code
-          set updated_at = now()
-          where phone = ?
-            and usage = ?
-        `,
+      update sms_code
+      set updated_at = now()
+      where phone = ?
+        and usage = ?
+    `,
     codeModel.phone,
     codeModel.usage
   );
@@ -301,16 +301,16 @@ export default class AppUser {
     //language=PostgreSQL
     await appDB.execute(
       `
-      update staff
-      set name      = ?,
-          gender    = ?,
-          major     = ?,
-          title     = ?,
-          education = ?,
-          "isGP"    = ?,
-          updated_at = now()
-      where id = ?
-    `,
+        update staff
+        set name       = ?,
+            gender     = ?,
+            major      = ?,
+            title      = ?,
+            education  = ?,
+            "isGP"     = ?,
+            updated_at = now()
+        where id = ?
+      `,
       name,
       gender,
       major,
