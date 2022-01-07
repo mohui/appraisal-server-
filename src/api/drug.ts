@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {should, validate} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import Decimal from 'decimal.js';
 
 export default class Drug {
@@ -33,36 +33,44 @@ export default class Drug {
     })
   )
   async list(params) {
-    // 获取药品说明书列表
-    const res = await axios({
-      method: 'get',
-      url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
-      params: {keywords: params.keyword},
-      headers: {'Content-Type': 'multipart/form-data'},
-      responseType: 'arraybuffer'
-    });
-    const result = JSON.parse(res.data).data;
-    // 总条数
-    const rows = result.length;
-    // 算出偏移量
-    const data = result.splice(
-      new Decimal(params.pageNo)
-        .sub(1)
-        .mul(params.pageSize)
-        .toNumber(),
-      params.pageSize
-    );
-    return {
-      data: data.map(it => ({
-        id: it.id,
-        name: it.name,
-        url: it.url
-      })),
-      rows: rows,
-      pages: new Decimal(rows)
+    try {
+      // 获取药品说明书列表
+      const res = await axios({
+        method: 'get',
+        url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
+        params: {keywords: params.keyword},
+        headers: {'Content-Type': 'multipart/form-data'},
+        responseType: 'arraybuffer'
+      });
+      const result = JSON.parse(res.data).data;
+      // 总条数
+      const rows = result.length;
+      // 总页数
+      const pages = new Decimal(rows)
         .div(params.pageSize)
         .ceil()
-        .toNumber()
-    };
+        .toNumber();
+      // 算出偏移量
+      const data = result
+        .splice(
+          new Decimal(params.pageNo)
+            .sub(1)
+            .mul(params.pageSize)
+            .toNumber(),
+          params.pageSize
+        )
+        .map(it => ({
+          id: it.id,
+          name: it.name,
+          url: it.url
+        }));
+      return {
+        data: data,
+        rows: rows,
+        pages: pages
+      };
+    } catch (e) {
+      throw new KatoCommonError(e);
+    }
   }
 }
