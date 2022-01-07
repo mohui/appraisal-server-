@@ -1800,7 +1800,7 @@ export default class HisWorkItem {
           from his_work_item
           where id = ?
         `,
-        params?.item
+        params.item
       );
       if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
@@ -1812,7 +1812,7 @@ export default class HisWorkItem {
           from staff
           where id = ?
         `,
-        params?.staff
+        params.staff
       );
 
       if (checkStaff.length === 0) throw new KatoRuntimeError(`考核员工异常`);
