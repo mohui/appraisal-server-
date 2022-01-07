@@ -1799,7 +1799,7 @@ export default class HisWorkItem {
       .description('要增删改的公分项和员工的绑定')
   )
   async upsertStaffWorkItemMapping(params) {
-    return appDB.transaction(async () => {
+    return appDB.joinTx(async () => {
       // 排查公分项是否存在
       const itemList = await appDB.execute(
         `select * from his_work_item where id = ?`,
@@ -1870,6 +1870,41 @@ export default class HisWorkItem {
           dayjs().toDate(),
           dayjs().toDate()
         );
+      }
+    });
+  }
+
+  /**
+   * 批量操作工分项和员工的绑定
+   *
+   * @param params [{
+   *   id: 要修改的主键,
+   *   item: 公分项id,
+   *   staff: 员工id,
+   *   rate: 权重系数,
+   *   remark: 备注,
+   * }]
+   */
+  @validate(
+    should
+      .array()
+      .items({
+        id: should
+          .string()
+          .required()
+          .allow(null),
+        item: should.string().required(),
+        staff: should.string().required(),
+        rate: should.number().required(),
+        remark: should.string().allow(null)
+      })
+      .min(1)
+      .required()
+  )
+  async batchUpsertStaffWorkItemMapping(params) {
+    return await appDB.joinTx(async () => {
+      for (const item of params) {
+        await this.upsertStaffWorkItemMapping(item);
       }
     });
   }
