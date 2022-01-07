@@ -1767,36 +1767,28 @@ export default class HisWorkItem {
 
   /**
    * 工分项和员工的绑定
-   * @param item 工分项id
-   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数, 备注)
-   */
+   *
+   * @param params [{
+   *   id: 要修改的主键,
+   *   item: 公分项id,
+   *   staff: 员工id,
+   *   rate: 权重系数,
+   *   remark: 备注,
+   * }]
+   * */
   @validate(
     should
       .object({
         id: should
           .string()
           .required()
-          .allow(null)
-          .description('主键id'),
-        item: should
-          .string()
-          .required()
-          .description('公分项id'),
-        staff: should
-          .string()
-          .required()
-          .description('员工id'),
-        rate: should
-          .number()
-          .required()
-          .description('权重系数'),
-        remark: should
-          .string()
-          .allow(null)
-          .description('备注')
+          .allow(null),
+        item: should.string().required(),
+        staff: should.string().required(),
+        rate: should.number().required(),
+        remark: should.string().allow(null)
       })
       .required()
-      .description('要增删改的公分项和员工的绑定')
   )
   async upsertStaffWorkItemMapping(params) {
     return appDB.joinTx(async () => {
