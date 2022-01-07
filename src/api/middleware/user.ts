@@ -13,7 +13,8 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       'register.ac',
       'AppUser/validPhone.ac', //app用户手机号码验证
       'AppUser/sendSMS.ac', //app短信验证码发送
-      'AppUser/register.ac' //app用户注册
+      'AppUser/register.ac', //app用户注册
+      'AppUser/resetPassword.ac' //app用户重置密码
     ].some(it => ctx.req.url.endsWith(it))
   ) {
     await next();
