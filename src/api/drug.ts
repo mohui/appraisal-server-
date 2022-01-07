@@ -35,21 +35,21 @@ export default class Drug {
   async list(params) {
     try {
       // 获取药品说明书列表
-      const res = await axios({
-        method: 'get',
-        url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
-        params: {keywords: params.keyword},
-        responseType: 'json'
-      });
+      const res = (
+        await axios({
+          url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
+          params: {keywords: params.keyword}
+        })
+      ).data;
       // 总条数
-      const rows = res.data.data.length;
+      const rows = res.data.length;
       // 总页数
       const pages = new Decimal(rows)
         .div(params.pageSize)
         .ceil()
         .toNumber();
       // 算出偏移量
-      const data = res.data.data
+      const data = res.data
         .splice(
           new Decimal(params.pageNo)
             .sub(1)
@@ -63,12 +63,12 @@ export default class Drug {
           url: it.url
         }));
       return {
-        data: data,
-        rows: rows,
-        pages: pages
+        data,
+        rows,
+        pages
       };
     } catch (e) {
-      throw new KatoCommonError(e);
+      throw new KatoCommonError('服务器抖动');
     }
   }
 }
