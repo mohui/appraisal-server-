@@ -5,7 +5,7 @@ import {should, validate} from 'kato-server';
 /**
  * 临床路径接口模块
  */
-export default class PathWay {
+export default class Pathway {
   /**
    * 临床路径列表
    *
