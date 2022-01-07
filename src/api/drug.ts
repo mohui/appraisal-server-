@@ -39,19 +39,17 @@ export default class Drug {
         method: 'get',
         url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
         params: {keywords: params.keyword},
-        headers: {'Content-Type': 'multipart/form-data'},
-        responseType: 'arraybuffer'
+        responseType: 'json'
       });
-      const result = JSON.parse(res.data).data;
       // 总条数
-      const rows = result.length;
+      const rows = res.data.data.length;
       // 总页数
       const pages = new Decimal(rows)
         .div(params.pageSize)
         .ceil()
         .toNumber();
       // 算出偏移量
-      const data = result
+      const data = res.data.data
         .splice(
           new Decimal(params.pageNo)
             .sub(1)
