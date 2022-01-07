@@ -742,7 +742,7 @@ export default class AppArea {
 
                         // 其他慢病规范管理率
                         if (tag.tag === MarkTagUsages.CO01.code) {
-                          // 查询老年人人数
+                          // 查询其他慢病人数
                           const basicData =
                             basicTagData.filter(
                               bd => bd.code === BasicTagUsages.OCD00
@@ -775,7 +775,7 @@ export default class AppArea {
                         }
                         // 高危人群规范管理率
                         if (tag.tag === MarkTagUsages.CH01.code) {
-                          // 查询老年人人数
+                          // 查询高危人群人数
                           const basicData =
                             basicTagData.filter(
                               bd => bd.code === BasicTagUsages.HR00
