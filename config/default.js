@@ -156,6 +156,8 @@ module.exports = {
     enabled: false, //是否启用
     key: '', //短信服务key
     secret: '', //短信服务secret
+    sign: '', //短信签名
+    template: '', //短信模板
     //过期策略
     expired: {
       value: 2,
