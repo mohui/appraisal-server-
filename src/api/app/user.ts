@@ -244,14 +244,24 @@ export default class AppUser {
         now.toDate(),
         counts
       );
-      //TODO: 发送短信
-
-      return !smsConfig.enabled
-        ? {
-            code,
-            counts
-          }
-        : null;
+      // 发送短信
+      if (smsConfig.enabled) {
+        try {
+          await send(phone, code);
+        } catch (e) {
+          console.log(
+            `${now.format(
+              'YYYY-MM-DD HH:mm:ss'
+            )} 发送 ${phone} 短信验证码 ${code} 异常: ${e.message ?? e}`
+          );
+          throw new KatoCommonError('系统抖动');
+        }
+      } else {
+        return {
+          code,
+          counts
+        };
+      }
     });
   }
 
