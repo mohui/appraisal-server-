@@ -96,6 +96,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
+    "@alicloud/sms-sdk": "^1.1.6",
     "ali-oss": "^6.9.0",
     "cls-hooked": "^4.2.2",
     "conctx": "0.0.5",
