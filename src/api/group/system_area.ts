@@ -59,8 +59,8 @@ export default class SystemArea {
   /**
    * 质量系数,公分值
    *
-   * @param code
-   * @param year
+   * @param code 地区编码
+   * @param year 年份
    * @return {
    *   id: 地区id
    *   name: 地区名称
@@ -84,6 +84,7 @@ export default class SystemArea {
       label: string;
     } = (
       await originalDB.execute(
+        // language=PostgreSQL
         `
           select code, name, parent, label
           from area
@@ -106,12 +107,28 @@ export default class SystemArea {
     let reportArea;
     if (checkId) {
       // 查询考核体系
-      reportArea = await ReportAreaModel.findOne({
-        where: {
-          areaCode: code,
+      reportArea = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select "check" AS "checkId",
+                   area    AS "areaCode",
+                   "correctWorkPoint",
+                   "workPoint",
+                   "totalWorkPoint",
+                   score,
+                   rate,
+                   budget,
+                   created_at,
+                   updated_at
+            FROM report_area AS reportArea
+            WHERE reportArea.area = ?
+              AND reportArea."check" = ?
+          `,
+          code,
           checkId
-        }
-      });
+        )
+      )[0];
     }
 
     return {
@@ -119,12 +136,14 @@ export default class SystemArea {
       name: areaModel.name,
       parent: parentIndex > -1 ? areaModel.parent : null,
       label: areaModel?.label ?? null,
-      score: reportArea ? Number(reportArea.score) : 0,
-      workPoint: reportArea ? Number(reportArea.workPoint) : 0,
-      rate: reportArea ? Number(reportArea.rate) : 0,
-      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
-      budget: reportArea ? Number(reportArea.budget) : 0,
-      correctWorkPoint: reportArea ? Number(reportArea.correctWorkPoint) : 0
+      score: new Decimal(reportArea?.score ?? 0).toNumber(),
+      workPoint: new Decimal(reportArea?.workPoint ?? 0).toNumber(),
+      rate: new Decimal(reportArea?.rate ?? 0).toNumber(),
+      totalWorkPoint: new Decimal(reportArea?.totalWorkPoint ?? 0).toNumber(),
+      budget: new Decimal(reportArea?.budget ?? 0).toNumber(),
+      correctWorkPoint: new Decimal(
+        reportArea?.correctWorkPoint ?? 0
+      ).toNumber()
     };
   }
 
