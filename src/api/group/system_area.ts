@@ -25,27 +25,25 @@ import {getChildrenArea, getHospitals} from './common';
 /**
  * 通过地区编码和时间获取checkId
  *
- * @param code
- * @param year
+ * @param code 地区编码
+ * @param year 年
  */
 async function yearGetCheckId(code, year) {
-  // 如果checkId为空,根据年份和地区获取checkId
-  const check = await CheckAreaModel.findOne({
-    where: {
-      areaCode: code
-    },
-    attributes: ['checkId'],
-    include: [
-      {
-        model: CheckSystemModel,
-        where: {
-          checkYear: year
-        },
-        attributes: []
-      }
-    ]
-  });
-  return check?.checkId;
+  // 根据年份和地区获取checkId
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select checkArea.check_system
+        from check_area checkArea
+               inner join check_system systems on checkArea.check_system = systems.check_id
+          and systems.check_year = ?
+        where checkArea.area = ?
+      `,
+      year,
+      code
+    )
+  )[0]?.check_system;
 }
 
 /**
