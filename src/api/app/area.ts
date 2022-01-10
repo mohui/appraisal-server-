@@ -1276,7 +1276,7 @@ export default class AppArea {
    *   name: 名称,
    *   idCard: 身份证号,
    *   genderName: 性别,
-   *   age: {year: 年龄},
+   *   age: 年龄,
    *   S03: 有动态记录的档案,
    *   S23: 档案是否规范,
    *   O00: 老年人,
@@ -1382,6 +1382,7 @@ export default class AppArea {
       count,
       rows: rows.map(row => ({
         ...row,
+        age: row.age.years ?? 0,
         // eslint-disable-next-line @typescript-eslint/camelcase
         content: mark_contents.filter(c => c.id === row.id)
       }))
