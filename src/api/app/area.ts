@@ -1382,6 +1382,7 @@ export default class AppArea {
       count,
       rows: rows.map(row => ({
         ...row,
+        age: row.age.years ?? 0,
         // eslint-disable-next-line @typescript-eslint/camelcase
         content: mark_contents.filter(c => c.id === row.id)
       }))
