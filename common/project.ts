@@ -749,5 +749,53 @@ export const Projects: {
         type: '340203'
       }
     ]
+  },
+  // region 高危人群
+  {
+    id: '1401',
+    name: '高危人群建卡',
+    mappings: [
+      {
+        id: '1401',
+        name: '高危人群建卡',
+        type: '340203'
+      }
+    ]
+  },
+  {
+    id: '1402',
+    name: '高危人群随访',
+    mappings: [
+      {
+        id: '1402',
+        name: '高危人群随访',
+        type: '340203'
+      }
+    ]
+  },
+  // endregion
+  // region 其他慢病
+  {
+    id: '1501',
+    name: '其他慢病建卡',
+    mappings: [
+      {
+        id: '1501',
+        name: '其他慢病建卡',
+        type: '340203'
+      }
+    ]
+  },
+  {
+    id: '1502',
+    name: '其他慢病随访',
+    mappings: [
+      {
+        id: '1502',
+        name: '其他慢病随访',
+        type: '340203'
+      }
+    ]
   }
+  // endregion
 ];
