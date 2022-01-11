@@ -367,7 +367,7 @@ export default class AppArea {
         year
       )
     )[0];
-    const tags = await this.tags();
+    const tags = this.tags();
     return (
       await Promise.all(
         checkRules
@@ -1230,7 +1230,7 @@ export default class AppArea {
    *   value: 问题标签的检索值,
    *   }]
    */
-  async tags() {
+  tags() {
     return documentTagList;
   }
 
@@ -1314,12 +1314,9 @@ export default class AppArea {
    */
   @validate(
     should.object({
-      area: should
-        .string()
-        .required()
-        .allow(''),
-      keyword: should.string().allow(null, ''),
-      doctor: should.string().allow(null, ''),
+      area: should.string(),
+      keyword: should.string(),
+      doctor: should.string(),
       tags: should
         .array()
         .items(
@@ -1328,7 +1325,7 @@ export default class AppArea {
             value: should.required()
           })
         )
-        .allow(null, []),
+        .allow([]),
       crowd: should
         .array()
         .items(
@@ -1337,16 +1334,21 @@ export default class AppArea {
             value: should.required()
           })
         )
-        .allow(null, []),
+        .allow([]),
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       year: should.number().required()
     })
   )
   async archives(params) {
+    const tags = this.tags();
     const tagsObject = {};
-    if (params.tags)
+    if (params.tags && params.tags.length > 0)
       params.tags.map(tag => {
+        tagsObject[tag.id] = tag.value;
+      });
+    else
+      tags.map(tag => {
         tagsObject[tag.id] = tag.value;
       });
     const crowdObject = {};
@@ -1362,22 +1364,26 @@ export default class AppArea {
       pageSize: params.pageSize,
       pageNo: params.pageNo,
       year: params.year,
-      crowd: crowdObject
+      crowd: crowdObject,
+      documentOr: true
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];
-    if (rows.length > 0)
+    if (rows.length > 0) {
       // eslint-disable-next-line @typescript-eslint/camelcase
       mark_contents = await originalDB.execute(
         `
-          select id, name as tag, content
-          from mark_content
-          where year = ?
-            and id in (${rows.map(() => '?')})
-        `,
+                  select id, name as tag, content
+                  from mark_content
+                  where year = ?
+                    and id in (${rows.map(() => '?')})
+                    and name in (${Object.keys(tagsObject).map(() => '?')})
+                `,
         params.year,
-        ...rows.map(p => p.id)
+        ...rows.map(p => p.id),
+        ...Object.keys(tagsObject)
       );
+    }
     return {
       count,
       rows: rows.map(row => ({
