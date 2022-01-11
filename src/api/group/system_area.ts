@@ -150,21 +150,22 @@ export default class SystemArea {
   /**
    * 获取省市排行
    *
-   * @param code group code
-   * @param year
-   *
-   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
+   * @param code 地区code或机构id
+   * @param year 年份
+   * return [{
+   *   code: 地区编码,
+   *   name: 地区名称,
+   *   budget: 分配金额,
+   *   workPoint:参与校正工分,
+   *   totalWorkPoint: 校正前总公分,
+   *   correctWorkPoint: 矫正后的公分值,
+   *   score: 得分,
+   *   rate: 质量系数,
+   *   money: 凭证表金额,
+   *   vouchers: [凭证图地址]
+   * }]
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
+  @validate(should.string().required(), should.number().allow(null))
   async rank(code, year) {
     // 地区列表
     const areaList = await originalDB.execute(
