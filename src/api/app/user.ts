@@ -300,7 +300,7 @@ export default class AppUser {
       name: should.string().required(),
       gender: should
         .string()
-        .only(Gender.values())
+        .only(Gender)
         .required(),
       major: should.string().required(),
       title: should.string().required(),
