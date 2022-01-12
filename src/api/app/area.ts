@@ -13,7 +13,7 @@ import {imageSync} from 'qr-image';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
-import {RequestStatus} from '../../../common/user';
+import {RequestStatus, UserType} from '../../../common/user';
 import {sql as sqlRender} from '../../database/template';
 
 /**
@@ -28,17 +28,29 @@ export default class AppArea {
    * @return 二维码地址
    */
   async invite() {
-    const hospital = await getHospital();
-    // 生成机构邀请码
-    const imageBuffer = imageSync(
-      JSON.stringify({
-        code: hospital
-      }),
-      {type: 'png'}
-    );
-    return {
-      image: `data:image/png;base64,${imageBuffer.toString('base64')}`
-    };
+    // 只有admin权限生成机构码
+    if (Context.current.user.type === UserType.ADMIN) {
+      // 如果是地区用户,判断是否是机构用户
+      if (
+        Context.current.user.hospitals &&
+        Context.current.user.hospitals.length > 1
+      )
+        throw new KatoRuntimeError(`不是机构权限`);
+
+      // 生成机构邀请码
+      const imageBuffer = imageSync(
+        JSON.stringify({
+          code: Context.current.user.hospitals[0]['id'],
+          name: Context.current.user.hospitals[0]['name']
+        }),
+        {type: 'png'}
+      );
+      return {
+        image: `data:image/png;base64,${imageBuffer.toString('base64')}`
+      };
+    } else {
+      throw new KatoRuntimeError(`没有生成权限`);
+    }
   }
 
   /**
