@@ -32,7 +32,8 @@ export default class AppArea {
     // 生成机构邀请码
     const imageBuffer = imageSync(
       JSON.stringify({
-        code: hospital
+        code: hospital,
+        name: Context.current.user.hospitals[0]['name']
       }),
       {type: 'png'}
     );
