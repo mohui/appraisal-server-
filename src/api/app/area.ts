@@ -1314,9 +1314,9 @@ export default class AppArea {
    */
   @validate(
     should.object({
-      area: should.string(),
-      keyword: should.string(),
-      doctor: should.string(),
+      area: should.string().required(),
+      keyword: should.string().allow(''),
+      doctor: should.string().allow(''),
       tags: should
         .array()
         .items(
