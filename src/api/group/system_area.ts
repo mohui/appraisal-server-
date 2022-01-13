@@ -27,8 +27,9 @@ import {getChildrenArea, getHospitals} from './common';
  *
  * @param code 地区编码
  * @param year 年
+ * @return 考核id 或 null
  */
-async function yearGetCheckId(code, year) {
+async function yearGetCheckId(code, year): Promise<string | null> {
   // 根据年份和地区获取checkId
   return (
     await appDB.execute(
