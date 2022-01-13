@@ -102,8 +102,8 @@ async function total(code, year) {
   };
 }
 
-describe('统计数据', () => {
-  test('质量系数和公分值统计', async () => {
+describe('SystemArea.total', () => {
+  test('340202 2021测试', async () => {
     //查询id
     const users = (
       await appDB.execute(`select id, area from "user" where account='admin'`)
