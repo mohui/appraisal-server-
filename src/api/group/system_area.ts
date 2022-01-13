@@ -25,27 +25,26 @@ import {getChildrenArea, getHospitals} from './common';
 /**
  * 通过地区编码和时间获取checkId
  *
- * @param code
- * @param year
+ * @param code 地区编码
+ * @param year 年
+ * @return 考核id?
  */
-async function yearGetCheckId(code, year) {
-  // 如果checkId为空,根据年份和地区获取checkId
-  const check = await CheckAreaModel.findOne({
-    where: {
-      areaCode: code
-    },
-    attributes: ['checkId'],
-    include: [
-      {
-        model: CheckSystemModel,
-        where: {
-          checkYear: year
-        },
-        attributes: []
-      }
-    ]
-  });
-  return check?.checkId;
+export async function yearGetCheckId(code, year): Promise<string | null> {
+  // 根据年份和地区获取checkId
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select checkArea.check_system
+        from check_area checkArea
+               inner join check_system systems on checkArea.check_system = systems.check_id
+          and systems.check_year = ?
+        where checkArea.area = ?
+      `,
+      year,
+      code
+    )
+  )[0]?.check_system;
 }
 
 /**
@@ -61,8 +60,8 @@ export default class SystemArea {
   /**
    * 质量系数,公分值
    *
-   * @param code
-   * @param year
+   * @param code 地区编码
+   * @param year 年份
    * @return {
    *   id: 地区id
    *   name: 地区名称
@@ -86,6 +85,7 @@ export default class SystemArea {
       label: string;
     } = (
       await originalDB.execute(
+        // language=PostgreSQL
         `
           select code, name, parent, label
           from area
@@ -108,12 +108,28 @@ export default class SystemArea {
     let reportArea;
     if (checkId) {
       // 查询考核体系
-      reportArea = await ReportAreaModel.findOne({
-        where: {
-          areaCode: code,
+      reportArea = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select "check" AS "checkId",
+                   area    AS "areaCode",
+                   "correctWorkPoint",
+                   "workPoint",
+                   "totalWorkPoint",
+                   score,
+                   rate,
+                   budget,
+                   created_at,
+                   updated_at
+            FROM report_area AS reportArea
+            WHERE reportArea.area = ?
+              AND reportArea."check" = ?
+          `,
+          code,
           checkId
-        }
-      });
+        )
+      )[0];
     }
 
     return {
@@ -121,33 +137,36 @@ export default class SystemArea {
       name: areaModel.name,
       parent: parentIndex > -1 ? areaModel.parent : null,
       label: areaModel?.label ?? null,
-      score: reportArea ? Number(reportArea.score) : 0,
-      workPoint: reportArea ? Number(reportArea.workPoint) : 0,
-      rate: reportArea ? Number(reportArea.rate) : 0,
-      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
-      budget: reportArea ? Number(reportArea.budget) : 0,
-      correctWorkPoint: reportArea ? Number(reportArea.correctWorkPoint) : 0
+      score: new Decimal(reportArea?.score ?? 0).toNumber(),
+      workPoint: new Decimal(reportArea?.workPoint ?? 0).toNumber(),
+      rate: new Decimal(reportArea?.rate ?? 0).toNumber(),
+      totalWorkPoint: new Decimal(reportArea?.totalWorkPoint ?? 0).toNumber(),
+      budget: new Decimal(reportArea?.budget ?? 0).toNumber(),
+      correctWorkPoint: new Decimal(
+        reportArea?.correctWorkPoint ?? 0
+      ).toNumber()
     };
   }
 
   /**
    * 获取省市排行
    *
-   * @param code group code
-   * @param year
-   *
-   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
+   * @param code 地区code或机构id
+   * @param year 年份
+   * return [{
+   *   code: 地区编码,
+   *   name: 地区名称,
+   *   budget: 分配金额,
+   *   workPoint:参与校正工分,
+   *   totalWorkPoint: 校正前总公分,
+   *   correctWorkPoint: 矫正后的公分值,
+   *   score: 得分,
+   *   rate: 质量系数,
+   *   money: 凭证表金额,
+   *   vouchers: [凭证图地址]
+   * }]
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
+  @validate(should.string().required(), should.number().allow(null))
   async rank(code, year) {
     // 地区列表
     const areaList = await originalDB.execute(
