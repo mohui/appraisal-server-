@@ -89,17 +89,17 @@ export default class AppArea {
       );
 
       // 查找 待审核 的列表,如果存在,直接返回id
-      const pendings = staffRequests.filter(
+      const findPending = staffRequests.find(
         it => it.status === RequestStatus.PENDING
       );
-      if (pendings.length > 0) return pendings[0].id;
+      if (findPending) return findPending.id;
 
       // 查找 已通过 是否在数组中,如果在数组中,查询 staff_area_mapping 是否存在
-      const filterUser = staffRequests.filter(
+      const findSuccess = staffRequests.find(
         it => it.status === RequestStatus.SUCCESS
       );
       // 如果存在, 直接返回申请id
-      if (filterUser.length > 0) {
+      if (findSuccess) {
         const areaMappings = await appDB.execute(
           // language=PostgreSQL
           `
@@ -111,7 +111,7 @@ export default class AppArea {
           Context.current.user.id,
           ticket.area
         );
-        if (areaMappings.length > 0) return filterUser[0].id;
+        if (areaMappings.length > 0) return findSuccess.id;
       }
 
       // 插入申请表中
