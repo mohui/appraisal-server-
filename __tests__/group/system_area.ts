@@ -15,6 +15,11 @@ afterAll(async () => {
   await app.shutdown();
 });
 
+/**
+ *
+ * @param code 地区编码
+ * @param year 年份
+ */
 async function oldYearGetCheckId(code, year) {
   // 根据年份和地区获取checkId
   return (
@@ -35,9 +40,9 @@ async function oldYearGetCheckId(code, year) {
 
 /**
  *
- * @param code
- * @param year
- * @param selfCode
+ * @param code 地区编码
+ * @param year 年份
+ * @param selfCode 自己权限的地区编码
  */
 async function mockTotal(code, year, selfCode) {
   // 查询本级权限
