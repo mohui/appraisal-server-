@@ -767,7 +767,7 @@ export const Projects: {
     name: '高危人群第一次随访',
     mappings: [
       {
-        id: '1402',
+        id: '140201',
         name: '高危人群第一次随访',
         type: '340203'
       }
@@ -778,7 +778,7 @@ export const Projects: {
     name: '高危人群第二次随访',
     mappings: [
       {
-        id: '1402',
+        id: '140202',
         name: '高危人群第二次随访',
         type: '340203'
       }
@@ -813,7 +813,7 @@ export const Projects: {
     name: '其他慢病第二次随访',
     mappings: [
       {
-        id: '150201',
+        id: '150202',
         name: '其他慢病第二次随访',
         type: '340203'
       }
