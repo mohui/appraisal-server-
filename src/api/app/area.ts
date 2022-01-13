@@ -251,10 +251,14 @@ export default class AppArea {
           staffRequest.area
         );
         // 同时查询此机构是否是此员工的第一个机构,如果是第一个机构,设置为主机构
-        const areaMappings = await appDB.execute(
+        const areaMappings: {
+          staff: string;
+          area: string;
+          department: string;
+        }[] = await appDB.execute(
           // language=PostgreSQL
           `
-            select *
+            select staff, area, department
             from staff_area_mapping
             where staff = ?
           `,
@@ -266,11 +270,13 @@ export default class AppArea {
             `
               update staff
               set hospital   = ?,
+                  department = ?,
                   updated_at = now()
               where id = ?
             `,
-            staffRequest.area,
-            staffRequest.staff
+            areaMappings[0].area,
+            areaMappings[0].department,
+            areaMappings[0].staff
           );
         }
       }
