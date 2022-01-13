@@ -1,7 +1,7 @@
 import {app, appDB, originalDB} from '../../src/app';
 import {KatoCommonError} from 'kato-server';
 import {getAreaTree} from '../../src/api/group/common';
-import {getYear} from '../../src/api/group/system_area';
+import {getYear, yearGetCheckId} from '../../src/api/group/system_area';
 import {KatoClient} from 'kato-client';
 
 let api;
@@ -33,7 +33,13 @@ async function yearGetCheckId(code, year) {
   )[0]?.check_system;
 }
 
-async function total(code, year) {
+/**
+ *
+ * @param code
+ * @param year
+ * @param selfCode
+ */
+async function mockTotal(code, year, selfCode) {
   // 查询本级权限
   const areaModel: {
     code: string;
@@ -52,7 +58,9 @@ async function total(code, year) {
   if (!areaModel) throw new KatoCommonError(`地区 ${code} 不合法`);
 
   // 获取树形结构
-  const tree = await getAreaTree('34');
+  // 原版写法,因为拿不到 Context.current.user.code, 所以传了 selfCode
+  // const tree = await getAreaTree(Context.current.user.code);
+  const tree = await getAreaTree(selfCode);
   const parentIndex = tree.findIndex(it => it.code === areaModel.parent);
 
   // 如果没有传年份,获取年份
@@ -103,19 +111,18 @@ async function total(code, year) {
 }
 
 describe('SystemArea.total', () => {
-  test('340202 2021测试', async () => {
+  test('测试340202-2021', async () => {
     //查询id
-    const users = (
+    const user = (
       await appDB.execute(`select id, area from "user" where account='admin'`)
     )[0];
     //设置token
     api.use(async (ctx, next) => {
-      ctx.req.headers['token'] = users?.id;
-      ctx.req.headers['code'] = users?.area;
+      ctx.req.headers['token'] = user?.id;
       await next();
     });
 
-    const oldTotal = await total('340202', 2021);
+    const oldTotal = await mockTotal('340202', 2021, user?.code);
     const newTotal = await api.SystemArea.total('340202', 2021);
     expect(newTotal).toEqual(oldTotal);
   });
