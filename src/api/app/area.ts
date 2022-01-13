@@ -237,7 +237,7 @@ export default class AppArea {
         id
       );
       // 如果通过, 在 staff_area_mapping 表中添加一条
-      if (status === RequestStatus.SUCCESS)
+      if (status === RequestStatus.SUCCESS) {
         await appDB.execute(
           // language=PostgreSQL
           `
@@ -250,6 +250,30 @@ export default class AppArea {
           staffRequest.staff,
           staffRequest.area
         );
+        // 同时查询此机构是否是此员工的第一个机构,如果是第一个机构,设置为主机构
+        const areaMappings = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select *
+            from staff_area_mapping
+            where staff = ?
+          `,
+          staffRequest.staff
+        );
+        if (areaMappings.length === 1) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              update staff
+              set hospital   = ?,
+                  updated_at = now()
+              where id = ?
+            `,
+            staffRequest.area,
+            staffRequest.staff
+          );
+        }
+      }
     });
   }
 
