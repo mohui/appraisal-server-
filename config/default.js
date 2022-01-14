@@ -164,6 +164,6 @@ module.exports = {
       unit: 'h'
     },
     //每日限额
-    limit: 3
+    limit: 0 //不限制
   }
 };
