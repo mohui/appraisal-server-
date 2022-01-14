@@ -1805,7 +1805,7 @@ export default class HisWorkItem {
       if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
       // 排查员工是否存在
-      const checkStaff = await appDB.execute(
+      const checkStaffs = await appDB.execute(
         // language=PostgreSQL
         `
           select id, account, name
@@ -1815,7 +1815,7 @@ export default class HisWorkItem {
         params.staff
       );
 
-      if (checkStaff.length === 0) throw new KatoRuntimeError(`考核员工异常`);
+      if (checkStaffs.length === 0) throw new KatoRuntimeError(`考核员工异常`);
 
       // 执行添加语句
       await appDB.execute(
