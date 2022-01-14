@@ -216,6 +216,7 @@ export default class AppUser {
       )[0];
       //今日次数是否超过限额
       if (
+        smsConfig.limit > 0 &&
         now.diff(codeModel?.created_at, 'd') == 0 &&
         codeModel?.counts >= smsConfig.limit
       )
