@@ -365,7 +365,7 @@ export default class AppUser {
       //校验手机是否可用
       const usable = await validPhone(phone);
       if (usable) {
-        throw new KatoCommonError('手机号码不存在');
+        throw new KatoLogicError('手机号码不存在', 10003);
       }
 
       // 校验验证码是否正确
@@ -398,7 +398,7 @@ export default class AppUser {
     await appDB.transaction(async () => {
       // 校验密码是否正确
       if (Context.current.user.password !== oldPassword)
-        throw new KatoCommonError(' 您的旧密码输入错误');
+        throw new KatoLogicError('您的旧密码输入错误', 10001);
       if (newPassword !== confirmPassword)
         throw new KatoCommonError('您输入的新密码不一致');
       await appDB.execute(
@@ -427,7 +427,7 @@ export default class AppUser {
     await appDB.transaction(async () => {
       // 校验密码是否正确
       if (Context.current.user.password !== password)
-        throw new KatoCommonError(' 您的密码输入错误');
+        throw new KatoLogicError('您的密码输入错误', 10001);
 
       //校验手机是否可用
       const usable = await validPhone(phone);
