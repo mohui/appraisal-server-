@@ -270,7 +270,7 @@ export default class AppUser {
       //校验手机是否可用
       const usable = await validPhone(phone);
       if (!usable) {
-        throw new KatoCommonError('该手机号码已被注册');
+        throw new KatoLogicError('该手机号码已被注册', 10002);
       }
 
       // 校验验证码是否正确
@@ -423,7 +423,7 @@ export default class AppUser {
       //校验手机是否可用
       const usable = await validPhone(phone);
       if (!usable) {
-        throw new KatoCommonError('该手机号码已被注册');
+        throw new KatoLogicError('该手机号码已被注册', 10002);
       }
 
       // 校验验证码是否正确,校验手机号是否已经注册
