@@ -1223,89 +1223,88 @@ export default class AppArea {
     return result
       .map(rule => ({
         ...rule,
-        tags: rule.tags.sort(this.compareTagIsFullScore())
+        tags: rule.tags.sort(
+          (
+            next: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            },
+            prev: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }
+          ) => {
+            if (
+              prev.score !== prev.correct_score ||
+              (prev.score === prev.correct_score &&
+                next.score === next.correct_score)
+            )
+              return 0;
+            else return -1;
+          }
+        )
       }))
-      .sort(this.compareRuleTagsIsAllFullScore());
-  }
-
-  private compareRuleTagsIsAllFullScore() {
-    return function(
-      next: {
-        score: number;
-        name: any;
-        id: any;
-        tags: {
-          score: any;
-          auto: any;
-          name: any;
-          correct_score: number;
-          id: any;
-          baseline: any;
-          algorithm_name: any;
-          value: boolean;
-          algorithm: any;
-        }[];
-      },
-      prev: {
-        score: number;
-        name: any;
-        id: any;
-        tags: {
-          score: any;
-          auto: any;
-          name: any;
-          correct_score: number;
-          id: any;
-          baseline: any;
-          algorithm_name: any;
-          value: boolean;
-          algorithm: any;
-        }[];
-      }
-    ) {
-      if (
-        prev.tags.filter(tag => tag.score !== tag.correct_score).length > 0 ||
-        (prev.tags.filter(tag => tag.score !== tag.correct_score).length ===
-          0 &&
-          next.tags.filter(tag => tag.score !== tag.correct_score).length === 0)
-      )
-        return 0;
-      else return -1;
-    };
-  }
-
-  private compareTagIsFullScore() {
-    return function(
-      next: {
-        score: any;
-        auto: any;
-        name: any;
-        correct_score: number;
-        id: any;
-        baseline: any;
-        algorithm_name: any;
-        value: boolean;
-        algorithm: any;
-      },
-      prev: {
-        score: any;
-        auto: any;
-        name: any;
-        correct_score: number;
-        id: any;
-        baseline: any;
-        algorithm_name: any;
-        value: boolean;
-        algorithm: any;
-      }
-    ) {
-      if (
-        prev.score !== prev.correct_score ||
-        (prev.score === prev.correct_score && next.score === next.correct_score)
-      )
-        return 0;
-      else return -1;
-    };
+      .sort(
+        (
+          next: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          },
+          prev: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          }
+        ) => {
+          if (
+            prev.tags.filter(tag => tag.score !== tag.correct_score).length >
+              0 ||
+            (prev.tags.filter(tag => tag.score !== tag.correct_score).length ===
+              0 &&
+              next.tags.filter(tag => tag.score !== tag.correct_score)
+                .length === 0)
+          )
+            return 0;
+          else return -1;
+        }
+      );
   }
 
   /**
