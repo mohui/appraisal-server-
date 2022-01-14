@@ -1295,8 +1295,8 @@ export default class AppArea {
         ) => {
           if (
             prev.tags.some(tag => tag.score !== tag.correct_score) ||
-            (prev.tags.some(tag => tag.score !== tag.correct_score) === false &&
-              next.tags.some(tag => tag.score !== tag.correct_score) === false)
+            (prev.tags.every(tag => tag.score === tag.correct_score) &&
+              next.tags.every(tag => tag.score === tag.correct_score))
           )
             return 0;
           else return -1;
