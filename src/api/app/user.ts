@@ -47,18 +47,14 @@ const sms = new SMSClient({
  * @param code 验证码
  */
 async function send(phone: string, code: string) {
-  try {
-    const res: {code: string; message: string} = await sms.sendSMS({
-      PhoneNumbers: phone,
-      SignName: smsConfig.sign,
-      TemplateCode: smsConfig.template,
-      TemplateParam: JSON.stringify({code})
-    });
-    if (res.code != 'OK') {
-      throw new Error(res.message);
-    }
-  } catch (e) {
-    throw new Error('短信服务异常');
+  const res: {Code: string; message: string} = await sms.sendSMS({
+    PhoneNumbers: phone,
+    SignName: smsConfig.sign,
+    TemplateCode: smsConfig.template,
+    TemplateParam: JSON.stringify({code})
+  });
+  if (res.Code != 'OK') {
+    throw new Error(res.message);
   }
 }
 
