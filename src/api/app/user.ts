@@ -1,7 +1,13 @@
 import * as config from 'config';
 import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
-import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {
+  KatoCommonError,
+  KatoRuntimeError,
+  KatoLogicError,
+  should,
+  validate
+} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
@@ -247,7 +253,7 @@ export default class AppUser {
     if (token) {
       return {token};
     } else {
-      throw new KatoCommonError('密码错误');
+      throw new KatoLogicError('密码错误', 10001);
     }
   }
 
