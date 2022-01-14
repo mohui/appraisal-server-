@@ -81,7 +81,7 @@ async function validPhone(phone): Promise<boolean> {
     `,
     phone
   );
-  return userModels.length == 0;
+  return userModels.length === 0;
 }
 
 /**
