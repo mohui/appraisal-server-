@@ -1294,12 +1294,9 @@ export default class AppArea {
           }
         ) => {
           if (
-            prev.tags.filter(tag => tag.score !== tag.correct_score).length >
-              0 ||
-            (prev.tags.filter(tag => tag.score !== tag.correct_score).length ===
-              0 &&
-              next.tags.filter(tag => tag.score !== tag.correct_score)
-                .length === 0)
+            prev.tags.some(tag => tag.score !== tag.correct_score) ||
+            (prev.tags.some(tag => tag.score !== tag.correct_score) === false &&
+              next.tags.some(tag => tag.score !== tag.correct_score) === false)
           )
             return 0;
           else return -1;
