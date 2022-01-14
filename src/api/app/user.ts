@@ -237,24 +237,25 @@ export default class AppUser {
    */
   @validate(phoneValidate, passwordValidate)
   async login(phone, password) {
-    const token = (
+    const staffModel: {
+      id: string;
+      password: string;
+    } = (
       await appDB.execute(
         //language=PostgreSQL
         `
-          select *
+          select id, password
           from staff
           where phone = ?
-            and password = ?
         `,
-        phone,
-        password
+        phone
       )
-    )[0]?.id;
-    if (token) {
-      return {token};
-    } else {
+    )[0];
+    if (!staffModel) throw new KatoLogicError('手机号码不存在', 10003);
+    if (staffModel.password !== password)
       throw new KatoLogicError('密码错误', 10001);
-    }
+
+    return {token: staffModel.id};
   }
 
   /**
