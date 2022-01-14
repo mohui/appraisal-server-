@@ -1,7 +1,13 @@
 import * as config from 'config';
 import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
-import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
+import {
+  KatoCommonError,
+  KatoRuntimeError,
+  KatoLogicError,
+  should,
+  validate
+} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB, originalDB} from '../../app';
 import {Education, Gender} from '../../../common/his';
@@ -75,7 +81,7 @@ async function validPhone(phone): Promise<boolean> {
     `,
     phone
   );
-  return userModels.length == 0;
+  return userModels.length === 0;
 }
 
 /**
@@ -104,17 +110,17 @@ async function smsVerification(code, phone, usage) {
     )
   )[0];
   //code是否正确
-  if (!codeModel) throw new KatoCommonError('验证码错误');
+  if (!codeModel) throw new KatoLogicError('验证码错误', 10004);
   //检验是否过期
   if (
     dayjs()
       .subtract(smsConfig.expired.value, smsConfig.expired.unit)
       .isAfter(codeModel.created_at)
   )
-    throw new KatoCommonError('验证码已过期');
+    throw new KatoLogicError('验证码已过期', 10004);
   //检验验证码是否失效
   if (codeModel.created_at.getTime() != codeModel.updated_at.getTime())
-    throw new KatoCommonError('验证码已失效');
+    throw new KatoLogicError('验证码已失效', 10004);
   //验证码校验通过, 更新updated_at字段, 表示验证码已失效
   await appDB.execute(
     //language=PostgreSQL
@@ -164,6 +170,14 @@ export default class AppUser {
   )
   async sendSMS(phone, usage) {
     return appDB.transaction(async () => {
+      // 如果是用户注册 和 更换手机
+      if (usage === CodeUsage.Register || usage === CodeUsage.UpdatePhone) {
+        const usable = await validPhone(phone);
+        if (!usable) {
+          throw new KatoLogicError('该手机号码已被注册', 10002);
+        }
+      }
+
       const now = dayjs();
       const codeModel: SMSCodeDBModel = (
         await appDB.execute(
@@ -231,24 +245,25 @@ export default class AppUser {
    */
   @validate(phoneValidate, passwordValidate)
   async login(phone, password) {
-    const token = (
+    const staffModel: {
+      id: string;
+      password: string;
+    } = (
       await appDB.execute(
         //language=PostgreSQL
         `
-          select *
+          select id, password
           from staff
           where phone = ?
-            and password = ?
         `,
-        phone,
-        password
+        phone
       )
-    )[0]?.id;
-    if (token) {
-      return {token};
-    } else {
-      throw new KatoCommonError('密码错误');
-    }
+    )[0];
+    if (!staffModel) throw new KatoLogicError('手机号码不存在', 10003);
+    if (staffModel.password !== password)
+      throw new KatoLogicError('密码错误', 10001);
+
+    return {token: staffModel.id};
   }
 
   /**
@@ -264,7 +279,7 @@ export default class AppUser {
       //校验手机是否可用
       const usable = await validPhone(phone);
       if (!usable) {
-        throw new KatoCommonError('该手机号码已被注册');
+        throw new KatoLogicError('该手机号码已被注册', 10002);
       }
 
       // 校验验证码是否正确
@@ -417,7 +432,7 @@ export default class AppUser {
       //校验手机是否可用
       const usable = await validPhone(phone);
       if (!usable) {
-        throw new KatoCommonError('该手机号码已被注册');
+        throw new KatoLogicError('该手机号码已被注册', 10002);
       }
 
       // 校验验证码是否正确,校验手机号是否已经注册
