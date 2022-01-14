@@ -411,7 +411,7 @@ export default class AppArea {
       )
     )[0];
     const tags = this.tags();
-    return (
+    const result = (
       await Promise.all(
         checkRules
           //考核规则对应的考核指标-parent_rule_id为空
@@ -1261,6 +1261,90 @@ export default class AppArea {
           })
       )
     ).filter(r => r.tags.length > 0);
+
+    //考核项排序
+    return result
+      .map(rule => ({
+        ...rule,
+        tags: rule.tags.sort(
+          (
+            next: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            },
+            prev: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }
+          ) => {
+            if (
+              prev.score !== prev.correct_score ||
+              (prev.score === prev.correct_score &&
+                next.score === next.correct_score)
+            )
+              return 0;
+            else return -1;
+          }
+        )
+      }))
+      .sort(
+        (
+          next: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          },
+          prev: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          }
+        ) => {
+          if (
+            prev.tags.some(tag => tag.score !== tag.correct_score) ||
+            (prev.tags.every(tag => tag.score === tag.correct_score) &&
+              next.tags.every(tag => tag.score === tag.correct_score))
+          )
+            return 0;
+          else return -1;
+        }
+      );
   }
 
   /**
