@@ -250,12 +250,13 @@ export default class AppUser {
         try {
           await send(phone, code);
         } catch (e) {
+          const message = e.message ?? e;
           console.log(
             `${now.format(
               'YYYY-MM-DD HH:mm:ss'
-            )} 发送 ${phone} 短信验证码 ${code} 异常: ${e.message ?? e}`
+            )} 发送 ${phone} 短信验证码 ${code} 异常: ${message}`
           );
-          throw new KatoCommonError('系统抖动');
+          throw new KatoRuntimeError(message);
         }
       } else {
         return {
