@@ -66,6 +66,20 @@
               <div style="margin-right: 30px">
                 <el-tooltip
                   v-show="!data.batchEditing"
+                  content="批量新增"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    icon="el-icon-document-copy"
+                    circle
+                    size="mini"
+                    @click.native.stop="showBatchAdd(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
+                  v-show="!data.batchEditing"
                   content="新增"
                   :enterable="false"
                 >
@@ -226,7 +240,7 @@
                   </el-input>
                 </div>
                 <div v-else-if="row.isEdit || row.batchEditing">
-                  <el-input v-model="tempRow.remark" size="mini"> </el-input>
+                  <el-input v-model="tempRow.remark" size="mini"></el-input>
                 </div>
                 <div v-else-if="!row.isEdit && !row.noConfig">
                   {{ row.remark }}
@@ -304,15 +318,23 @@
         </el-collapse-item>
       </el-collapse>
     </el-card>
+    <work-staff-binding
+      :visible="batchAddDialog"
+      :member-list="memberList"
+      :work-item="workItem"
+    >
+    </work-staff-binding>
   </div>
 </template>
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod, HisWorkScoreType} from '../../../../common/his.ts';
+import WorkStaffBinding from './component/work-staff-binding';
 
 export default {
   name: 'Configuration',
+  components: {WorkStaffBinding},
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,
@@ -334,7 +356,9 @@ export default {
       removeLoading: false,
       currentTarget: HisWorkScoreType.WORK_ITEM, //默认以工作量维度
       activeCollapse: [],
-      expandAll: false
+      expandAll: false,
+      batchAddDialog: false,
+      workItem: {} //用于批量新增的变量
     };
   },
   computed: {
@@ -625,6 +649,15 @@ export default {
       } finally {
         row.removeLoading = false;
       }
+    },
+    showBatchAdd(row) {
+      this.workItem = JSON.parse(JSON.stringify(row));
+      this.batchAddDialog = true;
+    },
+    //重置批量新增的窗口
+    resetBatchDialog() {
+      this.batchAddDialog = false;
+      this.workItem = {};
     }
   }
 };
