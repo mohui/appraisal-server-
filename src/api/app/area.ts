@@ -32,7 +32,8 @@ export default class AppArea {
     // 生成机构邀请码
     const imageBuffer = imageSync(
       JSON.stringify({
-        code: hospital
+        code: hospital,
+        name: Context.current.user.hospitals[0]['name']
       }),
       {type: 'png'}
     );
@@ -59,13 +60,12 @@ export default class AppArea {
   async joinUs(ticket) {
     /**
      * 1: 校验机构id是否合法
-     * 2: 获取员工id
-     * 3: 根据员工id获取员工信息
-     * 4: 判断此员工信息是否合法, 判断员工是否绑定过此机构
-     * 5: 检查是否在申请列表,如果在申请列表,查看最新一条的状态,有三种情况
-     * 5.1: 待审核: 直接返回id
-     * 5.2: 已通过: 直接返回id
-     * 5.3: 未通过: 接着往下进行,可以接着申请
+     * 2: 根据员工id和机构id获取申请列表, 有三种情况
+     * 2.1: 待审核: 直接返回id
+     * 2.2: 已通过: 查询 staff_area_mapping 是否存在此机构信息
+     * 2.2.1: 有: 直接返回id
+     * 2.2.2: 无: 可以接着申请
+     * 2.3: 未通过: 可以发申请
      * 6: 添加申请
      * */
     // 申请码是否合法
@@ -87,19 +87,32 @@ export default class AppArea {
         Context.current.user.id,
         ticket.area
       );
-      // 如果查询结果大于0,并且不是未通过状态, 返回id
-      if (
-        staffRequests.length > 0 &&
-        staffRequests[0].status !== RequestStatus.REJECTED
-      ) {
-        return staffRequests[0].id;
-      }
 
-      // 查找机构是否在数组中
-      const filterUser = staffRequests.filter(
+      // 查找 待审核 的列表,如果存在,直接返回id
+      const findPending = staffRequests.find(
+        it => it.status === RequestStatus.PENDING
+      );
+      if (findPending) return findPending.id;
+
+      // 查找 已通过 是否在数组中,如果在数组中,查询 staff_area_mapping 是否存在
+      const findSuccess = staffRequests.find(
         it => it.status === RequestStatus.SUCCESS
       );
-      if (filterUser.length > 0) return filterUser[0].id;
+      // 如果存在, 直接返回申请id
+      if (findSuccess) {
+        const areaMappings = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select 1
+            from staff_area_mapping
+            where staff = ?
+              and area = ?
+          `,
+          Context.current.user.id,
+          ticket.area
+        );
+        if (areaMappings.length > 0) return findSuccess.id;
+      }
 
       // 插入申请表中
       const requestId = uuid();
@@ -236,7 +249,7 @@ export default class AppArea {
         id
       );
       // 如果通过, 在 staff_area_mapping 表中添加一条
-      if (status === RequestStatus.SUCCESS)
+      if (status === RequestStatus.SUCCESS) {
         await appDB.execute(
           // language=PostgreSQL
           `
@@ -249,6 +262,36 @@ export default class AppArea {
           staffRequest.staff,
           staffRequest.area
         );
+        // 同时查询此机构是否是此员工的第一个机构,如果是第一个机构,设置为主机构
+        const areaMappings: {
+          staff: string;
+          area: string;
+          department: string;
+        }[] = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select staff, area, department
+            from staff_area_mapping
+            where staff = ?
+          `,
+          staffRequest.staff
+        );
+        if (areaMappings.length === 1) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              update staff
+              set hospital   = ?,
+                  department = ?,
+                  updated_at = now()
+              where id = ?
+            `,
+            areaMappings[0].area,
+            areaMappings[0].department,
+            areaMappings[0].staff
+          );
+        }
+      }
     });
   }
 
@@ -367,8 +410,8 @@ export default class AppArea {
         year
       )
     )[0];
-    const tags = await this.tags();
-    return (
+    const tags = this.tags();
+    const result = (
       await Promise.all(
         checkRules
           //考核规则对应的考核指标-parent_rule_id为空
@@ -1218,6 +1261,90 @@ export default class AppArea {
           })
       )
     ).filter(r => r.tags.length > 0);
+
+    //考核项排序
+    return result
+      .map(rule => ({
+        ...rule,
+        tags: rule.tags.sort(
+          (
+            next: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            },
+            prev: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }
+          ) => {
+            if (
+              prev.score !== prev.correct_score ||
+              (prev.score === prev.correct_score &&
+                next.score === next.correct_score)
+            )
+              return 0;
+            else return -1;
+          }
+        )
+      }))
+      .sort(
+        (
+          next: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          },
+          prev: {
+            score: number;
+            name: any;
+            id: any;
+            tags: {
+              score: any;
+              auto: any;
+              name: any;
+              correct_score: number;
+              id: any;
+              baseline: any;
+              algorithm_name: any;
+              value: boolean;
+              algorithm: any;
+            }[];
+          }
+        ) => {
+          if (
+            prev.tags.some(tag => tag.score !== tag.correct_score) ||
+            (prev.tags.every(tag => tag.score === tag.correct_score) &&
+              next.tags.every(tag => tag.score === tag.correct_score))
+          )
+            return 0;
+          else return -1;
+        }
+      );
   }
 
   /**
@@ -1230,7 +1357,7 @@ export default class AppArea {
    *   value: 问题标签的检索值,
    *   }]
    */
-  async tags() {
+  tags() {
     return documentTagList;
   }
 
@@ -1276,7 +1403,7 @@ export default class AppArea {
    *   name: 名称,
    *   idCard: 身份证号,
    *   genderName: 性别,
-   *   age: {year: 年龄},
+   *   age: 年龄,
    *   S03: 有动态记录的档案,
    *   S23: 档案是否规范,
    *   O00: 老年人,
@@ -1314,12 +1441,9 @@ export default class AppArea {
    */
   @validate(
     should.object({
-      area: should
-        .string()
-        .required()
-        .allow(''),
-      keyword: should.string().allow(null, ''),
-      doctor: should.string().allow(null, ''),
+      area: should.string().required(),
+      keyword: should.string().allow(''),
+      doctor: should.string().allow(''),
       tags: should
         .array()
         .items(
@@ -1328,7 +1452,7 @@ export default class AppArea {
             value: should.required()
           })
         )
-        .allow(null, []),
+        .allow([]),
       crowd: should
         .array()
         .items(
@@ -1337,16 +1461,21 @@ export default class AppArea {
             value: should.required()
           })
         )
-        .allow(null, []),
+        .allow([]),
       pageSize: should.number().required(),
       pageNo: should.number().required(),
       year: should.number().required()
     })
   )
   async archives(params) {
+    const tags = this.tags();
     const tagsObject = {};
-    if (params.tags)
+    if (params.tags && params.tags.length > 0)
       params.tags.map(tag => {
+        tagsObject[tag.id] = tag.value;
+      });
+    else
+      tags.map(tag => {
         tagsObject[tag.id] = tag.value;
       });
     const crowdObject = {};
@@ -1362,26 +1491,31 @@ export default class AppArea {
       pageSize: params.pageSize,
       pageNo: params.pageNo,
       year: params.year,
-      crowd: crowdObject
+      crowd: crowdObject,
+      documentOr: true
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];
-    if (rows.length > 0)
+    if (rows.length > 0) {
       // eslint-disable-next-line @typescript-eslint/camelcase
       mark_contents = await originalDB.execute(
         `
-          select id, name as tag, content
-          from mark_content
-          where year = ?
-            and id in (${rows.map(() => '?')})
-        `,
+                  select id, name as tag, content
+                  from mark_content
+                  where year = ?
+                    and id in (${rows.map(() => '?')})
+                    and name in (${Object.keys(tagsObject).map(() => '?')})
+                `,
         params.year,
-        ...rows.map(p => p.id)
+        ...rows.map(p => p.id),
+        ...Object.keys(tagsObject)
       );
+    }
     return {
       count,
       rows: rows.map(row => ({
         ...row,
+        age: row.age?.years ?? 0,
         // eslint-disable-next-line @typescript-eslint/camelcase
         content: mark_contents.filter(c => c.id === row.id)
       }))
