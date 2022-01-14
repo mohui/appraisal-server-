@@ -110,17 +110,17 @@ async function smsVerification(code, phone, usage) {
     )
   )[0];
   //code是否正确
-  if (!codeModel) throw new KatoCommonError('验证码错误');
+  if (!codeModel) throw new KatoLogicError('验证码错误', 10004);
   //检验是否过期
   if (
     dayjs()
       .subtract(smsConfig.expired.value, smsConfig.expired.unit)
       .isAfter(codeModel.created_at)
   )
-    throw new KatoCommonError('验证码已过期');
+    throw new KatoLogicError('验证码已过期', 10004);
   //检验验证码是否失效
   if (codeModel.created_at.getTime() != codeModel.updated_at.getTime())
-    throw new KatoCommonError('验证码已失效');
+    throw new KatoLogicError('验证码已失效', 10004);
   //验证码校验通过, 更新updated_at字段, 表示验证码已失效
   await appDB.execute(
     //language=PostgreSQL
