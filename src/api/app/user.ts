@@ -17,6 +17,46 @@ import HisStaff from '../his/staff';
 import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
 import {documentTagList} from '../../../common/person-tag';
+import * as SMSClient from '@alicloud/sms-sdk';
+
+/**
+ * 短信配置
+ */
+const smsConfig = config.get<{
+  key: string; //短信key
+  secret: string; //短信secret
+  enabled: boolean; //是否启用
+  limit: number; //每日限额
+  sign: string; //短信签名
+  template: string; //短信模板
+  expired: {value: number; unit: OpUnitType}; //过期策略
+}>('sms');
+
+/**
+ * 短信服务客户端
+ */
+const sms = new SMSClient({
+  accessKeyId: smsConfig.key,
+  secretAccessKey: smsConfig.secret
+});
+
+/**
+ * 发送短信
+ *
+ * @param phone 手机号码
+ * @param code 验证码
+ */
+async function send(phone: string, code: string) {
+  const res: {Code: string; message: string} = await sms.sendSMS({
+    PhoneNumbers: phone,
+    SignName: smsConfig.sign,
+    TemplateCode: smsConfig.template,
+    TemplateParam: JSON.stringify({code})
+  });
+  if (res.Code != 'OK') {
+    throw new Error(res.message);
+  }
+}
 
 /**
  * 手机号码参数校验
@@ -34,15 +74,6 @@ const passwordValidate = should
   .min(8)
   .max(12)
   .required();
-
-/**
- * 短信配置
- */
-const smsConfig = config.get<{
-  enabled: boolean;
-  limit: number;
-  expired: {value: number; unit: OpUnitType};
-}>('sms');
 
 /**
  * 验证码用途枚举
@@ -195,6 +226,7 @@ export default class AppUser {
       )[0];
       //今日次数是否超过限额
       if (
+        smsConfig.limit > 0 &&
         now.diff(codeModel?.created_at, 'd') == 0 &&
         codeModel?.counts >= smsConfig.limit
       )
@@ -223,14 +255,25 @@ export default class AppUser {
         now.toDate(),
         counts
       );
-      //TODO: 发送短信
-
-      return !smsConfig.enabled
-        ? {
-            code,
-            counts
-          }
-        : null;
+      // 发送短信
+      if (smsConfig.enabled) {
+        try {
+          await send(phone, code);
+        } catch (e) {
+          const message = e.message ?? e;
+          console.log(
+            `${now.format(
+              'YYYY-MM-DD HH:mm:ss'
+            )} 发送 ${phone} 短信验证码 ${code} 异常: ${message}`
+          );
+          throw new KatoRuntimeError(message);
+        }
+      } else {
+        return {
+          code,
+          counts
+        };
+      }
     });
   }
 
