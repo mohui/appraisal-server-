@@ -6,7 +6,7 @@ import {
 } from '../../../common/rule-score';
 import Decimal from 'decimal.js';
 import Person from '../person';
-import {documentTagList} from '../../../common/person-tag';
+import {documentTagList, personTagList} from '../../../common/person-tag';
 import {Context} from '../context';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {imageSync} from 'qr-image';
@@ -1404,37 +1404,11 @@ export default class AppArea {
    *   idCard: 身份证号,
    *   genderName: 性别,
    *   age: 年龄,
-   *   S03: 有动态记录的档案,
-   *   S23: 档案是否规范,
-   *   O00: 老年人,
-   *   O02: 老年人中医药健康管理,
-   *   H00: 高血压,
-   *   H01: 高血压患者规范管理,
-   *   H02: 高血压患者血压控制,
-   *   D00: 糖尿病,
-   *   D01: 糖尿病患者规范管理,
-   *   D02: 糖尿病患者血压控制,
-   *   MCH01: 孕早期健康管理,
-   *   MCH02: 产后访视健康管理,
-   *   C00: 普通人群,
-   *   C01: 老年人,
-   *   C02: 高血压,
-   *   C03: 糖尿病,
-   *   C04: 孕产妇,
-   *   C05: 0-6岁儿童,
-   *   C06: 脑卒中,
-   *   C07: 计划生育特殊家庭对象,
-   *   C08: 严重精神病患者,
-   *   C09: 肺结核,
-   *   C10: 残疾人,
-   *   C11: 其他慢病,
-   *   C13: 高危人群,
-   *   C14: 高校,
-   *   CH01: 高危管理规范,
-   *   CO01: 其他慢病管理规范,
-   *   E00: 人群标记错误,
-   *   ai_2dm: ai检测糖尿病风险,
-   *   ai_hua: ai检测糖尿病患者高血酸风险,
+   *   crowds: [{
+   *     id: 人群分类id
+   *     name: 人群分类名称
+   *     value: true
+   *   }], 该居民人群分类
    *   operatorName: 录入人,
    *   content: [{id: 编号, tag: 问题标签编码, content: 不规范内容}] 不规范内容
    *   }]
@@ -1511,14 +1485,27 @@ export default class AppArea {
         ...Object.keys(tagsObject)
       );
     }
+    //人群分类数组
+    const crowdOptions = personTagList.filter(
+      it => !it.id.startsWith('ai') // 排除ai人群
+    );
     return {
       count,
-      rows: rows.map(row => ({
-        ...row,
-        age: row.age?.years ?? 0,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        content: mark_contents.filter(c => c.id === row.id)
-      }))
+      rows: rows.map(row => {
+        //处理人群分类
+        const crowds = [];
+        for (const crowd of crowdOptions) {
+          if (row[crowd.id] === true)
+            crowds.push({id: crowd.id, name: crowd.name, value: crowd.type});
+        }
+        return {
+          ...row,
+          crowds,
+          age: row.age?.years ?? 0,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          content: mark_contents.filter(c => c.id === row.id)
+        };
+      })
     };
   }
 
