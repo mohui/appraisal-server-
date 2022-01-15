@@ -1485,14 +1485,16 @@ export default class AppArea {
         ...Object.keys(tagsObject)
       );
     }
+    //人群分类数组
+    const crowdOptions = personTagList.filter(
+      it => !it.id.startsWith('ai') // 排除ai人群
+    );
     return {
       count,
       rows: rows.map(row => {
         //处理人群分类
         const crowds = [];
-        for (const crowd of personTagList.filter(
-          it => !it.id.startsWith('ai') // 排除ai人群
-        )) {
+        for (const crowd of crowdOptions) {
           if (row[crowd.id] === true)
             crowds.push({id: crowd.id, name: crowd.name, value: crowd.type});
         }
