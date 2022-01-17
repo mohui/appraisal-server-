@@ -173,23 +173,41 @@
           label="备注"
           min-width="100"
         ></el-table-column>
-        <el-table-column align="center" label="操作" min-width="260">
+        <el-table-column align="center" label="操作" min-width="460">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
-              <!--              <el-button-->
-              <!--                :disabled="row.removeLoading"-->
-              <!--                :icon="row.removeLoading ? 'el-icon-loading' : ''"-->
-              <!--                size="small"-->
-              <!--                type="danger"-->
-              <!--                @click="delUser(row)"-->
-              <!--              >-->
-              <!--                删除-->
-              <!--              </el-button>-->
               <el-button type="primary" size="mini" @click="QRImage(row)">
                 绑定码
+              </el-button>
+              <el-button
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : ''"
+                size="small"
+                type="danger"
+                @click="delUser(row)"
+              >
+                注销机构
+              </el-button>
+              <el-button
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : ''"
+                size="small"
+                type="danger"
+                @click="initializationUser(row)"
+              >
+                初始化用户
+              </el-button>
+              <el-button
+                :disabled="row.removeLoading"
+                :icon="row.removeLoading ? 'el-icon-loading' : ''"
+                size="small"
+                type="danger"
+                @click="deleteUser(row)"
+              >
+                删除用户
               </el-button>
             </div>
           </template>
@@ -741,7 +759,54 @@ export default {
         if (row.departmentId)
           await this.$api.HisDepartment.delete(row.departmentId);
         if (!row.departmentId)
-          await this.$api.HisStaff.delete(row.id, this.hospitalId);
+          // await this.$api.HisStaff.delete(row.id, this.hospitalId);
+          await this.$api.AppUser.review(row.id, this.hospitalId);
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        });
+        this.$asyncComputed.listMember.update();
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
+      } catch (e) {
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      } finally {
+        row.removeLoading = false;
+      }
+    },
+    //删除用户
+    async initializationUser(row) {
+      try {
+        await this.$confirm('此操作将清除用户信息, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        row.removeLoading = true;
+        await this.$api.AppUser.initialization(row.id, this.hospitalId);
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        });
+        this.$asyncComputed.listMember.update();
+        this.$asyncComputed.serverDepartment.update();
+        this.symbolKey = Symbol(this.$dayjs().toString());
+      } catch (e) {
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      } finally {
+        row.removeLoading = false;
+      }
+    },
+    //删除用户
+    async deleteUser(row) {
+      try {
+        await this.$confirm('此操作将永久删除, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        row.removeLoading = true;
+        await this.$api.AppUser.delete(row.id, this.hospitalId);
         this.$message({
           type: 'success',
           message: '删除成功!'
