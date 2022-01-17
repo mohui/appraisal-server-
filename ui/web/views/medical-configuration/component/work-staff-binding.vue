@@ -40,12 +40,6 @@
           </div></template
         >
       </el-table-column>
-      <el-table-column align="center" label="备注" prop="remark">
-        <template slot-scope="{row}">
-          <div v-if="row.selected">
-            <el-input v-model="row.remark" size="mini"> </el-input></div
-        ></template>
-      </el-table-column>
     </el-table>
     <div slot="footer" class="dialog-footer">
       <el-button size="mini" @click="reset()">取 消</el-button>
@@ -244,8 +238,7 @@ export default {
               id: null,
               item: this.workItem.id,
               staff: n.id,
-              rate: n.rate / 100,
-              remark: n.remark
+              rate: n.rate / 100
             });
           if (n.children) {
             n.children.forEach(c => {
@@ -254,15 +247,13 @@ export default {
                   id: null,
                   item: this.workItem.id,
                   staff: c.id,
-                  rate: c.rate / 100,
-                  remark: c.remark
+                  rate: c.rate / 100
                 });
             });
           }
           return p;
         }, []);
         const emptyRate = this.selectedData.find(it => it.rate === 0);
-        console.log(this.selectedData);
         if (emptyRate) {
           this.$message.error('权重配置必须大于0');
           return;
