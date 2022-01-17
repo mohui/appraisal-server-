@@ -64,7 +64,7 @@
       ></el-table-column>
       <el-table-column prop="name" label="姓名"> </el-table-column>
       <el-table-column prop="gender" label="性别"> </el-table-column>
-      <el-table-column prop="mobile" label="手机号"> </el-table-column>
+      <el-table-column prop="phone" label="手机号"> </el-table-column>
       <el-table-column prop="major" label="专业类型"> </el-table-column>
       <el-table-column prop="title" label="职称名称"> </el-table-column>
       <el-table-column prop="education" label="学历"> </el-table-column>
@@ -135,7 +135,8 @@ export default {
     bindingList() {
       return this.serverData.map(it => ({
         ...it,
-        createdAt: it.created_at.$format()
+        createdAt: it.created_at.$format(),
+        isGP: it.isGP ? '是' : '否'
       }));
     }
   },
