@@ -137,6 +137,61 @@ async function smsVerification(code, phone, usage) {
 }
 
 /**
+ * 注销机构校验
+ *
+ * @param id 员工id
+ * @param hospital 员工所属机构
+ */
+async function checkoutStaff(id, hospital) {
+  // 先查询是否绑定过工分项
+  const itemMappings: {
+    id: string;
+    staff: string;
+    hospital: string;
+  }[] = await appDB.execute(
+    // language=PostgreSQL
+    `
+      select mapping.id, mapping.staff, item.hospital
+      from his_staff_work_item_mapping mapping
+             left join his_work_item item on mapping.item = item.id
+      where mapping.staff = ?
+    `,
+    id
+  );
+  // 判断有没有传机构, 如果没有传机构, 校验员工, 如果有机构id,只校验员工此机构的
+  if (hospital) {
+    const staffItemFind = itemMappings.find(it => it.hospital === hospital);
+    if (staffItemFind) throw new KatoCommonError(`员工在此机构已绑定工分项`);
+  } else {
+    if (itemMappings.length > 0) throw new KatoCommonError(`员工已绑定工分项`);
+  }
+
+  // 查询员工是否绑定过方案
+  const checkMappings: {
+    staff: string;
+    check: string;
+    hospital: string;
+  }[] = await appDB.execute(
+    // language=PostgreSQL
+    `
+      select checkMapping.staff, checkMapping."check", system.hospital
+      from his_staff_check_mapping checkMapping
+             inner join his_check_system system on checkMapping."check" = system.id
+      where staff = ?
+    `,
+    id
+  );
+
+  // 判断有没有传机构, 如果没有传机构, 校验员工, 如果有机构id,只校验员工此机构的
+  if (hospital) {
+    const staffSystemFind = checkMappings.find(it => it.hospital === hospital);
+    if (staffSystemFind) throw new KatoCommonError(`员工在此机构已绑定方案`);
+  } else {
+    if (checkMappings.length > 0) throw new KatoCommonError(`员工已绑定方案`);
+  }
+}
+
+/**
  * App用户模块
  */
 export default class AppUser {
@@ -723,4 +778,257 @@ export default class AppUser {
       checks: checkList
     };
   }
+
+  // region 用户临时接口
+
+  // 接触绑定
+  async review(id, hospital) {
+    await checkoutStaff(id, hospital);
+
+    const hisStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name, hospital
+        from his_staff
+        where hospital = ?
+      `,
+      hospital
+    );
+
+    // 所有的his员工id
+    const hisStaffIds = hisStaffModels.map(it => it.id);
+
+    // 机构下的所有公卫员工
+    const phStaffModels = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select id, name username, states
+        from ph_user
+        where hospital = ?
+      `,
+      hospital
+    );
+    // 所有的公卫员工id
+    const phStaffIds = phStaffModels.map(it => it.id);
+
+    /**
+     * 1: 查询员工信息
+     * 2: 判断要注销的机构是不是主机构
+     * 2.1: 是主机构: 查询员工的所有机构,如果有多家,把最后一次绑定的为主机构
+     * 2.2: 非主机构: 对员工主表不做处理
+     * 3: 删除员工和此机构的绑定
+     * 4: 删除员工和此机构公卫员工的绑定
+     * 5: 删除员工和此机构HIS员工的绑定
+     */
+    return appDB.transaction(async () => {
+      // 查询员工信息
+      const staffModel: {
+        id: string;
+        hospital: string;
+        department: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select id, hospital, department
+            from staff
+            where id = ?
+          `,
+          id
+        )
+      )[0];
+      // 判断要注销的机构是不是主机构
+      if (staffModel.hospital === hospital) {
+        // 是主机构, 查询员工的所有机构
+        const areaMappings: {
+          staff: string;
+          area: string;
+          department: string;
+          created_at: Date;
+        }[] = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select staff, area, department, created_at
+            from staff_area_mapping
+            where staff = ?
+              and area != ?
+            order by created_at desc
+          `,
+          id,
+          hospital
+        );
+        // 如果查询结果大于0, 把第一条设置为主机构
+        if (areaMappings.length > 0) {
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              update staff
+              set hospital   = ?,
+                  department = ?,
+                  updated_at = now()
+              where id = ?
+            `,
+            areaMappings[0].area,
+            areaMappings[0].department,
+            id
+          );
+        }
+      }
+
+      // 如果不是主机构, 直接删除掉这条记录
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?
+            and area = ?`,
+        id,
+        hospital
+      );
+      if (phStaffIds.length > 0) {
+        // 删除员工和公卫员工关联表
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from staff_ph_mapping
+            where staff = ?
+            and ph_staff in (${phStaffIds.map(() => '?')})
+          `,
+          id,
+          ...phStaffIds
+        );
+      }
+
+      if (hisStaffIds.length > 0) {
+        // 删除员工和his员工关联表
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from staff_his_mapping
+            where staff = ?
+          and his_staff in (${hisStaffIds.map(() => '?')})
+          `,
+          id,
+          ...hisStaffIds
+        );
+      }
+    });
+  }
+
+  /**
+   * 初始化用户
+   * @param id
+   */
+  async initialization(id) {
+    await checkoutStaff(id, null);
+
+    return appDB.transaction(async () => {
+      // 删除员工和地区关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 删除员工和公卫员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_ph_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 删除员工和his员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_his_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 把主机构,主科室为空
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set hospital   = null,
+              department = null,
+              name       = null,
+              remark     = null,
+              major      = null,
+              title      = null,
+              education  = null,
+              updated_at = now()
+          where id = ?
+        `,
+        id
+      );
+    });
+  }
+
+  @validate(should.string().required(), should.string().required())
+  async delete(id) {
+    await checkoutStaff(id, null);
+
+    return appDB.transaction(async () => {
+      // 删除员工和地区关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 删除员工和公卫员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_ph_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 删除员工和his员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_his_mapping
+          where staff = ?
+        `,
+        id
+      );
+
+      // 执行删除操作
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff
+          where id = ?
+        `,
+        id
+      );
+    });
+  }
+
+  // endregion
 }
