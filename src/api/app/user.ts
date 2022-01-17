@@ -857,22 +857,20 @@ export default class AppUser {
           id,
           hospital
         );
-        // 如果查询结果大于0, 把第一条设置为主机构
-        if (areaMappings.length > 0) {
-          await appDB.execute(
-            // language=PostgreSQL
-            `
-              update staff
-              set hospital   = ?,
-                  department = ?,
-                  updated_at = now()
-              where id = ?
-            `,
-            areaMappings[0].area,
-            areaMappings[0].department,
-            id
-          );
-        }
+        // 如果有其他机构, 把第一条设置为主机构,否则主机构设置为null
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            update staff
+            set hospital   = ?,
+                department = ?,
+                updated_at = now()
+            where id = ?
+          `,
+          areaMappings[0]?.area ?? null,
+          areaMappings[0]?.department ?? null,
+          id
+        );
       }
 
       // 如果不是主机构, 直接删除掉这条记录
