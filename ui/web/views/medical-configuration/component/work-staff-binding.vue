@@ -75,9 +75,22 @@ export default {
   computed: {
     //员工按部门分类
     staffsByDepartment() {
+      const bindedStaff = this.workItem.subs;
       if (this.memberList.length === 0) return [];
       return this.memberList
-        .map(it => ({...it, rate: 0, selected: false}))
+        .map(it => {
+          let bindInfo;
+          if (bindedStaff)
+            bindInfo = bindedStaff.find(bind => bind.staff === it.id);
+          return {
+            id: it.id,
+            department: it.department,
+            departmentName: it.departmentName,
+            name: it.name,
+            rate: bindInfo?.rate ?? 0,
+            selected: bindInfo?.rate ?? 0 > 0
+          };
+        })
         .reduce((p, n) => {
           //没有科室的单独放置
           if (n.department === null) {
@@ -86,7 +99,11 @@ export default {
           }
           //有科室的员工进行集合
           const current = p.find(it => it.id === n.department);
-          if (current) current.children.push({...n, departmentName: ''});
+          if (current)
+            current.children.push({
+              ...n,
+              departmentName: ''
+            });
           if (!current) {
             p.push({
               id: n.department,
@@ -116,6 +133,44 @@ export default {
       default: []
     }
   },
+  watch: {
+    workItem: {
+      handler: function(newVal) {
+        if (newVal?.subs) {
+          this.selectedData = [];
+          this.selectedData = this.selectedData.concat(
+            newVal.subs.map(it => {
+              let current = '';
+              for (let i = 0; i < this.staffsByDepartment.length; i++) {
+                const row = this.staffsByDepartment[i];
+                if (row.children) {
+                  for (let j = 0; j < row.children.length; j++) {
+                    if (row.children[j].id === it.staff) {
+                      current = row.children[j];
+                      break;
+                    }
+                  }
+                }
+                if (!row.children && row.id === it.staff) {
+                  current = row;
+                  break;
+                }
+              }
+              if (current) return current;
+            })
+          );
+          this.$nextTick(() => {
+            // this.$refs.staffBinding.toggleRowExpansion(newVal, true);
+
+            this.selectedData.forEach(it => {
+              this.selectStaff(null, it, true);
+            });
+          });
+        }
+      },
+      deep: true
+    }
+  },
   methods: {
     reset() {
       this.$parent.resetBatchDialog();
@@ -139,6 +194,16 @@ export default {
       });
     },
     selectStaff(selectedRows, row, checked) {
+      const expandRow = this.staffsByDepartment.find(
+        it => it.id === row.department
+      );
+
+      if (expandRow) {
+        this.$nextTick(() => {
+          //默认展开被选中员工所在的科室父级
+          this.$refs.staffBinding.toggleRowExpansion(expandRow, true);
+        });
+      }
       row.selected = checked;
       this.$refs.staffBinding.toggleRowSelection(row, row.selected);
 
