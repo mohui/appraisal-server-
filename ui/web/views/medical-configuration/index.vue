@@ -71,7 +71,7 @@
                 >
                   <el-button
                     type="success"
-                    icon="el-icon-document-copy"
+                    icon="el-icon-document-add"
                     circle
                     size="mini"
                     @click.native.stop="showBatchAdd(data)"
