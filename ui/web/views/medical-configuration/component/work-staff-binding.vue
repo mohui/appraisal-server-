@@ -62,8 +62,7 @@ export default {
   data() {
     return {
       btnLoading: false,
-      selectAll: false,
-      selectedData: []
+      selectAll: false
     };
   },
   computed: {
@@ -131,9 +130,8 @@ export default {
     workItem: {
       handler: function(newVal) {
         if (newVal?.subs) {
-          this.selectedData = [];
-          this.selectedData = this.selectedData.concat(
-            newVal.subs.map(it => {
+          newVal.subs
+            .map(it => {
               let current = '';
               for (let i = 0; i < this.staffsByDepartment.length; i++) {
                 const row = this.staffsByDepartment[i];
@@ -152,14 +150,11 @@ export default {
               }
               if (current) return current;
             })
-          );
-          this.$nextTick(() => {
-            // this.$refs.staffBinding.toggleRowExpansion(newVal, true);
-
-            this.selectedData.forEach(it => {
-              this.selectStaff(null, it, true);
+            .forEach(it => {
+              this.$nextTick(() => {
+                this.selectStaff(null, it, true);
+              });
             });
-          });
         }
       },
       deep: true
@@ -232,7 +227,7 @@ export default {
     async submit() {
       try {
         this.btnLoading = true;
-        this.selectedData = this.staffsByDepartment.reduce((p, n) => {
+        const selectedData = this.staffsByDepartment.reduce((p, n) => {
           if (!n.children && n.selected)
             p.push({
               id: null,
@@ -253,14 +248,14 @@ export default {
           }
           return p;
         }, []);
-        const emptyRate = this.selectedData.find(it => it.rate === 0);
+        const emptyRate = selectedData.find(it => it.rate === 0);
         if (emptyRate) {
           this.$message.error('权重配置必须大于0');
           return;
         }
         try {
           await this.$api.HisWorkItem.batchUpsertStaffWorkItemMapping(
-            this.selectedData
+            selectedData
           );
           this.$message.success('新增成功');
           this.$parent.$asyncComputed.serverData.update();
