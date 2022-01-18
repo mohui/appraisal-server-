@@ -89,10 +89,9 @@ export default class Formula {
     );
     const result = await knowledgeDB.execute(sqlResult[0], ...sqlResult[1]);
     return {
-      data: result.filter(
-        (_, index) =>
-          index >= (params.pageNo - 1) * params.pageSize &&
-          index < params.pageNo * params.pageSize
+      data: result.slice(
+        (params.pageNo - 1) * params.pageSize,
+        params.pageNo * params.pageSize
       ),
       rows: result.length,
       pages: Math.ceil(result.length / params.pageSize)
