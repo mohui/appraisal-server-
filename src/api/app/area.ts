@@ -1476,7 +1476,7 @@ export default class AppArea {
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];
-    if (rows.length > 0) {
+    if (rows.length > 0 && Object.keys(tagsObject).length > 0) {
       // eslint-disable-next-line @typescript-eslint/camelcase
       mark_contents = await originalDB.execute(
         `
