@@ -1471,12 +1471,12 @@ export default class AppArea {
       pageNo: params.pageNo,
       year: params.year,
       crowd: crowdObject,
-      documentOr: true,
-      personOr: true
+      documentOr: Object.keys(tagsObject).length > 0,
+      personOr: Object.keys(crowdObject).length > 0
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];
-    if (rows.length > 0) {
+    if (rows.length > 0 && Object.keys(tagsObject).length > 0) {
       // eslint-disable-next-line @typescript-eslint/camelcase
       mark_contents = await originalDB.execute(
         `
