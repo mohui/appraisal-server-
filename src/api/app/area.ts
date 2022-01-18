@@ -1443,7 +1443,7 @@ export default class AppArea {
   )
   async archives(params) {
     const tags = this.tags();
-    const tagsObject = {};
+    let tagsObject = {};
     if (params.tags && params.tags.length > 0)
       params.tags.map(tag => {
         tagsObject[tag.id] = tag.value;
@@ -1452,6 +1452,11 @@ export default class AppArea {
       tags.map(tag => {
         tagsObject[tag.id] = tag.value;
       });
+    if (
+      params.crowd &&
+      params.crowd.some(crowd => crowd.id === 'ai_2dm' || crowd.id === 'ai_hua')
+    )
+      tagsObject = {};
     const crowdObject = {};
     if (params.crowd)
       params.crowd.map(c => {
@@ -1466,7 +1471,8 @@ export default class AppArea {
       pageNo: params.pageNo,
       year: params.year,
       crowd: crowdObject,
-      documentOr: true
+      documentOr: true,
+      personOr: true
     });
     // eslint-disable-next-line @typescript-eslint/camelcase
     let mark_contents = [];
