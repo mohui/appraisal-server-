@@ -22,7 +22,7 @@ export default class Formula {
    */
   @validate(
     should.object({
-      keyword: should.string().allow(''),
+      keyword: should.string().required(),
       pageSize: should
         .number()
         .integer()
@@ -40,47 +40,48 @@ export default class Formula {
     if (params.keyword) params.keyword = `%${params.keyword}%`;
     //sql渲染
     const sqlResult = sqlRender(
-      `with category as (
-        SELECT [MI_INFORMATION_CATEGORY_ID]
-             , [CATEGORY_NAME]
-             , [DESCRIPTION]
-             , [PARENT_CATEGORY_ID]
-             , [ACCESS_CONTROL_CODE]
-             , IS_ARTICLE_CATEGORY
-             , [KEY_WORDS]
-             , [PUBLISHED]
-             , [AUTHOR]
-             , [SEQUENCE_NUMBER]
-             , [ENTERED]
-             , [ENTERED_BY]
-             , [VERSION_NUM]
-        FROM [medimpact_data].[MI_INFORMATION_CATEGORY]
-        where MI_INFORMATION_CATEGORY_ID = 3413
-        union all
-        SELECT a.[MI_INFORMATION_CATEGORY_ID]
-          , a.[CATEGORY_NAME]
-          , a.[DESCRIPTION]
-          , a.[PARENT_CATEGORY_ID]
-          , a.[ACCESS_CONTROL_CODE]
-          , a.IS_ARTICLE_CATEGORY
-          , a.[KEY_WORDS]
-          , a.[PUBLISHED]
-          , a.[AUTHOR]
-          , a.[SEQUENCE_NUMBER]
-          , a.[ENTERED]
-          , a.[ENTERED_BY]
-          , a.[VERSION_NUM]
-        from [medimpact_data].[MI_INFORMATION_CATEGORY] a, category as b
-        where a.PARENT_CATEGORY_ID=b.MI_INFORMATION_CATEGORY_ID
-      )
-       select c.[MI_INFORMATION_CATEGORY_ID] as id,c.[CATEGORY_NAME] as name,a.[ARTICLE_CONTENT] as url
-       from category c
-       left join [medimpact_data].[MI_INFORMATION_ARTICLE] a on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
-       where c.IS_ARTICLE_CATEGORY = 'N'
-       {{#if keyword}}
-         and (KEY_WORDS like {{? keyword}} or CATEGORY_NAME like {{? keyword}})
-       {{/ if}}
-       order by c.CATEGORY_NAME,c.MI_INFORMATION_CATEGORY_ID,a.PAGE_NUMBER
+      `
+        with category as (
+          SELECT [MI_INFORMATION_CATEGORY_ID],
+                 [CATEGORY_NAME],
+                 [DESCRIPTION],
+                 [PARENT_CATEGORY_ID],
+                 [ACCESS_CONTROL_CODE],
+                 IS_ARTICLE_CATEGORY,
+                 [KEY_WORDS],
+                 [PUBLISHED],
+                 [AUTHOR],
+                 [SEQUENCE_NUMBER],
+                 [ENTERED],
+                 [ENTERED_BY],
+                 [VERSION_NUM]
+          FROM [medimpact_data].[MI_INFORMATION_CATEGORY]
+          where MI_INFORMATION_CATEGORY_ID = 3413
+          union all
+          SELECT a.[MI_INFORMATION_CATEGORY_ID],
+                 a.[CATEGORY_NAME],
+                 a.[DESCRIPTION],
+                 a.[PARENT_CATEGORY_ID],
+                 a.[ACCESS_CONTROL_CODE],
+                 a.IS_ARTICLE_CATEGORY,
+                 a.[KEY_WORDS],
+                 a.[PUBLISHED],
+                 a.[AUTHOR],
+                 a.[SEQUENCE_NUMBER],
+                 a.[ENTERED],
+                 a.[ENTERED_BY],
+                 a.[VERSION_NUM]
+          from [medimpact_data].[MI_INFORMATION_CATEGORY] a,
+               category as b
+          where a.PARENT_CATEGORY_ID = b.MI_INFORMATION_CATEGORY_ID
+        )
+        select c.[MI_INFORMATION_CATEGORY_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
+        from category c
+               left join [medimpact_data].[MI_INFORMATION_ARTICLE] a
+                         on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
+        where c.IS_ARTICLE_CATEGORY = 'N'
+        {{#if keyword}}and (KEY_WORDS like {{? keyword}} or CATEGORY_NAME like {{? keyword}}){{/if}}
+        order by c.CATEGORY_NAME, c.MI_INFORMATION_CATEGORY_ID, a.PAGE_NUMBER
       `,
       {
         keyword: params.keyword
