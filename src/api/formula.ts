@@ -9,17 +9,35 @@ export default class Formula {
   /**
    * 医学公式列表
    *
-   * @param 关键字
+   * @param params {
+   *   keyword: 关键字
+   *   pageSize: 分页大小
+   *   pageNo: 页码
+   * }
    * @return [{
    *   id: id
    *   name: 名称
    *   url?: 公式内容
    * }]
    */
-  @validate(should.string().allow(null))
-  async list(keyword) {
+  @validate(
+    should.object({
+      keyword: should.string().allow(''),
+      pageSize: should
+        .number()
+        .integer()
+        .positive()
+        .required(),
+      pageNo: should
+        .number()
+        .integer()
+        .positive()
+        .required()
+    })
+  )
+  async list(params) {
     //模糊查询参数
-    if (keyword) keyword = `%${keyword}%`;
+    if (params.keyword) params.keyword = `%${params.keyword}%`;
     //sql渲染
     const sqlResult = sqlRender(
       `with category as (
@@ -60,13 +78,23 @@ export default class Formula {
        left join [medimpact_data].[MI_INFORMATION_ARTICLE] a on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
        where c.IS_ARTICLE_CATEGORY = 'N'
        {{#if keyword}}
-         and KEY_WORDS like {{? keyword}}
+         and (KEY_WORDS like {{? keyword}} or CATEGORY_NAME like {{? keyword}})
        {{/ if}}
+       order by c.CATEGORY_NAME,c.MI_INFORMATION_CATEGORY_ID,a.PAGE_NUMBER
       `,
       {
-        keyword: keyword
+        keyword: params.keyword
       }
     );
-    return await knowledgeDB.execute(sqlResult[0], ...sqlResult[1]);
+    const result = await knowledgeDB.execute(sqlResult[0], ...sqlResult[1]);
+    return {
+      data: result.filter(
+        (_, index) =>
+          index >= (params.pageNo - 1) * params.pageSize &&
+          index < params.pageNo * params.pageSize
+      ),
+      rows: result.length,
+      pages: Math.ceil(result.length / params.pageSize)
+    };
   }
 }
