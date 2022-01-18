@@ -77,8 +77,8 @@ export default class Formula {
         )
         select c.[MI_INFORMATION_CATEGORY_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
         from category c
-               left join [medimpact_data].[MI_INFORMATION_ARTICLE] a
-                         on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
+               inner join [medimpact_data].[MI_INFORMATION_ARTICLE] a
+                         on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID] and a.[ARTICLE_CONTENT] is not null and a.[ARTICLE_CONTENT] != ''
         where c.IS_ARTICLE_CATEGORY = 'N'
         {{#if keyword}}and (KEY_WORDS like {{? keyword}} or CATEGORY_NAME like {{? keyword}}){{/if}}
         order by c.CATEGORY_NAME, c.MI_INFORMATION_CATEGORY_ID, a.PAGE_NUMBER
