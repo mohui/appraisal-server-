@@ -65,7 +65,10 @@
               <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
                 <el-tooltip
-                  v-show="!data.batchEditing"
+                  v-show="
+                    !data.batchEditing &&
+                      currentTarget === HisWorkScoreType.WORK_ITEM
+                  "
                   content="批量新增"
                   :enterable="false"
                 >

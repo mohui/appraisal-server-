@@ -167,7 +167,6 @@ export default {
     reset() {
       this.$parent.resetBatchDialog();
       this.$refs.staffBinding.clearSelection();
-      this.selectedData = [];
       this.staffsByDepartment.forEach(it => {
         //数据的重置工作
         it.selected = false;
