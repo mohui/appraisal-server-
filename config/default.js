@@ -47,6 +47,23 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  //知识库数据库配置
+  knowledge: {
+    dialect: 'mssql',
+    host: 'localhost',
+    port: '1433',
+    username: 'root',
+    password: 'root',
+    database: 'mssql',
+    dialectOptions: {
+      options: {
+        useUTC: false,
+        requestTimeout: 300000
+      }
+    },
+    logging: false,
+    timezone: '+8:00'
+  },
   // 定时任务
   queue: {
     cron: '00 00 04 * * *',

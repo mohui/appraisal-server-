@@ -37,6 +37,7 @@ export class Application {
   //TODO: 临时需要, 等待公卫etl完成后即可弃用
   mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
+  knowledgeDB = createExtendedSequelize(new Sequelize(config.get('knowledge')));
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -233,3 +234,4 @@ export const originalDB = app.originalDB;
 export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;
+export const knowledgeDB = app.knowledgeDB;
