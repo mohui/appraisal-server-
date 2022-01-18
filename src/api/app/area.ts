@@ -1445,15 +1445,14 @@ export default class AppArea {
     const tags = this.tags();
     const tagsObject = {};
     if (params.tags && params.tags.length > 0) {
-      if (
-        params.crowd.filter(
-          crowd => crowd.id === 'ai_2dm' || crowd.id === 'ai_hua'
-        ).length === 0
+      params.tags.map(tag => {
+        tagsObject[tag.id] = tag.value;
+      });
+    } else if (
+      params.crowd.every(
+        crowd => crowd.id !== 'ai_2dm' && crowd.id !== 'ai_hua'
       )
-        params.tags.map(tag => {
-          tagsObject[tag.id] = tag.value;
-        });
-    } else
+    )
       tags.map(tag => {
         tagsObject[tag.id] = tag.value;
       });
