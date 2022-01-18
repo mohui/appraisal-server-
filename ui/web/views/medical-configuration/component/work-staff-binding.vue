@@ -15,7 +15,7 @@
       border
       size="small"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-      row-key="id"
+      row-key="rowId"
       @select="(rows, row) => selectStaff(rows, row, !row.selected)"
       @select-all="selectAllStaff"
     >
@@ -76,6 +76,8 @@ export default {
           if (bindedStaff)
             bindInfo = bindedStaff.find(bind => bind.staff === it.id);
           return {
+            //rowId作为列表行的key值,员工用员工id作为rowId
+            rowId: it.id,
             id: it.id,
             department: it.department,
             departmentName: it.departmentName,
@@ -91,7 +93,7 @@ export default {
             return p;
           }
           //有科室的员工进行集合
-          const current = p.find(it => it.id === n.department);
+          const current = p.find(it => it.rowId === n.department);
           if (current)
             current.children.push({
               ...n,
@@ -99,7 +101,8 @@ export default {
             });
           if (!current) {
             p.push({
-              id: n.department,
+              //rowId作为列表行的key值,部门用部门id作为rowId
+              rowId: n.department,
               departmentName: n.departmentName,
               rate: 0,
               selected: false,
@@ -143,7 +146,7 @@ export default {
                     }
                   }
                 }
-                if (!row.children && row.id === it.staff) {
+                if (!row.children && row.rowId === it.staff) {
                   current = row;
                   break;
                 }
@@ -184,7 +187,7 @@ export default {
     },
     selectStaff(selectedRows, row, checked) {
       const expandRow = this.staffsByDepartment.find(
-        it => it.id === row.department
+        it => it.rowId === row.department
       );
 
       if (expandRow) {
