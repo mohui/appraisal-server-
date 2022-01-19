@@ -58,7 +58,7 @@ dev_deploy:
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker pull $IMAGE_NAME"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop jx-server-app || true && docker rm jx-server-app || true"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name jx-server-app -p 3202:3000 -v /data/etc/appraisal-server/app.js:/home/node/app/config/production.js -v /data/volume/jx/dev:/data -v /data/volume/lake/guidelines:/guidelines $IMAGE_NAME"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name jx-server-app -p 3202:3000 -v /data/etc/appraisal-server/app.js:/home/node/app/config/production.js -v /data/volume/jx/dev:/data -v /data/volume/lake/guidelines:/guidelines -v /data/volume/lake/pathway:/pathway $IMAGE_NAME"
   dependencies:
     - docker_build
   only:
@@ -77,7 +77,7 @@ prod_deploy:
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker pull $IMAGE_NAME"
     - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker stop appraisal-server || true && docker rm appraisal-server || true"
-    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server -p 3201:3000 -v /data/etc/appraisal-server/prod.js:/home/node/app/config/production.js -v /data/volume/jx/prod:/data -v /data/volume/lake/guidelines:/guidelines $IMAGE_NAME"
+    - ssh -o StrictHostKeyChecking=no -p $REVIEW_SSH_PORT $REVIEW_SSH_USER@$REVIEW_SSH_HOST "docker run -d --restart=always -e TZ='Asia/Shanghai' -e KatoUI=true -v /etc/localtime:/etc/localtime --name appraisal-server -p 3201:3000 -v /data/etc/appraisal-server/prod.js:/home/node/app/config/production.js -v /data/volume/jx/prod:/data -v /data/volume/lake/guidelines:/guidelines -v /data/volume/lake/pathway:/pathway $IMAGE_NAME"
   dependencies:
     - docker_build
   only:
