@@ -91,10 +91,56 @@ export default class Formula {
     );
     const result = await knowledgeDB.execute(sqlResult[0], ...sqlResult[1]);
     return {
-      data: result.slice(
-        (params.pageNo - 1) * params.pageSize,
-        params.pageNo * params.pageSize
-      ),
+      data: result
+        .slice(
+          (params.pageNo - 1) * params.pageSize,
+          params.pageNo * params.pageSize
+        )
+        .map(f => ({
+          ...f,
+          url: `
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>${f.name}</title>
+
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        .nocopy {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font: 15px/2em "微软雅黑";
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+
+        p {
+            line-height: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    ${f.url}
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>function getfixed(n) {      if (document.getElementById('_precision') == null) {          return n;      }      var fixed = document.getElementById('_precision').value;      return (Number(n)).toFixed(fixed);  }  function getvar(obj) {      if (obj == '')          return '';      else if (document.getElementById(obj) == null)          return '';        if (document.getElementById(obj).type == 'hidden')          return eval('_get' + obj + '()');      else          return document.getElementById(obj).value;  }  function getfloat(obj) {      return parseFloat(getvar(obj));  }  function setvar(obj, val) {        if (document.getElementById(obj) != null)          document.getElementById(obj).value = val;  }</script>
+</body>
+</html>
+`
+        })),
       rows: result.length,
       pages: Math.ceil(result.length / params.pageSize)
     };
