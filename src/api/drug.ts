@@ -14,6 +14,8 @@ export default class Drug {
    * @return [{
    *   id: id
    *   name: 名称
+   *   strength: 规格
+   *   subTitle: 说明书厂家
    *   url: 超链接
    * }]
    */
