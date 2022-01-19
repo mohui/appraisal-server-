@@ -217,7 +217,7 @@ export default {
     isDisabled(row) {
       if (!row.children) {
         const parent = this.staffsByDepartment.find(
-          it => it.id === row.department
+          it => it.rowId === row.department
         );
         if (parent && parent.rate > 0) {
           parent.children.forEach(it => (it.rate = parent.rate));
