@@ -32,6 +32,7 @@
           <div v-if="row.selected">
             <el-input-number
               v-model="row.rate"
+              :min="0"
               :disabled="isDisabled(row)"
               size="mini"
             >
