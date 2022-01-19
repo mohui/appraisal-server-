@@ -724,12 +724,17 @@ export default {
     //更新保存用户信息
     async updateUser() {
       try {
+        const staff = this.listMember.find(it => it.id === this.userForm.id);
+        let dep;
+        if (staff)
+          //被修改的员工原来所属的父级
+          dep = this.userList.find(it => it.departmentId === staff.department);
         await this.$api.HisStaff.updateStaffMapping({
           id: this.userForm.id,
           hospital: this.hospitalId,
           hisStaffs: this.userForm.his,
           phStaffs: this.userForm.phStaff,
-          department: this.userForm.department,
+          department: this.userForm.department || null,
           remark: this.userForm.remark || null
         });
         this.$message({
@@ -739,6 +744,10 @@ export default {
         this.$asyncComputed.listMember.update();
         this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
+        if (dep) {
+          //修改成功后默认展开该父级
+          this.$nextTick(() => this.$refs.hisTable.toggleRowExpansion(dep));
+        }
         this.dialogFormEditUsersVisible = false;
       } catch (e) {
         this.$message.error(e.message);
