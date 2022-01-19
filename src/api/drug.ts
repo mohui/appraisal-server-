@@ -14,7 +14,6 @@ export default class Drug {
    * @return [{
    *   id: id
    *   name: 名称
-   *   strength: 规格
    *   subTitle: 说明书厂家
    *   url: 超链接
    * }]
@@ -57,8 +56,7 @@ export default class Drug {
         )
         .map(it => ({
           id: it.MI_MONOGRAPH_ID,
-          name: it.PRODUCT_NAME,
-          strength: it.DRUG_STRENGTH,
+          name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
           subTitle: it.MONOGRAPH_NAME,
           url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`
         })),
