@@ -1404,6 +1404,8 @@ export default class AppArea {
    *   idCard: 身份证号,
    *   genderName: 性别,
    *   age: 年龄,
+   *   ai_2dm: ai检测糖尿病风险,
+   *   ai_hua: ai检测高血压患者高血酸风险,
    *   crowds: [{
    *     id: 人群分类id
    *     name: 人群分类名称
