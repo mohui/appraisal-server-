@@ -258,10 +258,11 @@ export default class AppUser {
     return appDB.transaction(async () => {
       const usable = await validPhone(phone);
       // 如果是用户注册 和 更换手机
-      if (usage === CodeUsage.Register || usage === CodeUsage.UpdatePhone) {
-        if (!usable) {
-          throw new KatoLogicError('该手机号码已被注册', 10002);
-        }
+      if (
+        (usage === CodeUsage.Register || usage === CodeUsage.UpdatePhone) &&
+        !usable
+      ) {
+        throw new KatoLogicError('该手机号码已被注册', 10002);
       }
       // 如果是重置密码
       if (usage === CodeUsage.ResetPassword && usable) {
