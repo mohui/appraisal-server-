@@ -1,6 +1,6 @@
-import axios from 'axios';
-import {KatoCommonError, should, validate} from 'kato-server';
-import Decimal from 'decimal.js';
+import {should, validate} from 'kato-server';
+import {knowledgeDB} from '../app';
+import {sql as sqlRender} from '../database';
 
 export default class Drug {
   /**
@@ -19,7 +19,7 @@ export default class Drug {
    */
   @validate(
     should.object({
-      keyword: should.string().allow(null),
+      keyword: should.string().required(),
       pageSize: should
         .number()
         .integer()
@@ -33,42 +33,35 @@ export default class Drug {
     })
   )
   async list(params) {
-    try {
-      // 获取药品说明书列表
-      const res = (
-        await axios({
-          url: 'https://ead.bjknrt.com/api/test/searchDrugs.ac',
-          params: {keywords: params.keyword}
-        })
-      ).data;
-      // 总条数
-      const rows = res.data.length;
-      // 总页数
-      const pages = new Decimal(rows)
-        .div(params.pageSize)
-        .ceil()
-        .toNumber();
-      // 算出偏移量
-      const data = res.data
-        .splice(
-          new Decimal(params.pageNo)
-            .sub(1)
-            .mul(params.pageSize)
-            .toNumber(),
-          params.pageSize
+    if (params.keyword) params.keyword = `%${params.keyword}%`;
+    const sql = sqlRender(
+      `
+          SELECT *
+          FROM [medimpact_data].MI_DRUG_SEARCH
+          WHERE 1 = 1
+          {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR SEARCH_PRODUCT_NAME LIKE {{? keyword}}){{/if}}
+          ORDER BY PINYIN_PRODUCT_NAME,MONOGRAPH_NAME,MI_MONOGRAPH_ID DESC
+        `,
+      {
+        keyword: params.keyword
+      }
+    );
+    const result = await knowledgeDB.execute(sql[0], ...sql[1]);
+    return {
+      data: result
+        .slice(
+          (params.pageNo - 1) * params.pageSize,
+          params.pageNo * params.pageSize
         )
         .map(it => ({
-          id: it.id,
-          name: it.name,
-          url: it.url
-        }));
-      return {
-        data,
-        rows,
-        pages
-      };
-    } catch (e) {
-      throw new KatoCommonError('服务器抖动');
-    }
+          id: it.MI_MONOGRAPH_ID,
+          name: it.PRODUCT_NAME,
+          strength: it.DRUG_STRENGTH,
+          subTitle: it.MONOGRAPH_NAME,
+          url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`
+        })),
+      rows: result.length,
+      pages: Math.ceil(result.length / params.pageSize)
+    };
   }
 }
