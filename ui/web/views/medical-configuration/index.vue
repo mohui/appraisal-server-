@@ -334,6 +334,7 @@
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod, HisWorkScoreType} from '../../../../common/his.ts';
 import WorkStaffBinding from './component/work-staff-binding';
+import Decimal from 'decimal.js';
 
 export default {
   name: 'Configuration',
@@ -406,7 +407,7 @@ export default {
             row.staffName = row.name; //工分项维度时用到的员工变量
             row.itemId = row.item; //员工维度时用到的工分变量
             row.itemName = row.name; //员工维度时用到的工分名变量
-            row.rate = row.rate * 100;
+            row.rate = new Decimal(row.rate).mul(100).toNumber();
             row.isEdit = !row.mappingId;
             row.batchEditing = false;
           });
@@ -660,6 +661,7 @@ export default {
     //重置批量新增的窗口
     resetBatchDialog() {
       this.batchAddDialog = false;
+
       this.workItem = {};
     }
   }

@@ -57,6 +57,8 @@
 </template>
 
 <script>
+import Decimal from 'decimal.js';
+
 export default {
   name: 'WorkStaffBinding',
   data() {
@@ -235,7 +237,7 @@ export default {
               id: null,
               item: this.workItem.id,
               staff: n.id,
-              rate: n.rate / 100
+              rate: new Decimal(n.rate).div(100).toNumber()
             });
           if (n.children) {
             n.children.forEach(c => {
@@ -244,7 +246,7 @@ export default {
                   id: null,
                   item: this.workItem.id,
                   staff: c.id,
-                  rate: c.rate / 100
+                  rate: new Decimal(c.rate).div(100).toNumber()
                 });
             });
           }
