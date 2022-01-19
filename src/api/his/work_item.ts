@@ -1781,8 +1781,8 @@ export default class HisWorkItem {
       .object({
         id: should
           .string()
-          .required()
-          .allow(null),
+          .allow(null)
+          .required(),
         item: should.string().required(),
         staff: should.string().required(),
         rate: should.number().required(),
