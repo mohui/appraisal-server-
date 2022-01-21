@@ -535,7 +535,7 @@ export default class CheckSystem {
           ...ruleIds
         );
 
-        // 删除考核小项和公分项对应[考核小项]
+        // 删除考核小项和工分项对应[考核小项]
         await appDB.execute(
           // language=PostgreSQL
           `
