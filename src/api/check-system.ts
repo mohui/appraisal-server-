@@ -523,38 +523,40 @@ export default class CheckSystem {
         )
       ).map(rule => rule.rule_id);
 
-      // 删除细则指标对应[考核细则]
-      await appDB.execute(
-        // language=PostgreSQL
-        `
+      if (ruleIds.length > 0) {
+        // 删除细则指标对应[考核细则]
+        await appDB.execute(
+          // language=PostgreSQL
+          `
           delete
           from rule_tag
           where rule in (${ruleIds.map(() => '?')})
         `,
-        ...ruleIds
-      );
+          ...ruleIds
+        );
 
-      // 删除考核小项和公分项对应[考核小项]
-      await appDB.execute(
-        // language=PostgreSQL
-        `
+        // 删除考核小项和公分项对应[考核小项]
+        await appDB.execute(
+          // language=PostgreSQL
+          `
           delete
           from rule_project
           where rule in (${ruleIds.map(() => '?')})
         `,
-        ...ruleIds
-      );
+          ...ruleIds
+        );
 
-      //删除该考核系统下的所有规则
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          delete
-          from check_rule
-          where check_id = ?
-        `,
-        id
-      );
+        //删除该考核系统下的所有规则
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from check_rule
+            where check_id = ?
+          `,
+          id
+        );
+      }
       //删除该考核系统
       return await appDB.execute(
         // language=PostgreSQL
