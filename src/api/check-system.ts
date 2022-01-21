@@ -2,12 +2,10 @@ import {
   CheckRuleModel,
   CheckSystemModel,
   RuleProjectModel,
-  RuleTagModel,
-  CheckAreaModel
-} from '../database/model';
+  RuleTagModel
+} from '../database';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
-import {LOCK, Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
@@ -473,43 +471,100 @@ export default class CheckSystem {
   })
   remove(id) {
     return appDB.transaction(async () => {
-      //查询考核系统,并锁定
-      const sys = await CheckSystemModel.findOne({
-        where: {checkId: id},
-        paranoid: false,
-        lock: {of: CheckSystemModel, level: LOCK.UPDATE},
-        include: [CheckRuleModel]
-      });
+      // 查询考核系统,并锁定
+      const sys = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select check_id   "checkId",
+                   check_name "checkName",
+                   check_year "checkYear"
+            from check_system
+            where check_id = ?
+              for update
+          `,
+          id
+        )
+      )[0];
       if (!sys) throw new KatoCommonError('该考核系统不存在');
 
       // 写入日志
       Context.current.auditLog = {};
-      Context.current.auditLog.checkId = sys?.checkId;
-      Context.current.auditLog.checkName = sys?.checkName;
-      Context.current.auditLog.checkYear = sys?.checkYear;
+      Context.current.auditLog.checkId = sys.checkId;
+      Context.current.auditLog.checkName = sys.checkName;
+      Context.current.auditLog.checkYear = sys.checkYear;
 
-      if (await CheckAreaModel.findOne({where: {checkId: id}}))
+      // 判断该考核系统是否绑定了地区
+      if (
+        (
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              select 1
+              from check_area
+              where check_system = ?
+            `,
+            id
+          )
+        ).length > 0
+      )
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
-      const ruleIds = sys.checkRules.map(rule => rule.ruleId);
+
+      // 查询考核指标
+      const ruleIds = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select rule_id
+            from check_rule
+            where check_id = ?
+          `,
+          id
+        )
+      ).map(rule => rule.rule_id);
+
+      // 删除细则指标对应[考核细则]
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from rule_tag
+          where rule in (${ruleIds.map(() => '?')})
+        `,
+        ...ruleIds
+      );
+
+      // 删除考核小项和公分项对应[考核小项]
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from rule_project
+          where rule in (${ruleIds.map(() => '?')})
+        `,
+        ...ruleIds
+      );
 
       //删除该考核系统下的所有规则
-      await Promise.all(
-        sys.checkRules.map(async rule => await rule.destroy({force: true}))
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from check_rule
+          where check_id = ?
+        `,
+        id
       );
-      // 删除细则指标对应[考核细则]
-      await RuleTagModel.destroy({
-        where: {
-          ruleId: {[Op.in]: ruleIds}
-        }
-      });
-      // 删除考核小项和公分项对应[考核小项]
-      await RuleProjectModel.destroy({
-        where: {
-          ruleId: {[Op.in]: ruleIds}
-        }
-      });
       //删除该考核系统
-      return await sys.destroy({force: true});
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from check_system
+          where check_id = ?
+        `,
+        id
+      );
     });
   }
 
