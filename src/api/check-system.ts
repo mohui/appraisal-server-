@@ -307,7 +307,8 @@ export default class CheckSystem {
   })
   async addRule(params) {
     const result = await appDB.transaction(async () => {
-      return await appDB.execute(
+      const ruleId = uuid();
+      await appDB.execute(
         // language=PostgreSQL
         `
           insert into check_rule(rule_id,
@@ -325,7 +326,7 @@ export default class CheckSystem {
                                  updated_at)
           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        uuid(),
+        ruleId,
         params.checkId,
         params.parentRuleId,
         params.ruleName,
@@ -339,6 +340,31 @@ export default class CheckSystem {
         new Date(),
         new Date()
       );
+      return (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select rule_id           "ruleId",
+                   check_id          "checkId",
+                   parent_rule_id    "parentRuleId",
+                   rule_name         "ruleName",
+                   rule_score        "ruleScore",
+                   check_standard    "checkStandard",
+                   check_method      "checkMethod",
+                   evaluate_standard "evaluateStandard",
+                   create_by,
+                   update_by,
+                   status,
+                   created_at,
+                   updated_at,
+                   deleted_at,
+                   budget
+            from check_rule
+            where rule_id = ?
+          `,
+          ruleId
+        )
+      )[0];
     });
     // 写入日志
     Context.current.auditLog = {};
