@@ -14,6 +14,7 @@ afterAll(async () => {
 
 /***
  * 获取手动打分历史
+ *
  * @param ruleId 细则id
  * @param code  地区code或者机构id
  */
