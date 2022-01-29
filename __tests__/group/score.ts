@@ -17,7 +17,7 @@ afterAll(async () => {
  * @param ruleId 细则id
  * @param code  地区code或者机构id
  */
-async function oldManualScoreHistory(ruleId, code) {
+async function mockManualScoreHistory(ruleId, code) {
   return (
     await appDB.execute(
       // language=PostgreSQL
@@ -90,7 +90,7 @@ describe('Score.manualScoreHistory', () => {
       await next();
     });
 
-    const oldTotal = await oldManualScoreHistory(
+    const oldTotal = await mockManualScoreHistory(
       '39b9a7f0-b66a-47d0-87f4-f785e226c64d',
       '7dc8edb1-3d60-4e4d-a4a0-b7ce90bdf2c7'
     );
