@@ -12,7 +12,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  ManualScoreHistoryModel,
   ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
@@ -1935,13 +1934,21 @@ export default class Score {
       score
     });
     //保存打分备注和历史
-    await ManualScoreHistoryModel.upsert({
-      ruleId: ruleId,
-      code: code,
-      creatorId: Context.current.user.id,
-      score: score,
-      remark: remark
-    });
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        insert into manual_score_history(id, rule, code, score, remark, creator, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      uuid(),
+      ruleId,
+      code,
+      score,
+      remark,
+      Context.current.user.id,
+      new Date(),
+      new Date()
+    );
   }
 
   /***
