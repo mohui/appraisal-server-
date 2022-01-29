@@ -115,24 +115,6 @@ async function mockTotal(code, year, selfCode) {
   };
 }
 
-describe('SystemArea.total', () => {
-  test('测试340202-2021', async () => {
-    //查询id
-    const user = (
-      await appDB.execute(`select id, area from "user" where account='admin'`)
-    )[0];
-    //设置token
-    api.use(async (ctx, next) => {
-      ctx.req.headers['token'] = user?.id;
-      await next();
-    });
-
-    const oldTotal = await mockTotal('340202', 2021, user?.code);
-    const newTotal = await api.SystemArea.total('340202', 2021);
-    expect(newTotal).toEqual(oldTotal);
-  });
-});
-
 describe('yearGetCheckId', () => {
   test('测试340202-2021', async () => {
     //查询id
@@ -147,6 +129,24 @@ describe('yearGetCheckId', () => {
 
     const oldTotal = await oldYearGetCheckId('340202', 2021);
     const newTotal = await yearGetCheckId('340202', 2021);
+    expect(newTotal).toEqual(oldTotal);
+  });
+});
+
+describe('SystemArea.total', () => {
+  test('测试340202-2021', async () => {
+    //查询id
+    const user = (
+      await appDB.execute(`select id, area from "user" where account='admin'`)
+    )[0];
+    //设置token
+    api.use(async (ctx, next) => {
+      ctx.req.headers['token'] = user?.id;
+      await next();
+    });
+
+    const oldTotal = await mockTotal('340202', 2021, user?.code);
+    const newTotal = await api.SystemArea.total('340202', 2021);
     expect(newTotal).toEqual(oldTotal);
   });
 });
