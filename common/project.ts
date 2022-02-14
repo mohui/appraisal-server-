@@ -943,6 +943,17 @@ export const Projects: {
     ]
   },
   {
+    id: '130201',
+    name: '饮用水安全卫生巡查',
+    mappings: [
+      {
+        id: '130201',
+        name: '饮用水安全卫生巡查',
+        type: '340203'
+      }
+    ]
+  },
+  {
     id: '130301',
     name: '学校卫生服务',
     mappings: [
