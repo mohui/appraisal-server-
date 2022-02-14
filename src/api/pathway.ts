@@ -7,9 +7,23 @@ import {should, validate} from 'kato-server';
  */
 export default class Pathway {
   /**
+   * 临床路径分类
+   *
+   * @return [{
+   *   id: string, 其实就是unfis路径
+   *   name: string,
+   * }]
+   */
+  async categories() {
+    return [];
+  }
+
+  /**
    * 临床路径列表
    *
+   * keyword全局生效, 即keyword非空, 则category失效
    * @param params {
+   *   category: 临床路径分类
    *   keyword: 关键字
    *   pageSize: 分页大小
    *   pageNo: 页码
@@ -22,6 +36,7 @@ export default class Pathway {
    */
   @validate(
     should.object({
+      category: should.string().allow(null),
       keyword: should.string().allow(null),
       pageSize: should
         .number()
