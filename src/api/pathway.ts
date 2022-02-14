@@ -51,7 +51,10 @@ export default class Pathway {
   @validate(
     should.object({
       category: should.string().allow(null),
-      keyword: should.string().allow(null),
+      keyword: should
+        .string()
+        .allow('')
+        .required(),
       pageSize: should
         .number()
         .integer()
