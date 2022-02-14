@@ -17,10 +17,11 @@ export default class Drug {
    *   isDetail: true/false: 是否具体说明书
    *   subTitle?: 说明书厂家
    *   url?: 详情链接
+   *   initial?: 首字母
    * }]
    */
   @validate(should.string().allow(null))
-  async list(id) {
+  async categories(id) {
     return [];
   }
 
@@ -35,8 +36,9 @@ export default class Drug {
    * @return [{
    *   id: id
    *   name: 名称
-   *   subTitle: 说明书厂家
-   *   url: 详情链接
+   *   subTitle?: 说明书厂家
+   *   url?: 详情链接
+   *   initial?: 首字母
    * }]
    */
   @validate(
@@ -54,7 +56,7 @@ export default class Drug {
         .required()
     })
   )
-  async search(params) {
+  async list(params) {
     if (params.keyword) params.keyword = `%${params.keyword}%`;
     const sql = sqlRender(
       `
