@@ -2,12 +2,33 @@ import {should, validate} from 'kato-server';
 import {knowledgeDB} from '../app';
 import {sql as sqlRender} from '../database';
 
+/**
+ * 药品说明书模块
+ */
 export default class Drug {
   /**
-   * 药品说明书列表
+   * 药品层级列表
+   *
+   * id为null时, 查询第一层级
+   * @param id? 分类id
+   * @returns [{
+   *   id: id,
+   *   name: 名称
+   *   isDetail: true/false: 是否具体说明书
+   *   subTitle?: 说明书厂家
+   *   url?: 详情链接
+   * }]
+   */
+  @validate(should.string().allow(null))
+  async list(id) {
+    return [];
+  }
+
+  /**
+   * 搜索药品说明书
    *
    * @param params {
-   *   keyword: 搜索条件
+   *   keyword: 关键词
    *   pageSize: 分页大小
    *   pageNo: 页码
    * }
@@ -15,7 +36,7 @@ export default class Drug {
    *   id: id
    *   name: 名称
    *   subTitle: 说明书厂家
-   *   url: 超链接
+   *   url: 详情链接
    * }]
    */
   @validate(
@@ -33,7 +54,7 @@ export default class Drug {
         .required()
     })
   )
-  async list(params) {
+  async search(params) {
     if (params.keyword) params.keyword = `%${params.keyword}%`;
     const sql = sqlRender(
       `
