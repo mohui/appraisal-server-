@@ -1,7 +1,7 @@
 import {sql as sqlRender} from '../database';
 import {originalDB, unifs} from '../app';
 import {should, validate} from 'kato-server';
-import Path = require('path');
+import * as Path from 'path';
 
 /**
  * 临床路径接口模块
