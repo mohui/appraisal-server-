@@ -1357,7 +1357,7 @@ export async function getReportBuffer(code, year) {
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
         // 总工分
-        scores.push(`${budgetObj?.point ?? 0}`);
+        scores.push(budgetObj?.point ?? 0);
         // 质量系数
         const rate = budgetObj?.rate ?? 0;
         scores.push(
@@ -1367,10 +1367,10 @@ export async function getReportBuffer(code, year) {
         );
         // 校正公分
         scores.push(
-          `${parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2)}`
+          Number(parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2))
         );
         // 分配金额
-        scores.push(`${budgetObj?.score ?? 0}`);
+        scores.push(Number(budgetObj?.score ?? 0));
         result.push(...scores);
       }
 
