@@ -120,13 +120,15 @@ export default class Drug {
     if (params.keyword) params.keyword = `%${params.keyword}%`;
     const sql = sqlRender(
       `
-          SELECT *
-          FROM [medimpact_data].MI_DRUG_SEARCH
-          WHERE 1 = 1
-          {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR SEARCH_PRODUCT_NAME LIKE {{? keyword}}){{/if}}
-          {{#if category}} AND MI_GENERIC_NAME_ID = {{? category}}{{/if}}
-          ORDER BY PINYIN_PRODUCT_NAME,MONOGRAPH_NAME,MI_MONOGRAPH_ID DESC
-        `,
+        SELECT d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE
+        FROM [medimpact_data].MI_DRUG d
+               left join [medimpact_data].MI_MANUFACTURER m on m.MI_MANUFACTURER_ID = d.MI_MANUFACTURER_ID
+        WHERE MI_MONOGRAPH_ID is not null
+          and MI_MONOGRAPH_ID != -1
+          {{#if keyword}} AND (d.PINYIN_CODE LIKE {{? keyword}} OR d.PRODUCT_NAME LIKE {{? keyword}}){{/if}}
+          {{#if category}} AND d.MI_GENERIC_NAME_ID = {{? category}}{{/if}}
+        ORDER BY d.PINYIN_CODE, m.MANUFACTURER_NAME, d.MI_MONOGRAPH_ID DESC
+      `,
       {
         keyword: params.keyword,
         category: params.category
@@ -142,9 +144,9 @@ export default class Drug {
         .map(it => ({
           id: it.MI_MONOGRAPH_ID,
           name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
-          subTitle: it.MONOGRAPH_NAME,
+          subTitle: it.MANUFACTURER_NAME,
           url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
-          initial: it.PINYIN_PRODUCT_NAME
+          initial: it.PINYIN_CODE
         })),
       rows: result.length,
       pages: Math.ceil(result.length / params.pageSize)
