@@ -7,22 +7,77 @@ import {sql as sqlRender} from '../database';
  */
 export default class Drug {
   /**
-   * 药品层级列表
+   * 药品分类层级列表
    *
-   * id为null时, 查询第一层级
-   * @param id? 分类id
    * @returns [{
    *   id: id,
-   *   name: 名称
-   *   isDetail: true/false: 是否具体说明书
-   *   subTitle?: 说明书厂家
-   *   url?: 详情链接
-   *   initial?: 首字母
+   *   name: 药理分类
+   *   children: [
+   *   id: id
+   *   name: 药理分类
+   *   children:[{...}]
+   *   ]
    * }]
    */
-  @validate(should.string().allow(null))
-  async categories(id) {
-    return [];
+  async categories() {
+    //获取全部分类信息
+    const data = await knowledgeDB.execute(
+      //language=TSQL
+      `
+        with category as (
+          SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
+          FROM [medimpact_data].MI_CATEGORY
+          WHERE MI_CATEGORY_TYPE_ID = 1
+          union all
+          SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
+          from [medimpact_data].[MI_CATEGORY] a,
+               category as b
+          where a.PARENT_CATEGORY_ID = b.id
+        )
+        select distinct *
+        from category
+      `
+    );
+
+    //获取分类与通用名的关联列表
+    const genericNameList = await knowledgeDB.execute(
+      //language=TSQL
+      `
+        select a.MI_GENERIC_NAME_ID as id, a.GENERIC_NAME as name, b.MI_CATEGORY_ID as category
+        from [medimpact_data].[MI_GENERIC_NAME] a,
+             [medimpact_data].[MI_GEN_CATEGORY] b
+        where a.MI_GENERIC_NAME_ID = b.MI_GENERIC_NAME_ID
+        order by a.GENERIC_NAME
+      `
+    );
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    function recursiveArray(id) {
+      if (data.filter(it => it.parent === id).length > 0)
+        return data
+          .filter(it => it.parent === id)
+          .map(level => ({
+            id: level.id,
+            name: level.name,
+            children: recursiveArray(level.id)
+          }));
+      //没有子级分类尝试叠加所属通用名
+      else
+        return genericNameList
+          .filter(g => g.category === id)
+          .map(g => ({
+            id: g.id,
+            name: g.name
+          }));
+    }
+
+    return data
+      .filter(it => it.parent == 0)
+      .map(level0 => ({
+        id: level0.id,
+        name: level0.name,
+        children: recursiveArray(level0.id)
+      }));
   }
 
   /**
