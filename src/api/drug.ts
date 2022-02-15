@@ -11,12 +11,12 @@ export default class Drug {
    *
    * @returns [{
    *   id: id,
-   *   name: 药理分类
-   *   children: [
-   *   id: id
-   *   name: 药理分类
-   *   children:[{...}]
-   *   ]
+   *   name: 分类
+   *   children: [{
+   *     id: id
+   *     name: 分类
+   *     children?:[]
+   *   }]
    * }]
    */
   async categories() {
@@ -24,18 +24,9 @@ export default class Drug {
     const data = await knowledgeDB.execute(
       //language=TSQL
       `
-        with category as (
-          SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
-          FROM [medimpact_data].MI_CATEGORY
-          WHERE MI_CATEGORY_TYPE_ID = 1
-          union all
-          SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
-          from [medimpact_data].[MI_CATEGORY] a,
-               category as b
-          where a.PARENT_CATEGORY_ID = b.id
-        )
-        select distinct *
-        from category
+        SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
+        FROM [medimpact_data].MI_CATEGORY
+        WHERE MI_CATEGORY_TYPE_ID = 1
       `
     );
 
@@ -51,8 +42,7 @@ export default class Drug {
       `
     );
 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    function recursiveArray(id) {
+    function recursiveArray(id): any[] {
       if (data.filter(it => it.parent === id).length > 0)
         return data
           .filter(it => it.parent === id)
@@ -85,7 +75,7 @@ export default class Drug {
    *
    * keyword全局生效, 即keyword非空, 则category失效
    * @param params {
-   *   category: 药理分类末级的通用名id
+   *   category: 分类末级的通用名id
    *   keyword: 关键词
    *   pageSize: 分页大小
    *   pageNo: 页码
