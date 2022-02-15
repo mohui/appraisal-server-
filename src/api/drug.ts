@@ -83,6 +83,7 @@ export default class Drug {
   /**
    * 搜索药品说明书
    *
+   * keyword全局生效, 即keyword非空, 则category失效
    * @param params {
    *   category: 药理分类末级的通用名id
    *   keyword: 关键词
@@ -117,7 +118,10 @@ export default class Drug {
     })
   )
   async list(params) {
-    if (params.keyword) params.keyword = `%${params.keyword}%`;
+    if (params.keyword) {
+      params.keyword = `%${params.keyword}%`;
+      params.category = null;
+    }
     const sql = sqlRender(
       `
         SELECT d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE
