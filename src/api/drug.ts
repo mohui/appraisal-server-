@@ -12,62 +12,36 @@ export default class Drug {
    * @returns [{
    *   id: id,
    *   name: 分类
-   *   children: [{
-   *     id: id
-   *     name: 分类
-   *     children?:[]
-   *   }]
-   * }]
+   *   isGeneric: true/false 是否为通用名
    */
-  async categories() {
+  async categories(id) {
     //获取全部分类信息
     const data = await knowledgeDB.execute(
       //language=TSQL
       `
-        SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name, PARENT_CATEGORY_ID as parent
+        SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name
         FROM [medimpact_data].MI_CATEGORY
         WHERE MI_CATEGORY_TYPE_ID = 1
-      `
+          and PARENT_CATEGORY_ID = ?
+      `,
+      id ?? 0
     );
-
-    //获取分类与通用名的关联列表
-    const genericNameList = await knowledgeDB.execute(
-      //language=TSQL
-      `
-        select a.MI_GENERIC_NAME_ID as id, a.GENERIC_NAME as name, b.MI_CATEGORY_ID as category
-        from [medimpact_data].[MI_GENERIC_NAME] a,
-             [medimpact_data].[MI_GEN_CATEGORY] b
-        where a.MI_GENERIC_NAME_ID = b.MI_GENERIC_NAME_ID
-        order by a.GENERIC_NAME
-      `
-    );
-
-    function recursiveArray(id): any[] {
-      if (data.filter(it => it.parent === id).length > 0)
-        return data
-          .filter(it => it.parent === id)
-          .map(level => ({
-            id: level.id,
-            name: level.name,
-            children: recursiveArray(level.id)
-          }));
-      //没有子级分类尝试叠加所属通用名
-      else
-        return genericNameList
-          .filter(g => g.category === id)
-          .map(g => ({
-            id: g.id,
-            name: g.name
-          }));
-    }
-
-    return data
-      .filter(it => it.parent == 0)
-      .map(level0 => ({
-        id: level0.id,
-        name: level0.name,
-        children: recursiveArray(level0.id)
-      }));
+    if (data.length < 1 && id)
+      return (
+        await knowledgeDB.execute(
+          //language=TSQL
+          `
+            select a.MI_GENERIC_NAME_ID as id, a.GENERIC_NAME as name
+            from [medimpact_data].[MI_GENERIC_NAME] a,
+                 [medimpact_data].[MI_GEN_CATEGORY] b
+            where a.MI_GENERIC_NAME_ID = b.MI_GENERIC_NAME_ID
+              and b.MI_CATEGORY_ID = ?
+            order by a.GENERIC_NAME
+          `,
+          id
+        )
+      ).map(i => ({...i, isGeneric: true}));
+    else return data.map(i => ({...i, isGeneric: false}));
   }
 
   /**
