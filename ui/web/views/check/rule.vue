@@ -480,10 +480,11 @@ export default {
   },
   computed: {
     totalScore() {
-      return this.ruleList.reduce((acc, cur) => acc + cur.ruleScores, 0) || 0;
+      return this.ruleList.reduce((acc, cur) => acc + (cur.ruleScores ?? 0), 0);
     },
     totalBudget() {
-      return this.ruleList.reduce((acc, cur) => acc + +cur.budget, 0) || 0;
+      console.log(this.ruleList);
+      return this.ruleList.reduce((acc, cur) => acc + +(cur?.budget ?? 0), 0);
     }
   },
   created() {
