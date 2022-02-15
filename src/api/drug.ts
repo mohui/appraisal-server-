@@ -84,6 +84,7 @@ export default class Drug {
    * 搜索药品说明书
    *
    * @param params {
+   *   category: 药理分类末级的通用名id
    *   keyword: 关键词
    *   pageSize: 分页大小
    *   pageNo: 页码
@@ -98,7 +99,11 @@ export default class Drug {
    */
   @validate(
     should.object({
-      keyword: should.string().required(),
+      category: should.string().allow(null),
+      keyword: should
+        .string()
+        .allow('')
+        .required(),
       pageSize: should
         .number()
         .integer()
@@ -119,10 +124,12 @@ export default class Drug {
           FROM [medimpact_data].MI_DRUG_SEARCH
           WHERE 1 = 1
           {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR SEARCH_PRODUCT_NAME LIKE {{? keyword}}){{/if}}
+          {{#if category}} AND MI_GENERIC_NAME_ID = {{? category}}{{/if}}
           ORDER BY PINYIN_PRODUCT_NAME,MONOGRAPH_NAME,MI_MONOGRAPH_ID DESC
         `,
       {
-        keyword: params.keyword
+        keyword: params.keyword,
+        category: params.category
       }
     );
     const result = await knowledgeDB.execute(sql[0], ...sql[1]);
@@ -136,7 +143,8 @@ export default class Drug {
           id: it.MI_MONOGRAPH_ID,
           name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
           subTitle: it.MONOGRAPH_NAME,
-          url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`
+          url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
+          initial: it.PINYIN_PRODUCT_NAME
         })),
       rows: result.length,
       pages: Math.ceil(result.length / params.pageSize)
