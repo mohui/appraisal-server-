@@ -1415,13 +1415,6 @@ export async function getReportBuffer(code, year) {
       }
     });
     workSheet.mergeCells('A1', 'A2');
-    //设置最后一行加粗
-    for (let c = 0; c < workSheet.columnCount; c++)
-      workSheet.getCell(workSheet.rowCount, c + 1).font = {bold: true};
-    //设置除最后一行外后三列字体加粗
-    for (let c = workSheet.columnCount - 3; c < workSheet.columnCount; c++)
-      for (let r = 2; r < workSheet.rowCount - 1; r++)
-        workSheet.getCell(r + 1, c + 1).font = {bold: true};
   }
   return workBook.xlsx.writeBuffer();
 }
