@@ -238,6 +238,7 @@
           <el-select v-model="checkForm.checkYear">
             <el-option :value="2020">2020</el-option>
             <el-option :value="2021">2021</el-option>
+            <el-option :value="2022">2022</el-option>
           </el-select>
         </el-form-item>
       </el-form>
