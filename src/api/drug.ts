@@ -118,9 +118,9 @@ export default class Drug {
    * data: [{
    *   id: id
    *   name: 名称
-   *   subTitle: 说明书厂家
+   *   subTitle?: 说明书厂家
    *   url: 详情链接
-   *   initial: 首字母
+   *   initial?: 首字母
    *  }]
    *  rows: 数据行数
    *  pages: 页数
