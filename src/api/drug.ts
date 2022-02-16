@@ -7,7 +7,7 @@ import {sql as sqlRender} from '../database';
  */
 export default class Drug {
   /**
-   * 药品分类层级列表
+   * 药品层级列表
    *
    * @param id 查询编号
    * @param type 查询类型
@@ -17,12 +17,12 @@ export default class Drug {
    *   hasChildren?: 是否有下级
    *   type: 类型 category-分类,generic-通用名,detail-药品
    *   subTitle?: 药品厂家
-   *   url?: 药品详情链接
+   *   url: 药品详情链接
    *   initial?: 药品拼音首字母
    * }]
    */
   @validate(should.string().required(), should.string().required())
-  async categories(id, type) {
+  async list(id, type) {
     const categorySql =
       //language=TSQL
       `
