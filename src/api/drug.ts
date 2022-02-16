@@ -9,39 +9,94 @@ export default class Drug {
   /**
    * 药品分类层级列表
    *
+   * @param id 查询编号
+   * @param type 查询类型
    * @returns [{
    *   id: id,
-   *   name: 分类
-   *   isGeneric: true/false 是否为通用名
+   *   name: 名称
+   *   hasChildren?: 是否有下级
+   *   type: 类型 category-分类,generic-通用名,detail-药品
+   *   subTitle?: 药品厂家
+   *   url?: 药品详情链接
+   *   initial?: 药品拼音首字母
+   * }]
    */
-  async categories(id) {
-    //获取全部分类信息
-    const data = await knowledgeDB.execute(
+  async categories(id, type) {
+    const categorySql =
       //language=TSQL
       `
-        SELECT MI_CATEGORY_ID as id, CATEGORY_NAME as name
-        FROM [medimpact_data].MI_CATEGORY
-        WHERE MI_CATEGORY_TYPE_ID = 1
-          and PARENT_CATEGORY_ID = ?
-      `,
-      id ?? 0
-    );
-    if (data.length < 1 && id)
-      return (
-        await knowledgeDB.execute(
-          //language=TSQL
-          `
-            select a.MI_GENERIC_NAME_ID as id, a.GENERIC_NAME as name
-            from [medimpact_data].[MI_GENERIC_NAME] a,
-                 [medimpact_data].[MI_GEN_CATEGORY] b
-            where a.MI_GENERIC_NAME_ID = b.MI_GENERIC_NAME_ID
-              and b.MI_CATEGORY_ID = ?
-            order by a.GENERIC_NAME
-          `,
-          id
-        )
-      ).map(i => ({...i, isGeneric: true}));
-    else return data.map(i => ({...i, isGeneric: false}));
+        select a.MI_CATEGORY_ID as id,
+               a.CATEGORY_NAME  as name,
+               'category'       as type,
+               case
+                 when exists(select 1
+                             from [medimpact_data].MI_CATEGORY b
+                             WHERE b.MI_CATEGORY_TYPE_ID = 1
+                               and b.PARENT_CATEGORY_ID = a.MI_CATEGORY_ID) then 1
+                 else 0 end     as hasChildren
+        FROM [medimpact_data].MI_CATEGORY a
+        WHERE a.MI_CATEGORY_TYPE_ID = 1
+          and a.PARENT_CATEGORY_ID = ?
+      `;
+    const genericSql =
+      //language=TSQL
+      `
+        select a.MI_GENERIC_NAME_ID as id,
+               a.GENERIC_NAME       as name,
+               'generic'            as type,
+               case
+                 when exists(select 1
+                             from [medimpact_data].MI_DRUG b
+                             WHERE b.MI_MONOGRAPH_ID is not null
+                               and b.MI_MONOGRAPH_ID != -1
+                               and b.MI_GENERIC_NAME_ID = a.MI_GENERIC_NAME_ID) then 1
+                 else 0 end         as hasChildren
+        from [medimpact_data].[MI_GENERIC_NAME] a,
+             [medimpact_data].[MI_GEN_CATEGORY] b
+        where a.MI_GENERIC_NAME_ID = b.MI_GENERIC_NAME_ID
+          and b.MI_CATEGORY_ID = ?
+        order by a.GENERIC_NAME
+      `;
+    const drugSql =
+      //language=TSQL
+      `
+        select d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE, 'detail' as type
+        FROM [medimpact_data].MI_DRUG d
+               left join [medimpact_data].MI_MANUFACTURER m on m.MI_MANUFACTURER_ID = d.MI_MANUFACTURER_ID
+        WHERE MI_MONOGRAPH_ID is not null
+          and MI_MONOGRAPH_ID != -1
+          and d.MI_GENERIC_NAME_ID = ?
+        ORDER BY d.PINYIN_CODE, m.MANUFACTURER_NAME, d.MI_MONOGRAPH_ID DESC
+      `;
+    let result = [];
+    switch (type) {
+      case 'category':
+        result = await knowledgeDB.execute(categorySql, id);
+        if (result.length === 0)
+          result = await knowledgeDB.execute(genericSql, id);
+        break;
+      case 'generic':
+        result = await knowledgeDB.execute(genericSql, id);
+        if (result.length === 0)
+          result = (await knowledgeDB.execute(drugSql, id)).map(it => ({
+            id: it.MI_MONOGRAPH_ID,
+            name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
+            subTitle: it.MANUFACTURER_NAME,
+            url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
+            initial: it.PINYIN_CODE
+          }));
+        break;
+      case 'detail':
+        result = (await knowledgeDB.execute(drugSql, id)).map(it => ({
+          id: it.MI_MONOGRAPH_ID,
+          name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
+          subTitle: it.MANUFACTURER_NAME,
+          url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
+          initial: it.PINYIN_CODE
+        }));
+        break;
+    }
+    return result;
   }
 
   /**
@@ -57,10 +112,13 @@ export default class Drug {
    * @return [{
    *   id: id
    *   name: 名称
-   *   subTitle?: 说明书厂家
-   *   url?: 详情链接
-   *   initial?: 首字母
-   * }]
+   *   subTitle: 说明书厂家
+   *   url: 详情链接
+   *   initial: 首字母
+   *  }]
+   *  rows: 数据行数
+   *  pages: 页数
+   * }
    */
   @validate(
     should.object({
