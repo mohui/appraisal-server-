@@ -109,14 +109,13 @@ export default class Drug {
   /**
    * 搜索药品说明书
    *
-   * keyword全局生效, 即keyword非空, 则category失效
    * @param params {
-   *   category: 分类末级的通用名id
    *   keyword: 关键词
    *   pageSize: 分页大小
    *   pageNo: 页码
    * }
-   * @return [{
+   * @return {
+   * data: [{
    *   id: id
    *   name: 名称
    *   subTitle: 说明书厂家
@@ -129,11 +128,7 @@ export default class Drug {
    */
   @validate(
     should.object({
-      category: should.string().allow(null),
-      keyword: should
-        .string()
-        .allow('')
-        .required(),
+      keyword: should.string().required(),
       pageSize: should
         .number()
         .integer()
@@ -146,25 +141,18 @@ export default class Drug {
         .required()
     })
   )
-  async list(params) {
-    if (params.keyword) {
-      params.keyword = `%${params.keyword}%`;
-      params.category = null;
-    }
+  async search(params) {
+    if (params.keyword) params.keyword = `%${params.keyword}%`;
     const sql = sqlRender(
       `
-        SELECT d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE
-        FROM [medimpact_data].MI_DRUG d
-               left join [medimpact_data].MI_MANUFACTURER m on m.MI_MANUFACTURER_ID = d.MI_MANUFACTURER_ID
-        WHERE MI_MONOGRAPH_ID is not null
-          and MI_MONOGRAPH_ID != -1
-          {{#if keyword}} AND (d.PINYIN_CODE LIKE {{? keyword}} OR d.PRODUCT_NAME LIKE {{? keyword}}){{/if}}
-          {{#if category}} AND d.MI_GENERIC_NAME_ID = {{? category}}{{/if}}
-        ORDER BY d.PINYIN_CODE, m.MANUFACTURER_NAME, d.MI_MONOGRAPH_ID DESC
-      `,
+          SELECT *
+          FROM [medimpact_data].MI_DRUG_SEARCH
+          WHERE 1 = 1
+          {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR SEARCH_PRODUCT_NAME LIKE {{? keyword}}){{/if}}
+          ORDER BY PINYIN_PRODUCT_NAME,MONOGRAPH_NAME,MI_MONOGRAPH_ID DESC
+        `,
       {
-        keyword: params.keyword,
-        category: params.category
+        keyword: params.keyword
       }
     );
     const result = await knowledgeDB.execute(sql[0], ...sql[1]);
@@ -177,9 +165,9 @@ export default class Drug {
         .map(it => ({
           id: it.MI_MONOGRAPH_ID,
           name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
-          subTitle: it.MANUFACTURER_NAME,
+          subTitle: it.MONOGRAPH_NAME,
           url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
-          initial: it.PINYIN_CODE
+          initial: it.PINYIN_PRODUCT_NAME
         })),
       rows: result.length,
       pages: Math.ceil(result.length / params.pageSize)
