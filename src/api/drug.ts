@@ -26,15 +26,19 @@ export default class Drug {
     const categorySql =
       //language=TSQL
       `
-        select a.MI_CATEGORY_ID as id,
-               a.CATEGORY_NAME  as name,
-               'category'       as type,
+        select a.MI_CATEGORY_ID          as id,
+               a.CATEGORY_NAME           as name,
+               'category'                as type,
                case
                  when exists(select 1
                              from [medimpact_data].MI_CATEGORY b
                              WHERE b.MI_CATEGORY_TYPE_ID = 1
                                and b.PARENT_CATEGORY_ID = a.MI_CATEGORY_ID) then 1
-                 else 0 end     as hasChildren
+                 else (case
+                         when exists(select 1
+                                     from [medimpact_data].MI_GEN_CATEGORY b
+                                     WHERE b.MI_CATEGORY_ID = a.MI_CATEGORY_ID) then 1
+                         else 0 end) end as hasChildren
         FROM [medimpact_data].MI_CATEGORY a
         WHERE a.MI_CATEGORY_TYPE_ID = 1
           and a.PARENT_CATEGORY_ID = ?
@@ -61,7 +65,7 @@ export default class Drug {
     const drugSql =
       //language=TSQL
       `
-        select d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE, 'detail' as type
+        select d.MI_MONOGRAPH_ID, d.PRODUCT_NAME, d.DRUG_STRENGTH, m.MANUFACTURER_NAME, d.PINYIN_CODE
         FROM [medimpact_data].MI_DRUG d
                left join [medimpact_data].MI_MANUFACTURER m on m.MI_MANUFACTURER_ID = d.MI_MANUFACTURER_ID
         WHERE MI_MONOGRAPH_ID is not null
@@ -84,7 +88,8 @@ export default class Drug {
             name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
             subTitle: it.MANUFACTURER_NAME,
             url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
-            initial: it.PINYIN_CODE
+            initial: it.PINYIN_CODE,
+            type: 'detail'
           }));
         break;
       case 'detail':
@@ -93,7 +98,8 @@ export default class Drug {
           name: `${it.PRODUCT_NAME} ${it.DRUG_STRENGTH}`,
           subTitle: it.MANUFACTURER_NAME,
           url: `https://ead.bjknrt.com/test/drug.html?id=${it.MI_MONOGRAPH_ID}`,
-          initial: it.PINYIN_CODE
+          initial: it.PINYIN_CODE,
+          type: 'detail'
         }));
         break;
     }
