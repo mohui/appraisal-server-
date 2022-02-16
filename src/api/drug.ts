@@ -21,6 +21,7 @@ export default class Drug {
    *   initial?: 药品拼音首字母
    * }]
    */
+  @validate(should.string().required(), should.string().required())
   async categories(id, type) {
     const categorySql =
       //language=TSQL
