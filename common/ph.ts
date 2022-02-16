@@ -5,7 +5,7 @@ import * as dayjs from 'dayjs';
  *
  * @return {
  *   start: 默认开始时间
- *   end: 下个月
+ *   end: 下一年
  * }
  */
 export function getTimeRange(): {start: Date; end: Date} {
