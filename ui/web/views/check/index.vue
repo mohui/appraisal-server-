@@ -431,7 +431,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
-import {getTimeRange} from '../../../../common/his.ts';
+import {getTimeRange} from '../../../../common/ph.ts';
 import dayjs from 'dayjs';
 
 export default {
@@ -456,7 +456,7 @@ export default {
         status: true
       },
       yearList: new Array(
-        dayjs().year() - dayjs(getTimeRange().start).year() + 1
+        dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
       )
         .fill(dayjs(getTimeRange().start).year())
         .map((it, i) => it + i)
