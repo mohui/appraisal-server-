@@ -686,6 +686,7 @@ import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
 import FileSaver from 'file-saver';
 import faceCollectionInfoGauge from './components/faceCollectionInfoGauge';
+import {getTimeRange} from '../../../../common/ph.ts';
 
 export default {
   name: 'Index',
@@ -749,10 +750,11 @@ export default {
         id: this.$settings.user.code,
         year: this.$dayjs().year() //考核年份，默认为当前年
       },
-      yearList: [
-        {value: 2020, label: '2020年度'},
-        {value: 2021, label: '2021年度'}
-      ],
+      yearList: new Array(
+        this.$dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
+      )
+        .fill(this.$dayjs(getTimeRange().start).year())
+        .map((it, i) => ({value: it + i, label: `${it + i}年度`})),
       totalShowMore: false,
       appraisalResultInstructionsPopoverVisible: false, //单项指标考核结果说明
       healthEducationType: '1',

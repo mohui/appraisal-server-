@@ -236,9 +236,13 @@
         </el-form-item>
         <el-form-item label="年度：">
           <el-select v-model="checkForm.checkYear">
-            <el-option :value="2020">2020</el-option>
-            <el-option :value="2021">2021</el-option>
-            <el-option :value="2022">2022</el-option>
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -267,9 +271,13 @@
         </el-form-item>
         <el-form-item label="年度：">
           <el-select v-model="copyForm.checkYear">
-            <el-option :value="2020">2020</el-option>
-            <el-option :value="2021">2021</el-option>
-            <el-option :value="2022">2022</el-option>
+            <el-option
+              v-for="item in yearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -423,6 +431,7 @@
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
+import {getTimeRange} from '../../../../common/ph.ts';
 
 export default {
   name: 'Check',
@@ -445,6 +454,11 @@ export default {
         checkYear: this.$dayjs().year(),
         status: true
       },
+      yearList: new Array(
+        this.$dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
+      )
+        .fill(this.$dayjs(getTimeRange().start).year())
+        .map((it, i) => ({value: it + i, label: `${it + i}年度`})),
       // 快速复制的dialog赋值
       copyForm: {
         checkId: '',
