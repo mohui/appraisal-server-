@@ -432,7 +432,6 @@
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {getTimeRange} from '../../../../common/ph.ts';
-import dayjs from 'dayjs';
 
 export default {
   name: 'Check',
@@ -456,11 +455,10 @@ export default {
         status: true
       },
       yearList: new Array(
-        dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
+        this.$dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
       )
-        .fill(dayjs(getTimeRange().start).year())
-        .map((it, i) => it + i)
-        .map(it => ({value: it, label: `${it}年度`})),
+        .fill(this.$dayjs(getTimeRange().start).year())
+        .map((it, i) => ({value: it + i, label: `${it + i}年度`})),
       // 快速复制的dialog赋值
       copyForm: {
         checkId: '',
