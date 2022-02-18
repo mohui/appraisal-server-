@@ -1302,6 +1302,13 @@ export async function getReportBuffer(code, year) {
         ...parentRuleSecond
       );
     }
+    firstRow.push(`合计`);
+    firstRow.push(``);
+    firstRow.push(``);
+    cells.push(3);
+    secondRow.push(`校正前总工分`);
+    secondRow.push(`校正后总工分`);
+    secondRow.push(`总金额`);
 
     // 构造data部分 按地区分组 {area: string, scores: []}
     const areaScores = checkDetail.ruleScore.reduce((prev, current) => {
@@ -1341,6 +1348,9 @@ export async function getReportBuffer(code, year) {
     const dataArray = areaScores.map(area => {
       // 先放机构名称
       const result = [area.name];
+      let start = new Decimal(0);
+      let end = new Decimal(0);
+      let money = new Decimal(0);
       // 循环小项
       for (const parentRule of checkDetail.parentRule) {
         // 循环小项下的细则,取出所有细则的金额
@@ -1357,7 +1367,7 @@ export async function getReportBuffer(code, year) {
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
         // 总工分
-        scores.push(`${budgetObj?.point ?? 0}`);
+        scores.push(budgetObj?.point ?? 0);
         // 质量系数
         const rate = budgetObj?.rate ?? 0;
         scores.push(
@@ -1367,17 +1377,35 @@ export async function getReportBuffer(code, year) {
         );
         // 校正公分
         scores.push(
-          `${parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2)}`
+          Number(parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2))
         );
         // 分配金额
-        scores.push(`${budgetObj?.score ?? 0}`);
+        scores.push(Number(budgetObj?.score ?? 0));
+        start = Decimal.add(start, budgetObj?.point ?? 0);
+        end = Decimal.add(end, budgetObj?.correctWorkPoint ?? 0);
+        money = Decimal.add(money, budgetObj?.score ?? 0);
         result.push(...scores);
       }
-
+      result.push(Number(parseFloat(start.toString()).toFixed(2)));
+      result.push(Number(parseFloat(end.toString()).toFixed(2)));
+      result.push(Number(parseFloat(money.toString()).toFixed(2)));
       return result;
     });
 
-    workSheet.addRows([firstRow, secondRow, ...dataArray]);
+    workSheet.addRows([
+      firstRow,
+      secondRow,
+      ...dataArray,
+      dataArray
+        .reduce((result, current) => {
+          current.map((value, index) => {
+            if (typeof value !== 'number') result[index] = null;
+            else result[index] = Decimal.add(result[index] ?? 0, value);
+          });
+          return result;
+        }, [])
+        .map(a => (a ? Number(parseFloat(a.toString()).toFixed(2)) : ''))
+    ]);
 
     //合并单元格
     let cellCount = 0;
