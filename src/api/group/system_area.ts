@@ -1102,7 +1102,7 @@ export async function getReportBuffer(code, year) {
 
   // 查询当前权限节点下的所有[考核]和[考核地区]的列表
   const systemAreas = await appDB.execute(sql, ...params);
-
+  // 考核结果sheet按地区层级结果排序,并且只显示有数据的
   const systemAreaList = codeList
     .map(code => {
       return systemAreas.find(it => code === it.area);
@@ -1416,5 +1416,7 @@ export async function getReportBuffer(code, year) {
     });
     workSheet.mergeCells('A1', 'A2');
   }
+  // 如果没有数据,生成一个暂无数据sheet
+  if (checkGroups.length === 0) workBook.addWorksheet(`暂无考核`);
   return workBook.xlsx.writeBuffer();
 }
