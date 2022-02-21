@@ -5,7 +5,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  ReportAreaHistoryModel,
   ReportAreaModel,
   RuleProjectModel
 } from '../../database/model';
@@ -234,66 +233,6 @@ export default class SystemArea {
         };
       })
     );
-  }
-
-  /**
-   * 历史记录
-   *
-   * @param code
-   * @param year
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
-  async history(code, year) {
-    // 查询本级权限
-    const areas = (
-      await originalDB.execute(
-        // language=PostgreSQL
-        `
-        select code, name
-        from area
-        where code = ?
-      `,
-        code
-      )
-    )[0];
-
-    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
-    // 如果没有传年份获取年份
-    year = getYear(year);
-
-    // 通过地区编码和时间获取checkId
-    const checkId = await yearGetCheckId(code, year);
-    if (!checkId) return [];
-
-    // 查询考核体系
-    return ReportAreaHistoryModel.findAll({
-      order: [['date', 'asc']],
-      where: {
-        areaCode: code,
-        checkId,
-        date: {
-          [Op.gte]: dayjs()
-            .year(year)
-            .startOf('y')
-            .toDate(),
-          [Op.lt]: dayjs()
-            .year(year)
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        }
-      },
-      attributes: ['date', 'workPoint', 'totalWorkPoint', 'rate', 'score']
-    });
   }
 
   // endregion
