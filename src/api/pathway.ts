@@ -13,6 +13,7 @@ export default class Pathway {
    * @return [{
    *   id: string, 其实就是unfis路径
    *   name: string,
+   *   count: number 临床路径数量
    * }]
    */
   async categories() {
@@ -27,7 +28,12 @@ export default class Pathway {
       }))
       .reduce((result, current) => {
         if (result.filter(r => r.id === current.id).length < 1)
-          result.push({id: current.id, name: current.name});
+          result.push({id: current.id, name: current.name, count: 1});
+        else {
+          for (const pathway of result) {
+            if (pathway.id === current.id) pathway.count += 1;
+          }
+        }
         return result;
       }, []);
   }
