@@ -14,10 +14,10 @@ export default class Drug {
    * @returns [{
    *   id: id,
    *   name: 名称
-   *   hasChildren?: 是否有下级
+   *   hasChildren?: 是否有下级 0/1
    *   type: 类型 category-分类,generic-通用名,detail-药品
    *   subTitle?: 药品厂家
-   *   url: 药品详情链接
+   *   url?: 药品详情链接
    *   initial?: 药品拼音首字母
    * }]
    */
