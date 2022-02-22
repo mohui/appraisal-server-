@@ -148,7 +148,7 @@ export default class Drug {
           SELECT *
           FROM [medimpact_data].MI_DRUG_SEARCH
           WHERE 1 = 1
-          {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR SEARCH_PRODUCT_NAME LIKE {{? keyword}}){{/if}}
+          {{#if keyword}} AND (PINYIN_PRODUCT_NAME LIKE {{? keyword}} OR PRODUCT_NAME LIKE {{? keyword}}){{/if}}
           ORDER BY PINYIN_PRODUCT_NAME,MONOGRAPH_NAME,MI_MONOGRAPH_ID DESC
         `,
       {
