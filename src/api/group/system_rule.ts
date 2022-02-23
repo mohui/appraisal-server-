@@ -1,13 +1,11 @@
 import {
   RuleAreaScoreModel,
   CheckRuleModel,
-  CheckSystemModel,
-  CheckAreaModel,
   RuleTagModel,
   RuleAreaBudgetModel
 } from '../../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {originalDB} from '../../app';
+import {appDB, originalDB} from '../../app';
 
 import {MarkTagUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
@@ -42,24 +40,33 @@ export default class SystemRule {
     year = getYear(year);
 
     // 通过地区编码和年份获取考核主信息
-    const areaSystem = await CheckAreaModel.findOne({
-      where: {
-        areaCode: code
-      },
-      attributes: [],
-      include: [
-        {
-          model: CheckSystemModel,
-          where: {checkYear: year},
-          required: true
-        }
-      ]
-    });
+    const checkSystem = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          SELECT "checkSystem"."check_id"   AS "checkId",
+                 "checkSystem"."check_name" AS "checkName",
+                 "checkSystem"."create_by"  AS "create_by",
+                 "checkSystem"."update_by"  AS "update_by",
+                 "checkSystem"."check_year" AS "checkYear",
+                 "checkSystem"."status"     AS "status",
+                 "checkSystem"."remarks"    AS "remarks",
+                 "checkSystem"."check_type" AS "checkType",
+                 "checkSystem"."run_time"   AS "runTime",
+                 "checkSystem"."created_at" AS "created_at",
+                 "checkSystem"."updated_at" AS "updated_at"
+          FROM "check_area" AS "CheckArea"
+                 INNER JOIN "check_system" AS "checkSystem"
+                            ON "CheckArea"."check_system" = "checkSystem"."check_id" AND "checkSystem"."check_year" = ?
+          WHERE "CheckArea"."area" = ?
+          LIMIT 1
+        `,
+        year,
+        code
+      )
+    )[0];
 
-    if (!areaSystem) throw new KatoCommonError(`该地区未绑定考核`);
-
-    // 取出考核主信息
-    const checkSystem = areaSystem.checkSystem;
+    if (!checkSystem) throw new KatoCommonError(`该地区未绑定考核`);
 
     // 待看
     const children = await Promise.all(
