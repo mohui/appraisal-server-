@@ -28,10 +28,10 @@ export default class SystemRule {
       await originalDB.execute(
         // language=PostgreSQL
         `
-        select code, name
-        from area
-        where code = ?
-      `,
+          select code, name
+          from area
+          where code = ?
+        `,
         code
       )
     )[0];
