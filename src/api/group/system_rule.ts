@@ -18,19 +18,10 @@ export default class SystemRule {
   /**
    * 机构考核详情
    *
-   * @param code 机构id
+   * @param code 地区code或机构id
    * @param year 年份
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
+  @validate(should.string().required(), should.number().allow(null))
   async checks(code, year) {
     // 校验地区是否存在
     const areas = (
