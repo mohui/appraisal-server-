@@ -11,6 +11,72 @@ export default class SystemRule {
    *
    * @param code 地区code或机构id
    * @param year 年份
+   * @return {
+   * "checkId": 考核体系id,
+   * "checkName": 考核体系名称,
+   * "create_by": 创建人,
+   * "update_by": 修改人,
+   * "checkYear": 考核年度,
+   * "status": 状态,
+   * "remarks": 备注,
+   * "checkType": 考核类型: 默认为0; 1: 主考核; 0: 临时考核',
+   * "runTime": 跑分时间,
+   * "created_at": 创建时间,
+   * "updated_at": 修改时间,
+   * "children": [
+   *  {
+   *    "ruleId": 考核小项id,
+   *    "ruleName": 考核小项名称,
+   *    "ruleScore": 总分,
+   *    "budget": 分配金额,
+   *    "children": [
+   *      {
+   *        "ruleId": 考核细则id,
+   *        "ruleName": 考核细则名称,
+   *        "parentRuleId": 上级(考核小项)id,
+   *        "checkId": 考核体系id,
+   *        "ruleScore": 得分,
+   *        "checkStandard": 考核标准,
+   *        "checkMethod": 考核方法,
+   *        "evaluateStandard": 评分标准,
+   *        "create_by": 创建人,
+   *        "update_by": 修改人,
+   *        "status": 状态,
+   *        "created_at": 创建时间,
+   *        "updated_at": 修改时间,
+   *        "ruleAreaScores": [
+   *          {
+   *            "ruleId": 细则id,
+   *            "areaCode": 考核地区,
+   *            "score": 得分,
+   *            "auto": 是否自动打分, 默认是,
+   *            "details": [指标解释数组],
+   *            "created_at": 创建时间,
+   *            "updated_at": 修改时间
+   *          }
+   *        ],
+   *        "ruleTags": [
+   *          {
+   *            "id": 主键,
+   *            "ruleId": 考核细则id,
+   *            "tag": "考核指标",
+   *            "algorithm": "计算方式",
+   *            "baseline": 参考值; 个别计算方式, 需要参考值,
+   *            "score": 分值,
+   *            "attachStartDate": 定性指标上传附件的开始时间,
+   *            "attachEndDate": 定性指标上传附件的结束时间,
+   *            "created_at": 创建时间,
+   *            "updated_at": 修改时间
+   *          }
+   *        ],
+   *        "details": [指标解释数组],
+   *        "score": 分值,
+   *        "auto": 是否自动打分, 默认是,
+   *        "isUploadAttach": 判断是否在可上传时间范围内
+   *      }
+   *    ]
+   *  }]
+   * }
    */
   @validate(should.string().required(), should.number().allow(null))
   async checks(code, year) {
