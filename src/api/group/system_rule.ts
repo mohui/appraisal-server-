@@ -1,12 +1,5 @@
-import {
-  RuleAreaScoreModel,
-  CheckRuleModel,
-  RuleTagModel,
-  RuleAreaBudgetModel
-} from '../../database/model';
 import {KatoCommonError, should, validate} from 'kato-server';
 import {appDB, originalDB} from '../../app';
-
 import {MarkTagUsages} from '../../../common/rule-score';
 import * as dayjs from 'dayjs';
 import {Decimal} from 'decimal.js';
@@ -68,82 +61,251 @@ export default class SystemRule {
 
     if (!checkSystem) throw new KatoCommonError(`该地区未绑定考核`);
 
-    // 待看
-    const children = await Promise.all(
-      // 查询考核细则
-      (
-        await CheckRuleModel.findAll({
-          where: {checkId: checkSystem.checkId, parentRuleId: null},
-          order: [['created_at', 'ASC']],
-          include: [RuleAreaBudgetModel]
-        })
-      ).map(async rule => {
-        // 根据考核小项,查询考核细则
-        const children = (
-          await CheckRuleModel.findAll({
-            attributes: {exclude: ['budget']},
-            where: {parentRuleId: rule.ruleId},
-            order: [['created_at', 'ASC']],
-            include: [
-              {
-                model: RuleAreaScoreModel,
-                where: {areaCode: code},
-                required: false
-              },
-              RuleTagModel
-            ]
-          })
-        ).map(it => {
-          it = it.toJSON();
-          // 指标解释数组, 默认为null, 即考核细则未配置关联关系
-          it.details = null;
-          // rul_area_score表有数据, 构造数组
-          if (it?.ruleAreaScores?.length > 0) {
-            it.details = it.ruleAreaScores.reduce(
-              (prev, current) => [...prev, ...current.details],
-              []
-            );
-          }
-          it.score = it.ruleAreaScores.reduce(
-            (result, current) => (result += current.score),
-            0
-          );
-          it.auto =
-            it.ruleAreaScores.find(area => area.areaCode === code)?.auto ??
-            true;
-          it.isUploadAttach = false;
-          //含定性指标,并且判断是否在可上传时间范围内
-          const ruleTagDateRange = it.ruleTags.find(
-            tag =>
-              tag.tag === MarkTagUsages.Attach.code &&
-              tag.attachStartDate &&
-              tag.attachEndDate
-          );
-          if (ruleTagDateRange) {
-            it.isUploadAttach =
-              dayjs().isAfter(ruleTagDateRange.attachStartDate) &&
-              dayjs().isBefore(ruleTagDateRange.attachEndDate);
-          }
-          return it;
-        });
-        return {
-          ruleId: rule.ruleId,
-          ruleName: rule.ruleName,
-          ruleScore: rule.ruleScore,
-          budget:
-            rule.ruleAreaBudgets
-              .filter(it => it.areaCode === code)
-              .reduce(
-                (res, next) => new Decimal(res).add(next.budget),
-                new Decimal(0)
-              )
-              .toNumber() ?? 0,
-          children
-        };
-      })
+    // 根据考核id查询考核小项
+    const checkRuleParents = await appDB.execute(
+      // language=PostgreSQL
+      `
+        SELECT "CheckRule"."rule_id"                AS "ruleId",
+               "CheckRule"."rule_name"              AS "ruleName",
+               "CheckRule"."parent_rule_id"         AS "parentRuleId",
+               "CheckRule"."check_id"               AS "checkId",
+               "CheckRule"."rule_score"             AS "ruleScore",
+               "CheckRule"."check_standard"         AS "checkStandard",
+               "CheckRule"."check_method"           AS "checkMethod",
+               "CheckRule"."evaluate_standard"      AS "evaluateStandard",
+               "CheckRule"."create_by",
+               "CheckRule"."update_by",
+               "CheckRule"."status",
+               "CheckRule"."budget",
+               "CheckRule"."created_at",
+               "CheckRule"."updated_at",
+               "ruleAreaBudgets"."rule"             AS "ruleAreaBudgetsRuleId",
+               "ruleAreaBudgets"."area"             AS "ruleAreaBudgetsAreaCode",
+               "ruleAreaBudgets"."budget"           AS "ruleAreaBudgetsBudget",
+               "ruleAreaBudgets"."workPoint"        AS "ruleAreaBudgetsWorkPoint",
+               "ruleAreaBudgets"."correctWorkPoint" AS "ruleAreaBudgetsCorrectWorkPoint",
+               "ruleAreaBudgets"."rate"             AS "ruleAreaBudgetsRate",
+               "ruleAreaBudgets"."score"            AS "ruleAreaBudgetsScore",
+               "ruleAreaBudgets"."totalScore"       AS "ruleAreaBudgetsTotalScore",
+               "ruleAreaBudgets"."created_at"       AS "ruleAreaBudgetsCreated_at",
+               "ruleAreaBudgets"."updated_at"       AS "ruleAreaBudgetsUpdated_at"
+        FROM "check_rule" AS "CheckRule"
+               LEFT OUTER JOIN "rule_area_budget" AS "ruleAreaBudgets"
+                               ON "CheckRule"."rule_id" = "ruleAreaBudgets"."rule"
+        WHERE "CheckRule"."check_id" = ?
+          AND "CheckRule"."parent_rule_id" IS NULL
+        ORDER BY "CheckRule"."created_at"
+      `,
+      checkSystem.checkId
     );
-    const returnValue = checkSystem.toJSON();
-    returnValue.children = children;
-    return returnValue;
+    // 考核小项整理后结果
+    const parentRules = [];
+    // 整理考核小项
+    for (const parentRule of checkRuleParents) {
+      //  查找是否在数组中, 如果在,push进子集中,如果不在,push进数组中
+      const find = parentRules.find(it => it?.ruleId === parentRule.ruleId);
+      // 如果查找到
+      if (find) {
+        if (parentRule.ruleAreaBudgetsAreaCode === code) {
+          find.budget = new Decimal(find?.budget ?? 0).add(
+            parentRule?.ruleAreaBudgetsBudget ?? 0
+          );
+        }
+      } else {
+        parentRules.push({
+          ruleId: parentRule.ruleId,
+          ruleName: parentRule.ruleName,
+          ruleScore: parentRule.ruleScore,
+          budget:
+            parentRule.ruleAreaBudgetsAreaCode === code
+              ? parentRule.ruleAreaBudgetsBudget
+              : 0,
+          children: []
+        });
+      }
+    }
+    // 查询所有的考核细则
+    const ruleChildrenList = await appDB.execute(
+      // language=PostgreSQL
+      `
+        SELECT "CheckRule"."rule_id"           AS "ruleId",
+               "CheckRule"."rule_name"         AS "ruleName",
+               "CheckRule"."parent_rule_id"    AS "parentRuleId",
+               "CheckRule"."check_id"          AS "checkId",
+               "CheckRule"."rule_score"        AS "ruleScore",
+               "CheckRule"."check_standard"    AS "checkStandard",
+               "CheckRule"."check_method"      AS "checkMethod",
+               "CheckRule"."evaluate_standard" AS "evaluateStandard",
+               "CheckRule"."create_by",
+               "CheckRule"."update_by",
+               "CheckRule"."status",
+               "CheckRule"."created_at",
+               "CheckRule"."updated_at",
+               "ruleAreaScores"."rule"         AS "ruleAreaScoresRuleId",
+               "ruleAreaScores"."area"         AS "ruleAreaScoresAreaCode",
+               "ruleAreaScores"."score"        AS "ruleAreaScoresScore",
+               "ruleAreaScores"."auto"         AS "ruleAreaScoresAuto",
+               "ruleAreaScores"."details"      AS "ruleAreaScoresDetails",
+               "ruleAreaScores"."created_at"   AS "ruleAreaScoresCreated_at",
+               "ruleAreaScores"."updated_at"   AS "ruleAreaScoresUpdated_at",
+               "ruleTags"."id"                 AS "ruleTagsId",
+               "ruleTags"."rule"               AS "ruleTagsRuleId",
+               "ruleTags"."tag"                AS "ruleTagsTag",
+               "ruleTags"."algorithm"          AS "ruleTagsAlgorithm",
+               "ruleTags"."baseline"           AS "ruleTagsBaseline",
+               "ruleTags"."score"              AS "ruleTagsScore",
+               "ruleTags"."attach_start_date"  AS "ruleTagsAttachStartDate",
+               "ruleTags"."attach_end_date"    AS "ruleTagsAttachEndDate",
+               "ruleTags"."created_at"         AS "ruleTagsCreated_at",
+               "ruleTags"."updated_at"         AS "ruleTagsUpdated_at"
+        FROM "check_rule" AS "CheckRule"
+               LEFT OUTER JOIN "rule_area_score" AS "ruleAreaScores"
+                               ON "CheckRule"."rule_id" = "ruleAreaScores"."rule" AND "ruleAreaScores"."area" = ?
+               LEFT OUTER JOIN "rule_tag" AS "ruleTags" ON "CheckRule"."rule_id" = "ruleTags"."rule"
+        WHERE "CheckRule".check_id = ?
+          and "CheckRule"."parent_rule_id" is not null
+        ORDER BY "CheckRule"."created_at"
+      `,
+      code,
+      checkSystem.checkId
+    );
+    // 考核细则整理后的结果
+    const childRules = [];
+    // 整理考核细则
+    for (const ruleIt of ruleChildrenList) {
+      // 查找考核细则是否在数组中,在:把关联关系push进数组中,不在: push进数组中
+      const find = childRules.find(it => it?.ruleId === ruleIt.ruleId);
+      // 如果在
+      if (find) {
+        // 如果在, 并且ruleId,areaCode,details有一个不同,push进去
+        const find1 = find.ruleAreaScores.find(
+          scoreIt =>
+            scoreIt.ruleId === ruleIt.ruleAreaScoresRuleId &&
+            scoreIt.areaCode === ruleIt.ruleAreaScoresAreaCode
+          // scoreIt.details === ruleIt.ruleAreaScoresDetails &&
+        );
+        if (!find1) {
+          // 当ruleAreaScores表的ruleId存在时
+          find.ruleAreaScores.push({
+            ruleId: ruleIt.ruleAreaScoresRuleId,
+            areaCode: ruleIt.ruleAreaScoresAreaCode,
+            score: ruleIt.ruleAreaScoresScore,
+            auto: ruleIt.ruleAreaScoresAuto,
+            details: ruleIt.ruleAreaScoresDetails,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            created_at: ruleIt.ruleAreaScoresCreated_at,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            updated_at: ruleIt.ruleAreaScoresUpdated_at
+          });
+          if (ruleIt.ruleAreaScoresDetails)
+            find.details.push(...ruleIt.ruleAreaScoresDetails);
+          if (ruleIt.ruleAreaScoresScore)
+            find.score = new Decimal(find?.score ?? 0).add(
+              ruleIt?.ruleAreaScoresScore ?? 0
+            );
+        }
+        // 当ruleTags表的id存在时
+        if (ruleIt.ruleTagsId) {
+          find.ruleTags.push({
+            id: ruleIt.ruleTagsId,
+            ruleId: ruleIt.ruleTagsRuleId,
+            tag: ruleIt.ruleTagsTag,
+            algorithm: ruleIt.ruleTagsAlgorithm,
+            baseline: ruleIt.ruleTagsBaseline,
+            score: ruleIt.ruleTagsScore,
+            attachStartDate: ruleIt.ruleTagsAttachStartDate,
+            attachEndDate: ruleIt.ruleTagsAttachEndDate,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            created_at: ruleIt.ruleTagsCreated_at,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            updated_at: ruleIt.ruleTagsUpdated_at
+          });
+        }
+      } else {
+        // 是否是定型指标
+        let isUploadAttach = false;
+        // 含定性指标,并且判断是否在可上传时间范围内
+        const ruleTagDateRange =
+          ruleIt.ruleTagsTag === MarkTagUsages.Attach.code &&
+          ruleIt.ruleTagsAttachStartDate &&
+          ruleIt.ruleTagsAttachEndDate;
+        // 判断是否在可上传时间范围内
+        if (ruleTagDateRange) {
+          isUploadAttach =
+            dayjs().isAfter(ruleTagDateRange.attachStartDate) &&
+            dayjs().isBefore(ruleTagDateRange.attachEndDate);
+        }
+        // push进数组中
+        childRules.push({
+          ruleId: ruleIt.ruleId,
+          ruleName: ruleIt.ruleName,
+          parentRuleId: ruleIt.parentRuleId,
+          checkId: ruleIt.checkId,
+          ruleScore: ruleIt.ruleScore,
+          checkStandard: ruleIt.checkStandard,
+          checkMethod: ruleIt.checkMethod,
+          evaluateStandard: ruleIt.evaluateStandard,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          create_by: ruleIt.create_by,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          update_by: ruleIt.update_by,
+          status: ruleIt.status,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          created_at: ruleIt.created_at,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          updated_at: ruleIt.updated_at,
+          ruleAreaScores: ruleIt.ruleAreaScoresRuleId
+            ? [
+                {
+                  ruleId: ruleIt.ruleAreaScoresRuleId,
+                  areaCode: ruleIt.ruleAreaScoresAreaCode,
+                  score: ruleIt.ruleAreaScoresScore,
+                  auto: ruleIt.ruleAreaScoresAuto,
+                  details: ruleIt.ruleAreaScoresDetails,
+                  // eslint-disable-next-line @typescript-eslint/camelcase
+                  created_at: ruleIt.ruleAreaScoresCreated_at,
+                  // eslint-disable-next-line @typescript-eslint/camelcase
+                  updated_at: ruleIt.ruleAreaScoresUpdated_at
+                }
+              ]
+            : [],
+          ruleTags: ruleIt.ruleTagsId
+            ? [
+                {
+                  id: ruleIt.ruleTagsId,
+                  ruleId: ruleIt.ruleTagsRuleId,
+                  tag: ruleIt.ruleTagsTag,
+                  algorithm: ruleIt.ruleTagsAlgorithm,
+                  baseline: ruleIt.ruleTagsBaseline,
+                  score: ruleIt.ruleTagsScore,
+                  attachStartDate: ruleIt.ruleTagsAttachStartDate,
+                  attachEndDate: ruleIt.ruleTagsAttachEndDate,
+                  // eslint-disable-next-line @typescript-eslint/camelcase
+                  created_at: ruleIt.ruleTagsCreated_at,
+                  // eslint-disable-next-line @typescript-eslint/camelcase
+                  updated_at: ruleIt.ruleTagsUpdated_at
+                }
+              ]
+            : [],
+          details: ruleIt.ruleAreaScoresDetails,
+          score: ruleIt.ruleAreaScoresScore,
+          auto: ruleIt?.ruleAreaScoresAuto ?? true,
+          isUploadAttach: isUploadAttach
+        });
+      }
+    }
+
+    // 把考核细则放到考核小项中
+    for (const childIt of childRules) {
+      // 查找子集是否在数组中
+      const parentFind = parentRules.find(
+        parentIt => parentIt.ruleId === childIt.parentRuleId
+      );
+      if (parentFind) {
+        parentFind.children.push(childIt);
+      }
+    }
+    checkSystem.children = parentRules;
+    return checkSystem;
   }
 }
