@@ -4,17 +4,23 @@
       <div v-sticky>
         <div class="header-box-card">
           <div class="header-title">《{{ checkName }}》 规则详情</div>
-          <el-button
-            style="float: right;margin:0 -9px;"
-            type="primary"
-            size="small"
-            @click="
-              $router.push({
-                name: 'check'
-              })
-            "
-            >返回
-          </el-button>
+          <div class="check-more">
+            <div class="total">
+              总分：<em>{{ totalScore }}分</em>；分配总金额：<em>
+                {{ totalBudget.toFixed(4) }}元
+              </em>
+            </div>
+            <el-button
+              type="primary"
+              size="small"
+              @click="
+                $router.push({
+                  name: 'check'
+                })
+              "
+              >返回
+            </el-button>
+          </div>
         </div>
       </div>
       <el-card class="check-rule-content" shadow="never">
@@ -471,6 +477,15 @@ export default {
   },
   directives: {
     sticky: VueSticky
+  },
+  computed: {
+    totalScore() {
+      return this.ruleList.reduce((acc, cur) => acc + (cur.ruleScores ?? 0), 0);
+    },
+    totalBudget() {
+      console.log(this.ruleList);
+      return this.ruleList.reduce((acc, cur) => acc + +(cur?.budget ?? 0), 0);
+    }
   },
   created() {
     this.checkId = this.$route.query.checkId;
@@ -1067,6 +1082,18 @@ export default {
   .header-title {
     color: #40415a;
     font-size: 18px;
+  }
+  .check-more {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    .total {
+      padding-right: 20px;
+      white-space: nowrap;
+    }
+    em {
+      color: #409eff;
+    }
   }
 }
 

@@ -2,61 +2,87 @@ import {
   CheckRuleModel,
   CheckSystemModel,
   RuleProjectModel,
-  RuleTagModel,
-  CheckAreaModel
-} from '../database/model';
+  RuleTagModel
+} from '../database';
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB} from '../app';
-import {Op} from 'sequelize';
 import {MarkTagUsages} from '../../common/rule-score';
 import {Projects} from '../../common/project';
 import {Context} from './context';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import {AuditLog} from './middleware/audit-log';
+import {v4 as uuid} from 'uuid';
 
 export default class CheckSystem {
   /**
-   * 获取考核体系详细数据
+   * 获取考核体系详细数据,包括自身和规则
    *
-   * 包括自身和规则
+   * id: 考核id
    *
    * @returns {Promise<void>}
    */
   async detail(id) {
     // 1. 查询考核体系
     const checkSystem = (
-      await appDB.execute(`select * from check_system where check_id = ?`, id)
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from check_system
+          where check_id = ?
+        `,
+        id
+      )
     )[0];
 
     if (!checkSystem) throw new KatoRuntimeError(`id为 ${id} 的考核体系不存在`);
 
     // 2. 查询考核小项
     const parentRules = await appDB.execute(
-      `select * from check_rule where check_id = ? and parent_rule_id is null`,
+      // language=PostgreSQL
+      `
+        select *
+        from check_rule
+        where check_id = ?
+          and parent_rule_id is null
+      `,
       checkSystem.check_id
     );
     // 3. 查询考核细则
     const childRules = await appDB.execute(
-      `select * from check_rule where check_id = ? and parent_rule_id is not null`,
+      // language=PostgreSQL
+      `
+        select *
+        from check_rule
+        where check_id = ?
+          and parent_rule_id is not null
+      `,
       checkSystem.check_id
     );
     // 4. 添加考核细则到考核小项中
     for (let i = 0; i < parentRules.length; i++) {
       // 4.1 查询小项绑定的工分项
-      const ruleProjects = await appDB.execute(
-        `select * from rule_project where rule = ?`,
+      parentRules[i].ruleProjects = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from rule_project
+          where rule = ?
+        `,
         parentRules[i].rule_id
       );
-      parentRules[i].ruleProjects = ruleProjects;
 
       for (let j = 0; j < childRules.length; j++) {
         // 4.2 查询考核细则绑定的关联关系
-        // language=PostgreSQL
-        const ruleTags = await appDB.execute(
-          `select * from rule_tag where rule = ?`,
+        childRules[j].ruleTags = await appDB.execute(
+          // language=PostgreSQL
+          `
+            select *
+            from rule_tag
+            where rule = ?
+          `,
           childRules[j].rule_id
         );
-        childRules[j].ruleTags = ruleTags;
         if (parentRules[i].rule_id === childRules[j].parent_rule_id) {
           (parentRules[i].childRules = parentRules[i].childRules || []).push(
             childRules[j]
@@ -70,7 +96,9 @@ export default class CheckSystem {
         ruleName: pRule.rule_name,
         checkId: pRule.check_id,
         budget: pRule.budget,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         created_at: pRule.created_at,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         updated_at: pRule.updated_at,
         projects: pRule.ruleProjects.map(it =>
           Projects.find(p => p.id === it.projectId)
@@ -82,7 +110,9 @@ export default class CheckSystem {
               checkId: cRule.check_id,
               checkMethod: cRule.check_method,
               checkStandard: cRule.check_standard,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               create_by: cRule.create_by,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               created_at: cRule.created_at,
               evaluateStandard: cRule.evaluate_standard,
               parentRuleId: cRule.parent_rule_id,
@@ -100,7 +130,9 @@ export default class CheckSystem {
                 name: MarkTagUsages[it.tag].name
               })),
               status: cRule.status,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               update_by: cRule.update_by,
+              // eslint-disable-next-line @typescript-eslint/camelcase
               updated_at: cRule.updated_at
             }))
             .sort((a, b) =>
@@ -136,7 +168,9 @@ export default class CheckSystem {
     const addCheck = await CheckSystemModel.create({
       ...params,
       checkType: 1,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       create_by: Context.current.user.id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       update_by: Context.current.user.id
     });
 
@@ -149,21 +183,21 @@ export default class CheckSystem {
     return addCheck;
   }
 
-  //更新考核系统名称
+  /**
+   * 更新考核系统名称
+   *
+   * @param params {
+   *   checkId: 考核体系id,
+   *   checkName: 考核系统名称,
+   *   status: 状态值:true||false,
+   *   checkYear: 年份
+   * }
+   */
   @validate(
     should.object({
-      checkId: should
-        .string()
-        .required()
-        .description('考核体系id'),
-      checkName: should
-        .string()
-        .required()
-        .description('考核系统名称'),
-      status: should
-        .boolean()
-        .required()
-        .description('状态值:true||false'),
+      checkId: should.string().required(),
+      checkName: should.string().required(),
+      status: should.boolean().required(),
       checkYear: should.number().required()
     })
   )
@@ -180,16 +214,23 @@ export default class CheckSystem {
     Context.current.auditLog.checkId = params?.checkId;
     Context.current.auditLog.checkName = params?.checkName;
     return appDB.transaction(async () => {
-      const sys = await CheckSystemModel.findOne({
-        where: {checkId: params.checkId},
-        lock: true
-      });
-      if (!sys) throw new KatoCommonError('该考核不存在');
+      const CheckSystemModels = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from check_system
+          where check_id = ?
+            FOR UPDATE
+        `,
+        params.checkId
+      );
+      if (CheckSystemModels.length === 0)
+        throw new KatoCommonError('该考核不存在');
 
       Context.current.auditLog.checkYear = params?.checkYear;
       // 现有考核体系
-      // language=PostgreSQL
       const checkAreaModels = await appDB.execute(
+        // language=PostgreSQL
         `
           select a.name
           from check_area ca
@@ -209,53 +250,51 @@ export default class CheckSystem {
         throw new KatoCommonError(
           `${checkAreaModels.map(it => it.name).join()} 已被其他考核体系绑定`
         );
-      await CheckSystemModel.update(
-        {
-          checkName: params.checkName,
-          update_by: Context.current.user.id,
-          status: params.status,
-          checkYear: params.checkYear
-        },
-        {where: {checkId: params.checkId}}
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update check_system
+          set check_name = ?,
+              status     = ?,
+              check_year = ?,
+              updated_at = ?,
+              update_by  = ?
+          where check_id = ?
+        `,
+        params.checkName,
+        params.status,
+        params.checkYear,
+        new Date(),
+        Context.current.user.id,
+        params.checkId
       );
     });
   }
 
-  //添加考核细则
+  /**
+   * 添加考核细则
+   *
+   * @param params {
+   *   checkId: 考核系统id,
+   *   ruleName: 规则名称,
+   *   parentRuleId: 所属分组id,
+   *   ruleScore: 得分,
+   *   checkStandard: 考核标准,
+   *   checkMethod: 考核方法,
+   *   status: 状态,
+   *   evaluateStandard: 评分标准
+   * }
+   */
   @validate(
     should.object({
-      checkId: should
-        .string()
-        .required()
-        .description('考核系统id'),
-      ruleName: should
-        .string()
-        .required()
-        .description('规则名称'),
-      parentRuleId: should
-        .string()
-        .required()
-        .description('所属分组id'),
-      ruleScore: should
-        .number()
-        .required()
-        .description('得分'),
-      checkStandard: should
-        .string()
-        .required()
-        .description('考核标准'),
-      checkMethod: should
-        .string()
-        .required()
-        .description('考核方法'),
-      status: should
-        .boolean()
-        .required()
-        .description('状态'),
-      evaluateStandard: should
-        .string()
-        .required()
-        .description('评分标准')
+      checkId: should.string().required(),
+      ruleName: should.string().required(),
+      parentRuleId: should.string().required(),
+      ruleScore: should.number().required(),
+      checkStandard: should.string().required(),
+      checkMethod: should.string().required(),
+      status: should.boolean().required(),
+      evaluateStandard: should.string().required()
     })
   )
   @AuditLog(async () => {
@@ -268,7 +307,64 @@ export default class CheckSystem {
   })
   async addRule(params) {
     const result = await appDB.transaction(async () => {
-      return CheckRuleModel.create(params);
+      const ruleId = uuid();
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          insert into check_rule(rule_id,
+                                 check_id,
+                                 parent_rule_id,
+                                 rule_name,
+                                 rule_score,
+                                 check_standard,
+                                 check_method,
+                                 evaluate_standard,
+                                 create_by,
+                                 update_by,
+                                 status,
+                                 created_at,
+                                 updated_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        ruleId,
+        params.checkId,
+        params.parentRuleId,
+        params.ruleName,
+        params.ruleScore,
+        params.checkStandard,
+        params.checkMethod,
+        params.evaluateStandard,
+        Context.current.user.id,
+        Context.current.user.id,
+        params.status,
+        new Date(),
+        new Date()
+      );
+      return (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select rule_id           "ruleId",
+                   check_id          "checkId",
+                   parent_rule_id    "parentRuleId",
+                   rule_name         "ruleName",
+                   rule_score        "ruleScore",
+                   check_standard    "checkStandard",
+                   check_method      "checkMethod",
+                   evaluate_standard "evaluateStandard",
+                   create_by,
+                   update_by,
+                   status,
+                   created_at,
+                   updated_at,
+                   deleted_at,
+                   budget
+            from check_rule
+            where rule_id = ?
+          `,
+          ruleId
+        )
+      )[0];
     });
     // 写入日志
     Context.current.auditLog = {};
@@ -352,7 +448,7 @@ export default class CheckSystem {
     });
     if (!group) throw new KatoCommonError('该规则组不存在');
     if (group.parent) throw new KatoCommonError('该规则是一个细则');
-    let options = {};
+    const options = {};
     if (params?.ruleName) options['ruleName'] = params.ruleName;
     if (params?.budget || params?.budget === 0)
       options['budget'] = params.budget;
@@ -401,43 +497,102 @@ export default class CheckSystem {
   })
   remove(id) {
     return appDB.transaction(async () => {
-      //查询考核系统,并锁定
-      const sys = await CheckSystemModel.findOne({
-        where: {checkId: id},
-        paranoid: false,
-        lock: {of: CheckSystemModel},
-        include: [CheckRuleModel]
-      });
+      // 查询考核系统,并锁定
+      const sys = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select check_id   "checkId",
+                   check_name "checkName",
+                   check_year "checkYear"
+            from check_system
+            where check_id = ?
+              for update
+          `,
+          id
+        )
+      )[0];
       if (!sys) throw new KatoCommonError('该考核系统不存在');
 
       // 写入日志
       Context.current.auditLog = {};
-      Context.current.auditLog.checkId = sys?.checkId;
-      Context.current.auditLog.checkName = sys?.checkName;
-      Context.current.auditLog.checkYear = sys?.checkYear;
+      Context.current.auditLog.checkId = sys.checkId;
+      Context.current.auditLog.checkName = sys.checkName;
+      Context.current.auditLog.checkYear = sys.checkYear;
 
-      if (await CheckAreaModel.findOne({where: {checkId: id}}))
+      // 判断该考核系统是否绑定了地区
+      if (
+        (
+          await appDB.execute(
+            // language=PostgreSQL
+            `
+              select 1
+              from check_area
+              where check_system = ?
+            `,
+            id
+          )
+        ).length > 0
+      )
         throw new KatoCommonError('该考核系统绑定了机构,无法删除');
-      const ruleIds = sys.checkRules.map(rule => rule.ruleId);
 
-      //删除该考核系统下的所有规则
-      await Promise.all(
-        sys.checkRules.map(async rule => await rule.destroy({force: true}))
-      );
-      // 删除细则指标对应[考核细则]
-      await RuleTagModel.destroy({
-        where: {
-          ruleId: {[Op.in]: ruleIds}
-        }
-      });
-      // 删除考核小项和公分项对应[考核小项]
-      await RuleProjectModel.destroy({
-        where: {
-          ruleId: {[Op.in]: ruleIds}
-        }
-      });
+      // 查询考核指标
+      const ruleIds = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select rule_id
+            from check_rule
+            where check_id = ?
+          `,
+          id
+        )
+      ).map(rule => rule.rule_id);
+
+      if (ruleIds.length > 0) {
+        // 删除细则指标对应[考核细则]
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          delete
+          from rule_tag
+          where rule in (${ruleIds.map(() => '?')})
+        `,
+          ...ruleIds
+        );
+
+        // 删除考核小项和工分项对应[考核小项]
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+          delete
+          from rule_project
+          where rule in (${ruleIds.map(() => '?')})
+        `,
+          ...ruleIds
+        );
+
+        //删除该考核系统下的所有规则
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            delete
+            from check_rule
+            where check_id = ?
+          `,
+          id
+        );
+      }
       //删除该考核系统
-      return await sys.destroy({force: true});
+      return await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from check_system
+          where check_id = ?
+        `,
+        id
+      );
     });
   }
 
@@ -507,7 +662,7 @@ export default class CheckSystem {
 
     return appDB.transaction(async () => {
       //查询规则,并锁定
-      let rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
+      const rule = await CheckRuleModel.findOne({where: {ruleId}, lock: true});
       if (!rule) throw new KatoCommonError('该规则不存在');
       //判断指标汇总是否超标ruleScore
       if (

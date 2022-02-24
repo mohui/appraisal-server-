@@ -111,6 +111,8 @@ export default class RuleTag {
           tag.attachEndDate
         ]);
       }
+      // 如果添加的数组为空,只是删除指标,返回空数组
+      if (insertParams.length === 0) return [];
       // 6: 新增指标
       return await appDB.execute(
         // language=PostgreSQL

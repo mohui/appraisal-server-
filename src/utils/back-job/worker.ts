@@ -3,7 +3,7 @@ import {appDB, initFS, unifs} from '../../app';
 import * as models from '../../database/model';
 import Score from '../../api/group/score';
 import {getReportBuffer} from '../../api/group/system_area';
-import {getPersonExcelBuffer} from '../../api/person.js';
+import {getPersonExcelBuffer} from '../../api/person';
 import HisScore from '../../api/his/score';
 import dayjs = require('dayjs');
 

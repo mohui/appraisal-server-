@@ -2,7 +2,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  ReportAreaHistoryModel,
   ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
@@ -178,15 +177,6 @@ export default class CheckAreaEdit {
           }
         });
       }
-
-      //删除解绑结构的今日历史打分结果
-      await ReportAreaHistoryModel.destroy({
-        where: {
-          areaCode: {[Op.in]: deleteAreas},
-          date: dayjs().toDate(),
-          checkId
-        }
-      });
 
       //删除机构定性指标文件
       await RuleAreaAttachModel.destroy({

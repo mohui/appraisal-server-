@@ -10,7 +10,6 @@ export {BasicTagData as BasicTagDataModel} from './basic-tag-data';
 export {RuleTag as RuleTagModel} from './rule-tag';
 export {RuleProject as RuleProjectModel} from './rule-project';
 export {WorkDifficulty as WorkDifficultyModel} from './work-difficulty';
-export {ScoreRemarkHistory as ScoreRemarkHistoryModel} from './score-remark-history';
 
 export {RuleAreaScore as RuleAreaScoreModel} from './group/rule-area-score';
 
@@ -19,6 +18,4 @@ export {CheckArea as CheckAreaModel} from './group/check-area';
 export {RuleAreaBudget as RuleAreaBudgetModel} from './group/rule-area-budget';
 export {RuleAreaAttach as RuleAreaAttachModel} from './group/rule_area_attach';
 export {ReportArea as ReportAreaModel} from './group/report_area';
-export {ReportAreaHistory as ReportAreaHistoryModel} from './group/report_area_history';
-export {ManualScoreHistory as ManualScoreHistoryModel} from './group/manual-score-history';
 export {AreaVoucher as AreaVoucherModel} from './area_voucher';

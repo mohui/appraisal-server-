@@ -9,6 +9,7 @@ import {
   monthToRange
 } from './service';
 import Decimal from 'decimal.js';
+import {getStaffExtraScore} from './common';
 
 /**
  * 机构模块
@@ -258,23 +259,23 @@ export default class HisHospital {
       hospital
     );
 
-    const staffList = [];
-    for (const staffIt of staffs) {
-      const workScoreList = await staffApi.findWorkScoreList(
-        staffIt.id,
-        month,
-        hospital
-      );
-      const gets = await staffApi.get(staffIt.id, month, hospital);
-      staffList.push({
-        extra: gets?.extra,
-        id: staffIt.id,
-        name: staffIt.name,
-        deptId: staffIt.deptId,
-        deptName: staffIt.deptName,
-        ...workScoreList
-      });
-    }
-    return staffList;
+    return await Promise.all(
+      staffs.map(async staffIt => {
+        const workScoreList = await staffApi.findWorkScoreList(
+          staffIt.id,
+          month,
+          hospital
+        );
+        const score = await getStaffExtraScore(staffIt.id, hospital, month);
+        return {
+          extra: score,
+          id: staffIt.id,
+          name: staffIt.name,
+          deptId: staffIt.deptId,
+          deptName: staffIt.deptName,
+          ...workScoreList
+        };
+      })
+    );
   }
 }

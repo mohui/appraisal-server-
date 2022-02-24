@@ -8,7 +8,10 @@
     "build:web": "webpack-cli --hide-modules --config ui/webpack.prod.js",
     "build": "run-s build:**",
     "dev": "cross-env NODE_ENV=development webpack-cli -w --hide-modules --config webpack.dev.js",
-    "dev:web": "cross-env NODE_ENV=development webpack-cli -w --hide-modules --config webpack.web.js"
+    "dev:web": "cross-env NODE_ENV=development webpack-cli -w --hide-modules --config webpack.web.js",
+    "test:build": "webpack-cli --hide-modules --config webpack.test.js",
+    "test:run": "jest --detectOpenHandles --forceExit",
+    "test": "run-s test:**"
   },
   "author": "@bjknrt.com",
   "license": "BJKNRT",
@@ -27,6 +30,7 @@
     "@types/cookie-parser": "^1.4.2",
     "@types/debug": "^4.1.5",
     "@types/express": "^4.17.3",
+    "@types/jest": "^26.0.24",
     "@types/node": "^13.9.5",
     "@types/node-cron": "^2.0.3",
     "@types/nodemailer": "^6.4.0",
@@ -57,6 +61,7 @@
     "html-webpack-plugin": "^4.0.3",
     "http-proxy-middleware": "^1.0.3",
     "husky": "^4.2.3",
+    "jest": "^27.0.6",
     "js-cookie": "^2.2.1",
     "kato-client": "0.0.5",
     "killable": "^1.0.1",
@@ -140,6 +145,15 @@
     "*.{js,vue,ts}": [
       "eslint",
       "prettier --write"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/dist/__tests__/**/*.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
     ]
   }
 }

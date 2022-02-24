@@ -682,7 +682,7 @@ export default class HisScore {
         `,
         start
       )
-    ).filter(it => it.settle === false);
+    ).filter(it => it.settle !== true);
     for (const hospitalModel of hospitals) {
       //工分计算
       await this.workScoreHospital(day, hospitalModel.code);

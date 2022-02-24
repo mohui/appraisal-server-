@@ -1123,7 +1123,7 @@ export default {
           return [1, 1];
         }
         if (column.property === 'remark') {
-          return [1, 5];
+          return [1, 4];
         }
         return [1, 0];
       }

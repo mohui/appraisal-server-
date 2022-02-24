@@ -68,6 +68,7 @@
       </kn-collapse>
       <el-table
         v-hidden-scroll
+        ref="hisTable"
         :key="symbolKey"
         v-loading="tableLoading"
         class="table-staff-department"
@@ -80,12 +81,14 @@
         :load="loadTree"
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        :row-class-name="rowClassName"
         @cell-mouse-enter="mouseEnter"
         @cell-mouse-leave="mouseLeave"
+        @row-click="expandRow"
       >
         <el-table-column
-          align="center"
           prop="departmentText"
+          label-class-name="col-label-center"
           label="科室"
           min-width="180"
         >
@@ -101,14 +104,14 @@
               v-if="row.departmentId && showEditIcon(row.departmentId)"
               style="padding: 0 0 0 10px"
               class="el-icon-edit"
-              @click="editUser(row)"
+              @click.stop="editUser(row)"
               type="primary"
             ></el-link>
             <el-link
               v-if="row.departmentId && showEditIcon(row.departmentId)"
               style="padding: 0"
               class="el-icon-close"
-              @click="delUser(row)"
+              @click.stop="delUser(row)"
               type="danger"
             ></el-link>
           </template>
@@ -627,6 +630,18 @@ export default {
     }
   },
   methods: {
+    //展开当前行
+    expandRow(row) {
+      if (row.hasChildren) {
+        this.$refs.hisTable.toggleRowExpansion(row);
+      }
+    },
+    //鼠标移动到当前行显示手指
+    rowClassName({row}) {
+      return row.hasChildren && row.id === this.mouseEnterId
+        ? 'pointer-row'
+        : '';
+    },
     //勾选非本机构人员
     handleSelectionChange(selected) {
       this.selectedStaff = selected.map(it => it.id);
@@ -709,12 +724,17 @@ export default {
     //更新保存用户信息
     async updateUser() {
       try {
+        const staff = this.listMember.find(it => it.id === this.userForm.id);
+        let dep;
+        if (staff)
+          //被修改的员工原来所属的父级
+          dep = this.userList.find(it => it.departmentId === staff.department);
         await this.$api.HisStaff.updateStaffMapping({
           id: this.userForm.id,
           hospital: this.hospitalId,
           hisStaffs: this.userForm.his,
           phStaffs: this.userForm.phStaff,
-          department: this.userForm.department,
+          department: this.userForm.department || null,
           remark: this.userForm.remark || null
         });
         this.$message({
@@ -724,6 +744,10 @@ export default {
         this.$asyncComputed.listMember.update();
         this.$asyncComputed.serverExtendStaff.update(); //刷新公卫员工列表
         this.symbolKey = Symbol(this.$dayjs().toString());
+        if (dep) {
+          //修改成功后默认展开该父级
+          this.$nextTick(() => this.$refs.hisTable.toggleRowExpansion(dep));
+        }
         this.dialogFormEditUsersVisible = false;
       } catch (e) {
         this.$message.error(e.message);
@@ -842,6 +866,12 @@ export default {
   .el-form-item {
     margin-bottom: 0;
   }
+}
+.col-label-center {
+  text-align: center;
+}
+.pointer-row:hover {
+  cursor: pointer;
 }
 </style>
 <style lang="scss" scoped>

@@ -12,13 +12,11 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  ManualScoreHistoryModel,
   ReportAreaModel,
   RuleAreaAttachModel,
   RuleAreaBudgetModel,
   RuleAreaScoreModel,
-  sql as sqlRender,
-  UserModel
+  sql as sqlRender
 } from '../../database';
 import {Op} from 'sequelize';
 import {Projects as ProjectMapping} from '../../../common/project';
@@ -1936,13 +1934,21 @@ export default class Score {
       score
     });
     //保存打分备注和历史
-    await ManualScoreHistoryModel.upsert({
-      ruleId: ruleId,
-      code: code,
-      creatorId: Context.current.user.id,
-      score: score,
-      remark: remark
-    });
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        insert into manual_score_history(id, rule, code, score, remark, creator, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      uuid(),
+      ruleId,
+      code,
+      score,
+      remark,
+      Context.current.user.id,
+      new Date(),
+      new Date()
+    );
   }
 
   /***
@@ -1951,11 +1957,63 @@ export default class Score {
    * @param code  地区code或者机构id
    */
   async manualScoreHistory(ruleId, code) {
-    return ManualScoreHistoryModel.findAll({
-      where: {ruleId, code},
-      include: [UserModel],
-      order: [['created_at', 'DESC']]
-    });
+    return (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          SELECT "ManualScoreHistory"."id",
+                 "ManualScoreHistory"."rule"    AS "ruleId",
+                 "ManualScoreHistory"."code",
+                 "ManualScoreHistory"."creator" AS "creatorId",
+                 "ManualScoreHistory"."score",
+                 "ManualScoreHistory"."remark",
+                 "ManualScoreHistory"."created_at",
+                 "ManualScoreHistory"."updated_at",
+                 "creator"."id"                 AS "creatorId2",
+                 "creator"."account"            AS "creatorAccount",
+                 "creator"."name"               AS "creatorName",
+                 "creator"."password"           AS "creatorPassword",
+                 "creator"."area"               AS "creatorAreaCode",
+                 "creator"."region"             AS "creatorRegionId",
+                 "creator"."creator"            AS "creatorCreatorId",
+                 "creator"."editor"             AS "creatorEditorId",
+                 "creator"."created_at"         AS "creatorCreated_at",
+                 "creator"."updated_at"         AS "creatorUpdated_at"
+          FROM "manual_score_history" AS "ManualScoreHistory"
+                 LEFT OUTER JOIN "user" AS "creator" ON "ManualScoreHistory"."creator" = "creator"."id"
+          WHERE "ManualScoreHistory"."code" = ?
+            AND "ManualScoreHistory"."rule" = ?
+          ORDER BY "ManualScoreHistory"."created_at" DESC
+        `,
+        code,
+        ruleId
+      )
+    ).map(it => ({
+      id: it.id,
+      ruleId: it.ruleId,
+      code: it.code,
+      creatorId: it.creatorId,
+      score: it.score,
+      remark: it.remark,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      created_at: it.created_at,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      updated_at: it.updated_at,
+      creator: {
+        id: it.creatorId2,
+        account: it.creatorAccount,
+        name: it.creatorName,
+        password: it.creatorPassword,
+        areaCode: it.creatorAreaCode,
+        regionId: it.creatorRegionId,
+        creatorId: it.creatorCreatorId,
+        editorId: it.creatorEditorId,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        created_at: it.creatorCreated_at,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        updated_at: it.creatorUpdated_at
+      }
+    }));
   }
 
   /**

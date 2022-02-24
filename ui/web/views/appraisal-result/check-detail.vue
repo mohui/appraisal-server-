@@ -324,16 +324,17 @@
         <el-form-item label="上传文件">
           <el-upload
             ref="uploadForm"
-            name="attachments"
-            accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
             :auto-upload="false"
+            :data="curRule.data"
             :file-list="fileList"
+            :headers="headers"
             :limit="1"
+            :on-error="handleUploadAppraisalFileError"
             :on-exceed="handleExceed"
             :on-success="handleUploadAppraisalFileSuccess"
-            :on-error="handleUploadAppraisalFileError"
+            accept=".jpg,.jpeg,.gif,.png,.doc,.docx,.xls,.xlsx,.pdf,.zip,.rar"
             action="/api/Score/upload.ac"
-            :data="curRule.data"
+            name="attachments"
           >
             <el-button slot="trigger" plain size="small" type="primary"
               >选取文件
@@ -409,6 +410,7 @@
 <script>
 import decimal from 'decimal.js';
 import VueSticky from 'vue-sticky';
+import {getToken} from '../../utils/cache';
 
 export default {
   filters: {
@@ -427,6 +429,7 @@ export default {
       scoreRemarkVisible: false, //打分备注填写框框
       scoreRemark: '', //备注信息
       currentRow: {},
+      headers: {token: getToken()}, // 上传组件的请求header
       dialogUploadAppraisalFileVisible: false, // 上传附件
       dialogAppraisalFileListVisible: false, // 考核资料
       curRule: {

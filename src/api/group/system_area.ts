@@ -5,7 +5,6 @@ import {
   CheckAreaModel,
   CheckRuleModel,
   CheckSystemModel,
-  ReportAreaHistoryModel,
   ReportAreaModel,
   RuleProjectModel
 } from '../../database/model';
@@ -25,27 +24,26 @@ import {getChildrenArea, getHospitals} from './common';
 /**
  * 通过地区编码和时间获取checkId
  *
- * @param code
- * @param year
+ * @param code 地区编码
+ * @param year 年
+ * @return 考核id?
  */
-async function yearGetCheckId(code, year) {
-  // 如果checkId为空,根据年份和地区获取checkId
-  const check = await CheckAreaModel.findOne({
-    where: {
-      areaCode: code
-    },
-    attributes: ['checkId'],
-    include: [
-      {
-        model: CheckSystemModel,
-        where: {
-          checkYear: year
-        },
-        attributes: []
-      }
-    ]
-  });
-  return check?.checkId;
+export async function yearGetCheckId(code, year): Promise<string | null> {
+  // 根据年份和地区获取checkId
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select checkArea.check_system
+        from check_area checkArea
+               inner join check_system systems on checkArea.check_system = systems.check_id
+          and systems.check_year = ?
+        where checkArea.area = ?
+      `,
+      year,
+      code
+    )
+  )[0]?.check_system;
 }
 
 /**
@@ -61,8 +59,8 @@ export default class SystemArea {
   /**
    * 质量系数,公分值
    *
-   * @param code
-   * @param year
+   * @param code 地区编码
+   * @param year 年份
    * @return {
    *   id: 地区id
    *   name: 地区名称
@@ -86,6 +84,7 @@ export default class SystemArea {
       label: string;
     } = (
       await originalDB.execute(
+        // language=PostgreSQL
         `
           select code, name, parent, label
           from area
@@ -108,12 +107,28 @@ export default class SystemArea {
     let reportArea;
     if (checkId) {
       // 查询考核体系
-      reportArea = await ReportAreaModel.findOne({
-        where: {
-          areaCode: code,
+      reportArea = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select "check" AS "checkId",
+                   area    AS "areaCode",
+                   "correctWorkPoint",
+                   "workPoint",
+                   "totalWorkPoint",
+                   score,
+                   rate,
+                   budget,
+                   created_at,
+                   updated_at
+            FROM report_area AS reportArea
+            WHERE reportArea.area = ?
+              AND reportArea."check" = ?
+          `,
+          code,
           checkId
-        }
-      });
+        )
+      )[0];
     }
 
     return {
@@ -121,33 +136,36 @@ export default class SystemArea {
       name: areaModel.name,
       parent: parentIndex > -1 ? areaModel.parent : null,
       label: areaModel?.label ?? null,
-      score: reportArea ? Number(reportArea.score) : 0,
-      workPoint: reportArea ? Number(reportArea.workPoint) : 0,
-      rate: reportArea ? Number(reportArea.rate) : 0,
-      totalWorkPoint: reportArea ? Number(reportArea.totalWorkPoint) : 0,
-      budget: reportArea ? Number(reportArea.budget) : 0,
-      correctWorkPoint: reportArea ? Number(reportArea.correctWorkPoint) : 0
+      score: new Decimal(reportArea?.score ?? 0).toNumber(),
+      workPoint: new Decimal(reportArea?.workPoint ?? 0).toNumber(),
+      rate: new Decimal(reportArea?.rate ?? 0).toNumber(),
+      totalWorkPoint: new Decimal(reportArea?.totalWorkPoint ?? 0).toNumber(),
+      budget: new Decimal(reportArea?.budget ?? 0).toNumber(),
+      correctWorkPoint: new Decimal(
+        reportArea?.correctWorkPoint ?? 0
+      ).toNumber()
     };
   }
 
   /**
    * 获取省市排行
    *
-   * @param code group code
-   * @param year
-   *
-   * return score: 得分, workPoint:参与校正工分, totalWorkPoint: 校正前总公分, rate: 质量系数, correctWorkPoint: 矫正后的公分值, budget: 分配金额
+   * @param code 地区code或机构id
+   * @param year 年份
+   * return [{
+   *   code: 地区编码,
+   *   name: 地区名称,
+   *   budget: 分配金额,
+   *   workPoint:参与校正工分,
+   *   totalWorkPoint: 校正前总公分,
+   *   correctWorkPoint: 矫正后的公分值,
+   *   score: 得分,
+   *   rate: 质量系数,
+   *   money: 凭证表金额,
+   *   vouchers: [凭证图地址]
+   * }]
    */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
+  @validate(should.string().required(), should.number().allow(null))
   async rank(code, year) {
     // 地区列表
     const areaList = await originalDB.execute(
@@ -215,66 +233,6 @@ export default class SystemArea {
         };
       })
     );
-  }
-
-  /**
-   * 历史记录
-   *
-   * @param code
-   * @param year
-   */
-  @validate(
-    should
-      .string()
-      .required()
-      .description('地区code或机构id'),
-    should
-      .number()
-      .allow(null)
-      .description('年份')
-  )
-  async history(code, year) {
-    // 查询本级权限
-    const areas = (
-      await originalDB.execute(
-        // language=PostgreSQL
-        `
-        select code, name
-        from area
-        where code = ?
-      `,
-        code
-      )
-    )[0];
-
-    if (!areas) throw new KatoCommonError(`地区 ${code} 不合法`);
-    // 如果没有传年份获取年份
-    year = getYear(year);
-
-    // 通过地区编码和时间获取checkId
-    const checkId = await yearGetCheckId(code, year);
-    if (!checkId) return [];
-
-    // 查询考核体系
-    return ReportAreaHistoryModel.findAll({
-      order: [['date', 'asc']],
-      where: {
-        areaCode: code,
-        checkId,
-        date: {
-          [Op.gte]: dayjs()
-            .year(year)
-            .startOf('y')
-            .toDate(),
-          [Op.lt]: dayjs()
-            .year(year)
-            .startOf('y')
-            .add(1, 'y')
-            .toDate()
-        }
-      },
-      attributes: ['date', 'workPoint', 'totalWorkPoint', 'rate', 'score']
-    });
   }
 
   // endregion
@@ -1083,7 +1041,7 @@ export async function getReportBuffer(code, year) {
 
   // 查询当前权限节点下的所有[考核]和[考核地区]的列表
   const systemAreas = await appDB.execute(sql, ...params);
-
+  // 考核结果sheet按地区层级结果排序,并且只显示有数据的
   const systemAreaList = codeList
     .map(code => {
       return systemAreas.find(it => code === it.area);
@@ -1241,10 +1199,11 @@ export async function getReportBuffer(code, year) {
   // 实例化导出方法
   const workBook = new Workbook();
   // 把每一个考核结果导入到一个sheet中
+  let i = 1;
   for (const checkDetail of checkGroups) {
     //开始创建Excel表格[设置sheet的名称]
-    const workSheet = workBook.addWorksheet(`${checkDetail.name}考核结果`);
-
+    const workSheet = workBook.addWorksheet(`${i}-${checkDetail.name}考核结果`);
+    i++;
     // 定义第一行的内容数组[小项标题]
     const firstRow = [''];
     // 定义第二行的内容数组[细则标题]
@@ -1282,6 +1241,13 @@ export async function getReportBuffer(code, year) {
         ...parentRuleSecond
       );
     }
+    firstRow.push(`合计`);
+    firstRow.push(``);
+    firstRow.push(``);
+    cells.push(3);
+    secondRow.push(`校正前总工分`);
+    secondRow.push(`校正后总工分`);
+    secondRow.push(`总金额`);
 
     // 构造data部分 按地区分组 {area: string, scores: []}
     const areaScores = checkDetail.ruleScore.reduce((prev, current) => {
@@ -1321,6 +1287,9 @@ export async function getReportBuffer(code, year) {
     const dataArray = areaScores.map(area => {
       // 先放机构名称
       const result = [area.name];
+      let start = new Decimal(0);
+      let end = new Decimal(0);
+      let money = new Decimal(0);
       // 循环小项
       for (const parentRule of checkDetail.parentRule) {
         // 循环小项下的细则,取出所有细则的金额
@@ -1337,7 +1306,7 @@ export async function getReportBuffer(code, year) {
           ruleScore => ruleScore.rule_id === parentRule.parentId
         );
         // 总工分
-        scores.push(`${budgetObj?.point ?? 0}`);
+        scores.push(budgetObj?.point ?? 0);
         // 质量系数
         const rate = budgetObj?.rate ?? 0;
         scores.push(
@@ -1347,17 +1316,35 @@ export async function getReportBuffer(code, year) {
         );
         // 校正公分
         scores.push(
-          `${parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2)}`
+          Number(parseFloat(budgetObj?.correctWorkPoint ?? 0).toFixed(2))
         );
         // 分配金额
-        scores.push(`${budgetObj?.score ?? 0}`);
+        scores.push(Number(budgetObj?.score ?? 0));
+        start = Decimal.add(start, budgetObj?.point ?? 0);
+        end = Decimal.add(end, budgetObj?.correctWorkPoint ?? 0);
+        money = Decimal.add(money, budgetObj?.score ?? 0);
         result.push(...scores);
       }
-
+      result.push(Number(parseFloat(start.toString()).toFixed(2)));
+      result.push(Number(parseFloat(end.toString()).toFixed(2)));
+      result.push(Number(parseFloat(money.toString()).toFixed(2)));
       return result;
     });
 
-    workSheet.addRows([firstRow, secondRow, ...dataArray]);
+    workSheet.addRows([
+      firstRow,
+      secondRow,
+      ...dataArray,
+      dataArray
+        .reduce((result, current) => {
+          current.map((value, index) => {
+            if (typeof value !== 'number') result[index] = null;
+            else result[index] = Decimal.add(result[index] ?? 0, value);
+          });
+          return result;
+        }, [])
+        .map(a => (a ? Number(parseFloat(a.toString()).toFixed(2)) : ''))
+    ]);
 
     //合并单元格
     let cellCount = 0;
@@ -1368,5 +1355,7 @@ export async function getReportBuffer(code, year) {
     });
     workSheet.mergeCells('A1', 'A2');
   }
+  // 如果没有数据,生成一个暂无数据sheet
+  if (checkGroups.length === 0) workBook.addWorksheet(`暂无考核`);
   return workBook.xlsx.writeBuffer();
 }
