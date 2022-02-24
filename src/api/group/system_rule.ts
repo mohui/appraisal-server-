@@ -173,9 +173,10 @@ export default class SystemRule {
       // 如果查找到
       if (find) {
         if (parentRule.ruleAreaBudgetsAreaCode === code) {
-          find.budget = new Decimal(find?.budget ?? 0).add(
-            parentRule?.ruleAreaBudgetsBudget ?? 0
-          );
+          find.budget =
+            new Decimal(find.budget ?? 0)
+              .add(parentRule.ruleAreaBudgetsBudget ?? 0)
+              .toNumber() ?? 0;
         }
       } else {
         parentRules.push({
@@ -184,7 +185,7 @@ export default class SystemRule {
           ruleScore: parentRule.ruleScore,
           budget:
             parentRule.ruleAreaBudgetsAreaCode === code
-              ? parentRule.ruleAreaBudgetsBudget
+              ? Number(parentRule.ruleAreaBudgetsBudget)
               : 0,
           children: []
         });
