@@ -38,7 +38,6 @@
       <vxe-table
         v-hidden-scroll
         border
-        show-header-overflow
         :data="list"
         :mouse-config="{selected: true}"
         :keyboard-config="{
@@ -50,7 +49,7 @@
           isChecked: true
         }"
         :edit-config="{trigger: 'click', mode: 'cell', showIcon: false}"
-        max-height="100%"
+        max-height="96%"
       >
         <vxe-column
           type="seq"
@@ -58,14 +57,14 @@
           width="70"
           fixed="left"
         ></vxe-column>
-        <vxe-column field="name" title="医生姓名" min-width="150" fixed="left">
+        <vxe-column field="name" title="医生姓名" min-width="80" fixed="left">
         </vxe-column>
 
         <vxe-column
           v-for="(field, index) of manualList"
           :key="index"
           :title="field.name"
-          min-width="150"
+          min-width="80"
           :edit-render="{autofocus: '.vxe-input--inner'}"
         >
           <template #default="{ row }">
