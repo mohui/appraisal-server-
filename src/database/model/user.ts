@@ -14,8 +14,6 @@ import {
 import {UUIDV4} from 'sequelize';
 import {Role} from './role';
 import {UserRole} from './user_role';
-import {Hospital} from './hospital';
-import {UserHospital} from './user_hospital';
 import {Region} from './region';
 import {Area} from './group/area';
 
@@ -61,13 +59,6 @@ export class User extends Model<User> {
     () => UserRole
   )
   roles: Role[];
-
-  //多对多机构
-  @BelongsToMany(
-    () => Hospital,
-    () => UserHospital
-  )
-  hospitals: Hospital[];
 
   //多对一个创建者
   @Comment('创建者id')
