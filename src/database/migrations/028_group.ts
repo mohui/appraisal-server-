@@ -1,6 +1,5 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {UserModel} from '../model';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 
@@ -432,11 +431,11 @@ export class GroupMigration implements IMigration {
     //   )
     // );
 
-    const userModels = await UserModel.findAll({where: {areaCode: null}});
-    for (const user of userModels) {
-      user.areaCode = user.regionId;
-      await user.save();
-    }
+    // const userModels = await UserModel.findAll({where: {areaCode: null}});
+    // for (const user of userModels) {
+    //   user.areaCode = user.regionId;
+    //   await user.save();
+    // }
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {

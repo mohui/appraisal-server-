@@ -10,8 +10,6 @@ import {
   DataType
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
-import {User} from './user';
-import {UserRole} from './user_role';
 
 @Table({tableName: 'role'})
 export class Role extends Model<Role> {
@@ -29,12 +27,6 @@ export class Role extends Model<Role> {
   @Comment('创建者id')
   @Column(DataType.UUID)
   creator;
-
-  @BelongsToMany(
-    () => User,
-    () => UserRole
-  )
-  users: User[];
 
   @Comment('权限数组')
   @Default([])
