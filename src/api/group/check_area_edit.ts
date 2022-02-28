@@ -35,7 +35,12 @@ export default class CheckAreaEdit {
     const childTree = await getAreaTree(code);
     // 获取考核地区
     const checkAreaModels: {code: string}[] = await appDB.execute(
-      `select area as code from check_area where check_system = ?`,
+      // language=PostgreSQL
+      `
+        select area as code
+        from check_area
+        where check_system = ?
+      `,
       checkId
     );
     // 选中的节点
@@ -248,16 +253,18 @@ export default class CheckAreaEdit {
 
     //修改该机构在考核系统下的所有规则的自动打分
     return appDB.execute(
+      // language=PostgreSQL
       `
-          update rule_area_score set auto = ?
-          where area = ?
-           and rule in (
-            select rule_id
-            from check_rule rule
-            left join check_system system on rule.check_id = system.check_id
-            where parent_rule_id is not null
-             and system.check_id = ?
-          )
+        update rule_area_score
+        set auto = ?
+        where area = ?
+          and rule in (
+          select rule_id
+          from check_rule rule
+                 left join check_system system on rule.check_id = system.check_id
+          where parent_rule_id is not null
+            and system.check_id = ?
+        )
       `,
       isAuto,
       code,
@@ -368,7 +375,12 @@ export default class CheckAreaEdit {
     const areaList = await getAreaTree(Context.current.user.code);
     // 取出当前考核下的所有地区
     const checkAreaModels: {area: string}[] = await appDB.execute(
-      ` select area from check_area checkArea where check_system = ?`,
+      // language=PostgreSQL
+      `
+        select area
+        from check_area checkArea
+        where check_system = ?
+      `,
       checkId
     );
 
@@ -403,13 +415,17 @@ export default class CheckAreaEdit {
     const code = Context.current.user.areaCode;
     const year = dayjs().year();
     const checkArea = await appDB.execute(
-      ` select checkArea.check_system "checkId",
-              checkSystem.check_name "checkName",
-              checkSystem.check_year "checkYear",
-              checkSystem.status
-            from check_area checkArea
-            left join check_system checkSystem on checkArea.check_system = checkSystem.check_id
-            where checkArea.area = ? and checkSystem.check_year = ? `,
+      // language=PostgreSQL
+      `
+        select checkArea.check_system "checkId",
+               checkSystem.check_name "checkName",
+               checkSystem.check_year "checkYear",
+               checkSystem.status
+        from check_area checkArea
+               left join check_system checkSystem on checkArea.check_system = checkSystem.check_id
+        where checkArea.area = ?
+          and checkSystem.check_year = ?
+      `,
       code,
       year
     );
@@ -457,7 +473,12 @@ export default class CheckAreaEdit {
     return appDB.transaction(async () => {
       // 取出当前考核下的所有地区
       const checkSystemModel = await appDB.execute(
-        ` select * from check_system where check_id = ?`,
+        // language=PostgreSQL
+        `
+          select *
+          from check_system
+          where check_id = ?
+        `,
         checkId
       );
       if (checkSystemModel.length < 1)
@@ -465,7 +486,12 @@ export default class CheckAreaEdit {
 
       // 查询考核细则
       const checkRuleModels = await appDB.execute(
-        `select * from check_rule where check_id = ?`,
+        // language=PostgreSQL
+        `
+          select *
+          from check_rule
+          where check_id = ?
+        `,
         checkId
       );
       if (checkRuleModels.length < 1)
@@ -485,9 +511,12 @@ export default class CheckAreaEdit {
       const parentIds = parentRule.map(it => it.rule_id);
       // 查询 考核小项和公分项对应
       const ruleProjectModels = await appDB.execute(
-        `select * from rule_project where rule in (${parentIds.map(
-          () => '?'
-        )})`,
+        // language=PostgreSQL
+        `
+          select *
+          from rule_project
+          where rule in (${parentIds.map(() => '?')})
+        `,
         ...parentIds
       );
       // 把公分项对应到考核小项中
@@ -510,7 +539,12 @@ export default class CheckAreaEdit {
       const ruleIds = checkRules.map(it => it.rule_id);
       // 查询 细则指标对应
       const ruleTagModels = await appDB.execute(
-        `select * from rule_tag where rule in (${ruleIds.map(it => '?')})`,
+        // language=PostgreSQL
+        `
+          select *
+          from rule_tag
+          where rule in (${ruleIds.map(it => '?')})
+        `,
         ...ruleIds
       );
       // 把指标对应到细则中
@@ -541,17 +575,19 @@ export default class CheckAreaEdit {
       ];
       // 添加考核表
       const checkSystemModelAdd = await appDB.execute(
-        `insert into check_system(
-                  check_id,
-                  check_name,
-                  create_by,
-                  update_by,
-                  check_year,
-                  status,
-                  created_at,
-                  updated_at,
-                  check_type)
-              values(${checkSystemModelValues.map(() => '?')})`,
+        // language=PostgreSQL
+        `
+          insert into check_system(check_id,
+                                   check_name,
+                                   create_by,
+                                   update_by,
+                                   check_year,
+                                   status,
+                                   created_at,
+                                   updated_at,
+                                   check_type)
+          values (${checkSystemModelValues.map(() => '?')})
+        `,
         ...checkSystemModelValues
       );
       if (!checkSystemModelAdd) throw new KatoCommonError('添加失败');
@@ -571,14 +607,16 @@ export default class CheckAreaEdit {
         ];
         // 添加考核小项
         await appDB.execute(
-          `insert into check_rule(
-                       rule_id,
-                       check_id,
-                       rule_name,
-                       created_at,
-                       updated_at,
-                       budget)
-              values(${checkRuleModelValues.map(() => '?')})`,
+          // language=PostgreSQL
+          `
+            insert into check_rule(rule_id,
+                                   check_id,
+                                   rule_name,
+                                   created_at,
+                                   updated_at,
+                                   budget)
+            values (${checkRuleModelValues.map(() => '?')})
+          `,
           ...checkRuleModelValues
         );
         // 考核小项和公分项对应
@@ -590,12 +628,14 @@ export default class CheckAreaEdit {
             dayjs().toDate()
           ];
           await appDB.execute(
-            `insert into rule_project(
-                          rule,
-                          "projectId",
-                          created_at,
-                          updated_at)
-                      values(${projectValues.map(() => '?')})`,
+            // language=PostgreSQL
+            `
+              insert into rule_project(rule,
+                                       "projectId",
+                                       created_at,
+                                       updated_at)
+              values (${projectValues.map(() => '?')})
+            `,
             ...projectValues
           );
         }
@@ -618,19 +658,21 @@ export default class CheckAreaEdit {
           ];
           // 考核细则添加执行
           await appDB.execute(
-            `insert into check_rule(
-                       rule_id,
-                       check_id,
-                       parent_rule_id,
-                       rule_name,
-                       rule_score,
-                       check_standard,
-                       check_method,
-                       evaluate_standard,
-                       status,
-                       created_at,
-                       updated_at)
-              values(${checkRuleChildrenModelValues.map(() => '?')})`,
+            // language=PostgreSQL
+            `
+              insert into check_rule(rule_id,
+                                     check_id,
+                                     parent_rule_id,
+                                     rule_name,
+                                     rule_score,
+                                     check_standard,
+                                     check_method,
+                                     evaluate_standard,
+                                     status,
+                                     created_at,
+                                     updated_at)
+              values (${checkRuleChildrenModelValues.map(() => '?')})
+            `,
             ...checkRuleChildrenModelValues
           );
           // 细则指标对应
@@ -648,18 +690,19 @@ export default class CheckAreaEdit {
               tag.attach_end_date
             ];
             await appDB.execute(
-              `insert into rule_tag(
-                            id,
-                            rule,
-                            tag,
-                            algorithm,
-                            baseline,
-                            score,
-                            created_at,
-                            updated_at,
-                            attach_start_date,
-                            attach_end_date)
-                       values(${ruleTagValues.map(() => '?')})
+              // language=PostgreSQL
+              `
+                insert into rule_tag(id,
+                                     rule,
+                                     tag,
+                                     algorithm,
+                                     baseline,
+                                     score,
+                                     created_at,
+                                     updated_at,
+                                     attach_start_date,
+                                     attach_end_date)
+                values (${ruleTagValues.map(() => '?')})
               `,
               ...ruleTagValues
             );
@@ -689,21 +732,27 @@ export default class CheckAreaEdit {
     return appDB.transaction(async () => {
       // 先获取下级地区
       const areaModels = await appDB.execute(
-        `SELECT "code", "name" FROM area WHERE parent = ?`,
+        // language=PostgreSQL
+        `
+          SELECT "code", "name"
+          FROM area
+          WHERE parent = ?
+        `,
         code
       );
       // 取出地区所有的下级地区id
       const areaList = areaModels.map(it => it.code);
       // 根据地区和年份查询考核id
       const checkAreaModels = await appDB.execute(
+        // language=PostgreSQL
         `
-        SELECT
-          CheckArea.check_system AS "checkId",
-          CheckArea.area AS "areaCode"
-        FROM check_area AS CheckArea
-        INNER JOIN check_system AS checkSystem ON CheckArea.check_system = checkSystem.check_id
-        WHERE checkSystem.check_year = ?
-         AND CheckArea.area IN (${areaList.map(() => '?')})`,
+          SELECT CheckArea.check_system AS "checkId",
+                 CheckArea.area         AS "areaCode"
+          FROM check_area AS CheckArea
+                 INNER JOIN check_system AS checkSystem ON CheckArea.check_system = checkSystem.check_id
+          WHERE checkSystem.check_year = ?
+            AND CheckArea.area IN (${areaList.map(() => '?')})
+        `,
         year,
         ...areaList
       );
@@ -714,15 +763,16 @@ export default class CheckAreaEdit {
         const checkIds = checkAreaModels.map(it => it.checkId);
         // 根据考核id和考核地区查询校正后公分值, 质量系数, 金额
         reportAreaModels = await appDB.execute(
+          // language=PostgreSQL
           `
-        SELECT area AS code,
-          "correctWorkPoint",
-          rate,
-          budget
-        FROM report_area
-        WHERE area IN (${areaList.map(() => '?')})
-          AND "check" IN (${checkIds.map(() => '?')})
-      `,
+            SELECT area AS code,
+                   "correctWorkPoint",
+                   rate,
+                   budget
+            FROM report_area
+            WHERE area IN (${areaList.map(() => '?')})
+              AND "check" IN (${checkIds.map(() => '?')})
+          `,
           ...areaList,
           ...checkIds
         );
@@ -744,9 +794,13 @@ export default class CheckAreaEdit {
 
       // 查询要插入的地区是否已经在表中
       const areaBudgetModels = await appDB.execute(
+        // language=PostgreSQL
         `
-        select * from area_budget
-        where year = ? and  area in (${areaList.map(() => '?')}) `,
+          select *
+          from area_budget
+          where year = ?
+            and area in (${areaList.map(() => '?')})
+        `,
         year,
         ...areaList
       );
@@ -764,15 +818,17 @@ export default class CheckAreaEdit {
             dayjs().toDate()
           ];
           await appDB.execute(
-            `insert into area_budget(
-            area,
-            year,
-            correct_work_point,
-            rate,
-            budget,
-            created_at,
-            updated_at)
-          values (${insertArr.map(() => '?')})`,
+            // language=PostgreSQL
+            `
+              insert into area_budget(area,
+                                      year,
+                                      correct_work_point,
+                                      rate,
+                                      budget,
+                                      created_at,
+                                      updated_at)
+              values (${insertArr.map(() => '?')})
+            `,
             ...insertArr
           );
         }
@@ -800,15 +856,17 @@ export default class CheckAreaEdit {
               dayjs().toDate()
             ];
             await appDB.execute(
-              `insert into area_budget(
-            area,
-            year,
-            correct_work_point,
-            rate,
-            budget,
-            created_at,
-            updated_at)
-          values (${insertArr.map(() => '?')})`,
+              // language=PostgreSQL
+              `
+                insert into area_budget(area,
+                                        year,
+                                        correct_work_point,
+                                        rate,
+                                        budget,
+                                        created_at,
+                                        updated_at)
+                values (${insertArr.map(() => '?')})
+              `,
               ...insertArr
             );
           }
@@ -824,14 +882,16 @@ export default class CheckAreaEdit {
             year
           ];
           await appDB.execute(
+            // language=PostgreSQL
             `
-          update area_budget set
-            correct_work_point = ?,
-            rate = ?,
-            budget = ?,
-            updated_at = ?
-          where area = ? and year = ?
-        `,
+              update area_budget
+              set correct_work_point = ?,
+                  rate               = ?,
+                  budget             = ?,
+                  updated_at         = ?
+              where area = ?
+                and year = ?
+            `,
             ...updateArr
           );
         }
