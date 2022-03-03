@@ -179,9 +179,6 @@
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
-              <el-button type="primary" size="mini" @click="QRImage(row)">
-                绑定码
-              </el-button>
               <el-button
                 :disabled="row.removeLoading"
                 :icon="row.removeLoading ? 'el-icon-loading' : ''"
@@ -322,20 +319,6 @@
           确 定
         </el-button>
       </div>
-    </el-dialog>
-    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
-      <div>
-        <img
-          style="width: 245px;margin: 0 auto;display: block;"
-          :src="QRCode"
-          alt=""
-        />
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="QRDialogVisible = false"
-          >关 闭</el-button
-        >
-      </span>
     </el-dialog>
     <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
       <el-form ref="departmentForm" :model="departmentForm">
@@ -483,16 +466,12 @@ export default {
       tableLoading: false,
       addBtnLoading: false,
       addDepartmentVisible: false,
-      // 绑定码窗口
-      QRDialogVisible: false,
       departmentForm: {
         id: null,
         name: null
       },
       mouseEnterId: '',
       symbolKey: Symbol(this.$dayjs().toString()),
-      // 绑定码变量
-      QRCode: '',
       //选中的员工
       selectedStaff: [],
       //选中员工的机构
@@ -860,23 +839,6 @@ export default {
     },
     mouseLeave() {
       this.mouseEnterId = null;
-    },
-    async QRImage(row) {
-      const loading = this.$loading({
-        lock: true,
-        text: '正在生成二维码',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
-      try {
-        // 打开弹窗
-        this.QRCode = (await this.$api.User.getQRCode(row.id)).image;
-        this.QRDialogVisible = true;
-      } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        loading.close();
-      }
     }
   }
 };
