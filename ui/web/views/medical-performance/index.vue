@@ -14,8 +14,9 @@
               size="mini"
               type="month"
               placeholder="选择月"
-              @change="handleChangeDate"
               :picker-options="disabledDate"
+              :clearable="false"
+              @change="handleChangeDate"
             >
             </el-date-picker>
           </div>
@@ -431,6 +432,7 @@ import XLSX from 'xlsx';
 import firstIcon from '../../../assets/rank/first.png';
 import secondIcon from '../../../assets/rank/second.png';
 import thirdIcon from '../../../assets/rank/third.png';
+import {getTimeRange} from '../../../../common/his.ts';
 
 export default {
   name: 'index',
@@ -443,7 +445,13 @@ export default {
         .toDate(),
       disabledDate: {
         disabledDate(time) {
-          return time.getTime() > dayjs().toDate();
+          return (
+            time.getTime() >
+              dayjs(getTimeRange().end)
+                .subtract(1, 'M')
+                .valueOf() ||
+            time.getTime() < dayjs(getTimeRange().start).valueOf()
+          );
         }
       },
       dialogStaffTableVisible: false,

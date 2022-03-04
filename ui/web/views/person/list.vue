@@ -310,6 +310,7 @@ import {
   personTags
 } from '../../../../common/person-tag.ts';
 import {Permission} from '../../../../common/permission.ts';
+import {getTimeRange} from '../../../../common/ph.ts';
 
 export default {
   name: 'PersonList',
@@ -335,10 +336,11 @@ export default {
       },
       permission: Permission,
       tagList: documentTagList,
-      yearList: [
-        {value: 2020, label: '2020年度'},
-        {value: 2021, label: '2021年度'}
-      ],
+      yearList: new Array(
+        this.$dayjs(getTimeRange().end).diff(getTimeRange().start, 'year')
+      )
+        .fill(this.$dayjs(getTimeRange().start).year())
+        .map((it, i) => ({value: it + i, label: `${it + i}年度`})),
       archivesID: '', //档案id
       code: '', //tag code
       isInit: false, //是否初始化页面,

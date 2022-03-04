@@ -65,6 +65,23 @@
               <div>{{ data.name }} {{ `(${data.subs.length})项` }}</div>
               <div style="margin-right: 30px">
                 <el-tooltip
+                  v-show="
+                    !data.batchEditing &&
+                      currentTarget === HisWorkScoreType.WORK_ITEM
+                  "
+                  content="批量新增"
+                  :enterable="false"
+                >
+                  <el-button
+                    type="success"
+                    icon="el-icon-document-add"
+                    circle
+                    size="mini"
+                    @click.native.stop="showBatchAdd(data)"
+                  >
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip
                   v-show="!data.batchEditing"
                   content="新增"
                   :enterable="false"
@@ -226,7 +243,7 @@
                   </el-input>
                 </div>
                 <div v-else-if="row.isEdit || row.batchEditing">
-                  <el-input v-model="tempRow.remark" size="mini"> </el-input>
+                  <el-input v-model="tempRow.remark" size="mini"></el-input>
                 </div>
                 <div v-else-if="!row.isEdit && !row.noConfig">
                   {{ row.remark }}
@@ -304,15 +321,24 @@
         </el-collapse-item>
       </el-collapse>
     </el-card>
+    <work-staff-binding
+      :visible="batchAddDialog"
+      :member-list="memberList"
+      :work-item="workItem"
+    >
+    </work-staff-binding>
   </div>
 </template>
 
 <script>
 import {Permission} from '../../../../common/permission.ts';
 import {HisWorkMethod, HisWorkScoreType} from '../../../../common/his.ts';
+import WorkStaffBinding from './component/work-staff-binding';
+import Decimal from 'decimal.js';
 
 export default {
   name: 'Configuration',
+  components: {WorkStaffBinding},
   data() {
     return {
       isCollapsed: !!this.$settings.isMobile,
@@ -334,7 +360,9 @@ export default {
       removeLoading: false,
       currentTarget: HisWorkScoreType.WORK_ITEM, //默认以工作量维度
       activeCollapse: [],
-      expandAll: false
+      expandAll: false,
+      batchAddDialog: false,
+      workItem: {} //用于批量新增的变量
     };
   },
   computed: {
@@ -379,7 +407,7 @@ export default {
             row.staffName = row.name; //工分项维度时用到的员工变量
             row.itemId = row.item; //员工维度时用到的工分变量
             row.itemName = row.name; //员工维度时用到的工分名变量
-            row.rate = row.rate * 100;
+            row.rate = new Decimal(row.rate).mul(100).toNumber();
             row.isEdit = !row.mappingId;
             row.batchEditing = false;
           });
@@ -625,6 +653,16 @@ export default {
       } finally {
         row.removeLoading = false;
       }
+    },
+    showBatchAdd(row) {
+      this.workItem = JSON.parse(JSON.stringify(row));
+      this.batchAddDialog = true;
+    },
+    //重置批量新增的窗口
+    resetBatchDialog() {
+      this.batchAddDialog = false;
+
+      this.workItem = {};
     }
   }
 };

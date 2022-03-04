@@ -1767,109 +1767,111 @@ export default class HisWorkItem {
 
   /**
    * 工分项和员工的绑定
-   * @param item 工分项id
-   * @param params (要修改的主键, 要添加的员工, 要删除的主键, 分数, 备注)
-   */
+   *
+   * @param params [{
+   *   id: 要修改的主键,
+   *   item: 公分项id,
+   *   staff: 员工id,
+   *   rate: 权重系数,
+   *   remark: 备注,
+   * }]
+   * */
   @validate(
     should
       .object({
         id: should
           .string()
-          .required()
           .allow(null)
-          .description('主键id'),
-        item: should
-          .string()
-          .required()
-          .description('公分项id'),
-        staff: should
-          .string()
-          .required()
-          .description('员工id'),
-        rate: should
-          .number()
-          .required()
-          .description('权重系数'),
-        remark: should
-          .string()
-          .allow(null)
-          .description('备注')
+          .required(),
+        item: should.string().required(),
+        staff: should.string().required(),
+        rate: should.number().required(),
+        remark: should.string().allow(null)
       })
       .required()
-      .description('要增删改的公分项和员工的绑定')
   )
   async upsertStaffWorkItemMapping(params) {
-    return appDB.transaction(async () => {
+    return appDB.joinTx(async () => {
       // 排查公分项是否存在
       const itemList = await appDB.execute(
-        `select * from his_work_item where id = ?`,
-        params?.item
+        // language=PostgreSQL
+        `
+          select *
+          from his_work_item
+          where id = ?
+        `,
+        params.item
       );
       if (itemList.length === 0) throw new KatoRuntimeError(`工分项目不存在`);
 
-      //  如果有需要添加的数据,执行添加
-      if (params?.id) {
-        // 先根据id查询到该工分项下的员工是否在其他分数中存在
-        const updList = await appDB.execute(
-          `select id, staff, item, rate, remark
-                from his_staff_work_item_mapping
-                where id = ?`,
-          params?.id
-        );
-        if (updList.length === 0)
-          throw new KatoRuntimeError(`${params?.id}不存在`);
-
+      // 排查员工是否存在
+      const checkStaffs = await appDB.execute(
         // language=PostgreSQL
-        await appDB.execute(
-          `update his_staff_work_item_mapping
-             set rate       = ?,
-                 remark     = ?,
-                 updated_at = ?
-             where id = ?
-          `,
-          params?.rate,
-          params?.remark,
-          dayjs().toDate(),
-          params?.id
-        );
-      } else {
-        // 排查员工是否存在
-        const checkStaff = await appDB.execute(
-          `select id, account, name from staff where id = ?`,
-          params?.staff
-        );
+        `
+          select id, account, name
+          from staff
+          where id = ?
+        `,
+        params.staff
+      );
 
-        if (checkStaff.length === 0) throw new KatoRuntimeError(`考核员工异常`);
+      if (checkStaffs.length === 0) throw new KatoRuntimeError(`考核员工异常`);
 
-        // 排查公分项是否存在
-        const staffItemList = await appDB.execute(
-          `select id, staff, item from his_staff_work_item_mapping where item = ?`,
-          params?.item
-        );
-
-        // 校验员工是否已经绑定过公分项
-        const index = staffItemList.find(
-          mapping => mapping.staff === params?.staff
-        );
-        if (index)
-          throw new KatoCommonError(
-            `员工${checkStaff[0]?.name}已绑定过该工分项`
-          );
-
-        // 执行添加语句
+      // 执行添加语句
+      await appDB.execute(
         // language=PostgreSQL
-        await appDB.execute(
-          `
-            insert into his_staff_work_item_mapping(id, item, staff, rate, remark, created_at, updated_at)
-            values (?, ?, ?, ?, ?, ?, ?)`,
-          uuid(),
-          params?.item,
-          params?.staff,
-          params?.rate,
-          params?.remark,
-          dayjs().toDate(),
-          dayjs().toDate()
-        );
+        `
+          insert into his_staff_work_item_mapping(id, item, staff, rate, remark, created_at, updated_at)
+          values (?, ?, ?, ?, ?, ?, ?)
+          on conflict (item, staff)
+            do update set rate       = ?,
+                          remark     = ?,
+                          updated_at = now()
+        `,
+        uuid(),
+        params.item,
+        params.staff,
+        params.rate,
+        params.remark,
+        dayjs().toDate(),
+        dayjs().toDate(),
+        params.rate,
+        params.remark
+      );
+    });
+  }
+
+  /**
+   * 批量操作工分项和员工的绑定
+   *
+   * @param params [{
+   *   id: 要修改的主键,
+   *   item: 公分项id,
+   *   staff: 员工id,
+   *   rate: 权重系数,
+   *   remark: 备注,
+   * }]
+   */
+  @validate(
+    should
+      .array()
+      .items({
+        id: should
+          .string()
+          .allow(null)
+          .required(),
+        item: should.string().required(),
+        staff: should.string().required(),
+        rate: should.number().required(),
+        remark: should.string().allow(null)
+      })
+      .min(1)
+      .required()
+  )
+  async batchUpsertStaffWorkItemMapping(params) {
+    return await appDB.joinTx(async () => {
+      for (const item of params) {
+        await this.upsertStaffWorkItemMapping(item);
       }
     });
   }

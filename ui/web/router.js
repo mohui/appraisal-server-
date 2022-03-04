@@ -251,6 +251,15 @@ const permissionRouter = [
     component: () => import('./views/manual/update')
   },
   {
+    path: 'manual-table',
+    name: 'manual-table',
+    meta: {
+      permission: [Permission.MEDICAL_MANUAL],
+      activeMenu: 'manual'
+    },
+    component: () => import('./views/manual/table')
+  },
+  {
     path: 'audit-log',
     name: 'audit-log',
     meta: {permission: [Permission.AUDIT_LOG]},

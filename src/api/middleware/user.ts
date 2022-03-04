@@ -203,21 +203,6 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
       const user = userModels[0];
 
       // 根据用户权限id查询下属机构
-      user.hospitals = await originalDB.execute(
-        // language=PostgreSQL
-        `
-          select code id,
-                 name,
-                 parent,
-                 created_at,
-                 updated_at
-          from area
-          where label in ('hospital.center', 'hospital.station')
-            and (code = ? or path like ?)
-        `,
-        user.areaCode,
-        `%${user.areaCode}%`
-      );
       user.hospitals = (await getHospitals(user.areaCode)).map(it => ({
         id: it.code,
         name: it.name,

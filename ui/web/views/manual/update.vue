@@ -9,6 +9,7 @@
           size="mini"
           type="month"
           placeholder="选择月"
+          :picker-options="disabledDate"
           :clearable="false"
           @change="monthChanged"
         >
@@ -307,8 +308,12 @@
 </template>
 
 <script>
-import {HisManualDataInput as MD} from '../../../../common/his.ts';
+import {
+  getTimeRange,
+  HisManualDataInput as MD
+} from '../../../../common/his.ts';
 import {getToken} from '../../utils/cache';
+import dayjs from 'dayjs';
 
 export default {
   name: 'Update',
@@ -347,6 +352,17 @@ export default {
         type: '',
         input: '',
         month: new Date()
+      },
+      disabledDate: {
+        disabledDate(time) {
+          return (
+            time.getTime() >
+              dayjs(getTimeRange().end)
+                .subtract(1, 'M')
+                .valueOf() ||
+            time.getTime() < dayjs(getTimeRange().start).valueOf()
+          );
+        }
       },
       members: [],
       list: []

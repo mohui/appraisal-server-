@@ -21,6 +21,8 @@
               size="mini"
               type="month"
               placeholder="选择月份"
+              :picker-options="disabledDate"
+              :clearable="false"
             >
             </el-date-picker>
           </el-form-item>
@@ -144,9 +146,14 @@
 
 <script>
 import {Decimal} from 'decimal.js';
-import {PreviewType, HisWorkMethod} from '../../../../../common/his.ts';
+import {
+  PreviewType,
+  HisWorkMethod,
+  getTimeRange
+} from '../../../../../common/his.ts';
 import {strToPinyin} from '../../../utils/pinyin';
 import {multistep} from '../../../../../common/his.ts';
+import dayjs from 'dayjs';
 
 export default {
   name: 'WorkPreview',
@@ -225,6 +232,17 @@ export default {
     return {
       staff: '',
       date: this.$dayjs().toDate(),
+      disabledDate: {
+        disabledDate(time) {
+          return (
+            time.getTime() >
+              dayjs(getTimeRange().end)
+                .subtract(1, 'M')
+                .valueOf() ||
+            time.getTime() < dayjs(getTimeRange().start).valueOf()
+          );
+        }
+      },
       staffKey: '',
       workKey: '',
       pageSize: 100,
