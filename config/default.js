@@ -182,5 +182,12 @@ module.exports = {
     },
     //每日限额
     limit: 0 //不限制
+  },
+  // 微信小程序后端配置
+  wechat: {
+    // id
+    appId: '',
+    // secret
+    secret: ''
   }
 };
