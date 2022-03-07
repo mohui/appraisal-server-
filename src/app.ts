@@ -26,6 +26,7 @@ import {
   UnionFileSystem
 } from './unifs';
 import * as dayjs from 'dayjs';
+import {WeChatApi} from './utils/wechat';
 
 //应用程序类
 //所有的组件都会实例化挂载到这个里面成为属性
@@ -38,6 +39,8 @@ export class Application {
   mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
   knowledgeDB = createExtendedSequelize(new Sequelize(config.get('knowledge')));
+  // 微信接口客户端
+  wx = new WeChatApi(config.get('wechat.appId'), config.get('wechat.secret'));
 
   constructor() {
     //同时也把app赋值给process中,方便全局访问
@@ -103,7 +106,7 @@ export class Application {
     const migrate = new Migrater(this.appDB);
     migrations.forEach(m => migrate.addMigration(m));
     if (process.env.NODE_ENV === 'production') {
-      await migrate.migrate(53);
+      await migrate.migrate(54);
     }
   }
 
@@ -235,3 +238,4 @@ export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;
 export const knowledgeDB = app.knowledgeDB;
+export const wx = app.wx;

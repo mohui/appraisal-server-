@@ -3,13 +3,13 @@ import * as dayjs from 'dayjs';
 import {OpUnitType} from 'dayjs';
 import {
   KatoCommonError,
-  KatoRuntimeError,
   KatoLogicError,
+  KatoRuntimeError,
   should,
   validate
 } from 'kato-server';
 import {v4 as uuid} from 'uuid';
-import {appDB, originalDB} from '../../app';
+import {appDB, originalDB, wx} from '../../app';
 import {Education, Gender} from '../../../common/his';
 import {Context} from '../context';
 import HisHospital from '../his/hospital';
@@ -71,8 +71,8 @@ const phoneValidate = should
  */
 const passwordValidate = should
   .string()
-  .min(8)
-  .max(12)
+  .min(6)
+  .max(16)
   .required();
 
 /**
@@ -321,7 +321,14 @@ export default class AppUser {
    * @param code 验证码
    * @param password 密码
    */
-  @validate(phoneValidate, should.string().required(), passwordValidate)
+  @validate(
+    phoneValidate,
+    should.string().required(),
+    should
+      .string()
+      .min(6)
+      .max(16)
+  )
   async register(phone, code, password) {
     await appDB.transaction(async () => {
       //校验手机是否可用
@@ -769,6 +776,64 @@ export default class AppUser {
         value: it?.score
       })),
       checks: checkList
+    };
+  }
+
+  /**
+   * 微信小程序登录
+   *
+   * 1. 通过小程序获取的动态令牌, 去微信服务器获取用户真正的手机号码
+   * 2. 通过手机号码查询该手机号码是否有对应的用户
+   *     2.1 没有对应的用户, 则注册一个
+   *     2.2.有对应的用户, 直接返回
+   * 3. 返回用户对象(至少包括token)
+   *
+   * @param code 小程序调用获取手机号获取的动态令牌
+   * @return {
+   *   token: 用户token
+   * }
+   */
+  async wxLogin(code) {
+    // 获取微信登录凭证
+    const accessToken = await wx.getAccessToken();
+    let result = null;
+    try {
+      // 获取微信手机号码
+      result = await wx.getPhoneNumber(accessToken, code);
+    } catch (e) {
+      console.log(e);
+      throw new KatoCommonError('微信服务器抖动, 请稍后再试');
+    }
+    // 查询用户
+    const userModel = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+        select id
+        from staff
+        where phone = ?
+        limit 1
+      `,
+        result.purePhoneNumber
+      )
+    )[0];
+    // 用户不存在, 直接注册
+    if (!userModel) {
+      const id = uuid();
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          insert into staff(id, phone)
+          values (?, ?)
+        `,
+        id,
+        result.purePhoneNumber
+      );
+      userModel.id = id;
+    }
+    return {
+      ...userModel,
+      token: userModel.id
     };
   }
 }
