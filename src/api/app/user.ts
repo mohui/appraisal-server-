@@ -784,7 +784,7 @@ export default class AppUser {
    *
    * 1. 通过小程序获取的动态令牌, 去微信服务器获取用户真正的手机号码
    * 2. 通过手机号码查询该手机号码是否有对应的用户
-   *     2.1 TODO: 没有对应的用户, 则注册一个
+   *     2.1 没有对应的用户, 则注册一个
    *     2.2.有对应的用户, 直接返回
    * 3. 返回用户对象(至少包括token)
    *
@@ -805,16 +805,35 @@ export default class AppUser {
       throw new KatoCommonError('微信服务器抖动, 请稍后再试');
     }
     // 查询用户
-    const userModels = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select id as token
+    const userModel = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+        select id
         from staff
         where phone = ?
         limit 1
       `,
-      result.purePhoneNumber
-    );
-    return userModels[0];
+        result.purePhoneNumber
+      )
+    )[0];
+    // 用户不存在, 直接注册
+    if (!userModel) {
+      const id = uuid();
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          insert into staff(id, phone)
+          values (?, ?)
+        `,
+        id,
+        result.purePhoneNumber
+      );
+      userModel.id = id;
+    }
+    return {
+      ...userModel,
+      token: userModel.id
+    };
   }
 }
