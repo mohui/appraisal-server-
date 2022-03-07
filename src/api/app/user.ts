@@ -71,8 +71,8 @@ const phoneValidate = should
  */
 const passwordValidate = should
   .string()
-  .min(8)
-  .max(12)
+  .min(6)
+  .max(16)
   .required();
 
 /**
@@ -321,7 +321,14 @@ export default class AppUser {
    * @param code 验证码
    * @param password 密码
    */
-  @validate(phoneValidate, should.string().required(), passwordValidate)
+  @validate(
+    phoneValidate,
+    should.string().required(),
+    should
+      .string()
+      .min(6)
+      .max(16)
+  )
   async register(phone, code, password) {
     await appDB.transaction(async () => {
       //校验手机是否可用
