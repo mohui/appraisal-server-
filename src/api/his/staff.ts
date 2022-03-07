@@ -50,13 +50,22 @@ export default class HisStaff {
         phStaffs: should.array(),
         hisStaffs: should.array(),
         department: should.string().allow(null),
-        remark: should.string().allow(null)
+        remark: should.string().allow(null),
+        phone: should.string().allow(null)
       })
       .required()
   )
   async updateStaffMapping(params) {
     // 取出所有的变量
-    const {id, hospital, phStaffs, hisStaffs, department, remark} = params;
+    const {
+      id,
+      hospital,
+      phStaffs,
+      hisStaffs,
+      department,
+      remark,
+      phone
+    } = params;
     // 机构下的所有公卫员工
     const phStaffModels = await originalDB.execute(
       // language=PostgreSQL
@@ -164,6 +173,29 @@ export default class HisStaff {
         dayjs().toDate(),
         id,
         hospital
+      );
+      // TODO:临时使用,过后要删除的
+      if (phone) {
+        // 如果手机号有值,校验手机号是否重复
+        const phoneSel = await appDB.execute(
+          `
+          select * from staff where phone = ? and id != ?
+          `,
+          phone,
+          id
+        );
+        if (phoneSel.length > 0) throw new KatoRuntimeError(`手机号已经存在`);
+      }
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set phone     = ?,
+              updated_at = ?
+          where id = ?`,
+        phone,
+        dayjs().toDate(),
+        id
       );
     });
   }
