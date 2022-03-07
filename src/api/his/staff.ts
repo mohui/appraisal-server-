@@ -175,7 +175,7 @@ export default class HisStaff {
         hospital
       );
       // TODO:临时使用,过后要删除的
-      // 如果手机号有值,校验手机号是否重复
+      // 校验手机号是否重复
       const phoneSel = await appDB.execute(
         // language=PostgreSQL
         `
