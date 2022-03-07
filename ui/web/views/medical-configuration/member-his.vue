@@ -287,6 +287,19 @@
               ></el-input>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="手机号"
+              prop="remark"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.phone"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -686,7 +699,8 @@ export default {
           his: row.hisStaff.map(it => it.id),
           phStaff: row.phStaff.map(it => it.id),
           department: row.department,
-          remark: row.remark
+          remark: row.remark,
+          phone: row.phone
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -705,7 +719,8 @@ export default {
           hisStaffs: this.userForm.his,
           phStaffs: this.userForm.phStaff,
           department: this.userForm.department || null,
-          remark: this.userForm.remark || null
+          remark: this.userForm.remark || null,
+          phone: this.userForm.phone || null
         });
         this.$message({
           type: 'success',
