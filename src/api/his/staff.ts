@@ -799,7 +799,6 @@ export default class HisStaff {
         major: should.string().allow(null),
         remark: should.string().allow(null),
         department: should.string().allow(null),
-        phone: should.string().allow(null),
         gender: should
           .string()
           .only(Gender[0], Gender[1], Gender[2], Gender[3])
@@ -819,7 +818,6 @@ export default class HisStaff {
       major,
       remark,
       department,
-      phone,
       gender,
       title
     } = params;
@@ -844,7 +842,6 @@ export default class HisStaff {
         set name       = ?,
             password   = ?,
             remark     = ?,
-            phone      = ?,
             gender     = ?,
             major      = ?,
             title      = ?,
@@ -857,7 +854,6 @@ export default class HisStaff {
       name,
       password,
       remark,
-      phone,
       gender,
       major,
       title,
