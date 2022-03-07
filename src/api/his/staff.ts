@@ -175,22 +175,24 @@ export default class HisStaff {
         hospital
       );
       // TODO:临时使用,过后要删除的
-      if (phone) {
-        // 如果手机号有值,校验手机号是否重复
-        const phoneSel = await appDB.execute(
-          `
-          select * from staff where phone = ? and id != ?
-          `,
-          phone,
-          id
-        );
-        if (phoneSel.length > 0) throw new KatoRuntimeError(`手机号已经存在`);
-      }
+      // 如果手机号有值,校验手机号是否重复
+      const phoneSel = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from staff
+          where phone = ?
+            and id != ?
+        `,
+        phone,
+        id
+      );
+      if (phoneSel.length > 0) throw new KatoRuntimeError(`手机号已经存在`);
       await appDB.execute(
         // language=PostgreSQL
         `
           update staff
-          set phone     = ?,
+          set phone      = ?,
               updated_at = ?
           where id = ?`,
         phone,
@@ -995,12 +997,12 @@ export default class HisStaff {
       return await appDB.execute(
         // language=PostgreSQL
         `
-              update staff
-              set hospital   = null,
-                  department = null,
-                  updated_at = ?
-              where id = ?
-            `,
+          update staff
+          set hospital   = null,
+              department = null,
+              updated_at = ?
+          where id = ?
+        `,
         dayjs().toDate(),
         id
       );
