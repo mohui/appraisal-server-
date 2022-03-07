@@ -51,7 +51,7 @@ export default class HisStaff {
         hisStaffs: should.array(),
         department: should.string().allow(null),
         remark: should.string().allow(null),
-        phone: should.string().allow(null)
+        phone: should.string().required()
       })
       .required()
   )
