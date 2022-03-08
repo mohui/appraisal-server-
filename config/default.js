@@ -47,6 +47,23 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  //知识库数据库配置
+  knowledge: {
+    dialect: 'mssql',
+    host: 'localhost',
+    port: '1433',
+    username: 'root',
+    password: 'root',
+    database: 'mssql',
+    dialectOptions: {
+      options: {
+        useUTC: false,
+        requestTimeout: 300000
+      }
+    },
+    logging: false,
+    timezone: '+8:00'
+  },
   // 定时任务
   queue: {
     cron: '00 00 04 * * *',
@@ -120,6 +137,18 @@ module.exports = {
     //     }
     //   }
     // },
+    // {
+    //   path: '/pathways', // 临床路径地址
+    //   type: 'local',
+    //   options: {
+    //     base: '/pathway',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/pathways',
+    //       key: 'default'
+    //     }
+    //   }
+    // },
     // 医疗绩效手工数据附件
     // {
     //   path: '/his/manual',
@@ -138,5 +167,27 @@ module.exports = {
   // 生成公卫报告定时任务
   generate: {
     cron: ''
+  },
+  //短信服务
+  sms: {
+    enabled: false, //是否启用
+    key: 'key', //短信服务key
+    secret: 'secret', //短信服务secret
+    sign: '', //短信签名
+    template: '', //短信模板
+    //过期策略
+    expired: {
+      value: 2,
+      unit: 'h'
+    },
+    //每日限额
+    limit: 0 //不限制
+  },
+  // 微信小程序后端配置
+  wechat: {
+    // id
+    appId: '',
+    // secret
+    secret: ''
   }
 };

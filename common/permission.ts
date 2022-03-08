@@ -152,6 +152,10 @@ export const PermissionDetail = [
     name: '医疗工作列表'
   },
   {
+    key: 'staff-binding-approval',
+    name: '员工绑定审核'
+  },
+  {
     key: 'medical-configuration-department',
     name: '科室管理'
   }
@@ -195,6 +199,7 @@ export const Permission = {
   MEDICAL_MANUAL: 'medical-manual',
   MEDICAL_PLAN: 'medical-plan',
   MEDICAL_WORK: 'medical-work',
+  STAFF_BINDING_APPROVAL: 'staff-binding-approval',
   MEDICAL_CONFIGURATION_DEPARTMENT: 'medical-configuration-department'
 };
 export const PermissionTree = [
@@ -391,6 +396,10 @@ export const PermissionTree = [
   {
     key: Permission.MEDICAL_WORK,
     label: '医疗工作列表'
+  },
+  {
+    key: Permission.STAFF_BINDING_APPROVAL,
+    label: '员工绑定审核'
   }
 ];
 export function getPermission(key) {

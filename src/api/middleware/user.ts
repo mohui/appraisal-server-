@@ -5,20 +5,46 @@ import {UserType} from '../../../common/user';
 import {getHospitals} from '../group/common';
 
 export async function UserMiddleware(ctx: Context | any, next: Function) {
-  //region 免登录接口逻辑
-  let isWhite = false;
-  for (const white of ['login.ac', 'title.ac', 'register.ac'])
-    isWhite = isWhite || ctx.req.url.endsWith(white);
-  if (isWhite) {
+  //免登录接口判断
+  if (
+    [
+      'login.ac',
+      'title.ac',
+      'register.ac',
+      'AppUser/validPhone.ac', //app用户手机号码验证
+      'AppUser/sendSMS.ac', //app短信验证码发送
+      'AppUser/register.ac', //app用户注册
+      'AppUser/resetPassword.ac', //app用户重置密码
+      'AppUser/wxLogin.ac' //微信小程序登录
+    ].some(it => ctx.req.url.endsWith(it))
+  ) {
     await next();
     return;
   }
-  //endregion
   try {
     const token = ctx.req.header('token');
-    const type = ctx.req.header('type');
-    //加入staff逻辑
-    if (token && type == UserType.STAFF) {
+    //region 通过token获取用户类型
+    const models = await appDB.execute(
+      //language=PostgreSQL
+      `
+        select '${UserType.ADMIN}' as type
+        from "user"
+        where id = ?
+        union
+        select '${UserType.STAFF}' as type
+        from staff
+        where id = ?
+      `,
+      token,
+      token
+    );
+    if (models.length != 1) throw new Error('无效的token');
+    //用户类型
+    const type = models[0].type;
+    //endregion
+    //根据用户类型填充用户数据
+    if (type == UserType.STAFF) {
+      //region 员工用户
       const staffModel: {
         hospital_id: string;
         id: string;
@@ -57,7 +83,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           token
         )
       )[0];
-      if (!staffModel) throw new Error('无效的token');
+      if (!staffModel) throw new Error('无效的员工用户');
       //查询主机构名称, 用以补充用户信息
       let primaryHospitalName = null;
       if (staffModel.hospital_id) {
@@ -152,7 +178,9 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             }
           : null
       };
-    } else if (token) {
+      //endregion
+    } else if (type == UserType.ADMIN) {
+      //region 管理员用户
       // 查询用户表
       // language=PostgreSQL
       const userModels = await appDB.execute(
@@ -172,7 +200,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         `,
         token
       );
-      if (userModels.length === 0) throw new Error('无效的token');
+      if (userModels.length === 0) throw new Error('无效的管理员用户');
       const user = userModels[0];
 
       // 根据用户权限id查询下属机构
@@ -245,8 +273,9 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         type: UserType.ADMIN,
         ...user
       };
+      //endregion
     } else {
-      throw new Error('无效的token');
+      throw new Error('无效的用户类型');
     }
   } catch (e) {
     throw new KatoLogicError('用户登录状态有误, 请重新登录', 10000);

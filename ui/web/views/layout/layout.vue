@@ -31,7 +31,6 @@
           </div>
 
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="QRImage">绑定码</el-dropdown-item>
             <el-dropdown-item command="profile">个人中心</el-dropdown-item>
             <el-dropdown-item command="logout">退出</el-dropdown-item>
           </el-dropdown-menu>
@@ -71,20 +70,6 @@
         </transition>
       </el-main>
     </el-container>
-    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
-      <div>
-        <img
-          style="width: 245px;margin: 0 auto;display: block;"
-          :src="QRCode"
-          alt=""
-        />
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="QRDialogVisible = false"
-          >关 闭</el-button
-        >
-      </span>
-    </el-dialog>
   </el-container>
 </template>
 
@@ -104,10 +89,7 @@ export default {
       device: 'desktop',
       hiddenMenu: false,
       timer: null,
-      dropdownVisible: false,
-      QRDialogVisible: false,
-      // 二维码
-      QRCode: ''
+      dropdownVisible: false
     };
   },
   computed: {
@@ -159,23 +141,6 @@ export default {
     async handCommand(command) {
       if (command === 'profile') this.profile();
       if (command === 'logout') this.logout();
-      if (command === 'QRImage') {
-        const loading = this.$loading({
-          lock: true,
-          text: '正在生成二维码',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        });
-        try {
-          // 打开弹窗
-          this.QRCode = (await this.$api.User.getQRCode()).image;
-          this.QRDialogVisible = true;
-        } catch (e) {
-          this.$message.error(e.message);
-        } finally {
-          loading.close();
-        }
-      }
     },
     logout() {
       removeToken();

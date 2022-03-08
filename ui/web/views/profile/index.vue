@@ -74,7 +74,7 @@
               ></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="4" :xs="12" :sm="4" :md="4" :lg="4" :xl="4">
+          <el-col :span="12" :xs="12" :sm="12" :md="12" :lg="12" :xl="12">
             <el-form-item
               required
               label="性别"
@@ -94,15 +94,6 @@
                   :label="g"
                 />
               </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8" :xs="12" :sm="8" :md="8" :lg="8" :xl="8">
-            <el-form-item label="联系电话" :label-width="formLabelWidth">
-              <el-input
-                v-model="staff.phone"
-                autocomplete="off"
-                size="mini"
-              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -366,7 +357,6 @@ export default {
         account: '',
         password: '',
         gender: '',
-        phone: '',
         isGP: false,
         education: '',
         major: '',
@@ -438,7 +428,6 @@ export default {
               remark: staff.remark?.trim() || null,
               hospital: staff.hospital?.id || null,
               department: staff.department?.id || null,
-              phone: staff.phone?.trim() || null,
               gender: staff.gender?.trim() || null,
               major: staff.major?.trim() || null,
               title: staff.title?.trim() || null,

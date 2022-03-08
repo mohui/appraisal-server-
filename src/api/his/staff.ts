@@ -50,13 +50,22 @@ export default class HisStaff {
         phStaffs: should.array(),
         hisStaffs: should.array(),
         department: should.string().allow(null),
-        remark: should.string().allow(null)
+        remark: should.string().allow(null),
+        phone: should.string().required()
       })
       .required()
   )
   async updateStaffMapping(params) {
     // 取出所有的变量
-    const {id, hospital, phStaffs, hisStaffs, department, remark} = params;
+    const {
+      id,
+      hospital,
+      phStaffs,
+      hisStaffs,
+      department,
+      remark,
+      phone
+    } = params;
     // 机构下的所有公卫员工
     const phStaffModels = await originalDB.execute(
       // language=PostgreSQL
@@ -164,6 +173,31 @@ export default class HisStaff {
         dayjs().toDate(),
         id,
         hospital
+      );
+      // TODO:临时使用,过后要删除的
+      // 校验手机号是否重复
+      const phoneSel = await appDB.execute(
+        // language=PostgreSQL
+        `
+          select *
+          from staff
+          where phone = ?
+            and id != ?
+        `,
+        phone,
+        id
+      );
+      if (phoneSel.length > 0) throw new KatoRuntimeError(`手机号已经存在`);
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set phone      = ?,
+              updated_at = ?
+          where id = ?`,
+        phone,
+        dayjs().toDate(),
+        id
       );
     });
   }
@@ -420,16 +454,19 @@ export default class HisStaff {
 
     const hisStaffIds = hisStaffs.map(it => it.id);
 
-    // 查询所有已经绑定过的his员工
-    const staffs = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select his_staff
-        from staff_his_mapping
-        where his_staff in (${hisStaffIds.map(() => '?')})
-      `,
-      ...hisStaffIds
-    );
+    let staffs = [];
+    if (hisStaffIds.length > 0) {
+      // 查询所有已经绑定过的his员工
+      staffs = await appDB.execute(
+        // language=PostgreSQL
+        `
+      select his_staff
+      from staff_his_mapping
+      where his_staff in (${hisStaffIds.map(() => '?')})
+    `,
+        ...hisStaffIds
+      );
+    }
     return hisStaffs.map(it => {
       const index = staffs.find(item => it.id === item.his_staff);
       return {
@@ -762,7 +799,6 @@ export default class HisStaff {
         major: should.string().allow(null),
         remark: should.string().allow(null),
         department: should.string().allow(null),
-        phone: should.string().allow(null),
         gender: should
           .string()
           .only(Gender[0], Gender[1], Gender[2], Gender[3])
@@ -782,7 +818,6 @@ export default class HisStaff {
       major,
       remark,
       department,
-      phone,
       gender,
       title
     } = params;
@@ -807,7 +842,6 @@ export default class HisStaff {
         set name       = ?,
             password   = ?,
             remark     = ?,
-            phone      = ?,
             gender     = ?,
             major      = ?,
             title      = ?,
@@ -820,7 +854,6 @@ export default class HisStaff {
       name,
       password,
       remark,
-      phone,
       gender,
       major,
       title,
@@ -960,12 +993,12 @@ export default class HisStaff {
       return await appDB.execute(
         // language=PostgreSQL
         `
-              update staff
-              set hospital   = null,
-                  department = null,
-                  updated_at = ?
-              where id = ?
-            `,
+          update staff
+          set hospital   = null,
+              department = null,
+              updated_at = ?
+          where id = ?
+        `,
         dayjs().toDate(),
         id
       );
@@ -1046,67 +1079,70 @@ export default class HisStaff {
     const phStaffIds = sysUserList.map(it => it.id);
 
     // 公卫员工列表
-    const phStaffList = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select ph.staff, ph.ph_staff
-          from staff_area_mapping area
-                 inner join staff_ph_mapping ph on area.staff = ph.staff
-          where area.area = ?
-            and ph.ph_staff in (${phStaffIds.map(() => '?')})
-        `,
-        hospital,
-        ...phStaffIds
-      )
-    )?.map(it => {
-      const phFind = sysUserList.find(phIt => phIt.id === it.ph_staff);
-      return {
-        staff: it.staff,
-        phStaff: it.ph_staff,
-        phStaffName: phFind?.name ?? ''
-      };
-    });
+    if (phStaffIds.length > 0) {
+      const phStaffList = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select ph.staff, ph.ph_staff
+            from staff_area_mapping area
+                   inner join staff_ph_mapping ph on area.staff = ph.staff
+            where area.area = ?
+              and ph.ph_staff in (${phStaffIds.map(() => '?')})
+          `,
+          hospital,
+          ...phStaffIds
+        )
+      )?.map(it => {
+        const phFind = sysUserList.find(phIt => phIt.id === it.ph_staff);
+        return {
+          staff: it.staff,
+          phStaff: it.ph_staff,
+          phStaffName: phFind?.name ?? ''
+        };
+      });
 
-    // HIS员工列表
-    const hisStaffList = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select his.staff, his.his_staff
-          from staff_area_mapping area
-                 inner join staff_his_mapping his on area.staff = his.staff
-          where area.area = ?
-            and his.his_staff in (${hisStaffIds.map(() => '?')})
-        `,
-        hospital,
-        ...hisStaffIds
-      )
-    )?.map(it => {
-      const hisFind = hisStaffs.find(hisIt => hisIt.id === it.his_staff);
-      return {
-        staff: it.staff,
-        hisStaff: it.his_staff,
-        hisStaffName: hisFind?.name ?? ''
-      };
-    });
-
-    for (const it of hisStaffList) {
-      const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
-      if (findIndex)
-        findIndex.hisStaff.push({
-          id: it.hisStaff,
-          name: it.hisStaffName
-        });
+      for (const it of phStaffList) {
+        const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
+        if (findIndex)
+          findIndex.phStaff.push({
+            id: it.phStaff,
+            name: it.phStaffName
+          });
+      }
     }
+    // HIS员工列表
+    if (hisStaffIds.length > 0) {
+      const hisStaffList = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select his.staff, his.his_staff
+            from staff_area_mapping area
+                   inner join staff_his_mapping his on area.staff = his.staff
+            where area.area = ?
+              and his.his_staff in (${hisStaffIds.map(() => '?')})
+          `,
+          hospital,
+          ...hisStaffIds
+        )
+      )?.map(it => {
+        const hisFind = hisStaffs.find(hisIt => hisIt.id === it.his_staff);
+        return {
+          staff: it.staff,
+          hisStaff: it.his_staff,
+          hisStaffName: hisFind?.name ?? ''
+        };
+      });
 
-    for (const it of phStaffList) {
-      const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
-      if (findIndex)
-        findIndex.phStaff.push({
-          id: it.phStaff,
-          name: it.phStaffName
-        });
+      for (const it of hisStaffList) {
+        const findIndex = staffList.find(staffIt => staffIt.id === it.staff);
+        if (findIndex)
+          findIndex.hisStaff.push({
+            id: it.hisStaff,
+            name: it.hisStaffName
+          });
+      }
     }
     return staffList;
   }

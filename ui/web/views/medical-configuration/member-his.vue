@@ -176,23 +176,11 @@
           label="备注"
           min-width="100"
         ></el-table-column>
-        <el-table-column align="center" label="操作" min-width="260">
+        <el-table-column align="center" label="操作" min-width="460">
           <template slot-scope="{row}">
             <div v-if="!row.departmentId">
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
-              </el-button>
-              <!--              <el-button-->
-              <!--                :disabled="row.removeLoading"-->
-              <!--                :icon="row.removeLoading ? 'el-icon-loading' : ''"-->
-              <!--                size="small"-->
-              <!--                type="danger"-->
-              <!--                @click="delUser(row)"-->
-              <!--              >-->
-              <!--                删除-->
-              <!--              </el-button>-->
-              <el-button type="primary" size="mini" @click="QRImage(row)">
-                绑定码
               </el-button>
             </div>
           </template>
@@ -299,6 +287,19 @@
               ></el-input>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="手机号"
+              prop="remark"
+              :label-width="formLabelWidth"
+            >
+              <el-input
+                v-model="userForm.phone"
+                autocomplete="off"
+                size="mini"
+              ></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -307,20 +308,6 @@
           确 定
         </el-button>
       </div>
-    </el-dialog>
-    <el-dialog title="绑定码" :visible.sync="QRDialogVisible" width="30%">
-      <div>
-        <img
-          style="width: 245px;margin: 0 auto;display: block;"
-          :src="QRCode"
-          alt=""
-        />
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="QRDialogVisible = false"
-          >关 闭</el-button
-        >
-      </span>
     </el-dialog>
     <el-dialog title="科室" :visible.sync="addDepartmentVisible" width="30%">
       <el-form ref="departmentForm" :model="departmentForm">
@@ -468,16 +455,12 @@ export default {
       tableLoading: false,
       addBtnLoading: false,
       addDepartmentVisible: false,
-      // 绑定码窗口
-      QRDialogVisible: false,
       departmentForm: {
         id: null,
         name: null
       },
       mouseEnterId: '',
       symbolKey: Symbol(this.$dayjs().toString()),
-      // 绑定码变量
-      QRCode: '',
       //选中的员工
       selectedStaff: [],
       //选中员工的机构
@@ -716,7 +699,8 @@ export default {
           his: row.hisStaff.map(it => it.id),
           phStaff: row.phStaff.map(it => it.id),
           department: row.department,
-          remark: row.remark
+          remark: row.remark,
+          phone: row.phone
         }
       );
       this.dialogFormEditUsersVisible = true;
@@ -735,7 +719,8 @@ export default {
           hisStaffs: this.userForm.his,
           phStaffs: this.userForm.phStaff,
           department: this.userForm.department || null,
-          remark: this.userForm.remark || null
+          remark: this.userForm.remark || null,
+          phone: this.userForm.phone || null
         });
         this.$message({
           type: 'success',
@@ -819,23 +804,6 @@ export default {
     },
     mouseLeave() {
       this.mouseEnterId = null;
-    },
-    async QRImage(row) {
-      const loading = this.$loading({
-        lock: true,
-        text: '正在生成二维码',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
-      try {
-        // 打开弹窗
-        this.QRCode = (await this.$api.User.getQRCode(row.id)).image;
-        this.QRDialogVisible = true;
-      } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        loading.close();
-      }
     }
   }
 };
