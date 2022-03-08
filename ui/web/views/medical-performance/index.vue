@@ -42,7 +42,6 @@
               type="primary"
               size="mini"
               :loading="reportDataLoading"
-              :disabled="overviewData.settle"
               @click="handleClickReport"
             >
               报表
