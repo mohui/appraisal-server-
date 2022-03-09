@@ -441,7 +441,7 @@ export default class AppUser {
    * @param newPassword 新密码
    * @param confirmPassword 确认密码
    */
-  @validate(should.string().required(), passwordValidate, passwordValidate)
+  @validate(should.string().allow(null), passwordValidate, passwordValidate)
   async updatePassword(oldPassword, newPassword, confirmPassword) {
     await appDB.transaction(async () => {
       // 校验密码是否正确
