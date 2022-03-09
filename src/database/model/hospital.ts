@@ -14,8 +14,6 @@ import {
 } from 'sequelize-typescript';
 import {UUIDV4} from 'sequelize';
 import {Region} from './region';
-import {User} from './user';
-import {UserHospital} from './user_hospital';
 import {BasicTagData} from './basic-tag-data';
 
 @Table({tableName: 'hospital'})
@@ -46,13 +44,6 @@ export class Hospital extends Model<Hospital> {
   //多对一个行政地区
   @BelongsTo(() => Region)
   region: Region;
-
-  //多对多用户
-  @BelongsToMany(
-    () => User,
-    () => UserHospital
-  )
-  users: User[];
 
   //多个基础数据
   @HasMany(() => BasicTagData)

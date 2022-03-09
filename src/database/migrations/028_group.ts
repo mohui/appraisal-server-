@@ -1,6 +1,5 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {UserHospitalModel, UserModel} from '../model';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 
@@ -418,25 +417,25 @@ export class GroupMigration implements IMigration {
       `
     );
 
-    // 补充用户area值
-    const userHospitals = await UserHospitalModel.findAll();
-    await Promise.all(
-      userHospitals.map(async it =>
-        client.execute(
-          `update "user"
-           set "area" = ?
-           where id = ?`,
-          it.hospitalId,
-          it.userId
-        )
-      )
-    );
+    // // 补充用户area值
+    // const userHospitals = await UserHospitalModel.findAll();
+    // await Promise.all(
+    //   userHospitals.map(async it =>
+    //     client.execute(
+    //       `update "user"
+    //        set "area" = ?
+    //        where id = ?`,
+    //       it.hospitalId,
+    //       it.userId
+    //     )
+    //   )
+    // );
 
-    const userModels = await UserModel.findAll({where: {areaCode: null}});
-    for (const user of userModels) {
-      user.areaCode = user.regionId;
-      await user.save();
-    }
+    // const userModels = await UserModel.findAll({where: {areaCode: null}});
+    // for (const user of userModels) {
+    //   user.areaCode = user.regionId;
+    //   await user.save();
+    // }
   }
 
   async down(client: ExtendedSequelize, err?: Error): Promise<void> {

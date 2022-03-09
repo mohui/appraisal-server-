@@ -9,7 +9,6 @@ import {
   Table
 } from 'sequelize-typescript';
 import {Hospital} from './hospital';
-import {User} from './user';
 
 @Table({tableName: 'region'})
 export class Region extends Model<Region> {
@@ -38,8 +37,4 @@ export class Region extends Model<Region> {
   //一对多个机构
   @HasMany(() => Hospital)
   hospitals: Hospital[];
-
-  //一对多个用户
-  @HasMany(() => User)
-  users: User[];
 }
