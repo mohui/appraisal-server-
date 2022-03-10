@@ -403,7 +403,8 @@ export default {
           departmentText: it.children
             ? `${it.depName}(${it.children.length}人)`
             : ''
-        }));
+        }))
+        .filter(it => !it.children || it.children.length > 0);
     },
     // 科室列表
     departmentList() {
