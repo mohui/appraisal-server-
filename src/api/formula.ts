@@ -114,6 +114,8 @@ export default class Formula {
     <title>${f.name}</title>
 
     <link rel='stylesheet' href='//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <script src='https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+    <script>function getfixed(n) {      if (document.getElementById('_precision') == null) {          return n;      }      var fixed = document.getElementById('_precision').value;      return (Number(n)).toFixed(fixed);  }  function getvar(obj) {      if (obj == '')          return '';      else if (document.getElementById(obj) == null)          return '';        if (document.getElementById(obj).type == 'hidden')          return eval('_get' + obj + '()');      else          return document.getElementById(obj).value;  }  function getfloat(obj) {      return parseFloat(getvar(obj));  }  function setvar(obj, val) {        if (document.getElementById(obj) != null)          document.getElementById(obj).value = val;  }</script>
     <style>
         .nocopy {
             -webkit-touch-callout: none;
@@ -141,8 +143,6 @@ export default class Formula {
 <div class='container'>
     ${f.url}
 </div>
-<script src='https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-<script>function getfixed(n) {      if (document.getElementById('_precision') == null) {          return n;      }      var fixed = document.getElementById('_precision').value;      return (Number(n)).toFixed(fixed);  }  function getvar(obj) {      if (obj == '')          return '';      else if (document.getElementById(obj) == null)          return '';        if (document.getElementById(obj).type == 'hidden')          return eval('_get' + obj + '()');      else          return document.getElementById(obj).value;  }  function getfloat(obj) {      return parseFloat(getvar(obj));  }  function setvar(obj, val) {        if (document.getElementById(obj) != null)          document.getElementById(obj).value = val;  }</script>
 </body>
 </html>
 `
