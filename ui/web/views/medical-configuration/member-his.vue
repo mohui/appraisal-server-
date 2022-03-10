@@ -3,9 +3,6 @@
     <div class="jx-header">
       <span class="header-title">HIS员工绑定列表</span>
       <div>
-        <el-button size="small" type="primary" @click="openAddUserDialog"
-          >绑定员工
-        </el-button>
         <el-button
           size="small"
           type="warning"
@@ -322,90 +319,6 @@
         >
       </div>
     </el-dialog>
-    <el-dialog
-      title="选择员工"
-      :visible.sync="dialogSelectUsersVisible"
-      v-hidden-scroll
-      :before-close="cleanSelected"
-    >
-      <div
-        style="display: flex;
-        flex-direction: column;height: 60vh;overflow-y: scroll"
-      >
-        <div style="margin:0 0 20px 0">员工列表:</div>
-        <el-table
-          v-hidden-scroll
-          class="extend-staff-table"
-          :data="extendStaffList"
-          style="flex:1"
-          ref="extendStaffList"
-          border
-          stripe
-          size="mini"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" align="center" width="55">
-          </el-table-column>
-          <el-table-column type="index" align="center" width="50">
-          </el-table-column>
-          <el-table-column align="center" label="姓名" prop="name">
-            <template slot="header">
-              <el-input
-                v-model="keyword"
-                size="mini"
-                placeholder="输入名字搜索"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column
-            align="center"
-            label="性别"
-            prop="gender"
-          ></el-table-column>
-          <el-table-column
-            align="center"
-            label="职业"
-            prop="major"
-          ></el-table-column>
-          <el-table-column
-            align="center"
-            label="教育经历"
-            prop="education"
-          ></el-table-column>
-          <el-table-column align="center" label="是否全科医生" prop="isGap">
-            <template slot-scope="{row}">{{
-              row.isGap ? '是' : '否'
-            }}</template>
-          </el-table-column>
-        </el-table>
-        <div style="margin: 20px 0 5px 0">分配科室</div>
-        <el-select
-          style="width:100%"
-          v-model="selectedDepartment"
-          clearable
-          filterable
-          size="mini"
-        >
-          <el-option
-            v-for="h in departmentList"
-            :key="h.id"
-            :label="h.name"
-            :value="h.id"
-          ></el-option>
-        </el-select>
-      </div>
-      <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="cleanSelected">取 消</el-button>
-        <el-button
-          size="small"
-          type="primary"
-          v-loading="addBtnLoading"
-          :disabled="selectedStaff.length < 1"
-          @click="addUser()"
-          >确 定</el-button
-        >
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -417,7 +330,6 @@ export default {
       isCollapsed: !!this.$settings.isMobile,
       inputType: 'password',
       dialogFormEditUsersVisible: false,
-      dialogSelectUsersVisible: false,
       formLabelWidth: '100px',
       userForm: {
         his: [],
@@ -612,17 +524,6 @@ export default {
         ? 'pointer-row'
         : '';
     },
-    //勾选非本机构人员
-    handleSelectionChange(selected) {
-      this.selectedStaff = selected.map(it => it.id);
-    },
-    cleanSelected(done) {
-      this.selectedStaff = [];
-      this.$refs.extendStaffList.clearSelection();
-      this.dialogSelectUsersVisible = false;
-      this.selectedDepartment = '';
-      done || done();
-    },
     beforeClose() {
       this.userForm = {
         his: [],
@@ -644,28 +545,6 @@ export default {
         pageSize: 20,
         pageNo: 1
       };
-    },
-    //打开新建用户对话框
-    openAddUserDialog() {
-      this.dialogSelectUsersVisible = true;
-    },
-    //保存新建用户
-    async addUser() {
-      try {
-        const params = this.selectedStaff.map(it => ({
-          id: it,
-          hospital: this.hospitalId,
-          department: this.selectedDepartment || null
-        }));
-        await this.$api.HisStaff.addAreaMapping(params);
-        this.$asyncComputed.listMember.update(); //刷新系统员工列表
-        this.$asyncComputed.serverExtendStaff.update(); //刷新非本机构员工列表
-        this.dialogSelectUsersVisible = false;
-      } catch (e) {
-        this.$message.error(e.message);
-      } finally {
-        this.addBtnLoading = false;
-      }
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
