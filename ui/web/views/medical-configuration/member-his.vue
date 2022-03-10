@@ -369,7 +369,7 @@ export default {
   },
   computed: {
     userList() {
-      return this.listMember
+      const r = this.listMember
         .map(it => ({
           ...it,
           his: it.staff,
@@ -405,6 +405,15 @@ export default {
             : ''
         }))
         .filter(it => !it.children || it.children.length > 0);
+      //如果是模糊搜索的结果,展开所对应的行
+      if (this.searchForm.account !== '' || this.searchForm.name !== '') {
+        this.$nextTick(() => {
+          r.filter(it => it.children).forEach(row => {
+            this.$refs.hisTable.toggleRowExpansion(row, true);
+          });
+        });
+      }
+      return r;
     },
     // 科室列表
     departmentList() {
