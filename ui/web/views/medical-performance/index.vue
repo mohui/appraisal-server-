@@ -422,7 +422,6 @@ export default {
   name: 'index',
   data() {
     return {
-      QRCode: '',
       currentDate: dayjs()
         .startOf('M')
         .toDate(),
