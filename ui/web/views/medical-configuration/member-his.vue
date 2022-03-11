@@ -27,41 +27,51 @@
         :is-collapsed="isCollapsed"
         @toggle="is => (isCollapsed = is)"
       >
-        <el-form :model="searchForm" label-width="100px" size="mini">
-          <el-row>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="登录名:">
-                <el-input
-                  v-model="searchForm.account"
-                  size="mini"
-                  clearable
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="姓名:">
-                <el-input
-                  v-model="searchForm.name"
-                  size="mini"
-                  clearable
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-              <el-form-item label="">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="$asyncComputed.listMember.update()"
-                  >查询</el-button
-                >
-                <el-button type="primary" size="small" @click="reset">
-                  重置
-                </el-button>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
+        <div style="display: flex">
+          <el-form
+            style="flex:1"
+            :model="searchForm"
+            label-width="100px"
+            size="mini"
+          >
+            <el-row>
+              <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+                <el-form-item label="登录名:">
+                  <el-input
+                    v-model="searchForm.account"
+                    size="mini"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+                <el-form-item label="姓名:">
+                  <el-input
+                    v-model="searchForm.name"
+                    size="mini"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+                <el-form-item label="">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="$asyncComputed.listMember.update()"
+                    >查询</el-button
+                  >
+                  <el-button type="primary" size="small" @click="reset">
+                    重置
+                  </el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+          <el-tag type="danger" style="margin-right: 30px"
+            >总人数:{{ this.listMember.length }}人</el-tag
+          >
+        </div>
       </kn-collapse>
       <el-table
         v-hidden-scroll
