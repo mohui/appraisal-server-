@@ -1,7 +1,7 @@
 <template>
   <div class="flex-column-layout">
     <div class="jx-header">
-      <span class="header-title">HIS员工绑定列表</span>
+      <span class="header-title">员工列表</span>
       <div>
         <el-button
           size="small"
