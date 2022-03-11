@@ -30,9 +30,9 @@
         <el-form :model="searchForm" label-width="100px" size="mini">
           <el-row>
             <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="登录名:">
+              <el-form-item label="手机号码:">
                 <el-input
-                  v-model="searchForm.account"
+                  v-model="searchForm.phone"
                   size="mini"
                   clearable
                 ></el-input>
@@ -115,8 +115,8 @@
         </el-table-column>
         <el-table-column
           align="center"
-          prop="account"
-          label="登录名"
+          prop="phone"
+          label="手机号码"
           min-width="100"
         ></el-table-column>
         <el-table-column
@@ -129,12 +129,6 @@
           align="center"
           prop="gender"
           label="性别"
-          min-width="100"
-        ></el-table-column>
-        <el-table-column
-          align="center"
-          prop="phone"
-          label="电话"
           min-width="100"
         ></el-table-column>
         <el-table-column
@@ -337,7 +331,7 @@ export default {
         department: ''
       },
       searchForm: {
-        account: '',
+        phone: '',
         name: '',
         pageSize: 20,
         pageNo: 1
@@ -434,7 +428,7 @@ export default {
     }
   },
   watch: {
-    ['searchForm.account']: {
+    ['searchForm.phone']: {
       handler() {
         this.searchForm.pageNo = 1;
       },
@@ -451,9 +445,9 @@ export default {
     listMember: {
       async get() {
         this.tableLoading = true;
-        const {account, name} = this.searchForm;
+        const {phone, name} = this.searchForm;
         try {
-          return await this.$api.HisStaff.list(account || null, name || null);
+          return await this.$api.HisStaff.list(phone || null, name || null);
         } catch (e) {
           this.$message.error(e.message);
           console.error(e.message);
@@ -539,7 +533,7 @@ export default {
     //重置查询条件
     reset() {
       this.searchForm = {
-        account: '',
+        phone: '',
         name: '',
         his: '',
         pageSize: 20,
