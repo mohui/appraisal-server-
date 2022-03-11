@@ -416,13 +416,18 @@ export default {
         }))
         .filter(it => !it.children || it.children.length > 0);
       //如果是模糊搜索的结果,展开所对应的行
-      if (this.searchForm.account !== '' || this.searchForm.name !== '') {
-        this.$nextTick(() => {
+      this.$nextTick(() => {
+        if (this.searchForm.account !== '' || this.searchForm.name !== '') {
           r.filter(it => it.children).forEach(row => {
             this.$refs.hisTable.toggleRowExpansion(row, true);
           });
-        });
-      }
+        } else {
+          //重置搜索条件则默认关闭所有展开行
+          r.filter(it => it.children).forEach(row => {
+            this.$refs.hisTable.toggleRowExpansion(row, false);
+          });
+        }
+      });
       return r;
     },
     // 科室列表
