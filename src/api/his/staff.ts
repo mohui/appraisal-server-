@@ -973,6 +973,34 @@ export default class HisStaff {
 
   /**
    * 员工列表
+   *
+   * @param phone 手机号
+   * @param name 姓名
+   * @return [{
+   *  id: '员工id',
+   *  password: '密码',
+   *  name: '姓名',
+   *  phone: '手机号',
+   *  gender: '性别',
+   *  major: '专业类别',
+   *  title: '职称名称',
+   *  education: '学历',
+   *  isGP: 是否为全科医师,
+   *  created_at: '创建时间',
+   *  updated_at: '修改时间',
+   *  hospital: '机构id',
+   *  department: '科室id',
+   *  remark: '备注',
+   *  departmentName: '科室名称',
+   *  hisStaff: [{
+   *    id: 'his员工id',
+   *    name: 'his员工名称'
+   *  }],
+   *  phStaff: [{
+   *    id: '公卫员工id',
+   *    name: '公卫员工名称'
+   *  }]
+   * }]
    */
   @validate(should.string().allow(null), should.string().allow(null))
   async list(phone, name) {
