@@ -79,13 +79,14 @@ export default class Formula {
           category as b
         where a.PARENT_CATEGORY_ID = b.MI_INFORMATION_CATEGORY_ID
           )
-        select c.[MI_INFORMATION_CATEGORY_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
+        select a.[MI_INFORMATION_ARTICLE_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
         from category c
                inner join [medimpact_data].[MI_INFORMATION_ARTICLE] a
         on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
           and a.[ARTICLE_CONTENT] is not null
           and a.[ARTICLE_CONTENT] != ''
         where c.IS_ARTICLE_CATEGORY = 'N'
+            and c.MI_INFORMATION_CATEGORY_ID not in (4930, 4194, 4193, 4192, 4191, 4189, 4188, 4176, 4170, 4168, 4167, 4166, 4165, 4162, 4159, 4158, 4154, 4153, 4149, 4144, 4143, 4142, 4141, 4139, 4136, 4134, 4132, 4127, 4121, 4119, 4117, 4116)
             {{#if keyword}}
           and (KEY_WORDS like {{? keyword}}
            or CATEGORY_NAME like {{? keyword}}){{/if}}
@@ -114,6 +115,8 @@ export default class Formula {
     <title>${f.name}</title>
 
     <link rel='stylesheet' href='//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <script src='https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+    <script>function getfixed(n) {      if (document.getElementById('_precision') == null) {          return n;      }      var fixed = document.getElementById('_precision').value;      return (Number(n)).toFixed(fixed);  }  function getvar(obj) {      if (obj == '')          return '';      else if (document.getElementById(obj) == null)          return '';        if (document.getElementById(obj).type == 'hidden')          return eval('_get' + obj + '()');      else          return document.getElementById(obj).value;  }  function getfloat(obj) {      return parseFloat(getvar(obj));  }  function setvar(obj, val) {        if (document.getElementById(obj) != null)          document.getElementById(obj).value = val;  }</script>
     <style>
         .nocopy {
             -webkit-touch-callout: none;
@@ -141,8 +144,6 @@ export default class Formula {
 <div class='container'>
     ${f.url}
 </div>
-<script src='https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-<script>function getfixed(n) {      if (document.getElementById('_precision') == null) {          return n;      }      var fixed = document.getElementById('_precision').value;      return (Number(n)).toFixed(fixed);  }  function getvar(obj) {      if (obj == '')          return '';      else if (document.getElementById(obj) == null)          return '';        if (document.getElementById(obj).type == 'hidden')          return eval('_get' + obj + '()');      else          return document.getElementById(obj).value;  }  function getfloat(obj) {      return parseFloat(getvar(obj));  }  function setvar(obj, val) {        if (document.getElementById(obj) != null)          document.getElementById(obj).value = val;  }</script>
 </body>
 </html>
 `

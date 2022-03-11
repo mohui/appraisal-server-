@@ -123,12 +123,6 @@ module.exports = [
         permission: [Permission.MEDICAL_CONFIGURATION_WORK],
         router: '/medical-configuration-work',
         label: '工分项设置'
-      },
-      {
-        index: 'medical-configuration-member-his',
-        permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS],
-        router: '/medical-configuration-member-his',
-        label: '员工管理'
       }
     ]
   },
@@ -157,11 +151,27 @@ module.exports = [
     router: '/work'
   },
   {
-    index: 'approval',
-    permission: [Permission.STAFF_BINDING_APPROVAL],
-    label: '员工绑定审核',
+    index: 'staffMange',
+    permission: [
+      Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
+      Permission.STAFF_BINDING_APPROVAL
+    ],
+    label: '员工管理',
     icon: require('../../assets/menu-icon/worklist.png').default,
     iconActive: require('../../assets/menu-icon/worklist-active.png').default,
-    router: '/staff-binding-approval'
+    children: [
+      {
+        index: 'medical-configuration-member-his',
+        permission: [Permission.MEDICAL_CONFIGURATION_MEMBER_HIS],
+        router: '/medical-configuration-member-his',
+        label: '员工列表'
+      },
+      {
+        index: 'approval',
+        permission: [Permission.STAFF_BINDING_APPROVAL],
+        label: '员工绑定审核',
+        router: '/staff-binding-approval'
+      }
+    ]
   }
 ];

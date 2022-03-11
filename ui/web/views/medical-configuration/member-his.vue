@@ -1,10 +1,13 @@
 <template>
   <div class="flex-column-layout">
     <div class="jx-header">
-      <span class="header-title">HIS员工绑定列表</span>
+      <span class="header-title">员工列表</span>
       <div>
+        <el-button type="primary" size="mini" @click="handleClickQRInstitution">
+          机构码
+        </el-button>
         <el-button
-          size="small"
+          size="mini"
           type="warning"
           @click="addDepartmentVisible = true"
           >新增科室
@@ -27,41 +30,51 @@
         :is-collapsed="isCollapsed"
         @toggle="is => (isCollapsed = is)"
       >
-        <el-form :model="searchForm" label-width="100px" size="mini">
-          <el-row>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="手机号码:">
-                <el-input
-                  v-model="searchForm.phone"
-                  size="mini"
-                  clearable
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
-              <el-form-item label="姓名:">
-                <el-input
-                  v-model="searchForm.name"
-                  size="mini"
-                  clearable
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
-              <el-form-item label="">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="$asyncComputed.listMember.update()"
-                  >查询</el-button
-                >
-                <el-button type="primary" size="small" @click="reset">
-                  重置
-                </el-button>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
+        <div style="display: flex">
+          <el-form
+            style="flex:1"
+            :model="searchForm"
+            label-width="100px"
+            size="mini"
+          >
+            <el-row>
+              <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+                <el-form-item label="手机号码:">
+                  <el-input
+                    v-model="searchForm.phone"
+                    size="mini"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6" :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
+                <el-form-item label="姓名:">
+                  <el-input
+                    v-model="searchForm.name"
+                    size="mini"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="5" :xs="24" :sm="24" :md="12" :lg="6" :xl="6">
+                <el-form-item label="">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="$asyncComputed.listMember.update()"
+                    >查询</el-button
+                  >
+                  <el-button type="primary" size="small" @click="reset">
+                    重置
+                  </el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+          <el-tag type="danger" style="margin-right: 30px"
+            >总人数:{{ this.listMember.length }}人</el-tag
+          >
+        </div>
       </kn-collapse>
       <el-table
         v-hidden-scroll
@@ -313,6 +326,21 @@
         >
       </div>
     </el-dialog>
+    <el-dialog title="机构码" :visible.sync="QRDialogVisible" width="30%">
+      <div>
+        <p style="text-align: center;">用于员工扫码与机构绑定</p>
+        <img
+          style="width: 245px;margin: 0 auto;display: block;"
+          :src="QRCode"
+          alt=""
+        />
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="QRDialogVisible = false"
+          >关 闭</el-button
+        >
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -358,12 +386,14 @@ export default {
       selectedStaff: [],
       //选中员工的机构
       selectedDepartment: '',
-      keyword: ''
+      keyword: '',
+      QRCode: '',
+      QRDialogVisible: false
     };
   },
   computed: {
     userList() {
-      return this.listMember
+      const r = this.listMember
         .map(it => ({
           ...it,
           his: it.staff,
@@ -397,7 +427,22 @@ export default {
           departmentText: it.children
             ? `${it.depName}(${it.children.length}人)`
             : ''
-        }));
+        }))
+        .filter(it => !it.children || it.children.length > 0);
+      //如果是模糊搜索的结果,展开所对应的行
+      this.$nextTick(() => {
+        if (this.searchForm.account !== '' || this.searchForm.name !== '') {
+          r.filter(it => it.children).forEach(row => {
+            this.$refs.hisTable.toggleRowExpansion(row, true);
+          });
+        } else {
+          //重置搜索条件则默认关闭所有展开行
+          r.filter(it => it.children).forEach(row => {
+            this.$refs.hisTable.toggleRowExpansion(row, false);
+          });
+        }
+      });
+      return r;
     },
     // 科室列表
     departmentList() {
@@ -662,6 +707,23 @@ export default {
     },
     mouseLeave() {
       this.mouseEnterId = null;
+    },
+    async handleClickQRInstitution() {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在生成二维码',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      try {
+        // 打开弹窗
+        this.QRCode = (await this.$api.AppArea.invite()).image;
+        this.QRDialogVisible = true;
+      } catch (e) {
+        this.$message.error(e.message);
+      } finally {
+        loading.close();
+      }
     }
   }
 };
