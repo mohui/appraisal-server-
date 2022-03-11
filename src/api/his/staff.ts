@@ -657,28 +657,46 @@ export default class HisStaff {
 
   /**
    * 员工列表
+   *
+   * @param phone 手机号
+   * @param name 姓名
+   * @return [{
+   *  id: '员工id',
+   *  password: '密码',
+   *  name: '姓名',
+   *  phone: '手机号',
+   *  gender: '性别',
+   *  major: '专业类别',
+   *  title: '职称名称',
+   *  education: '学历',
+   *  isGP: 是否为全科医师,
+   *  created_at: '创建时间',
+   *  updated_at: '修改时间',
+   *  hospital: '机构id',
+   *  department: '科室id',
+   *  remark: '备注',
+   *  departmentName: '科室名称',
+   *  hisStaff: [{
+   *    id: 'his员工id',
+   *    name: 'his员工名称'
+   *  }],
+   *  phStaff: [{
+   *    id: '公卫员工id',
+   *    name: '公卫员工名称'
+   *  }]
+   * }]
    */
-  @validate(
-    should
-      .string()
-      .allow(null)
-      .description('账号'),
-    should
-      .string()
-      .allow(null)
-      .description('用户名')
-  )
-  async list(account, name) {
+  @validate(should.string().allow(null), should.string().allow(null))
+  async list(phone, name) {
     const hospital = await getHospital();
     // 用户名查询模糊查询
-    if (account) account = `%${account}%`;
+    if (phone) phone = `%${phone}%`;
     if (name) name = `%${name}%`;
 
     const [sql, params] = sqlRender(
       `
         select
           staff.id,
-          staff.account,
           staff.password,
           staff.name,
           staff.phone,
@@ -697,8 +715,8 @@ export default class HisStaff {
         left join staff_area_mapping area on staff.id = area.staff
         left join his_department dept on area.department = dept.id
         where area.area = {{? hospital}}
-        {{#if account}}
-            AND staff.account like {{? account}}
+        {{#if phone}}
+            AND staff.phone like {{? phone}}
         {{/if}}
         {{#if name}}
             AND staff.name like {{? name}}
@@ -707,7 +725,7 @@ export default class HisStaff {
       `,
       {
         hospital,
-        account,
+        phone,
         name
       }
     );
