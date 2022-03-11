@@ -20,16 +20,21 @@
             >
             </el-date-picker>
           </div>
-          <div>
-            <el-button
-              type="primary"
-              size="mini"
-              :disabled="overviewData.settle"
-              @click="handleSettle()"
-            >
-              {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
-            </el-button>
-          </div>
+          <el-tooltip
+            :disabled="!overviewData.settle"
+            content="结果已冻结，无法操作"
+          >
+            <div>
+              <el-button
+                type="primary"
+                size="mini"
+                :disabled="overviewData.settle"
+                @click="handleSettle()"
+              >
+                {{ overviewData.settle ? '结果解冻' : '结果冻结' }}
+              </el-button>
+            </div>
+          </el-tooltip>
           <div class="right">
             <el-button
               type="primary"
@@ -46,14 +51,22 @@
             >
               报表
             </el-button>
-            <el-button
-              type="primary"
-              size="mini"
-              :disabled="overviewData.settle"
-              @click="handleCompute"
+            <el-tooltip
+              style="margin-left: 10px"
+              :disabled="!overviewData.settle"
+              content="结果已冻结，无法操作"
             >
-              计算
-            </el-button>
+              <div>
+                <el-button
+                  type="primary"
+                  size="mini"
+                  :disabled="overviewData.settle"
+                  @click="handleCompute"
+                >
+                  计算
+                </el-button>
+              </div>
+            </el-tooltip>
           </div>
         </div>
       </el-card>
@@ -1343,6 +1356,8 @@ export default {
   .right {
     float: right;
     margin-right: 0;
+    display: flex;
+    flex-direction: row;
   }
 
   .header-title {
