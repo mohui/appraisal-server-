@@ -79,13 +79,14 @@ export default class Formula {
           category as b
         where a.PARENT_CATEGORY_ID = b.MI_INFORMATION_CATEGORY_ID
           )
-        select c.[MI_INFORMATION_CATEGORY_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
+        select a.[MI_INFORMATION_ARTICLE_ID] as id, c.[CATEGORY_NAME] as name, a.[ARTICLE_CONTENT] as url
         from category c
                inner join [medimpact_data].[MI_INFORMATION_ARTICLE] a
         on a.[MI_INFORMATION_CATEGORY_ID] = c.[MI_INFORMATION_CATEGORY_ID]
           and a.[ARTICLE_CONTENT] is not null
           and a.[ARTICLE_CONTENT] != ''
         where c.IS_ARTICLE_CATEGORY = 'N'
+            and c.MI_INFORMATION_CATEGORY_ID not in (4930, 4194, 4193, 4192, 4191, 4189, 4188, 4176, 4170, 4168, 4167, 4166, 4165, 4162, 4159, 4158, 4154, 4153, 4149, 4144, 4143, 4142, 4141, 4139, 4136, 4134, 4132, 4127, 4121, 4119, 4117, 4116)
             {{#if keyword}}
           and (KEY_WORDS like {{? keyword}}
            or CATEGORY_NAME like {{? keyword}}){{/if}}
