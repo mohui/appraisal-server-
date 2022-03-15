@@ -10,6 +10,7 @@ import {
 } from './service';
 import Decimal from 'decimal.js';
 import {getStaffExtraScore} from './common';
+import {HisSetting} from '../../../common/his';
 
 /**
  * 机构模块
@@ -276,6 +277,28 @@ export default class HisHospital {
           ...workScoreList
         };
       })
+    );
+  }
+
+  /**
+   * 医疗绩效功能配置
+   */
+  @validate(should.bool().required())
+  async upsertHisSetting(enabled) {
+    const hospital = await getHospital();
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        insert into his_setting(hospital, code, enabled)
+        values (?, ?, ?)
+        on conflict (hospital, code)
+          do update set enabled     = ?,
+                        updated_at = now()
+      `,
+      hospital,
+      HisSetting.WORK,
+      enabled,
+      enabled
     );
   }
 }
