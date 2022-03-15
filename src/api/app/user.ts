@@ -10,7 +10,7 @@ import {
 } from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {appDB, originalDB, wx} from '../../app';
-import {Education, Gender} from '../../../common/his';
+import {Education, Gender, HisSetting} from '../../../common/his';
 import {Context} from '../context';
 import HisHospital from '../his/hospital';
 import HisStaff from '../his/staff';
@@ -750,6 +750,22 @@ export default class AppUser {
       ...(checks?.manuals ?? [])
     ];
 
+    // 查询是否显示工分项明细
+    const hisSetting =
+      (
+        await appDB.execute(
+          //language=PostgreSQL
+          `
+            select enabled
+            from his_setting
+            where hospital = ?
+              and code = ?
+          `,
+          area,
+          HisSetting.WORK
+        )
+      )[0]?.enabled ?? true;
+
     return {
       work: scoreFind
         ? {
@@ -763,11 +779,13 @@ export default class AppUser {
             rank: rateFind.rank
           }
         : null,
-      items: workItems.items.map(it => ({
-        id: it?.id,
-        name: it?.name,
-        value: it?.score
-      })),
+      items: hisSetting
+        ? workItems.items.map(it => ({
+            id: it?.id,
+            name: it?.name,
+            value: it?.score
+          }))
+        : null,
       checks: checkList
     };
   }
