@@ -283,8 +283,11 @@ export default class HisHospital {
   /**
    * 医疗绩效功能配置
    */
-  @validate(should.bool().required())
-  async upsertHisSetting(enabled) {
+  @validate(
+    should.string().only(Object.values(HisSetting)),
+    should.bool().required()
+  )
+  async upsertHisSetting(code, enabled) {
     const hospital = await getHospital();
     await appDB.execute(
       //language=PostgreSQL
@@ -296,7 +299,7 @@ export default class HisHospital {
                         updated_at = now()
       `,
       hospital,
-      HisSetting.WORK,
+      code,
       enabled,
       enabled
     );
