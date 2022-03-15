@@ -80,6 +80,13 @@ export enum PreviewType {
   HOSPITAL = '系统机构'
 }
 
+/**
+ * 医疗绩效功能配置
+ */
+export enum HisSetting {
+  WORK = '工分项列表'
+}
+
 //region 用户信息
 /**
  * 学历
