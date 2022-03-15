@@ -301,4 +301,22 @@ export default class HisHospital {
       enabled
     );
   }
+
+  /**
+   * 查看医疗绩效功能配置
+   */
+  async selectHisSetting() {
+    const hospital = await getHospital();
+
+    // 查询医疗绩效功能配置明细
+    return await appDB.execute(
+      //language=PostgreSQL
+      `
+        select code, enabled
+        from his_setting
+        where hospital = ?
+      `,
+      hospital
+    );
+  }
 }
