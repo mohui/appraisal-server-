@@ -304,12 +304,17 @@ export default class HisHospital {
 
   /**
    * 查看医疗绩效功能配置
+   *
+   * @return [{
+   *   code: his功能枚举,
+   *   enabled: true(开启)/false(不开启)
+   * }]
    */
   async selectHisSetting() {
     const hospital = await getHospital();
 
     // 查询医疗绩效功能配置明细
-    return await appDB.execute(
+    const hisSettingModels = await appDB.execute(
       //language=PostgreSQL
       `
         select code, enabled
@@ -318,5 +323,14 @@ export default class HisHospital {
       `,
       hospital
     );
+    for (const it in HisSetting) {
+      const find = hisSettingModels.find(item => item.code === HisSetting[it]);
+      if (!find)
+        hisSettingModels.push({
+          code: HisSetting[it],
+          enabled: true
+        });
+    }
+    return hisSettingModels;
   }
 }
