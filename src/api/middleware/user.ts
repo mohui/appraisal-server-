@@ -1,5 +1,5 @@
 import {Context} from '../context';
-import {appDB, originalDB} from '../../app';
+import {appDB, mappingDB, originalDB} from '../../app';
 import {KatoLogicError} from 'kato-server';
 import {UserType} from '../../../common/user';
 import {getHospitals} from '../group/common';
@@ -84,19 +84,10 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         )
       )[0];
       if (!staffModel) throw new Error('无效的员工用户');
-      //查询主机构名称, 用以补充用户信息
-      let primaryHospitalName = null;
-      if (staffModel.hospital_id) {
-        primaryHospitalName =
-          (
-            await originalDB.execute(
-              `select name from area where code = ?`,
-              staffModel.hospital_id
-            )
-          )[0]?.name ?? null;
-      }
-      //补充area绑定关系
+      // region 查询机构绑定关系
       const areaModels: {
+        primary: boolean;
+        his: boolean;
         id: string;
         name: string;
         department: {id: string; name: string} | null;
@@ -113,13 +104,23 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
             staffModel.id
           )
         ).map(async it => {
+          // 查询name
           const name = (
             await originalDB.execute(
               `select name from area where code = ?`,
               it.id
             )
           )[0]?.name;
+          // 查询是否接入医疗绩效
+          const his =
+            (
+              await mappingDB.execute(
+                `select 1 from area_hospital_mapping where code = ? and etl_id like '%HIS%'`,
+                it.id
+              )
+            ).length > 0;
           return {
+            his,
             primary: it.id === staffModel.hospital_id,
             id: it.id,
             name: name,
@@ -132,6 +133,9 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           };
         })
       );
+      // endregion
+      // 寻找主机构
+      const primaryHospital = areaModels.find(it => it.primary);
       ctx.user = {
         //类型
         type: UserType.STAFF,
@@ -158,25 +162,9 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         //绑定机构数组
         hospitals: areaModels,
         //主机构
-        hospital: staffModel.hospital_id
-          ? {
-              id: staffModel.hospital_id,
-              name: primaryHospitalName,
-              department: staffModel.department_id
-                ? {
-                    id: staffModel.department_id,
-                    name: staffModel.department_name
-                  }
-                : null
-            }
-          : null,
+        hospital: primaryHospital,
         //主机构科室 TODO: 兼容字段, jx-app依赖, 稍后删除
-        department: staffModel.department_id
-          ? {
-              id: staffModel.department_id,
-              name: staffModel.department_name
-            }
-          : null
+        department: primaryHospital.department
       };
       //endregion
     } else if (type == UserType.ADMIN) {
