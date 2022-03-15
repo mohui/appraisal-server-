@@ -115,7 +115,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
           const his =
             (
               await mappingDB.execute(
-                `select 1 from area_hospital_mapping where code = ? and etl_id like '%HIS%'`,
+                `select 1 from area_hospital_mapping where area = ? and etl_id like '%HIS%'`,
                 it.id
               )
             ).length > 0;
