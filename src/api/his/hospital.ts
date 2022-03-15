@@ -308,32 +308,32 @@ export default class HisHospital {
   /**
    * 查看医疗绩效功能配置
    *
-   * @return [{
-   *   code: his功能枚举,
-   *   enabled: true(开启)/false(不开启)
-   * }]
+   * @return {
+   *   his功能枚举: true(开启)/false(不开启)
+   * }
    */
   async selectHisSetting() {
     const hospital = await getHospital();
 
     // 查询医疗绩效功能配置明细
-    const hisSettingModels = await appDB.execute(
-      //language=PostgreSQL
-      `
+    const hisSettingModel = (
+      await appDB.execute(
+        //language=PostgreSQL
+        `
         select code, enabled
         from his_setting
         where hospital = ?
       `,
-      hospital
-    );
-    for (const it in HisSetting) {
-      const find = hisSettingModels.find(item => item.code === HisSetting[it]);
-      if (!find)
-        hisSettingModels.push({
-          code: HisSetting[it],
-          enabled: true
-        });
+        hospital
+      )
+    ).reduce((result, current) => {
+      result[current.code] = current.enabled;
+      return result;
+    }, {});
+    for (const key of Object.values(HisSetting)) {
+      hisSettingModel[key] = hisSettingModel[key] ?? true;
     }
-    return hisSettingModels;
+
+    return hisSettingModel;
   }
 }
