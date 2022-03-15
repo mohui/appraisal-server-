@@ -662,7 +662,7 @@ export default class AppUser {
    *     value: 质量系数
    *     rank: 排名
    *   }
-   *   items: [{
+   *   items?:(items说明: null: 不显示, []: 显示没数据, 否则就是有数据) [{
    *     id: id
    *     name: 名称
    *     value: 工作量
