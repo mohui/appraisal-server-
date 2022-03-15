@@ -39,13 +39,6 @@
             <el-button
               type="primary"
               size="mini"
-              @click="handleClickQRInstitution"
-            >
-              机构码
-            </el-button>
-            <el-button
-              type="primary"
-              size="mini"
               :loading="reportDataLoading"
               @click="handleClickReport"
             >
