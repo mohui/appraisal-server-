@@ -292,7 +292,7 @@ export default class HisHospital {
         insert into his_setting(hospital, code, enabled)
         values (?, ?, ?)
         on conflict (hospital, code)
-          do update set enabled     = ?,
+          do update set enabled    = ?,
                         updated_at = now()
       `,
       hospital,
