@@ -84,7 +84,7 @@ export enum PreviewType {
  * 医疗绩效功能配置
  */
 export enum HisSetting {
-  WORK = '工分项列表'
+  WORK = 'app端员工工分项明细'
 }
 
 //region 用户信息
