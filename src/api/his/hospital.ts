@@ -10,6 +10,7 @@ import {
 } from './service';
 import Decimal from 'decimal.js';
 import {getStaffExtraScore} from './common';
+import {HisSetting} from '../../../common/his';
 
 /**
  * 机构模块
@@ -277,5 +278,62 @@ export default class HisHospital {
         };
       })
     );
+  }
+
+  /**
+   * 医疗绩效功能配置
+   */
+  @validate(
+    should.string().only(Object.values(HisSetting)),
+    should.bool().required()
+  )
+  async upsertHisSetting(code, enabled) {
+    const hospital = await getHospital();
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        insert into his_setting(hospital, code, enabled)
+        values (?, ?, ?)
+        on conflict (hospital, code)
+          do update set enabled    = ?,
+                        updated_at = now()
+      `,
+      hospital,
+      code,
+      enabled,
+      enabled
+    );
+  }
+
+  /**
+   * 查看医疗绩效功能配置
+   *
+   * @return {
+   *   his功能枚举: true(开启)/false(不开启)
+   * }
+   */
+  async selectHisSetting() {
+    const hospital = await getHospital();
+
+    // 查询医疗绩效功能配置明细
+    const hisSettingModel = (
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+        select code, enabled
+        from his_setting
+        where hospital = ?
+      `,
+        hospital
+      )
+    ).reduce((result, current) => {
+      result[current.code] = current.enabled;
+      return result;
+    }, {});
+    for (const key of Object.values(HisSetting)) {
+      hisSettingModel[key] = hisSettingModel[key] ?? true;
+    }
+
+    return hisSettingModel;
   }
 }

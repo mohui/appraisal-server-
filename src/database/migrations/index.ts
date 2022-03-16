@@ -54,6 +54,7 @@ import {RemoveScoreRemarkHistoryMigration} from './051_remove_score_remark_histo
 import {AddStaffRequest} from './052_add_staff_request';
 import {AddSMS} from './053_add_user_sms';
 import {AddWechat} from './054_wechat';
+import {AddHisSetting} from './055_add_his_setting';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -111,5 +112,6 @@ export const migrations: IMigration[] = [
   new RemoveScoreRemarkHistoryMigration(),
   new AddStaffRequest(),
   new AddSMS(),
-  new AddWechat()
+  new AddWechat(),
+  new AddHisSetting()
 ];

@@ -293,17 +293,19 @@
         >
           <div class="card workbench-container">
             <div class="workbench-header">
-              工作台
+              系统配置
             </div>
-            <div class="content" v-hidden-scroll>
-              <div class="square">
-                <div class="square-inner grid">
-                  <div v-for="i of 8" :key="i">
-                    <div class="item">
-                      <div class="el-icon-s-tools icon"></div>
-                    </div>
-                  </div>
-                </div>
+            <div class="content">
+              <div
+                v-for="(value, key) in hisSettingSeverData"
+                :key="key"
+                class="cell"
+              >
+                <div>{{ key }}</div>
+                <el-switch
+                  :value="value"
+                  @change="onWorkItemsSwitchChange(key)"
+                />
               </div>
             </div>
           </div>
@@ -1000,8 +1002,17 @@ export default {
       default() {
         return 0;
       }
-    }
+    },
     /********************公卫指标**********************/
+
+    hisSettingSeverData: {
+      async get() {
+        return await this.$api.HisHospital.selectHisSetting();
+      },
+      default() {
+        return {};
+      }
+    }
   },
   watch: {
     reportData: function() {
@@ -1297,6 +1308,34 @@ export default {
       if (columnIndex !== 0 && row.nameIndex % 2 === 1) {
         return 'custom-cell';
       }
+    },
+    async onWorkItemsSwitchChange(key) {
+      const message = this.hisSettingSeverData[key]
+        ? `关闭后，${key}将无法查看，是否确定关闭？`
+        : `开启后，${key}将可以查看，是否确定开启？`;
+      try {
+        await this.$confirm(message, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        try {
+          await this.$api.HisHospital.upsertHisSetting(
+            key,
+            !this.hisSettingSeverData[key]
+          );
+          this.$message.success('修改成功');
+          this.$asyncComputed.hisSettingSeverData.update();
+        } catch (e) {
+          console.log(e.message);
+          this.$message.error(e.message);
+        }
+      } catch (e) {
+        this.$message({
+          type: 'info',
+          message: '已取消'
+        });
+      }
     }
   }
 };
@@ -1564,58 +1603,14 @@ export default {
   }
 
   .content {
-    padding: 10px;
-    height: calc(60vh - 80px);
-    overflow-y: scroll;
-
-    .square {
-      position: relative;
-      width: 100%;
-      height: 0;
-      padding-bottom: 100%; /* padding百分比是相对父元素宽度计算的 */
-    }
-
-    .square-inner {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%; /* 铺满父元素容器，这时候宽高就始终相等了 */
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 相当于 1fr 1fr 1fr */
-      grid-template-rows: repeat(4, 1fr); /* fr单位可以将容器分为几等份 */
-      grid-gap: 1px; /* grid-column-gap 和 grid-row-gap的简写 */
-      grid-auto-flow: row;
-    }
-
-    .grid > div {
-      color: #fff;
-      line-height: 2;
-      text-align: center;
+    color: #3a3f62;
+    font-size: 15px;
+    .cell {
+      margin: 20px;
       display: flex;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-
-      .item {
-        background: #dae0f2;
-        width: 80%;
-        height: 80%;
-        min-width: 80px;
-        min-height: 80px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 20px;
-
-        .icon {
-          color: #848dbd;
-          font-size: 3.2vw;
-        }
-      }
+      justify-content: space-between;
     }
   }
 }
