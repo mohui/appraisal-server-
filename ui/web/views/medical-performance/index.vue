@@ -1310,35 +1310,32 @@ export default {
       }
     },
     async onWorkItemsSwitchChange(key) {
-      console.log('change：', key);
-      // this.hisSettingSeverData[key] = !this.hisSettingSeverData[key];
       const message = this.hisSettingSeverData[key]
-        ? `关闭后${key}将无法查看，是否确定关闭？`
-        : `开启后${key}将可以查看，是否确定开启？`;
-      this.$confirm(message, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(async () => {
-          try {
-            await this.$api.HisHospital.upsertHisSetting(
-              key,
-              !this.hisSettingSeverData[key]
-            );
-            this.$message.success('修改成功');
-            this.$asyncComputed.hisSettingSeverData.update();
-          } catch (e) {
-            console.log(e.message);
-            this.$message.error(e.message);
-          }
-        })
-        .catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消'
-          });
+        ? `关闭后，${key}将无法查看，是否确定关闭？`
+        : `开启后，${key}将可以查看，是否确定开启？`;
+      try {
+        await this.$confirm(message, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
         });
+        try {
+          await this.$api.HisHospital.upsertHisSetting(
+            key,
+            !this.hisSettingSeverData[key]
+          );
+          this.$message.success('修改成功');
+          this.$asyncComputed.hisSettingSeverData.update();
+        } catch (e) {
+          console.log(e.message);
+          this.$message.error(e.message);
+        }
+      } catch (e) {
+        this.$message({
+          type: 'info',
+          message: '已取消'
+        });
+      }
     }
   }
 };
