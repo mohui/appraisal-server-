@@ -164,7 +164,7 @@ export async function UserMiddleware(ctx: Context | any, next: Function) {
         //主机构
         hospital: primaryHospital,
         //主机构科室 TODO: 兼容字段, jx-app依赖, 稍后删除
-        department: primaryHospital.department
+        department: primaryHospital?.department
       };
       //endregion
     } else if (type == UserType.ADMIN) {
