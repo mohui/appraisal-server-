@@ -412,6 +412,106 @@
           ></el-table-column>
         </el-table>
       </el-dialog>
+      <el-dialog
+        title="报表"
+        :visible.sync="dialogStaffTableVisible2"
+        width="90%"
+        top="10vh"
+      >
+        <div slot="title" class="dialog-header">
+          <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
+          <el-input
+            size="mini"
+            style="width: 200px"
+            placeholder="请输入金额"
+            v-model="amount"
+            @input="handleAmountChange"
+          ></el-input>
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="
+              exportReport(
+                'reportTable',
+                overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
+              )
+            "
+            >导出
+          </el-button>
+          <div style="margin-left: 20px">
+            绩效考核月份: {{ currentDate.$format('YYYY-MM') }}
+          </div>
+          <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
+        </div>
+        <el-table
+          id="reportTable2"
+          :data="reportData2"
+          class="el-table-medical-performance-report"
+          :cell-class-name="tableCellClassName"
+          height="70vh"
+          size="mini"
+          border
+          :header-cell-style="{textAlign: 'center'}"
+          :cell-style="{textAlign: 'center'}"
+        >
+          <el-table-column
+            property="deptName"
+            label="科室"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="name"
+            label="姓名"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            v-for="it of cols"
+            :key="it.id"
+            :property="it.id"
+            :label="it.name"
+            min-width="120"
+          >
+            <el-table-column
+              v-for="item of it.children"
+              :key="item.id"
+              :property="item.id"
+              :label="item.name"
+              min-width="120"
+            />
+          </el-table-column>
+          <el-table-column
+            property="scoreTotal"
+            label="校正前总分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="rateFormat"
+            label="质量系数"
+            min-width="100"
+          ></el-table-column>
+          <el-table-column
+            property="afterCorrectionScore"
+            label="校正后总分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="extra"
+            label="附加分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="totalScore"
+            label="总得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="amount"
+            label="金额"
+            min-width="120"
+          ></el-table-column>
+        </el-table>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -445,9 +545,12 @@ export default {
         }
       },
       dialogStaffTableVisible: false,
+      dialogStaffTableVisible2: true,
       amount: null,
       originalReportData: [],
       reportData: [],
+      reportData2: [],
+      cols: [],
       reportDataLoading: false,
       spanArr: [],
       categorySpanArr: [],
@@ -464,6 +567,7 @@ export default {
   },
   created() {
     this.initParams(this.$route);
+    this.handleClickReport2();
   },
   computed: {
     rankScoreWidth() {
@@ -1031,6 +1135,9 @@ export default {
       await this.reportDataRequest();
       this.handleReportData();
     },
+    async handleClickReport2() {
+      await this.reportDataRequest2();
+    },
     async reportDataRequest() {
       this.reportDataLoading = true;
       this.originalReportData = await this.$api.HisHospital.report(
@@ -1038,6 +1145,30 @@ export default {
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
+    },
+    async reportDataRequest2() {
+      let res = await this.$api.HisHospital.report2(this.currentDate);
+      console.log('res:', res);
+      let data = res['data'];
+      this.cols = res['cols'];
+      data = data
+        .map(it => {
+          it.items
+            .sort((a, b) => {
+              if (a['typeId'] != b['typeId']) {
+                return a['typeId']?.localeCompare(b['typeId']);
+              }
+            })
+            //根据order排序
+            .sort((a, b) => a.order - b.order);
+          return it;
+        })
+        .sort((a, b) => {
+          if (a['deptName'] != b['deptName']) {
+            return a['deptName']?.localeCompare(b['deptName']);
+          }
+        });
+      this.reportData2 = data;
     },
     // 跳转到员工详情页
     onGotoStaffDetail(id, area) {
