@@ -646,12 +646,12 @@ export default class HisStaff {
       return await appDB.execute(
         // language=PostgreSQL
         `
-              update staff
-              set hospital   = null,
-                  department = null,
-                  updated_at = ?
-              where id = ?
-            `,
+          update staff
+          set hospital   = null,
+              department = null,
+              updated_at = ?
+          where id = ?
+        `,
         dayjs().toDate(),
         id
       );
