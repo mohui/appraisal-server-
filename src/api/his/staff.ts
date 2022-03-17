@@ -288,17 +288,20 @@ export default class HisStaff {
     );
     const phStaffIds = sysUserList.map(it => it.id);
 
-    const staffs = await appDB.execute(
-      // language=PostgreSQL
-      `
+    let staffs = [];
+    if (phStaffIds.length > 0) {
+      staffs = await appDB.execute(
+        // language=PostgreSQL
+        `
         select ph_staff "phStaff"
         from staff_ph_mapping
         where ph_staff in (${phStaffIds.map(() => '?')})
       `,
-      ...phStaffIds
-    );
+        ...phStaffIds
+      );
+    }
     return sysUserList.map(it => {
-      const index = staffs.find(item => it.id === item.phStaff);
+      const index = staffs.find(item => it.id === item?.phStaff);
       return {
         ...it,
         usable: !index
