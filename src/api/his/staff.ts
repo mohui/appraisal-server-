@@ -301,7 +301,7 @@ export default class HisStaff {
       );
     }
     return sysUserList.map(it => {
-      const index = staffs.find(item => it.id === item?.phStaff);
+      const index = staffs.find(item => it.id === item.phStaff);
       return {
         ...it,
         usable: !index
