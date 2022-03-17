@@ -11,6 +11,8 @@ export class UpdateStaffRequest implements IMigration {
       ALTER TABLE staff_request ALTER COLUMN id TYPE char varying(36) USING (id::varchar(36));
       ALTER TABLE staff_request ALTER COLUMN staff TYPE char varying(36) USING (staff::varchar(36));
       ALTER TABLE staff_request ALTER COLUMN area TYPE char varying(36) USING (area::varchar(36));
+
+      update  staff_request set area = trim(area), staff = trim(staff);
     `);
   }
 
