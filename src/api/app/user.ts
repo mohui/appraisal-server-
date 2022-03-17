@@ -565,12 +565,12 @@ export default class AppUser {
     const total = await SystemAreaApi.total(area, year);
     // 智慧公卫人群列表
     const markPersons: {
-      C01: number;
-      C02: number;
-      C03: number;
-      C13: number;
-      C11: number;
-      C04: number;
+      C01: number | null;
+      C02: number | null;
+      C03: number | null;
+      C13: number | null;
+      C11: number | null;
+      C04: number | null;
     } = (
       await originalDB.execute(
         // language=PostgreSQL
@@ -599,32 +599,32 @@ export default class AppUser {
       {
         id: 'C01',
         name: '老年人',
-        amount: new Decimal(markPersons.C01).toNumber()
+        amount: new Decimal(markPersons?.C01 ?? 0).toNumber()
       },
       {
         id: 'C02',
         name: '高血压患者',
-        amount: new Decimal(markPersons.C02).toNumber()
+        amount: new Decimal(markPersons?.C02 ?? 0).toNumber()
       },
       {
         id: 'C03',
         name: '糖尿病患者',
-        amount: new Decimal(markPersons.C03).toNumber()
+        amount: new Decimal(markPersons?.C03 ?? 0).toNumber()
       },
       {
         id: 'C13',
         name: '高危人群',
-        amount: new Decimal(markPersons.C13).toNumber()
+        amount: new Decimal(markPersons?.C13 ?? 0).toNumber()
       },
       {
         id: 'C11',
         name: '其他慢病患者',
-        amount: new Decimal(markPersons.C11).toNumber()
+        amount: new Decimal(markPersons?.C11 ?? 0).toNumber()
       },
       {
         id: 'C04',
         name: '孕产妇人群',
-        amount: new Decimal(markPersons.C04).toNumber()
+        amount: new Decimal(markPersons?.C04 ?? 0).toNumber()
       }
     ].map(it => {
       const tags = documentTagList
