@@ -249,7 +249,12 @@ export default class HisHospital {
     const hospital = await getHospital();
     // 根据机构id查询员工
     // language=PostgreSQL
-    const staffs = await appDB.execute(
+    const staffs: {
+      id: string;
+      name: string;
+      deptId?: string;
+      deptName?: string;
+    }[] = await appDB.execute(
       `
         select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
@@ -278,6 +283,67 @@ export default class HisHospital {
         };
       })
     );
+  }
+
+  @validate(should.date().required())
+  async report2(month) {
+    const array: {
+      deptName: string;
+      rate?: number;
+      extra: number;
+      name: string;
+      deptId: string;
+      id: string;
+      day: Date;
+      items: {
+        id: string;
+        name: string;
+        score: number;
+        typeId?: string;
+        typeName?: string;
+      }[];
+    }[] = await this.report(month);
+
+    return {
+      cols: array.reduce(
+        (
+          result: {
+            id: string;
+            name: string;
+            children: {id: string; name: string}[];
+          }[],
+          current
+        ) => {
+          for (const item of current.items) {
+            const category = result.find(it => it.id === item.typeId);
+            if (category) {
+              const record = category.children.find(it => it.id === item.id);
+              if (!record) {
+                category.children.push({id: item.id, name: item.name});
+              }
+            } else {
+              result.push({id: item.typeId, name: item.typeName, children: []});
+            }
+          }
+
+          return result;
+        },
+        []
+      ),
+      data: array.map(it => {
+        const items = it.items.reduce((result, current) => {
+          result[current.typeId] =
+            (result[current.typeId] || 0) + current.score;
+          result[current.id] = current.score;
+          return result;
+        }, {});
+
+        return {
+          ...it,
+          ...items
+        };
+      })
+    };
   }
 
   /**

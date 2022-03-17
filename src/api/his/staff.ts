@@ -907,7 +907,13 @@ export default class HisStaff {
     hospital
   ): Promise<{
     day: Date;
-    items: {id: string; name: string; score: number}[];
+    items: {
+      id: string;
+      name: string;
+      score: number;
+      typeId?: string;
+      typeName?: string;
+    }[];
     rate?: number;
   }> {
     // 获取所传月份的开始时间 即所在月份的一月一号
