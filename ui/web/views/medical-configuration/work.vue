@@ -382,6 +382,14 @@
                   {{ HisWorkMethod.AMOUNT }}
                 </el-button>
               </el-button-group>
+              <el-popover placement="right-end" width="400" trigger="hover">
+                <i class="el-icon-warning" slot="reference"></i>
+                <div>总和：工分项取值项目来源的总和</div>
+                <div>计数：工分项取值项目来源的次数</div>
+                <div>
+                  门诊的B超项目，一共做了500次，总费用是30000，按照总和取值为30000，按照计次取值为500
+                </div>
+              </el-popover>
               <span style="float: right">单个工分项标准工作量得分</span>
             </el-form-item>
           </el-col>
