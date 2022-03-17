@@ -383,7 +383,11 @@
                 </el-button>
               </el-button-group>
               <el-popover placement="right-end" width="400" trigger="hover">
-                <i class="el-icon-warning" slot="reference"></i>
+                <i
+                  style="font-size: 18px;margin-left: 10px"
+                  class="el-icon-warning"
+                  slot="reference"
+                ></i>
                 <div>总和：工分项取值项目来源的总和</div>
                 <div>计数：工分项取值项目来源的次数</div>
                 <div>
