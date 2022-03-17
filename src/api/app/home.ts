@@ -421,5 +421,6 @@ export default class AppHome {
       staffs.staffCount
     );
   }
+
   // endregion
 }
