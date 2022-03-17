@@ -388,10 +388,10 @@
                   class="el-icon-warning"
                   slot="reference"
                 ></i>
-                <div>总和：工分项取值项目来源的总和</div>
-                <div>计数：工分项取值项目来源的次数</div>
+                <div class="example">总和：工分项取值项目来源的总和</div>
+                <div class="example">计数：工分项取值项目来源的次数</div>
                 <div>
-                  例如：门诊的B超项目，一共做了500次，总费用是30000，按照总和取值为30000，按照计次取值为500
+                  例如：门诊的B超项目，一共做了500次，总费用是30000，按照总和取值为30000，按照计数取值为500
                 </div>
               </el-popover>
               <span style="float: right">单个工分项标准工作量得分</span>
@@ -1146,6 +1146,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../../styles/vars';
+
 .long-tree {
   max-height: 20vh;
   overflow-y: auto;
@@ -1164,6 +1166,9 @@ export default {
 }
 .work-method-btn {
   border-radius: 4px;
+}
+.example {
+  font-weight: bold;
 }
 </style>
 <style lang="scss">
