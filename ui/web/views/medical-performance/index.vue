@@ -446,7 +446,7 @@
         </div>
         <el-table
           id="reportTable2"
-          :data="reportData2"
+          :data="reportData1"
           class="el-table-medical-performance-report"
           :cell-class-name="tableCellClassName"
           height="70vh"
@@ -466,7 +466,7 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
-            v-for="it of cols"
+            v-for="it of reportCols"
             :key="it.id"
             :property="it.id"
             :label="it.name"
@@ -549,8 +549,6 @@ export default {
       amount: null,
       originalReportData: [],
       reportData: [],
-      reportData2: [],
-      cols: [],
       reportDataLoading: false,
       spanArr: [],
       categorySpanArr: [],
@@ -567,7 +565,6 @@ export default {
   },
   created() {
     this.initParams(this.$route);
-    this.handleClickReport2();
   },
   computed: {
     rankScoreWidth() {
@@ -881,6 +878,56 @@ export default {
         }
       }
       return null;
+    },
+    reportData1() {
+      // 机构总分
+      let organizationScore = 0;
+      let data = this.reportSeverData['data'];
+      data = data
+        .map(it => {
+          it.items
+            .sort((a, b) => {
+              if (a['typeId'] != b['typeId']) {
+                return a['typeId']?.localeCompare(b['typeId']);
+              }
+            })
+            //根据order排序
+            .sort((a, b) => a.order - b.order);
+          // 质量系数
+          it.rate = it.rate || 1;
+          it.rateFormat = Number((it.rate * 100).toFixed(2)) + '%';
+          // 员工项目总计计 校正前总得分
+          it.sumScore = it.items.reduce((prev, curr) => prev + curr.score, 0);
+          it.sumScoreFormat = Number(it.sumScore?.toFixed(2));
+          // 员工项目总计计 校正后总得分
+          it.correctionSumScore = it.sumScore * it.rate;
+          it.correctionSumScoreFormat = Number(
+            it.correctionSumScore?.toFixed(2)
+          );
+          // 员工总得分
+          it.totalScore = it.correctionSumScore + (it.extra || 0);
+          it.totalScoreFormat = Number(it.totalScore?.toFixed(2));
+          // 累加员工得分得到机构总分
+          organizationScore += it.totalScore;
+          return it;
+        })
+        .sort((a, b) => {
+          if (a['deptName'] != b['deptName']) {
+            return a['deptName']?.localeCompare(b['deptName']);
+          }
+        });
+      for (const i of data) {
+        // 员工总得分在机构中所占比例
+        i.proportion = (i.totalScore || 0) / organizationScore;
+        // 所得金额
+        i.amount = Number((this.amount * i.proportion).toFixed(2));
+      }
+      console.log('data:', data);
+      console.log('organizationScore:', organizationScore);
+      return data;
+    },
+    reportCols() {
+      return this.reportSeverData['cols'];
     }
   },
   asyncComputed: {
@@ -1116,6 +1163,16 @@ export default {
       default() {
         return {};
       }
+    },
+
+    // 报表数据
+    reportSeverData: {
+      async get() {
+        return await this.$api.HisHospital.report2(this.currentDate);
+      },
+      default() {
+        return {cols: [], data: []};
+      }
     }
   },
   watch: {
@@ -1135,9 +1192,6 @@ export default {
       await this.reportDataRequest();
       this.handleReportData();
     },
-    async handleClickReport2() {
-      await this.reportDataRequest2();
-    },
     async reportDataRequest() {
       this.reportDataLoading = true;
       this.originalReportData = await this.$api.HisHospital.report(
@@ -1145,56 +1199,6 @@ export default {
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
-    },
-    async reportDataRequest2() {
-      let res = await this.$api.HisHospital.report2(this.currentDate);
-      console.log('res:', res);
-      let data = res['data'];
-      this.cols = res['cols'];
-      // 机构总分
-      let organizationScore = 0;
-      data = data
-        .map(it => {
-          it.items
-            .sort((a, b) => {
-              if (a['typeId'] != b['typeId']) {
-                return a['typeId']?.localeCompare(b['typeId']);
-              }
-            })
-            //根据order排序
-            .sort((a, b) => a.order - b.order);
-          // 质量系数
-          it.rate = it.rate || 1;
-          it.rateFormat = Number((it.rate * 100).toFixed(2)) + '%';
-          // 员工项目总计计 校正前总得分
-          it.sumScore = it.items.reduce((prev, curr) => prev + curr.score, 0);
-          it.sumScoreFormat = Number(it.sumScore?.toFixed(2));
-          // 员工项目总计计 校正后总得分
-          it.correctionSumScore = it.sumScore * it.rate;
-          it.correctionSumScoreFormat = Number(
-            it.correctionSumScore?.toFixed(2)
-          );
-          // 员工总得分
-          it.totalScore = it.correctionSumScore + (it.extra || 0);
-          it.totalScoreFormat = Number(it.totalScore?.toFixed(2));
-          // 累加员工得分得到机构总分
-          organizationScore += it.totalScore;
-          return it;
-        })
-        .sort((a, b) => {
-          if (a['deptName'] != b['deptName']) {
-            return a['deptName']?.localeCompare(b['deptName']);
-          }
-        });
-      for (const i of data) {
-        // 员工总得分在机构中所占比例
-        i.proportion = (i.totalScore || 0) / organizationScore;
-        // 所得金额
-        i.amount = Number((this.amount * i.proportion).toFixed(2));
-      }
-      console.log('data:', data);
-      console.log('organizationScore:', organizationScore);
-      this.reportData2 = data;
     },
     // 跳转到员工详情页
     onGotoStaffDetail(id, area) {
