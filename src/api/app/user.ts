@@ -820,11 +820,11 @@ export default class AppUser {
       await appDB.execute(
         // language=PostgreSQL
         `
-        select id
-        from staff
-        where phone = ?
-        limit 1
-      `,
+          select id
+          from staff
+          where phone = ?
+          limit 1
+        `,
         result.purePhoneNumber
       )
     )[0];

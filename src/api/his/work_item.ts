@@ -1113,7 +1113,7 @@ export default class HisWorkItem {
           set name       = ?,
               method     = ?,
               type       = ?,
-              steps     = ?,
+              steps      = ?,
               remark     = ?,
               item_type  = ?,
               updated_at = ?

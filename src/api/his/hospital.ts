@@ -320,10 +320,10 @@ export default class HisHospital {
       await appDB.execute(
         //language=PostgreSQL
         `
-        select code, enabled
-        from his_setting
-        where hospital = ?
-      `,
+          select code, enabled
+          from his_setting
+          where hospital = ?
+        `,
         hospital
       )
     ).reduce((result, current) => {
