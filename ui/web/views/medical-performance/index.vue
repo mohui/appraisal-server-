@@ -324,7 +324,6 @@
             style="width: 200px"
             placeholder="请输入金额"
             v-model="amount"
-            @input="handleAmountChange"
           ></el-input>
           <el-button
             type="primary"
@@ -767,12 +766,11 @@ export default {
         }
       ];
     },
-    // 报表弹窗计算时间
+    // 报表计算时间
     computingTime() {
-      for (const it of this.reportData) {
-        if (it.updated_at) {
-          return it.updated_at.$format('YYYY-MM-DD HH:mm');
-        }
+      const it = this.reportData.find(it => it.items.length > 0);
+      if (it?.items) {
+        return it.items[0].updated_at.$format('YYYY-MM-DD HH:mm');
       }
       return null;
     },
