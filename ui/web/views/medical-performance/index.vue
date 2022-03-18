@@ -481,7 +481,7 @@
             />
           </el-table-column>
           <el-table-column
-            property="scoreTotal"
+            property="sumScoreFormat"
             label="校正前总分"
             min-width="120"
           ></el-table-column>
@@ -491,7 +491,7 @@
             min-width="100"
           ></el-table-column>
           <el-table-column
-            property="afterCorrectionScore"
+            property="correctionSumScoreFormat"
             label="校正后总分"
             min-width="120"
           ></el-table-column>
@@ -501,7 +501,7 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
-            property="totalScore"
+            property="totalScoreFormat"
             label="总得分"
             min-width="120"
           ></el-table-column>
@@ -1151,6 +1151,8 @@ export default {
       console.log('res:', res);
       let data = res['data'];
       this.cols = res['cols'];
+      // 机构总分
+      let organizationScore = 0;
       data = data
         .map(it => {
           it.items
@@ -1161,6 +1163,22 @@ export default {
             })
             //根据order排序
             .sort((a, b) => a.order - b.order);
+          // 质量系数
+          it.rate = it.rate || 1;
+          it.rateFormat = Number((it.rate * 100).toFixed(2)) + '%';
+          // 员工项目总计计 校正前总得分
+          it.sumScore = it.items.reduce((prev, curr) => prev + curr.score, 0);
+          it.sumScoreFormat = Number(it.sumScore?.toFixed(2));
+          // 员工项目总计计 校正后总得分
+          it.correctionSumScore = it.sumScore * it.rate;
+          it.correctionSumScoreFormat = Number(
+            it.correctionSumScore?.toFixed(2)
+          );
+          // 员工总得分
+          it.totalScore = it.correctionSumScore + (it.extra || 0);
+          it.totalScoreFormat = Number(it.totalScore?.toFixed(2));
+          // 累加员工得分得到机构总分
+          organizationScore += it.totalScore;
           return it;
         })
         .sort((a, b) => {
@@ -1168,6 +1186,14 @@ export default {
             return a['deptName']?.localeCompare(b['deptName']);
           }
         });
+      for (const i of data) {
+        // 员工总得分在机构中所占比例
+        i.proportion = (i.totalScore || 0) / organizationScore;
+        // 所得金额
+        i.amount = Number((this.amount * i.proportion).toFixed(2));
+      }
+      console.log('data:', data);
+      console.log('organizationScore:', organizationScore);
       this.reportData2 = data;
     },
     // 跳转到员工详情页
