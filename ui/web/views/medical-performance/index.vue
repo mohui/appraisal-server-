@@ -345,6 +345,7 @@
         <el-table
           id="reportTable"
           :data="reportData"
+          :span-method="objectSpanMethod"
           class="el-table-medical-performance-report"
           :cell-class-name="tableCellClassName"
           height="70vh"
@@ -446,8 +447,6 @@ export default {
       reportSeverData: {cols: [], data: []},
       reportDataLoading: false,
       dialogStaffTableVisible: false,
-      spanArr: [],
-      categorySpanArr: [],
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
@@ -817,8 +816,6 @@ export default {
         // 所得金额
         i.amount = Number((this.amount * i.proportion).toFixed(2));
       }
-      console.log('data:', data);
-      console.log('organizationScore:', organizationScore);
       return data;
     },
     reportCols() {
@@ -1063,8 +1060,6 @@ export default {
   watch: {
     reportData: function() {
       // 获取需要合并的数据
-      this.spanArr = this.getSpanArr();
-      this.categorySpanArr = this.getCategorySpanArr();
       this.deptNameSpanArr = this.getDeptNameSpanArr();
     }
   },
@@ -1091,54 +1086,6 @@ export default {
           date: JSON.stringify(this.currentDate)
         }
       });
-    },
-    getSpanArr() {
-      let arr = [];
-      let pos = 0;
-      let index = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-          this.reportData[i].nameIndex = index;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.reportData[i].name === this.reportData[i - 1].name) {
-            arr[pos] += 1;
-            arr.push(0);
-            this.reportData[i].nameIndex = index;
-          } else {
-            arr.push(1);
-            pos = i;
-            index++;
-            this.reportData[i].nameIndex = index;
-          }
-        }
-      }
-      return arr;
-    },
-    getCategorySpanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (
-            this.reportData[i].name === this.reportData[i - 1].name &&
-            this.reportData[i].typeId === this.reportData[i - 1].typeId
-          ) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
     },
     getDeptNameSpanArr() {
       let arr = [];
@@ -1207,21 +1154,8 @@ export default {
         });
     },
     objectSpanMethod({column, rowIndex}) {
-      if (column.property === 'typeName') {
-        const _row = this.categorySpanArr[rowIndex];
-        const _col = _row > 0 ? 1 : 0;
-        return {rowspan: _row, colspan: _col};
-      }
       if (column.property === 'deptName') {
         const _row = this.deptNameSpanArr[rowIndex];
-        const _col = _row > 0 ? 1 : 0;
-        return {rowspan: _row, colspan: _col};
-      }
-      if (
-        column.property !== 'workPointName' &&
-        column.property !== 'scoreFormat'
-      ) {
-        const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
       }
