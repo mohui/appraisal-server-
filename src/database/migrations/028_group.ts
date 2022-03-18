@@ -275,15 +275,6 @@ export class GroupMigration implements IMigration {
 
     // 3.1 构造area表
     // 3.1.1 同步区级及以上的地区数据
-    // language=PostgreSQL
-    const regions = await client.execute(
-      `
-        select code, name, parent
-        from region
-        where level < 4
-        order by level
-      `
-    );
     // await Promise.all(regions.map(region => AreaModel.upsert(region)));
     debug('3.1.1 同步区级及以上的地区数据');
 
