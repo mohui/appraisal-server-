@@ -346,107 +346,6 @@
         <el-table
           id="reportTable"
           :data="reportData"
-          :span-method="objectSpanMethod"
-          class="el-table-medical-performance-report"
-          :cell-class-name="tableCellClassName"
-          height="70vh"
-          size="mini"
-          border
-          :header-cell-style="{textAlign: 'center'}"
-          :cell-style="{textAlign: 'center'}"
-        >
-          <el-table-column
-            property="deptName"
-            label="科室"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="name"
-            label="姓名"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="typeName"
-            label="工分项分类"
-            min-width="120"
-          />
-          <el-table-column
-            property="workPointName"
-            label="工分项"
-            min-width="150"
-          ></el-table-column>
-          <el-table-column
-            property="scoreFormat"
-            label="项目得分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="scoreTotal"
-            label="校正前总分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="rateFormat"
-            label="质量系数"
-            min-width="100"
-          ></el-table-column>
-          <el-table-column
-            property="afterCorrectionScore"
-            label="校正后总分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="extra"
-            label="附加分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="totalScore"
-            label="总得分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="amount"
-            label="金额"
-            min-width="120"
-          ></el-table-column>
-        </el-table>
-      </el-dialog>
-      <el-dialog
-        title="报表"
-        :visible.sync="dialogStaffTableVisible2"
-        width="90%"
-        top="10vh"
-      >
-        <div slot="title" class="dialog-header">
-          <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
-          <el-input
-            size="mini"
-            style="width: 200px"
-            placeholder="请输入金额"
-            v-model="amount"
-            @input="handleAmountChange"
-          ></el-input>
-          <el-button
-            type="primary"
-            size="mini"
-            style="margin-left: 20px"
-            @click="
-              exportReport(
-                'reportTable',
-                overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
-              )
-            "
-            >导出
-          </el-button>
-          <div style="margin-left: 20px">
-            绩效考核月份: {{ currentDate.$format('YYYY-MM') }}
-          </div>
-          <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
-        </div>
-        <el-table
-          id="reportTable2"
-          :data="reportData1"
           class="el-table-medical-performance-report"
           :cell-class-name="tableCellClassName"
           height="70vh"
@@ -544,12 +443,10 @@ export default {
           );
         }
       },
-      dialogStaffTableVisible: false,
-      dialogStaffTableVisible2: true,
       amount: null,
-      originalReportData: [],
-      reportData: [],
+      reportSeverData: {cols: [], data: []},
       reportDataLoading: false,
+      dialogStaffTableVisible: false,
       spanArr: [],
       categorySpanArr: [],
       deptNameSpanArr: [],
@@ -879,7 +776,7 @@ export default {
       }
       return null;
     },
-    reportData1() {
+    reportData() {
       // 机构总分
       let organizationScore = 0;
       let data = this.reportSeverData['data'];
@@ -1163,16 +1060,6 @@ export default {
       default() {
         return {};
       }
-    },
-
-    // 报表数据
-    reportSeverData: {
-      async get() {
-        return await this.$api.HisHospital.report2(this.currentDate);
-      },
-      default() {
-        return {cols: [], data: []};
-      }
     }
   },
   watch: {
@@ -1189,12 +1076,8 @@ export default {
         this.currentDate = new Date(JSON.parse(route.query.date));
     },
     async handleClickReport() {
-      await this.reportDataRequest();
-      this.handleReportData();
-    },
-    async reportDataRequest() {
       this.reportDataLoading = true;
-      this.originalReportData = await this.$api.HisHospital.report(
+      this.reportSeverData = await this.$api.HisHospital.report2(
         this.currentDate
       );
       this.reportDataLoading = false;
@@ -1210,95 +1093,6 @@ export default {
           date: JSON.stringify(this.currentDate)
         }
       });
-    },
-    // 报表数据处理
-    handleReportData() {
-      this.originalReportData = this.originalReportData
-        .map(it => {
-          it.items
-            .sort((a, b) => {
-              if (a['typeId'] != b['typeId']) {
-                return a['typeId']?.localeCompare(b['typeId']);
-              }
-            })
-            //根据order排序
-            .sort((a, b) => a.order - b.order);
-          return it;
-        })
-        .sort((a, b) => {
-          if (a['deptName'] != b['deptName']) {
-            return a['deptName']?.localeCompare(b['deptName']);
-          }
-        });
-      const result = [];
-      if (this.originalReportData) {
-        // 机构总分
-        let organizationScore = 0;
-        for (const i of this.originalReportData) {
-          // 累加各员工校正后工分
-          organizationScore += i.items.reduce(
-            (prev, curr) => prev + curr.score * (i.rate || 1),
-            0
-          );
-          // 累加各员工附加分
-          organizationScore += i.extra || 0;
-          if (i.items.length > 0) {
-            // 校正前总工分（所有工分项之和）
-            const sumScore = i.items.reduce(
-              (prev, curr) => prev + curr.score,
-              0
-            );
-            for (const it of i.items) {
-              const item = {};
-              item.name = i.name;
-              item.deptName = i.deptName;
-              item.day = i.day;
-              item.rate = i.rate || 1;
-              item.rateFormat = Number((item.rate * 100).toFixed(2)) + '%';
-              item.extra = i.extra;
-              item.workPointName = it.name;
-              // 校正前工分（单个工分项）
-              item.score = it.score;
-              item.scoreFormat = Number(it.score.toFixed(2));
-              //校正前总得分
-              item.scoreTotal = Number(sumScore.toFixed(2));
-              // 校正后总工分
-              item.afterCorrectionScore = Number(
-                (sumScore * item.rate).toFixed(2)
-              );
-              // 总得分
-              item.totalScore = item.afterCorrectionScore + item.extra;
-              item.typeId = it.typeId;
-              item.typeName = it.typeName || '-';
-              item.updated_at = it.updated_at;
-              result.push(item);
-            }
-          } else {
-            const item = {};
-            item.name = i.name;
-            item.deptName = i.deptName;
-            item.day = i.day;
-            item.rate = i.rate;
-            item.rateFormat = item.rate * 100 + '%';
-            item.extra = i.extra;
-            // 总得分
-            item.totalScore = item.extra;
-            result.push(item);
-          }
-        }
-        for (const i of result) {
-          // 员工总得分在机构中所占比例
-          i.proportion = (i.totalScore || 0) / organizationScore;
-          // 所得金额
-          i.amount = Number((this.amount * i.proportion).toFixed(2));
-        }
-      }
-      this.reportData = result;
-    },
-    // 金额改变时
-    handleAmountChange() {
-      // 报表数据更新
-      this.handleReportData();
     },
     getSpanArr() {
       let arr = [];
