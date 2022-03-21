@@ -315,6 +315,10 @@ export default class HisHospital {
           current
         ) => {
           for (const item of current.items) {
+            // 分类id和name赋默认值
+            item.typeId = item?.typeId ?? '其他(未分类)';
+            item.typeName = item?.typeName ?? '其他(未分类)';
+            // 匹配分类
             const category = result.find(it => it.id === item.typeId);
             if (category) {
               const record = category.children.find(it => it.id === item.id);
@@ -386,10 +390,10 @@ export default class HisHospital {
       await appDB.execute(
         //language=PostgreSQL
         `
-        select code, enabled
-        from his_setting
-        where hospital = ?
-      `,
+          select code, enabled
+          from his_setting
+          where hospital = ?
+        `,
         hospital
       )
     ).reduce((result, current) => {
