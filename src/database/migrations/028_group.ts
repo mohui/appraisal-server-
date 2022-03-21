@@ -275,64 +275,9 @@ export class GroupMigration implements IMigration {
 
     // 3.1 构造area表
     // 3.1.1 同步区级及以上的地区数据
-    // language=PostgreSQL
-    const regions = await client.execute(
-      `
-        select code, name, parent
-        from region
-        where level < 4
-        order by level
-      `
-    );
     // await Promise.all(regions.map(region => AreaModel.upsert(region)));
     debug('3.1.1 同步区级及以上的地区数据');
 
-    // 同步中心层
-    // language=PostgreSQL
-    const centers: {
-      u_id: string;
-      id: string;
-      name: string;
-      region: string;
-    }[] = await client.execute(
-      `
-        select h.id, h.name as name, hm.u_id, foo.region
-        from hospital h
-               inner join (
-          select h1.id, r.code as region
-          from hospital h1
-                 inner join region r on h1.region = r.code and r.level = 3
-        ) foo on h.parent = foo.id
-               inner join hospital_mapping hm on hm.h_id = h.id
-      `
-    );
-    for (const center of centers) {
-      // 同步中心层
-      // await AreaModel.upsert({
-      //   code: center.u_id,
-      //   name: center.name,
-      //   parent: center.region
-      // });
-      // // 同步一级机构
-      // await AreaModel.upsert({
-      //   code: center.id,
-      //   name: center.name,
-      //   parent: center.u_id
-      // });
-      // 同步二级机构
-      const hospitals: {code: string; name: string}[] = await client.execute(
-        `select id as code, name from hospital where parent = ?`,
-        center.id
-      );
-      // await Promise.all(
-      //   hospitals.map(it =>
-      //     AreaModel.upsert({
-      //       ...it,
-      //       parent: center.u_id
-      //     })
-      //   )
-      // );
-    }
     debug('3.1.2 中心层及机构');
 
     // 3.2 迁移考核相关数据
@@ -397,25 +342,6 @@ export class GroupMigration implements IMigration {
     //   )
     // );
     // console.log('3.2.4 考核历史');
-
-    // 用户表添加area字段
-    await client.execute(
-      `
-        alter table "user"
-          add column if not exists area varchar (36);
-        -- 清理用户表region字段不合理的数
-        delete
-        from "user"
-        where id in (
-          select u.id
-          from "user" u
-                 left join user_hospital_mapping uhm on u.id = uhm.user_id
-                 inner join region r on u.region = r.code
-          where uhm.hospital_id is null
-            and r.level > 3
-        );
-      `
-    );
 
     // // 补充用户area值
     // const userHospitals = await UserHospitalModel.findAll();
