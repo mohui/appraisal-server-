@@ -3,11 +3,13 @@
     <div v-hidden-scroll>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
-        <div
-          class="header"
-          v-loading="$asyncComputed.overviewServerData.updating"
-        >
-          <div class="header-title">{{ overviewData.name }}绩效考核</div>
+        <div class="header">
+          <div
+            v-loading="$asyncComputed.overviewServerData.updating"
+            class="header-title"
+          >
+            {{ overviewData.name }}绩效考核
+          </div>
           <div>
             <el-date-picker
               v-model="currentDate"
