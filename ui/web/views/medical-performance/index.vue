@@ -297,7 +297,10 @@
             <div class="workbench-header">
               系统配置
             </div>
-            <div class="content">
+            <div
+              v-loading="$asyncComputed.hisSettingSeverData.updating"
+              class="content"
+            >
               <div
                 v-for="(value, key) in hisSettingSeverData"
                 :key="key"
@@ -1594,7 +1597,8 @@ export default {
 
 .workbench-container {
   height: 60vh;
-
+  display: flex;
+  flex-direction: column;
   .workbench-header {
     height: 40px;
     line-height: 40px;
@@ -1605,6 +1609,7 @@ export default {
   }
 
   .content {
+    flex: 1;
     color: #3a3f62;
     font-size: 15px;
     .cell {
