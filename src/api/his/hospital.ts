@@ -326,7 +326,11 @@ export default class HisHospital {
                 category.children.push({id: item.id, name: item.name});
               }
             } else {
-              result.push({id: item.typeId, name: item.typeName, children: []});
+              result.push({
+                id: item.typeId,
+                name: item.typeName,
+                children: [{id: item.id, name: item.name}]
+              });
             }
           }
 
