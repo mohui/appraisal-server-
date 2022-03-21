@@ -311,12 +311,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-dialog
-        title="报表"
-        :visible.sync="dialogStaffTableVisible"
-        width="90%"
-        top="10vh"
-      >
+      <el-dialog :visible.sync="dialogStaffTableVisible" width="90%" top="10vh">
         <div slot="title" class="dialog-header">
           <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
           <el-input
@@ -331,11 +326,18 @@
             style="margin-left: 20px"
             @click="
               exportReport(
-                'reportTable',
+                [reportTypeOption.SUMMARY, reportTypeOption.DETAIL],
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
             >导出
+          </el-button>
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="handleClickReportType"
+            >{{ this.ReportTypeText }}
           </el-button>
           <div style="margin-left: 20px">
             绩效考核月份: {{ currentDate.$format('YYYY-MM') }}
@@ -343,7 +345,70 @@
           <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
         </div>
         <el-table
-          id="reportTable"
+          v-show="reportType === reportTypeOption.SUMMARY"
+          :id="reportTypeOption.SUMMARY"
+          :data="reportData"
+          :span-method="objectSpanMethod"
+          class="el-table-medical-performance-report"
+          :cell-class-name="tableCellClassName"
+          height="70vh"
+          size="mini"
+          border
+          :header-cell-style="{textAlign: 'center'}"
+          :cell-style="{textAlign: 'center'}"
+        >
+          <el-table-column
+            property="deptName"
+            label="科室"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="name"
+            label="姓名"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            v-for="it of reportCols"
+            :key="it.id"
+            :property="it.id"
+            :label="it.name"
+            min-width="120"
+          >
+          </el-table-column>
+          <el-table-column
+            property="sumScoreFormat"
+            label="校正前总分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="rateFormat"
+            label="质量系数"
+            min-width="100"
+          ></el-table-column>
+          <el-table-column
+            property="correctionSumScoreFormat"
+            label="校正后总分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="extra"
+            label="附加分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="totalScoreFormat"
+            label="总得分"
+            min-width="120"
+          ></el-table-column>
+          <el-table-column
+            property="amount"
+            label="金额"
+            min-width="120"
+          ></el-table-column>
+        </el-table>
+        <el-table
+          v-show="reportType === reportTypeOption.DETAIL"
+          :id="reportTypeOption.DETAIL"
           :data="reportData"
           :span-method="objectSpanMethod"
           class="el-table-medical-performance-report"
@@ -444,6 +509,12 @@ export default {
         }
       },
       amount: null,
+      reportTypeOption: {
+        SUMMARY: '汇总',
+        DETAIL: '明细'
+      },
+      // 报表类型 summary、detail
+      reportType: '汇总',
       reportSeverData: {cols: [], data: []},
       reportDataLoading: false,
       dialogStaffTableVisible: false,
@@ -820,6 +891,11 @@ export default {
     },
     reportCols() {
       return this.reportSeverData['cols'];
+    },
+    ReportTypeText() {
+      return this.reportType === this.reportTypeOption.SUMMARY
+        ? this.reportTypeOption.DETAIL
+        : this.reportTypeOption.SUMMARY;
     }
   },
   asyncComputed: {
@@ -1076,6 +1152,13 @@ export default {
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
     },
+    // 切换报表类型
+    handleClickReportType() {
+      this.reportType =
+        this.reportType === this.reportTypeOption.SUMMARY
+          ? this.reportTypeOption.DETAIL
+          : this.reportTypeOption.SUMMARY;
+    },
     // 跳转到员工详情页
     onGotoStaffDetail(id, area) {
       this.$router.push({
@@ -1162,18 +1245,14 @@ export default {
     },
     // 导出报表
     // id为要导出的table节点id（父节点也可以），title是导出的表格文件名
-    exportReport(id, title) {
-      // 判断要导出的节点中是否有fixed的表格，如果有，转换excel时先将该dom移除，然后append回去，
-      const fix = document.querySelector('.el-table__fixed');
-      let wb;
-      if (fix) {
-        wb = XLSX.utils.table_to_book(
-          document.getElementById(id).removeChild(fix)
-        );
-        document.querySelector(id).appendChild(fix);
-      } else {
-        wb = XLSX.utils.table_to_book(document.getElementById(id));
+    exportReport(ids, title) {
+      // create new workbook
+      const wb = XLSX.utils.book_new();
+      for (const id of ids) {
+        const ws = XLSX.utils.table_to_sheet(document.getElementById(id));
+        XLSX.utils.book_append_sheet(wb, ws, id);
       }
+
       const wbOut = XLSX.write(wb, {
         bookType: 'xlsx',
         bookSST: true,
