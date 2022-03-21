@@ -326,7 +326,7 @@
             style="margin-left: 20px"
             @click="
               exportReport(
-                [reportTypeOption.SUMMARY, reportTypeOption.DETAIL],
+                reportTypeOptions,
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
@@ -345,8 +345,10 @@
           <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
         </div>
         <el-table
-          v-show="reportType === reportTypeOption.SUMMARY"
-          :id="reportTypeOption.SUMMARY"
+          v-for="id of this.reportTypeOptions"
+          :key="id"
+          v-show="reportType === id"
+          :id="id"
           :data="reportData"
           :span-method="objectSpanMethod"
           class="el-table-medical-performance-report"
@@ -374,75 +376,15 @@
             :label="it.name"
             min-width="120"
           >
-          </el-table-column>
-          <el-table-column
-            property="sumScoreFormat"
-            label="校正前总分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="rateFormat"
-            label="质量系数"
-            min-width="100"
-          ></el-table-column>
-          <el-table-column
-            property="correctionSumScoreFormat"
-            label="校正后总分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="extra"
-            label="附加分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="totalScoreFormat"
-            label="总得分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="amount"
-            label="金额"
-            min-width="120"
-          ></el-table-column>
-        </el-table>
-        <el-table
-          v-show="reportType === reportTypeOption.DETAIL"
-          :id="reportTypeOption.DETAIL"
-          :data="reportData"
-          :span-method="objectSpanMethod"
-          class="el-table-medical-performance-report"
-          :cell-class-name="tableCellClassName"
-          height="70vh"
-          size="mini"
-          border
-          :header-cell-style="{textAlign: 'center'}"
-          :cell-style="{textAlign: 'center'}"
-        >
-          <el-table-column
-            property="deptName"
-            label="科室"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="name"
-            label="姓名"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            v-for="it of reportCols"
-            :key="it.id"
-            :property="it.id"
-            :label="it.name"
-            min-width="120"
-          >
-            <el-table-column
-              v-for="item of it.children"
-              :key="item.id"
-              :property="item.id"
-              :label="item.name"
-              min-width="120"
-            />
+            <div v-if="id === reportTypeOption.DETAIL">
+              <el-table-column
+                v-for="item of it.children"
+                :key="item.id"
+                :property="item.id"
+                :label="item.name"
+                min-width="120"
+              />
+            </div>
           </el-table-column>
           <el-table-column
             property="sumScoreFormat"
@@ -493,6 +435,10 @@ import {getTimeRange} from '../../../../common/his.ts';
 export default {
   name: 'index',
   data() {
+    const reportTypeOption = {
+      SUMMARY: '汇总',
+      DETAIL: '明细'
+    };
     return {
       currentDate: dayjs()
         .startOf('M')
@@ -509,12 +455,10 @@ export default {
         }
       },
       amount: null,
-      reportTypeOption: {
-        SUMMARY: '汇总',
-        DETAIL: '明细'
-      },
-      // 报表类型 summary、detail
-      reportType: '汇总',
+      reportTypeOption: reportTypeOption,
+      reportTypeOptions: [reportTypeOption.SUMMARY, reportTypeOption.DETAIL],
+      // 报表类型
+      reportType: reportTypeOption.SUMMARY,
       reportSeverData: {cols: [], data: []},
       reportDataLoading: false,
       dialogStaffTableVisible: false,
@@ -1232,7 +1176,7 @@ export default {
         .catch(() => {
           this.$message({
             type: 'info',
-            message: '已取消删除'
+            message: '已取消'
           });
         });
     },
@@ -1252,7 +1196,6 @@ export default {
         const ws = XLSX.utils.table_to_sheet(document.getElementById(id));
         XLSX.utils.book_append_sheet(wb, ws, id);
       }
-
       const wbOut = XLSX.write(wb, {
         bookType: 'xlsx',
         bookSST: true,
