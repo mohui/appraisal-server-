@@ -3,11 +3,13 @@
     <div v-hidden-scroll>
       <!--顶部表头-->
       <el-card v-sticky shadow="never">
-        <div
-          class="header"
-          v-loading="$asyncComputed.overviewServerData.updating"
-        >
-          <div class="header-title">{{ overviewData.name }}绩效考核</div>
+        <div class="header">
+          <div
+            v-loading="$asyncComputed.overviewServerData.updating"
+            class="header-title"
+          >
+            {{ overviewData.name }}绩效考核
+          </div>
           <div>
             <el-date-picker
               v-model="currentDate"
@@ -295,7 +297,10 @@
             <div class="workbench-header">
               系统配置
             </div>
-            <div class="content">
+            <div
+              v-loading="$asyncComputed.hisSettingSeverData.updating"
+              class="content"
+            >
               <div
                 v-for="(value, key) in hisSettingSeverData"
                 :key="key"
@@ -1592,7 +1597,8 @@ export default {
 
 .workbench-container {
   height: 60vh;
-
+  display: flex;
+  flex-direction: column;
   .workbench-header {
     height: 40px;
     line-height: 40px;
@@ -1603,6 +1609,7 @@ export default {
   }
 
   .content {
+    flex: 1;
     color: #3a3f62;
     font-size: 15px;
     .cell {
