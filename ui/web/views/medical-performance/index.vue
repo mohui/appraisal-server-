@@ -372,10 +372,12 @@
           <el-table-column
             v-for="it of reportCols"
             :key="it.id"
-            :property="it.id"
             :label="it.name"
             min-width="120"
           >
+            <template v-if="id === reportTypeOption.SUMMARY" slot-scope="scope">
+              {{ scope.row[it.id] | decimalFormat }}
+            </template>
             <div v-if="id === reportTypeOption.DETAIL">
               <el-table-column
                 v-for="item of it.children"
@@ -383,7 +385,11 @@
                 :property="item.id"
                 :label="item.name"
                 min-width="120"
-              />
+              >
+                <template slot-scope="scope">
+                  {{ scope.row[item.id] | decimalFormat }}
+                </template>
+              </el-table-column>
             </div>
           </el-table-column>
           <el-table-column
@@ -805,6 +811,7 @@ export default {
           // 质量系数
           it.rate = it.rate || 1;
           it.rateFormat = Number((it.rate * 100).toFixed(2)) + '%';
+          it.scoreFormat = Number(it.score?.toFixed(2));
           // 员工项目总计计 校正前总得分
           it.sumScore = it.items.reduce((prev, curr) => prev + curr.score, 0);
           it.sumScoreFormat = Number(it.sumScore?.toFixed(2));
@@ -1081,6 +1088,14 @@ export default {
     reportData: function() {
       // 获取需要合并的数据
       this.deptNameSpanArr = this.getDeptNameSpanArr();
+    }
+  },
+  filters: {
+    // 小数值保留两位小数
+    decimalFormat(value) {
+      if (value) {
+        return Number(value.toFixed(2));
+      }
     }
   },
   methods: {
