@@ -1110,7 +1110,7 @@ export default {
     },
     async handleClickReport() {
       this.reportDataLoading = true;
-      this.reportSeverData = await this.$api.HisHospital.report2(
+      this.reportSeverData = await this.$api.HisHospital.report(
         this.currentDate
       );
       this.reportDataLoading = false;
