@@ -316,12 +316,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-dialog
-        title="报表"
-        :visible.sync="dialogStaffTableVisible"
-        width="90%"
-        top="10vh"
-      >
+      <el-dialog :visible.sync="dialogStaffTableVisible" width="90%" top="10vh">
         <div slot="title" class="dialog-header">
           <div style="width: 40px; color: #606266; font-size: 14px">金额:</div>
           <el-input
@@ -329,7 +324,6 @@
             style="width: 200px"
             placeholder="请输入金额"
             v-model="amount"
-            @input="handleAmountChange"
           ></el-input>
           <el-button
             type="primary"
@@ -337,11 +331,18 @@
             style="margin-left: 20px"
             @click="
               exportReport(
-                'reportTable',
+                reportTypeOptions,
                 overviewData.name + currentDate.$format('YYYY-MM') + '报表.xlsx'
               )
             "
             >导出
+          </el-button>
+          <el-button
+            type="primary"
+            size="mini"
+            style="margin-left: 20px"
+            @click="handleClickReportType"
+            >{{ this.ReportTypeText }}
           </el-button>
           <div style="margin-left: 20px">
             绩效考核月份: {{ currentDate.$format('YYYY-MM') }}
@@ -349,7 +350,10 @@
           <div style="margin-left: 20px;">计算时间: {{ computingTime }}</div>
         </div>
         <el-table
-          id="reportTable"
+          v-for="id of this.reportTypeOptions"
+          :key="id"
+          v-show="reportType === id"
+          :id="id"
           :data="reportData"
           :span-method="objectSpanMethod"
           class="el-table-medical-performance-report"
@@ -371,22 +375,30 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
-            property="typeName"
-            label="工分项分类"
+            v-for="it of reportCols"
+            :key="it.id"
+            :label="it.name"
             min-width="120"
-          />
+          >
+            <template v-if="id === reportTypeOption.SUMMARY" slot-scope="scope">
+              {{ scope.row[it.id] | decimalFormat }}
+            </template>
+            <div v-if="id === reportTypeOption.DETAIL">
+              <el-table-column
+                v-for="item of it.children"
+                :key="item.id"
+                :property="item.id"
+                :label="item.name"
+                min-width="120"
+              >
+                <template slot-scope="scope">
+                  {{ scope.row[item.id] | decimalFormat }}
+                </template>
+              </el-table-column>
+            </div>
+          </el-table-column>
           <el-table-column
-            property="workPointName"
-            label="工分项"
-            min-width="150"
-          ></el-table-column>
-          <el-table-column
-            property="scoreFormat"
-            label="项目得分"
-            min-width="120"
-          ></el-table-column>
-          <el-table-column
-            property="scoreTotal"
+            property="sumScoreFormat"
             label="校正前总分"
             min-width="120"
           ></el-table-column>
@@ -396,7 +408,7 @@
             min-width="100"
           ></el-table-column>
           <el-table-column
-            property="afterCorrectionScore"
+            property="correctionSumScoreFormat"
             label="校正后总分"
             min-width="120"
           ></el-table-column>
@@ -406,7 +418,7 @@
             min-width="120"
           ></el-table-column>
           <el-table-column
-            property="totalScore"
+            property="totalScoreFormat"
             label="总得分"
             min-width="120"
           ></el-table-column>
@@ -434,6 +446,10 @@ import {getTimeRange} from '../../../../common/his.ts';
 export default {
   name: 'index',
   data() {
+    const reportTypeOption = {
+      SUMMARY: '汇总',
+      DETAIL: '明细'
+    };
     return {
       currentDate: dayjs()
         .startOf('M')
@@ -449,13 +465,14 @@ export default {
           );
         }
       },
-      dialogStaffTableVisible: false,
       amount: null,
-      originalReportData: [],
-      reportData: [],
+      reportTypeOption: reportTypeOption,
+      reportTypeOptions: [reportTypeOption.SUMMARY, reportTypeOption.DETAIL],
+      // 报表类型
+      reportType: reportTypeOption.SUMMARY,
+      reportSeverData: {cols: [], data: []},
       reportDataLoading: false,
-      spanArr: [],
-      categorySpanArr: [],
+      dialogStaffTableVisible: false,
       deptNameSpanArr: [],
       //员工工作量：workPoint， 质量系数：rate
       staffFlag: 'workPoint',
@@ -774,14 +791,67 @@ export default {
         }
       ];
     },
-    // 报表弹窗计算时间
+    // 报表计算时间
     computingTime() {
-      for (const it of this.reportData) {
-        if (it.updated_at) {
-          return it.updated_at.$format('YYYY-MM-DD HH:mm');
-        }
+      const it = this.reportData.find(it => it.items.length > 0);
+      if (it?.items) {
+        return it.items[0].updated_at.$format('YYYY-MM-DD HH:mm');
       }
       return null;
+    },
+    reportData() {
+      // 机构总分
+      let organizationScore = 0;
+      let data = this.reportSeverData['data'];
+      data = data
+        .map(it => {
+          it.items
+            .sort((a, b) => {
+              if (a['typeId'] != b['typeId']) {
+                return a['typeId']?.localeCompare(b['typeId']);
+              }
+            })
+            //根据order排序
+            .sort((a, b) => a.order - b.order);
+          // 质量系数
+          it.rate = it.rate || 1;
+          it.rateFormat = Number((it.rate * 100).toFixed(2)) + '%';
+          it.scoreFormat = Number(it.score?.toFixed(2));
+          // 员工项目总计计 校正前总得分
+          it.sumScore = it.items.reduce((prev, curr) => prev + curr.score, 0);
+          it.sumScoreFormat = Number(it.sumScore?.toFixed(2));
+          // 员工项目总计计 校正后总得分
+          it.correctionSumScore = it.sumScore * it.rate;
+          it.correctionSumScoreFormat = Number(
+            it.correctionSumScore?.toFixed(2)
+          );
+          // 员工总得分
+          it.totalScore = it.correctionSumScore + (it.extra || 0);
+          it.totalScoreFormat = Number(it.totalScore?.toFixed(2));
+          // 累加员工得分得到机构总分
+          organizationScore += it.totalScore;
+          return it;
+        })
+        .sort((a, b) => {
+          if (a['deptName'] != b['deptName']) {
+            return a['deptName']?.localeCompare(b['deptName']);
+          }
+        });
+      for (const i of data) {
+        // 员工总得分在机构中所占比例
+        i.proportion = (i.totalScore || 0) / organizationScore;
+        // 所得金额
+        i.amount = Number((this.amount * i.proportion).toFixed(2));
+      }
+      return data;
+    },
+    reportCols() {
+      return this.reportSeverData['cols'];
+    },
+    ReportTypeText() {
+      return this.reportType === this.reportTypeOption.SUMMARY
+        ? this.reportTypeOption.DETAIL
+        : this.reportTypeOption.SUMMARY;
     }
   },
   asyncComputed: {
@@ -1022,9 +1092,15 @@ export default {
   watch: {
     reportData: function() {
       // 获取需要合并的数据
-      this.spanArr = this.getSpanArr();
-      this.categorySpanArr = this.getCategorySpanArr();
       this.deptNameSpanArr = this.getDeptNameSpanArr();
+    }
+  },
+  filters: {
+    // 小数值保留两位小数
+    decimalFormat(value) {
+      if (value) {
+        return Number(value.toFixed(2));
+      }
     }
   },
   methods: {
@@ -1033,16 +1109,19 @@ export default {
         this.currentDate = new Date(JSON.parse(route.query.date));
     },
     async handleClickReport() {
-      await this.reportDataRequest();
-      this.handleReportData();
-    },
-    async reportDataRequest() {
       this.reportDataLoading = true;
-      this.originalReportData = await this.$api.HisHospital.report(
+      this.reportSeverData = await this.$api.HisHospital.report2(
         this.currentDate
       );
       this.reportDataLoading = false;
       this.dialogStaffTableVisible = true;
+    },
+    // 切换报表类型
+    handleClickReportType() {
+      this.reportType =
+        this.reportType === this.reportTypeOption.SUMMARY
+          ? this.reportTypeOption.DETAIL
+          : this.reportTypeOption.SUMMARY;
     },
     // 跳转到员工详情页
     onGotoStaffDetail(id, area) {
@@ -1054,143 +1133,6 @@ export default {
           date: JSON.stringify(this.currentDate)
         }
       });
-    },
-    // 报表数据处理
-    handleReportData() {
-      this.originalReportData = this.originalReportData
-        .map(it => {
-          it.items
-            .sort((a, b) => {
-              if (a['typeId'] != b['typeId']) {
-                return a['typeId']?.localeCompare(b['typeId']);
-              }
-            })
-            //根据order排序
-            .sort((a, b) => a.order - b.order);
-          return it;
-        })
-        .sort((a, b) => {
-          if (a['deptName'] != b['deptName']) {
-            return a['deptName']?.localeCompare(b['deptName']);
-          }
-        });
-      const result = [];
-      if (this.originalReportData) {
-        // 机构总分
-        let organizationScore = 0;
-        for (const i of this.originalReportData) {
-          // 累加各员工校正后工分
-          organizationScore += i.items.reduce(
-            (prev, curr) => prev + curr.score * (i.rate || 1),
-            0
-          );
-          // 累加各员工附加分
-          organizationScore += i.extra || 0;
-          if (i.items.length > 0) {
-            // 校正前总工分（所有工分项之和）
-            const sumScore = i.items.reduce(
-              (prev, curr) => prev + curr.score,
-              0
-            );
-            for (const it of i.items) {
-              const item = {};
-              item.name = i.name;
-              item.deptName = i.deptName;
-              item.day = i.day;
-              item.rate = i.rate || 1;
-              item.rateFormat = Number((item.rate * 100).toFixed(2)) + '%';
-              item.extra = i.extra;
-              item.workPointName = it.name;
-              // 校正前工分（单个工分项）
-              item.score = it.score;
-              item.scoreFormat = Number(it.score.toFixed(2));
-              //校正前总得分
-              item.scoreTotal = Number(sumScore.toFixed(2));
-              // 校正后总工分
-              item.afterCorrectionScore = Number(
-                (sumScore * item.rate).toFixed(2)
-              );
-              // 总得分
-              item.totalScore = item.afterCorrectionScore + item.extra;
-              item.typeId = it.typeId;
-              item.typeName = it.typeName || '-';
-              item.updated_at = it.updated_at;
-              result.push(item);
-            }
-          } else {
-            const item = {};
-            item.name = i.name;
-            item.deptName = i.deptName;
-            item.day = i.day;
-            item.rate = i.rate;
-            item.rateFormat = item.rate * 100 + '%';
-            item.extra = i.extra;
-            // 总得分
-            item.totalScore = item.extra;
-            result.push(item);
-          }
-        }
-        for (const i of result) {
-          // 员工总得分在机构中所占比例
-          i.proportion = (i.totalScore || 0) / organizationScore;
-          // 所得金额
-          i.amount = Number((this.amount * i.proportion).toFixed(2));
-        }
-      }
-      this.reportData = result;
-    },
-    // 金额改变时
-    handleAmountChange() {
-      // 报表数据更新
-      this.handleReportData();
-    },
-    getSpanArr() {
-      let arr = [];
-      let pos = 0;
-      let index = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-          this.reportData[i].nameIndex = index;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (this.reportData[i].name === this.reportData[i - 1].name) {
-            arr[pos] += 1;
-            arr.push(0);
-            this.reportData[i].nameIndex = index;
-          } else {
-            arr.push(1);
-            pos = i;
-            index++;
-            this.reportData[i].nameIndex = index;
-          }
-        }
-      }
-      return arr;
-    },
-    getCategorySpanArr() {
-      let arr = [];
-      let pos = 0;
-      for (let i = 0; i < this.reportData.length; i++) {
-        if (i === 0) {
-          arr.push(1);
-          pos = 0;
-        } else {
-          // 判断当前元素与上一个元素是否相同
-          if (
-            this.reportData[i].name === this.reportData[i - 1].name &&
-            this.reportData[i].typeId === this.reportData[i - 1].typeId
-          ) {
-            arr[pos] += 1;
-            arr.push(0);
-          } else {
-            arr.push(1);
-            pos = i;
-          }
-        }
-      }
-      return arr;
     },
     getDeptNameSpanArr() {
       let arr = [];
@@ -1254,43 +1196,25 @@ export default {
         .catch(() => {
           this.$message({
             type: 'info',
-            message: '已取消删除'
+            message: '已取消'
           });
         });
     },
     objectSpanMethod({column, rowIndex}) {
-      if (column.property === 'typeName') {
-        const _row = this.categorySpanArr[rowIndex];
-        const _col = _row > 0 ? 1 : 0;
-        return {rowspan: _row, colspan: _col};
-      }
       if (column.property === 'deptName') {
         const _row = this.deptNameSpanArr[rowIndex];
-        const _col = _row > 0 ? 1 : 0;
-        return {rowspan: _row, colspan: _col};
-      }
-      if (
-        column.property !== 'workPointName' &&
-        column.property !== 'scoreFormat'
-      ) {
-        const _row = this.spanArr[rowIndex];
         const _col = _row > 0 ? 1 : 0;
         return {rowspan: _row, colspan: _col};
       }
     },
     // 导出报表
     // id为要导出的table节点id（父节点也可以），title是导出的表格文件名
-    exportReport(id, title) {
-      // 判断要导出的节点中是否有fixed的表格，如果有，转换excel时先将该dom移除，然后append回去，
-      const fix = document.querySelector('.el-table__fixed');
-      let wb;
-      if (fix) {
-        wb = XLSX.utils.table_to_book(
-          document.getElementById(id).removeChild(fix)
-        );
-        document.querySelector(id).appendChild(fix);
-      } else {
-        wb = XLSX.utils.table_to_book(document.getElementById(id));
+    exportReport(ids, title) {
+      // create new workbook
+      const wb = XLSX.utils.book_new();
+      for (const id of ids) {
+        const ws = XLSX.utils.table_to_sheet(document.getElementById(id));
+        XLSX.utils.book_append_sheet(wb, ws, id);
       }
       const wbOut = XLSX.write(wb, {
         bookType: 'xlsx',

@@ -242,14 +242,56 @@ export default class HisHospital {
     );
   }
 
-  // 机构详情
+  /**
+   * 报表
+   *
+   * 员工工分项得分结果对象添加动态属性(key: 工分项/工分项分类id, value: 相应的汇总得分)
+   * 并且, 未分类的工分项, 默认分配一个({id: '其他(未分类)', name: '其他(未分类)'})工分项分类
+   * @param month 考核月份
+   * @returns {
+   *   // 报表工分项相关列
+   *   cols: [{
+   *     id: 工分项分类id
+   *     name: 工分项分类名称
+   *     children: [{
+   *       id: 工分项id
+   *       name: 工分项名称
+   *     }]
+   *   }],
+   *   // 报表工分项数据
+   *   data: [{
+   *     id: 员工id,
+   *     name: 员工名称,
+   *     deptId: 科室id,
+   *     deptName: 科室名称,
+   *     rate?: 质量系数
+   *     extra?: 附加分
+   *     items?: [{  工分项得分
+   *       id: 工分项id
+   *       name: 工分项名称
+   *       typeId: 工分项分类id
+   *       typeName: 工分项分类名称
+   *       score?: 得分(校正前得分)
+   *       order: 排序权重
+   *     }],
+   *     day: 打分时间,
+   *     [工分项/工分项分类id]: 得分
+   *   }]
+   * }
+   *
+   */
   @validate(should.date().required())
   async report(month) {
     const staffApi = new HisStaff();
     const hospital = await getHospital();
     // 根据机构id查询员工
     // language=PostgreSQL
-    const staffs = await appDB.execute(
+    const staffs: {
+      id: string;
+      name: string;
+      deptId?: string;
+      deptName?: string;
+    }[] = await appDB.execute(
       `
         select staff.id, staff.name, dept.id "deptId", dept.name "deptName"
         from staff
@@ -259,8 +301,7 @@ export default class HisHospital {
       `,
       hospital
     );
-
-    return await Promise.all(
+    const array = await Promise.all(
       staffs.map(async staffIt => {
         const workScoreList = await staffApi.findWorkScoreList(
           staffIt.id,
@@ -278,6 +319,54 @@ export default class HisHospital {
         };
       })
     );
+    return {
+      cols: array.reduce(
+        (
+          result: {
+            id: string;
+            name: string;
+            children: {id: string; name: string}[];
+          }[],
+          current
+        ) => {
+          for (const item of current.items) {
+            // 分类id和name赋默认值
+            item.typeId = item?.typeId ?? '其他(未分类)';
+            item.typeName = item?.typeName ?? '其他(未分类)';
+            // 匹配分类
+            const category = result.find(it => it.id === item.typeId);
+            if (category) {
+              const record = category.children.find(it => it.id === item.id);
+              if (!record) {
+                category.children.push({id: item.id, name: item.name});
+              }
+            } else {
+              result.push({
+                id: item.typeId,
+                name: item.typeName,
+                children: [{id: item.id, name: item.name}]
+              });
+            }
+          }
+
+          return result;
+        },
+        []
+      ),
+      data: array.map(it => {
+        const items = it.items.reduce((result, current) => {
+          result[current.typeId] =
+            (result[current.typeId] || 0) + current.score;
+          result[current.id] = current.score;
+          return result;
+        }, {});
+
+        return {
+          ...it,
+          ...items
+        };
+      })
+    };
   }
 
   /**
