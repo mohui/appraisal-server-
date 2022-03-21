@@ -299,8 +299,8 @@ export default class SystemRule {
         // 判断是否在可上传时间范围内
         if (ruleTagDateRange) {
           isUploadAttach =
-            dayjs().isAfter(ruleTagDateRange.attachStartDate) &&
-            dayjs().isBefore(ruleTagDateRange.attachEndDate);
+            dayjs().isAfter(ruleIt.ruleTagsAttachStartDate) &&
+            dayjs().isBefore(ruleIt.ruleTagsAttachEndDate);
         }
         // push进数组中
         childRules.push({
