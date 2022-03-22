@@ -913,6 +913,8 @@ export default class HisStaff {
       score: number;
       typeId?: string;
       typeName?: string;
+      order?: number;
+      created_at?: Date;
     }[];
     rate?: number;
   }> {
@@ -932,6 +934,7 @@ export default class HisStaff {
       score: number;
       hospital: string;
       updated_at: Date;
+      created_at?: Date;
     }[] = await appDB.execute(
       `
         select result.item_id   "id",
@@ -941,7 +944,8 @@ export default class HisStaff {
                result."order",
                result.score,
                result.updated_at,
-               item.hospital
+               item.hospital,
+               item.created_at
         from his_staff_work_result result
                left join his_work_item item on result.item_id = item.id
         where result.staff_id = ?
