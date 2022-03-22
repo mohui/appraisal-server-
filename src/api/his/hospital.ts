@@ -247,6 +247,8 @@ export default class HisHospital {
    *
    * 员工工分项得分结果对象添加动态属性(key: 工分项/工分项分类id, value: 相应的汇总得分)
    * 并且, 未分类的工分项, 默认分配一个({id: '其他(未分类)', name: '其他(未分类)'})工分项分类
+   *
+   * 工分项数组根据创建时间排序, 工分项分类根据排序权重排序
    * @param month 考核月份
    * @returns {
    *   // 报表工分项相关列
@@ -319,40 +321,63 @@ export default class HisHospital {
         };
       })
     );
+    const now = new Date();
     return {
-      cols: array.reduce(
-        (
-          result: {
-            id: string;
-            name: string;
-            children: {id: string; name: string}[];
-          }[],
-          current
-        ) => {
-          for (const item of current.items) {
-            // 分类id和name赋默认值
-            item.typeId = item?.typeId ?? '其他(未分类)';
-            item.typeName = item?.typeName ?? '其他(未分类)';
-            // 匹配分类
-            const category = result.find(it => it.id === item.typeId);
-            if (category) {
-              const record = category.children.find(it => it.id === item.id);
-              if (!record) {
-                category.children.push({id: item.id, name: item.name});
+      cols: array
+        .reduce(
+          (
+            result: {
+              id: string;
+              name: string;
+              order?: number;
+              children: {id: string; name: string; created_at?: Date}[];
+            }[],
+            current
+          ) => {
+            for (const item of current.items) {
+              // 分类id和name赋默认值
+              item.typeId = item?.typeId ?? '其他(未分类)';
+              item.typeName = item?.typeName ?? '其他(未分类)';
+              // 匹配分类
+              const category = result.find(it => it.id === item.typeId);
+              if (category) {
+                const record = category.children.find(it => it.id === item.id);
+                if (!record) {
+                  category.children.push({
+                    id: item.id,
+                    name: item.name,
+                    created_at: item.created_at
+                  });
+                }
+              } else {
+                result.push({
+                  order: item.order,
+                  id: item.typeId,
+                  name: item.typeName,
+                  children: [
+                    {id: item.id, name: item.name, created_at: item.created_at}
+                  ]
+                });
               }
-            } else {
-              result.push({
-                id: item.typeId,
-                name: item.typeName,
-                children: [{id: item.id, name: item.name}]
-              });
             }
-          }
 
-          return result;
-        },
-        []
-      ),
+            return result;
+          },
+          []
+        )
+        // 工分项数组根据创建时间排序
+        .map(it => ({
+          ...it,
+          children: it.children.sort(
+            (a, b) =>
+              (a.created_at || now).getTime() - (b.created_at || now).getTime()
+          )
+        }))
+        // 工分项分类根据排序权重排序
+        .sort(
+          (a, b) =>
+            (a.order || Number.MAX_VALUE) - (b.order || Number.MAX_VALUE)
+        ),
       data: array.map(it => {
         const items = it.items.reduce((result, current) => {
           result[current.typeId] =
