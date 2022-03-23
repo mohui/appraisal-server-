@@ -81,4 +81,35 @@ export default class AppWorkItem {
       items: []
     };
   }
+
+  /**
+   * 工作量明细
+   *
+   * @param itemId 公分项id
+   * @param month 时间
+   * @return [{
+   *  itemId: 公分项id,
+   *  itemName: 公分项名称,
+   *  staffId: 员工id,
+   *  staffName: 员工名称,
+   *  type: 类型,
+   *  value: 值,
+   *  date: 时间,
+   * }]
+   */
+  async preview(itemId, month) {
+    return [
+      {
+        date: '2022-03-22T13:32:01.137+08:00',
+        itemId:
+          '门诊.检查项目.1d770e664923b0f1853739fa97245504191c54c9df7d85fa6e52c40e1e42f5e4.d5b67950f33ce068ad1e9e1a072203177ed68e9d54cd33aa7b85f0842da7ce22',
+        itemName: '新型冠状病毒核酸检测',
+        staffId:
+          'd826700a8ec4e9f22821fb3924186a992ea2be9e6a4d5adb3a51883e32cfee61',
+        staffName: '毕德平',
+        type: 'HIS员工',
+        value: '40.00'
+      }
+    ];
+  }
 }
