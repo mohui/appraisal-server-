@@ -10,10 +10,10 @@ async function getHisWorkItemMapping(itemId) {
   return await appDB.execute(
     //language=PostgreSQL
     `
-        select item, source
-        from his_work_item_mapping
-        where item = ?
-      `,
+      select item, source
+      from his_work_item_mapping
+      where item = ?
+    `,
     itemId
   );
 }
@@ -170,16 +170,16 @@ export default class AppWorkItem {
       await appDB.execute(
         // language=PostgreSQL
         `
-        select item.id,
-               item.hospital,
-               item.name,
-               item.method,
-               item.type,
-               item.remark,
-               item.steps
-        from his_work_item item
-        where item.id = ?
-      `,
+          select item.id,
+                 item.hospital,
+                 item.name,
+                 item.method,
+                 item.type,
+                 item.remark,
+                 item.steps
+          from his_work_item item
+          where item.id = ?
+        `,
         itemId
       )
     )[0];
