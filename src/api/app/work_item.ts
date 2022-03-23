@@ -48,20 +48,51 @@ export default class AppWorkItem {
   async detail(itemId, month) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
-    // // region 项目来源
-    // const workItemMappingModels = await appDB.execute(
-    //   //language=PostgreSQL
-    //   `
-    //     select item, source
-    //     from his_work_item_mapping
-    //     where item = ?
-    //   `,
-    //   itemId
-    // );
-    // return workItemMappingModels;
-    // const workItemApi = new HisWorkItem();
-    // // return await workItemApi.sources();
-    // // endregion
+    // region 项目来源
+    /**
+     * 1: 获取所有选中工分项目来源
+     * 2: 获取工分项目树形图
+     * 3: 循环选中的工分项目来源id,递归获取工分项目详情
+     * 4: 递归获取所有的最后一级的工分项目来源
+     */
+    // 所有的children节点
+    const children = [];
+    // 1: 获取所有选中工分项目
+    const mappingModels: {
+      item: string;
+      source: string;
+    }[] = await getHisWorkItemMapping(itemId);
+    if (mappingModels.length > 0) {
+      // 2: 获取工分项目树形图
+      const workItemApi = new HisWorkItem();
+      const sources = await workItemApi.sources();
+      // 所有的子集
+      const itemSources = [];
+      // 3: 循环选中的工分项目来源id,获取工分项目详情
+      for (const mappingIt of mappingModels) {
+        // 递归
+        let currentSources = null;
+        const getTree = function(sources, id) {
+          for (const item of sources) {
+            if (item.id === id) {
+              currentSources = item;
+            } else {
+              if (item.children && item.children.length > 0) {
+                getTree(item.children, id);
+              }
+            }
+          }
+          return currentSources;
+        };
+        const itemSource = await getTree(sources, mappingIt.source);
+        itemSources.push(itemSource);
+      }
+      console.log(itemSources.length);
+      children.push(...itemSources);
+      // // 4: 递归获取所有的最后一级的工分项目来源
+      // return children;
+    }
+    // endregion
 
     // region 工分项
     // 获取所传月份的开始时间 即所在月份的一月一号
@@ -135,7 +166,7 @@ export default class AppWorkItem {
       steps: workItemModel.steps,
       rate: staffItemMappingModel.rate,
       remark: staffItemMappingModel.remark,
-      items: []
+      items: children
     };
   }
 
