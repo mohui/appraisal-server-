@@ -1,8 +1,22 @@
+import HisWorkItem from '../his/work_item';
 import {appDB} from '../../app';
-import {KatoCommonError} from 'kato-server';
+import {KatoCommonError, should, validate} from 'kato-server';
 import {dayToRange, monthToRange} from '../his/service';
 import {Context} from '../context';
 import {UserType} from '../../../common/user';
+import {HisStaffMethod} from '../../../common/his';
+
+async function getHisWorkItemMapping(itemId) {
+  return await appDB.execute(
+    //language=PostgreSQL
+    `
+        select item, source
+        from his_work_item_mapping
+        where item = ?
+      `,
+    itemId
+  );
+}
 
 export default class AppWorkItem {
   async detail(itemId, month) {
@@ -100,19 +114,82 @@ export default class AppWorkItem {
    *  date: 时间,
    * }]
    */
+  @validate(should.string().required(), should.date().required())
   async preview(itemId, month) {
-    return [
-      {
-        date: '2022-03-22T13:32:01.137+08:00',
-        itemId:
-          '门诊.检查项目.1d770e664923b0f1853739fa97245504191c54c9df7d85fa6e52c40e1e42f5e4.d5b67950f33ce068ad1e9e1a072203177ed68e9d54cd33aa7b85f0842da7ce22',
-        itemName: '新型冠状病毒核酸检测',
-        staffId:
-          'd826700a8ec4e9f22821fb3924186a992ea2be9e6a4d5adb3a51883e32cfee61',
-        staffName: '毕德平',
-        type: 'HIS员工',
-        value: '40.00'
-      }
-    ];
+    /**
+     * 1: 根据工分项id查询工分项详情
+     * 1.1: name: 获取公分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
+     * 2: 查询工分项目员工关联表
+     * 2.1: 获取关联员工,取值范围
+     * 3: 获取工分来源
+     */
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能查看');
+    // 1: 根据工分项id查询工分项详情
+    const workItemModel = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+        select item.id,
+               item.hospital,
+               item.name,
+               item.method,
+               item.type,
+               item.remark,
+               item.steps
+        from his_work_item item
+        where item.id = ?
+      `,
+        itemId
+      )
+    )[0];
+    if (!workItemModel) throw new KatoCommonError('该工分项不存在');
+
+    // 2: 查询工分项目员工关联表
+    const workItemStaffMappingModel = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select mapping.id,
+               mapping.item,
+               mapping.source,
+               mapping.type
+        from his_work_item_staff_mapping mapping
+        where mapping.item = ?
+      `,
+      itemId
+    );
+    // 3: 获取工分来源
+    const itemSources: {
+      item: string;
+      source: string;
+    }[] = await getHisWorkItemMapping(itemId);
+    const mappings = itemSources.map(it => it.source);
+
+    // 当是固定的时候,staffs有值,获取绑定的员工或科室
+    const staffs =
+      workItemModel.type === HisStaffMethod.STATIC
+        ? workItemStaffMappingModel.map(it => ({
+            code: it.source,
+            type: it.type
+          }))
+        : [];
+
+    // 动态的时候, 有值,根据状态逆推取值范围
+    const scope =
+      workItemModel.type === HisStaffMethod.DYNAMIC
+        ? workItemStaffMappingModel[0].type
+        : null;
+
+    const workItemApi = new HisWorkItem();
+    return workItemApi.preview(
+      workItemModel.name,
+      workItemModel.method,
+      mappings,
+      workItemModel.type,
+      staffs,
+      scope,
+      Context.current.user.id,
+      month
+    );
   }
 }
