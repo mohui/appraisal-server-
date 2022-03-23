@@ -23,6 +23,7 @@ export default class AppWorkItem {
       order: number;
       score: number;
       updated_at: Date;
+      method: string;
       steps: object;
     } = (
       await appDB.execute(
@@ -35,6 +36,7 @@ export default class AppWorkItem {
                  result."order",
                  result.score,
                  result.updated_at,
+                 item.method,
                  item.steps
           from his_staff_work_result result
                  left join his_work_item item on result.item_id = item.id
@@ -75,6 +77,7 @@ export default class AppWorkItem {
       id: workItemModel.itemId,
       name: workItemModel.itemName,
       score: workItemModel.score,
+      method: workItemModel.method,
       steps: workItemModel.steps,
       rate: staffItemMappingModel.rate,
       remark: staffItemMappingModel.remark,
