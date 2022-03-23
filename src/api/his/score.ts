@@ -858,7 +858,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -894,7 +894,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -932,7 +932,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -962,7 +962,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -995,7 +995,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1027,7 +1027,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1057,7 +1057,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1084,7 +1084,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1122,7 +1122,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1150,7 +1150,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1177,7 +1177,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1215,7 +1215,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1250,7 +1250,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1281,7 +1281,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1313,7 +1313,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1355,7 +1355,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator >= 0 ? numerator / ruleIt.value : 0;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1387,7 +1387,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1436,7 +1436,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1475,7 +1475,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1497,7 +1497,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1527,7 +1527,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1558,7 +1558,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
@@ -1588,7 +1588,7 @@ export default class HisScore {
             score = ruleIt.score;
           }
           // “≥”时得满分，不足按比例得分
-          if (ruleIt.operator === TagAlgorithmUsages.egt.code) {
+          if (ruleIt.operator === TagAlgorithmUsages.egt.code && ruleIt.value) {
             const rate = numerator / ruleIt.value;
             // 指标分数
             score = ruleIt.score * (rate > 1 ? 1 : rate);
