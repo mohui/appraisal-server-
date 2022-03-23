@@ -19,9 +19,49 @@ async function getHisWorkItemMapping(itemId) {
 }
 
 export default class AppWorkItem {
+  /**
+   * 公分项得分,权重
+   *
+   * @param itemId 公分项id
+   * @param month 时间
+   * @return {
+   *     id: 公分项id,
+   *     name: 公分项名称,
+   *     score: 工分项校正前工分,
+   *     steps: 梯度[
+   *         {
+   *             "end": null,
+   *             "unit": 0.06,
+   *             "start": null
+   *         }
+   *     ],
+   *     rate: 权重,
+   *     remark: 备注,
+   *     method: 得分方式; 计数/总和,
+   *     items: 项目来源[{
+   *       id: '来源id',
+   *       name: '来源名称'
+   *     }]
+   * }
+   */
+  @validate(should.string().required(), should.date().required())
   async detail(itemId, month) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
+    // // region 项目来源
+    // const workItemMappingModels = await appDB.execute(
+    //   //language=PostgreSQL
+    //   `
+    //     select item, source
+    //     from his_work_item_mapping
+    //     where item = ?
+    //   `,
+    //   itemId
+    // );
+    // return workItemMappingModels;
+    // const workItemApi = new HisWorkItem();
+    // // return await workItemApi.sources();
+    // // endregion
 
     // region 工分项
     // 获取所传月份的开始时间 即所在月份的一月一号
