@@ -561,12 +561,7 @@ export async function workPointCalculation(
 /**
  * 机构员工工分项目工作量汇总
  */
-export async function hospitalStaffsWorkPointTotal(
-  hospital,
-  start,
-  end,
-  dataSources
-) {
+async function hospitalStaffsWorkPointTotal(hospital, start, end, dataSources) {
   let sql;
 
   //获取门诊CHECK和DRUG工分来源
@@ -706,7 +701,7 @@ where {{dateCol}} >= {{? start}}
  * @param bindings 员工绑定的工分项目关系
  * @param hospitalStaffWorkPointTotal 机构员工工分列表
  */
-export async function scoreStaff(
+async function scoreStaff(
   staffModel,
   day,
   bindings,
