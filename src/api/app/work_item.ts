@@ -116,8 +116,7 @@ export default class AppWorkItem {
     const monthTime = monthToRange(month);
     // 当天的开始时间和结束时间
     const {start, end} = dayToRange(monthTime.start);
-    // 查询工分, 工分只存储在一号
-    const workItemModel: {
+    const staffWorkResultModel: {
       itemId: string;
       itemName: string;
       typeId: string;
@@ -125,8 +124,6 @@ export default class AppWorkItem {
       order: number;
       score: number;
       updated_at: Date;
-      method: string;
-      steps: object;
     } = (
       await appDB.execute(
         // language=PostgreSQL
@@ -137,11 +134,8 @@ export default class AppWorkItem {
                  result.type_name "typeName",
                  result."order",
                  result.score,
-                 result.updated_at,
-                 item.method,
-                 item.steps
+                 result.updated_at
           from his_staff_work_result result
-                 left join his_work_item item on result.item_id = item.id
           where result.item_id = ?
             and result.staff_id = ?
             and result.time >= ?
@@ -151,6 +145,26 @@ export default class AppWorkItem {
         Context.current.user.id,
         start,
         end
+      )
+    )[0];
+    // 查询工分, 工分只存储在一号
+    const workItemModel: {
+      itemId: string;
+      itemName: string;
+      method: string;
+      steps: object;
+    } = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select item.id "itemId",
+                 item.name "itemName",
+                 item.method,
+                 item.steps
+          from his_work_item item
+          where item.id = ?
+        `,
+        itemId
       )
     )[0];
     // endregion
@@ -178,12 +192,15 @@ export default class AppWorkItem {
     return {
       id: workItemModel.itemId,
       name: workItemModel.itemName,
-      score: workItemModel.score,
+      score: staffWorkResultModel?.score ?? null,
       method: workItemModel.method,
       steps: workItemModel.steps,
-      rate: staffItemMappingModel.rate,
-      remark: staffItemMappingModel.remark,
-      items: []
+      rate: staffItemMappingModel?.rate ?? null,
+      remark: staffItemMappingModel?.remark ?? null,
+      items: children.map(it => ({
+        id: it.id,
+        name: it.name
+      }))
     };
   }
 
