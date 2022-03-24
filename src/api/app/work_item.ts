@@ -62,6 +62,7 @@ export default class AppWorkItem {
       item: string;
       source: string;
     }[] = await getHisWorkItemMapping(itemId);
+
     if (mappingModels.length > 0) {
       // 2: 获取工分项目树形图
       const workItemApi = new HisWorkItem();
@@ -87,10 +88,26 @@ export default class AppWorkItem {
         const itemSource = await getTree(sources, mappingIt.source);
         itemSources.push(itemSource);
       }
-      console.log(itemSources.length);
-      children.push(...itemSources);
-      // // 4: 递归获取所有的最后一级的工分项目来源
-      // return children;
+
+      // 4: 递归获取所有的最后一级的工分项目来源
+      for (const childIt of itemSources) {
+        if (childIt.children && childIt.children.length > 0) {
+          // 循环递归获取
+          const getItemChildren = function(list) {
+            for (let i = 0; i < list.length; i++) {
+              const childList = list[i];
+              if (childList.children && childList.children.length > 0) {
+                getItemChildren(childList.children);
+              } else {
+                children.push(childList);
+              }
+            }
+          };
+          getItemChildren(childIt.children);
+        } else {
+          children.push(childIt);
+        }
+      }
     }
     // endregion
 
