@@ -631,7 +631,7 @@ group by smdd.item, smdd.staff
   );
   const manual = await appDB.execute(sql[0], ...sql[1]);
 
-  const ph = [];
+  const ph = {};
   for (const row of dataSources) {
     //获取公卫数据工分来源
     sql = sqlRender(
@@ -659,10 +659,7 @@ where {{dateCol}} >= {{? start}}
         scope: row.scope
       }
     );
-    ph.push({
-      ...row,
-      data: await originalDB.execute(sql[0], ...sql[1])
-    });
+    ph[row.id] = await originalDB.execute(sql[0], ...sql[1]);
   }
 
   //获取其他工分来源的数据
@@ -1002,12 +999,12 @@ export async function scoreStaff(
       //his收费项目流水转换成工分流水
       if (param.scope === HisStaffDeptType.Staff) {
         workItems = workItems.concat(
-          hospitalStaffWorkPointTotal.ph.filter(
+          hospitalStaffWorkPointTotal.ph[item.id].filter(
             it => phStaff.filter(id => id === it.ph_staff).length > 0
           )
         );
       } else {
-        workItems = workItems.concat(hospitalStaffWorkPointTotal.ph);
+        workItems = workItems.concat(hospitalStaffWorkPointTotal.ph[item.id]);
       }
     }
     //endregion
@@ -2484,7 +2481,7 @@ export default class HisScore {
     );
 
     //获取机构工分对象
-    const hospitalStaffWorkPointTotal = hospitalStaffsWorkPointTotal(
+    const hospitalStaffWorkPointTotal = await hospitalStaffsWorkPointTotal(
       hospital,
       start,
       end,
@@ -2504,8 +2501,6 @@ export default class HisScore {
         }, [])
         .map(param => HisWorkItemSources.find(it => it.id === param))
     );
-
-    return hospitalStaffWorkPointTotal;
 
     for (const staff of staffs) {
       const bindings = staffBindingWorkItems.filter(
