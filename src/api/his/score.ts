@@ -841,12 +841,16 @@ export async function scoreStaff(
     // endregion
 
     // 根据公分项目拼装数组,计算工分
-    const bindings = it.mappings.map(it => {
-      const item = HisWorkItemSources.find(sourceIt => sourceIt.id === it);
+    const bindings = it.mappings.map(source => {
+      let item = HisWorkItemSources.find(sourceIt => sourceIt.id === source);
+      if (!item)
+        item = HisWorkItemSources.find(
+          sourceIt => source.substr(0, source.lastIndexOf('.')) === sourceIt.id
+        );
       return {
         name: it.name,
         method: it.method,
-        source: it,
+        source: source,
         sourceName: item?.name,
         scope: item?.scope
       };
