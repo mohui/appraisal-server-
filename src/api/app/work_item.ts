@@ -45,7 +45,7 @@ export default class AppWorkItem {
    * }
    */
   @validate(should.string().required(), should.date().required())
-  async detail(itemId, month) {
+  async summary(itemId, month) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
     // region 项目来源
@@ -186,7 +186,7 @@ export default class AppWorkItem {
    * }]
    */
   @validate(should.string().required(), should.date().required())
-  async preview(itemId, month) {
+  async detail(itemId, month) {
     /**
      * 1: 根据工分项id查询工分项详情
      * 1.1: name: 获取公分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
