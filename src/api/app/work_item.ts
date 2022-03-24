@@ -21,13 +21,13 @@ async function getHisWorkItemMapping(itemId) {
 
 export default class AppWorkItem {
   /**
-   * 公分项得分,权重
+   * 工分项得分,权重
    *
-   * @param itemId 公分项id
+   * @param itemId 工分项id
    * @param month 时间
    * @return {
-   *     id: 公分项id,
-   *     name: 公分项名称,
+   *     id: 工分项id,
+   *     name: 工分项名称,
    *     score: 工分项校正前工分,
    *     steps: 梯度[
    *         {
@@ -214,13 +214,13 @@ export default class AppWorkItem {
   /**
    * 工作量明细
    *
-   * @param itemId 公分项id
+   * @param itemId 工分项id
    * @param month 时间
    * @param pageNo 当前页数
    * @param pageSize 每页显示条数
    * @return [{
-   *  itemId: 公分项id,
-   *  itemName: 公分项名称,
+   *  itemId: 工分项id,
+   *  itemName: 工分项名称,
    *  staffId: 员工id,
    *  staffName: 员工名称,
    *  type: 类型,
@@ -232,8 +232,8 @@ export default class AppWorkItem {
    *         {
    *             value: 值,
    *             date: 时间,
-   *             itemId: 公分项id,
-   *             itemName: 公分项名称,
+   *             itemId: 工分项id,
+   *             itemName: 工分项名称,
    *             staffId: 员工id,
    *             staffName: 员工名称,
    *             type: 类型
@@ -252,7 +252,7 @@ export default class AppWorkItem {
   async detail(itemId, month, pageNo, pageSize) {
     /**
      * 1: 根据工分项id查询工分项详情
-     * 1.1: name: 获取公分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
+     * 1.1: name: 获取工分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
      * 2: 查询工分项目员工关联表
      * 2.1: 获取关联员工,取值范围
      * 3: 获取工分来源
