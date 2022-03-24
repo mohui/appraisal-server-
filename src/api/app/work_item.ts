@@ -1,10 +1,11 @@
 import HisWorkItem from '../his/work_item';
 import {appDB} from '../../app';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {dayToRange, monthToRange} from '../his/service';
+import {dayToRange, getHospital, monthToRange} from '../his/service';
 import {Context} from '../context';
 import {UserType} from '../../../common/user';
 import {HisStaffMethod} from '../../../common/his';
+import {workPointCalculation} from '../his/score';
 
 async function getHisWorkItemMapping(itemId) {
   return await appDB.execute(
@@ -215,6 +216,8 @@ export default class AppWorkItem {
    *
    * @param itemId 公分项id
    * @param month 时间
+   * @param pageNo 当前页数
+   * @param pageSize 每页显示条数
    * @return [{
    *  itemId: 公分项id,
    *  itemName: 公分项名称,
@@ -224,9 +227,29 @@ export default class AppWorkItem {
    *  value: 值,
    *  date: 时间,
    * }]
+   * @return {
+   *     data: [
+   *         {
+   *             value: 值,
+   *             date: 时间,
+   *             itemId: 公分项id,
+   *             itemName: 公分项名称,
+   *             staffId: 员工id,
+   *             staffName: 员工名称,
+   *             type: 类型
+   *         }
+   *     ],
+   *     rows: 19,
+   *     pages: 19
+   * }
    */
-  @validate(should.string().required(), should.date().required())
-  async detail(itemId, month) {
+  @validate(
+    should.string().required(),
+    should.date().required(),
+    should.number().required(),
+    should.number().required()
+  )
+  async detail(itemId, month, pageNo, pageSize) {
     /**
      * 1: 根据工分项id查询工分项详情
      * 1.1: name: 获取公分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
@@ -236,6 +259,8 @@ export default class AppWorkItem {
      */
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
+    // region 获取查询条件
+
     // 1: 根据工分项id查询工分项详情
     const workItemModel = (
       await appDB.execute(
@@ -290,18 +315,32 @@ export default class AppWorkItem {
       workItemModel.type === HisStaffMethod.DYNAMIC
         ? workItemStaffMappingModel[0].type
         : null;
+    // endregion
 
-    const workItemApi = new HisWorkItem();
-    // 调用预览接口
-    return workItemApi.preview(
+    const hospital = await getHospital();
+    // 时间转化为月份的开始时间和结束时间
+    const {start, end} = monthToRange(month);
+
+    // 调用工分计算接口
+    const workItems = await workPointCalculation(
+      Context.current.user.id,
+      hospital,
+      start,
+      end,
       workItemModel.name,
       workItemModel.method,
       mappings,
       workItemModel.type,
       staffs,
-      scope,
-      Context.current.user.id,
-      month
+      scope
     );
+    const rows = workItems.length;
+    return {
+      data: workItems
+        .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
+        .slice((pageNo - 1) * pageSize, pageNo * pageSize),
+      rows,
+      pages: Math.ceil(rows / pageSize)
+    };
   }
 }
