@@ -840,30 +840,14 @@ export async function scoreStaff(
     }
     // endregion
 
-    // 根据公分项目拼装数组,计算工分
-    const bindings = it.mappings.map(source => {
-      let item = HisWorkItemSources.find(sourceIt => sourceIt.id === source);
-      if (!item)
-        item = HisWorkItemSources.find(
-          sourceIt => source.substr(0, source.lastIndexOf('.')) === sourceIt.id
-        );
-      return {
-        name: it.name,
-        method: it.method,
-        source: source,
-        sourceName: item?.name,
-        scope: item?.scope
-      };
-    });
-
     // region 查询 门诊/住院 工分来源用到的医生id
     // his员工id, 为了查询 计算CHECK和DRUG工分来源
     let doctorIds;
 
     // 当前只有 计算CHECK和DRUG工分来源 用到了
     if (
-      bindings.filter(
-        it => it.source.startsWith('门诊') || it.source.startsWith('住院')
+      it.mappings.filter(
+        source => source.startsWith('门诊') || source.startsWith('住院')
       ).length > 0
     ) {
       // 查询本机构下HIS员工的id
@@ -901,7 +885,9 @@ export async function scoreStaff(
     // region 公卫数据工分来源(动态:个人, 固定)会用到
     let phStaff;
     let phUserList = [];
-    if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
+    if (
+      it.mappings.filter(source => source.startsWith('公卫数据')).length > 0
+    ) {
       // 取出本机构下的所有ph员工
       const phStaffs = await getPhStaff(staffModel.hospital);
       // 当是本人所在机构的时候(动态且机构)需要查询所有医生,包括没有关联公卫员工的员工
@@ -950,7 +936,9 @@ export async function scoreStaff(
     let workItems = [];
     //计算工分
     //region 计算门诊CHECK和DRUG工分来源
-    for (const param of bindings.filter(it => it.source.startsWith('门诊'))) {
+    for (const param of it.mappings.filter(source =>
+      source.startsWith('门诊')
+    )) {
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
         hospitalStaffWorkPointTotal.outpatient.filter(
@@ -962,7 +950,9 @@ export async function scoreStaff(
     }
     //endregion
     //region 计算住院CHECK和DRUG工分来源
-    for (const param of bindings.filter(it => it.source.startsWith('住院'))) {
+    for (const param of it.mappings.filter(source =>
+      source.startsWith('住院')
+    )) {
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
         hospitalStaffWorkPointTotal.inpatient.filter(
@@ -974,8 +964,8 @@ export async function scoreStaff(
     }
     //endregion
     //region 计算MANUAL工分来源
-    for (const param of bindings.filter(it =>
-      it.source.startsWith('手工数据')
+    for (const param of it.mappings.filter(source =>
+      source.startsWith('手工数据')
     )) {
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
@@ -989,8 +979,8 @@ export async function scoreStaff(
     }
     //endregion
     //region 计算公卫数据工分来源
-    for (const param of bindings.filter(it =>
-      it.source.startsWith('公卫数据')
+    for (const param of it.mappings.filter(source =>
+      source.startsWith('公卫数据')
     )) {
       //机构级别的数据, 直接用当前员工的机构id即可
       const item = HisWorkItemSources.find(it => it.id === param.source);
@@ -1013,7 +1003,9 @@ export async function scoreStaff(
     }
     //endregion
     //region 计算其他工分来源
-    for (const param of bindings.filter(it => it.source.startsWith('其他'))) {
+    for (const param of it.mappings.filter(source =>
+      source.startsWith('其他')
+    )) {
       let type = '';
       if (param.source === '其他.住院诊疗人次') type = '住院';
       if (param.source === '其他.门诊诊疗人次') type = '门诊';
