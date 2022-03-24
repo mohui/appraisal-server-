@@ -30,9 +30,9 @@ export default class AppWorkItem {
    *     score: 工分项校正前工分,
    *     steps: 梯度[
    *         {
-   *             "end": null,
-   *             "unit": 0.06,
-   *             "start": null
+   *             "end": null(负无穷),
+   *             "unit": 0.06(占比),
+   *             "start": null(正无穷)
    *         }
    *     ],
    *     rate: 权重,
@@ -67,17 +67,20 @@ export default class AppWorkItem {
       // 2: 获取工分项目树形图
       const workItemApi = new HisWorkItem();
       const sources = await workItemApi.sources();
-      // 所有的子集
+      // 选中的所有的工分项目
       const itemSources = [];
       // 3: 循环选中的工分项目来源id,获取工分项目详情
       for (const mappingIt of mappingModels) {
-        // 递归
+        // 选中的工分项目
         let currentSources = null;
+        // 递归查找选中的工分项目
         const getTree = function(sources, id) {
           for (const item of sources) {
+            // 如果id和要查找的id相等
             if (item.id === id) {
               currentSources = item;
             } else {
+              // 判断是否有子集,如果有接着查找
               if (item.children && item.children.length > 0) {
                 getTree(item.children, id);
               }
@@ -91,6 +94,7 @@ export default class AppWorkItem {
 
       // 4: 递归获取所有的最后一级的工分项目来源
       for (const childIt of itemSources) {
+        // 判读是否是最后一级,如果是,查找子集,如果不是直接push进最后一级的数组中
         if (childIt.children && childIt.children.length > 0) {
           // 循环递归获取
           const getItemChildren = function(list) {
@@ -105,6 +109,7 @@ export default class AppWorkItem {
           };
           getItemChildren(childIt.children);
         } else {
+          // push进数组中
           children.push(childIt);
         }
       }
@@ -116,6 +121,7 @@ export default class AppWorkItem {
     const monthTime = monthToRange(month);
     // 当天的开始时间和结束时间
     const {start, end} = dayToRange(monthTime.start);
+    // 查询工分项目得分, 工分只存储在一号
     const staffWorkResultModel: {
       itemId: string;
       itemName: string;
@@ -147,7 +153,7 @@ export default class AppWorkItem {
         end
       )
     )[0];
-    // 查询工分, 工分只存储在一号
+    // 查询工分项目
     const workItemModel: {
       itemId: string;
       itemName: string;
@@ -279,13 +285,14 @@ export default class AppWorkItem {
           }))
         : [];
 
-    // 动态的时候, 有值,根据状态逆推取值范围
+    // 动态的时候, scope有值,根据状态逆推取值范围
     const scope =
       workItemModel.type === HisStaffMethod.DYNAMIC
         ? workItemStaffMappingModel[0].type
         : null;
 
     const workItemApi = new HisWorkItem();
+    // 调用预览接口
     return workItemApi.preview(
       workItemModel.name,
       workItemModel.method,
