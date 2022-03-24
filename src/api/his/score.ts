@@ -2480,7 +2480,7 @@ export default class HisScore {
             }
           ]);
         }
-        // region 写入结果表
+        // 写入结果表
         await appDB.transaction(async () => {
           // 写入之前先清除掉老数据
           await appDB.execute(
