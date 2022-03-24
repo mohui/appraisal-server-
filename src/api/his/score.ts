@@ -936,35 +936,35 @@ export async function scoreStaff(
     let workItems = [];
     //计算工分
     //region 计算门诊CHECK和DRUG工分来源
-    for (const param of it.mappings.filter(source =>
+    for (const source of it.mappings.filter(source =>
       source.startsWith('门诊')
     )) {
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
         hospitalStaffWorkPointTotal.outpatient.filter(
           it =>
-            it.item.indexOf(param.source) >= 0 &&
+            it.item.indexOf(source) >= 0 &&
             doctorIds.filter(id => id === it.his_staff).length > 0
         )
       );
     }
     //endregion
     //region 计算住院CHECK和DRUG工分来源
-    for (const param of it.mappings.filter(source =>
+    for (const source of it.mappings.filter(source =>
       source.startsWith('住院')
     )) {
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
         hospitalStaffWorkPointTotal.inpatient.filter(
           it =>
-            it.item.indexOf(param.source) >= 0 &&
+            it.item.indexOf(source) >= 0 &&
             doctorIds.filter(id => id === it.his_staff).length > 0
         )
       );
     }
     //endregion
     //region 计算MANUAL工分来源
-    for (const param of it.mappings.filter(source =>
+    for (const source of it.mappings.filter(source =>
       source.startsWith('手工数据')
     )) {
       //his收费项目流水转换成工分流水
@@ -972,26 +972,25 @@ export async function scoreStaff(
         hospitalStaffWorkPointTotal.manual.filter(
           it =>
             //手工数据的source转id, 默认是只能必须选id
-            it.item === param.source.split('.')[1] &&
+            it.item === source.split('.')[1] &&
             staffIds.filter(id => id === it.staff).length > 0
         )
       );
     }
     //endregion
     //region 计算公卫数据工分来源
-    for (const param of it.mappings.filter(source =>
+    for (const source of it.mappings.filter(source =>
       source.startsWith('公卫数据')
     )) {
       //机构级别的数据, 直接用当前员工的机构id即可
-      const item = HisWorkItemSources.find(it => it.id === param.source);
+      const item = HisWorkItemSources.find(it => it.id === source);
       //未配置数据表, 直接跳过
       if (!item || !item?.datasource?.table) continue;
 
       // 如果取值范围是个人, 需要用公卫员工id(ph_staff), 如果公卫id为空, 跳过
-      if (param.scope === HisStaffDeptType.Staff && phStaff.length === 0)
-        continue;
+      if (it.scope === HisStaffDeptType.Staff && phStaff.length === 0) continue;
       //his收费项目流水转换成工分流水
-      if (param.scope === HisStaffDeptType.Staff) {
+      if (it.scope === HisStaffDeptType.Staff) {
         workItems = workItems.concat(
           hospitalStaffWorkPointTotal.ph[item.id].filter(
             it => phStaff.filter(id => id === it.ph_staff).length > 0
@@ -1003,12 +1002,12 @@ export async function scoreStaff(
     }
     //endregion
     //region 计算其他工分来源
-    for (const param of it.mappings.filter(source =>
+    for (const source of it.mappings.filter(source =>
       source.startsWith('其他')
     )) {
       let type = '';
-      if (param.source === '其他.住院诊疗人次') type = '住院';
-      if (param.source === '其他.门诊诊疗人次') type = '门诊';
+      if (source === '其他.住院诊疗人次') type = '住院';
+      if (source === '其他.门诊诊疗人次') type = '门诊';
       //his收费项目流水转换成工分流水
       workItems = workItems.concat(
         hospitalStaffWorkPointTotal.other.filter(it => it.type === type)
