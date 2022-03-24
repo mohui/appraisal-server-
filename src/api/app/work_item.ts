@@ -166,7 +166,7 @@ export default class AppWorkItem {
       steps: workItemModel.steps,
       rate: staffItemMappingModel.rate,
       remark: staffItemMappingModel.remark,
-      items: children
+      items: []
     };
   }
 
