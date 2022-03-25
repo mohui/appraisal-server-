@@ -277,7 +277,7 @@ export default class AppWorkItem {
     return {
       id: workItemModel.itemId,
       name: workItemModel.itemName,
-      score: sum,
+      score: Number(sum),
       method: workItemModel.method,
       steps: works,
       rate: staffItemMappingModel?.rate ?? null,
@@ -430,7 +430,7 @@ export default class AppWorkItem {
       data: workItems
         .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
         .slice((pageNo - 1) * pageSize, pageNo * pageSize),
-      score: workload,
+      score: Number(workload),
       rows,
       pages: Math.ceil(rows / pageSize)
     };
