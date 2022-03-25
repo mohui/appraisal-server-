@@ -329,108 +329,18 @@ export default class AppWorkItem {
     should.number().required()
   )
   async detail(itemId, month, pageNo, pageSize) {
-    /**
-     * 1: 根据工分项id查询工分项详情
-     * 1.1: name: 获取工分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
-     * 2: 查询工分项目员工关联表
-     * 2.1: 获取关联员工,取值范围
-     * 3: 获取工分来源
-     */
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
-    // region 获取查询条件
+    // 获取工作量明细和工作量
+    const work = await getItemDetail(itemId, month);
 
-    // 1: 根据工分项id查询工分项详情
-    const workItemModel = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select item.id,
-                 item.hospital,
-                 item.name,
-                 item.method,
-                 item.type,
-                 item.remark,
-                 item.steps
-          from his_work_item item
-          where item.id = ?
-        `,
-        itemId
-      )
-    )[0];
-    if (!workItemModel) throw new KatoCommonError('该工分项不存在');
-
-    // 2: 查询工分项目员工关联表
-    const workItemStaffMappingModel = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select mapping.id,
-               mapping.item,
-               mapping.source,
-               mapping.type
-        from his_work_item_staff_mapping mapping
-        where mapping.item = ?
-      `,
-      itemId
-    );
-    // 3: 获取工分来源
-    const itemSources: {
-      item: string;
-      source: string;
-    }[] = await getHisWorkItemMapping(itemId);
-    const mappings = itemSources.map(it => it.source);
-
-    // 当是固定的时候,staffs有值,获取绑定的员工或科室
-    const staffs =
-      workItemModel.type === HisStaffMethod.STATIC
-        ? workItemStaffMappingModel.map(it => ({
-            code: it.source,
-            type: it.type
-          }))
-        : [];
-
-    // 动态的时候, scope有值,根据状态逆推取值范围
-    const scope =
-      workItemModel.type === HisStaffMethod.DYNAMIC
-        ? workItemStaffMappingModel[0].type
-        : null;
-    // endregion
-
-    const hospital = await getHospital();
-    // 时间转化为月份的开始时间和结束时间
-    const {start, end} = monthToRange(month);
-
-    // 调用工分计算接口
-    const workItems = await workPointCalculation(
-      Context.current.user.id,
-      hospital,
-      start,
-      end,
-      workItemModel.name,
-      workItemModel.method,
-      mappings,
-      workItemModel.type,
-      staffs,
-      scope
-    );
-    let workload;
-    // 判断是计数还是总和
-    if (workItemModel.method === HisWorkMethod.AMOUNT) {
-      // 计数的单位量是总条数
-      workload = new Decimal(workItems.length);
-    } else if (workItemModel.method === HisWorkMethod.SUM) {
-      // 总和的单位量是所有数量的和
-      workload = workItems.reduce(
-        (prev, curr) => new Decimal(prev).add(curr.value),
-        new Decimal(0)
-      );
-    }
-    const rows = workItems.length;
+    // 总条数
+    const rows = work.data.length;
     return {
-      data: workItems
+      data: work.data
         .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
         .slice((pageNo - 1) * pageSize, pageNo * pageSize),
-      score: Number(workload),
+      score: Number(work.score),
       rows,
       pages: Math.ceil(rows / pageSize)
     };
