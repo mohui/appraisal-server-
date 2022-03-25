@@ -118,7 +118,10 @@ async function getItemDetail(itemId, month) {
     );
   }
   return {
-    data: workItems,
+    data: workItems.map(it => ({
+      ...it,
+      value: Number(it.value)
+    })),
     score: workload
   };
 }
