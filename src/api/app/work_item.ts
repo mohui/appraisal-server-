@@ -132,7 +132,7 @@ export default class AppWorkItem {
    * @return {
    *     id: 工分项id,
    *     name: 工分项名称,
-   *     score: 工分项校正前工分,
+   *     score?: 工分项校正前工分,
    *     steps: 梯度[
    *         {
    *             "end": null(负无穷),
@@ -142,9 +142,9 @@ export default class AppWorkItem {
    *             "total": 工分
    *         }
    *     ],
-   *     rate: 权重,
-   *     remark: 备注,
-   *     method: 得分方式; 计数/总和,
+   *     rate?: 权重,
+   *     remark?: 备注,
+   *     method?: 得分方式; 计数/总和,
    *     items: 项目来源[{
    *       id: '来源id',
    *       name: '来源名称'
