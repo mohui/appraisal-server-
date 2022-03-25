@@ -356,8 +356,9 @@ export default class AppWorkItem {
    *             type: 类型
    *         }
    *     ],
-   *     rows: 19,
-   *     pages: 19
+   *     score: 工作量,
+   *     rows: 条数,
+   *     pages: 页数
    * }
    */
   @validate(
@@ -451,11 +452,24 @@ export default class AppWorkItem {
       staffs,
       scope
     );
+    let workload;
+    // 判断是计数还是总和
+    if (workItemModel.method === HisWorkMethod.AMOUNT) {
+      // 计数的单位量是总条数
+      workload = new Decimal(workItems.length);
+    } else if (workItemModel.method === HisWorkMethod.SUM) {
+      // 总和的单位量是所有数量的和
+      workload = workItems.reduce(
+        (prev, curr) => new Decimal(prev).add(curr.value),
+        new Decimal(0)
+      );
+    }
     const rows = workItems.length;
     return {
       data: workItems
         .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
         .slice((pageNo - 1) * pageSize, pageNo * pageSize),
+      score: workload,
       rows,
       pages: Math.ceil(rows / pageSize)
     };
