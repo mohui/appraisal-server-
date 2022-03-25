@@ -1,7 +1,7 @@
 import HisWorkItem from '../his/work_item';
 import {appDB} from '../../app';
 import {KatoCommonError, should, validate} from 'kato-server';
-import {dayToRange, getHospital, monthToRange} from '../his/service';
+import {getHospital, monthToRange} from '../his/service';
 import {Context} from '../context';
 import {UserType} from '../../../common/user';
 import {HisStaffMethod, HisWorkMethod, multistep} from '../../../common/his';
