@@ -664,7 +664,6 @@ export default class HisStaff {
    * @param name 姓名
    * @return [{
    *  id: '员工id',
-   *  password: '密码',
    *  name: '姓名',
    *  phone: '手机号',
    *  gender: '性别',
