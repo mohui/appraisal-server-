@@ -136,8 +136,10 @@ export default class AppWorkItem {
    *     steps: 梯度[
    *         {
    *             "end": null(负无穷),
-   *             "unit": 0.06(占比),
+   *             "unit": 工作量分值,
    *             "start": null(正无穷)
+   *             "num": 工作量
+   *             "total": 工分
    *         }
    *     ],
    *     rate: 权重,
