@@ -224,42 +224,6 @@ export default class AppWorkItem {
     // endregion
 
     // region 工分项
-    // 获取所传月份的开始时间 即所在月份的一月一号
-    const monthTime = monthToRange(month);
-    // 当天的开始时间和结束时间
-    const {start, end} = dayToRange(monthTime.start);
-    // 查询工分项目得分, 工分只存储在一号
-    const staffWorkResultModel: {
-      itemId: string;
-      itemName: string;
-      typeId: string;
-      typeName: string;
-      order: number;
-      score: number;
-      updated_at: Date;
-    } = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select result.item_id   "itemId",
-                 result.item_name "itemName",
-                 result.type_id   "typeId",
-                 result.type_name "typeName",
-                 result."order",
-                 result.score,
-                 result.updated_at
-          from his_staff_work_result result
-          where result.item_id = ?
-            and result.staff_id = ?
-            and result.time >= ?
-            and result.time < ?
-        `,
-        itemId,
-        Context.current.user.id,
-        start,
-        end
-      )
-    )[0];
     // 查询工分项目
     const workItemModel: {
       itemId: string;
@@ -280,9 +244,6 @@ export default class AppWorkItem {
         itemId
       )
     )[0];
-    // endregion
-
-    // region 新的公分项
     // 获取工作量
     const work = await getItemDetail(itemId, month);
     const works = multistep(workItemModel.steps, work.score.toNumber());
