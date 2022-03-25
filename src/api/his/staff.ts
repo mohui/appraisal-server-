@@ -194,7 +194,6 @@ export default class HisStaff {
         select staff.id,
                staff.hospital,
                staff.account,
-               staff.password,
                staff.name,
                staff.remark,
                staff.department,
@@ -700,7 +699,6 @@ export default class HisStaff {
       `
         select
           staff.id,
-          staff.password,
           staff.name,
           staff.phone,
           staff.gender,
