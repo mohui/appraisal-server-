@@ -63,7 +63,21 @@ async function getHisWorkItem(
   )[0];
 }
 
-async function getItemDetail(itemId, month) {
+async function getItemDetail(
+  itemId,
+  month
+): Promise<{
+  data: {
+    value: number;
+    date: Date;
+    staffId: string;
+    staffName: string;
+    itemId: string;
+    itemName: string;
+    type: string;
+  }[];
+  score: number;
+}> {
   /**
    * 1: 根据工分项id查询工分项详情
    * 1.1: name: 获取工分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
@@ -146,7 +160,7 @@ async function getItemDetail(itemId, month) {
       ...it,
       value: Number(it.value)
     })),
-    score: workload
+    score: Number(workload)
   };
 }
 
@@ -184,7 +198,7 @@ export default class AppWorkItem {
     const workItemModel = await getHisWorkItem(itemId);
     // 获取工作量
     const work = await getItemDetail(itemId, month);
-    const works = multistep(workItemModel.steps, work.score.toNumber());
+    const works = multistep(workItemModel.steps, work.score);
     // 累加梯度得分
     const sum = works.reduce(
       (prev, curr) => new Decimal(prev).add(curr.total),
@@ -274,7 +288,7 @@ export default class AppWorkItem {
       data: work.data
         .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
         .slice((pageNo - 1) * pageSize, pageNo * pageSize),
-      score: Number(work.score),
+      score: work.score,
       rows,
       pages: Math.ceil(rows / pageSize)
     };
