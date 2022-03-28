@@ -2546,7 +2546,7 @@ export default class HisScore {
             );
           }
         });
-        log(`结束计算 ${department} ${staff.name} ${staff.id} 工分`);
+        log(`结束计算 ${department.id} ${staff.name} ${staff.id} 工分`);
       }
     }
 
