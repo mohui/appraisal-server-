@@ -2288,7 +2288,7 @@ export default class HisScore {
 
     for (const department of data) {
       for (const staff of department.staffs) {
-        log(`开始计算 ${department} ${staff.name} ${staff.id} 工分`);
+        log(`开始计算 ${department.id} ${staff.name} ${staff.id} 工分`);
         // 工分流水
         let result: WorkItemDetail[] = [];
         for (const it of staff.bindings) {
