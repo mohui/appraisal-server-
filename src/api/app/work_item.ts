@@ -330,9 +330,7 @@ export default class AppWorkItem {
     // 总条数
     const rows = work.data.length;
     return {
-      data: work.data
-        .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
-        .slice((pageNo - 1) * pageSize, pageNo * pageSize),
+      data: work.data.slice((pageNo - 1) * pageSize, pageNo * pageSize),
       score: work.score,
       rows,
       pages: Math.ceil(rows / pageSize)
