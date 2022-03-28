@@ -24,7 +24,18 @@ async function getHisWorkItemMapping(itemId) {
  * 根据工分项id获取工分项详情
  * @param itemId
  */
-async function getHisWorkItem(itemId) {
+async function getHisWorkItem(
+  itemId
+): Promise<{
+  id: string;
+  hospital: string;
+  name: string;
+  method: string;
+  type: string;
+  remark: string;
+  itemType: string;
+  steps: {start: number | null; end: number | null; unit: number}[];
+}> {
   return (
     await appDB.execute(
       //language=PostgreSQL
@@ -166,12 +177,7 @@ export default class AppWorkItem {
 
     // region 工分项
     // 查询工分项目
-    const workItemModel: {
-      id: string;
-      name: string;
-      method: string;
-      steps: {start: number | null; end: number | null; unit: number}[];
-    } = await getHisWorkItem(itemId);
+    const workItemModel = await getHisWorkItem(itemId);
     // 获取工作量
     const work = await getItemDetail(itemId, month);
     const works = multistep(workItemModel.steps, work.score.toNumber());
