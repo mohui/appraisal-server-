@@ -604,7 +604,7 @@ async function hospitalStaffsWorkPointTotal(
 select detail.item, detail.doctor as his_staff, count(*) as amount, sum(detail.total_price) as sum
 from his_charge_detail detail
        inner join his_staff staff on detail.doctor = staff.id
-where detail.operate_time > {{? start}}
+where detail.operate_time >= {{? start}}
   and detail.operate_time < {{? end}}
   and staff.hospital = {{? hospital}}
   and item like '门诊%'
@@ -626,7 +626,7 @@ from his_charge_detail detail
        inner join his_charge_master master on detail.main = master.id
        inner join his_inpatient inpatient on master.treat = inpatient.id
        inner join his_staff staff on detail.doctor = staff.id
-where inpatient.out_date > {{? start}}
+where inpatient.out_date >= {{? start}}
   and inpatient.out_date < {{? end}}
   and staff.hospital = {{? hospital}}
 group by detail.item, detail.doctor
@@ -699,7 +699,7 @@ where {{dateCol}} >= {{? start}}
           select distinct charge_type, treat, operate_time
           from his_charge_master
           where hospital = {{? hospital}}
-            and operate_time > {{? start}}
+            and operate_time >= {{? start}}
             and operate_time < {{? end}}
         )a
           group by charge_type
@@ -2135,9 +2135,9 @@ export default class HisScore {
         `,
         hospital
       )
-    ).map(id => ({
-      his_staff: id,
-      staff: hisStaffArea.filter(sa => sa.his_staff === id)[0]?.staff
+    ).map(his => ({
+      his_staff: his.id,
+      staff: hisStaffArea.filter(sa => sa.his_staff === his.id)[0]?.staff
     }));
     // endregion
     // region 机构所有公卫员工
@@ -2161,9 +2161,9 @@ export default class HisScore {
         `,
         hospital
       )
-    ).map(id => ({
-      ph_staff: id,
-      staff: phStaffArea.filter(sa => sa.ph_staff === id)[0]?.staff
+    ).map(ph => ({
+      ph_staff: ph.id,
+      staff: phStaffArea.filter(sa => sa.ph_staff === ph.id)[0]?.staff
     }));
     // endregion
     const data: {
@@ -2307,9 +2307,13 @@ export default class HisScore {
             // 如果科室长度大于0, 查询科室下的所有员工
             if (depIds.length > 0) {
               staffIds.push(
-                data
-                  .filter(department => department.id === staff.department)[0]
-                  ?.staffs?.map(s => s.id)
+                ...data
+                  .filter(
+                    department =>
+                      depIds.filter(depId => depId === department.id).length > 0
+                  )
+                  .map(it => it.staffs.map(s => s.id))
+                  .flat()
               );
             }
           } else if (it.staffMethod === HisStaffMethod.DYNAMIC) {
@@ -2329,7 +2333,9 @@ export default class HisScore {
             // 如果是本人所在机构
             if (it.scope === HisStaffDeptType.HOSPITAL) {
               staffIds.push(
-                data.map(department => department.staffs.map(s => s.id)).flat()
+                ...data
+                  .map(department => department.staffs.map(s => s.id))
+                  .flat()
               );
             }
           }
@@ -2352,7 +2358,9 @@ export default class HisScore {
               doctorIds = hisStaffs.map(s => s.his_staff);
             } else {
               // 根据员工id找到他的his的员工id,找到的可能有其他机构下的his员工id,所以需要筛选出本机构的
-              doctorIds = hisStaffs.filter(hs => hs.staff);
+              doctorIds = hisStaffs
+                .filter(hs => hs.staff)
+                .map(hs => hs.his_staff);
             }
           }
           // endregion
@@ -2371,7 +2379,7 @@ export default class HisScore {
               phStaff = phStaffs.map(it => it.ph_staff);
             } else {
               // 如果有公卫数据, 并且是绑定到员工层, 根据员工id找到他的ph的员工id,找到的可能有其他机构下的ph员工id,所以需要筛选出本机构的
-              phStaff = phStaffs.filter(hs => hs.staff);
+              phStaff = phStaffs.filter(ph => ph.staff).map(ph => ph.ph_staff);
             }
           }
           // endregion
