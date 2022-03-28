@@ -58,23 +58,7 @@ async function getItemDetail(itemId, month) {
   // region 获取查询条件
 
   // 1: 根据工分项id查询工分项详情
-  const workItemModel = (
-    await appDB.execute(
-      // language=PostgreSQL
-      `
-        select item.id,
-               item.hospital,
-               item.name,
-               item.method,
-               item.type,
-               item.remark,
-               item.steps
-        from his_work_item item
-        where item.id = ?
-      `,
-      itemId
-    )
-  )[0];
+  const workItemModel = await getHisWorkItem(itemId);
   if (!workItemModel) throw new KatoCommonError('该工分项不存在');
 
   // 2: 查询工分项目员工关联表
@@ -183,24 +167,11 @@ export default class AppWorkItem {
     // region 工分项
     // 查询工分项目
     const workItemModel: {
-      itemId: string;
-      itemName: string;
+      id: string;
+      name: string;
       method: string;
       steps: {start: number | null; end: number | null; unit: number}[];
-    } = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select item.id   "itemId",
-                 item.name "itemName",
-                 item.method,
-                 item.steps
-          from his_work_item item
-          where item.id = ?
-        `,
-        itemId
-      )
-    )[0];
+    } = await getHisWorkItem(itemId);
     // 获取工作量
     const work = await getItemDetail(itemId, month);
     const works = multistep(workItemModel.steps, work.score.toNumber());
@@ -232,8 +203,8 @@ export default class AppWorkItem {
     )[0];
     // endregion
     return {
-      id: workItemModel.itemId,
-      name: workItemModel.itemName,
+      id: workItemModel.id,
+      name: workItemModel.name,
       score: Number(sum),
       method: workItemModel.method,
       steps: works,
