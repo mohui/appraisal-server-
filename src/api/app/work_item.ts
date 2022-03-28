@@ -147,84 +147,13 @@ export default class AppWorkItem {
    *     ],
    *     rate?: 权重,
    *     remark?: 备注,
-   *     method?: 得分方式; 计数/总和,
-   *     items: 项目来源[{
-   *       id: '来源id',
-   *       name: '来源名称'
-   *     }]
+   *     method?: 得分方式; 计数/总和
    * }
    */
   @validate(should.string().required(), should.date().required())
   async summary(itemId, month) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
-    // region 项目来源
-    /**
-     * 1: 获取所有选中工分项目来源
-     * 2: 获取工分项目树形图
-     * 3: 循环选中的工分项目来源id,递归获取工分项目详情
-     * 4: 递归获取所有的最后一级的工分项目来源
-     */
-    // 所有的children节点
-    const children = [];
-    // 1: 获取所有选中工分项目
-    const mappingModels: {
-      item: string;
-      source: string;
-    }[] = await getHisWorkItemMapping(itemId);
-
-    if (mappingModels.length > 0) {
-      // 2: 获取工分项目树形图
-      const workItemApi = new HisWorkItem();
-      const sources = await workItemApi.sources();
-      // 选中的所有的工分项目
-      const itemSources = [];
-      // 3: 循环选中的工分项目来源id,获取工分项目详情
-      for (const mappingIt of mappingModels) {
-        // 选中的工分项目
-        let currentSources = null;
-        // 递归查找选中的工分项目
-        const getTree = function(sources, id) {
-          for (const item of sources) {
-            // 如果id和要查找的id相等
-            if (item.id === id) {
-              currentSources = item;
-            } else {
-              // 判断是否有子集,如果有接着查找
-              if (item.children && item.children.length > 0) {
-                getTree(item.children, id);
-              }
-            }
-          }
-          return currentSources;
-        };
-        const itemSource = await getTree(sources, mappingIt.source);
-        itemSources.push(itemSource);
-      }
-
-      // 4: 递归获取所有的最后一级的工分项目来源
-      for (const childIt of itemSources) {
-        // 判读是否是最后一级,如果是,查找子集,如果不是直接push进最后一级的数组中
-        if (childIt.children && childIt.children.length > 0) {
-          // 循环递归获取
-          const getItemChildren = function(list) {
-            for (let i = 0; i < list.length; i++) {
-              const childList = list[i];
-              if (childList.children && childList.children.length > 0) {
-                getItemChildren(childList.children);
-              } else {
-                children.push(childList);
-              }
-            }
-          };
-          getItemChildren(childIt.children);
-        } else {
-          // push进数组中
-          children.push(childIt);
-        }
-      }
-    }
-    // endregion
 
     // region 工分项
     // 查询工分项目
@@ -284,11 +213,7 @@ export default class AppWorkItem {
       method: workItemModel.method,
       steps: works,
       rate: staffItemMappingModel?.rate ?? null,
-      remark: staffItemMappingModel?.remark ?? null,
-      items: children.map(it => ({
-        id: it.id,
-        name: it.name
-      }))
+      remark: staffItemMappingModel?.remark ?? null
     };
   }
 
@@ -347,5 +272,93 @@ export default class AppWorkItem {
       rows,
       pages: Math.ceil(rows / pageSize)
     };
+  }
+
+  /**
+   * 工分项目来源
+   *
+   * @param itemId 工分项id
+   * @return [
+   *     {
+   *         id: '来源id',
+   *         name: '来源名称'
+   *     }
+   * ]
+   */
+  @validate(should.string().required())
+  async itemSources(itemId) {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能查看');
+    // region 项目来源
+    /**
+     * 1: 获取所有选中工分项目来源
+     * 2: 获取工分项目树形图
+     * 3: 循环选中的工分项目来源id,递归获取工分项目详情
+     * 4: 递归获取所有的最后一级的工分项目来源
+     */
+    // 所有的children节点
+    const children = [];
+    // 1: 获取所有选中工分项目
+    const mappingModels: {
+      item: string;
+      source: string;
+    }[] = await getHisWorkItemMapping(itemId);
+
+    if (mappingModels.length > 0) {
+      // 2: 获取工分项目树形图
+      const workItemApi = new HisWorkItem();
+      const sources = await workItemApi.sources();
+      // 选中的所有的工分项目
+      const itemSources = [];
+      // 3: 循环选中的工分项目来源id,获取工分项目详情
+      for (const mappingIt of mappingModels) {
+        // 选中的工分项目
+        let currentSources = null;
+        // 递归查找选中的工分项目
+        const getTree = function(sources, id) {
+          for (const item of sources) {
+            // 如果id和要查找的id相等
+            if (item.id === id) {
+              currentSources = item;
+            } else {
+              // 判断是否有子集,如果有接着查找
+              if (item.children && item.children.length > 0) {
+                getTree(item.children, id);
+              }
+            }
+          }
+          return currentSources;
+        };
+        const itemSource = await getTree(sources, mappingIt.source);
+        itemSources.push(itemSource);
+      }
+
+      // 4: 递归获取所有的最后一级的工分项目来源
+      for (const childIt of itemSources.map(it => it)) {
+        // 判读是否是最后一级,如果是,查找子集,如果不是直接push进最后一级的数组中
+        if (childIt.children && childIt.children.length > 0) {
+          // 循环递归获取
+          const getItemChildren = function(list) {
+            for (let i = 0; i < list.length; i++) {
+              const childList = list[i];
+              if (childList.children && childList.children.length > 0) {
+                getItemChildren(childList.children);
+              } else {
+                children.push(childList);
+              }
+            }
+          };
+          getItemChildren(childIt.children);
+        } else {
+          // push进数组中
+          children.push(childIt);
+        }
+      }
+    }
+    // endregion
+    return children?.map(it => ({
+      id: it.id,
+      name: it.name
+    }));
   }
 }
