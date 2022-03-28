@@ -2120,74 +2120,58 @@ export default class HisScore {
       phDataTable
     );
 
-    /**
-     * 机构所有his员工[{
-     * his_staff: id
-     * staff?: 绩效员工id
-     * }]
-     */
-    let hisStaffs = await originalDB.execute(
-      //language=PostgreSQL
-      `
-        select hs.id
-        from his_staff hs
-        where hs.hospital = ?
-      `,
-      hospital
-    );
+    // region 机构所有his员工
     const hisStaffArea = await appDB.execute(
       //language=PostgreSQL
       `
         select shm.his_staff, shm.staff, areaMapping.area
         from staff_his_mapping shm
                inner join staff_area_mapping areaMapping on shm.staff = areaMapping.staff
-        where shm.his_staff in (${hisStaffs.map(_ => '?')})
-          and areaMapping.area = ?
-      `,
-      ...hisStaffs.map(i => i.id),
-      hospital
-    );
-    hisStaffs = hisStaffs.map(id => {
-      return {
-        id,
-        staff: hisStaffArea.filter(sa => sa.his_staff === id)[0]?.staff
-      };
-    });
-
-    /**
-     * 机构所有公卫员工[{
-     * ph_staff: id
-     * staff?: 绩效员工id
-     * }]
-     */
-    let phStaffs = await originalDB.execute(
-      //language=PostgreSQL
-      `
-        select pu.id
-        from ph_user pu
-        where pu.hospital = ?
+        where areaMapping.area = ?
       `,
       hospital
     );
+    const hisStaffs: {his_staff: string; staff?: string}[] = (
+      await originalDB.execute(
+        //language=PostgreSQL
+        `
+          select hs.id
+          from his_staff hs
+          where hs.hospital = ?
+        `,
+        hospital
+      )
+    ).map(id => ({
+      his_staff: id,
+      staff: hisStaffArea.filter(sa => sa.his_staff === id)[0]?.staff
+    }));
+    // endregion
+    // region 机构所有公卫员工
     const phStaffArea = await appDB.execute(
       //language=PostgreSQL
       `
         select spm.ph_staff, spm.staff, areaMapping.area
         from staff_ph_mapping spm
                inner join staff_area_mapping areaMapping on spm.staff = areaMapping.staff
-        where spm.ph_staff in (${phStaffs.map(_ => '?')})
-          and areaMapping.area = ?
+        where areaMapping.area = ?
       `,
-      ...phStaffs.map(i => i.id),
       hospital
     );
-    phStaffs = hisStaffs.map(id => {
-      return {
-        id,
-        staff: phStaffArea.filter(sa => sa.ph_staff === id)[0]?.staff
-      };
-    });
-
+    const phStaffs: {ph_staff: string; staff?: string}[] = (
+      await originalDB.execute(
+        //language=PostgreSQL
+        `
+          select pu.id
+          from ph_user pu
+          where pu.hospital = ?
+        `,
+        hospital
+      )
+    ).map(id => ({
+      ph_staff: id,
+      staff: phStaffArea.filter(sa => sa.ph_staff === id)[0]?.staff
+    }));
+    // endregion
     const data = staffs.reduce((result, current) => {
       if (result.filter(it => it.id === current.department).length < 0)
         return result.concat({
