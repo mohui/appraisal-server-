@@ -2359,7 +2359,7 @@ export default class HisScore {
             } else {
               // 根据员工id找到他的his的员工id,找到的可能有其他机构下的his员工id,所以需要筛选出本机构的
               doctorIds = hisStaffs
-                .filter(hs => hs.staff)
+                .filter(hs => hs.staff && staffIds.indexOf(hs.staff) >= 0)
                 .map(hs => hs.his_staff);
             }
           }
@@ -2379,7 +2379,9 @@ export default class HisScore {
               phStaff = phStaffs.map(it => it.ph_staff);
             } else {
               // 如果有公卫数据, 并且是绑定到员工层, 根据员工id找到他的ph的员工id,找到的可能有其他机构下的ph员工id,所以需要筛选出本机构的
-              phStaff = phStaffs.filter(ph => ph.staff).map(ph => ph.ph_staff);
+              phStaff = phStaffs
+                .filter(ph => ph.staff && staffIds.indexOf(ph.staff) >= 0)
+                .map(ph => ph.ph_staff);
             }
           }
           // endregion
