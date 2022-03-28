@@ -174,6 +174,22 @@ export default class HisStaff {
    * @param params {
    *   name: 名称
    * }
+   * @return [{
+   *  id: '员工id',
+   *  hospital: '机构id',
+   *  account: '账号',
+   *  name: '名称',
+   *  remark: '备注',
+   *  department: '科室id',
+   *  phone: '手机号',
+   *  gender: '性别',
+   *  major: '专业类别',
+   *  title: '职称名称',
+   *  education: '学历',
+   *  isGP: 是否为全科医师,
+   *  created_at: '创建时间',
+   *  updated_at: '修改时间'
+   * }]
    */
   @validate(
     should
@@ -194,7 +210,6 @@ export default class HisStaff {
         select staff.id,
                staff.hospital,
                staff.account,
-               staff.password,
                staff.name,
                staff.remark,
                staff.department,
@@ -665,7 +680,6 @@ export default class HisStaff {
    * @param name 姓名
    * @return [{
    *  id: '员工id',
-   *  password: '密码',
    *  name: '姓名',
    *  phone: '手机号',
    *  gender: '性别',
@@ -700,7 +714,6 @@ export default class HisStaff {
       `
         select
           staff.id,
-          staff.password,
           staff.name,
           staff.phone,
           staff.gender,
