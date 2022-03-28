@@ -20,6 +20,31 @@ async function getHisWorkItemMapping(itemId) {
   );
 }
 
+/**
+ * 根据工分项id获取工分项详情
+ * @param itemId
+ */
+async function getHisWorkItem(itemId) {
+  return (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id,
+               hospital,
+               name,
+               method,
+               type,
+               remark,
+               item_type "itemType",
+               steps
+        from his_work_item
+        where id = ?
+      `,
+      itemId
+    )
+  )[0];
+}
+
 async function getItemDetail(itemId, month) {
   /**
    * 1: 根据工分项id查询工分项详情
@@ -289,6 +314,11 @@ export default class AppWorkItem {
   async itemSources(itemId) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
+    const hospital = await getHospital();
+    const workItemModel = await getHisWorkItem(itemId);
+    if (!workItemModel) throw new KatoCommonError('工分项不存在');
+    if (workItemModel.hospital !== hospital)
+      throw new KatoCommonError('员工机构和工分项机构不匹配');
     // region 项目来源
     /**
      * 1: 获取所有选中工分项目来源
