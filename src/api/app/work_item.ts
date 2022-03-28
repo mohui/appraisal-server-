@@ -8,7 +8,14 @@ import {HisStaffMethod, HisWorkMethod, multistep} from '../../../common/his';
 import {workPointCalculation} from '../his/score';
 import Decimal from 'decimal.js';
 
-async function getHisWorkItemMapping(itemId) {
+async function getHisWorkItemMapping(
+  itemId
+): Promise<
+  {
+    item: string;
+    source: string;
+  }[]
+> {
   return await appDB.execute(
     //language=PostgreSQL
     `
@@ -86,10 +93,7 @@ async function getItemDetail(itemId, month) {
     itemId
   );
   // 3: 获取工分来源
-  const itemSources: {
-    item: string;
-    source: string;
-  }[] = await getHisWorkItemMapping(itemId);
+  const itemSources = await getHisWorkItemMapping(itemId);
   const mappings = itemSources.map(it => it.source);
 
   // 当是固定的时候,staffs有值,获取绑定的员工或科室
@@ -306,10 +310,7 @@ export default class AppWorkItem {
     // 所有的children节点
     const children = [];
     // 1: 获取所有选中工分项目
-    const mappingModels: {
-      item: string;
-      source: string;
-    }[] = await getHisWorkItemMapping(itemId);
+    const mappingModels = await getHisWorkItemMapping(itemId);
 
     if (mappingModels.length > 0) {
       // 2: 获取工分项目树形图
