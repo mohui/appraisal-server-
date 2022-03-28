@@ -8,6 +8,14 @@ import {HisStaffMethod, HisWorkMethod, multistep} from '../../../common/his';
 import {workPointCalculation} from '../his/score';
 import Decimal from 'decimal.js';
 
+/**
+ * 获取选中的工分项目来源
+ * @param itemId 工分项目id
+ * @returns [{
+ *  "item": 工分项id,
+ *  "source": 来源id
+ * }]
+ */
 async function getHisWorkItemMapping(
   itemId
 ): Promise<
@@ -29,7 +37,24 @@ async function getHisWorkItemMapping(
 
 /**
  * 根据工分项id获取工分项详情
- * @param itemId
+ *
+ * @param itemId 工分项目id
+ * @return {
+ *   "id": 工分项目id,
+ *   "hospital": 机构,
+ *   "name": 工分项目名称,
+ *   "method": 得分方式; 计数/总和,
+ *   "type": 关联员工; 动态/固定,
+ *   "remark": 备注,
+ *   "itemType": 分类id,
+ *   "steps": 梯度规则[
+ *     {
+ *       "end": null为负无穷,
+ *       "unit": 量,
+ *       "start": null为正无穷
+ *     }
+ *   ]
+ * }
  */
 async function getHisWorkItem(
   itemId
@@ -63,6 +88,26 @@ async function getHisWorkItem(
   )[0];
 }
 
+/**
+ * 获取工作量明细和工作量
+ *
+ * @param itemId 工分项id
+ * @param month 时间
+ * @return {
+ *   "data": [
+ *     {
+ *       "value": 单位量,
+ *       "date": 时间,
+ *       "itemId": 工分项来源id,
+ *       "itemName": 工分项来源名称,
+ *       "staffId": 员工id,
+ *       "staffName": 员工名称,
+ *       "type": 类预览类型 PreviewType;
+ *     }
+ *   ],
+ *   "score": 工作量得分
+ * }
+ */
 async function getItemDetail(
   itemId,
   month
