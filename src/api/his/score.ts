@@ -2098,19 +2098,13 @@ export default class HisScore {
     );
 
     // 配置的公卫数据表
-    const phDataTable = staffBindingWorkItems
-      .filter(param => {
-        const item = HisWorkItemSources.find(it => it.id === param.source);
-        return (
-          param.source.startsWith('公卫数据') && item && item?.datasource?.table
-        );
-      })
-      .reduce((result, current) => {
-        if (result.indexOf(current.source) < 0)
-          return result.concat(current.source);
-        else return result;
-      }, [])
-      .map(param => HisWorkItemSources.find(it => it.id === param));
+    const phDataTable = HisWorkItemSources.filter(
+      it =>
+        it?.datasource?.table &&
+        staffBindingWorkItems.filter(
+          param => param.source.startsWith('公卫数据') && it.id === param.source
+        ).length > 0
+    );
 
     // 获取机构工分总量
     const hospitalStaffWorkPointTotal = await hospitalStaffsWorkPointTotal(
@@ -2172,7 +2166,49 @@ export default class HisScore {
       staff: phStaffArea.filter(sa => sa.ph_staff === id)[0]?.staff
     }));
     // endregion
-    const data = staffs.reduce((result, current) => {
+    const data: {
+      //科室id
+      id: string;
+      //员工列表
+      staffs: {
+        //员工id
+        id: string;
+        //员工名字
+        name: string;
+        //科室id
+        department: string;
+        //his员工id
+        his_staff: string;
+        //ph员工id
+        ph_staff: string;
+        //绑定的工分项
+        bindings: {
+          //工分项id
+          id: string;
+          //当前绑定员工
+          staff: string;
+          start;
+          end;
+          //工分项名称
+          name: string;
+          //工分项计算方式
+          method: string;
+          typeId: string;
+          typeName: string;
+          //对应工分项目
+          mappings: string[];
+          //工分项目和员工绑定方式 动态/固定
+          staffMethod: string;
+          // 固定的时候才有值
+          staffs: {type: string; code: string}[];
+          steps: {start: number | null; end: number | null; unit: number}[];
+          // 范围; 动态的时候才有值
+          scope: string;
+          rate: any;
+          order: any;
+        }[];
+      }[];
+    }[] = staffs.reduce((result, current) => {
       if (result.filter(it => it.id === current.department).length < 0)
         return result.concat({
           id: current.department,
