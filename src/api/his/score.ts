@@ -2209,7 +2209,7 @@ export default class HisScore {
         }[];
       }[];
     }[] = staffs.reduce((result, current) => {
-      if (result.filter(it => it.id === current.department).length < 0)
+      if (result.filter(it => it.id === current.department).length === 0)
         return result.concat({
           id: current.department,
           staffs: staffs
