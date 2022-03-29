@@ -212,32 +212,6 @@ export const PermissionTree = [
     label: '首页'
   },
   {
-    key: Permission.USER_INDEX,
-    label: '用户管理',
-    children: [
-      {
-        key: Permission.USER_INDEX,
-        label: '用户首页'
-      },
-      {
-        key: Permission.USER_ADD,
-        label: '用户添加'
-      },
-      {
-        key: Permission.USER_UPDATE,
-        label: '用户更新'
-      },
-      {
-        key: Permission.USER_REMOVE,
-        label: '用户删除'
-      }
-    ]
-  },
-  {
-    key: Permission.ROLE_INDEX,
-    label: '角色管理'
-  },
-  {
     key: Permission.APPRAISAL_RESULT,
     label: '绩效考核',
     children: [
@@ -348,6 +322,34 @@ export const PermissionTree = [
     ]
   },
   {
+    key: Permission.USER_INDEX,
+    label: '用户管理',
+    children: [
+      {
+        key: Permission.USER_INDEX,
+        label: '用户列表',
+        children: [
+          {
+            key: Permission.USER_ADD,
+            label: '用户添加'
+          },
+          {
+            key: Permission.USER_UPDATE,
+            label: '用户更新'
+          },
+          {
+            key: Permission.USER_REMOVE,
+            label: '用户删除'
+          }
+        ]
+      },
+      {
+        key: Permission.ROLE_INDEX,
+        label: '角色管理'
+      }
+    ]
+  },
+  {
     key: Permission.AUDIT_LOG,
     label: '操作日志'
   },
@@ -369,19 +371,11 @@ export const PermissionTree = [
     children: [
       {
         key: Permission.MEDICAL_CONFIGURATION_LIST,
-        label: '配置列表'
+        label: '工分项管理'
       },
       {
         key: Permission.MEDICAL_CONFIGURATION_WORK,
         label: '工分项设置'
-      },
-      {
-        key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
-        label: '员工管理'
-      },
-      {
-        key: Permission.MEDICAL_CONFIGURATION_DEPARTMENT,
-        label: '科室管理'
       }
     ]
   },
@@ -398,8 +392,24 @@ export const PermissionTree = [
     label: '医疗工作列表'
   },
   {
-    key: Permission.STAFF_BINDING_APPROVAL,
-    label: '员工绑定审核'
+    key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
+    label: '员工管理',
+    children: [
+      {
+        key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
+        label: '员工列表',
+        children: [
+          {
+            key: Permission.MEDICAL_CONFIGURATION_DEPARTMENT,
+            label: '科室管理'
+          }
+        ]
+      },
+      {
+        key: Permission.STAFF_BINDING_APPROVAL,
+        label: '员工绑定审核'
+      }
+    ]
   }
 ];
 export function getPermission(key) {
