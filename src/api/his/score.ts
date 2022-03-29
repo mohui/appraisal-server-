@@ -555,7 +555,15 @@ export async function workPointCalculation(
     );
   }
   //endregion
-  return workItems;
+
+  return workItems.sort((a, b) => {
+    const dateDiff = b.date.getTime() - a.date.getTime();
+    if (dateDiff === 0) {
+      return b.itemId > a.itemId ? 1 : -1;
+    } else {
+      return dateDiff;
+    }
+  });
 }
 
 // endregion

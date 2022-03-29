@@ -1546,9 +1546,7 @@ export default class HisWorkItem {
       staffs,
       scope
     );
-    return workItems
-      .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
-      .slice(0, 10000);
+    return workItems.slice(0, 10000);
   }
 
   // endregion

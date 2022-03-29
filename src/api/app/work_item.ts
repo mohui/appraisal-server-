@@ -8,7 +8,22 @@ import {HisStaffMethod, HisWorkMethod, multistep} from '../../../common/his';
 import {workPointCalculation} from '../his/score';
 import Decimal from 'decimal.js';
 
-async function getHisWorkItemMapping(itemId) {
+/**
+ * 获取选中的工分项目来源
+ * @param itemId 工分项目id
+ * @returns [{
+ *  "item": 工分项id,
+ *  "source": 来源id
+ * }]
+ */
+async function getHisWorkItemMapping(
+  itemId
+): Promise<
+  {
+    item: string;
+    source: string;
+  }[]
+> {
   return await appDB.execute(
     //language=PostgreSQL
     `
@@ -20,7 +35,94 @@ async function getHisWorkItemMapping(itemId) {
   );
 }
 
-async function getItemDetail(itemId, month) {
+/**
+ * 根据工分项id获取工分项详情
+ *
+ * @param itemId 工分项目id
+ * @return {
+ *   "id": 工分项目id,
+ *   "hospital": 机构,
+ *   "name": 工分项目名称,
+ *   "method": 得分方式; 计数/总和,
+ *   "type": 关联员工; 动态/固定,
+ *   "remark": 备注,
+ *   "itemType": 分类id,
+ *   "steps": 梯度规则[
+ *     {
+ *       "end": null为负无穷,
+ *       "unit": 量,
+ *       "start": null为正无穷
+ *     }
+ *   ]
+ * }
+ */
+async function getHisWorkItem(
+  itemId
+): Promise<{
+  id: string;
+  hospital: string;
+  name: string;
+  method: string;
+  type: string;
+  remark: string;
+  itemType: string;
+  steps: {start: number | null; end: number | null; unit: number}[];
+}> {
+  return (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id,
+               hospital,
+               name,
+               method,
+               type,
+               remark,
+               item_type "itemType",
+               steps
+        from his_work_item
+        where id = ?
+      `,
+      itemId
+    )
+  )[0];
+}
+
+/**
+ * 获取工作量明细和工作量
+ *
+ * @param itemId 工分项id
+ * @param month 时间
+ * @return {
+ *   "data": [
+ *     {
+ *       "value": 单位量,
+ *       "date": 时间,
+ *       "itemId": 工分项来源id,
+ *       "itemName": 工分项来源名称,
+ *       "staffId": 员工id,
+ *       "staffName": 员工名称,
+ *       "type": 类预览类型 PreviewType;
+ *     }
+ *   ],
+ *   "score": 工作量得分
+ * }
+ */
+async function getItemDetail(
+  itemId,
+  month
+): Promise<{
+  data: {
+    value: number;
+    date: Date;
+    staffId: string;
+    staffName: string;
+    itemId: string;
+    itemName: string;
+    type: string;
+  }[];
+  score: number;
+}> {
   /**
    * 1: 根据工分项id查询工分项详情
    * 1.1: name: 获取工分项名称, type: 关联员工; 动态/固定', method: 得分方式; 计数/总和
@@ -33,23 +135,7 @@ async function getItemDetail(itemId, month) {
   // region 获取查询条件
 
   // 1: 根据工分项id查询工分项详情
-  const workItemModel = (
-    await appDB.execute(
-      // language=PostgreSQL
-      `
-        select item.id,
-               item.hospital,
-               item.name,
-               item.method,
-               item.type,
-               item.remark,
-               item.steps
-        from his_work_item item
-        where item.id = ?
-      `,
-      itemId
-    )
-  )[0];
+  const workItemModel = await getHisWorkItem(itemId);
   if (!workItemModel) throw new KatoCommonError('该工分项不存在');
 
   // 2: 查询工分项目员工关联表
@@ -66,10 +152,7 @@ async function getItemDetail(itemId, month) {
     itemId
   );
   // 3: 获取工分来源
-  const itemSources: {
-    item: string;
-    source: string;
-  }[] = await getHisWorkItemMapping(itemId);
+  const itemSources = await getHisWorkItemMapping(itemId);
   const mappings = itemSources.map(it => it.source);
 
   // 当是固定的时候,staffs有值,获取绑定的员工或科室
@@ -122,7 +205,7 @@ async function getItemDetail(itemId, month) {
       ...it,
       value: Number(it.value)
     })),
-    score: workload
+    score: Number(workload)
   };
 }
 
@@ -147,109 +230,20 @@ export default class AppWorkItem {
    *     ],
    *     rate?: 权重,
    *     remark?: 备注,
-   *     method?: 得分方式; 计数/总和,
-   *     items: 项目来源[{
-   *       id: '来源id',
-   *       name: '来源名称'
-   *     }]
+   *     method?: 得分方式; 计数/总和
    * }
    */
   @validate(should.string().required(), should.date().required())
   async summary(itemId, month) {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能查看');
-    // region 项目来源
-    /**
-     * 1: 获取所有选中工分项目来源
-     * 2: 获取工分项目树形图
-     * 3: 循环选中的工分项目来源id,递归获取工分项目详情
-     * 4: 递归获取所有的最后一级的工分项目来源
-     */
-    // 所有的children节点
-    const children = [];
-    // 1: 获取所有选中工分项目
-    const mappingModels: {
-      item: string;
-      source: string;
-    }[] = await getHisWorkItemMapping(itemId);
-
-    if (mappingModels.length > 0) {
-      // 2: 获取工分项目树形图
-      const workItemApi = new HisWorkItem();
-      const sources = await workItemApi.sources();
-      // 选中的所有的工分项目
-      const itemSources = [];
-      // 3: 循环选中的工分项目来源id,获取工分项目详情
-      for (const mappingIt of mappingModels) {
-        // 选中的工分项目
-        let currentSources = null;
-        // 递归查找选中的工分项目
-        const getTree = function(sources, id) {
-          for (const item of sources) {
-            // 如果id和要查找的id相等
-            if (item.id === id) {
-              currentSources = item;
-            } else {
-              // 判断是否有子集,如果有接着查找
-              if (item.children && item.children.length > 0) {
-                getTree(item.children, id);
-              }
-            }
-          }
-          return currentSources;
-        };
-        const itemSource = await getTree(sources, mappingIt.source);
-        itemSources.push(itemSource);
-      }
-
-      // 4: 递归获取所有的最后一级的工分项目来源
-      for (const childIt of itemSources) {
-        // 判读是否是最后一级,如果是,查找子集,如果不是直接push进最后一级的数组中
-        if (childIt.children && childIt.children.length > 0) {
-          // 循环递归获取
-          const getItemChildren = function(list) {
-            for (let i = 0; i < list.length; i++) {
-              const childList = list[i];
-              if (childList.children && childList.children.length > 0) {
-                getItemChildren(childList.children);
-              } else {
-                children.push(childList);
-              }
-            }
-          };
-          getItemChildren(childIt.children);
-        } else {
-          // push进数组中
-          children.push(childIt);
-        }
-      }
-    }
-    // endregion
 
     // region 工分项
     // 查询工分项目
-    const workItemModel: {
-      itemId: string;
-      itemName: string;
-      method: string;
-      steps: {start: number | null; end: number | null; unit: number}[];
-    } = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select item.id   "itemId",
-                 item.name "itemName",
-                 item.method,
-                 item.steps
-          from his_work_item item
-          where item.id = ?
-        `,
-        itemId
-      )
-    )[0];
+    const workItemModel = await getHisWorkItem(itemId);
     // 获取工作量
     const work = await getItemDetail(itemId, month);
-    const works = multistep(workItemModel.steps, work.score.toNumber());
+    const works = multistep(workItemModel.steps, work.score);
     // 累加梯度得分
     const sum = works.reduce(
       (prev, curr) => new Decimal(prev).add(curr.total),
@@ -278,17 +272,13 @@ export default class AppWorkItem {
     )[0];
     // endregion
     return {
-      id: workItemModel.itemId,
-      name: workItemModel.itemName,
+      id: workItemModel.id,
+      name: workItemModel.name,
       score: Number(sum),
       method: workItemModel.method,
       steps: works,
       rate: staffItemMappingModel?.rate ?? null,
-      remark: staffItemMappingModel?.remark ?? null,
-      items: children.map(it => ({
-        id: it.id,
-        name: it.name
-      }))
+      remark: staffItemMappingModel?.remark ?? null
     };
   }
 
@@ -340,12 +330,100 @@ export default class AppWorkItem {
     // 总条数
     const rows = work.data.length;
     return {
-      data: work.data
-        .sort((a, b) => (a.date.getTime() < b.date.getTime() ? 1 : -1))
-        .slice((pageNo - 1) * pageSize, pageNo * pageSize),
-      score: Number(work.score),
+      data: work.data.slice((pageNo - 1) * pageSize, pageNo * pageSize),
+      score: work.score,
       rows,
       pages: Math.ceil(rows / pageSize)
     };
+  }
+
+  /**
+   * 工分项目来源
+   *
+   * @param itemId 工分项id
+   * @return [
+   *     {
+   *         id: '来源id',
+   *         name: '来源名称'
+   *     }
+   * ]
+   */
+  @validate(should.string().required())
+  async itemSources(itemId) {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能查看');
+    const hospital = await getHospital();
+    const workItemModel = await getHisWorkItem(itemId);
+    if (!workItemModel) throw new KatoCommonError('工分项不存在');
+    if (workItemModel.hospital !== hospital)
+      throw new KatoCommonError('员工机构和工分项机构不匹配');
+    // region 项目来源
+    /**
+     * 1: 获取所有选中工分项目来源
+     * 2: 获取工分项目树形图
+     * 3: 循环选中的工分项目来源id,递归获取工分项目详情
+     * 4: 递归获取所有的最后一级的工分项目来源
+     */
+    // 所有的children节点
+    const children = [];
+    // 1: 获取所有选中工分项目
+    const mappingModels = await getHisWorkItemMapping(itemId);
+
+    if (mappingModels.length > 0) {
+      // 2: 获取工分项目树形图
+      const workItemApi = new HisWorkItem();
+      const sources = await workItemApi.sources();
+      // 选中的所有的工分项目
+      const itemSources = [];
+      // 3: 循环选中的工分项目来源id,获取工分项目详情
+      for (const mappingIt of mappingModels) {
+        // 选中的工分项目
+        let currentSources = null;
+        // 递归查找选中的工分项目
+        const getTree = function(sources, id) {
+          for (const item of sources) {
+            // 如果id和要查找的id相等
+            if (item.id === id) {
+              currentSources = item;
+            } else {
+              // 判断是否有子集,如果有接着查找
+              if (item.children && item.children.length > 0) {
+                getTree(item.children, id);
+              }
+            }
+          }
+          return currentSources;
+        };
+        const itemSource = await getTree(sources, mappingIt.source);
+        itemSources.push(itemSource);
+      }
+
+      // 4: 递归获取所有的最后一级的工分项目来源
+      for (const childIt of itemSources.map(it => it)) {
+        // 判读是否是最后一级,如果是,查找子集,如果不是直接push进最后一级的数组中
+        if (childIt.children && childIt.children.length > 0) {
+          // 循环递归获取
+          const getItemChildren = function(list) {
+            for (let i = 0; i < list.length; i++) {
+              const childList = list[i];
+              if (childList.children && childList.children.length > 0) {
+                getItemChildren(childList.children);
+              } else {
+                children.push(childList);
+              }
+            }
+          };
+          getItemChildren(childIt.children);
+        } else {
+          // push进数组中
+          children.push(childIt);
+        }
+      }
+    }
+    // endregion
+    return children?.map(it => ({
+      id: it.id,
+      name: it.name
+    }));
   }
 }
