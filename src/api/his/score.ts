@@ -29,7 +29,8 @@ import {
   getMarkMetric,
   divisionOperation,
   getHisStaff,
-  getPhStaff
+  getPhStaff,
+  getStaffModel
 } from './common';
 
 function log(...args) {
@@ -764,6 +765,8 @@ type AssessModel = {
   score: number;
   // 满分
   total: number;
+  hospital: string;
+  staffName: string;
 };
 
 // endregion
@@ -919,6 +922,9 @@ export default class HisScore {
 
     const ChargeMaster = await getChargeMasters(hospital, day);
 
+    // 获取员工信息
+    const staffModel = await getStaffModel(staff);
+
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
@@ -998,7 +1004,9 @@ export default class HisScore {
                  rule_id     "ruleId",
                  rule_name   "ruleName",
                  score,
-                 total
+                 total,
+                 hospital,
+                 staff_name  "staffName"
           from his_staff_assess_result
           where staff_id = ?
             and time >= ?
@@ -1774,7 +1782,9 @@ export default class HisScore {
           ruleId: ruleIt.id,
           ruleName: ruleIt.name,
           score,
-          total: ruleIt.score
+          total: ruleIt.score,
+          hospital,
+          staffName: staffModel.name
         });
       }
 
@@ -1793,7 +1803,9 @@ export default class HisScore {
           ruleId: ruleIt.id,
           ruleName: ruleIt.name,
           score: item?.score ?? 0,
-          total: ruleIt.score
+          total: ruleIt.score,
+          hospital,
+          staffName: staffModel.name
         });
       }
       // endregion
@@ -1828,9 +1840,11 @@ export default class HisScore {
                                                 rule_name,
                                                 score,
                                                 total,
+                                                hospital,
+                                                staff_name,
                                                 created_at,
                                                 updated_at)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
           uuid.v4(),
           insertIt.staffId,
@@ -1841,6 +1855,8 @@ export default class HisScore {
           insertIt.ruleName,
           insertIt.score,
           insertIt.total,
+          insertIt.hospital,
+          insertIt.staffName,
           new Date(),
           new Date()
         );
