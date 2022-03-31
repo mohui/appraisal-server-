@@ -1964,21 +1964,8 @@ export default class HisScore {
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
 
     // 查询员工信息
-    const staffModel: {
-      id: string;
-      account: string;
-      name: string;
-    } = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-        select id, account, name
-        from staff
-        where id = ?
-      `,
-        staff
-      )
-    )[0];
+    // 获取员工信息
+    const staffModel = await getStaffModel(staff);
     if (!staffModel) throw new KatoRuntimeError(`员工不存在`);
     // endregion
 
@@ -1994,7 +1981,9 @@ export default class HisScore {
                rule_id     "ruleId",
                rule_name   "ruleName",
                score,
-               total
+               total,
+               hospital,
+               staff_name  "staffName"
         from his_staff_assess_result
         where staff_id = ?
           and rule_id = ?
