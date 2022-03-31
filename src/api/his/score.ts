@@ -1964,7 +1964,6 @@ export default class HisScore {
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
 
     // 查询员工信息
-    // 获取员工信息
     const staffModel = await getStaffModel(staff);
     if (!staffModel) throw new KatoRuntimeError(`员工不存在`);
     // endregion
