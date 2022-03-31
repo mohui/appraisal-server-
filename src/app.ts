@@ -108,7 +108,6 @@ export class Application {
     if (process.env.NODE_ENV === 'production') {
       await migrate.migrate(57);
     }
-    await migrate.migrate(57);
   }
 
   async initExpress() {
