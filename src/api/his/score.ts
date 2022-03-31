@@ -1946,6 +1946,24 @@ export default class HisScore {
 
     if (ruleOneModels.score < score)
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
+
+    // 查询员工信息
+    const staffModel: {
+      id: string;
+      account: string;
+      name: string;
+    } = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+        select id, account, name
+        from staff
+        where id = ?
+      `,
+        staff
+      )
+    )[0];
+    if (!staffModel) throw new KatoRuntimeError(`员工不存在`);
     // endregion
 
     // 查询该细则本月是否有分值
@@ -2007,9 +2025,11 @@ export default class HisScore {
                                               rule_name,
                                               score,
                                               total,
+                                              hospital,
+                                              staff_name,
                                               created_at,
                                               updated_at)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         uuid.v4(),
         staff,
@@ -2020,6 +2040,8 @@ export default class HisScore {
         ruleOneModels?.name,
         score,
         ruleOneModels?.score,
+        hospital,
+        staffModel.name,
         new Date(),
         new Date()
       );
