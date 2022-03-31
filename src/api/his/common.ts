@@ -293,3 +293,47 @@ export async function getPhStaff(hospital) {
     hospital
   );
 }
+
+/**
+ * 获取单个员工信息
+ * @param id 员工id
+ */
+export async function getStaffModel(
+  id
+): Promise<{
+  id: string;
+  hospital: string;
+  department: string;
+  account: string;
+  name: string;
+  remark: string;
+  phone: string;
+  gender: string;
+  major: string;
+  title: string;
+  education: string;
+  isGP: boolean;
+}> {
+  return (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select id,
+               hospital,
+               department,
+               account,
+               name,
+               remark,
+               phone,
+               gender,
+               major,
+               title,
+               education,
+               "isGP"
+        from staff
+        where id = ?
+      `,
+      id
+    )
+  )[0];
+}
