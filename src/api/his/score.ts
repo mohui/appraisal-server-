@@ -951,8 +951,10 @@ export default class HisScore {
           select id, name, hospital
           from his_check_system
           where id = ?
+            and hospital = ?
         `,
-        check
+        check,
+        hospital
       );
       if (checkSystemModels.length === 0) {
         log(`考核方案${check}不存在`);
@@ -1009,10 +1011,12 @@ export default class HisScore {
                  staff_name  "staffName"
           from his_staff_assess_result
           where staff_id = ?
+            and hospital = ?
             and time >= ?
             and time < ?
         `,
         staff,
+        hospital,
         start,
         end
       );
@@ -2121,13 +2125,14 @@ export default class HisScore {
                swim.rate,
                swim.staff
         from his_staff_work_item_mapping swim
-               inner join his_work_item wi on swim.item = wi.id
+               inner join his_work_item wi on swim.item = wi.id and wi.hospital = ?
                inner join his_work_item_mapping wim on swim.item = wim.item
                left join his_work_item_staff_mapping wism on swim.item = wism.item
                left join his_work_item_type type on wi.item_type = type.id
                inner join staff_area_mapping areaMapping on swim.staff = areaMapping.staff
         where areaMapping.area = ?
       `,
+      hospital,
       hospital
     );
 
@@ -2553,9 +2558,11 @@ export default class HisScore {
               delete
               from his_staff_work_result
               where staff_id = ?
+                and hospital = ?
                 and time = ?
             `,
             staff.id,
+            hospital,
             start
           );
           for (const row of result) {
