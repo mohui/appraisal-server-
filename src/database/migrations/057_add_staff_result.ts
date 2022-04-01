@@ -23,6 +23,14 @@ export class AddStaffResult implements IMigration {
       ALTER table his_staff_assess_result
         ADD COLUMN staff_name varchar(255) DEFAULT null;
       COMMENT ON COLUMN his_staff_assess_result."hospital" IS '员工名称';
+
+      update his_staff_work_result
+      set hospital = staff.hospital, staff_name = staff.name
+      from  staff  where his_staff_work_result.staff_id = staff.id;
+
+      update his_staff_assess_result
+      set hospital = staff.hospital, staff_name = staff.name
+      from  staff  where his_staff_assess_result.staff_id = staff.id
     `);
   }
 
