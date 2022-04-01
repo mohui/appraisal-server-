@@ -2572,9 +2572,11 @@ export default class HisScore {
                                                   type_name,
                                                   score,
                                                   "order",
+                                                  hospital,
+                                                  staff_name,
                                                   created_at,
                                                   updated_at)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `,
               uuid.v4(),
               staff.id,
@@ -2585,6 +2587,8 @@ export default class HisScore {
               row?.typeName ?? null,
               row?.score ?? null,
               row?.order ?? null,
+              hospital,
+              staff.name,
               new Date(),
               new Date()
             );
