@@ -29,7 +29,8 @@ import {
   getMarkMetric,
   divisionOperation,
   getHisStaff,
-  getPhStaff
+  getPhStaff,
+  getStaffModel
 } from './common';
 
 function log(...args) {
@@ -764,6 +765,8 @@ type AssessModel = {
   score: number;
   // 满分
   total: number;
+  hospital: string;
+  staffName: string;
 };
 
 // endregion
@@ -919,6 +922,9 @@ export default class HisScore {
 
     const ChargeMaster = await getChargeMasters(hospital, day);
 
+    // 获取员工信息
+    const staffModel = await getStaffModel(staff);
+
     return await appDB.joinTx(async () => {
       // region 打分前的校验
       // 先根据员工查询考核
@@ -945,8 +951,10 @@ export default class HisScore {
           select id, name, hospital
           from his_check_system
           where id = ?
+            and hospital = ?
         `,
-        check
+        check,
+        hospital
       );
       if (checkSystemModels.length === 0) {
         log(`考核方案${check}不存在`);
@@ -998,13 +1006,17 @@ export default class HisScore {
                  rule_id     "ruleId",
                  rule_name   "ruleName",
                  score,
-                 total
+                 total,
+                 hospital,
+                 staff_name  "staffName"
           from his_staff_assess_result
           where staff_id = ?
+            and hospital = ?
             and time >= ?
             and time < ?
         `,
         staff,
+        hospital,
         start,
         end
       );
@@ -1774,7 +1786,9 @@ export default class HisScore {
           ruleId: ruleIt.id,
           ruleName: ruleIt.name,
           score,
-          total: ruleIt.score
+          total: ruleIt.score,
+          hospital,
+          staffName: staffModel.name
         });
       }
 
@@ -1793,7 +1807,9 @@ export default class HisScore {
           ruleId: ruleIt.id,
           ruleName: ruleIt.name,
           score: item?.score ?? 0,
-          total: ruleIt.score
+          total: ruleIt.score,
+          hospital,
+          staffName: staffModel.name
         });
       }
       // endregion
@@ -1828,9 +1844,11 @@ export default class HisScore {
                                                 rule_name,
                                                 score,
                                                 total,
+                                                hospital,
+                                                staff_name,
                                                 created_at,
                                                 updated_at)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
           uuid.v4(),
           insertIt.staffId,
@@ -1841,6 +1859,8 @@ export default class HisScore {
           insertIt.ruleName,
           insertIt.score,
           insertIt.total,
+          insertIt.hospital,
+          insertIt.staffName,
           new Date(),
           new Date()
         );
@@ -1946,6 +1966,10 @@ export default class HisScore {
 
     if (ruleOneModels.score < score)
       throw new KatoRuntimeError(`分数不能高于细则的满分`);
+
+    // 查询员工信息
+    const staffModel = await getStaffModel(staff);
+    if (!staffModel) throw new KatoRuntimeError(`员工不存在`);
     // endregion
 
     // 查询该细则本月是否有分值
@@ -1960,7 +1984,9 @@ export default class HisScore {
                rule_id     "ruleId",
                rule_name   "ruleName",
                score,
-               total
+               total,
+               hospital,
+               staff_name  "staffName"
         from his_staff_assess_result
         where staff_id = ?
           and rule_id = ?
@@ -2007,9 +2033,11 @@ export default class HisScore {
                                               rule_name,
                                               score,
                                               total,
+                                              hospital,
+                                              staff_name,
                                               created_at,
                                               updated_at)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         uuid.v4(),
         staff,
@@ -2020,6 +2048,8 @@ export default class HisScore {
         ruleOneModels?.name,
         score,
         ruleOneModels?.score,
+        hospital,
+        staffModel.name,
         new Date(),
         new Date()
       );
@@ -2095,13 +2125,14 @@ export default class HisScore {
                swim.rate,
                swim.staff
         from his_staff_work_item_mapping swim
-               inner join his_work_item wi on swim.item = wi.id
+               inner join his_work_item wi on swim.item = wi.id and wi.hospital = ?
                inner join his_work_item_mapping wim on swim.item = wim.item
                left join his_work_item_staff_mapping wism on swim.item = wism.item
                left join his_work_item_type type on wi.item_type = type.id
                inner join staff_area_mapping areaMapping on swim.staff = areaMapping.staff
         where areaMapping.area = ?
       `,
+      hospital,
       hospital
     );
 
@@ -2527,9 +2558,11 @@ export default class HisScore {
               delete
               from his_staff_work_result
               where staff_id = ?
+                and hospital = ?
                 and time = ?
             `,
             staff.id,
+            hospital,
             start
           );
           for (const row of result) {
@@ -2546,9 +2579,11 @@ export default class HisScore {
                                                   type_name,
                                                   score,
                                                   "order",
+                                                  hospital,
+                                                  staff_name,
                                                   created_at,
                                                   updated_at)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `,
               uuid.v4(),
               staff.id,
@@ -2559,6 +2594,8 @@ export default class HisScore {
               row?.typeName ?? null,
               row?.score ?? null,
               row?.order ?? null,
+              hospital,
+              staff.name,
               new Date(),
               new Date()
             );

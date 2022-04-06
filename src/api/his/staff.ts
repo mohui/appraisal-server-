@@ -960,7 +960,7 @@ export default class HisStaff {
                result."order",
                result.score,
                result.updated_at,
-               item.hospital,
+               result.hospital,
                item.created_at
         from his_staff_work_result result
                left join his_work_item item on result.item_id = item.id
@@ -997,9 +997,8 @@ export default class HisStaff {
                result.score,
                result.total
         from his_staff_assess_result result
-               left join his_check_system system on result.system_id = system.id
         where result.staff_id = ?
-          and system.hospital = ?
+          and result.hospital = ?
           and result.time >= ?
           and result.time < ?
       `,

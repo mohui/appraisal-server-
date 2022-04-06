@@ -56,6 +56,7 @@ import {AddSMS} from './053_add_user_sms';
 import {AddWechat} from './054_wechat';
 import {AddHisSetting} from './055_add_his_setting';
 import {UpdateStaffRequest} from './056_update_staff_request';
+import {AddStaffResult} from './057_add_staff_result';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -115,5 +116,6 @@ export const migrations: IMigration[] = [
   new AddSMS(),
   new AddWechat(),
   new AddHisSetting(),
-  new UpdateStaffRequest()
+  new UpdateStaffRequest(),
+  new AddStaffResult()
 ];
