@@ -81,7 +81,8 @@ export default class BasicTag {
           value: data.value,
           hospitalId: data.hospitalId,
           code: data.code,
-          year: data.year + 1
+          year: data.year + 1,
+          editor: Context.current.user.name
         }))
       );
     });
