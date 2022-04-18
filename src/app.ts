@@ -35,6 +35,8 @@ export class Application {
   server = http.createServer(this.express);
   appDB = createExtendedSequelize(new Sequelize(config.get('postgres')));
   originalDB = createExtendedSequelize(new Sequelize(config.get('original')));
+  lakeDB = createExtendedSequelize(new Sequelize(config.get('lake')));
+
   //TODO: 临时需要, 等待公卫etl完成后即可弃用
   mappingDB = createExtendedSequelize(new Sequelize(config.get('mapping')));
   unifs: UnionFileSystem = new OverlayFileSystem();
@@ -234,6 +236,7 @@ export const app = new Application();
 //导出各种便捷属性
 export const appDB = app.appDB;
 export const originalDB = app.originalDB;
+export const lakeDB = app.lakeDB;
 export const mappingDB = app.mappingDB;
 export const unifs = app.unifs;
 export const initFS = app.initFS;

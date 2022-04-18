@@ -17,6 +17,21 @@ module.exports = {
     timezone: '+8:00',
     logging: false
   },
+  lake: {
+    dialect: 'mysql',
+    host: 'localhost',
+    port: 3306,
+    username: 'jx_dev',
+    password: 'jx_dev',
+    database: 'lake',
+    define: {
+      underscored: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    },
+    timezone: '+8:00',
+    logging: false
+  },
   original: {
     dialect: 'postgres',
     host: 'localhost',
