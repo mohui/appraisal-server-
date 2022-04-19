@@ -29,6 +29,9 @@ module.exports = {
       createdAt: 'created_at',
       updatedAt: 'updated_at'
     },
+    dialectOptions: {
+      timezone: 'local'
+    },
     timezone: '+8:00',
     logging: false
   },
