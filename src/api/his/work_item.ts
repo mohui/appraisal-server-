@@ -2005,10 +2005,13 @@ export default class HisWorkItem {
     //region his项目相关
     //region 已收费项目
     //查询已收费的id数组
-    const chargeIdModels: {item: string}[] = await originalDB.execute(
+    const chargeIdModels: {
+      item: string;
+      item_name: string;
+    }[] = await originalDB.execute(
       // language=PostgreSQL
       `
-        select distinct item
+        select distinct item, item_name
         from his_charge_detail detail
                left join his_charge_master hcm on detail.main = hcm.id
         where hcm.hospital = ?
@@ -2017,35 +2020,14 @@ export default class HisWorkItem {
       hospital
     );
     // 已收费his项目数组
-    const chargeModels: {id; name; parent}[] = (
-      await Promise.all(
-        chargeIdModels.map(async it => {
-          //切分id字符串, item格式: (住院|门诊).(检查项目|药品).(分类id).(检查项目id|药品id)
-          const ids = it.item.split('.');
-          //检查项目|药品
-          const type = ids[1];
-          //检查项目id|药品id
-          const id = ids[3];
-          let models: {name}[] = [];
-          if (type === '检查项目') {
-            models = await originalDB.execute(
-              `select name from his_check where id = ?`,
-              id
-            );
-          } else if (type === '药品') {
-            models = await originalDB.execute(
-              `select name from his_drug where id = ?`,
-              id
-            );
-          }
-          return models.map<{id; name; parent}>(m => ({
-            ...m,
-            id: it.item,
-            parent: ids.slice(0, 3).join('.')
-          }))[0];
-        })
-      )
-    ).filter(it => !!it);
+    const chargeModels: {id; name; parent}[] = chargeIdModels.map(it => ({
+      name: it.item_name,
+      id: it.item,
+      parent: it.item
+        .split('.')
+        .slice(0, 3)
+        .join('.')
+    }));
     //endregion
     //检查项目分类
     const checkCategoryModels: {id; name}[] = await originalDB.execute(
