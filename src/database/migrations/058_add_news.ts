@@ -11,33 +11,31 @@ export class AddNews implements IMigration {
       -- 新闻主表
       CREATE TABLE IF NOT EXISTS "news"
       (
-        id          VARCHAR(36) PRIMARY KEY,
-        title       VARCHAR(255),
-        source      VARCHAR(255),
-        status      varchar(255)                                       not null default '通过',
-        contents    text,
-        author      varchar(36),
-        is_area_all boolean                  default false             not null,
-        top         boolean,
-        top_at      TIMESTAMP WITH TIME ZONE,
-        created_by  VARCHAR(50),
-        updated_by  VARCHAR(50),
-        crawl_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        updated_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+        id         VARCHAR(36) PRIMARY KEY,
+        title      VARCHAR(255),
+        source     VARCHAR(255),
+        status     varchar(255)                                       not null default '未发布',
+        content    text,
+        url        varchar(255),
+        author     varchar(36),
+        toped_at   TIMESTAMP WITH TIME ZONE,
+        created_by VARCHAR(50),
+        updated_by VARCHAR(50),
+        crawled_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
       );
       COMMENT ON COLUMN "news"."id" IS '主键id';
       COMMENT ON COLUMN "news"."title" IS '标题';
       COMMENT ON COLUMN "news"."source" IS '来源';
-      COMMENT ON COLUMN "news"."status" IS '状态';
-      COMMENT ON COLUMN "news"."contents" IS '内容';
+      COMMENT ON COLUMN "news"."status" IS '状态:未发布,已发布,已下架';
+      COMMENT ON COLUMN "news"."content" IS '内容';
+      COMMENT ON COLUMN "news"."url" IS '第一张图片';
       COMMENT ON COLUMN "news"."author" IS '作者';
-      COMMENT ON COLUMN "news"."is_area_all" IS '是否是全部地区';
-      COMMENT ON COLUMN "news"."top" IS '置顶';
-      COMMENT ON COLUMN "news"."top_at" IS '置顶时间';
+      COMMENT ON COLUMN "news"."toped_at" IS '置顶时间';
       COMMENT ON COLUMN "news"."created_by" IS '创建人';
       COMMENT ON COLUMN "news"."updated_by" IS '修改人';
-      COMMENT ON COLUMN "news"."crawl_at" IS '爬取时间';
+      COMMENT ON COLUMN "news"."crawled_at" IS '爬取时间';
       COMMENT ON COLUMN "news"."created_at" IS '创建时间';
       COMMENT ON COLUMN "news"."updated_at" IS '修改时间';
 
