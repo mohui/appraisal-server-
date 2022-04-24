@@ -320,6 +320,18 @@ const permissionRouter = [
     name: 'medical-configuration-department',
     meta: {permission: [Permission.MEDICAL_CONFIGURATION_DEPARTMENT]},
     component: () => import('./views/medical-configuration/department')
+  },
+  {
+    path: 'news/edit',
+    name: 'news-edit',
+    meta: {activeMenu: 'news', permission: [Permission.NEWS_INDEX]},
+    component: () => import('./views/news/edit')
+  },
+  {
+    path: 'news',
+    name: 'news',
+    meta: {permission: [Permission.NEWS_INDEX]},
+    component: () => import('./views/news/index')
   }
 ];
 
