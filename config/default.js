@@ -180,6 +180,20 @@ module.exports = {
     //       key: ''
     //     }
     //   }
+    // },
+    // 新闻资讯
+    // {
+    //   path: '/news',
+    //   type: 'local',
+    //   options: {
+    //     // 本机存储路径
+    //     base: '/tmp/news',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/news',
+    //       key: ''
+    //     }
+    //   }
     // }
   ],
   // 生成公卫报告定时任务

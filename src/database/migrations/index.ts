@@ -58,6 +58,10 @@ import {AddHisSetting} from './055_add_his_setting';
 import {UpdateStaffRequest} from './056_update_staff_request';
 import {AddStaffResult} from './057_add_staff_result';
 import {AddNews} from './058_add_news';
+import {AddNewsField} from './059_add_new_field';
+import {UpdateNewsUrl} from './060_update_news_url';
+import {UpdateNewsUuid} from './061_update_news_uuid';
+import {AddNewsVirtual} from './062_add_news_virtual';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -119,5 +123,9 @@ export const migrations: IMigration[] = [
   new AddHisSetting(),
   new UpdateStaffRequest(),
   new AddStaffResult(),
-  new AddNews()
+  new AddNews(),
+  new AddNewsField(),
+  new UpdateNewsUrl(),
+  new UpdateNewsUuid(),
+  new AddNewsVirtual()
 ];

@@ -173,5 +173,13 @@ module.exports = [
         router: '/staff-binding-approval'
       }
     ]
+  },
+  {
+    index: 'news',
+    label: '新闻资讯库',
+    icon: require('../../assets/menu-icon/news.png').default,
+    iconActive: require('../../assets/menu-icon/news-active.png').default,
+    permission: [Permission.NEWS_INDEX],
+    router: '/news'
   }
 ];
