@@ -250,9 +250,9 @@ export default {
       const {pageSize, pageNo} = this.searchForm;
       return this.list.data.map((it, i) => ({
         ...it,
-        crawled_at: new Date(it?.crawled_at).$format(),
-        created_at: new Date(it?.created_at).$format(),
-        published_at: new Date(it?.published_at).$format(),
+        crawled_at: it?.crawled_at?.$format(),
+        created_at: it?.created_at?.$format(),
+        published_at: it?.published_at?.$format(),
         areas: it.arealist.map(item => item.name).join(','),
         index: (pageNo - 1) * pageSize + i + 1
       }));
