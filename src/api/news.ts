@@ -171,6 +171,7 @@ export default class News {
    *   title?: 新闻标题,
    *   source?: 来源,
    *   crawledAt?: 爬取时间,
+   *   createdAt?: 创建时间,
    *   pageNo: 页数,
    *   pageSize: 条数
    * }
@@ -186,6 +187,8 @@ export default class News {
    *           published_by?: '发布人id',
    *           publishedName?: '发布人姓名',
    *           published_at?: '发布时间',
+   *           toped_at?: '置顶时间',有值是置顶,没值是不置顶,
+   *           created_at: '创建时间',
    *           areas?: ['地区id']
    *         }
    *       ],
@@ -200,6 +203,7 @@ export default class News {
         title: should.string().allow(null),
         source: should.only(Object.values(newsSource)).allow(null),
         crawledAt: should.date().allow(null),
+        createdAt: should.date().allow(null),
         pageNo: should.number().required(),
         pageSize: should.number().required()
       })
@@ -218,6 +222,8 @@ export default class News {
                news.crawled_at,
                news.published_by,
                news.published_at,
+               news.toped_at,
+               news.created_at,
                (select name from "user" where news.published_by = "user".id)                                 "publishedName",
                (select array_agg(area) area from news_area_mapping pv where pv.news = news.id group by news) areas
         from news
@@ -225,11 +231,14 @@ export default class News {
               {{#if title}} and news.title like {{? title}} {{/if}}
               {{#if source}} and news.source = {{? source}} {{/if}}
               {{#if crawledAt}} and news.crawled_at >= {{? crawledAt}} {{/if}}
+              {{#if createdAt}} and news.created_at >= {{? createdAt}} {{/if}}
+        order by news.toped_at desc nulLs last, news.published_at desc
       `,
       {
         title: params.title,
         source: params.source,
-        crawledAt: params.crawledAt
+        crawledAt: params.crawledAt,
+        createdAt: params.createdAt
       }
     );
     return await appDB.page(sql, params.pageNo, params.pageSize, ...param);
