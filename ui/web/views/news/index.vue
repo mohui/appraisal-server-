@@ -52,13 +52,14 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
+          <el-col :span="8" :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
             <el-form-item label="创建时间：">
               <el-date-picker
                 v-model="searchForm.createdAt"
-                type="date"
-                placeholder="选择日期"
-                style="width: 100%;"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
               >
               </el-date-picker>
             </el-form-item>
@@ -211,10 +212,18 @@ export default {
     list: {
       async get() {
         const {title, source, createdAt, pageSize, pageNo} = this.searchForm;
+        let startDate = null;
+        let endDate = null;
+        if (createdAt) {
+          startDate = createdAt[0];
+          endDate = createdAt[1];
+          endDate = this.$dayjs(endDate).add(1, 'day');
+        }
         return await this.$api.News.list({
           title: title || null,
           source: source || null,
-          createdAt: createdAt || null,
+          createdAtStart: startDate,
+          createdAtEnd: endDate,
           pageSize,
           pageNo
         });
