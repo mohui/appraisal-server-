@@ -137,7 +137,7 @@
         <el-table-column
           label="发布时间"
           :min-width="computedColWidth('published_at')"
-          prop="created_at"
+          prop="published_at"
         >
         </el-table-column>
         <el-table-column
