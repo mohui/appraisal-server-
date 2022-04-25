@@ -56,7 +56,6 @@
             :placeholder="'请选择地区'"
             style="width: 100%"
             :props="areasList"
-            collapse-tags
             filterable
           ></el-cascader>
         </el-form-item>
@@ -130,7 +129,6 @@ export default {
       upsertLoading: false,
       areasList: {
         lazy: true,
-        checkStrictly: true,
         multiple: true,
         emitPath: false,
         async lazyLoad(node, resolve) {
@@ -177,6 +175,22 @@ export default {
     async saveNews(data) {
       const validate = await this.$refs.newsForm.validate();
       if (validate) {
+        //苟且解决地区code和节点对象共存的问题
+        data.areas = [
+          ...new Set(data.areas.map(it => (it?.value ? it.value : it)))
+        ];
+        //包含被选中的父节点和叶子节点的所有集合
+        const parentSelected = this.$refs.areas.getCheckedNodes();
+        //仅包含叶子节点的集合
+        const leafSelected = this.$refs.areas.getCheckedNodes(true);
+        //比较两者,取差值.
+        //差值就是需要上传的父节点;若差值为空则两者相等(仅选了叶子节点);
+        const finalSelected = parentSelected.filter(
+          p => !leafSelected.includes(p)
+        );
+        if (finalSelected.length > 0) {
+          data.areas = finalSelected.map(it => it.value);
+        }
         this.upsertLoading = true;
         if (!this.formData.content) {
           this.$message.error('请填写内容');
