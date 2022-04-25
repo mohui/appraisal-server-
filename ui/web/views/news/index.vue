@@ -97,7 +97,7 @@
         </el-table-column>
         <el-table-column label="数据来源" min-width="100" prop="source">
         </el-table-column>
-        <el-table-column label="爬取时间" min-width="200" prop="crawled_at">
+        <el-table-column label="创建时间" min-width="200" prop="created_at">
         </el-table-column>
         <el-table-column label="操作者" min-width="100" prop="publishedName">
         </el-table-column>
@@ -189,6 +189,7 @@ export default {
       return this.list.data.map((it, i) => ({
         ...it,
         crawled_at: new Date(it?.crawled_at).$format(),
+        created_at: new Date(it?.created_at).$format(),
         published_at: new Date(it?.published_at).$format(),
         index: (pageNo - 1) * pageSize + i + 1
       }));
