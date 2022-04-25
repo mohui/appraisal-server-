@@ -93,7 +93,11 @@
             {{ scope.row.index }}
           </template>
         </el-table-column>
-        <el-table-column label="标题" min-width="300" prop="title">
+        <el-table-column label="标题" min-width="300">
+          <template v-slot="scope">
+            {{ scope.row.title }}
+            <span v-if="scope.row.toped_at" class="is-top">置顶</span>
+          </template>
         </el-table-column>
         <el-table-column label="数据来源" min-width="100" prop="source">
         </el-table-column>
@@ -291,4 +295,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.is-top {
+  color: #f00;
+}
+</style>
