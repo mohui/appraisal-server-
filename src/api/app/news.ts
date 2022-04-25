@@ -55,7 +55,7 @@ export default class AppNews {
   @validate(
     should
       .object({
-        title: should.string().allow(null),
+        title: should.string().allow(''),
         pageNo: should.number().required(),
         pageSize: should.number().required()
       })
