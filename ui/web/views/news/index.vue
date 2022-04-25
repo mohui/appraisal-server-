@@ -107,12 +107,16 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column align="center" width="60" label="序号">
+        <el-table-column align="center" width="60" label="序号" fixed="left">
           <template v-slot="scope">
             {{ scope.row.index }}
           </template>
         </el-table-column>
-        <el-table-column label="标题" :min-width="computedColWidth('title')">
+        <el-table-column
+          label="标题"
+          fixed="left"
+          :min-width="computedColWidth('title')"
+        >
           <template v-slot="scope">
             {{ scope.row.title }}
             <span v-if="scope.row.toped_at" class="is-top">置顶</span>
@@ -148,7 +152,18 @@
           prop="status"
         >
         </el-table-column>
-        <el-table-column label="操作" min-width="200">
+        <el-table-column
+          label="地区"
+          :min-width="computedColWidth('areas')"
+          prop="areas"
+        >
+          <template v-slot="scope">
+            <span :title="scope.row.areas" class="areas">
+              {{ scope.row.areas }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" fixed="right" min-width="140">
           <template v-slot="scope">
             <el-tooltip content="编辑" :enterable="false">
               <el-button
@@ -238,6 +253,7 @@ export default {
         crawled_at: new Date(it?.crawled_at).$format(),
         created_at: new Date(it?.created_at).$format(),
         published_at: new Date(it?.published_at).$format(),
+        areas: it.arealist.map(item => item.name).join(','),
         index: (pageNo - 1) * pageSize + i + 1
       }));
     }
@@ -292,7 +308,13 @@ export default {
       let width = this.$widthCompute(
         this.listData.map(item => item[field] || '--')
       );
-      if (field === 'title') width += 20;
+      if (field === 'title') {
+        width += 100;
+      } else if (field === 'areas') {
+        width = 90;
+      } else {
+        width += 20;
+      }
       return width;
     },
     // 新建资讯
@@ -365,5 +387,11 @@ export default {
 <style lang="scss" scoped>
 .is-top {
   color: #f00;
+}
+.areas {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
