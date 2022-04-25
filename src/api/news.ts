@@ -170,8 +170,10 @@ export default class News {
    * @param params{
    *   title?: 新闻标题,
    *   source?: 来源,
-   *   crawledAt?: 爬取时间,
-   *   createdAt?: 创建时间,
+   *   crawledAtStart?: 爬取时间开始时间,
+   *   crawledAtEnd?: 爬取时间结束时间,
+   *   createdAtStart?: 创建时间开始时间,
+   *   createdAtEnd?: 创建时间结束时间,
    *   pageNo: 页数,
    *   pageSize: 条数
    * }
@@ -202,8 +204,10 @@ export default class News {
       .object({
         title: should.string().allow(null),
         source: should.only(Object.values(newsSource)).allow(null),
-        crawledAt: should.date().allow(null),
-        createdAt: should.date().allow(null),
+        crawledAtStart: should.date().allow(null),
+        crawledAtEnd: should.date().allow(null),
+        createdAtStart: should.date().allow(null),
+        createdAtEnd: should.date().allow(null),
         pageNo: should.number().required(),
         pageSize: should.number().required()
       })
@@ -230,17 +234,20 @@ export default class News {
         where 1 = 1
               {{#if title}} and news.title like {{? title}} {{/if}}
               {{#if source}} and news.source = {{? source}} {{/if}}
-              {{#if crawledAt}} and news.crawled_at >= {{? crawledAt}} {{/if}}
-              {{#if createdAt}} and news.created_at >= {{? createdAt}} {{/if}}
+              {{#if crawledAtStart}} and news.crawled_at >= {{? crawledAtStart}} and news.crawled_at < {{? crawledAtEnd}}  {{/if}}
+              {{#if createdAtStart}} and news.created_at >= {{? createdAtStart}} and news.created_at < {{? createdAtEnd}} {{/if}}
         order by news.toped_at desc nulLs last, news.published_at desc
       `,
       {
         title: params.title,
         source: params.source,
-        crawledAt: params.crawledAt,
-        createdAt: params.createdAt
+        crawledAtStart: params.crawledAtStart,
+        crawledAtEnd: params.crawledAtEnd,
+        createdAtStart: params.createdAtStart,
+        createdAtEnd: params.createdAtEnd
       }
     );
+    console.log({sql, param});
     return await appDB.page(sql, params.pageNo, params.pageSize, ...param);
   }
 
