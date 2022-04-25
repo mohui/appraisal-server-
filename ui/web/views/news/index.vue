@@ -94,19 +94,41 @@
             {{ scope.row.index }}
           </template>
         </el-table-column>
-        <el-table-column label="标题" min-width="300">
+        <el-table-column label="标题" :min-width="computedColWidth('title')">
           <template v-slot="scope">
             {{ scope.row.title }}
             <span v-if="scope.row.toped_at" class="is-top">置顶</span>
           </template>
         </el-table-column>
-        <el-table-column label="数据来源" min-width="100" prop="source">
+        <el-table-column
+          label="数据来源"
+          :min-width="computedColWidth('source')"
+          prop="source"
+        >
         </el-table-column>
-        <el-table-column label="创建时间" min-width="200" prop="created_at">
+        <el-table-column
+          label="创建时间"
+          :min-width="computedColWidth('created_at')"
+          prop="created_at"
+        >
         </el-table-column>
-        <el-table-column label="操作者" min-width="100" prop="publishedName">
+        <el-table-column
+          label="发布时间"
+          :min-width="computedColWidth('published_at')"
+          prop="created_at"
+        >
         </el-table-column>
-        <el-table-column label="状态" min-width="100" prop="status">
+        <el-table-column
+          label="发布者"
+          :min-width="computedColWidth('publishedName')"
+          prop="publishedName"
+        >
+        </el-table-column>
+        <el-table-column
+          label="状态"
+          :min-width="computedColWidth('status')"
+          prop="status"
+        >
         </el-table-column>
         <el-table-column label="操作" min-width="200">
           <template v-slot="scope">
@@ -238,6 +260,13 @@ export default {
     }
   },
   methods: {
+    computedColWidth(field) {
+      let width = this.$widthCompute(
+        this.listData.map(item => item[field] || '--')
+      );
+      if (field === 'title') width += 20;
+      return width;
+    },
     // 新建资讯
     addNews() {
       this.$router.push({
