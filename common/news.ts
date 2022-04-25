@@ -8,6 +8,24 @@ export enum newsStatus {
 }
 
 /**
+ * 新闻状态列表
+ */
+export const statusList = [
+  {
+    value: newsStatus.PUBLISHED,
+    name: newsStatus.PUBLISHED
+  },
+  {
+    value: newsStatus.UNPUBLISHED,
+    name: newsStatus.UNPUBLISHED
+  },
+  {
+    value: newsStatus.REMOVED,
+    name: newsStatus.REMOVED
+  }
+];
+
+/**
  * 数据来源
  */
 export enum newsSource {
