@@ -5,6 +5,7 @@ import {sql as sqlRender} from '../../database';
 import {UserType} from '../../../common/user';
 import {getHospital} from '../his/service';
 import {newsStatus} from '../../../common/news';
+import dayjs = require('dayjs');
 
 /**
  * 浏览量
@@ -88,7 +89,7 @@ export default class AppNews {
                         news.cover,
                         news.toped_at,
                         news.published_at,
-                        COALESCE(news.virtual_pv, 0) virtual_pv,
+                        COALESCE(news.virtual_pv, 0)                                                   virtual_pv,
                         (select cast(count(1) as int) from news_pv_mapping pv where pv.news = news.id) pv
         from news
                inner join news_area_mapping areaMapping on news.id = areaMapping.news
@@ -204,8 +205,39 @@ export default class AppNews {
       ...it,
       pv: it.pv + it.virtual_pv,
       isThumb: thumb.length > 0
-    }));
-    return data[0];
+    }))[0];
+    const publishedAt = dayjs(data.published_at).format('YYYY-MM-DD');
+    const htmlString = `<!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <meta charset='UTF-8'>
+                <title>${data.title}</title>
+        </head>
+        <body>
+            <div style="font-size: 24px;font-weight: bold">
+                ${data.title}
+            </div>
+            <div style="display: flex;margin: 10px 0">
+            <div style="font-size: 14px;color:#333;">
+                来源: ${data.source}
+             </div>
+            <div style="padding:0 10px;font-size: 14px;color:#333;">作者: ${data?.author ||
+              '无'}</div>
+            <div style="display:flex;flex-direction: row-reverse ;font-size: 14px;color:#888;flex: 1">
+                ${publishedAt}   浏览: ${data.pv}
+            </div>
+        </div>
+            ${data.content}
+        </body>
+        </html>`;
+    return htmlString
+      .split('\n')
+      .join('')
+      .split('<img')
+      .join('<img style="width:100%"')
+      .split('"')
+      .join("'");
   }
 
   /**
