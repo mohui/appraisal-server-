@@ -247,7 +247,6 @@ export default class News {
         createdAtEnd: params.createdAtEnd
       }
     );
-    console.log({sql, param});
     return await appDB.page(sql, params.pageNo, params.pageSize, ...param);
   }
 
