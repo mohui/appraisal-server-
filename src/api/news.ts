@@ -123,7 +123,7 @@ export default class News {
         status === newsStatus.PUBLISHED ? new Date() : null,
         Context.current.user.id,
         Context.current.user.id,
-        new Date(),
+        null,
         new Date(),
         new Date(),
         title,
