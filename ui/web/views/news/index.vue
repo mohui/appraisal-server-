@@ -53,9 +53,9 @@
             </el-form-item>
           </el-col>
           <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
-            <el-form-item label="爬取时间：">
+            <el-form-item label="创建时间：">
               <el-date-picker
-                v-model="searchForm.crawledAt"
+                v-model="searchForm.createdAt"
                 type="date"
                 placeholder="选择日期"
                 style="width: 100%;"
@@ -177,7 +177,7 @@ export default {
       searchForm: {
         title: null,
         source: null,
-        crawledAt: null,
+        createdAt: null,
         pageSize: 20,
         pageNo: 1
       }
@@ -206,11 +206,11 @@ export default {
   asyncComputed: {
     list: {
       async get() {
-        const {title, source, crawledAt, pageSize, pageNo} = this.searchForm;
+        const {title, source, createdAt, pageSize, pageNo} = this.searchForm;
         return await this.$api.News.list({
           title: title || null,
           source: source || null,
-          crawledAt: crawledAt || null,
+          createdAt: createdAt || null,
           pageSize,
           pageNo
         });
@@ -282,7 +282,7 @@ export default {
       this.searchForm = {
         title: null,
         source: null,
-        crawledAt: null,
+        createdAt: null,
         pageSize: 20,
         pageNo: 1
       };
