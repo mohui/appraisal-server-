@@ -35,7 +35,7 @@
               ></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
             <el-form-item label="来源：">
               <el-select
                 v-model="searchForm.source"
@@ -52,7 +52,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8" :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
+          <el-col :span="7" :xs="24" :sm="24" :md="7" :lg="7" :xl="7">
             <el-form-item label="创建时间：">
               <el-date-picker
                 v-model="searchForm.createdAt"
@@ -60,11 +60,29 @@
                 range-separator="至"
                 start-placeholder="开始日期"
                 end-placeholder="结束日期"
+                style="width: 100%;"
               >
               </el-date-picker>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
+            <el-form-item label="状态：">
+              <el-select
+                v-model="searchForm.status"
+                clearable
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in statusList"
+                  :key="item.value"
+                  :label="item.name"
+                  :value="item.value"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
             <el-form-item label="" style="margin-left: -80px;">
               <el-button
                 type="primary"
@@ -193,18 +211,20 @@
 </template>
 
 <script>
-import {newsStatus, sourceList} from '../../../../common/news.ts';
+import {newsStatus, statusList, sourceList} from '../../../../common/news.ts';
 export default {
   name: 'News',
   data() {
     return {
       isLoading: false,
       newsStatus,
+      statusList,
       sourceList,
       searchForm: {
         title: null,
         source: null,
         createdAt: null,
+        status: null,
         pageSize: 20,
         pageNo: 1
       }
@@ -233,7 +253,14 @@ export default {
   asyncComputed: {
     list: {
       async get() {
-        const {title, source, createdAt, pageSize, pageNo} = this.searchForm;
+        const {
+          title,
+          source,
+          createdAt,
+          status,
+          pageSize,
+          pageNo
+        } = this.searchForm;
         let startDate = null;
         let endDate = null;
         if (createdAt) {
@@ -246,6 +273,7 @@ export default {
           source: source || null,
           createdAtStart: startDate,
           createdAtEnd: endDate,
+          status: status || null,
           pageSize,
           pageNo
         });
@@ -325,6 +353,7 @@ export default {
         title: null,
         source: null,
         createdAt: null,
+        status: null,
         pageSize: 20,
         pageNo: 1
       };
