@@ -116,6 +116,16 @@ export default class News {
     } = params;
     // 过滤地区的下级地区
     const newAreas = await verifyArea(areas);
+    // 图片首次出现的位置
+    const coverStart = content.indexOf('src=');
+    // 图片结尾首次出现的位置,+40长度
+    const coverEnd = content.indexOf('key=');
+    // 默认为null
+    let cover = null;
+    // 如果查找到,把图片地址从内容里面截取出来
+    if (coverStart > -1 && coverEnd > coverStart)
+      // src=":长度为5, key=:长度为4 + 40
+      cover = content.substring(coverStart + 5, coverEnd + 44);
 
     // 默认是当前时间
     let topedAt = new Date();
@@ -176,7 +186,7 @@ export default class News {
         source,
         status,
         content,
-        null,
+        cover,
         author,
         top ? new Date() : null,
         virtual_pv,
@@ -191,7 +201,7 @@ export default class News {
         status,
         content,
         source,
-        null,
+        cover,
         author,
         top ? topedAt : null,
         virtual_pv,
