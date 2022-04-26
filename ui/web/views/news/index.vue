@@ -35,7 +35,7 @@
               ></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
             <el-form-item label="来源：">
               <el-select
                 v-model="searchForm.source"
@@ -52,18 +52,37 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
-            <el-form-item label="爬取时间：">
+          <el-col :span="7" :xs="24" :sm="24" :md="7" :lg="7" :xl="7">
+            <el-form-item label="创建时间：">
               <el-date-picker
-                v-model="searchForm.crawledAt"
-                type="date"
-                placeholder="选择日期"
+                v-model="searchForm.createdAt"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
                 style="width: 100%;"
               >
               </el-date-picker>
             </el-form-item>
           </el-col>
-          <el-col :span="5" :xs="24" :sm="24" :md="5" :lg="5" :xl="5">
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
+            <el-form-item label="状态：">
+              <el-select
+                v-model="searchForm.status"
+                clearable
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in statusList"
+                  :key="item.value"
+                  :label="item.name"
+                  :value="item.value"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
             <el-form-item label="" style="margin-left: -80px;">
               <el-button
                 type="primary"
@@ -88,22 +107,63 @@
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
       >
-        <el-table-column align="center" width="60" label="序号">
+        <el-table-column align="center" width="60" label="序号" fixed="left">
           <template v-slot="scope">
             {{ scope.row.index }}
           </template>
         </el-table-column>
-        <el-table-column label="标题" min-width="300" prop="title">
+        <el-table-column
+          label="标题"
+          fixed="left"
+          :min-width="computedColWidth('title')"
+        >
+          <template v-slot="scope">
+            {{ scope.row.title }}
+            <span v-if="scope.row.toped_at" class="is-top">置顶</span>
+          </template>
         </el-table-column>
-        <el-table-column label="数据来源" min-width="100" prop="source">
+        <el-table-column
+          label="数据来源"
+          :min-width="computedColWidth('source')"
+          prop="source"
+        >
         </el-table-column>
-        <el-table-column label="爬取时间" min-width="200" prop="crawled_at">
+        <el-table-column
+          label="创建时间"
+          :min-width="computedColWidth('created_at')"
+          prop="created_at"
+        >
         </el-table-column>
-        <el-table-column label="操作者" min-width="100" prop="publishedName">
+        <el-table-column
+          label="发布时间"
+          :min-width="computedColWidth('published_at')"
+          prop="published_at"
+        >
         </el-table-column>
-        <el-table-column label="状态" min-width="100" prop="status">
+        <el-table-column
+          label="发布者"
+          :min-width="computedColWidth('publishedName')"
+          prop="publishedName"
+        >
         </el-table-column>
-        <el-table-column label="操作" min-width="200">
+        <el-table-column
+          label="状态"
+          :min-width="computedColWidth('status')"
+          prop="status"
+        >
+        </el-table-column>
+        <el-table-column
+          label="地区"
+          :min-width="computedColWidth('areas')"
+          prop="areas"
+        >
+          <template v-slot="scope">
+            <span :title="scope.row.areas" class="areas">
+              {{ scope.row.areas }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" fixed="right" min-width="140">
           <template v-slot="scope">
             <el-tooltip content="编辑" :enterable="false">
               <el-button
@@ -166,18 +226,20 @@
 </template>
 
 <script>
-import {newsStatus, sourceList} from '../../../../common/news.ts';
+import {newsStatus, statusList, sourceList} from '../../../../common/news.ts';
 export default {
   name: 'News',
   data() {
     return {
       isLoading: false,
       newsStatus,
+      statusList,
       sourceList,
       searchForm: {
         title: null,
         source: null,
-        crawledAt: null,
+        createdAt: null,
+        status: null,
         pageSize: 20,
         pageNo: 1
       }
@@ -188,8 +250,10 @@ export default {
       const {pageSize, pageNo} = this.searchForm;
       return this.list.data.map((it, i) => ({
         ...it,
-        crawled_at: new Date(it?.crawled_at).$format(),
-        published_at: new Date(it?.published_at).$format(),
+        crawled_at: it?.crawled_at?.$format(),
+        created_at: it?.created_at?.$format(),
+        published_at: it?.published_at?.$format(),
+        areas: it.arealist.map(item => item.name).join(','),
         index: (pageNo - 1) * pageSize + i + 1
       }));
     }
@@ -205,11 +269,27 @@ export default {
   asyncComputed: {
     list: {
       async get() {
-        const {title, source, crawledAt, pageSize, pageNo} = this.searchForm;
+        const {
+          title,
+          source,
+          createdAt,
+          status,
+          pageSize,
+          pageNo
+        } = this.searchForm;
+        let startDate = null;
+        let endDate = null;
+        if (createdAt) {
+          startDate = createdAt[0];
+          endDate = createdAt[1];
+          endDate = this.$dayjs(endDate).add(1, 'day');
+        }
         return await this.$api.News.list({
           title: title || null,
           source: source || null,
-          crawledAt: crawledAt || null,
+          createdAtStart: startDate,
+          createdAtEnd: endDate,
+          status: status || null,
           pageSize,
           pageNo
         });
@@ -224,6 +304,19 @@ export default {
     }
   },
   methods: {
+    computedColWidth(field) {
+      let width = this.$widthCompute(
+        this.listData.map(item => item[field] || '--')
+      );
+      if (field === 'title') {
+        width += 100;
+      } else if (field === 'areas') {
+        width = 90;
+      } else {
+        width += 20;
+      }
+      return width;
+    },
     // 新建资讯
     addNews() {
       this.$router.push({
@@ -281,7 +374,8 @@ export default {
       this.searchForm = {
         title: null,
         source: null,
-        crawledAt: null,
+        createdAt: null,
+        status: null,
         pageSize: 20,
         pageNo: 1
       };
@@ -290,4 +384,14 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.is-top {
+  color: #f00;
+}
+.areas {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

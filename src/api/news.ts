@@ -1,5 +1,5 @@
 import {KatoRuntimeError, should, validate} from 'kato-server';
-import {appDB, unifs} from '../app';
+import {appDB, originalDB, unifs} from '../app';
 import {v4 as uuid} from 'uuid';
 import {newsSource, newsStatus} from '../../common/news';
 import {Context} from './context';
@@ -170,7 +170,11 @@ export default class News {
    * @param params{
    *   title?: 新闻标题,
    *   source?: 来源,
-   *   crawledAt?: 爬取时间,
+   *   status?: 状态,
+   *   crawledAtStart?: 爬取时间开始时间,
+   *   crawledAtEnd?: 爬取时间结束时间,
+   *   createdAtStart?: 创建时间开始时间,
+   *   createdAtEnd?: 创建时间结束时间,
    *   pageNo: 页数,
    *   pageSize: 条数
    * }
@@ -186,7 +190,10 @@ export default class News {
    *           published_by?: '发布人id',
    *           publishedName?: '发布人姓名',
    *           published_at?: '发布时间',
+   *           toped_at?: '置顶时间',有值是置顶,没值是不置顶,
+   *           created_at: '创建时间',
    *           areas?: ['地区id']
+   *           areaList: [{code: 地区id, name: 地区名称}]
    *         }
    *       ],
    *       rows: '数据行数',
@@ -199,7 +206,11 @@ export default class News {
       .object({
         title: should.string().allow(null),
         source: should.only(Object.values(newsSource)).allow(null),
-        crawledAt: should.date().allow(null),
+        status: should.only(Object.values(newsStatus)).allow(null),
+        crawledAtStart: should.date().allow(null),
+        crawledAtEnd: should.date().allow(null),
+        createdAtStart: should.date().allow(null),
+        createdAtEnd: should.date().allow(null),
         pageNo: should.number().required(),
         pageSize: should.number().required()
       })
@@ -218,21 +229,58 @@ export default class News {
                news.crawled_at,
                news.published_by,
                news.published_at,
+               news.toped_at,
+               news.created_at,
                (select name from "user" where news.published_by = "user".id)                                 "publishedName",
                (select array_agg(area) area from news_area_mapping pv where pv.news = news.id group by news) areas
         from news
         where 1 = 1
               {{#if title}} and news.title like {{? title}} {{/if}}
               {{#if source}} and news.source = {{? source}} {{/if}}
-              {{#if crawledAt}} and news.crawled_at >= {{? crawledAt}} {{/if}}
+              {{#if status}} and news.status = {{? status}} {{/if}}
+              {{#if crawledAtStart}} and news.crawled_at >= {{? crawledAtStart}} and news.crawled_at < {{? crawledAtEnd}}  {{/if}}
+              {{#if createdAtStart}} and news.created_at >= {{? createdAtStart}} and news.created_at < {{? createdAtEnd}} {{/if}}
+        order by news.toped_at desc nulLs last, news.published_at desc
       `,
       {
         title: params.title,
         source: params.source,
-        crawledAt: params.crawledAt
+        status: params.status,
+        crawledAtStart: params.crawledAtStart,
+        crawledAtEnd: params.crawledAtEnd,
+        createdAtStart: params.createdAtStart,
+        createdAtEnd: params.createdAtEnd
       }
     );
-    return await appDB.page(sql, params.pageNo, params.pageSize, ...param);
+    const list = await appDB.page(
+      sql,
+      params.pageNo,
+      params.pageSize,
+      ...param
+    );
+    // 查询所有地区列表
+    const areaList = await originalDB.execute(
+      // language=PostgreSQL
+      `
+        select code, name
+        from area
+      `
+    );
+    const data = list.data.map(it => ({
+      ...it,
+      arealist: !it.areas
+        ? []
+        : it.areas
+            .map(areaIt => {
+              return areaList.find(findIt => findIt.code === areaIt);
+            })
+            .filter(filterIt => filterIt)
+    }));
+
+    return {
+      ...list,
+      data
+    };
   }
 
   /**
