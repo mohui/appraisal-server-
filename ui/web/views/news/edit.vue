@@ -52,11 +52,11 @@
 
         <el-form-item label="发布地区" prop="areas">
           <el-cascader
+            ref="areas"
             v-model="formData.areas"
             :placeholder="'请选择地区'"
             style="width: 100%"
             :props="areasList"
-            collapse-tags
             filterable
           ></el-cascader>
         </el-form-item>
@@ -75,14 +75,14 @@
         v-loading="upsertLoading"
         size="mini"
         type="primary"
-        @click="saveNews(formData)"
+        @click="saveNews(formData, newsStatus.PUBLISHED)"
         >确认发布</el-button
       >
       <el-button
         v-loading="upsertLoading"
         size="mini"
         type="default"
-        @click="saveDraft(formData)"
+        @click="saveNews(formData, newsStatus.UNPUBLISHED)"
         >存为草稿</el-button
       >
       <el-button
@@ -130,7 +130,6 @@ export default {
       upsertLoading: false,
       areasList: {
         lazy: true,
-        checkStrictly: true,
         multiple: true,
         emitPath: false,
         async lazyLoad(node, resolve) {
@@ -153,7 +152,8 @@ export default {
         }
       },
       apiUrl: apiUrl,
-      sourceList: sourceList
+      sourceList: sourceList,
+      newsStatus: newsStatus
     };
   },
   async created() {
@@ -174,42 +174,42 @@ export default {
     async region(code) {
       return await this.$api.Group.children(code);
     },
-    async saveNews(data) {
+    async saveNews(data, status) {
       const validate = await this.$refs.newsForm.validate();
       if (validate) {
+        //苟且解决地区code和节点对象共存的问题
+        data.areas = [
+          ...new Set(data.areas.map(it => (it?.value ? it.value : it)))
+        ];
+        //包含被选中的父节点和叶子节点的所有集合
+        const parentSelected = this.$refs.areas.getCheckedNodes();
+        //仅包含叶子节点的集合
+        const leafSelected = this.$refs.areas.getCheckedNodes(true);
+        //比较两者,取差值.
+        //差值就是需要上传的父节点;若差值为空则两者相等(仅选了叶子节点);
+        const finalSelected = parentSelected.filter(
+          p => !leafSelected.includes(p)
+        );
+        if (finalSelected.length > 0) {
+          data.areas = finalSelected.map(it => it.value);
+        }
         this.upsertLoading = true;
         if (!this.formData.content) {
           this.$message.error('请填写内容');
           return;
         }
-        //已发布状态
-        data.status = newsStatus.PUBLISHED;
+        data.status = status;
         try {
           this.formData.id = await this.$api.News.upsert(data);
           this.upsertLoading = false;
-          this.$message.success('操作成功!');
+          status === newsStatus.PUBLISHED
+            ? this.$message.success('操作成功!')
+            : this.$message.success('该条资讯存为草稿，用户端不可见!');
           this.$router.push({path: '/news'});
         } catch (e) {
           this.$message.error(e.message);
           this.upsertLoading = false;
         }
-      }
-    },
-    // 存在草稿
-    async saveDraft(data) {
-      const validate = await this.$refs.newsForm.validate();
-      if (validate) {
-        this.upsertLoading = true;
-        if (!this.formData.content) {
-          this.$message.error('请填写内容');
-          return;
-        }
-        //未发布状态
-        data.status = newsStatus.UNPUBLISHED;
-        this.formData.id = await this.$api.News.upsert(data);
-        this.upsertLoading = false;
-        this.$message.success('该条资讯存为草稿，用户端不可见!');
-        this.$router.push({path: '/news'});
       }
     }
   }
