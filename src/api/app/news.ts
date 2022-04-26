@@ -235,12 +235,9 @@ export default class AppNews {
           </footer>
         </html>`;
     return htmlString
-      .split('\n')
-      .join('')
-      .split('<img')
-      .join('<img style="width:100%"')
-      .split('"')
-      .join("'");
+      .replace(/\n/g, '')
+      .replace(/<img/g, '<img style="width:100%"')
+      .replace(/"/g, "'");
   }
 
   /**
