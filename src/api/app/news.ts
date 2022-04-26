@@ -154,7 +154,7 @@ export default class AppNews {
    *           pv: 浏览量(20),
    *           thumb: 点赞数量 0,
    *           isThumb: 是否已经点赞, true/false
-   *           htmlString: 展示页面的html字符串
+   *           html: 展示页面的html字符串
    *         }
    */
   @validate(should.string().required())
@@ -208,7 +208,7 @@ export default class AppNews {
       isThumb: thumb.length > 0
     }))[0];
     const publishedAt = dayjs(data.published_at).format('YYYY-MM-DD');
-    const htmlString = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
         <html lang='en'>
         <head>
             <meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -235,11 +235,11 @@ export default class AppNews {
             声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
           </footer>
         </html>`;
-    htmlString
+    html
       .replace(/\n/g, '')
       .replace(/<img/g, '<img style="width:100%"')
       .replace(/"/g, "'");
-    return {...data, htmlString};
+    return {...data, html};
   }
 
   /**
