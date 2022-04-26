@@ -154,6 +154,7 @@ export default class AppNews {
    *           pv: 浏览量(20),
    *           thumb: 点赞数量 0,
    *           isThumb: 是否已经点赞, true/false
+   *           htmlString: 展示页面的html字符串
    *         }
    */
   @validate(should.string().required())
