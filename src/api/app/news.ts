@@ -5,7 +5,7 @@ import {sql as sqlRender} from '../../database';
 import {UserType} from '../../../common/user';
 import {getHospital} from '../his/service';
 import {newsStatus} from '../../../common/news';
-import dayjs = require('dayjs');
+import * as dayjs from 'dayjs';
 
 /**
  * 浏览量
@@ -89,7 +89,7 @@ export default class AppNews {
                         news.cover,
                         news.toped_at,
                         news.published_at,
-                        COALESCE(news.virtual_pv, 0)                                                   virtual_pv,
+                        COALESCE(news.virtual_pv, 0) virtual_pv,
                         (select cast(count(1) as int) from news_pv_mapping pv where pv.news = news.id) pv
         from news
                inner join news_area_mapping areaMapping on news.id = areaMapping.news
