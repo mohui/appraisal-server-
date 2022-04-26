@@ -1,5 +1,5 @@
 import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
-import {appDB, mappingDB, originalDB} from '../../app';
+import {appDB, lakeDB, mappingDB, originalDB} from '../../app';
 import {v4 as uuid} from 'uuid';
 import * as dayjs from 'dayjs';
 import {
@@ -2008,7 +2008,7 @@ export default class HisWorkItem {
     const chargeIdModels: {
       item: string;
       item_name: string;
-    }[] = await originalDB.execute(
+    }[] = await lakeDB.execute(
       // language=PostgreSQL
       `
         select distinct item, item_name
