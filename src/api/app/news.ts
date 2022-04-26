@@ -5,6 +5,7 @@ import {sql as sqlRender} from '../../database';
 import {UserType} from '../../../common/user';
 import {getHospital} from '../his/service';
 import {newsStatus} from '../../../common/news';
+import * as dayjs from 'dayjs';
 
 /**
  * 浏览量
@@ -204,8 +205,39 @@ export default class AppNews {
       ...it,
       pv: it.pv + it.virtual_pv,
       isThumb: thumb.length > 0
-    }));
-    return data[0];
+    }))[0];
+    const publishedAt = dayjs(data.published_at).format('YYYY-MM-DD');
+    const htmlString = `<!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <meta charset='UTF-8'>
+                <title>${data.title}</title>
+        </head>
+        <body>
+            <div style="font-size: 24px;font-weight: bold">
+                ${data.title}
+            </div>
+            <div style="display: flex;margin: 10px 0">
+            <div style="font-size: 14px;color:#333;">
+                来源: ${data.source}
+             </div>
+            <div style="padding:0 10px;font-size: 14px;color:#333;">作者: ${data?.author ||
+              '无'}</div>
+            <div style="display:flex;flex-direction: row-reverse ;font-size: 14px;color:#888;flex: 1">
+                ${publishedAt}   浏览: ${data.pv}
+            </div>
+        </div>
+            ${data.content}
+        </body>
+          <footer style="width: 100%;font-size: 12px;color: #888">
+            声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
+          </footer>
+        </html>`;
+    return htmlString
+      .replace(/\n/g, '')
+      .replace(/<img/g, '<img style="width:100%"')
+      .replace(/"/g, "'");
   }
 
   /**
