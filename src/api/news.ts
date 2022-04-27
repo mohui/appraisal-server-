@@ -1,7 +1,7 @@
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB, unifs} from '../app';
 import {v4 as uuid} from 'uuid';
-import {newsSource, newsStatus} from '../../common/news';
+import {newsStatus} from '../../common/news';
 import {Context} from './context';
 import * as path from 'path';
 import {sql as sqlRender} from '../database';
@@ -83,7 +83,7 @@ export default class News {
         id: should.string().allow(null),
         title: should.string().required(),
         author: should.string().allow(''),
-        source: should.only(Object.values(newsSource)).required(),
+        source: should.string().required(),
         top: should.boolean().required(),
         content: should.string().required(),
         areas: should
@@ -276,7 +276,7 @@ export default class News {
     should
       .object({
         title: should.string().allow(null),
-        source: should.only(Object.values(newsSource)).allow(null),
+        source: should.string().allow(null),
         status: should.only(Object.values(newsStatus)).allow(null),
         crawledAtStart: should.date().allow(null),
         crawledAtEnd: should.date().allow(null),
@@ -290,6 +290,7 @@ export default class News {
   async list(params) {
     // 根据标题查询
     if (params.title) params.title = `%${params.title}%`;
+    if (params.source) params.source = `%${params.source}%`;
     const [sql, param] = sqlRender(
       `
         select news.id,
@@ -307,7 +308,7 @@ export default class News {
         from news
         where 1 = 1
               {{#if title}} and news.title like {{? title}} {{/if}}
-              {{#if source}} and news.source = {{? source}} {{/if}}
+              {{#if source}} and news.source like {{? source}} {{/if}}
               {{#if status}} and news.status = {{? status}} {{/if}}
               {{#if crawledAtStart}} and news.crawled_at >= {{? crawledAtStart}} and news.crawled_at < {{? crawledAtEnd}}  {{/if}}
               {{#if createdAtStart}} and news.created_at >= {{? createdAtStart}} and news.created_at < {{? createdAtEnd}} {{/if}}

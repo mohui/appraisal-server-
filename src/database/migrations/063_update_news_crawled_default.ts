@@ -1,6 +1,5 @@
 import {IMigration} from '../migrater';
 import {ExtendedSequelize} from '../client';
-import {newsSource} from '../../../common/news';
 
 export class UpdateNewsCrawledDefault implements IMigration {
   name = '删除crawled默认值和not null';
@@ -16,7 +15,7 @@ export class UpdateNewsCrawledDefault implements IMigration {
       -- 自行创建的爬取时间改为null
       update news
       set crawled_at = null
-      where source = '${newsSource.SELF}'
+      where source = '自行创建'
     `);
   }
 

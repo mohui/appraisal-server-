@@ -33,14 +33,7 @@
         </el-form-item>
 
         <el-form-item label="来源" prop="source">
-          <el-select v-model="formData.source">
-            <el-option
-              v-for="s of sourceList"
-              :key="s.value"
-              :value="s.value"
-              :label="s.name"
-            ></el-option>
-          </el-select>
+          <el-input v-model="formData.source"> </el-input>
         </el-form-item>
 
         <el-form-item label="浏览量" prop="virtual_pv">
@@ -99,7 +92,7 @@
 import {getToken} from '../../utils/cache';
 import TinyEditor from '../../components/tiny-editor';
 import {apiUrl} from '../../plugins/api';
-import {newsStatus, sourceList} from '../../../../common/news.ts';
+import {newsStatus} from '../../../../common/news.ts';
 
 export default {
   name: 'edit',
@@ -125,7 +118,7 @@ export default {
       },
       rules: {
         title: [{required: true, message: '请填写标题', trigger: 'blur'}],
-        source: [{required: true, message: '请选择来源', trigger: 'blur'}]
+        source: [{required: true, message: '请填写来源', trigger: 'blur'}]
       },
       upsertLoading: false,
       areasList: {
@@ -152,7 +145,6 @@ export default {
         }
       },
       apiUrl: apiUrl,
-      sourceList: sourceList,
       newsStatus: newsStatus
     };
   },

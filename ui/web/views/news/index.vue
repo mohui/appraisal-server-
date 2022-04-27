@@ -37,19 +37,11 @@
           </el-col>
           <el-col :span="4" :xs="24" :sm="24" :md="4" :lg="4" :xl="4">
             <el-form-item label="来源：">
-              <el-select
+              <el-input
                 v-model="searchForm.source"
+                size="mini"
                 clearable
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="item in sourceList"
-                  :key="item.value"
-                  :label="item.name"
-                  :value="item.value"
-                >
-                </el-option>
-              </el-select>
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7" :xs="24" :sm="24" :md="7" :lg="7" :xl="7">
@@ -226,7 +218,7 @@
 </template>
 
 <script>
-import {newsStatus, statusList, sourceList} from '../../../../common/news.ts';
+import {newsStatus, statusList} from '../../../../common/news.ts';
 export default {
   name: 'News',
   data() {
@@ -234,7 +226,6 @@ export default {
       isLoading: false,
       newsStatus,
       statusList,
-      sourceList,
       searchForm: {
         title: null,
         source: null,
@@ -259,7 +250,25 @@ export default {
     }
   },
   watch: {
-    ['searchForm.keyword']: {
+    ['searchForm.title']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.source']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.createdAt']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.status']: {
       handler() {
         this.searchForm.pageNo = 1;
       },
