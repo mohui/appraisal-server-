@@ -24,20 +24,3 @@ export const statusList = [
     name: newsStatus.REMOVED
   }
 ];
-
-/**
- * 数据来源
- */
-export enum newsSource {
-  SELF = '自行创建'
-}
-
-/**
- * 来源列表
- */
-export const sourceList = [
-  {
-    value: newsSource.SELF,
-    name: newsSource.SELF
-  }
-];
