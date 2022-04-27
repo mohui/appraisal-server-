@@ -83,7 +83,7 @@ export default class News {
         id: should.string().allow(null),
         title: should.string().required(),
         author: should.string().allow(''),
-        source: should.only(Object.values(newsSource)).required(),
+        source: should.string().required(),
         top: should.boolean().required(),
         content: should.string().required(),
         areas: should
@@ -276,7 +276,7 @@ export default class News {
     should
       .object({
         title: should.string().allow(null),
-        source: should.only(Object.values(newsSource)).allow(null),
+        source: should.string().allow(null),
         status: should.only(Object.values(newsStatus)).allow(null),
         crawledAtStart: should.date().allow(null),
         crawledAtEnd: should.date().allow(null),
