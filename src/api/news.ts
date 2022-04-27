@@ -290,6 +290,7 @@ export default class News {
   async list(params) {
     // 根据标题查询
     if (params.title) params.title = `%${params.title}%`;
+    if (params.source) params.source = `%${params.source}%`;
     const [sql, param] = sqlRender(
       `
         select news.id,
@@ -307,7 +308,7 @@ export default class News {
         from news
         where 1 = 1
               {{#if title}} and news.title like {{? title}} {{/if}}
-              {{#if source}} and news.source = {{? source}} {{/if}}
+              {{#if source}} and news.source like {{? source}} {{/if}}
               {{#if status}} and news.status = {{? status}} {{/if}}
               {{#if crawledAtStart}} and news.crawled_at >= {{? crawledAtStart}} and news.crawled_at < {{? crawledAtEnd}}  {{/if}}
               {{#if createdAtStart}} and news.created_at >= {{? createdAtStart}} and news.created_at < {{? createdAtEnd}} {{/if}}
