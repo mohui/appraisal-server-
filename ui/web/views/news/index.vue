@@ -250,7 +250,25 @@ export default {
     }
   },
   watch: {
-    ['searchForm.keyword']: {
+    ['searchForm.title']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.source']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.createdAt']: {
+      handler() {
+        this.searchForm.pageNo = 1;
+      },
+      deep: true
+    },
+    ['searchForm.status']: {
       handler() {
         this.searchForm.pageNo = 1;
       },
