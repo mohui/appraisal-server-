@@ -1,7 +1,7 @@
 import {KatoRuntimeError, should, validate} from 'kato-server';
 import {appDB, originalDB, unifs} from '../app';
 import {v4 as uuid} from 'uuid';
-import {newsSource, newsStatus} from '../../common/news';
+import {newsStatus} from '../../common/news';
 import {Context} from './context';
 import * as path from 'path';
 import {sql as sqlRender} from '../database';
