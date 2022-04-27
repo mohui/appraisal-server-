@@ -48,6 +48,8 @@ export default {
         toolbar: [
           'searchreplace formatselect fontsizeselect bold italic underline strikethrough alignleft aligncenter alignright outdent indent blockquote undo redo removeformat subscript superscript hr bullist numlist link image charmap preview pagebreak media table forecolor backcolor fullscreen'
         ],
+        relative_urls: false,
+        remove_script_host: false,
         branding: false,
         menubar: false,
         //此处为图片上传处理函数
