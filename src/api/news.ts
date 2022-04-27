@@ -6,6 +6,61 @@ import {Context} from './context';
 import * as path from 'path';
 import {sql as sqlRender} from '../database';
 
+/**
+ * 过滤地区的下级地区
+ */
+async function verifyArea(areas) {
+  // 根据地区id查询地区列表
+  const list: {
+    code: string;
+    name: string;
+    path: string;
+    level: number;
+  }[] = await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select code,
+             name,
+             path,
+             case label
+               when 'province' then 1
+               when 'city' then 2
+               when 'district' then 3
+               when 'centre' then 4
+               else 5
+               end as level
+      from area
+      where code in (${areas.map(() => '?')})
+      order by level
+    `,
+    ...areas
+  );
+
+  const del = [];
+
+  // 找第一个循环里地区的子集,把所有的子集都找到,剩下的就是没有子集的地区
+  for (const area of areas) {
+    for (const areaIt of list) {
+      // 不是当前地区
+      if (area !== areaIt.code) {
+        // 把父级地区拆成数组,查找此地区是否在父级数组中
+        const findIndex = areaIt.path
+          .split('.')
+          .find(findIt => findIt === area);
+        // 如果在父级数组中,说明此地区是它的子集,把他放到子集数组中
+        if (findIndex) del.push(areaIt.code);
+      }
+    }
+  }
+  // 他可能是两个地区的下级地区,去重
+  const delList = Array.from(new Set(del));
+
+  // 所有不是子集的地区
+  return areas.filter(it => {
+    return !delList.find(findIt => findIt === it);
+  });
+}
+
 export default class News {
   /**
    * 新闻资讯的添加编辑
@@ -31,7 +86,10 @@ export default class News {
         source: should.only(Object.values(newsSource)).required(),
         top: should.boolean().required(),
         content: should.string().required(),
-        areas: should.array().required(),
+        areas: should
+          .array()
+          .min(1)
+          .required(),
         status: should
           .string()
           .only(
@@ -56,6 +114,19 @@ export default class News {
       status,
       virtual_pv
     } = params;
+    // 过滤地区的下级地区
+    const newAreas = await verifyArea(areas);
+    // 图片首次出现的位置
+    const coverStart = content.indexOf('src=');
+    // 图片结尾首次出现的位置,+40长度
+    const coverEnd = content.indexOf('key=');
+    // 默认为null
+    let cover = null;
+    // 如果查找到,把图片地址从内容里面截取出来
+    if (coverStart > -1 && coverEnd > coverStart)
+      // src=":长度为5, key=:长度为4 + 40
+      cover = content.substring(coverStart + 5, coverEnd + 44);
+
     // 默认是当前时间
     let topedAt = new Date();
     // 如果新闻id并且是置顶的, 查询新闻当前是否置顶
@@ -115,7 +186,7 @@ export default class News {
         source,
         status,
         content,
-        null,
+        cover,
         author,
         top ? new Date() : null,
         virtual_pv,
@@ -130,7 +201,7 @@ export default class News {
         status,
         content,
         source,
-        null,
+        cover,
         author,
         top ? topedAt : null,
         virtual_pv,
@@ -139,7 +210,7 @@ export default class News {
         new Date()
       );
       // 如果不为0
-      if (areas.length > 0) {
+      if (newAreas.length > 0) {
         await appDB.execute(
           // language=PostgreSQL
           `
@@ -152,9 +223,9 @@ export default class News {
         await appDB.execute(
           `
             insert into news_area_mapping(news, area)
-            values ${areas.map(() => '(?, ?)').join()}
+            values ${newAreas.map(() => '(?, ?)').join()}
           `,
-          ...areas
+          ...newAreas
             .map(it => [newsId, it])
             .reduce((prev, current) => {
               return [...prev, ...current];
