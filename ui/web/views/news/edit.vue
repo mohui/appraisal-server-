@@ -47,9 +47,11 @@
           <el-cascader
             ref="areas"
             v-model="formData.areas"
+            :show-all-levels="false"
             :placeholder="'请选择地区'"
             style="width: 100%"
-            :props="areasList"
+            :options="areasTree"
+            :props="areasOption"
             filterable
           ></el-cascader>
         </el-form-item>
@@ -100,7 +102,6 @@ export default {
     'tiny-editor': TinyEditor
   },
   data() {
-    const that = this;
     return {
       fileList: [],
       token: {token: getToken()},
@@ -121,34 +122,22 @@ export default {
         source: [{required: true, message: '请填写来源', trigger: 'blur'}]
       },
       upsertLoading: false,
-      areasList: {
-        lazy: true,
+      areasTree: [],
+      areasOption: {
         multiple: true,
         emitPath: false,
-        async lazyLoad(node, resolve) {
-          const {level, value = null} = node;
-          if (level <= 2) {
-            const region = (await that.region(value)).map(it => ({
-              value: it.code,
-              label: it.name,
-              leaf: level >= 1
-            }));
-            //自动勾上已经被选中的节点
-            const selected = region.filter(r =>
-              that.formData.areas.includes(r.value)
-            );
-            that.formData.areas = [
-              ...new Set(that.formData.areas.concat(selected))
-            ];
-            resolve(region);
-          }
-        }
+        value: 'code',
+        label: 'name',
+        children: 'children'
       },
       apiUrl: apiUrl,
       newsStatus: newsStatus
     };
   },
   async created() {
+    //获取地区选项
+    let areas = await this.region();
+    this.areasTree = await this.getChildrenArea(areas);
     if (this.$route.query.id) {
       //请求新闻详情
       const result = await this.$api.News.detail(this.$route.query.id);
@@ -156,12 +145,57 @@ export default {
         for (let c in this.formData) {
           if (c === 'top') {
             this.formData['top'] = !!result['toped_at'];
+          } else if (c === 'areas') {
+            this.formData.areas = result['areas'];
+            const total = this.formData.areas.length;
+            //如果该节点下有子集,则要勾选上它的所有子集
+            for (let i = 0; i < total; i++) {
+              await this.findChildrenCode(this.formData.areas[i]);
+            }
           } else this.formData[c] = result[c];
         }
       }
     }
   },
   methods: {
+    //为了自动勾选子集地区的递归方法
+    async findChildrenCode(code) {
+      const children = await this.region(code);
+      if (children.length > 0)
+        //子集的所有code合并到绑定的areas参数里
+        this.formData.areas = this.formData.areas.concat(
+          children.map(it => it.code)
+        );
+      for (let k = 0; k < children.length; k++) {
+        //如果子集内还有市,区级别的数据,继续递归
+        if (['province', 'city', 'district'].includes(children[k].label)) {
+          await this.findChildrenCode(children[k].code);
+        }
+      }
+    },
+
+    //获取各级别的子地区
+    async getChildrenArea(areas) {
+      for (let i = 0; i < areas.length; i++) {
+        //如果top地区包含省和市级别的选项
+        if (['province', 'city', 'district'].includes(areas[i].label)) {
+          //则补充它的子集
+          const children = await this.region(areas[i].code);
+          if (children.length > 0) areas[i].children = children;
+          else areas[i].leaf = true;
+          //如果子集还有市和区级别的元素,继续递归
+          if (
+            areas[i].children &&
+            areas[i].children.find(it =>
+              ['province', 'city', 'district'].includes(it.label)
+            )
+          ) {
+            await this.getChildrenArea(areas[i].children);
+          }
+        }
+      }
+      return areas;
+    },
     //异步加载地区列表
     async region(code) {
       return await this.$api.Group.children(code);
@@ -169,22 +203,10 @@ export default {
     async saveNews(data, status) {
       const validate = await this.$refs.newsForm.validate();
       if (validate) {
-        //苟且解决地区code和节点对象共存的问题
-        data.areas = [
-          ...new Set(data.areas.map(it => (it?.value ? it.value : it)))
-        ];
-        //包含被选中的父节点和叶子节点的所有集合
-        const parentSelected = this.$refs.areas.getCheckedNodes();
-        //仅包含叶子节点的集合
-        const leafSelected = this.$refs.areas.getCheckedNodes(true);
-        //比较两者,取差值.
-        //差值就是需要上传的父节点;若差值为空则两者相等(仅选了叶子节点);
-        const finalSelected = parentSelected.filter(
-          p => !leafSelected.includes(p)
-        );
-        if (finalSelected.length > 0) {
-          data.areas = finalSelected.map(it => it.value);
-        }
+        data.areas = this.$refs.areas
+          .getCheckedNodes() //包含被选中的父节点和叶子节点的所有集合
+          .filter(it => it.data.leaf || it.data?.children?.length > 0) //过滤, 只保留没有children的叶子节点,和children不为空的父节点
+          .map(it => it.value);
         this.upsertLoading = true;
         if (!this.formData.content) {
           this.$message.error('请填写内容');
