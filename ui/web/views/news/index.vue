@@ -98,6 +98,8 @@
         height="100%"
         style="flex-grow: 1;"
         :header-cell-style="{background: '#F3F4F7', color: '#555'}"
+        :cell-class-name="cellClassHover"
+        @row-click="handleCellClick"
       >
         <el-table-column align="center" width="60" label="序号" fixed="left">
           <template v-slot="scope">
@@ -379,6 +381,21 @@ export default {
           });
         });
     },
+    // 设置标题可点击样式
+    cellClassHover({columnIndex}) {
+      if (columnIndex === 1) return 'news-title';
+    },
+    // 点击标题跳转详情
+    handleCellClick(row, column) {
+      if (column.label === '标题') {
+        return this.$router.push({
+          name: 'news-edit',
+          query: {
+            id: row.id
+          }
+        });
+      }
+    },
     reset() {
       this.searchForm = {
         title: null,
@@ -394,6 +411,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../../styles/vars';
+::v-deep .news-title {
+  cursor: pointer;
+  :hover {
+    color: $color-primary;
+  }
+}
 .is-top {
   color: #f00;
 }
