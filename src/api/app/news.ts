@@ -208,7 +208,7 @@ export default class AppNews {
       isThumb: thumb.length > 0
     }))[0];
     const publishedAt = dayjs(data.published_at).format('YYYY-MM-DD');
-    const html = `<!DOCTYPE html>
+    let html = `<!DOCTYPE html>
         <html lang='en'>
         <head>
             <meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -219,23 +219,38 @@ export default class AppNews {
             <div style="font-size: 24px;font-weight: bold">
                 ${data.title}
             </div>
-            <div style="display: flex;margin: 10px 0">
-            <div style="font-size: 14px;color:#333;">
-                来源: ${data.source}
-             </div>
-            <div style="padding:0 10px;font-size: 14px;color:#333;">作者: ${data?.author ||
-              '无'}</div>
-            <div style="display:flex;flex-direction: row-reverse ;font-size: 14px;color:#888;flex: 1">
-                ${publishedAt}   浏览: ${data.pv}
+            <div style="display:flex;padding: 10px 0;">
+                <div style="flex: 1;overflow: hidden;white-space: nowrap;text-overflow: ellipsis">
+                  <span style="font-size: 12px;color:#333;">
+                    来源:
+                    <span style="color:#888;"> ${data.source}</span>
+                  </span>
+                  ${
+                    data.author
+                      ? `<span style="padding:0 2px;font-size: 12px;color:#333;">
+                    作者:
+                    <span style="color:#888">${data.author}</span>
+                  </span>`
+                      : ''
+                  }
+                  <div style="font-size: 12px;color:#888;">
+                    ${publishedAt}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 12px;color:#333;text-align: center">浏览量:</div>
+                  <div style="font-size: 12px;color:#333;text-align: center">${
+                    data.pv
+                  }</div>
+                </div>
             </div>
-        </div>
             ${data.content}
         </body>
-          <footer style="width: 100%;font-size: 12px;color: #888">
-            声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
-          </footer>
+        <footer style="width: 100%;font-size: 12px;color: #888">
+          声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
+        </footer>
         </html>`;
-    html
+    html = html
       .replace(/\n/g, '')
       .replace(/<img/g, '<img style="width:100%"')
       .replace(/"/g, "'");
