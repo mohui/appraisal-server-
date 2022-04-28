@@ -208,7 +208,7 @@ export default class AppNews {
       isThumb: thumb.length > 0
     }))[0];
     const publishedAt = dayjs(data.published_at).format('YYYY-MM-DD');
-    const html = `<!DOCTYPE html>
+    let html = `<!DOCTYPE html>
         <html lang='en'>
         <head>
             <meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -235,7 +235,7 @@ export default class AppNews {
             声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
           </footer>
         </html>`;
-    html
+    html = html
       .replace(/\n/g, '')
       .replace(/<img/g, '<img style="width:100%"')
       .replace(/"/g, "'");
