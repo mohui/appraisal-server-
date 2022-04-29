@@ -168,7 +168,7 @@ export default {
         );
       for (let k = 0; k < children.length; k++) {
         //如果子集内还有市,区级别的数据,继续递归
-        if (['province', 'city', 'district'].includes(children[k].label)) {
+        if (['province', 'city'].includes(children[k].label)) {
           await this.findChildrenCode(children[k].code);
         }
       }
@@ -178,7 +178,7 @@ export default {
     async getChildrenArea(areas) {
       for (let i = 0; i < areas.length; i++) {
         //如果top地区包含省和市级别的选项
-        if (['province', 'city', 'district'].includes(areas[i].label)) {
+        if (['province', 'city'].includes(areas[i].label)) {
           //则补充它的子集
           const children = await this.region(areas[i].code);
           if (children.length > 0) areas[i].children = children;
@@ -187,10 +187,12 @@ export default {
           if (
             areas[i].children &&
             areas[i].children.find(it =>
-              ['province', 'city', 'district'].includes(it.label)
+              ['province', 'city'].includes(it.label)
             )
           ) {
             await this.getChildrenArea(areas[i].children);
+          } else if (areas[i].children) {
+            areas[i].children.forEach(it => (it.leaf = true));
           }
         }
       }
@@ -203,11 +205,19 @@ export default {
     async saveNews(data, status) {
       const validate = await this.$refs.newsForm.validate();
       if (validate) {
-        data.areas = this.$refs.areas
-          .getCheckedNodes() //包含被选中的父节点和叶子节点的所有集合
-          .filter(it => it.data.leaf || it.data?.children?.length > 0) //过滤, 只保留没有children的叶子节点,和children不为空的父节点
-          .map(it => it.value);
-        this.upsertLoading = true;
+        //包含被选中的父节点和叶子节点的所有集合
+        const parentSelected = this.$refs.areas.getCheckedNodes();
+        //按业务需求过滤一下
+        data.areas = parentSelected
+          .filter(
+            p =>
+              p.children.find(c => parentSelected.includes(c)) || //过滤出包含在某个节点children内的节点.
+              (p.data.leaf && //或者叶子节点,但不属于任何一个节点的children内
+                !parentSelected.find(
+                  it => it.children && it.children.includes(p)
+                ))
+          )
+          .map(it => it.data.code);
         if (!this.formData.content) {
           this.$message.error('请填写内容');
           return;
