@@ -86,7 +86,7 @@ export default class Group {
     }
     // language=PostgreSQL
     return await originalDB.execute(
-      ` select code, name, parent
+      ` select code, name, parent, label
           from area
           where parent = ? `,
       code
