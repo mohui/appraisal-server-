@@ -211,7 +211,7 @@ export default class AppNews {
     let html = `<!DOCTYPE html>
         <html lang='en'>
         <head>
-            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0'>
             <meta charset='UTF-8'>
                 <title>${data.title}</title>
         </head>
@@ -252,7 +252,7 @@ export default class AppNews {
         </html>`;
     html = html
       .replace(/\n/g, '')
-      .replace(/<img/g, '<img style="width:100%"')
+      .replace(/<img/g, '<img style="width:100%;height:100%"')
       .replace(/"/g, "'");
     return {...data, html};
   }
