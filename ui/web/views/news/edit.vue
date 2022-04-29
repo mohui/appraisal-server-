@@ -86,7 +86,17 @@
         @click="() => $router.replace({path: '/news'})"
         >返回</el-button
       >
+      <el-button size="mini" type="warning" @click="previewHtml"
+        >预览</el-button
+      >
     </div>
+    <el-dialog :visible.sync="preview" width="440px">
+      <div
+        v-hidden-scroll
+        style="border: #333 1px solid;padding: 10px;border-radius:10px;overflow: scroll;width: 375px;height: 667px"
+        v-html="html"
+      ></div>
+    </el-dialog>
   </div>
 </template>
 
@@ -106,6 +116,8 @@ export default {
       fileList: [],
       token: {token: getToken()},
       maxSize: 5,
+      preview: false,
+      html: '',
       formData: {
         id: null,
         title: '',
@@ -235,6 +247,56 @@ export default {
           this.upsertLoading = false;
         }
       }
+    },
+    previewHtml() {
+      console.log('xxxx');
+      this.preview = true;
+      let html = `<!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <meta charset='UTF-8'>
+                <title>${this.formData.title}</title>
+        </head>
+        <body>
+            <div style="font-size: 24px;font-weight: bold">
+                ${this.formData.title}
+            </div>
+            <div style="display:flex;padding: 10px 0;">
+                <div style="flex: 1;overflow: hidden;white-space: nowrap;text-overflow: ellipsis">
+                  <span style="font-size: 12px;color:#333;">
+                    来源:
+                    <span style="color:#888;"> ${this.formData.source}</span>
+                  </span>
+                  ${
+                    this.formData.author
+                      ? `<span style="padding:0 2px;font-size: 12px;color:#333;">
+                    作者:
+                    <span style="color:#888">${this.formData.author}</span>
+                  </span>`
+                      : ''
+                  }
+                  <div style="font-size: 12px;color:#888;">
+                    ${this.$dayjs().format('YYYY-MM-DD')}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 12px;color:#333;text-align: center">浏览量:</div>
+                  <div style="font-size: 12px;color:#333;text-align: center">${
+                    this.formData.virtual_pv
+                  }</div>
+                </div>
+            </div>
+            ${this.formData.content}
+        </body>
+        <footer style="width: 100%;font-size: 12px;color: #888">
+          声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
+        </footer>
+        </html>`;
+      this.html = html
+        .replace(/\n/g, '')
+        .replace(/<img/g, '<img style="width:100%"')
+        .replace(/"/g, "'");
     }
   }
 };
