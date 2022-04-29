@@ -252,7 +252,7 @@ export default class AppNews {
         </html>`;
     html = html
       .replace(/\n/g, '')
-      .replace(/<img/g, '<img style="width:100%"')
+      .replace(/<img/g, '<img style="width:100%;height:100%"')
       .replace(/"/g, "'");
     return {...data, html};
   }
