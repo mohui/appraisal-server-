@@ -335,6 +335,10 @@ export const PermissionTree = [
         label: '用户列表',
         children: [
           {
+            key: Permission.USER_INDEX,
+            label: '用户首页'
+          },
+          {
             key: Permission.USER_ADD,
             label: '用户添加'
           },
