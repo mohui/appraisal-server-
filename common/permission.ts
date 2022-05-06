@@ -406,13 +406,11 @@ export const PermissionTree = [
     children: [
       {
         key: Permission.MEDICAL_CONFIGURATION_MEMBER_HIS,
-        label: '员工列表',
-        children: [
-          {
-            key: Permission.MEDICAL_CONFIGURATION_DEPARTMENT,
-            label: '科室管理'
-          }
-        ]
+        label: '员工列表'
+      },
+      {
+        key: Permission.MEDICAL_CONFIGURATION_DEPARTMENT,
+        label: '科室管理'
       },
       {
         key: Permission.STAFF_BINDING_APPROVAL,
@@ -425,6 +423,7 @@ export const PermissionTree = [
     label: '新闻资讯库'
   }
 ];
+
 export function getPermission(key) {
   return PermissionDetail.find(p => p.key === key);
 }
