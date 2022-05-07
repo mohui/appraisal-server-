@@ -51,7 +51,7 @@ export default {
         font_formats:
           "Arial='arial',helvetica,sans-serif; Arial Black=arial black,avant garde; Book Antiqua=book antiqua,palatino; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Georgia=georgia,palatino;" +
           "微软雅黑='Microsoft YaHei';宋体='SimSun';新宋体='NSimsun';黑体='SimHei';" +
-          "仿宋='FangSong';兰亭黑-简='Lantinghei SC';",
+          "仿宋='FangSong';兰亭黑-简='Lantinghei SC';楷体='KaiTi';标楷体='DFKai-SB';细明体='MingLiU'",
         relative_urls: false,
         remove_script_host: false,
         branding: false,
