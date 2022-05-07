@@ -86,9 +86,7 @@
         @click="() => $router.replace({path: '/news'})"
         >返回</el-button
       >
-      <el-button size="mini" type="warning" @click="previewHtml"
-        >预览</el-button
-      >
+      <el-button size="mini" type="danger" @click="previewHtml">预览</el-button>
     </div>
     <el-dialog :visible.sync="preview" width="440px">
       <div
@@ -295,7 +293,7 @@ export default {
         </html>`;
       this.html = html
         .replace(/\n/g, '')
-        .replace(/<img/g, '<img style="width:100%"')
+        .replace(/<img/g, '<img style="max-width:100%;height:100%"')
         .replace(/"/g, "'");
     }
   }
