@@ -46,8 +46,13 @@ export default {
           'hr image link lists charmap paste searchreplace table wordcount'
         ],
         toolbar: [
-          'searchreplace formatselect fontsizeselect bold italic underline strikethrough alignleft aligncenter alignright outdent indent blockquote undo redo removeformat subscript superscript hr bullist numlist link image charmap preview pagebreak media table forecolor backcolor fullscreen'
+          'searchreplace fontselect formatselect fontsizeselect bold italic underline strikethrough alignleft aligncenter alignright outdent indent blockquote undo redo removeformat subscript superscript hr bullist numlist link image charmap preview pagebreak media table forecolor backcolor fullscreen'
         ],
+        font_formats:
+          "Arial='arial',helvetica,sans-serif; Arial Black=arial black,avant garde; Book Antiqua=book antiqua,palatino; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Georgia=georgia,palatino;" +
+          "微软雅黑='Microsoft YaHei';宋体='SimSun';黑体='SimHei';华文楷体='STXingkai';华文黑体='STHeiti';" +
+          "仿宋='FangSong';华文宋体='STSong';华文中体='STZhongSong';兰亭黑-简='Lantinghei SC';" +
+          "翩翩体-简='Hanzipen SC';幼圆='YouYuan';娃娃体='Wawati SC'",
         relative_urls: false,
         remove_script_host: false,
         branding: false,
