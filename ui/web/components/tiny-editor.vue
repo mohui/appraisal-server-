@@ -50,9 +50,8 @@ export default {
         ],
         font_formats:
           "Arial='arial',helvetica,sans-serif; Arial Black=arial black,avant garde; Book Antiqua=book antiqua,palatino; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Georgia=georgia,palatino;" +
-          "微软雅黑='Microsoft YaHei';宋体='SimSun';黑体='SimHei';华文楷体='STXingkai';华文黑体='STHeiti';" +
-          "仿宋='FangSong';华文宋体='STSong';华文中体='STZhongSong';兰亭黑-简='Lantinghei SC';" +
-          "翩翩体-简='Hanzipen SC';幼圆='YouYuan';娃娃体='Wawati SC'",
+          "微软雅黑='Microsoft YaHei';宋体='SimSun';新宋体='NSimsun';黑体='SimHei';" +
+          "仿宋='FangSong';兰亭黑-简='Lantinghei SC';",
         relative_urls: false,
         remove_script_host: false,
         branding: false,
