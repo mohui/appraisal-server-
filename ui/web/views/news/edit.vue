@@ -103,6 +103,7 @@ import {getToken} from '../../utils/cache';
 import TinyEditor from '../../components/tiny-editor';
 import {apiUrl} from '../../plugins/api';
 import {newsStatus} from '../../../../common/news.ts';
+import newsHtml from '../../../../common/news-html.ts';
 
 export default {
   name: 'edit',
@@ -247,54 +248,16 @@ export default {
       }
     },
     previewHtml() {
-      console.log('xxxx');
       this.preview = true;
-      let html = `<!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta name='viewport' content='width=device-width, initial-scale=1'>
-            <meta charset='UTF-8'>
-                <title>${this.formData.title}</title>
-        </head>
-        <body>
-            <div style="font-size: 24px;font-weight: bold">
-                ${this.formData.title}
-            </div>
-            <div style="display:flex;padding: 10px 0;">
-                <div style="flex: 1;overflow: hidden;white-space: nowrap;text-overflow: ellipsis">
-                  <span style="font-size: 12px;color:#333;">
-                    来源:
-                    <span style="color:#888;"> ${this.formData.source}</span>
-                  </span>
-                  ${
-                    this.formData.author
-                      ? `<span style="padding:0 2px;font-size: 12px;color:#333;">
-                    作者:
-                    <span style="color:#888">${this.formData.author}</span>
-                  </span>`
-                      : ''
-                  }
-                  <div style="font-size: 12px;color:#888;">
-                    ${this.$dayjs().format('YYYY-MM-DD')}
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 12px;color:#333;text-align: center">浏览量:</div>
-                  <div style="font-size: 12px;color:#333;text-align: center">${
-                    this.formData.virtual_pv
-                  }</div>
-                </div>
-            </div>
-            ${this.formData.content}
-        </body>
-        <footer style="width: 100%;font-size: 12px;color: #888">
-          声明: 该文观点仅代表作者本人、医效通系信息发布平台,医效通仅提供信息存储空间服务
-        </footer>
-        </html>`;
-      this.html = html
-        .replace(/\n/g, '')
-        .replace(/<img/g, '<img style="max-width:100%;height:100%"')
-        .replace(/"/g, "'");
+      const data = {
+        title: this.formData.title,
+        source: this.formData.source,
+        author: this.formData.author,
+        date: this.$dayjs().format('YYYY-MM-DD'),
+        content: this.formData.content,
+        virtual_pv: this.formData.virtual_pv
+      };
+      this.html = newsHtml(data);
     }
   }
 };
