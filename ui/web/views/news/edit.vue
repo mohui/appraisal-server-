@@ -86,7 +86,15 @@
         @click="() => $router.replace({path: '/news'})"
         >返回</el-button
       >
+      <el-button size="mini" type="danger" @click="previewHtml">预览</el-button>
     </div>
+    <el-dialog :visible.sync="preview" width="440px">
+      <div
+        v-hidden-scroll
+        style="border: #333 1px solid;padding: 10px;border-radius:10px;overflow: scroll;width: 375px;height: 667px"
+        v-html="html"
+      ></div>
+    </el-dialog>
   </div>
 </template>
 
@@ -94,7 +102,7 @@
 import {getToken} from '../../utils/cache';
 import TinyEditor from '../../components/tiny-editor';
 import {apiUrl} from '../../plugins/api';
-import {newsStatus} from '../../../../common/news.ts';
+import {newsStatus, newsHtml} from '../../../../common/news.ts';
 
 export default {
   name: 'edit',
@@ -106,6 +114,8 @@ export default {
       fileList: [],
       token: {token: getToken()},
       maxSize: 5,
+      preview: false,
+      html: '',
       formData: {
         id: null,
         title: '',
@@ -235,6 +245,18 @@ export default {
           this.upsertLoading = false;
         }
       }
+    },
+    previewHtml() {
+      this.preview = true;
+      const data = {
+        title: this.formData.title,
+        source: this.formData.source,
+        author: this.formData.author,
+        date: this.$dayjs().format('YYYY-MM-DD'),
+        content: this.formData.content,
+        virtual_pv: this.formData.virtual_pv
+      };
+      this.html = newsHtml(data);
     }
   }
 };
