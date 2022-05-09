@@ -4,9 +4,8 @@ import {Context} from '../context';
 import {sql as sqlRender} from '../../database';
 import {UserType} from '../../../common/user';
 import {getHospital} from '../his/service';
-import {newsStatus} from '../../../common/news';
+import {newsStatus, newsHtml} from '../../../common/news';
 import * as dayjs from 'dayjs';
-import newsHtml from '../../../common/news-html';
 
 /**
  * 浏览量

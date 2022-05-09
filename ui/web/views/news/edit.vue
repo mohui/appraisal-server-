@@ -102,8 +102,7 @@
 import {getToken} from '../../utils/cache';
 import TinyEditor from '../../components/tiny-editor';
 import {apiUrl} from '../../plugins/api';
-import {newsStatus} from '../../../../common/news.ts';
-import newsHtml from '../../../../common/news-html.ts';
+import {newsStatus, newsHtml} from '../../../../common/news.ts';
 
 export default {
   name: 'edit',
