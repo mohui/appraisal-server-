@@ -342,20 +342,20 @@ export async function workPointCalculation(
                staff.name                 as "staffName",
                '${PreviewType.HIS_STAFF}' as type
         from his_charge_detail detail
-               inner join his_staff staff on detail.doctor = staff.id
+               left join his_staff staff on detail.doctor = staff.id
                left join his_charge_master master on detail.main = master.id
                left join his_inpatient inpatient on master.treat = inpatient.id
-        where ((inpatient.out_date >= ?
-          and inpatient.out_date < ?)
-          or (detail.operate_time >= ?
-            and detail.operate_time < ?))
-          and detail.doctor in (${doctorIds.map(() => '?').join()})
+        where detail.doctor in (${doctorIds.map(() => '?').join()})
+          and (
+            (inpatient.out_date >= ? and inpatient.out_date < ?) or
+            (detail.operate_time >= ? and detail.operate_time < ?)
+          )
       `,
+      ...doctorIds,
       start,
       end,
       start,
-      end,
-      ...doctorIds
+      end
     );
     // 筛选门诊CHECK和DRUG工分来源
     const outpatientWorkList = chargeDetails
