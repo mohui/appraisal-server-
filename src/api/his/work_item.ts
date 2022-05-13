@@ -2020,14 +2020,23 @@ export default class HisWorkItem {
       hospital
     );
     // 已收费his项目数组
-    const chargeModels: {id; name; parent}[] = chargeIdModels.map(it => ({
-      name: it.item_name,
-      id: it.item,
-      parent: it.item
-        .split('.')
-        .slice(0, 3)
-        .join('.')
-    }));
+    const chargeModels: {id; name; parent}[] = [];
+    for (const chargeIt of chargeIdModels) {
+      // 收费项目会改名字,如果改名字,查询结果会多条,把相同id的名字拼接起来
+      const findIndex = chargeModels.find(it => it.id === chargeIt.item);
+      if (findIndex) {
+        findIndex.name = `${findIndex.name}/${chargeIt.item_name}`;
+      } else {
+        chargeModels.push({
+          name: chargeIt.item_name,
+          id: chargeIt.item,
+          parent: chargeIt.item
+            .split('.')
+            .slice(0, 3)
+            .join('.')
+        });
+      }
+    }
     //endregion
     //检查项目分类
     const checkCategoryModels: {id; name}[] = await originalDB.execute(
