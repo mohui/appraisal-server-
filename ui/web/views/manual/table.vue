@@ -38,6 +38,7 @@
       <vxe-table
         v-hidden-scroll
         border
+        stripe
         :data="list"
         :mouse-config="{selected: true}"
         :keyboard-config="{
