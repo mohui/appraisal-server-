@@ -2022,6 +2022,7 @@ export default class HisWorkItem {
     // 已收费his项目数组
     const chargeModels: {id; name; parent}[] = [];
     for (const chargeIt of chargeIdModels) {
+      // 收费项目会改名字,如果改名字,查询结果会多条,把相同id的名字拼接起来
       const findIndex = chargeModels.find(it => it.id === chargeIt.item);
       if (findIndex) {
         findIndex.name = `${findIndex.name}/${chargeIt.item_name}`;
