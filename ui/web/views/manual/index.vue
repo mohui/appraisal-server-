@@ -135,7 +135,7 @@ export default {
         name: [
           {required: true, message: '请输入手工工分项名称', trigger: 'change'}
         ],
-        order: [{required: true, message: '请输入数据', trigger: 'change'}]
+        order: [{required: true, message: '请输入排序权重', trigger: 'change'}]
       }
     };
   },
