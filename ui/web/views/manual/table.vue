@@ -87,6 +87,7 @@
               size="mini"
               placeholder="请输入数值"
               @blur="updateManual(row.item[field.id])"
+              @mousewheel.native.prevent
             ></vxe-input>
           </template>
         </vxe-column>
