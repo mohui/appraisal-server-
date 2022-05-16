@@ -92,10 +92,10 @@ export default class HisManualData {
     return await appDB.execute(
       // language=PostgreSQL
       `
-        select id, name, input, created_at, updated_at
+        select id, name, input, "order", created_at, updated_at
         from his_manual_data
         where hospital = ?
-        order by created_at
+        order by "order", created_at
       `,
       hospital
     );
