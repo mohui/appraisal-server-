@@ -99,7 +99,7 @@
             <el-radio :label="MD.LOG">{{ MD.LOG }}型</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="排序" prop="input">
+        <el-form-item label="排序" prop="order">
           <el-input-number
             v-model="newManual.order"
             :min="0"
@@ -134,7 +134,8 @@ export default {
       manualRules: {
         name: [
           {required: true, message: '请输入手工工分项名称', trigger: 'change'}
-        ]
+        ],
+        order: [{required: true, message: '请输入数据', trigger: 'change'}]
       }
     };
   },
