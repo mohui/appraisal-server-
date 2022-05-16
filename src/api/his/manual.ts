@@ -113,7 +113,8 @@ export default class HisManualData {
     should.string().only(Object.values(HisManualDataInput)),
     should
       .number()
-      .min(0)
+      .integer()
+      .positive()
       .required()
   )
   async add(name, input, order) {
@@ -213,7 +214,8 @@ export default class HisManualData {
     should.string().only(Object.values(HisManualDataInput)),
     should
       .number()
-      .min(0)
+      .integer()
+      .positive()
       .required()
   )
   async update(id, name, input, order) {
