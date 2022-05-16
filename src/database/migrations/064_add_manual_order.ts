@@ -9,9 +9,8 @@ export class AddManualOrder implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       ALTER table his_manual_data
-        ADD COLUMN "order" integer default 0;
+        ADD COLUMN "order" integer not null default 0;
       COMMENT ON COLUMN his_manual_data."order" IS '排序,从小到大排序';
-
     `);
   }
 
