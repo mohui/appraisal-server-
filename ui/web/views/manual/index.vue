@@ -99,6 +99,13 @@
             <el-radio :label="MD.LOG">{{ MD.LOG }}型</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="排序" prop="order">
+          <el-input-number
+            v-model="newManual.order"
+            :min="0"
+            size="mini"
+          ></el-input-number>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetForm">取 消</el-button>
@@ -121,12 +128,14 @@ export default {
       newManual: {
         id: '',
         name: '',
-        input: MD.PROP
+        input: MD.PROP,
+        order: 0
       },
       manualRules: {
         name: [
           {required: true, message: '请输入手工工分项名称', trigger: 'change'}
-        ]
+        ],
+        order: [{required: true, message: '请输入排序权重', trigger: 'change'}]
       }
     };
   },
@@ -162,13 +171,13 @@ export default {
       try {
         const valid = await this.$refs['manualForm'].validate();
         if (valid) {
-          const {id, name, input} = this.newManual;
+          const {id, name, input, order} = this.newManual;
           if (!id) {
-            await this.$api.HisManualData.add(name, input);
+            await this.$api.HisManualData.add(name, input, order);
             this.$asyncComputed.serverData.update();
             this.$message.success('添加成功');
           } else {
-            await this.$api.HisManualData.update(id, name, input);
+            await this.$api.HisManualData.update(id, name, input, order);
             this.$asyncComputed.serverData.update();
             this.$message.success('更新成功');
           }

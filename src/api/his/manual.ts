@@ -92,10 +92,10 @@ export default class HisManualData {
     return await appDB.execute(
       // language=PostgreSQL
       `
-        select id, name, input, created_at, updated_at
+        select id, name, input, "order", created_at, updated_at
         from his_manual_data
         where hospital = ?
-        order by created_at
+        order by "order", created_at
       `,
       hospital
     );
@@ -106,23 +106,30 @@ export default class HisManualData {
    *
    * @param name 名称
    * @param input 输入方式
+   * @param order 排序
    */
   @validate(
     should.string().required(),
-    should.string().only(Object.values(HisManualDataInput))
+    should.string().only(Object.values(HisManualDataInput)),
+    should
+      .number()
+      .integer()
+      .positive()
+      .required()
   )
-  async add(name, input) {
+  async add(name, input, order) {
     const hospital = await getHospital();
     await appDB.execute(
       // language=PostgreSQL
       `
-        insert into his_manual_data(id, hospital, name, input)
-        values (?, ?, ?, ?)
+        insert into his_manual_data(id, hospital, name, input, "order")
+        values (?, ?, ?, ?, ?)
       `,
       uuid(),
       hospital,
       name,
-      input
+      input,
+      order
     );
   }
 
@@ -199,25 +206,33 @@ export default class HisManualData {
    * @param id id
    * @param name 名称
    * @param input 输入方式
+   * @param order 排序
    */
   @validate(
     should.string(),
     should.string(),
-    should.string().only(Object.values(HisManualDataInput))
+    should.string().only(Object.values(HisManualDataInput)),
+    should
+      .number()
+      .integer()
+      .positive()
+      .required()
   )
-  async update(id, name, input) {
+  async update(id, name, input, order) {
     const hospital = await getHospital();
     await appDB.execute(
       // language=PostgreSQL
       `
         update his_manual_data
-        set name  = ?,
-            input = ?
+        set name    = ?,
+            input   = ?,
+            "order" = ?
         where id = ?
           and hospital = ?
       `,
       name,
       input,
+      order,
       id,
       hospital
     );
