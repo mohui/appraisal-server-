@@ -165,7 +165,7 @@ export default {
   methods: {
     resetForm() {
       this.addManualVisible = false;
-      this.newManual = {id: '', name: '', input: MD.PROP};
+      this.newManual = {id: '', name: '', input: MD.PROP, order: 999};
     },
     async submitForm() {
       try {
