@@ -189,4 +189,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+::v-deep .vxe-table--render-default .vxe-body--row.row--stripe {
+  background-color: #d4dcf0;
+}
+</style>
