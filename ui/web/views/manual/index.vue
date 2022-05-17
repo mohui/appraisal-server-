@@ -129,7 +129,7 @@ export default {
         id: '',
         name: '',
         input: MD.PROP,
-        order: 0
+        order: 999
       },
       manualRules: {
         name: [
