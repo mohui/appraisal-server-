@@ -87,7 +87,7 @@
               size="mini"
               placeholder="请输入数值"
               @blur="updateManual(row.item[field.id])"
-              @mousewheel.native.prevent.capture="mousewheel"
+              @mousewheel.native.capture.passive.stop
             ></vxe-input>
           </template>
         </vxe-column>
@@ -154,10 +154,6 @@ export default {
     }
   },
   methods: {
-    // 输入框关闭滑动滚轮调节
-    mousewheel(el) {
-      el.cancelBubble = true;
-    },
     // 更新状态
     updateManual(row) {
       if (row.original !== row.value) row.update = true;
