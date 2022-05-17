@@ -129,7 +129,7 @@ export default {
         id: '',
         name: '',
         input: MD.PROP,
-        order: 0
+        order: 999
       },
       manualRules: {
         name: [
@@ -165,7 +165,7 @@ export default {
   methods: {
     resetForm() {
       this.addManualVisible = false;
-      this.newManual = {id: '', name: '', input: MD.PROP};
+      this.newManual = {id: '', name: '', input: MD.PROP, order: 999};
     },
     async submitForm() {
       try {
