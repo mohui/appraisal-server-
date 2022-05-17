@@ -38,6 +38,7 @@
       <vxe-table
         v-hidden-scroll
         border
+        stripe
         :data="list"
         :mouse-config="{selected: true}"
         :keyboard-config="{
@@ -86,6 +87,7 @@
               size="mini"
               placeholder="请输入数值"
               @blur="updateManual(row.item[field.id])"
+              @mousewheel.native.capture.passive.stop
             ></vxe-input>
           </template>
         </vxe-column>
