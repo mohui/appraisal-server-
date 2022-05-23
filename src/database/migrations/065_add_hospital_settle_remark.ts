@@ -10,7 +10,7 @@ export class AddHospitalSettleRemark implements IMigration {
     await client.execute(`
       ALTER table his_hospital_settle
         ADD COLUMN remark text not null DEFAULT '';
-      COMMENT ON COLUMN his_hospital_settle."remark" IS '备注';
+      COMMENT ON COLUMN his_hospital_settle."remark" IS '手工数据备注';
 
       comment on table his_hospital_settle is '考核结算和手工数据备注表';
 
