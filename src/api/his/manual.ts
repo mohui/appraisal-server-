@@ -706,11 +706,26 @@ export default class HisManualData {
     // 查询结算状态
     const settle = await getSettle(hospital, start);
 
+    const remark = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select remark
+          from his_hospital_settle
+          where hospital = ?
+            and month = ?
+        `,
+        hospital,
+        start
+      )
+    )[0]?.remark;
+
     return {
       settle,
       manuals,
       staffs,
-      details
+      details,
+      remark
     };
   }
 
@@ -749,28 +764,5 @@ export default class HisManualData {
       remark,
       remark
     );
-  }
-
-  /**
-   * 查询手工数据备注
-   */
-  @validate(should.date().required())
-  async selectRemark(month) {
-    const hospital = await getHospital();
-    //月份转开始结束时间
-    const {start} = monthToRange(month);
-    return (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-            select remark
-            from his_hospital_settle
-            where hospital = ?
-              and month = ?
-          `,
-        hospital,
-        start
-      )
-    )[0]?.remark;
   }
 }
