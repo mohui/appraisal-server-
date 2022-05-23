@@ -9,7 +9,7 @@ export class AddHospitalSettleRemark implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       ALTER table his_hospital_settle
-        ADD COLUMN remark text DEFAULT '';
+        ADD COLUMN remark text not null DEFAULT '';
       COMMENT ON COLUMN his_hospital_settle."remark" IS '备注';
     `);
   }
