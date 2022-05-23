@@ -725,7 +725,7 @@ export default class HisManualData {
     should
       .string()
       .required()
-      .allow(null)
+      .allow('')
   )
   async upsertRemark(month, remark) {
     const hospital = await getHospital();
