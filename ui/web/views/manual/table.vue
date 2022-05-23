@@ -18,6 +18,20 @@
           style="margin: -4px 0 0 20px;"
           size="small"
           type="primary"
+          @click="exportManual"
+          >导出
+        </el-button>
+        <el-button
+          style="margin: -4px 0 0 20px;"
+          size="small"
+          type="primary"
+          @click="remarkDialogVisible = true"
+          >备注
+        </el-button>
+        <el-button
+          style="margin: -4px 0 0 20px;"
+          size="small"
+          type="primary"
           @click="saveManual"
           >保存
         </el-button>
@@ -93,6 +107,22 @@
         </vxe-column>
       </vxe-table>
     </div>
+    <el-dialog title="备注" center :visible.sync="remarkDialogVisible">
+      <el-input
+        v-model="remark"
+        type="textarea"
+        size="medium"
+        rows="6"
+      ></el-input>
+      <div style="text-align: right; margin: 30px 30px 0;">
+        <el-button size="mini" type="text" @click="remarkDialogVisible = false"
+          >取消
+        </el-button>
+        <el-button type="primary" size="mini" @click="saveRemark"
+          >确定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -101,6 +131,8 @@ export default {
   name: 'Vxe-table',
   data() {
     return {
+      remarkDialogVisible: false,
+      remark: '',
       query: {
         month: new Date()
       },
@@ -154,6 +186,15 @@ export default {
     }
   },
   methods: {
+    // 导出
+    exportManual() {
+      // todo:导出接口
+    },
+    // 保存备注
+    saveRemark() {
+      this.remarkDialogVisible = false;
+      // todo:保存备注接口
+    },
     // 更新状态
     updateManual(row) {
       if (row.original !== row.value) row.update = true;
