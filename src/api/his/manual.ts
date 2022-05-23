@@ -1,5 +1,5 @@
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
 import {appDB, unifs} from '../../app';
@@ -706,11 +706,62 @@ export default class HisManualData {
     // 查询结算状态
     const settle = await getSettle(hospital, start);
 
+    const remark = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select remark
+          from his_hospital_settle
+          where hospital = ?
+            and month = ?
+        `,
+        hospital,
+        start
+      )
+    )[0]?.remark;
+
     return {
       settle,
       manuals,
       staffs,
-      details
+      details,
+      remark
     };
+  }
+
+  /**
+   * 添加修改手工数据备注
+   *
+   * @param month 月份
+   * @param remark 备注
+   */
+  @validate(
+    should.date().required(),
+    should
+      .string()
+      .required()
+      .allow('')
+  )
+  async upsertRemark(month, remark) {
+    const hospital = await getHospital();
+    const {start} = monthToRange(month);
+
+    // 查询是否结算,结算不能更改备注
+    const settle = await getSettle(hospital, start);
+    if (settle) throw new KatoCommonError(`已结算,不能更改`);
+
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        insert into his_hospital_settle(hospital, month, settle, remark)
+        values (?, ?, false, ?)
+        on conflict (hospital, month)
+          do update set remark     = excluded.remark,
+                        updated_at = now()
+      `,
+      hospital,
+      start,
+      remark
+    );
   }
 }

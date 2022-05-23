@@ -64,6 +64,7 @@ import {UpdateNewsUuid} from './061_update_news_uuid';
 import {AddNewsVirtual} from './062_add_news_virtual';
 import {UpdateNewsCrawledDefault} from './063_update_news_crawled_default';
 import {AddManualOrder} from './064_add_manual_order';
+import {AddHospitalSettleRemark} from './065_add_hospital_settle_remark';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -131,5 +132,6 @@ export const migrations: IMigration[] = [
   new UpdateNewsUuid(),
   new AddNewsVirtual(),
   new UpdateNewsCrawledDefault(),
-  new AddManualOrder()
+  new AddManualOrder(),
+  new AddHospitalSettleRemark()
 ];
