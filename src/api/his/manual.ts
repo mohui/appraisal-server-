@@ -756,12 +756,11 @@ export default class HisManualData {
         insert into his_hospital_settle(hospital, month, settle, remark)
         values (?, ?, false, ?)
         on conflict (hospital, month)
-          do update set remark     = ?,
+          do update set remark     = excluded.remark,
                         updated_at = now()
       `,
       hospital,
       start,
-      remark,
       remark
     );
   }
