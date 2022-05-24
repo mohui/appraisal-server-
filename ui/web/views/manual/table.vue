@@ -178,6 +178,7 @@ export default {
           const month = this.query.month;
           const result = await this.$api.HisManualData.tableList(month);
           this.editable = result.settle;
+          this.remark = result.remark;
           return result;
         } catch (e) {
           console.error(e.message);
@@ -191,9 +192,18 @@ export default {
       // todo:导出接口
     },
     // 保存备注
-    saveRemark() {
+    async saveRemark() {
       this.remarkDialogVisible = false;
-      // todo:保存备注接口
+      try {
+        await this.$api.HisManualData.upsertRemark(
+          this.query.month,
+          this.remark
+        );
+        this.$asyncComputed.tableList.update();
+        this.$message.success('保存成功!');
+      } catch (e) {
+        console.error(e.message);
+      }
     },
     // 更新状态
     updateManual(row) {
