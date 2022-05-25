@@ -191,7 +191,10 @@ export default {
     // 导出
     async exportManual() {
       try {
-        await this.$api.HisManualData.excelBuffer(this.query.month);
+        await this.$api.HisManualData.downloadManual(
+          this.query.month,
+          this.$settings.user.hospital?.id
+        );
         this.$message.success('导出成功!');
       } catch (e) {
         this.$message.error(e.message);
