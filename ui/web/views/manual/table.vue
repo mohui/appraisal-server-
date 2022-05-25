@@ -189,8 +189,13 @@ export default {
   },
   methods: {
     // 导出
-    exportManual() {
-      // todo:导出接口
+    async exportManual() {
+      try {
+        await this.$api.HisManualData.excelBuffer(this.query.month);
+        this.$message.success('导出成功!');
+      } catch (e) {
+        this.$message.error(e.message);
+      }
     },
     // 保存备注
     async saveRemark() {
