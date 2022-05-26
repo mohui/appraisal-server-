@@ -184,13 +184,14 @@
 
 #### 机构(考核)结算表(his_hospital_settle)
 
-| 字段名 | 字段类型 | 注释 |
-| --- | --- | --- |
-| hospital | varchar(36) | 所属医院id |
-| month | date | 结算时间; 默认每月1号 |
-| settle | boolean | 是否结算 |
-| created_at | timestamp | 创建时间 |
-| updated_at | timestamp | 修改时间 |
+| 字段名        | 字段类型        | 注释           |
+|------------|-------------|--------------|
+| hospital   | varchar(36) | 所属医院id       |
+| month      | date        | 结算时间; 默认每月1号 |
+| settle     | boolean     | 是否结算         |
+| remark     | text        | 手工数据备注       |
+| created_at | timestamp   | 创建时间         |
+| updated_at | timestamp   | 修改时间         |
 
 
 #### 科室(his_department)

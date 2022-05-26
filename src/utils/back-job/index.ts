@@ -10,7 +10,8 @@ const jobType: Array<string> = [
   'reportCheck',
   'scoreCheck',
   'personExcel',
-  'HisSCore'
+  'HisSCore',
+  'manualExcel'
 ];
 
 type Job = {
