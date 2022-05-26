@@ -3,6 +3,7 @@ import {KatoRuntimeError, should} from 'kato-server';
 import {getTimeRange} from '../../../common/his';
 import {appDB} from '../../app';
 import {Context} from '../context';
+import {UserType} from '../../../common/user';
 
 //region 时间相关
 /**
@@ -105,6 +106,10 @@ export async function getSettle(id, month): Promise<boolean> {
  * TODO: 苟且方案, 需要和数据权限一同调整
  */
 export async function getHospital(): Promise<string | null> {
+  // 如果是员工账号,判断是否有主机构,如果有,返回主机构,没有,报错
+  if (Context.current.user.type === UserType.STAFF) {
+    return Context.current.user.hospital?.id;
+  }
   if (
     Context.current.user.hospitals &&
     Context.current.user.hospitals.length > 1
