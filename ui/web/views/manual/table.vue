@@ -191,10 +191,7 @@ export default {
     // 导出
     async exportManual() {
       try {
-        await this.$api.HisManualData.downloadManual(
-          this.query.month,
-          this.$settings.user.hospital?.id
-        );
+        await this.$api.HisManualData.downloadManual(this.query.month);
         this.$message.success('导出成功!');
       } catch (e) {
         this.$message.error(e.message);
