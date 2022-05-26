@@ -18,6 +18,8 @@ import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
 import {documentTagList} from '../../../common/person-tag';
 import * as SMSClient from '@alicloud/sms-sdk';
+import {UserType} from '../../../common/user';
+import {unbindHospital} from './common';
 
 /**
  * 短信配置
@@ -505,10 +507,13 @@ export default class AppUser {
    * 注销机构
    *
    * @param area 机构id
+   * @return {id?: '主机构id'};
    */
   @validate(should.string().required())
-  async resign(area) {
-    return;
+  async unbind(area) {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能操作');
+    return await unbindHospital(area, Context.current.user.id);
   }
 
   /**
