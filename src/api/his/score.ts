@@ -264,7 +264,7 @@ export async function workPointCalculation(
   // endregion
 
   // region 公卫数据工分来源(动态:个人, 固定)会用到
-  let phStaff;
+  let phStaff = [];
   let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
     // 取出本机构下的所有ph员工
@@ -2378,7 +2378,7 @@ export default class HisScore {
           // endregion
           // region 查询 门诊/住院 工分来源用到的医生id
           // his员工id, 为了查询 计算CHECK和DRUG工分来源
-          let doctorIds;
+          let doctorIds = [];
 
           // 当前只有 计算CHECK和DRUG工分来源 用到了
           if (
@@ -2401,7 +2401,7 @@ export default class HisScore {
           }
           // endregion
           // region 公卫数据工分来源(动态:个人, 固定)会用到
-          let phStaff;
+          let phStaff = [];
           if (
             it.mappings.filter(source => source.startsWith('公卫数据')).length >
             0
