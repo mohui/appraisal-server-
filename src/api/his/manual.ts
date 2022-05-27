@@ -734,9 +734,12 @@ export default class HisManualData {
     return appDB.joinTx(async () => {
       for (const item of params) {
         await appDB.execute(
-          `update his_manual_data
-                             set "order" = ?
-                             where id = ?`,
+          // language=PostgreSQL
+          `
+            update his_manual_data
+            set "order" = ?
+            where id = ?
+          `,
           item.order,
           item.id
         );
