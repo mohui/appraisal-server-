@@ -1097,8 +1097,9 @@ export default class HisWorkItem {
       if (staffMethod === HisStaffMethod.STATIC) {
         for (const it of staffs) {
           await appDB.execute(
-            `insert into his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
-             values (?, ?, ?, ?, ?, ?)`,
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
             uuid(),
             hisWorkItemId,
             it.code,
@@ -1110,8 +1111,9 @@ export default class HisWorkItem {
       } else {
         // 如果关联员工为动态, type为员工,科室,机构, source 字段为空
         await appDB.execute(
-          `insert into his_work_item_staff_mapping(id, item, type, created_at, updated_at)
-           values (?, ?, ?, ?, ?)`,
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
           uuid(),
           hisWorkItemId,
           scope,
@@ -1136,8 +1138,9 @@ export default class HisWorkItem {
           code = sources[3];
         }
         await appDB.execute(
-          `insert into his_work_item_mapping(item, source, code, created_at, updated_at)
-           values (?, ?, ?, ?, ?)`,
+          `insert into
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
           hisWorkItemId,
           sourceId,
           code,
@@ -1323,8 +1326,9 @@ export default class HisWorkItem {
         }
         // 再添加
         await appDB.execute(
-          `insert into his_work_item_mapping(item, source, code, created_at, updated_at)
-           values (?, ?, ?, ?, ?)`,
+          `insert into
+              his_work_item_mapping(item, source, code, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
           id,
           sourceId,
           code,
@@ -1342,8 +1346,9 @@ export default class HisWorkItem {
       if (staffMethod === HisStaffMethod.STATIC) {
         for (const it of staffs) {
           await appDB.execute(
-            `insert into his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
-             values (?, ?, ?, ?, ?, ?)`,
+            `insert into
+              his_work_item_staff_mapping(id, item, source, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?, ?)`,
             uuid(),
             id,
             it.code,
@@ -1355,8 +1360,9 @@ export default class HisWorkItem {
       } else {
         // 当是动态的时候, type 为 员工(本人), 科室(本人所在科室), 机构(本人所在机构)
         await appDB.execute(
-          `insert into his_work_item_staff_mapping(id, item, type, created_at, updated_at)
-           values (?, ?, ?, ?, ?)`,
+          `insert into
+              his_work_item_staff_mapping(id, item, type, created_at, updated_at)
+              values(?, ?, ?, ?, ?)`,
           uuid(),
           id,
           scope,
@@ -1773,7 +1779,7 @@ export default class HisWorkItem {
       // language=PostgreSQL
       await appDB.execute(
         `insert into his_work_item_type(id, name, hospital, "order", created_at, updated_at)
-         values (?, ?, ?, ?, ?, ?)`,
+           values (?, ?, ?, ?, ?, ?)`,
         uuid(),
         name,
         hospital,
