@@ -223,7 +223,7 @@ export async function workPointCalculation(
 
   // region 查询 门诊/住院 工分来源用到的医生id
   // his员工id, 为了查询 计算CHECK和DRUG工分来源
-  let doctorIds;
+  let doctorIds = [];
 
   // 当前只有 计算CHECK和DRUG工分来源 用到了
   if (
