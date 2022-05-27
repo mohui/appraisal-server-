@@ -716,6 +716,7 @@ export default class HisManualData {
 
   /***
    * 手工数据批量排序
+   *
    * @param params[{
    *  id: id, 数据id
    *  order: 排序值
