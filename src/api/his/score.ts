@@ -474,8 +474,18 @@ export async function workPointCalculation(
         columns: item.datasource.columns,
         scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
         phStaff: phStaff,
-        start,
-        end
+        start:
+          item.id === `公卫数据.动态记录档案管理`
+            ? dayjs(start)
+                .toDate()
+                .getFullYear()
+            : start,
+        end:
+          item.id === `公卫数据.动态记录档案管理`
+            ? dayjs(end)
+                .toDate()
+                .getFullYear() + 1
+            : end
       }
     );
 
@@ -682,8 +692,18 @@ where {{dateCol}} >= {{? start}}
           `,
       {
         hospital,
-        start,
-        end,
+        start:
+          row.id === `公卫数据.动态记录档案管理`
+            ? dayjs(start)
+                .toDate()
+                .getFullYear()
+            : start,
+        end:
+          row.id === `公卫数据.动态记录档案管理`
+            ? dayjs(start)
+                .toDate()
+                .getFullYear() + 1
+            : end,
         table: row.datasource.table,
         dateCol: row.datasource.date,
         columns: row.datasource.columns,

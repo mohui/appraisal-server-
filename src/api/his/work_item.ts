@@ -759,14 +759,17 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.动态记录档案管理人数',
-    name: '动态记录档案管理人数',
+    id: '公卫数据.动态记录档案管理',
+    name: '动态记录档案管理',
     parent: '公卫数据',
     scope: HisStaffDeptType.HOSPITAL,
     datasource: {
-      table: `mark_person m`,
+      table: `
+      ph_person main
+      INNER JOIN mark_person m on m.id = main.id
+      `,
       date: 'm.year',
-      columns: ['m.S03 = true']
+      columns: ['main.writeoff = false and m."S03" = true']
     }
   },
   {
