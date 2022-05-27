@@ -826,6 +826,28 @@ export const HisWorkItemSources: {
       columns: ['main.isdelete = false']
     }
   },
+  {
+    id: '公卫数据.其他慢病人群管理.其他慢病新增',
+    name: '其他慢病人群管理.其他慢病新增',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_other_card main',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-高危新增',
+    name: '高危人群管理-高危新增',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_card main',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
   // {
   //   id: '公卫数据.家庭医生签约-微量元素测定或骨密度测定履约人数',
   //   name: '家庭医生签约-微量元素测定或骨密度测定履约人数',
