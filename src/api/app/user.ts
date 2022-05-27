@@ -517,6 +517,53 @@ export default class AppUser {
   }
 
   /**
+   * 切换主机构
+   *
+   * @param id 要切换的主机构id
+   */
+  async switchPrimaryHospital(id) {
+    const staff = Context.current.user.id;
+    await appDB.transaction(async () => {
+      // 查询此机构下是否有该员工
+      const areaMappingModel: {
+        staff: string;
+        area: string;
+        department: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select areaMapping.staff,
+                   areaMapping.area,
+                   areaMapping.department
+            from staff_area_mapping areaMapping
+            where areaMapping.staff = ?
+              and areaMapping.area = ?
+          `,
+          staff,
+          id
+        )
+      )[0];
+      if (!areaMappingModel) throw new KatoCommonError('此员工未绑定该机构');
+      // 修改员工主机构
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set hospital   = ?,
+              department = ?,
+              updated_at = ?
+          where id = ?
+        `,
+        areaMappingModel.area,
+        areaMappingModel.department,
+        dayjs().toDate(),
+        staff
+      );
+    });
+  }
+
+  /**
    * 获取申请状态
    *
    * @param id 申请id
