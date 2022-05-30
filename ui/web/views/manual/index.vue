@@ -19,20 +19,27 @@
       </div>
     </div>
     <el-table
+      ref="manualTable"
+      :key="symbolKey"
       v-loading="$asyncComputed.serverData.updating"
       v-hidden-scroll
+      :row-class-name="rowClassName"
       :data="manual"
       empty-text="没有筛选到符合条件的数据"
       height="100%"
+      row-key="id"
       style="flex-grow: 1;"
       :cell-class-name="cellClassHover"
       @row-click="handleCellClick"
+      @cell-mouse-enter="mouseEnter"
+      @cell-mouse-leave="mouseLeave"
     >
-      <el-table-column
-        type="index"
-        align="center"
-        label="序号"
-      ></el-table-column>
+      <el-table-column align="center" label="序号" width="100">
+        <template v-slot="{row, $index}">
+          {{ $index + 1 }}
+          <i v-show="row.id && showDragIcon(row.id)" class="el-icon-sort"></i>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="手工工分项名称"> </el-table-column>
       <el-table-column prop="input" label="数据类型" align="center">
       </el-table-column>
@@ -119,10 +126,13 @@
 
 <script>
 import {HisManualDataInput as MD} from '../../../../common/his.ts';
+import Sortable from 'sortablejs';
 export default {
   name: 'Manual',
   data() {
     return {
+      symbolKey: Symbol(this.$dayjs().toString()),
+      mouseEnterId: '',
       MD: MD,
       addManualVisible: false,
       newManual: {
@@ -148,6 +158,9 @@ export default {
     }
   },
   created() {},
+  mounted() {
+    this.setSort();
+  },
   asyncComputed: {
     serverData: {
       async get() {
@@ -163,6 +176,68 @@ export default {
     }
   },
   methods: {
+    // 显示拖拽样式
+    rowClassName({row}) {
+      return row.id ? 'drag-row' : '';
+    },
+    //拖拽方法
+    setSort() {
+      const el = this.$refs.manualTable.$el.querySelectorAll(
+        '.el-table__body-wrapper > table > tbody'
+      )[0];
+      this.sortable = Sortable.create(el, {
+        ghostClass: 'sortable-ghost',
+        animation: 200,
+        draggable: '.drag-row',
+        setData: function(dataTransfer) {
+          dataTransfer.setData('Text', '');
+        },
+        onEnd: async evt => {
+          const newIndex = evt.newIndex;
+          const oldIndex = evt.oldIndex;
+          if (newIndex !== oldIndex) {
+            //最新的分类排序元素
+            const newSortData = [...el.getElementsByClassName('drag-row')].map(
+              (it, index) => {
+                //抽出手工工分项名称
+                const typeName = it.textContent.split('\n')[3].trim();
+                //根据名称找他们的详细信息
+                const type = this.serverData.find(it => it.name === typeName);
+                return {...type, order: index + 1};
+              }
+            );
+            //排序被修改的数据
+            const needSort = newSortData.filter(
+              it =>
+                this.serverData.find(item => item.id === it.id)?.order !==
+                it.order
+            );
+            //批量更新一下排序
+            await this.$api.HisManualData.reorder(
+              needSort.map(it => ({id: it.id, order: it.order}))
+            );
+
+            this.$asyncComputed.serverData.update();
+            this.symbolKey = Symbol(this.$dayjs().toString());
+            this.$nextTick(() => {
+              this.setSort();
+            });
+            this.$message.success('排序成功');
+          }
+        }
+      });
+    },
+    //是否显示拖拽icon
+    showDragIcon(id) {
+      return id === this.mouseEnterId;
+    },
+    //鼠标进出单元格
+    mouseEnter(row) {
+      this.mouseEnterId = row.id;
+    },
+    mouseLeave() {
+      this.mouseEnterId = null;
+    },
     resetForm() {
       this.addManualVisible = false;
       this.newManual = {id: '', name: '', input: MD.PROP, order: 999};
@@ -245,5 +320,13 @@ export default {
   :hover {
     color: $color-primary;
   }
+}
+.sortable-ghost {
+  opacity: 0.8;
+  color: #fff !important;
+  background: #42b983 !important;
+}
+.drag-row:hover {
+  cursor: move;
 }
 </style>
