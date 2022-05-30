@@ -211,15 +211,15 @@ export default {
               }
             );
             //排序被修改的数据
-            const needSort = newSortData.filter(
-              it =>
-                this.serverData.find(item => item.id === it.id)?.order !==
-                it.order
-            );
+            const needSort = newSortData
+              .filter(
+                it =>
+                  this.serverData.find(item => item.id === it.id)?.order !==
+                  it.order
+              )
+              .map(it => ({id: it.id, order: it.order}));
             //批量更新一下排序
-            await this.$api.HisManualData.reorder(
-              needSort.map(it => ({id: it.id, order: it.order}))
-            );
+            await this.$api.HisManualData.reorder(needSort);
 
             this.$asyncComputed.serverData.update();
             this.symbolKey = Symbol(this.$dayjs().toString());
