@@ -901,12 +901,13 @@ export default class AppUser {
   }
 
   /**
-   * APP机构列表,已通过,未通过,审核中
+   * APP机构列表
    *
    * @return [{
-   *  id: '机构id',
-   *  name: '机构名称',
-   *  status: 状态
+   *  id: 机构id,
+   *  name: 机构名称,
+   *  status: 状态: 已通过,未通过,审核中,
+   *  primary: 是否是主机构: true,false
    * }]
    */
   async hospitals() {
