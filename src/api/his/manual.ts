@@ -928,4 +928,38 @@ export default class HisManualData {
       throw new KatoCommonError('手工数据下载失败');
     }
   }
+
+  /***
+   * 手工数据批量排序
+   *
+   * @param params[{
+   *  id: id, 数据id
+   *  order: 排序值
+   * }]
+   */
+  @validate(
+    should
+      .array()
+      .items({
+        id: should.string().required(),
+        order: should.number().required()
+      })
+      .required()
+  )
+  async reorder(params) {
+    return appDB.joinTx(async () => {
+      for (const item of params) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            update his_manual_data
+            set "order" = ?
+            where id = ?
+          `,
+          item.order,
+          item.id
+        );
+      }
+    });
+  }
 }
