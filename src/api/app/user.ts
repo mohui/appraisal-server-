@@ -916,6 +916,7 @@ export default class AppUser {
       name: it.name,
       status: RequestStatus.SUCCESS
     }));
+    // TODO: SQL需要加上状态条件, 直接sql取最新一条数据
     // 查询此用户申请表里的所有非已通过的机构,已通过的可能会被删除,但是在申请表里记录还是存在的,同一机构可能申请多次,按照插入时间倒序排序
     const staffRequestModels: {
       id: string;
