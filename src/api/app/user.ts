@@ -18,7 +18,7 @@ import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
 import {documentTagList} from '../../../common/person-tag';
 import * as SMSClient from '@alicloud/sms-sdk';
-import {UserType} from '../../../common/user';
+import {RequestStatus, UserType} from '../../../common/user';
 import {unbindHospital} from './common';
 
 /**
@@ -898,5 +898,84 @@ export default class AppUser {
       ...userModel,
       token: userModel.id
     };
+  }
+
+  /**
+   * APP机构列表,已通过,未通过,审核中
+   *
+   * @return [{
+   *  id: '机构id',
+   *  name: '机构名称',
+   *  status: 状态
+   * }]
+   */
+  async hospitals() {
+    // 现有的机构,request表没有历史数据的机构审核信息,默认都是已通过
+    const hospitals = Context.current.user?.hospitals?.map(it => ({
+      id: it.id,
+      name: it.name,
+      status: RequestStatus.SUCCESS,
+      primary: it.primary
+    }));
+    // TODO: SQL需要加上状态条件, 直接sql取最新一条数据
+    // 查询此用户申请表里的所有非已通过的机构,已通过的可能会被删除,但是在申请表里记录还是存在的,同一机构可能申请多次,按照插入时间倒序排序
+    const staffRequestModels: {
+      id: string;
+      staff: string;
+      area: string;
+      status: string;
+      created_at: Date;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id,
+               request.staff,
+               request.area,
+               request.status,
+               request.created_at
+        from staff_request request
+        where request.staff = ?
+          and request.status != ?
+        order by created_at desc
+      `,
+      Context.current.user.id,
+      RequestStatus.SUCCESS
+    );
+    // 如果长度为0,不存在非已通过的数据,直接return结果
+    if (staffRequestModels.length === 0) return hospitals;
+    // 要查询的机构id
+    const hospitalIds = [];
+    // 筛选出最后一次的申请记录
+    for (const it of staffRequestModels) {
+      // 查找此申请记录是否已经存在,如果不存在,push进数组中
+      const findIndex = hospitals.find(hospital => hospital.id === it.area);
+      if (!findIndex) {
+        // staff_request 表没有机构名称,把需要查询机构名称的机构id放到数组中
+        hospitalIds.push(it.area);
+        hospitals.push({
+          id: it.area,
+          name: '',
+          status: it.status,
+          primary: false
+        });
+      }
+    }
+    // 补充地区名称
+    if (hospitalIds.length > 0) {
+      const areaModels = await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select code, name
+          from area
+          where code in (${hospitalIds.map(() => '?')})
+        `,
+        ...hospitalIds
+      );
+      for (const it of areaModels) {
+        const findIndex = hospitals.find(item => item.code === it.id);
+        if (findIndex) findIndex.name = it.name;
+      }
+    }
+    return hospitals;
   }
 }
