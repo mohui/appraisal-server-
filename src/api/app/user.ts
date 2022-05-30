@@ -933,7 +933,7 @@ export default class AppUser {
                request.created_at
         from staff_request request
         where request.staff = ?
-        and request.status != ?
+          and request.status != ?
         order by created_at desc
       `,
       Context.current.user.id,
