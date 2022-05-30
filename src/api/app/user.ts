@@ -906,7 +906,8 @@ export default class AppUser {
    * @return [{
    *  id: '机构id',
    *  name: '机构名称',
-   *  status: 状态
+   *  status: '状态',
+   *  primary: true/false 是否是主机构
    * }]
    */
   async hospitals() {
