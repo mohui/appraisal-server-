@@ -200,10 +200,14 @@ export default {
             const newSortData = [...el.getElementsByClassName('drag-row')].map(
               (it, index) => {
                 //抽出手工工分项名称
-                const typeName = it.textContent.split('\n')[3].trim();
+                const manualName = it
+                  .getElementsByClassName('manual-name')[0]
+                  .textContent.trim();
                 //根据名称找他们的详细信息
-                const type = this.serverData.find(it => it.name === typeName);
-                return {...type, order: index + 1};
+                const manual = this.serverData.find(
+                  it => it.name === manualName
+                );
+                return {...manual, order: index + 1};
               }
             );
             //排序被修改的数据
