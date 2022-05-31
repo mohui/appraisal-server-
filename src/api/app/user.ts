@@ -927,6 +927,7 @@ export default class AppUser {
       staff: string;
       area: string;
       status: string;
+      hide: string;
       created_at: Date;
     }[] = await appDB.execute(
       // language=PostgreSQL
@@ -935,6 +936,7 @@ export default class AppUser {
                request.staff,
                request.area,
                request.status,
+               request.hide,
                request.created_at
         from staff_request request
         where request.staff = ?
@@ -947,7 +949,7 @@ export default class AppUser {
     const RequestHospitalModels = [];
     for (const it of staffRequestModels) {
       const findIndex = RequestHospitalModels.find(
-        hospital => hospital.hospital === it.area
+        hospital => hospital.id === it.area
       );
       if (!findIndex) {
         RequestHospitalModels.push({
@@ -955,6 +957,7 @@ export default class AppUser {
           id: it.area,
           name: '',
           status: it.status,
+          hide: it.hide,
           primary: false
         });
       }
@@ -964,6 +967,7 @@ export default class AppUser {
     const hospitalIds = [];
     // 筛选出最后一次的申请记录
     for (const it of RequestHospitalModels) {
+      if (!it.hide) continue;
       // 查找此申请记录是否已经存在,如果不存在,push进数组中
       const findIndex = hospitals.find(hospital => hospital.id === it.id);
       // 已通过的,不能往里push, 因为存在已经删除的机构,填充申请表id
