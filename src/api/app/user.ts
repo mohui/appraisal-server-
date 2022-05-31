@@ -979,4 +979,40 @@ export default class AppUser {
     }
     return hospitals;
   }
+
+  /**
+   * 隐藏未通过的审核申请
+   *
+   * @param id 申请id
+   */
+  async hide(id) {
+    const requestModel = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select status
+          from staff_request
+          where id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!requestModel) throw new KatoCommonError('申请id不存在');
+
+    if (requestModel.status !== RequestStatus.REJECTED)
+      throw new KatoCommonError(`非${RequestStatus.REJECTED}的不能隐藏`);
+
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        update staff_request
+        set hide       = ?,
+            updated_at = ?
+        where id = ?
+      `,
+      false,
+      new Date(),
+      id
+    );
+  }
 }
