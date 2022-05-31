@@ -904,7 +904,8 @@ export default class AppUser {
    * APP机构列表
    *
    * @return [{
-   *  id: 机构id,
+   *  id?: 申请id: 如果申请表不存在此机构申请记录,为null,
+   *  hospital: 机构id,
    *  name: 机构名称,
    *  status: 状态: 已通过,未通过,审核中,
    *  primary: 是否是主机构: true,false
@@ -913,7 +914,8 @@ export default class AppUser {
   async hospitals() {
     // 现有的机构,request表没有历史数据的机构审核信息,默认都是已通过
     const hospitals = Context.current.user?.hospitals?.map(it => ({
-      id: it.id,
+      id: null,
+      hospital: it.id,
       name: it.name,
       status: RequestStatus.SUCCESS,
       primary: it.primary
@@ -936,29 +938,52 @@ export default class AppUser {
                request.created_at
         from staff_request request
         where request.staff = ?
-          and request.status != ?
         order by created_at desc
       `,
-      Context.current.user.id,
-      RequestStatus.SUCCESS
+      Context.current.user.id
     );
-    // 如果长度为0,不存在非已通过的数据,直接return结果
-    if (staffRequestModels.length === 0) return hospitals;
-    // 要查询的机构id
-    const hospitalIds = [];
-    // 筛选出最后一次的申请记录
+
+    // 数组中最近一条
+    const RequestHospitalModels = [];
     for (const it of staffRequestModels) {
-      // 查找此申请记录是否已经存在,如果不存在,push进数组中
-      const findIndex = hospitals.find(hospital => hospital.id === it.area);
+      const findIndex = RequestHospitalModels.find(
+        hospital => hospital.hospital === it.area
+      );
       if (!findIndex) {
-        // staff_request 表没有机构名称,把需要查询机构名称的机构id放到数组中
-        hospitalIds.push(it.area);
-        hospitals.push({
-          id: it.area,
+        RequestHospitalModels.push({
+          id: it.id,
+          hospital: it.area,
           name: '',
           status: it.status,
           primary: false
         });
+      }
+    }
+
+    // 要查询的机构id
+    const hospitalIds = [];
+    // 筛选出最后一次的申请记录
+    for (const it of RequestHospitalModels) {
+      // 查找此申请记录是否已经存在,如果不存在,push进数组中
+      const findIndex = hospitals.find(
+        hospital => hospital.hospital === it.hospital
+      );
+      // 已通过的,不能往里push, 因为存在已经删除的机构,填充申请表id
+      if (it.status === RequestStatus.SUCCESS) {
+        if (findIndex) findIndex.id = it.id;
+      } else {
+        // 非已存在的,如果没有,push进机构数组中
+        if (!findIndex) {
+          // staff_request 表没有机构名称,把需要查询机构名称的机构id放到数组中
+          hospitalIds.push(it.hospital);
+          hospitals.push({
+            id: it.id,
+            hospital: it.hospital,
+            name: '',
+            status: it.status,
+            primary: false
+          });
+        }
       }
     }
     // 补充地区名称
@@ -973,7 +998,7 @@ export default class AppUser {
         ...hospitalIds
       );
       for (const it of areaModels) {
-        const findIndex = hospitals.find(item => item.code === it.id);
+        const findIndex = hospitals.find(item => item.hospital === it.code);
         if (findIndex) findIndex.name = it.name;
       }
     }
