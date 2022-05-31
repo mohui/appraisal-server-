@@ -1,10 +1,12 @@
 import * as dayjs from 'dayjs';
-import {KatoRuntimeError, should, validate} from 'kato-server';
+import {KatoCommonError, KatoRuntimeError, should, validate} from 'kato-server';
 import {v4 as uuid} from 'uuid';
 import {HisManualDataInput} from '../../../common/his';
-import {appDB, unifs} from '../../app';
+import {appDB, originalDB, unifs} from '../../app';
 import {getHospital, getSettle, monthToRange} from './service';
 import {sql as sqlRender} from '../../database/template';
+import {Workbook} from 'exceljs';
+import {createBackJob} from '../../utils/back-job';
 
 /**
  * 手工数据属性型返回值
@@ -36,6 +38,199 @@ type ManualPropDataReturnValue = {
   //更新时间
   updated_at?: Date;
 };
+
+/**
+ * 获取手工数据
+ *
+ * @param hospital 机构id
+ * @return {
+ *   id: 手工数据id,
+ *   name: 手工数据名称,
+ *   input: 输入方式; 属性/日志,
+ *   order: 排序,
+ *   created_at: 创建时间,
+ *   updated_at: 更新时间
+ * }
+ */
+async function getManualModels(
+  hospital: string
+): Promise<
+  {
+    id: string;
+    name: string;
+    input: string;
+    order: number;
+    created_at: Date;
+    updated_at: Date;
+  }[]
+> {
+  return await appDB.execute(
+    // language=PostgreSQL
+    `
+      select id, name, input, "order", created_at, updated_at
+      from his_manual_data
+      where hospital = ?
+      order by "order", created_at
+    `,
+    hospital
+  );
+}
+
+/**
+ * 手工数据
+ *
+ * @param hospital 机构id
+ * @param month 月份
+ * @return {
+ *   settle: 是否结算,
+ *   manuals?: {
+ *     id: 手工数据id,
+ *     name: 手工数据名称,
+ *     input: 输入方式; 属性/日志,
+ *     order: 排序,
+ *     created_at: 创建时间,
+ *     updated_at: 修改时间,
+ *   }[],
+ *   staffs?: {
+ *     id: 员工id,
+ *     name: 员工名称
+ *   }[],
+ *   details: {
+ *     staff: 员工id,
+ *     id: 手工数据id,
+ *     score: 得分
+ *   }[],
+ *   remark: 备注
+ * }
+ */
+async function manualList(
+  hospital: string,
+  month: Date
+): Promise<{
+  settle: boolean;
+  manuals?: {
+    id: string;
+    name: string;
+    input: string;
+    order: number;
+    created_at: Date;
+    updated_at: Date;
+  }[];
+  staffs?: {
+    id: string;
+    name: string;
+  }[];
+  details?: {
+    staff: string;
+    id: string;
+    score: number;
+  }[];
+  remark: string;
+}> {
+  //月份转开始结束时间
+  const {start, end} = monthToRange(month);
+
+  // 获取手工数据列表
+  const manuals = await getManualModels(hospital);
+
+  // 获取员工列表
+  const staffs = await appDB.execute(
+    // language=PostgreSQL
+    `
+      select staff.id, staff.name
+      from staff
+             inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+      where areaMapping.area = ?
+      order by staff.created_at
+    `,
+    hospital
+  );
+
+  // 获取员工的手工数据得分
+  const details = await appDB.execute(
+    // language=PostgreSQL
+    `
+      select manualDetail.staff, manualData.id, sum(value) score
+      from his_manual_data manualData
+             inner join his_staff_manual_data_detail manualDetail on manualData.id = manualDetail.item
+      where manualData.hospital = ?
+        and manualDetail.date >= ?
+        and manualDetail.date < ?
+      group by manualDetail.staff, manualData.id
+    `,
+    hospital,
+    start,
+    end
+  );
+  // 查询结算状态
+  const settle = await getSettle(hospital, start);
+
+  const remark = (
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        select remark
+        from his_hospital_settle
+        where hospital = ?
+          and month = ?
+      `,
+      hospital,
+      start
+    )
+  )[0]?.remark;
+
+  return {
+    settle,
+    manuals,
+    staffs,
+    details,
+    remark
+  };
+}
+
+/**
+ * 手工数据导出 buffer
+ *
+ * @param hospital 机构id
+ * @param month 月份
+ */
+export async function excelBuffer(hospital: string, month: Date) {
+  // 获取要导出的手工数据{manuals: 手工数据, staffs: 员工, details: 员工的手工数据得分, remark: 备注}
+  const {manuals, staffs, details, remark} = await manualList(hospital, month);
+  // 员工手工数据得分
+  const newList = staffs?.map(it => ({
+    ...it,
+    detail: [
+      ...manuals.map(manualIt => {
+        // 查找是否有分值,如果没有补0
+        const findIndex = details?.find(
+          detailIt => detailIt.staff === it.id && detailIt.id === manualIt.id
+        );
+        return {name: manualIt.name, score: findIndex ? findIndex.score : 0};
+      })
+    ]
+  }));
+  //开始创建Excel表格
+  const workBook = new Workbook();
+  const workSheet = workBook.addWorksheet(`手工数据`);
+  workSheet.addRow(['序号', '姓名', ...manuals.map(it => it.name)]);
+  let i = 1;
+  const second = newList.map(it => {
+    return [i++, it.name, ...it.detail.map(it => it.score)];
+  });
+  // 把备注push进去
+  second.push(['备注'], [remark]);
+  workSheet.addRows(second);
+  // 需要合并的单元格开始行位置
+  const mergeStart = second.length + 1;
+  // 需要合并的单元格结束列位置
+  const mergeEnd = manuals.length + 2;
+  // 合并备注
+  workSheet.mergeCells(mergeStart - 1, 1, mergeStart - 1, mergeEnd);
+  // 合并备注内容
+  workSheet.mergeCells(mergeStart, 1, mergeStart, mergeEnd);
+  return workBook.xlsx.writeBuffer();
+}
 
 /**
  * 手工数据模块
@@ -89,16 +284,7 @@ export default class HisManualData {
    */
   async list() {
     const hospital = await getHospital();
-    return await appDB.execute(
-      // language=PostgreSQL
-      `
-        select id, name, input, "order", created_at, updated_at
-        from his_manual_data
-        where hospital = ?
-        order by "order", created_at
-      `,
-      hospital
-    );
+    return await getManualModels(hospital);
   }
 
   /**
@@ -668,49 +854,112 @@ export default class HisManualData {
   async tableList(month) {
     // 获取机构
     const hospital = await getHospital();
-    //月份转开始结束时间
-    const {start, end} = monthToRange(month);
+    return await manualList(hospital, month);
+  }
 
-    // 获取手工数据列表
-    const manuals = await this.list();
+  /**
+   * 添加修改手工数据备注
+   *
+   * @param month 月份
+   * @param remark 备注
+   */
+  @validate(
+    should.date().required(),
+    should
+      .string()
+      .required()
+      .allow('')
+  )
+  async upsertRemark(month, remark) {
+    const hospital = await getHospital();
+    const {start} = monthToRange(month);
 
-    // 获取员工列表
-    const staffs = await appDB.execute(
-      // language=PostgreSQL
+    // 查询是否结算,结算不能更改备注
+    const settle = await getSettle(hospital, start);
+    if (settle) throw new KatoCommonError(`已结算,不能更改`);
+
+    await appDB.execute(
+      //language=PostgreSQL
       `
-        select staff.id, staff.name
-        from staff
-               inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where areaMapping.area = ?
-        order by staff.created_at
-      `,
-      hospital
-    );
-
-    // 获取员工的手工数据得分
-    const details = await appDB.execute(
-      // language=PostgreSQL
-      `
-        select manualDetail.staff, manualData.id, sum(value) score
-        from his_manual_data manualData
-               inner join his_staff_manual_data_detail manualDetail on manualData.id = manualDetail.item
-        where manualData.hospital = ?
-          and manualDetail.date >= ?
-          and manualDetail.date < ?
-        group by manualDetail.staff, manualData.id
+        insert into his_hospital_settle(hospital, month, settle, remark)
+        values (?, ?, false, ?)
+        on conflict (hospital, month)
+          do update set remark     = excluded.remark,
+                        updated_at = now()
       `,
       hospital,
       start,
-      end
+      remark
     );
-    // 查询结算状态
-    const settle = await getSettle(hospital, start);
+  }
 
-    return {
-      settle,
-      manuals,
-      staffs,
-      details
-    };
+  /**
+   * 导出手工数据
+   *
+   * @param month 月份
+   */
+  @validate(should.date().required())
+  async downloadManual(month) {
+    // 获取机构id
+    const hospital = await getHospital();
+    try {
+      // 获取地区名称
+      const areaName =
+        (
+          await originalDB.execute(
+            // language=PostgreSQL
+            `
+              select code, name
+              from area
+              where code = ?
+            `,
+            hospital
+          )
+        )[0]?.name ?? '';
+      const fileName = `${areaName}${dayjs(month).format('YYYYMM')}手工数据`;
+
+      return createBackJob('manualExcel', `${fileName}`, {
+        hospital,
+        month,
+        fileName
+      });
+    } catch (e) {
+      console.log(e.message);
+      throw new KatoCommonError('手工数据下载失败');
+    }
+  }
+
+  /***
+   * 手工数据批量排序
+   *
+   * @param params[{
+   *  id: id, 数据id
+   *  order: 排序值
+   * }]
+   */
+  @validate(
+    should
+      .array()
+      .items({
+        id: should.string().required(),
+        order: should.number().required()
+      })
+      .required()
+  )
+  async reorder(params) {
+    return appDB.joinTx(async () => {
+      for (const item of params) {
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            update his_manual_data
+            set "order" = ?
+            where id = ?
+          `,
+          item.order,
+          item.id
+        );
+      }
+    });
   }
 }
