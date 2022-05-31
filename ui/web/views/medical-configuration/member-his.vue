@@ -186,6 +186,9 @@
               <el-button type="primary" size="small" @click="editUser(row)">
                 修改
               </el-button>
+              <el-button type="danger" size="small" @click="unbindUser(row)">
+                解绑
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -584,6 +587,24 @@ export default {
         pageSize: 20,
         pageNo: 1
       };
+    },
+    // 解绑员工
+    async unbindUser(row) {
+      try {
+        await this.$confirm('确实要解绑此员工?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        await this.$api.AppArea.unbind(row.id);
+        this.$message({
+          type: 'success',
+          message: '解绑成功!'
+        });
+        this.$asyncComputed.listMember.update();
+      } catch (e) {
+        e !== 'cancel' ? this.$message.error(e?.message) : '';
+      }
     },
     //设置用户编辑状态，并打开对话框
     editUser(row) {
