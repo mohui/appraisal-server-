@@ -745,6 +745,19 @@ export const HisWorkItemSources: {
       columns: ['chronologicalage >= 18', 'chronologicalage < 37']
     }
   },
+  {
+    id: '公卫数据.按规范要求对居民健康档案信息进行核查',
+    name: '按规范要求对居民健康档案信息进行核查',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_person main
+      `,
+      date: 'main.CollateDate',
+      columns: []
+    }
+  },
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
   {
     id: '其他.门诊诊疗人次',

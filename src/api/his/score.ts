@@ -458,13 +458,13 @@ export async function workPointCalculation(
       `
           select 1 as value,
             {{dateCol}} as date,
-            {{#if scope}} main.operatorid {{else}} main.OperateOrganization {{/if}} as hospital
+            {{#if scope}} {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}} {{else}} main.OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
             and main.OperateOrganization = {{? hospital}}
-            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#if scope}}and {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}} in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
             {{#each columns}}and {{this}} {{/each}}
           `,
       {
@@ -475,7 +475,11 @@ export async function workPointCalculation(
         scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
         phStaff: phStaff,
         start,
-        end
+        end,
+        groupByColumn:
+          item.id === `公卫数据.按规范要求对居民健康档案信息进行核查`
+            ? 'main.collateuser'
+            : null
       }
     );
 
