@@ -967,7 +967,7 @@ export default class AppUser {
     const hospitalIds = [];
     // 筛选出最后一次的申请记录
     for (const it of RequestHospitalModels) {
-      if (!it.hide) continue;
+      if (it.hide) continue;
       // 查找此申请记录是否已经存在,如果不存在,push进数组中
       const findIndex = hospitals.find(hospital => hospital.id === it.id);
       // 已通过的,不能往里push, 因为存在已经删除的机构,填充申请表id
@@ -1037,7 +1037,7 @@ export default class AppUser {
             updated_at = ?
         where id = ?
       `,
-      false,
+      true,
       new Date(),
       id
     );
