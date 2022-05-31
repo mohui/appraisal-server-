@@ -9,8 +9,8 @@ export class AddStaffRequestHide implements IMigration {
     // language=PostgreSQL
     await client.execute(`
       ALTER table staff_request
-        ADD COLUMN hide boolean not null default true;
-      COMMENT ON COLUMN staff_request.hide IS '是否显示,默认true';
+        ADD COLUMN hide boolean not null default false;
+      COMMENT ON COLUMN staff_request.hide IS '隐藏未通过的审核申请,默认false';
     `);
   }
 
