@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class AddStaffRequestHide implements IMigration {
   name = '申请表添加隐藏字段';
-  version = 65;
+  version = 66;
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
