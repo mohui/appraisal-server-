@@ -920,10 +920,9 @@ export default class AppUser {
       status: RequestStatus.SUCCESS,
       primary: it.primary
     }));
-    // TODO: SQL需要加上状态条件, 直接sql取最新一条数据
     // 查询此用户申请表里的所有非已通过的机构,已通过的可能会被删除,但是在申请表里记录还是存在的,同一机构可能申请多次,按照插入时间倒序排序
-    const staffRequestModels: {
-      id: string;
+    const RequestHospitalModels: {
+      requestId: string;
       staff: string;
       area: string;
       status: string;
@@ -932,36 +931,26 @@ export default class AppUser {
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-        select request.id,
+        select request.id "requestId",
                request.staff,
                request.area,
                request.status,
                request.hide,
                request.created_at
-        from staff_request request
-        where request.staff = ?
-        order by created_at desc
+        from (select id,
+                     staff,
+                     area,
+                     status,
+                     hide,
+                     created_at,
+                     row_number() over (partition by area order by created_at desc ) as KeyId
+              from staff_request
+              where staff = ?) request
+        where request.KeyId = 1
+        order by request.created_at desc
       `,
       Context.current.user.id
     );
-
-    // 数组中最近一条
-    const RequestHospitalModels = [];
-    for (const it of staffRequestModels) {
-      const findIndex = RequestHospitalModels.find(
-        hospital => hospital.id === it.area
-      );
-      if (!findIndex) {
-        RequestHospitalModels.push({
-          requestId: it.id,
-          id: it.area,
-          name: '',
-          status: it.status,
-          hide: it.hide,
-          primary: false
-        });
-      }
-    }
 
     // 要查询的机构id
     const hospitalIds = [];
@@ -969,7 +958,7 @@ export default class AppUser {
     for (const it of RequestHospitalModels) {
       if (it.hide) continue;
       // 查找此申请记录是否已经存在,如果不存在,push进数组中
-      const findIndex = hospitals.find(hospital => hospital.id === it.id);
+      const findIndex = hospitals.find(hospital => hospital.id === it.area);
       // 已通过的,不能往里push, 因为存在已经删除的机构,填充申请表id
       if (it.status === RequestStatus.SUCCESS) {
         if (findIndex) findIndex.requestId = it.requestId;
@@ -977,10 +966,10 @@ export default class AppUser {
         // 非已存在的,如果没有,push进机构数组中
         if (!findIndex) {
           // staff_request 表没有机构名称,把需要查询机构名称的机构id放到数组中
-          hospitalIds.push(it.id);
+          hospitalIds.push(it.area);
           hospitals.push({
             requestId: it.requestId,
-            id: it.id,
+            id: it.area,
             name: '',
             status: it.status,
             primary: false
