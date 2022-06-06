@@ -18,6 +18,8 @@ import SystemArea from '../group/system_area';
 import Decimal from 'decimal.js';
 import {documentTagList} from '../../../common/person-tag';
 import * as SMSClient from '@alicloud/sms-sdk';
+import {RequestStatus, UserType} from '../../../common/user';
+import {unbindHospital} from './common';
 
 /**
  * 短信配置
@@ -505,10 +507,60 @@ export default class AppUser {
    * 注销机构
    *
    * @param area 机构id
+   * @return {id?: '主机构id'};
    */
   @validate(should.string().required())
-  async resign(area) {
-    return;
+  async unbind(area) {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能操作');
+    return await unbindHospital(area, Context.current.user.id);
+  }
+
+  /**
+   * 切换主机构
+   *
+   * @param id 要切换的主机构id
+   */
+  async switchPrimaryHospital(id) {
+    const staff = Context.current.user.id;
+    await appDB.transaction(async () => {
+      // 查询此机构下是否有该员工
+      const areaMappingModel: {
+        staff: string;
+        area: string;
+        department: string;
+      } = (
+        await appDB.execute(
+          // language=PostgreSQL
+          `
+            select areaMapping.staff,
+                   areaMapping.area,
+                   areaMapping.department
+            from staff_area_mapping areaMapping
+            where areaMapping.staff = ?
+              and areaMapping.area = ?
+          `,
+          staff,
+          id
+        )
+      )[0];
+      if (!areaMappingModel) throw new KatoCommonError('此员工未绑定该机构');
+      // 修改员工主机构
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          update staff
+          set hospital   = ?,
+              department = ?,
+              updated_at = ?
+          where id = ?
+        `,
+        areaMappingModel.area,
+        areaMappingModel.department,
+        dayjs().toDate(),
+        staff
+      );
+    });
   }
 
   /**
@@ -846,5 +898,137 @@ export default class AppUser {
       ...userModel,
       token: userModel.id
     };
+  }
+
+  /**
+   * APP机构列表
+   *
+   * @return [{
+   *  requestId?: 申请id: 如果申请表不存在此机构申请记录,为null,
+   *  id: 机构id,
+   *  name: 机构名称,
+   *  status: 状态: 已通过,未通过,审核中,
+   *  primary: 是否是主机构: true,false
+   * }]
+   */
+  async hospitals() {
+    // 现有的机构,request表没有历史数据的机构审核信息,默认都是已通过
+    const hospitals = Context.current.user?.hospitals?.map(it => ({
+      requestId: null,
+      id: it.id,
+      name: it.name,
+      status: RequestStatus.SUCCESS,
+      primary: it.primary
+    }));
+    // 查询此用户申请表里的所有非已通过的机构,已通过的可能会被删除,但是在申请表里记录还是存在的,同一机构可能申请多次,按照插入时间倒序排序
+    const RequestHospitalModels: {
+      requestId: string;
+      staff: string;
+      area: string;
+      status: string;
+      hide: string;
+      created_at: Date;
+    }[] = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select request.id "requestId",
+               request.staff,
+               request.area,
+               request.status,
+               request.hide,
+               request.created_at
+        from (select id,
+                     staff,
+                     area,
+                     status,
+                     hide,
+                     created_at,
+                     row_number() over (partition by area order by created_at desc ) as KeyId
+              from staff_request
+              where staff = ?) request
+        where request.KeyId = 1
+        order by request.created_at desc
+      `,
+      Context.current.user.id
+    );
+
+    // 要查询的机构id
+    const hospitalIds = [];
+    // 筛选出最后一次的申请记录
+    for (const it of RequestHospitalModels) {
+      if (it.hide) continue;
+      // 查找此申请记录是否已经存在,如果不存在,push进数组中
+      const findIndex = hospitals.find(hospital => hospital.id === it.area);
+      // 已通过的,不能往里push, 因为存在已经删除的机构,填充申请表id
+      if (it.status === RequestStatus.SUCCESS) {
+        if (findIndex) findIndex.requestId = it.requestId;
+      } else {
+        // 非已存在的,如果没有,push进机构数组中
+        if (!findIndex) {
+          // staff_request 表没有机构名称,把需要查询机构名称的机构id放到数组中
+          hospitalIds.push(it.area);
+          hospitals.push({
+            requestId: it.requestId,
+            id: it.area,
+            name: '',
+            status: it.status,
+            primary: false
+          });
+        }
+      }
+    }
+    // 补充地区名称
+    if (hospitalIds.length > 0) {
+      const areaModels = await originalDB.execute(
+        // language=PostgreSQL
+        `
+          select code, name
+          from area
+          where code in (${hospitalIds.map(() => '?')})
+        `,
+        ...hospitalIds
+      );
+      for (const it of areaModels) {
+        const findIndex = hospitals.find(item => item.id === it.code);
+        if (findIndex) findIndex.name = it.name;
+      }
+    }
+    return hospitals;
+  }
+
+  /**
+   * 隐藏未通过的审核申请
+   *
+   * @param id 申请id
+   */
+  async hide(id) {
+    const requestModel = (
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          select status
+          from staff_request
+          where id = ?
+        `,
+        id
+      )
+    )[0];
+    if (!requestModel) throw new KatoCommonError('申请id不存在');
+
+    if (requestModel.status !== RequestStatus.REJECTED)
+      throw new KatoCommonError(`非${RequestStatus.REJECTED}的不能隐藏`);
+
+    await appDB.execute(
+      // language=PostgreSQL
+      `
+        update staff_request
+        set hide       = ?,
+            updated_at = ?
+        where id = ?
+      `,
+      true,
+      new Date(),
+      id
+    );
   }
 }

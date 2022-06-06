@@ -13,8 +13,9 @@ import {imageSync} from 'qr-image';
 import {getHospital} from '../his/service';
 import {getHospitals} from '../group/common';
 import {v4 as uuid} from 'uuid';
-import {RequestStatus} from '../../../common/user';
+import {RequestStatus, UserType} from '../../../common/user';
 import {sql as sqlRender} from '../../database/template';
+import {unbindHospital} from './common';
 
 /**
  * App机构模块
@@ -1517,5 +1518,19 @@ export default class AppArea {
     };
   }
 
+  //endregion
+
+  //region 员工
+  /**
+   * 删除员工信息
+   *
+   * @param staff 员工id
+   */
+  async unbind(staff) {
+    if (Context.current.user.type !== UserType.ADMIN)
+      throw new KatoCommonError('非管理员账号,不能操作');
+    const hospital = await getHospital();
+    await unbindHospital(hospital, staff);
+  }
   //endregion
 }
