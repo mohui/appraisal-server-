@@ -61,7 +61,7 @@ export default class AppArea {
   async joinUs(ticket) {
     /**
      * 1: 校验机构id是否合法
-     * 2: 根据员工id和机构id获取申请列表, 有三种情况
+     * 2: 根据员工id获取申请列表, 有三种情况
      * 2.1: 待审核: 直接返回id
      * 2.2: 已通过: 查询 staff_area_mapping 是否存在此机构信息
      * 2.2.1: 有: 直接返回id
@@ -76,24 +76,29 @@ export default class AppArea {
       throw new KatoRuntimeError('机构id不合法');
 
     return await appDB.joinTx(async () => {
+      // 查询此员工的申请流水
       const staffRequests = await appDB.execute(
         // language=PostgreSQL
         `
-          select id, staff, status, updated_at
+          select id, staff, area, status, updated_at
           from staff_request
           where staff = ?
-            and area = ?
           order by updated_at desc
         `,
-        Context.current.user.id,
-        ticket.area
+        Context.current.user.id
       );
 
-      // 查找 待审核 的列表,如果存在,直接返回id
+      // 查找 待审核 的列表,如果存在,判断是否是此机构
       const findPending = staffRequests.find(
         it => it.status === RequestStatus.PENDING
       );
-      if (findPending) return findPending.id;
+      // 如果存在 待审核, 判断是否是此机构,是:直接返回申请id,不是:报错
+      if (findPending) {
+        // 如果不是此机构,报错
+        if (findPending.area !== ticket.area)
+          throw new KatoCommonError('已存在待审核机构');
+        return findPending.id;
+      }
 
       // 查找 已通过 是否在数组中,如果在数组中,查询 staff_area_mapping 是否存在
       const findSuccess = staffRequests.find(
