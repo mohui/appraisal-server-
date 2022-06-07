@@ -80,7 +80,7 @@ export default class AppArea {
       const staffRequests = await appDB.execute(
         // language=PostgreSQL
         `
-          select id, staff, status, updated_at
+          select id, staff, area, status, updated_at
           from staff_request
           where staff = ?
           order by updated_at desc
@@ -88,11 +88,17 @@ export default class AppArea {
         Context.current.user.id
       );
 
-      // 查找 待审核 的列表,如果存在,直接返回id
+      // 查找 待审核 的列表,如果存在,判断是否是此机构
       const findPending = staffRequests.find(
         it => it.status === RequestStatus.PENDING
       );
-      if (findPending) return findPending.id;
+      // 如果存在 待审核, 判断是否是此机构,是:直接返回申请id,不是:报错
+      if (findPending) {
+        // 如果不是此机构,报错
+        if (findPending.area !== ticket.area)
+          throw new KatoCommonError('已存在待审核机构,审核后才能此发起申请');
+        return findPending.id;
+      }
 
       // 查找 已通过 是否在数组中,如果在数组中,查询 staff_area_mapping 是否存在
       const findSuccess = staffRequests.find(
