@@ -76,17 +76,19 @@ export default class AppArea {
       throw new KatoRuntimeError('机构id不合法');
 
     return await appDB.joinTx(async () => {
+      /**
+       * 查询此员工的申请流水
+       * 2022-06-07 改为一个员工,待审核的记录有且仅有一个,所以按照员工id查询
+       */
       const staffRequests = await appDB.execute(
         // language=PostgreSQL
         `
           select id, staff, status, updated_at
           from staff_request
           where staff = ?
-            and area = ?
           order by updated_at desc
         `,
-        Context.current.user.id,
-        ticket.area
+        Context.current.user.id
       );
 
       // 查找 待审核 的列表,如果存在,直接返回id
