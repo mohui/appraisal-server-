@@ -96,7 +96,7 @@ export default class AppArea {
       if (findPending) {
         // 如果不是此机构,报错
         if (findPending.area !== ticket.area)
-          throw new KatoCommonError('已存在待审核机构,审核后才能此发起申请');
+          throw new KatoCommonError('已存在待审核机构');
         return findPending.id;
       }
 
