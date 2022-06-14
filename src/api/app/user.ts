@@ -327,21 +327,8 @@ export default class AppUser {
    */
   @validate(phoneValidate, passwordValidate)
   async login(phone, password) {
-    const staffModel: {
-      id: string;
-      password: string;
-      status: boolean;
-    } = (
-      await appDB.execute(
-        //language=PostgreSQL
-        `
-          select id, password, status
-          from staff
-          where phone = ?
-        `,
-        phone
-      )
-    )[0];
+    // 根据手机号获取员工信息
+    const staffModel = await getStaffModel(phone);
     if (!staffModel) throw new KatoLogicError('手机号码不存在', 10003);
     if (!staffModel.status) throw new KatoCommonError('账号已注销');
     if (staffModel.password !== password)
