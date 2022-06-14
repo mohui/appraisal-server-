@@ -170,6 +170,38 @@ async function smsVerification(code, phone, usage) {
 }
 
 /**
+ * 根据手机号获取员工信息
+ *
+ * @param phone 手机号
+ * @return {
+ *   id: 账号ID,
+ *   password: 密码,
+ *   status: 状态,
+ * }
+ */
+async function getStaffModel(
+  phone
+): Promise<{
+  id: string;
+  password: string;
+  status: boolean;
+}> {
+  return (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id,
+               password,
+               status
+        from staff
+        where phone = ?
+      `,
+      phone
+    )
+  )[0];
+}
+
+/**
  * App用户模块
  */
 export default class AppUser {
