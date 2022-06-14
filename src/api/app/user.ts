@@ -298,11 +298,12 @@ export default class AppUser {
     const staffModel: {
       id: string;
       password: string;
+      status: boolean;
     } = (
       await appDB.execute(
         //language=PostgreSQL
         `
-          select id, password
+          select id, password, status
           from staff
           where phone = ?
         `,
@@ -310,6 +311,7 @@ export default class AppUser {
       )
     )[0];
     if (!staffModel) throw new KatoLogicError('手机号码不存在', 10003);
+    if (!staffModel.status) throw new KatoCommonError('账号已注销');
     if (staffModel.password !== password)
       throw new KatoLogicError('密码错误', 10001);
 
