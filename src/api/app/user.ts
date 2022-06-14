@@ -348,13 +348,27 @@ export default class AppUser {
   async register(phone, code, password) {
     await appDB.transaction(async () => {
       //校验手机是否可用
-      const usable = await validPhone(phone);
-      if (!usable) {
+      const staffModel = await getStaffModel(phone);
+      if (staffModel && staffModel.status) {
         throw new KatoLogicError('该手机号码已被注册', 10002);
       }
 
       // 校验验证码是否正确
       await smsVerification(code, phone, CodeUsage.Register);
+      // 如果有值,并且状态为false
+      if (staffModel && !staffModel.status) {
+        return await appDB.execute(
+          //language=PostgreSQL
+          `
+            update staff
+            set status     = ?,
+                updated_at = now()
+            where phone = ?
+          `,
+          true,
+          phone
+        );
+      }
       //注册用户
       await appDB.execute(
         //language=PostgreSQL
