@@ -519,6 +519,56 @@ export default class AppUser {
   }
 
   /**
+   * 逻辑注销账号
+   */
+  async cancel() {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能操作');
+
+    /**
+     * 1: 删除员工所有机构下和公卫员工关联表
+     * 2: 删除员工所有机构下和his员工关联表
+     * 3: 状态改为false
+     */
+    appDB.transaction(async () => {
+      // 1: 删除员工所有机构下和公卫员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_ph_mapping
+          where staff = ?
+        `,
+        Context.current.user.id
+      );
+
+      // 2: 删除员工所有机构下和his员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_his_mapping
+          where staff = ?
+        `,
+        Context.current.user.id
+      );
+
+      // 3: 状态改为false
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set status     = ?,
+              updated_at = now()
+          where id = ?
+        `,
+        false,
+        Context.current.user.id
+      );
+    });
+  }
+
+  /**
    * 切换主机构
    *
    * @param id 要切换的主机构id
