@@ -222,9 +222,11 @@ export default class HisHospital {
             from staff
                    left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
             where areaMapping.area = ?
+              and staff.status = ?
             order by staff.created_at
           `,
-          hospital
+          hospital,
+          true
         )
       ).map(async it => {
         const result = await staffApi.findWorkScoreList(it.id, month, hospital);
