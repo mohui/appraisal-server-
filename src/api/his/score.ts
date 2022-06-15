@@ -2134,7 +2134,9 @@ export default class HisScore {
                left join his_work_item_staff_mapping wism on swim.item = wism.item
                left join his_work_item_type type on wi.item_type = type.id
                inner join staff_area_mapping areaMapping on swim.staff = areaMapping.staff
+               inner join staff on areaMapping.staff = staff.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital,
       hospital
