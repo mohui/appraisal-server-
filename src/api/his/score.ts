@@ -660,6 +660,7 @@ from his_staff_manual_data_detail smdd
 where smdd.date >= {{? start}}
   and smdd.date < {{? end}}
   and areaMapping.area = {{? hospital}}
+  and staff.status = true
 group by smdd.item, smdd.staff
       `,
     {
