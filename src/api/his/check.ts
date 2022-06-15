@@ -722,10 +722,9 @@ export default class HisCheck {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
-          and staff.status = ?
+          and staff.status = true
       `,
-      hospital,
-      true
+      hospital
     );
     // 未绑定过考核的员工
     const [sql, params] = sqlRender(

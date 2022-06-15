@@ -51,11 +51,10 @@ export async function getStaffList(hospital, date) {
              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
       where areaMapping.area in (${hospitalIds.map(() => '?')})
         and staff.created_at <= ?
-        and staff.status = ?
+        and staff.status = true
     `,
     ...hospitalIds,
-    monthEnd,
-    true
+    monthEnd
   );
   // 给员工标注
   const staffList = staffModels.map(it => {

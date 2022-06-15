@@ -141,11 +141,10 @@ async function manualList(
       from staff
              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
       where areaMapping.area = ?
-        and staff.status = ?
+        and staff.status = true
       order by staff.created_at
     `,
-    hospital,
-    true
+    hospital
   );
 
   // 获取员工的手工数据得分
@@ -506,11 +505,10 @@ export default class HisManualData {
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
-            and staff.status = ?
+            and staff.status = true
           order by staff.created_at
         `,
-        hospital,
-        true
+        hospital
       )
     ).map<ManualPropDataReturnValue>(it => ({
       item: id,
