@@ -302,8 +302,10 @@ export default class HisHospital {
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
                left join his_department dept on areaMapping.department = dept.id
         where areaMapping.area = ?
+          and staff.status = ?
       `,
-      hospital
+      hospital,
+      true
     );
     const array = await Promise.all(
       staffs.map(async staffIt => {
