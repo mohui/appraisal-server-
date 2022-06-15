@@ -730,6 +730,7 @@ export default class HisStaff {
         left join staff_area_mapping area on staff.id = area.staff
         left join his_department dept on area.department = dept.id
         where area.area = {{? hospital}}
+          and staff.status = true
         {{#if phone}}
             AND staff.phone like {{? phone}}
         {{/if}}
