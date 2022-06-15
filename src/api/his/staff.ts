@@ -844,6 +844,7 @@ export default class HisStaff {
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
                left join his_department dept on areaMapping.department = dept.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
