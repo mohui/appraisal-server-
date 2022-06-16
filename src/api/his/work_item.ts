@@ -754,23 +754,10 @@ export const HisWorkItemSources: {
     datasource: {
       table: `
         ph_healthy main
+        inner join ph_person person on main.personnum = person.id
       `,
       date: 'main.OperateTime',
-      columns: []
-    }
-  },
-  {
-    id: '公卫数据.动态记录档案管理',
-    name: '动态记录档案管理',
-    parent: '公卫数据',
-    scope: HisStaffDeptType.HOSPITAL,
-    datasource: {
-      table: `
-      ph_person main
-      INNER JOIN mark_person m on m.id = main.id
-      `,
-      date: 'm.year',
-      columns: ['main.writeoff = false and m."S03" = true']
+      columns: [`person.ContractStaff & 1 = 1`]
     }
   },
   {
