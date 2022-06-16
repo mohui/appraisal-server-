@@ -26,6 +26,7 @@ export const HisWorkItemSources: {
     table: string;
     date: string;
     columns?: string[];
+    user?: string;
   };
 }[] = [
   {
@@ -546,6 +547,7 @@ export const HisWorkItemSources: {
       columns: ['isdelete = false']
     }
   },
+  //TODO: 公卫数据.健康教育使用的人员字段待补充
   {
     id: '公卫数据.健康教育-宣传栏更新次数',
     name: '健康教育-宣传栏更新次数',
@@ -919,7 +921,8 @@ export const HisWorkItemSources: {
         ph_person main
       `,
       date: 'main.CollateDate',
-      columns: []
+      columns: [],
+      user: 'main.collateuser'
     }
   },
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
@@ -935,7 +938,20 @@ export const HisWorkItemSources: {
     parent: '其他',
     scope: HisStaffDeptType.HOSPITAL
   }
-];
+].map(it => {
+  if (it.parent === '公卫数据')
+    return {
+      ...it,
+      datasource: {
+        ...it.datasource,
+        user:
+          it.parent === '公卫数据' && !it.datasource?.user
+            ? 'main.operatorid'
+            : it.datasource.user
+      }
+    };
+  else return it;
+});
 // endregion
 
 /**
