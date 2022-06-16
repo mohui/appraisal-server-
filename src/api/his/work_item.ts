@@ -547,7 +547,6 @@ export const HisWorkItemSources: {
       columns: ['isdelete = false']
     }
   },
-  //TODO: 公卫数据.健康教育使用的人员字段待补充
   {
     id: '公卫数据.健康教育-宣传栏更新次数',
     name: '健康教育-宣传栏更新次数',
@@ -556,7 +555,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '3'`, 'state = 1']
+      columns: [`activityformcode = '3'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -567,7 +567,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '5'`, 'state = 1']
+      columns: [`activityformcode = '5'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -578,7 +579,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '4'`, 'state = 1']
+      columns: [`activityformcode = '4'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -589,7 +591,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '6'`, 'state = 1']
+      columns: [`activityformcode = '6'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -600,7 +603,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'ActivityTime',
-      columns: [`ActivityFormCode = '8'`, 'state = 1']
+      columns: [`ActivityFormCode = '8'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -611,7 +615,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'ActivityTime',
-      columns: [`ActivityFormCode = '9'`, 'state = 1']
+      columns: [`ActivityFormCode = '9'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -944,10 +949,7 @@ export const HisWorkItemSources: {
       ...it,
       datasource: {
         ...it.datasource,
-        user:
-          it.parent === '公卫数据' && !it.datasource?.user
-            ? 'main.operatorid'
-            : it.datasource.user
+        user: !it.datasource?.user ? 'main.operatorid' : it.datasource.user
       }
     };
   else return it;
