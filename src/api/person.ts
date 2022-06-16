@@ -42,7 +42,7 @@ function listRenderForExcel(params) {
       from mark_person mp
              inner join ph_person vp on mp.id = vp.id and mp.year = {{? year}}
              inner join area on vp.adminorganization = area.code
-             left join mark_content mc on mc.id = vp.id
+             left join mark_content mc on mc.id = vp.id and mc.year = mp.year
       where 1 = 1
         {{#if name}} and vp.name like {{? name}} {{/if}}
         {{#if hospitals}} and vp.adminorganization in ({{#each hospitals}}{{? this}}{{#sep}},{{/sep}}{{/each}}){{/if}}

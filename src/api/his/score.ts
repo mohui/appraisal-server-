@@ -223,7 +223,7 @@ export async function workPointCalculation(
 
   // region 查询 门诊/住院 工分来源用到的医生id
   // his员工id, 为了查询 计算CHECK和DRUG工分来源
-  let doctorIds;
+  let doctorIds = [];
 
   // 当前只有 计算CHECK和DRUG工分来源 用到了
   if (
@@ -264,7 +264,7 @@ export async function workPointCalculation(
   // endregion
 
   // region 公卫数据工分来源(动态:个人, 固定)会用到
-  let phStaff;
+  let phStaff = [];
   let phUserList = [];
   if (bindings.filter(it => it.source.startsWith('公卫数据')).length > 0) {
     // 取出本机构下的所有ph员工
@@ -458,13 +458,13 @@ export async function workPointCalculation(
       `
           select 1 as value,
             {{dateCol}} as date,
-            {{#if scope}} main.operatorid {{else}} main.OperateOrganization {{/if}} as hospital
+            {{#if scope}} {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}} {{else}} main.OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
             and main.OperateOrganization = {{? hospital}}
-            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#if scope}}and {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}} in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
             {{#each columns}}and {{this}} {{/each}}
           `,
       {
@@ -475,7 +475,11 @@ export async function workPointCalculation(
         scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
         phStaff: phStaff,
         start,
-        end
+        end,
+        groupByColumn:
+          item.id === `公卫数据.按规范要求对居民健康档案信息进行核查`
+            ? 'main.collateuser'
+            : null
       }
     );
 
@@ -2378,7 +2382,7 @@ export default class HisScore {
           // endregion
           // region 查询 门诊/住院 工分来源用到的医生id
           // his员工id, 为了查询 计算CHECK和DRUG工分来源
-          let doctorIds;
+          let doctorIds = [];
 
           // 当前只有 计算CHECK和DRUG工分来源 用到了
           if (
@@ -2401,7 +2405,7 @@ export default class HisScore {
           }
           // endregion
           // region 公卫数据工分来源(动态:个人, 固定)会用到
-          let phStaff;
+          let phStaff = [];
           if (
             it.mappings.filter(source => source.startsWith('公卫数据')).length >
             0

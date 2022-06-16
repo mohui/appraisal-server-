@@ -6,6 +6,7 @@ import {getReportBuffer} from '../../api/group/system_area';
 import {getPersonExcelBuffer} from '../../api/person';
 import HisScore from '../../api/his/score';
 import dayjs = require('dayjs');
+import {excelBuffer} from '../../api/his/manual';
 
 appDB.addModels(Object.values(models));
 const ScoreApi = new Score();
@@ -55,6 +56,19 @@ const {job} = workerData;
         //考核打分
         await hisScoreApi.autoScoreHospital(day, hospital);
       }
+    }
+    //手工数据导出
+    if (job === 'manualExcel') {
+      const {hospital, month, fileName} = workerData;
+      // 获取要导出的数据
+      const buffer = (await excelBuffer(hospital, month)) as Buffer;
+      //初始化文件挂载
+      await initFS();
+      //写入本地
+      jobResult = `/manualExcel/${fileName}-${dayjs().format(
+        'YYYY-MM-DDTHH:mm:ss'
+      )}.xls`;
+      await unifs.writeFile(jobResult, buffer);
     }
     parentPort.postMessage({result: jobResult, error: null});
   } catch (e) {

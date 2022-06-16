@@ -193,7 +193,19 @@ module.exports = {
     //       prefix: '/news',
     //       key: ''
     //     }
+    //   },
+    // {
+    //   path: '/manualExcel', // 手工数据下载
+    //   type: 'local',
+    //   options: {
+    //     base: '/tmp/manualExcel',
+    //     external: {
+    //       baseUrl: 'http://127.0.0.1:3000',
+    //       prefix: '/manualExcel',
+    //       key: ''
+    //     }
     //   }
+    // }
     // }
   ],
   // 生成公卫报告定时任务
