@@ -459,6 +459,7 @@ export default class HisManualData {
                inner join staff s on d.staff = s.id
                inner join staff_area_mapping areaMapping on s.id = areaMapping.staff
         where areaMapping.area = {{? hospitalId}}
+          and s.status = true
           and d.item = {{? id}}
           and d.date >= {{? start}}
           and d.date < {{? end}}
