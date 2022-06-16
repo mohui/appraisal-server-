@@ -945,18 +945,7 @@ export default class AppUser {
       throw new KatoCommonError('微信服务器抖动, 请稍后再试');
     }
     // 查询用户
-    const userModel = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select id
-          from staff
-          where phone = ?
-          limit 1
-        `,
-        result.purePhoneNumber
-      )
-    )[0];
+    const userModel = await getStaffModel(result.purePhoneNumber);
     // 用户不存在, 直接注册
     if (!userModel) {
       const id = uuid();
@@ -971,8 +960,20 @@ export default class AppUser {
       );
       userModel.id = id;
     }
+    if (userModel && userModel.status === false) {
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set status     = true,
+              updated_at = now()
+          where id = ?
+        `,
+        userModel.id
+      );
+    }
     return {
-      ...userModel,
+      id: userModel.id,
       token: userModel.id
     };
   }
