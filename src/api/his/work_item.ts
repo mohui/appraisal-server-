@@ -26,6 +26,7 @@ export const HisWorkItemSources: {
     table: string;
     date: string;
     columns?: string[];
+    user?: string;
   };
 }[] = [
   {
@@ -554,7 +555,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '3'`, 'state = 1']
+      columns: [`activityformcode = '3'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -565,7 +567,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '5'`, 'state = 1']
+      columns: [`activityformcode = '5'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -576,7 +579,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '4'`, 'state = 1']
+      columns: [`activityformcode = '4'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -587,7 +591,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'activitytime',
-      columns: [`activityformcode = '6'`, 'state = 1']
+      columns: [`activityformcode = '6'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -598,7 +603,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'ActivityTime',
-      columns: [`ActivityFormCode = '8'`, 'state = 1']
+      columns: [`ActivityFormCode = '8'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -609,7 +615,8 @@ export const HisWorkItemSources: {
     datasource: {
       table: 'ph_health_education main',
       date: 'ActivityTime',
-      columns: [`ActivityFormCode = '9'`, 'state = 1']
+      columns: [`ActivityFormCode = '9'`, 'state = 1'],
+      user: 'main.addoperatorid'
     }
   },
   {
@@ -745,6 +752,184 @@ export const HisWorkItemSources: {
       columns: ['chronologicalage >= 18', 'chronologicalage < 37']
     }
   },
+  // 5-26新增issues400指标
+  {
+    id: '公卫数据.年检常规体格检查',
+    name: '年检常规体格检查',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 1 = 1`]
+    }
+  },
+  {
+    id: '公卫数据.糖尿病患者管理.糖尿病健康体检',
+    name: '糖尿病患者管理-糖尿病健康体检',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 8 = 8`]
+    }
+  },
+  {
+    id: '公卫数据.高血压患者管理.高血压健康体检',
+    name: '高血压患者管理-高血压健康体检',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 4 = 4`]
+    }
+  },
+  // {
+  //   id: '公卫数据.严重精神病患者管理.严重精神病健康体检',
+  //   name: '严重精神病患者管理-严重精神病健康体检',
+  //   parent: '公卫数据',
+  //   scope: HisStaffDeptType.Staff,
+  //   datasource: {
+  //     table: `
+  //       ph_healthy main
+  //       inner join ph_person person on main.personnum = person.id
+  //     `,
+  //     date: 'main.OperateTime',
+  //     columns: [`person.ContractStaff & 256 = 256`]
+  //   }
+  // },
+  {
+    id: '公卫数据.其他慢病人群管理.其他慢病随访',
+    name: '其他慢病人群管理.其他慢病随访',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_other_visit main',
+      date: 'FollowUpDate',
+      columns: ['main.isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.其他慢病人群管理.其他慢病新增',
+    name: '其他慢病人群管理.其他慢病新增',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_other_card main',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
+  {
+    id: '公卫数据.高危人群管理-高危新增',
+    name: '高危人群管理-高危新增',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: 'ph_chronic_disease_high_card main',
+      date: 'datecards',
+      columns: ['isdelete = false']
+    }
+  },
+  // {
+  //   id: '公卫数据.家庭医生签约-微量元素测定或骨密度测定履约人数',
+  //   name: '家庭医生签约-微量元素测定或骨密度测定履约人数',
+  //   parent: '公卫数据',
+  //   scope: HisStaffDeptType.Staff,
+  //   datasource: {
+  //     table: `
+  //     ph_sign_check_main main
+  //     INNER JOIN ph_sign_item item on item.id = main.item
+  //     `,
+  //     date: 'ExeTime',
+  //     columns: [
+  //       `item.name in('微量元素测定或骨密度骨密度测定', '微量元素5项检测或骨密度检测') `
+  //     ]
+  //   }
+  // },
+  // {
+  //   id: '公卫数据.家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
+  //   name: '家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
+  //   parent: '公卫数据',
+  //   scope: HisStaffDeptType.Staff,
+  //   datasource: {
+  //     table: `
+  //     ph_sign_check_main main
+  //     INNER JOIN ph_sign_item item on item.id = main.item
+  //     `,
+  //     date: 'ExeTime',
+  //     columns: [`item.name like '%甲胎蛋白%' or item.name like '%癌胚抗原%' `]
+  //   }
+  // },
+  {
+    id: '公卫数据.家庭医生签约-一次采血履约人数',
+    name: '家庭医生签约-一次采血履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+      ph_sign_check_main main
+      INNER JOIN ph_sign_item item on item.id = main.item
+      `,
+      date: 'ExeTime',
+      columns: [`item.name like '%采血%' `]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-尿酸检查履约人数',
+    name: '家庭医生签约-尿酸检查履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+      ph_sign_check_main main
+      INNER JOIN ph_sign_item item on item.id = main.item
+      `,
+      date: 'ExeTime',
+      columns: [`item.name like '%尿酸%' `]
+    }
+  },
+  // {
+  //   id: '公卫数据.家庭医生签约-健康评估或健康干预服务履约人数',
+  //   name: '家庭医生签约-健康评估或健康干预服务履约人数',
+  //   parent: '公卫数据',
+  //   scope: HisStaffDeptType.Staff,
+  //   datasource: {
+  //     table: `
+  //     ph_sign_check_main main
+  //     INNER JOIN ph_sign_item item on item.id = main.item
+  //     `,
+  //     date: 'ExeTime',
+  //     columns: [
+  //       `item.name in ('健康评估、健康干预服务', '健康评估和健康干预服务') `
+  //     ]
+  //   }
+  // },
+  {
+    id: '公卫数据.按规范要求对居民健康档案信息进行核查',
+    name: '按规范要求对居民健康档案信息进行核查',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_person main
+      `,
+      date: 'main.CollateDate',
+      columns: [],
+      user: 'main.collateuser'
+    }
+  },
   {id: '其他', name: '其他', parent: null, scope: HisStaffDeptType.HOSPITAL},
   {
     id: '其他.门诊诊疗人次',
@@ -758,7 +943,17 @@ export const HisWorkItemSources: {
     parent: '其他',
     scope: HisStaffDeptType.HOSPITAL
   }
-];
+].map(it => {
+  if (it.parent === '公卫数据')
+    return {
+      ...it,
+      datasource: {
+        ...it.datasource,
+        user: !it.datasource?.user ? 'main.operatorid' : it.datasource.user
+      }
+    };
+  else return it;
+});
 // endregion
 
 /**
