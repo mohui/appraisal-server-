@@ -353,11 +353,10 @@ export default class AppUser {
           //language=PostgreSQL
           `
             update staff
-            set status     = ?,
+            set status     = true,
                 updated_at = now()
             where phone = ?
           `,
-          true,
           phone
         );
       }
@@ -555,7 +554,7 @@ export default class AppUser {
      * 2: 删除员工所有机构下和his员工关联表
      * 3: 状态改为false
      */
-    appDB.transaction(async () => {
+    await appDB.transaction(async () => {
       // 1: 删除员工所有机构下和公卫员工关联表
       await appDB.execute(
         // language=PostgreSQL
@@ -578,16 +577,27 @@ export default class AppUser {
         Context.current.user.id
       );
 
+      // 删除机构
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?`,
+        Context.current.user.id
+      );
+
       // 3: 状态改为false
       await appDB.execute(
         //language=PostgreSQL
         `
           update staff
-          set status     = ?,
+          set status     = false,
+              hospital   = null,
+              department = null,
               updated_at = now()
           where id = ?
         `,
-        false,
         Context.current.user.id
       );
     });
