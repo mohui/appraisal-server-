@@ -135,6 +135,7 @@ export default class HisHospital {
         where areaMapping.area = ?
           and result.time >= ?
           and result.time < ?
+          and staff.status = true
       `,
       hospital,
       start,
