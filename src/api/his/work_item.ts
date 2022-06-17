@@ -754,8 +754,8 @@ export const HisWorkItemSources: {
   },
   // 5-26新增issues400指标
   {
-    id: '公卫数据.年检常规体格检查',
-    name: '年检常规体格检查',
+    id: '公卫数据.年检常规体格检查（普通人）',
+    name: '年检常规体格检查（普通人）',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
     datasource: {
