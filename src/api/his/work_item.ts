@@ -795,20 +795,20 @@ export const HisWorkItemSources: {
       columns: [`person.ContractStaff & 4 = 4`]
     }
   },
-  // {
-  //   id: '公卫数据.严重精神病患者管理.严重精神病健康体检',
-  //   name: '严重精神病患者管理-严重精神病健康体检',
-  //   parent: '公卫数据',
-  //   scope: HisStaffDeptType.Staff,
-  //   datasource: {
-  //     table: `
-  //       ph_healthy main
-  //       inner join ph_person person on main.personnum = person.id
-  //     `,
-  //     date: 'main.OperateTime',
-  //     columns: [`person.ContractStaff & 256 = 256`]
-  //   }
-  // },
+  {
+    id: '公卫数据.严重精神病患者管理.严重精神病健康体检',
+    name: '严重精神病患者管理-严重精神病健康体检',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+        ph_healthy main
+        inner join ph_person person on main.personnum = person.id
+      `,
+      date: 'main.OperateTime',
+      columns: [`person.ContractStaff & 256 = 256`]
+    }
+  },
   {
     id: '公卫数据.其他慢病人群管理.其他慢病随访',
     name: '其他慢病人群管理.其他慢病随访',
@@ -842,36 +842,36 @@ export const HisWorkItemSources: {
       columns: ['isdelete = false']
     }
   },
-  // {
-  //   id: '公卫数据.家庭医生签约-微量元素测定或骨密度测定履约人数',
-  //   name: '家庭医生签约-微量元素测定或骨密度测定履约人数',
-  //   parent: '公卫数据',
-  //   scope: HisStaffDeptType.Staff,
-  //   datasource: {
-  //     table: `
-  //     ph_sign_check_main main
-  //     INNER JOIN ph_sign_item item on item.id = main.item
-  //     `,
-  //     date: 'ExeTime',
-  //     columns: [
-  //       `item.name in('微量元素测定或骨密度骨密度测定', '微量元素5项检测或骨密度检测') `
-  //     ]
-  //   }
-  // },
-  // {
-  //   id: '公卫数据.家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
-  //   name: '家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
-  //   parent: '公卫数据',
-  //   scope: HisStaffDeptType.Staff,
-  //   datasource: {
-  //     table: `
-  //     ph_sign_check_main main
-  //     INNER JOIN ph_sign_item item on item.id = main.item
-  //     `,
-  //     date: 'ExeTime',
-  //     columns: [`item.name like '%甲胎蛋白%' or item.name like '%癌胚抗原%' `]
-  //   }
-  // },
+  {
+    id: '公卫数据.家庭医生签约-微量元素测定或骨密度测定履约人数',
+    name: '家庭医生签约-微量元素测定或骨密度测定履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+      ph_sign_check_main main
+      INNER JOIN ph_sign_item item on item.id = main.item
+      `,
+      date: 'ExeTime',
+      columns: [
+        `item.name in('微量元素测定或骨密度骨密度测定', '微量元素5项检测或骨密度检测') `
+      ]
+    }
+  },
+  {
+    id: '公卫数据.家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
+    name: '家庭医生签约-甲胎蛋白（AFP）或癌胚抗原（CEA）检查履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+      ph_sign_check_main main
+      INNER JOIN ph_sign_item item on item.id = main.item
+      `,
+      date: 'ExeTime',
+      columns: [`item.name like '%甲胎蛋白%' or item.name like '%癌胚抗原%' `]
+    }
+  },
   {
     id: '公卫数据.家庭医生签约-一次采血履约人数',
     name: '家庭医生签约-一次采血履约人数',
@@ -900,22 +900,22 @@ export const HisWorkItemSources: {
       columns: [`item.name like '%尿酸%' `]
     }
   },
-  // {
-  //   id: '公卫数据.家庭医生签约-健康评估或健康干预服务履约人数',
-  //   name: '家庭医生签约-健康评估或健康干预服务履约人数',
-  //   parent: '公卫数据',
-  //   scope: HisStaffDeptType.Staff,
-  //   datasource: {
-  //     table: `
-  //     ph_sign_check_main main
-  //     INNER JOIN ph_sign_item item on item.id = main.item
-  //     `,
-  //     date: 'ExeTime',
-  //     columns: [
-  //       `item.name in ('健康评估、健康干预服务', '健康评估和健康干预服务') `
-  //     ]
-  //   }
-  // },
+  {
+    id: '公卫数据.家庭医生签约-健康评估或健康干预服务履约人数',
+    name: '家庭医生签约-健康评估或健康干预服务履约人数',
+    parent: '公卫数据',
+    scope: HisStaffDeptType.Staff,
+    datasource: {
+      table: `
+      ph_sign_check_main main
+      INNER JOIN ph_sign_item item on item.id = main.item
+      `,
+      date: 'ExeTime',
+      columns: [
+        `item.name in ('健康评估、健康干预服务', '健康评估和健康干预服务') `
+      ]
+    }
+  },
   {
     id: '公卫数据.按规范要求对居民健康档案信息进行核查',
     name: '按规范要求对居民健康档案信息进行核查',
