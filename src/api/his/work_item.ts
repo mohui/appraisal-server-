@@ -768,7 +768,7 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.糖尿病患者管理.糖尿病健康体检',
+    id: '公卫数据.糖尿病患者管理-糖尿病健康体检',
     name: '糖尿病患者管理-糖尿病健康体检',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
@@ -782,7 +782,7 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.高血压患者管理.高血压健康体检',
+    id: '公卫数据.高血压患者管理-高血压健康体检',
     name: '高血压患者管理-高血压健康体检',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
@@ -796,7 +796,7 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.严重精神病患者管理.严重精神病健康体检',
+    id: '公卫数据.严重精神病患者管理-严重精神病健康体检',
     name: '严重精神病患者管理-严重精神病健康体检',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
@@ -810,8 +810,8 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.其他慢病人群管理.其他慢病随访',
-    name: '其他慢病人群管理.其他慢病随访',
+    id: '公卫数据.其他慢病人群管理-其他慢病随访',
+    name: '其他慢病人群管理-其他慢病随访',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
     datasource: {
@@ -821,8 +821,8 @@ export const HisWorkItemSources: {
     }
   },
   {
-    id: '公卫数据.其他慢病人群管理.其他慢病新增',
-    name: '其他慢病人群管理.其他慢病新增',
+    id: '公卫数据.其他慢病人群管理-其他慢病新增',
+    name: '其他慢病人群管理-其他慢病新增',
     parent: '公卫数据',
     scope: HisStaffDeptType.Staff,
     datasource: {
