@@ -236,7 +236,7 @@ export default class AppUser {
         throw new KatoLogicError('该手机号码已被注册', 10002);
       }
       // 如果是重置密码
-      if (usage === CodeUsage.ResetPassword && !usable) {
+      if (usage === CodeUsage.ResetPassword && usable) {
         throw new KatoLogicError('该手机号码不存在', 10003);
       }
 
