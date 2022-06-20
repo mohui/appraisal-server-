@@ -598,6 +598,7 @@ export default class AppUser {
           set status     = false,
               hospital   = null,
               department = null,
+              phone      = null,
               updated_at = now()
           where id = ?
         `,
