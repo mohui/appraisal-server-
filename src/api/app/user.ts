@@ -227,13 +227,12 @@ export default class AppUser {
   )
   async sendSMS(phone, usage) {
     return appDB.transaction(async () => {
-      const usable = await getStaffModel(phone);
-      // 如果是用户注册
-      if (usage === CodeUsage.Register && usable && usable.status) {
-        throw new KatoLogicError('该手机号码已被注册', 10002);
-      }
-      // 更换手机
-      if (usage === CodeUsage.UpdatePhone && usable) {
+      const usable = await validPhone(phone);
+      // 如果是用户注册 和 更换手机
+      if (
+        (usage === CodeUsage.Register || usage === CodeUsage.UpdatePhone) &&
+        !usable
+      ) {
         throw new KatoLogicError('该手机号码已被注册', 10002);
       }
       // 如果是重置密码
