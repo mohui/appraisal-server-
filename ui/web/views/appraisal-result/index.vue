@@ -53,7 +53,7 @@
               type="primary"
               @click="
                 handleFileDownload(
-                  'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2021-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
+                  'https://knrt-doctor-app.oss-cn-shanghai.aliyuncs.com/appraisal/2022-1%E6%8C%87%E5%8D%97%E5%85%B1%E8%AF%86.pdf'
                 )
               "
               >考核共识下载</el-button
