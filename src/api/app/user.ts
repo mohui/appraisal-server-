@@ -539,7 +539,8 @@ export default class AppUser {
     /**
      * 1: 删除员工所有机构下和公卫员工关联表
      * 2: 删除员工所有机构下和his员工关联表
-     * 3: 状态改为false
+     * 3: 删除员工所有机构
+     * 4: 状态改为false,机构,科室,手机号置为null
      */
     await appDB.transaction(async () => {
       // 1: 删除员工所有机构下和公卫员工关联表
@@ -564,7 +565,7 @@ export default class AppUser {
         Context.current.user.id
       );
 
-      // 删除机构
+      // 3: 删除员工所有机构
       await appDB.execute(
         // language=PostgreSQL
         `
@@ -574,7 +575,7 @@ export default class AppUser {
         Context.current.user.id
       );
 
-      // 3: 状态改为false
+      // 4: 状态改为false,机构,科室,手机号置为null
       await appDB.execute(
         //language=PostgreSQL
         `
