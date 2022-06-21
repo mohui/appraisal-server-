@@ -226,7 +226,8 @@ export default class HisStaff {
         where COALESCE(areaMapping.staff, '') not in (select staff.id
                                                       from staff
                                                              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-                                                      where areaMapping.area = ?) ${param}
+                                                      where areaMapping.area = ?)
+          and staff.status = true ${param}
       `,
       hospital
     );
@@ -729,6 +730,7 @@ export default class HisStaff {
         left join staff_area_mapping area on staff.id = area.staff
         left join his_department dept on area.department = dept.id
         where area.area = {{? hospital}}
+          and staff.status = true
         {{#if phone}}
             AND staff.phone like {{? phone}}
         {{/if}}
@@ -843,6 +845,7 @@ export default class HisStaff {
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
                left join his_department dept on areaMapping.department = dept.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );

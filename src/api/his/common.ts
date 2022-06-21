@@ -51,6 +51,7 @@ export async function getStaffList(hospital, date) {
              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
       where areaMapping.area in (${hospitalIds.map(() => '?')})
         and staff.created_at <= ?
+        and staff.status = true
     `,
     ...hospitalIds,
     monthEnd

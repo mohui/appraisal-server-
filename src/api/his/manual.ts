@@ -141,6 +141,7 @@ async function manualList(
       from staff
              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
       where areaMapping.area = ?
+        and staff.status = true
       order by staff.created_at
     `,
     hospital
@@ -458,6 +459,7 @@ export default class HisManualData {
                inner join staff s on d.staff = s.id
                inner join staff_area_mapping areaMapping on s.id = areaMapping.staff
         where areaMapping.area = {{? hospitalId}}
+          and s.status = true
           and d.item = {{? id}}
           and d.date >= {{? start}}
           and d.date < {{? end}}
@@ -504,6 +506,7 @@ export default class HisManualData {
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
           order by staff.created_at
         `,
         hospital

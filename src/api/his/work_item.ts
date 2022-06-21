@@ -1468,6 +1468,7 @@ export default class HisWorkItem {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
@@ -2082,6 +2083,7 @@ export default class HisWorkItem {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
@@ -2110,6 +2112,7 @@ export default class HisWorkItem {
                left join staff on mapping.staff = staff.id
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
@@ -2171,6 +2174,7 @@ export default class HisWorkItem {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );

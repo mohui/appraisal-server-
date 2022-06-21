@@ -99,22 +99,46 @@ type SMSCodeDBModel = {
 };
 
 /**
+ * 根据手机号获取员工信息
+ *
+ * @param phone 手机号
+ * @return {
+ *   id: 账号ID,
+ *   password: 密码,
+ *   status: 状态,
+ * }
+ */
+async function getStaffModel(
+  phone
+): Promise<{
+  id: string;
+  password: string;
+  status: boolean;
+}> {
+  return (
+    await appDB.execute(
+      //language=PostgreSQL
+      `
+        select id,
+               password,
+               status
+        from staff
+        where phone = ?
+      `,
+      phone
+    )
+  )[0];
+}
+
+/**
  * 校验手机号是否已经被注册
  *
  * @param phone 手机号
  * @return bool
  */
 async function validPhone(phone): Promise<boolean> {
-  //language=PostgreSQL
-  const userModels = await appDB.execute(
-    `
-      select 1
-      from staff
-      where phone = ?
-    `,
-    phone
-  );
-  return userModels.length === 0;
+  const staffModel = await getStaffModel(phone);
+  return !staffModel;
 }
 
 /**
@@ -295,21 +319,10 @@ export default class AppUser {
    */
   @validate(phoneValidate, passwordValidate)
   async login(phone, password) {
-    const staffModel: {
-      id: string;
-      password: string;
-    } = (
-      await appDB.execute(
-        //language=PostgreSQL
-        `
-          select id, password
-          from staff
-          where phone = ?
-        `,
-        phone
-      )
-    )[0];
+    // 根据手机号获取员工信息
+    const staffModel = await getStaffModel(phone);
     if (!staffModel) throw new KatoLogicError('手机号码不存在', 10003);
+    if (!staffModel.status) throw new KatoCommonError('账号已注销');
     if (staffModel.password !== password)
       throw new KatoLogicError('密码错误', 10001);
 
@@ -514,6 +527,69 @@ export default class AppUser {
     if (Context.current.user.type !== UserType.STAFF)
       throw new KatoCommonError('非员工账号,不能操作');
     return await unbindHospital(area, Context.current.user.id);
+  }
+
+  /**
+   * 逻辑注销账号
+   */
+  async cancel() {
+    if (Context.current.user.type !== UserType.STAFF)
+      throw new KatoCommonError('非员工账号,不能操作');
+
+    /**
+     * 1: 删除员工所有机构下和公卫员工关联表
+     * 2: 删除员工所有机构下和his员工关联表
+     * 3: 删除员工所有机构
+     * 4: 状态改为false,机构,科室,手机号置为null
+     */
+    await appDB.transaction(async () => {
+      // 1: 删除员工所有机构下和公卫员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_ph_mapping
+          where staff = ?
+        `,
+        Context.current.user.id
+      );
+
+      // 2: 删除员工所有机构下和his员工关联表
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_his_mapping
+          where staff = ?
+        `,
+        Context.current.user.id
+      );
+
+      // 3: 删除员工所有机构
+      await appDB.execute(
+        // language=PostgreSQL
+        `
+          delete
+          from staff_area_mapping
+          where staff = ?`,
+        Context.current.user.id
+      );
+
+      // 4: 状态改为false,机构,科室,手机号置为null
+      await appDB.execute(
+        //language=PostgreSQL
+        `
+          update staff
+          set status     = false,
+              hospital   = null,
+              department = null,
+              phone      = null,
+              updated_at = now()
+          where id = ?
+        `,
+        Context.current.user.id
+      );
+    });
   }
 
   /**
@@ -868,18 +944,7 @@ export default class AppUser {
       throw new KatoCommonError('微信服务器抖动, 请稍后再试');
     }
     // 查询用户
-    const userModel = (
-      await appDB.execute(
-        // language=PostgreSQL
-        `
-          select id
-          from staff
-          where phone = ?
-          limit 1
-        `,
-        result.purePhoneNumber
-      )
-    )[0];
+    const userModel = await getStaffModel(result.purePhoneNumber);
     // 用户不存在, 直接注册
     if (!userModel) {
       const id = uuid();
@@ -895,7 +960,7 @@ export default class AppUser {
       userModel.id = id;
     }
     return {
-      ...userModel,
+      id: userModel.id,
       token: userModel.id
     };
   }

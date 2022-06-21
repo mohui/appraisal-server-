@@ -122,6 +122,7 @@ export async function workPointCalculation(
                left join area on areaMapping.area = area.code
         where staff.id = ?
           and areaMapping.area = ?
+          and staff.status = true
       `,
       staff,
       hospital
@@ -175,6 +176,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
             and areaMapping.department in (${depIds.map(() => '?')})`,
         hospital,
         ...depIds
@@ -196,6 +198,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
             and ((areaMapping.department is not null and areaMapping.department = ?)
             or staff.id = ?)`,
         hospital,
@@ -213,6 +216,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
         `,
         staffModel.hospital
       );
@@ -657,6 +661,7 @@ from his_staff_manual_data_detail smdd
 where smdd.date >= {{? start}}
   and smdd.date < {{? end}}
   and areaMapping.area = {{? hospital}}
+  and staff.status = true
 group by smdd.item, smdd.staff
       `,
     {
@@ -873,6 +878,7 @@ export default class HisScore {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       id
     );
@@ -2080,6 +2086,7 @@ export default class HisScore {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
@@ -2125,7 +2132,9 @@ export default class HisScore {
                left join his_work_item_staff_mapping wism on swim.item = wism.item
                left join his_work_item_type type on wi.item_type = type.id
                inner join staff_area_mapping areaMapping on swim.staff = areaMapping.staff
+               inner join staff on areaMapping.staff = staff.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital,
       hospital
