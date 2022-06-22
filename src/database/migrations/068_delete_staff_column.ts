@@ -3,7 +3,7 @@ import {ExtendedSequelize} from '../client';
 
 export class DeleteStaffColumn implements IMigration {
   name = '员工表删除员工关联字段';
-  version = 67;
+  version = 68;
 
   async up(client: ExtendedSequelize): Promise<void> {
     // language=PostgreSQL
