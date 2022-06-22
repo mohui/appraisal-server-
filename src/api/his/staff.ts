@@ -223,12 +223,11 @@ export default class HisStaff {
                staff.updated_at
         from staff
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where COALESCE(areaMapping.staff, '') not in (
-          select staff.id
-          from staff
-                 inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-          where areaMapping.area = ?
-        ) ${param}
+        where COALESCE(areaMapping.staff, '') not in (select staff.id
+                                                      from staff
+                                                             inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
+                                                      where areaMapping.area = ?)
+          and staff.status = true ${param}
       `,
       hospital
     );
@@ -269,10 +268,10 @@ export default class HisStaff {
       staffs = await appDB.execute(
         // language=PostgreSQL
         `
-      select his_staff
-      from staff_his_mapping
-      where his_staff in (${hisStaffIds.map(() => '?')})
-    `,
+          select his_staff
+          from staff_his_mapping
+          where his_staff in (${hisStaffIds.map(() => '?')})
+        `,
         ...hisStaffIds
       );
     }
@@ -308,10 +307,10 @@ export default class HisStaff {
       staffs = await appDB.execute(
         // language=PostgreSQL
         `
-        select ph_staff "phStaff"
-        from staff_ph_mapping
-        where ph_staff in (${phStaffIds.map(() => '?')})
-      `,
+          select ph_staff "phStaff"
+          from staff_ph_mapping
+          where ph_staff in (${phStaffIds.map(() => '?')})
+        `,
         ...phStaffIds
       );
     }
@@ -362,17 +361,17 @@ export default class HisStaff {
     }[] = await appDB.execute(
       // language=PostgreSQL
       `
-        select staff.id,
-               staff.name,
-               staff.phone,
-               staff.gender,
-               hisMapping.his_staff,
-               area.area
-        from staff
-               left join staff_area_mapping area on staff.id = area.staff
-               left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
-        where staff.id = ?
-      `,
+          select staff.id,
+                 staff.name,
+                 staff.phone,
+                 staff.gender,
+                 hisMapping.his_staff,
+                 area.area
+          from staff
+                 left join staff_area_mapping area on staff.id = area.staff
+                 left join staff_his_mapping hisMapping on staff.id = hisMapping.staff
+          where staff.id = ?
+        `,
       id
     );
     if (staffModels.length === 0) throw new KatoRuntimeError(`该员工不存在`);
@@ -632,10 +631,10 @@ export default class HisStaff {
         await appDB.execute(
           // language=PostgreSQL
           `
-          delete
-          from staff_ph_mapping
-          where staff = ?
-            and ph_staff in (${phStaffIds.map(() => '?')})
+            delete
+            from staff_ph_mapping
+            where staff = ?
+              and ph_staff in (${phStaffIds.map(() => '?')})
           `,
           id,
           ...phStaffIds
@@ -647,10 +646,10 @@ export default class HisStaff {
         await appDB.execute(
           // language=PostgreSQL
           `
-          delete
-          from staff_his_mapping
-          where staff = ?
-          and his_staff in (${hisStaffIds.map(() => '?')})
+            delete
+            from staff_his_mapping
+            where staff = ?
+              and his_staff in (${hisStaffIds.map(() => '?')})
           `,
           id,
           ...hisStaffIds
@@ -731,6 +730,7 @@ export default class HisStaff {
         left join staff_area_mapping area on staff.id = area.staff
         left join his_department dept on area.department = dept.id
         where area.area = {{? hospital}}
+          and staff.status = true
         {{#if phone}}
             AND staff.phone like {{? phone}}
         {{/if}}
@@ -845,6 +845,7 @@ export default class HisStaff {
                left join staff_area_mapping areaMapping on staff.id = areaMapping.staff
                left join his_department dept on areaMapping.department = dept.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );

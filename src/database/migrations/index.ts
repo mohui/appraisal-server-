@@ -66,6 +66,7 @@ import {UpdateNewsCrawledDefault} from './063_update_news_crawled_default';
 import {AddManualOrder} from './064_add_manual_order';
 import {AddHospitalSettleRemark} from './065_add_hospital_settle_remark';
 import {AddStaffRequestHide} from './066_add_staff_request_hide';
+import {AddStaffStatus} from './067_add_staff_status';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -135,5 +136,6 @@ export const migrations: IMigration[] = [
   new UpdateNewsCrawledDefault(),
   new AddManualOrder(),
   new AddHospitalSettleRemark(),
-  new AddStaffRequestHide()
+  new AddStaffRequestHide(),
+  new AddStaffStatus()
 ];

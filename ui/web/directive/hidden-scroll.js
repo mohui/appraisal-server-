@@ -5,6 +5,9 @@ let timers = []; //用来存各个组件的timer
 Vue.directive('hidden-scroll', {
   inserted(el, binding, vnode) {
     let targetComp = null;
+    const isWindows = navigator.userAgent.match(/Windows/i);
+    //Windows平台直接跳过
+    if (isWindows) return;
     //如果是el-table,则要获取下面一层的table-body
     if (vnode.elm.classList.contains('el-table')) {
       targetComp = vnode.elm.getElementsByClassName(tableBodyClass)[0];
@@ -12,6 +15,7 @@ Vue.directive('hidden-scroll', {
     if (!targetComp) targetComp = vnode.elm;
     //开始监听滚动
     if (targetComp) {
+      targetComp.classList.add('kn-appraisal-scroll');
       //随机生成的id
       const tagId = 'tag_' + Math.floor(Math.random() * 1000);
       let timerObj = {timer: null};

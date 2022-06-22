@@ -182,8 +182,8 @@ export default class AppArea {
               {{#if status}} and request.status = {{? status}} {{/if}}
               {{#if name}}  and staff.name like {{? name}} {{/if}}
         order by (
-            case when status = '${RequestStatus.PENDING}' then 1
-                when status = '${RequestStatus.SUCCESS}' then 2
+            case when request.status = '${RequestStatus.PENDING}' then 1
+                when request.status = '${RequestStatus.SUCCESS}' then 2
                 else 3 end
             ), created_at desc;
       `,

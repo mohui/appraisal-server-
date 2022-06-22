@@ -53,7 +53,6 @@
         v-hidden-scroll
         border
         stripe
-        show-footer
         :footer-span-method="footerRowspanMethod"
         :footer-method="footerMethod"
         :data="list"
@@ -67,7 +66,7 @@
           isChecked: true
         }"
         :edit-config="{trigger: 'click', mode: 'cell', showIcon: false}"
-        :max-height="this.remark ? '86%' : '96%'"
+        max-height="96%"
       >
         <vxe-column
           type="seq"

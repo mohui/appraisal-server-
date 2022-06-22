@@ -122,6 +122,7 @@ export async function workPointCalculation(
                left join area on areaMapping.area = area.code
         where staff.id = ?
           and areaMapping.area = ?
+          and staff.status = true
       `,
       staff,
       hospital
@@ -175,6 +176,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
             and areaMapping.department in (${depIds.map(() => '?')})`,
         hospital,
         ...depIds
@@ -196,6 +198,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
             and ((areaMapping.department is not null and areaMapping.department = ?)
             or staff.id = ?)`,
         hospital,
@@ -213,6 +216,7 @@ export async function workPointCalculation(
           from staff
                  inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
           where areaMapping.area = ?
+            and staff.status = true
         `,
         staffModel.hospital
       );
@@ -458,13 +462,13 @@ export async function workPointCalculation(
       `
           select 1 as value,
             {{dateCol}} as date,
-            {{#if scope}} main.operatorid {{else}} main.OperateOrganization {{/if}} as hospital
+            {{#if scope}} {{userColumn}} {{else}} main.OperateOrganization {{/if}} as hospital
           from {{table}}
           where 1 = 1
             and {{dateCol}} >= {{? start}}
             and {{dateCol}} < {{? end}}
             and main.OperateOrganization = {{? hospital}}
-            {{#if scope}}and main.operatorid in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
+            {{#if scope}}and {{userColumn}} in ({{#each phStaff}}{{? this}}{{#sep}}, {{/sep}}{{/each}}){{/if}}
             {{#each columns}}and {{this}} {{/each}}
           `,
       {
@@ -475,7 +479,8 @@ export async function workPointCalculation(
         scope: param.scope === HisStaffDeptType.Staff ? param.scope : null,
         phStaff: phStaff,
         start,
-        end
+        end,
+        userColumn: item.datasource.user
       }
     );
 
@@ -656,6 +661,7 @@ from his_staff_manual_data_detail smdd
 where smdd.date >= {{? start}}
   and smdd.date < {{? end}}
   and areaMapping.area = {{? hospital}}
+  and staff.status = true
 group by smdd.item, smdd.staff
       `,
     {
@@ -671,14 +677,14 @@ group by smdd.item, smdd.staff
     //获取公卫数据工分来源
     sql = sqlRender(
       `
-select {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}}as ph_staff, count(*) as value
+select {{userColumn}} as ph_staff, count(*) as value
 from {{table}}
-  {{#if scope}} inner join ph_user pu on pu.id = {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}} {{/if}}
+  {{#if scope}} inner join ph_user pu on pu.id = {{userColumn}} {{/if}}
 where {{dateCol}} >= {{? start}}
   and {{dateCol}} < {{? end}}
   {{#if scope}}and pu.hospital = {{? hospital}} {{else}}and main.OperateOrganization = {{? hospital}} {{/if}}
   {{#each columns}}and {{this}} {{/each}}
-  group by {{#if groupByColumn}} {{groupByColumn}} {{else}} main.operatorid {{/if}}
+  group by {{userColumn}}
           `,
       {
         hospital,
@@ -687,10 +693,7 @@ where {{dateCol}} >= {{? start}}
         table: row.datasource.table,
         dateCol: row.datasource.date,
         columns: row.datasource.columns,
-        groupByColumn:
-          row.datasource.table === `ph_health_education main`
-            ? 'main.addoperatorid'
-            : null,
+        userColumn: row.datasource.user,
         scope: row.scope
       }
     );
@@ -875,6 +878,7 @@ export default class HisScore {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       id
     );
@@ -2082,6 +2086,7 @@ export default class HisScore {
         from staff
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital
     );
@@ -2127,7 +2132,9 @@ export default class HisScore {
                left join his_work_item_staff_mapping wism on swim.item = wism.item
                left join his_work_item_type type on wi.item_type = type.id
                inner join staff_area_mapping areaMapping on swim.staff = areaMapping.staff
+               inner join staff on areaMapping.staff = staff.id
         where areaMapping.area = ?
+          and staff.status = true
       `,
       hospital,
       hospital
