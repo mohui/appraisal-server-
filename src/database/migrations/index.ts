@@ -67,6 +67,7 @@ import {AddManualOrder} from './064_add_manual_order';
 import {AddHospitalSettleRemark} from './065_add_hospital_settle_remark';
 import {AddStaffRequestHide} from './066_add_staff_request_hide';
 import {AddStaffStatus} from './067_add_staff_status';
+import {DeleteStaffColumn} from './068_delete_staff_column';
 
 //定义好的数据迁移任务放入到数组中,顺序任意
 export const migrations: IMigration[] = [
@@ -137,5 +138,6 @@ export const migrations: IMigration[] = [
   new AddManualOrder(),
   new AddHospitalSettleRemark(),
   new AddStaffRequestHide(),
-  new AddStaffStatus()
+  new AddStaffStatus(),
+  new DeleteStaffColumn()
 ];
