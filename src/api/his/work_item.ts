@@ -2116,6 +2116,7 @@ export default class HisWorkItem {
           and item.hospital = ?
           and staff.status = true
       `,
+      hospital,
       hospital
     );
 
