@@ -2109,9 +2109,10 @@ export default class HisWorkItem {
                mapping.rate,
                mapping.remark
         from his_staff_work_item_mapping mapping
-               left join staff on mapping.staff = staff.id
+               inner join his_work_item item on mapping.item = item.id
+               inner join staff on mapping.staff = staff.id
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where areaMapping.area = ?
+        where item.hospital = ?
           and staff.status = true
       `,
       hospital
