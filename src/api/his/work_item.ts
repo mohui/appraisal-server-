@@ -2112,7 +2112,8 @@ export default class HisWorkItem {
                inner join his_work_item item on mapping.item = item.id
                inner join staff on mapping.staff = staff.id
                inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
-        where item.hospital = ?
+        where areaMapping.area = ?
+          and item.hospital = ?
           and staff.status = true
       `,
       hospital
