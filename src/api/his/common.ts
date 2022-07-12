@@ -34,19 +34,50 @@ export async function getStaffList(hospital, date) {
   // 获取机构id
   const hospitalIds = hospitals.map(it => it.code);
 
+  // 获取机构下所有his员工
+  const hisStaffModels = await originalDB.execute(
+    // language=PostgreSQL
+    `
+      select id,
+             name
+      from his_staff
+      where hospital in (${hospitalIds.map(() => '?')})
+    `,
+    ...hospitalIds
+  );
+  // 获取his员工ID
+  const hisStaffIds = hisStaffModels.map(it => it.id);
+
+  // his员工和员工关联
+  let hisStaffs = [];
+  if (hisStaffIds.length > 0) {
+    hisStaffs = await appDB.execute(
+      // language=PostgreSQL
+      `
+        select his.staff, his.his_staff, area.area
+        from staff_area_mapping area
+               inner join staff_his_mapping his on area.staff = his.staff
+        where area.area in (${hospitalIds.map(() => '?')})
+          and his.his_staff in (${hisStaffIds.map(() => '?')})
+      `,
+      ...hospitalIds,
+      ...hisStaffIds
+    );
+  }
+
   // 查询员工信息
   const staffModels = await appDB.execute(
     // language=PostgreSQL
     `
       select staff.id,
              staff.account,
-             staff.staff,
              staff.name,
              staff.major,
              staff.title,
              staff.education,
              staff."isGP",
-             staff.created_at
+             staff.created_at,
+             areaMapping.area
       from staff
              inner join staff_area_mapping areaMapping on staff.id = areaMapping.staff
       where areaMapping.area in (${hospitalIds.map(() => '?')})
@@ -67,8 +98,13 @@ export async function getStaffList(hospital, date) {
         titleIt => titleIt.name === it.title
       );
     }
+    // 查找此员工所绑定的his员工
+    const hisFind = hisStaffs.find(
+      hisIt => hisIt.staff === it.id && hisIt.area === it.area
+    );
     return {
       ...it,
+      staff: hisFind?.his_staff ?? null,
       majorType: findIndex?.majorType ?? null,
       doctorType: findIndex?.doctorType ?? null,
       majorHealthType: findIndex?.majorHealthType ?? null,
