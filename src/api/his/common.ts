@@ -44,7 +44,36 @@ import {getHospitals} from '../group/common';
  *     }]
  *   }
  */
-export async function getStaffList(hospital, date) {
+export async function getStaffList(
+  hospital,
+  date
+): Promise<{
+  GPCount: number;
+  increasesGPCount: number;
+  nurseCount: number;
+  physicianCount: number;
+  bachelorCount: number;
+  healthWorkersCount: number;
+  highTitleCount: number;
+  TCMCount: number;
+  staffCount: number;
+  TCMList: {
+    id: string;
+    account?: string;
+    name?: string;
+    major?: string;
+    title?: string;
+    education?: string;
+    isGP: boolean;
+    created_at: Date;
+    area: string;
+    staff?: string;
+    majorType?: string;
+    doctorType?: string;
+    majorHealthType?: string;
+    level?: string;
+  }[];
+}> {
   // region 员工信息
 
   // 年份的开始时间
