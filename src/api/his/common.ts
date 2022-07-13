@@ -12,10 +12,37 @@ import {monthToRange} from './service';
 import {getHospitals} from '../group/common';
 
 /**
- * 员工信息
+ * 员工统计信息
  *
- * @param hospital 机构id
+ * @param hospital 地区ID
  * @param date 时间
+ * @return {
+ *     GPCount: 基层医疗卫生机构全科医生数
+ *     increasesGPCount: 基层医疗卫生机构全科医生增长数
+ *     nurseCount: 护士数量
+ *     physicianCount: 医师数量
+ *     bachelorCount: 本科及以上卫生技术人员数
+ *     healthWorkersCount: 同期卫生技术人员总数
+ *     highTitleCount: 具有高级职称的卫生技术人员数
+ *     TCMCount: 中医数量
+ *     staffCount: 所有职工数量
+ *     TCMList: [{
+ *       id: 员工ID
+ *       account: 员工账号
+ *       name: 员工名称
+ *       major: 专业类别
+ *       title: 职称名称
+ *       education: 学历
+ *       isGP: 是否为全科医师
+ *       created_at: 创建时间
+ *       area: 所属机构
+ *       staff: his员工id
+ *       majorType: 职称 类型
+ *       doctorType: 医生类型
+ *       majorHealthType: 是否是卫生技术人员
+ *       level: 职称
+ *     }]
+ *   }
  */
 export async function getStaffList(hospital, date) {
   // region 员工信息
